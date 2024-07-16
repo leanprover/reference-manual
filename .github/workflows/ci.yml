@@ -1,0 +1,126 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: Build and deploy sites
+
+jobs:
+  build:
+    name: Build site and generate HTML
+    runs-on: ubuntu-latest
+    outputs:
+      ref-url: ${{ steps.deploy.outputs.deploy-url }}
+
+    steps:
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.LEANDOC_KEY }}
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/checkout@v4
+
+      - name: Lean Version
+        run: |
+          lean --version
+
+      - name: Cache .lake
+        uses: actions/cache@v3
+        with:
+          path: .lake
+          key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
+
+      - name: Build
+        run: |
+          lake build
+
+      - name: Generate HTML
+        run: |
+          lake exe generate-manual --depth 2
+
+      - name: Offline link checker
+        uses: lycheeverse/lychee-action@v1.9.0
+        with:
+          args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
+
+      # deploy-alias computes a stable, but difficult-to-guess, URL component
+      # for the PR preview. This is so we can have a stable name to use for
+      # feedback on draft material, but at the same time we avoid having
+      # something guessable by outsiders.
+      #
+      # SALT is a repository secret that contains some arbitrary string.
+      - id: deploy-alias
+        uses: actions/github-script@v7
+        name: Compute Alias
+        with:
+          script: |
+            var crypto = require('crypto');
+            if (process.env.PR && process.env.SALT) {
+                var hash = crypto.createHash('sha256')
+                  .update(process.env.PR)
+                  .update(process.env.SALT)
+                  .digest('hex')
+                  .slice(0,8);
+                return `pr-${process.env.PR}-${hash}`
+            }
+        env:
+          PR: ${{ github.event.number }}
+          SALT: ${{ secrets.SALT }}
+
+        # deploy-info computes metadata that's shown in the Netlify interface
+        # about the deployment (for non-PR deploys)
+      - id: deploy-info
+        name: Compute Deployment Metadata
+        if: github.event_name != 'pull_request'
+        run: |
+          set -e
+          echo "message=$(git log -1 --pretty=format:"%s")" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy
+        id: deploy
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: _out/html-multi
+          production-branch: master
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: |
+            ${{ github.event_name == 'pull_request' && format('pr#{0}: {1}', github.event.number, github.event.pull_request.title) || format('ref/{0}: {1}', github.ref_name, steps.deploy-info.outputs.message) }}
+          alias: ${{ steps.deploy-alias.outputs.result }}
+          enable-commit-comment: false
+          enable-pull-request-comment: false
+          github-deployment-environment: |
+            ${{ github.event_name == 'pull_request' && format('lean-ref-pr-#{0}', github.event.number) || 'lean-ref' }}
+          fails-without-credentials: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
+
+
+  check-links:
+    name: Check links
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .skip-link-check
+
+      - name: Online link checker
+        uses: filiph/linkcheck@2.0.23
+        continue-on-error: true
+        with:
+          arguments: --skip-file .skip-link-check -e ${{ needs.build.outputs.ref-url }}
