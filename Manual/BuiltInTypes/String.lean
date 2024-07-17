@@ -29,6 +29,9 @@ The fact that strings are internally represented as UTF-8-encoded byte arrays is
 {include 0 Manual.BuiltInTypes.String.Logical}
 
 # Run-Time Representation
+%%%
+tag := "string-runtime"
+%%%
 
 :::figure "Memory layout of strings" (name := "stringffi")
 ![Memory layout of strings](/static/figures/string.svg)
@@ -239,8 +242,9 @@ This is because they must implement the conversions between lists of characters 
 tag := "string-iterators"
 %%%
 
-Fundamentally, a string iterator is a pair of a string and a valid position in the string.
-
+Fundamentally, a {name}`String.Iterator` is a pair of a string and a valid position in the string.
+Iterators provide functions for getting the current character ({name String.Iterator.curr}`curr`), replacing the current character ({name String.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Iterator.hasPrev}`hasPrev` and {name String.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Iterator.prev}`prev` and {name String.Iterator.next}`next`, respectively).
+Clients are responsible for checking whether they've reached the beginning or end of the string; otherwise, the iterator ensures that its position always points at a character.
 
 {docstring String.Iterator}
 

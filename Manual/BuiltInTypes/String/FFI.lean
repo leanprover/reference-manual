@@ -24,7 +24,7 @@ typedef struct {
     char        m_data[0];
 } lean_string_object;
 ```
-TODO xref to runtime representation above
+The representation of strings in C. See {ref "string-runtime"}[the description of run-time {name}`String`s] for more details.
 :::
 
 :::ffi "lean_is_string"
