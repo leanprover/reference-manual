@@ -8,6 +8,7 @@ import Verso.Genre.Manual
 import Verso.Code
 
 import SubVerso.Highlighting
+import SubVerso.Examples
 
 import Manual.Meta.Figure
 
@@ -18,6 +19,46 @@ open SubVerso.Highlighting Highlighted
 open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
+
+@[directive_expander comment]
+def comment : DirectiveExpander
+  | _, _ => pure #[]
+
+def Block.TODO : Block where
+  name := `Manual.TODO
+
+@[directive_expander TODO]
+def TODO : DirectiveExpander
+  | args, blocks => do
+    ArgParse.done.run args
+    let content ← blocks.mapM elabBlock
+    pure #[← `(Doc.Block.other Block.TODO #[$content,*])]
+
+@[block_extension TODO]
+def TODO.descr : BlockDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  extraCss := [r#"
+.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{<div class="TODO">{{← content.mapM goB}}</div>}}
 
 @[role_expander versionString]
 def versionString : RoleExpander
@@ -41,6 +82,9 @@ initialize leanOutputs : EnvExtension (NameMap (List (MessageSeverity × String)
   registerEnvExtension (pure {})
 
 def Block.lean : Block where
+  name := `Manual.lean
+
+def Inline.lean : Inline where
   name := `Manual.lean
 
 structure LeanBlockConfig where
@@ -125,6 +169,81 @@ def lean : CodeBlockExpander
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
 
+@[role_expander lean]
+def leanInline : RoleExpander
+  | args, inlines => do
+    let config ← LeanBlockConfig.parse.run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code{ $term:str }) := arg
+      | throwErrorAt arg "Expected code literal with the example name"
+    let altStr ← parserInputString term
+
+    match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
+    | .error e => throwErrorAt term e
+    | .ok stx =>
+      let (newMsgs, tree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+        let initMsgs ← Core.getMessageLog
+        try
+          discard <| Elab.Term.elabTerm stx none
+          Core.getMessageLog
+        finally
+          Core.setMessageLog initMsgs
+
+      if let some name := config.name then
+        let msgs ← newMsgs.toList.mapM fun msg => do
+
+          let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+          let txt := withNewline <| head ++ (← msg.data.toString)
+
+          pure (msg.severity, txt)
+        modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
+
+      match config.error with
+      | none =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+      | some true =>
+        if newMsgs.hasErrors then
+          for msg in newMsgs.errorsToWarnings.toArray do
+            logMessage msg
+        else
+          throwErrorAt term "Error expected in code, but none occurred"
+      | some false =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+        if newMsgs.hasErrors then
+          throwErrorAt term "No error expected in code, one occurred"
+
+      let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
+
+      if config.show.getD true then
+        pure #[← `(Inline.other {Inline.lean with data := ToJson.toJson $(quote hls)} #[Inline.code $(quote term.getString)])]
+      else
+        pure #[]
+where
+  withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
+    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
+    let ctx := PartialContextInfo.commandCtx {
+      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
+      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
+    }
+    return InfoTree.context ctx tree
+
+  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
+    modifyInfoState fun s => { s with trees := f s.trees }
+
+  -- TODO - consider how to upstream this
+  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
+    let treesSaved ← getResetInfoTrees
+    MonadFinally.tryFinally' x fun _ => do
+      let st    ← getInfoState
+      let tree  ← mkInfoTree st.trees
+      modifyInfoTrees fun _ => treesSaved.push tree
+      pure tree
+
+
 
 @[block_extension lean]
 def lean.descr : BlockDescr where
@@ -143,7 +262,83 @@ def lean.descr : BlockDescr where
     some <| fun _ _ _ data _ => do
       match FromJson.fromJson? data with
       | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean code while rendering HTML: " ++ err
+        HtmlT.logError <| "Couldn't deserialize Lean code block while rendering HTML: " ++ err
+        pure .empty
+      | .ok (hl : Highlighted) =>
+        hl.blockHtml "examples"
+
+
+@[inline_extension lean]
+def lean.inlinedescr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX :=
+    some <| fun go _ _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  extraCss := [highlightingStyle]
+  extraJs := [highlightingJs]
+  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ _ data _ => do
+      match FromJson.fromJson? data with
+      | .error err =>
+        HtmlT.logError <| "Couldn't deserialize Lean code while rendering inline HTML: " ++ err
+        pure .empty
+      | .ok (hl : Highlighted) =>
+        hl.inlineHtml "examples"
+
+
+def Block.signature : Block where
+  name := `Manual.signature
+
+declare_syntax_cat signature_spec
+syntax ("def" <|> "theorem")? declId declSig : signature_spec
+
+@[code_block_expander signature]
+def signature : CodeBlockExpander
+  | args, str => do
+    ArgParse.done.run args
+    let altStr ← parserInputString str
+
+    match Parser.runParserCategory (← getEnv) `signature_spec altStr (← getFileName) with
+    | .error e => throwError e
+    | .ok stx =>
+      let `(signature_spec|$[$kw]? $name:declId $sig:declSig) := stx
+        | throwError m!"Didn't understand parsed signature: {indentD stx}"
+      let cmdCtx : Command.Context := {
+        fileName := ← getFileName,
+        fileMap := ← getFileMap,
+        tacticCache? := none,
+        snap? := none,
+        cancelTk? := none
+      }
+      let cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, infoState := ← getInfoState}
+      let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
+      setInfoState st'.infoState
+
+      pure #[← `(Block.other {Block.signature with data := ToJson.toJson $(quote (Highlighted.seq hls))} #[Block.code $(quote str.getString)])]
+
+@[block_extension signature]
+def signature.descr : BlockDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX :=
+    some <| fun _ go _ _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  extraCss := [highlightingStyle]
+  extraJs := [highlightingJs]
+  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ _ _ data _ => do
+      match FromJson.fromJson? data with
+      | .error err =>
+        HtmlT.logError <| "Couldn't deserialize Lean code while rendering HTML signature: " ++ err ++ "\n" ++ toString data
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.blockHtml "examples"

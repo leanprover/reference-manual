@@ -27,7 +27,6 @@ target figures : Array FilePath := do
     | some "tex" => some f.path
     | _ => none
   let files := files.qsort (toString · < toString ·)
-  IO.println files
   let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile')
   let traceFile := figureDir.join "lake.trace"
   liftM <| srcs.bindSync fun srcInfo depTrace => do
