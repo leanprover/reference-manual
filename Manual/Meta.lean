@@ -185,6 +185,7 @@ def leanInline : RoleExpander
       let (newMsgs, tree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
         let initMsgs ← Core.getMessageLog
         try
+          Core.resetMessageLog
           discard <| Elab.Term.elabTerm stx none
           Core.getMessageLog
         finally
