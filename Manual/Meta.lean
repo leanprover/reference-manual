@@ -10,7 +10,9 @@ import Verso.Code
 import SubVerso.Highlighting
 import SubVerso.Examples
 
+import Manual.Meta.Basic
 import Manual.Meta.Figure
+import Manual.Meta.Syntax
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -27,6 +29,9 @@ def comment : DirectiveExpander
 def Block.TODO : Block where
   name := `Manual.TODO
 
+def Inline.TODO : Inline where
+  name := `Manual.TODO
+
 @[directive_expander TODO]
 def TODO : DirectiveExpander
   | args, blocks => do
@@ -34,17 +39,25 @@ def TODO : DirectiveExpander
     let content ← blocks.mapM elabBlock
     pure #[← `(Doc.Block.other Block.TODO #[$content,*])]
 
+@[role_expander TODO]
+def TODOinline : RoleExpander
+  | args, inlines => do
+    ArgParse.done.run args
+    let content ← inlines.mapM elabInline
+    pure #[← `(Doc.Inline.other Inline.TODO #[$content,*])]
+
+
 @[block_extension TODO]
 def TODO.descr : BlockDescr where
   traverse _ _ _ := do
     pure none
   toTeX := none
   extraCss := [r#"
-.TODO {
+div.TODO {
   border: 5px solid red;
   position: relative;
 }
-.TODO::before {
+div.TODO::before {
   content: "TODO";
   position: absolute;
   top: 0;
@@ -60,23 +73,34 @@ def TODO.descr : BlockDescr where
     some <| fun _ goB _ _ content => do
       pure {{<div class="TODO">{{← content.mapM goB}}</div>}}
 
+@[inline_extension TODO]
+def TODO.inlineDescr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  extraCss := [r#"
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun go _ _ content => do
+      pure {{<span class="TODO">{{← content.mapM go}}</span>}}
+
+
 @[role_expander versionString]
 def versionString : RoleExpander
   | #[], #[] => do pure #[← ``(Verso.Doc.Inline.text $(quote Lean.versionString))]
   | _, _ => throwError "Unexpected arguments"
-
-def parserInputString [Monad m] [MonadFileMap m] (str : TSyntax `str) : m String := do
-  let preString := (← getFileMap).source.extract 0 (str.raw.getPos?.getD 0)
-  let mut code := ""
-  let mut iter := preString.iter
-  while !iter.atEnd do
-    if iter.curr == '\n' then code := code.push '\n'
-    else
-      for _ in [0:iter.curr.utf8Size] do
-        code := code.push ' '
-    iter := iter.next
-  code := code ++ str.getString
-  return code
 
 initialize leanOutputs : EnvExtension (NameMap (List (MessageSeverity × String))) ←
   registerEnvExtension (pure {})
@@ -131,6 +155,19 @@ def lean : CodeBlockExpander
       for t in cmdState.infoState.trees do
         pushInfoTree t
 
+
+      let mut hls := Highlighted.empty
+      for cmd in cmds do
+        hls := hls ++ (← highlight cmd cmdState.messages.toArray cmdState.infoState.trees)
+
+      if config.show.getD true then
+        pure #[← `(Block.other {Block.lean with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])]
+      else
+        pure #[]
+    finally
+      if !config.keep.getD true then
+        setEnv origEnv
+
       if let some name := config.name then
         let msgs ← cmdState.messages.toList.mapM fun msg => do
 
@@ -155,17 +192,6 @@ def lean : CodeBlockExpander
           logMessage msg
         if cmdState.messages.hasErrors then
           throwErrorAt str "No error expected in code block, one occurred"
-
-      let mut hls := Highlighted.empty
-      for cmd in cmds do
-        hls := hls ++ (← highlight cmd cmdState.messages.toArray cmdState.infoState.trees)
-
-      if config.show.getD true then
-        pure #[← `(Block.other {Block.lean with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])]
-      else
-        pure #[]
-    finally
-      if !config.keep.getD true then setEnv origEnv
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
 
@@ -394,25 +420,6 @@ def syntaxError : CodeBlockExpander
         (.error, mkErrorStringWithPos  "<example>" pos msg)
       modifyEnv (leanOutputs.modifyState · (·.insert config.name msgs))
       return #[← `(Block.other {Block.syntaxError with data := ToJson.toJson ($(quote s), $(quote es))} #[Block.code $(quote s)])]
-where
-  toErrorMsg (ctx : InputContext) (s : ParserState) : List (Position × String) := Id.run do
-    let mut errs := []
-    for (pos, _stk, err) in s.allErrors do
-      let pos := ctx.fileMap.toPosition pos
-      errs := (pos, toString err) :: errs
-    errs.reverse
-
-  runParserCategory (env : Environment) (opts : Lean.Options) (catName : Name) (input : String) : Except (List (Position × String)) Syntax :=
-    let fileName := "<example>"
-    let p := andthenFn whitespace (categoryParserFnImpl catName)
-    let ictx := mkInputContext input fileName
-    let s := p.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
-    if !s.allErrors.isEmpty  then
-      Except.error (toErrorMsg ictx s)
-    else if ictx.input.atEnd s.pos then
-      Except.ok s.stxStack.back
-    else
-      Except.error (toErrorMsg ictx (s.mkError "end of input"))
 
 @[block_extension syntaxError]
 def syntaxError.descr : BlockDescr where

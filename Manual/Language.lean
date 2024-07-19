@@ -216,11 +216,87 @@ If `B : Prop`, then the function type is itself a `Prop`; otherwise, the functio
 #### Universe Variable Bindings
 
 Universe-polymorphic definitions bind universe variables.
+These bindings may be either explicit or implicit.
+Explicit universe variable binding and instantiaion occurs as a suffix to the definition's name, as in the following declaration of `map`, which declares two universe parameters (`u` and `v`) and instantiates the polymorphic `List` with each in turn:
+```lean (keep := false)
+def map.{u} {α : Type u} {β : Type v} (f : α → β) : List.{u} α → List.{v} β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
 
-:::TODO
- * `universe` command
- * exact rules for binding universe vars
+Just as Lean automatically instantiates implicit parameters, it also automatically instantiates universe parameters:
+```lean (keep := false)
+def map.{u} {α : Type u} {β : Type v} (f : α → β) : List α → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+When the {TODO}[describe this option and add xref] `autoImplicits` option is set, it is not necessary to explicitly bind universe variables:
+```lean (keep := false)
+set_option autoImplicit true
+def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+Without this setting, the definition is rejected because `u` and `v` are not in scope:
+```lean (error := true) (name := uv)
+set_option autoImplicit false
+def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+```leanOutput uv
+unknown universe level 'u'
+```
+```leanOutput uv
+unknown universe level 'v'
+```
+
+In addition to using `autoImplicit`, particular identifiers can be declared as universe variables in a particular {tech}[scope] using the `universe` command.
+
+:::syntax Lean.Parser.Command.universe
+```grammar
+universe $x:ident $xs:ident*
+```
+
+Declares one or more universe variables for the extent of the current scope.
+
+Just as the `variable` command causes a particular identifier to be treated as a parameter with a paricular type, the `universe` command causes the subsequent identifiers to be treated consistently as universe parameters, even if they are not mentioned in a signature or if the option `autoImplicit` is {lean}`false`.
 :::
+
+When `u` is declared to be a universe variable, it can be used as a parameter.
+```lean
+set_option autoImplicit false
+universe u
+def id₃ (α : Type u) (a : α) := a
+```
+
+Because automatic implicit arguments only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declaread with `universe` even when `autoImplicit` is `true`.
+This definition with an explicit universe parameter is accepted:
+```lean (keep := false)
+def L.{u} := List (Type u)
+```
+Even with automatic implicits, this definition is rejected, because `u` is not mentioned in the header, which precedes the `:=`:
+```lean (error := true) (name := unknownUni) (keep := false)
+set_option autoImplicit true
+def L := List (Type u)
+```
+```leanOutput unknownUni
+unknown universe level 'u'
+```
+With a universe declaration, `u` is accepted as a parameter even on the right-hand side:
+```lean (keep := false)
+universe u
+def L := List (Type u)
+```
+The resulting definition of `L` is universe-polymorphic, with `u` inserted as a universe parameter.
+Declarations in the scope of a `universe` command are not made polymorphic if the universe variables do not occur in them or in other automatically-inserted arguments.
+```lean
+universe u
+def L := List (Type 0)
+#check L
+```
 
 #### Universe Unification
 
@@ -230,3 +306,27 @@ Universe-polymorphic definitions bind universe variables.
 :::
 
 ## Inductive Types
+
+
+# Organizational Features
+
+## Commands and Declarations
+
+### Headers
+
+The {deftech}[_header_] of a definition or declaration specifies the signature of the new constant that is defined.
+
+::: TODO
+* Precision and examples; list all of them here
+* Mention interaction with autoimplicits
+:::
+
+## Scopes
+%%%
+tag := "scopes"
+%%%
+
+::: TODO
+ * Many commands have an effect for the current {deftech}[_scope_]
+ * A scope ends when a namespace ends, a section ends, or a file ends
+:::
