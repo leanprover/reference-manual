@@ -43,7 +43,7 @@ namespace Manual
 
 def Block.figure (name : Option String) : Block where
   name := `Manual.figure
-  data := ToJson.toJson (name, (none : Option PartTag))
+  data := ToJson.toJson (name, (none : Option Tag))
 
 structure FigureConfig where
   caption : Array Syntax
@@ -67,7 +67,7 @@ def figure : DirectiveExpander
 @[block_extension figure]
 def figure.descr : BlockDescr where
   traverse id data contents := do
-    match FromJson.fromJson? data (α := Option String × Option PartTag) with
+    match FromJson.fromJson? data (α := Option String × Option Tag) with
     | .error e => logError s!"Error deserializing figure tag: {e}"; pure none
     | .ok (none, _) => pure none
     | .ok (some x, none) =>
