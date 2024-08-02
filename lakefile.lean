@@ -58,3 +58,6 @@ target figures : Array FilePath := do
 lean_exe "generate-manual" where
   extraDepTargets := #[`figures]
   root := `Main
+
+lean_exe "timed-parser" where
+  root := `TimedAst

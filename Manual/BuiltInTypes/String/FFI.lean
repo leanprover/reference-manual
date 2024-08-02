@@ -12,7 +12,7 @@ set_option pp.rawOnError true
 
 {docstring String.csize}
 
-:::ffi "lean_string_object" kind := type
+:::ffi "lean_string_object" type
 ```
 typedef struct {
     lean_object m_header;
