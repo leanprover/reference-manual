@@ -275,7 +275,7 @@ def map.{u} {α : Type u} {β : Type v} (f : α → β) : List α → List β
   | x :: xs => f x :: map f xs
 ```
 
-When the {TODO}[describe this option and add xref] `autoImplicits` option is set, it is not necessary to explicitly bind universe variables:
+When the {TODO}[describe this option and add xref] `autoImplicit` option is set, it is not necessary to explicitly bind universe variables:
 ```lean (keep := false)
 set_option autoImplicit true
 def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
