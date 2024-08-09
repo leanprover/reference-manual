@@ -13,11 +13,9 @@ set_option pp.rawOnError true
 tag := "string-syntax"
 %%%
 
-# Syntax
-
 Lean has two kinds of string literals: ordinary string literals and raw string literals.
 
-## String Literals
+# String Literals
 
 String literals begin and end with a double-quote character `"`. {index subterm:="string"}[literal]
 Between these characters, they may contain any other character, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as `'\n'`, regardless of file encoding and platform).
@@ -64,7 +62,7 @@ The parser error is:
 ```
 
 
-## Raw String Literals
+# Raw String Literals
 
 In {deftech}[raw string literals], {index subterm:="raw string"}[literal] there are no escape sequences or gaps, and each character denotes itself exactly.
 Raw string literals are preceded by `r`, followed by zero or more hash characters (`#`) and a double quote `"`.
@@ -92,7 +90,7 @@ example : r##"This is r#"literally"# quoted"## = "This is r#\"literally\"# quote
 ```
 
 
-## Interpolated Strings
+# Interpolated Strings
 
 Preceding a string literal with `s!` causes it to be processed as an {deftech}[_interpolated string_], in which regions of the string surrounded by `{` and `}` characters are parsed and interpreted as Lean expressions.
 Interpolated strings are interpreted by appending the string that precedes the interpolation, the expression (with an added call to {name ToString.toString}`toString` surrounding it), and the string that follows the interpolation.
