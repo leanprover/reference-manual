@@ -1,6 +1,7 @@
 import Verso.Genre.Manual
 
 import Manual.Meta
+import Manual.BuiltInTypes.Nat
 import Manual.BuiltInTypes.String
 
 open Manual.FFIDocType
@@ -15,7 +16,7 @@ set_option pp.rawOnError true
 Lean includes a number of built-in datatypes that are specially supported by the compiler.
 Some additionally have special support in the kernel.
 
-# Natural Numbers
+{include 0 Manual.BuiltInTypes.Nat}
 
 # Fixed-Precision Integer Types
 

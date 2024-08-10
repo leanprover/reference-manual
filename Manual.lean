@@ -28,7 +28,7 @@ authors := ["Lean Developers"]
 
 :::progress
 ```namespace
-String Char
+String Char Nat
 ```
 ```exceptions
 String.revFindAux String.extract.go₂ String.substrEq.loop String.casesOn
@@ -46,6 +46,58 @@ String.one_le_csize
 ```exceptions
 String.sluggify
 ```
+
+```exceptions
+Nat.anyM.loop
+Nat.nextPowerOfTwo.go
+Nat.foldRevM.loop
+Nat.foldM.loop
+Nat.foldTR.loop
+Nat.recAux
+Nat.allTR.loop
+Nat.allM.loop
+Nat.anyTR.loop
+Nat.anyM.loop
+Nat.toSuperDigitsAux
+Nat.casesAuxOn
+Nat.forM.loop
+Nat.repeatTR.loop
+Nat.forRevM.loop
+Nat.toSubDigitsAux
+```
+
+```exceptions
+Nat.one_pos
+Nat.not_lt_of_lt
+Nat.sub_lt_self
+Nat.lt_or_gt
+Nat.pow_le_pow_left
+Nat.not_lt_of_gt
+Nat.le_or_le
+Nat.le_or_ge
+Nat.pred_lt'
+Nat.pow_le_pow_right
+Nat.lt_iff_le_and_not_ge
+Nat.mul_pred_right
+Nat.mul_pred_left
+Nat.prod_dvd_and_dvd_of_dvd_prod
+Nat.lt_iff_le_and_not_ge
+Nat.mul_pred_right
+```
+
+```exceptions
+Nat.binductionOn
+Nat.le.rec
+Nat.le.recOn
+Nat.le.casesOn
+Nat.le.below
+Nat.le.below.step
+Nat.le.below.rec
+Nat.le.below.recOn
+Nat.le.below.refl
+Nat.le.below.casesOn
+```
+
 :::
 
 
