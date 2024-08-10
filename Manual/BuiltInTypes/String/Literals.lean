@@ -13,7 +13,7 @@ set_option pp.rawOnError true
 tag := "string-syntax"
 %%%
 
-Lean has two kinds of string literals: ordinary string literals and raw string literals.
+Lean has three kinds of string literals: ordinary string literals, interpolated string literals, and raw string literals.
 
 # String Literals
 
@@ -61,6 +61,17 @@ The parser error is:
 <example>:2:0: unexpected additional newline in string gap
 ```
 
+# Interpolated Strings
+
+Preceding a string literal with `s!` causes it to be processed as an {deftech}[_interpolated string_], in which regions of the string surrounded by `{` and `}` characters are parsed and interpreted as Lean expressions.
+Interpolated strings are interpreted by appending the string that precedes the interpolation, the expression (with an added call to {name ToString.toString}`toString` surrounding it), and the string that follows the interpolation.
+
+For example:
+```lean
+example : s!"1 + 1 = {1 + 1}\n" = "1 + 1 = " ++ toString (1 + 1) ++ "\n" := rfl
+```
+
+Preceding a literal with `m!` causes the interpolation to result in an instance of {name Lean.MessageData}`MessageData`, the compiler's internal data structure for messages to be shown to users.
 
 # Raw String Literals
 
@@ -88,16 +99,3 @@ Adding sufficiently many hash marks allows any raw literal to be written literal
 ```lean
 example : r##"This is r#"literally"# quoted"## = "This is r#\"literally\"# quoted" := rfl
 ```
-
-
-# Interpolated Strings
-
-Preceding a string literal with `s!` causes it to be processed as an {deftech}[_interpolated string_], in which regions of the string surrounded by `{` and `}` characters are parsed and interpreted as Lean expressions.
-Interpolated strings are interpreted by appending the string that precedes the interpolation, the expression (with an added call to {name ToString.toString}`toString` surrounding it), and the string that follows the interpolation.
-
-For example:
-```lean
-example : s!"1 + 1 = {1 + 1}\n" = "1 + 1 = " ++ toString (1 + 1) ++ "\n" := rfl
-```
-
-Preceding a literal with `m!` causes the interpolation to result in an instance of {name Lean.MessageData}`MessageData`, the compiler's internal data structure for messages to be shown to users.
