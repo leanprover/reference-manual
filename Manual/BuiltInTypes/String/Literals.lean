@@ -49,7 +49,7 @@ def str2 := "String with a gap"
 example : str1 = str2 := rfl
 ```
 
-This example is rejected, because the line following the gap is empty:
+If the line following the gap is empty, the string is rejected:
 
 ```syntaxError foo
 def str3 := "String with \
