@@ -1,6 +1,7 @@
 import Verso.Genre.Manual
 
 import Manual.Meta
+import Manual.Language.Files
 
 open Verso.Genre Manual
 
@@ -9,6 +10,8 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "The Lean Language" =>
+
+{include Manual.Language.Files}
 
 # Types
 
