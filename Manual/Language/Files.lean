@@ -133,6 +133,78 @@ Contexts in which keywords may be used as identifiers without guillemets, such a
 Identifiers that contain one or more `'.'` characters, and thus consist of more than one identifier component, are called {deftech}[hierarchical identifiers].
 Hierarchical identifiers are used to represent both module names and names in a namespace.
 
+## Structure
+
+
+
+:::syntax Lean.Parser.Module.module (open := false)
+```grammar
+$hdr:header $cmd:command*
+```
+
+A module consists of a {deftech}_module header_ followed by a sequence of {deftech}_commands_.
+
+:::
+
+
+### Module Headers
+
+The module header consists of a sequence of {deftech}[`import` statements].
+
+:::syntax Lean.Parser.Module.header (open := false)
+```grammar
+$i:import*
+```
+
+An optional keyword `prelude`, for use in Lean's implementation, is also allowed:
+
+```grammar
+prelude $«import»*
+```
+:::
+
+
+:::syntax Lean.Parser.Module.prelude (open := false)
+```grammar
+prelude
+```
+
+The `prelude` keyword indicates that the module is part of the implementation of the Lean {deftech}_prelude_, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.
+:::
+
+:::syntax Lean.Parser.Module.import
+```grammar
+import $mod:ident
+```
+
+Imports the module.
+Importing a module makes its contents available in the current module, as well as those from modules transitively imported by its imports.
+
+Modules do not necessarily correspond to namespaces.
+Modules may add names to any namespace, and importing a module has no effect on the set of currently open namespaces.
+
+The imported module name is translated to a filename by replacing dots (`'.'`) in its name with directory separators.
+Lean searches its include path for the corresponding importable module file.
+:::
+
+### Commands
+
+{tech}[Commands] are top-level statements in Lean.
+Some examples are inductive type declarations, theorems, function definitions, namespace modifiers like `open` or `variable`, and interactive queries such as `#check`.
+The syntax of commands is user-extensible.
+Specific Lean commands are documented in the corresponding chapters of this manual, rather than being listed here.
+
+::: TODO
+Make the index include links to all commands, then xref from here
+:::
+
+## Contents
+
+A module includes an {TODO}[def and xref] environment, which includes both the datatype and constant definitions from an environment and any data stored in {TODO}[xref] its environment extensions.
+As the module is processed by Lean, commands add content to the environment.
+A module's environment can be serialized to a {deftech (key:="olean")}[`.olean` file], which contains both the environment and a compacted heap region with the run-time objects needed by the environment.
+This means that an imported module can be loaded without re-executing all of its commands.
+
 
 # Packages, Libraries, and Targets
 
@@ -140,3 +212,9 @@ Lean code is organized into {deftech}_packages_, which are units of code distrib
 A {tech}[package] may contain multiple libraries or executables.
 
 Code in a package that is intended for use by other Lean packages is organized into {deftech (key:="library")}[libraries].
+Code that is intended to be compiled and run as independent programs is organized into {deftech (key:="executable")}[executables].
+Together, libraries and executables are referred to as {deftech}_targets_ in Lake, the standard Lean build tool. {TODO}[section xref]
+
+:::TODO
+Write Lake section, coordinate this content with it
+:::
