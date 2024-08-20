@@ -26,14 +26,19 @@ This section describes the specific details of the syntax used to specify both i
 
 :::syntax command
 ```grammar
-inductive $d:declId $params* where
-  $cs:ctor*
-$_:computedFields
+$_:declModifiers
+inductive $d:declId $_ where
+  $[| $_ $c:ident $_]*
+$[with $_:computedField*]?
+$[deriving $[$_ $[with $_]?],*]?
 ```
+
+Declares a new inductive type.
 :::
 
+
+
 :::TODO
- * Detailed syntax
  * Constructors are namespaced
  * Computed fields
  * Deriving (just xref)

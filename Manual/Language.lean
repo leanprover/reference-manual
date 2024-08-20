@@ -369,7 +369,7 @@ def L := List (Type 0)
  * Lack of injectivity
 :::
 
-{include 1 Language.InductiveTypes}
+{include 2 Language.InductiveTypes}
 
 
 # Organizational Features
