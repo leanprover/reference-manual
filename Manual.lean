@@ -1,4 +1,4 @@
-import Verso.Genre.Manual
+import VersoManual
 
 import Manual.Intro
 import Manual.Elaboration

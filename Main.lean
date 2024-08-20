@@ -1,6 +1,6 @@
 import Manual
 import Manual.Meta
-import Verso.Genre.Manual
+import VersoManual
 
 open Verso.Genre.Manual
 
