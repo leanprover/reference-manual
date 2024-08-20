@@ -1,4 +1,4 @@
-import Verso.Genre.Manual
+import VersoManual
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab

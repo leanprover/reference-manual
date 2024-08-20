@@ -1,4 +1,4 @@
-import Verso.Genre.Manual
+import VersoManual
 
 import Manual.Meta
 open Manual.FFIDocType
