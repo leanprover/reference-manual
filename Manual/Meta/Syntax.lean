@@ -1,12 +1,14 @@
 import VersoManual
 
 import Manual.Meta.Basic
+import Manual.Meta.PPrint
 
 open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
 
 open Lean Elab Parser
+open Lean.Widget (TaggedText)
 
 namespace Manual
 
@@ -17,6 +19,9 @@ namespace Manual
 
 def Block.syntax : Block where
   name := `Manual.syntax
+
+def Block.grammar : Block where
+  name := `Manual.grammar
 
 structure SyntaxConfig where
   name : Name
@@ -33,6 +38,7 @@ def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
     ((·.getD true) <$> (.named `open .bool true)) <*>
     (many (.named `alias .name false) <* .done)
 
+open Manual.Meta.PPrint in
 @[directive_expander «syntax»]
 partial def «syntax» : DirectiveExpander
   | args, blocks => do
@@ -64,19 +70,20 @@ where
   | .str _ x => s!"⟨{x.toUpper}⟩"
   | x => s!"⟨{x.toString.toUpper}⟩"
 
-  production : Syntax → String
-  | .atom _ str => s!"“{str}”"
-  | .missing => "<missing>"
+  production : Syntax → TagFormatT Unit DocElabM Format
+  | .atom _ str => tag () s!"“{str}”"
+  | .missing => tag () "<missing>"
   | .ident _ _ x _ =>
+    tag () <|
     match x with
     | .str x' "pseudo" => x'.toString
     | _ => x.toString
-  | .node _ k args =>
+  | .node _ k args => do
     match k, antiquoteOf k, args with
-    | `many.antiquot_suffix_splice, _, #[stx, star] => "{" ++ production stx ++ "}"
+    | `many.antiquot_suffix_splice, _, #[stx, star] => return ("{" : Format) ++ (← production stx) ++ "}"
     | _, some k', #[a, b, c, d] =>
-      nonTerm k'
-    | _, _, _ => args.map production |>.toList |> String.intercalate " "
+      tag () (nonTerm k')
+    | _, _, _ => do return (← args.mapM production) |>.toList |> (Format.joinSep · " ")
 
   categoryOf (env : Environment) (kind : Name) : Option Name := do
     for (catName, contents) in (Lean.Parser.parserExtension.getState env).categories do
@@ -92,19 +99,28 @@ where
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
     match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
     | .ok stx =>
-      let mut bnf := s!"{nonTerm ((categoryOf (← getEnv) config.name).getD config.name)} ::="
-      bnf := bnf ++ if config.open || (!config.open && !isFirst) then " ...\n" else if howMany = 1 then "" else "\n"
-      bnf := bnf ++ if !config.open && isFirst then
-          if howMany != 1 then "  " else " "
-        else "  | "
-      bnf := bnf ++ production stx
+      let bnf ← getBnf config isFirst howMany stx
+      let _ : Quote Unit := ⟨fun _ => Lean.Syntax.mkCApp ``PUnit.unit #[]⟩ -- TODO real metadata
 
-      elabBlock `<low|(Verso.Syntax.codeblock (column ~col) ~«open» ~(.node i `null #[]) ~(.atom info bnf) ~close)>
+      `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText Unit)} #[])
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
       `(asldfkj)
 
+  getBnf config isFirst howMany (stx : Syntax) : DocElabM (TaggedText Unit) := do
+    pure (← renderBnf config isFirst howMany stx |>.run).render
+
+  renderBnf config isFirst howMany (stx : Syntax) : TagFormatT Unit DocElabM Format := do
+    let mut bnf : Format := (← tag () s!"{nonTerm ((categoryOf (← getEnv) config.name).getD config.name)}") ++ " " ++ (← tag () "::=")
+    if config.open || (!config.open && !isFirst) then
+      bnf := bnf ++ ("..." : Format)
+    bnf := bnf ++ .line
+    let bar := (← tag () "|") ++ " "
+    bnf := bnf ++ (if !config.open && isFirst then ("" : Format) else bar) ++ (← production stx)
+    return .nest 4 bnf
+
+def grammar := ()
 
 @[block_extension «syntax»]
 def syntax.descr : BlockDescr where
@@ -120,3 +136,22 @@ def syntax.descr : BlockDescr where
           {{← content.mapM goB}}
         </div>
       }}
+
+@[block_extension grammar]
+def grammar.descr : BlockDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ info _ => do
+      match FromJson.fromJson? (α := TaggedText Unit) info with
+      | .ok bnf =>
+        pure {{
+          <pre class="grammar">
+            {{ bnf.stripTags }}
+          </pre>
+        }}
+      | .error e =>
+        Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
+        pure .empty

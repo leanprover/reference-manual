@@ -2,6 +2,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Language.Files
+import Manual.Language.InductiveTypes
 
 open Verso.Genre Manual
 
@@ -15,8 +16,24 @@ set_option linter.unusedVariables false
 
 # Types
 
+::: TODO
+Basic framework of the type theory goes here.
+
+{deftech}[Canonical] type formers, definitional equality, types as first-class entities, large elimination
+:::
+
 ## Functions
 
+::: TODO
+Write this section.
+
+Topics:
+ * Dependent vs non-dependent {deftech}[function] types
+ * Eta equivalence
+ * Don't talk recursion (that goes in inductive types), but xref to it
+ * Syntax of anonymous functions with/without pattern matching
+ * Strictness
+:::
 
 ## Propositions
 
@@ -45,8 +62,8 @@ Propositions have the following properties:
 
 ## Universes
 
-Types are classified by _universes_. {index}[universe]
-Each universe has a {deftech (key:="universe level")}[_level_], {index subterm := "of universe"}[level] which is a natural number.
+Types are classified by {deftech}_universes_. {index}[universe]
+Each universe has a {deftech (key:="universe level")}_level_, {index subterm := "of universe"}[level] which is a natural number.
 The {lean}`Sort` operator constructs a universe from a given level. {index}[`Sort`]
 If the level of a universe is smaller than that of another, the universe itself is said to be smaller.
 With the exception of propositions (described later in this chapter), types in a given universe may only quantify over types in smaller universes.
@@ -145,7 +162,7 @@ but is expected to have type
 
 ### Polymorphism
 
-Lean supports _universe polymorphism_, {index subterm:="universe"}[polymorphism] {index}[universe polymorphism] which means that constants defined in the Lean environment can take {deftech}[universe parameters].
+Lean supports {deftech}_universe polymorphism_, {index subterm:="universe"}[polymorphism] {index}[universe polymorphism] which means that constants defined in the Lean environment can take {deftech}[universe parameters].
 These parameters can then be instantiated with universe levels when the constant is used.
 Universe parameters are written in curly braces following a dot after a constant name.
 
@@ -352,7 +369,7 @@ def L := List (Type 0)
  * Lack of injectivity
 :::
 
-## Inductive Types
+{include 1 Language.InductiveTypes}
 
 
 # Organizational Features
