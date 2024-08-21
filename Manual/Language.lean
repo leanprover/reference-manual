@@ -37,7 +37,7 @@ Topics:
 
 ## Propositions
 
-Propositions are meaningful statements that admit proof. {index}[proposition]
+{deftech}[Propositions] are meaningful statements that admit proof. {index}[proposition]
 Nonsensical statements are not propositions, but false statements are.
 All propositions are classified by `Prop`.
 

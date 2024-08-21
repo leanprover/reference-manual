@@ -128,7 +128,7 @@ Such identifier components may contain any character at all, aside from `'»'`, 
 Some potential identifier components may be reserved keywords.
 The specific set of reserved keywords depends on the set of active syntax extensions, which may depend on the set of imported modules and the currently-opened {TODO}[xref/deftech for namespace] namespaces; it is impossible to enumerate for Lean as a whole.
 These keywords must also be quoted with guillemets to be used as identifier components in most syntactic contexts.
-Contexts in which keywords may be used as identifiers without guillemets, such as constructor names in inductive datatypes, are _raw identifier_ contexts.{index (subterm:="raw")}[identifier]
+Contexts in which keywords may be used as identifiers without guillemets, such as constructor names in inductive datatypes, are {deftech}_raw identifier_ contexts.{index (subterm:="raw")}[identifier]
 
 Identifiers that contain one or more `'.'` characters, and thus consist of more than one identifier component, are called {deftech}[hierarchical identifiers].
 Hierarchical identifiers are used to represent both module names and names in a namespace.

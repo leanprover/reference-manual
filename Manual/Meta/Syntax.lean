@@ -28,11 +28,126 @@ def Block.syntax : Block where
 def Block.grammar : Block where
   name := `Manual.grammar
 
+def Inline.keywordOf : Inline where
+  name := `Manual.keywordOf
+
 structure SyntaxConfig where
   name : Name
   «open» : Bool := true
   aliases : List Name
 
+structure KeywordOfConfig where
+  ofSyntax : Ident
+  parser : Option Ident
+
+def KeywordOfConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m KeywordOfConfig :=
+    KeywordOfConfig.mk <$> .positional `ofSyntax .ident <*> .named `parser .ident true
+
+@[role_expander keywordOf]
+def keywordOf : RoleExpander
+  | args, inlines => do
+    let ⟨kind, parser⟩ ← KeywordOfConfig.parse.run args
+    let #[inl] := inlines
+      | throwError "Expected a single code argument"
+    let `(inline|code{ $kw:str }) := inl
+      | throwErrorAt inl "Expected code literal with the keyword"
+    let kindName := kind.getId
+    let parserName ← parser.mapM (realizeGlobalConstNoOverloadWithInfo ·)
+    let env ← getEnv
+    let mut catName := none
+    for (cat, contents) in (Lean.Parser.parserExtension.getState env).categories do
+      for (k, ()) in contents.kinds do
+        if kindName == k then catName := some cat; break
+      if let some _ := catName then break
+    let some c := catName
+      | throwErrorAt kind s!"Unknown syntax kind {kindName}"
+    let kindDoc ← findDocString? (← getEnv) kindName
+    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Name × Name × Option String)) $(quote (kw.getString, c, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
+
+@[inline_extension keywordOf]
+def keywordOf.descr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun goI _ info content => do
+      match FromJson.fromJson? (α := (String × Name × Name × Option String)) info with
+      | .ok (kw, cat, kind, kindDoc) =>
+        -- TODO: use the presentation of the syntax in the manual to show the kind, rather than
+        -- leaking the kind name here, which is often horrible. But we need more data to test this
+        -- with first! Also TODO: we need docs for syntax categories, with human-readable names to
+        -- show here. Use tactic index data for inspiration.
+        -- For now, here's the underlying data so we don't have to fill in xrefs later and can debug.
+        pure {{
+          <span class="hl lean keyword-of">
+            <code class="hover-info">
+              <code>{{kind.toString}} " : " {{cat.toString}}</code>
+              {{if let some doc := kindDoc then
+                  {{ <span class="sep"/> <code class="docstring">{{doc}}</code>}}
+                else
+                  .empty
+              }}
+            </code>
+            <code class="kw">{{kw}}</code>
+          </span>
+        }}
+      | .error e =>
+        Html.HtmlT.logError s!"Couldn't deserialized keywordOf data: {e}"
+        content.mapM goI
+  extraCss := [
+r#".keyword-of .kw {
+  font-weight: bold;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+"#
+  ]
+  extraJs := [
+    highlightingJs,
+r#"
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+"#
+  ]
+  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraCssFiles := [("tippy-border.css", tippy.border.css)]
 
 partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : f α) : f (List α) :=
   ((· :: ·) <$> x <*> many x) <|> pure []
@@ -41,7 +156,7 @@ def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
   SyntaxConfig.mk <$>
     .positional `name .name <*>
     ((·.getD true) <$> (.named `open .bool true)) <*>
-    (many (.named `alias .name false) <* .done)
+    (many (.named `alias .resolvedName false) <* .done)
 
 inductive GrammarTag where
   | keyword
