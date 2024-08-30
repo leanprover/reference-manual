@@ -9,7 +9,7 @@ open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 #doc (Manual) "Inductive Types" =>
 
 {deftech}_Inductive types_ are the primary means of introducing new types to Lean.
-While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other {tech}[canonical] type former in Lean is an inductive type.
+While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other {tech}[canonical] {TODO}[Harmonize terminology: "type constructor" is probably better] type former in Lean is an inductive type.
 Inductive types are specified by their {deftech}_type constructors_ {index}[type constructor] and their {deftech}_constructors_; {index}[constructor] their other properties are derived from these.
 Each inductive type has a single type constructor, which may take both {tech}[universe parameters] and ordinary parameters.
 Inductive types may have any number of constructors; these constructors introduce new values whose types are headed by the inductive type's type constructor.
@@ -21,7 +21,7 @@ Lean additionally produces a number of helper constructions based on the recurso
 {TODO}[Sidebar note: "recursor" is always used, even for non-recursive types]
 
 _Structures_ are a special case of inductive types that have exactly one constructor.
-When a structure is declared, Lean additionally generates helpers that enable additional language features to be used with the new structure.
+When a structure is declared, Lean generates helpers that enable additional language features to be used with the new structure.
 
 This section describes the specific details of the syntax used to specify both inductive types and structures, the new constants and definitions in the environment that result from inductive type declarations, and the run-time representation of inductive types' values in compiled code.
 
@@ -36,16 +36,12 @@ inductive $d:declId $_:optDeclSig where
 $[deriving $[$_ $[with $_]?],*]?
 ```
 
-Declares a new inductive type.
+Declares a new inductive type. {TODO}[xref declmodifier docs]
 :::
 
 After declaring an inductive type, its type constructor, constructors, and recursor are present in the environment.
 New inductive types extend Lean's core logic—they are not encoded or represented by some other already-present data.
 Inductive type declarations must satisfy a number of well-formedness requirements {TODO}[xref] to ensure that the logic remains consistent.
-
-::: TODO
-xref declmodifier docs
-:::
 
 The first line of the declaration, from {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`inductive` to {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`where`, specifies the new {tech}[type constructor]'s name and type.
 If a type signature for the type constructor is provided, then its result type must be a {tech}[universe], but the parameters do not need to be types.
@@ -222,8 +218,8 @@ In this example, both parameters are specified before the colon in {name}`Either
 
 ```lean
 inductive Either (α : Type u) (β : Type v) : Type (max u v) where
-  | left :  α → Either α β
-  | right :  α → Either α β
+  | left : α → Either α β
+  | right : α → Either α β
 ```
 
 In this version, there are two types named `α` that might not be identical:
@@ -308,7 +304,8 @@ Please refer to {TODO}[write it!] the section on instance deriving for more info
 :::syntax command
 ```grammar
 $_:declModifiers
-structure $d:declId $_:bracketedBinder* $[extends $_,*]? $[: $_]? where
+structure $d:declId $_:bracketedBinder*
+    $[extends $_,*]? $[: $_]? where
   $[$_:declModifiers $_ ::]?
   $_
 $[deriving $[$_ $[with $_]?],*]?
@@ -897,7 +894,7 @@ For these types, if there's more than one potential proof of the theorem then th
 If the type is structured such that there's only at most one proof anyway, then the motive may return a type in any universe.
 A proposition that has at most one inhabitant is called a {deftech}_subsingleton_.
 Rather than obligating users to _prove_ that there's only one possible proof, a conservative syntactic overapproximation is used to check whether a proposition is a subsingleton.
-Propositions that fulfill all of the following requirements are considered to be subsingletons:
+Propositions that fulfill both of the following requirements are considered to be subsingletons:
  * There is at most one constructor.
  * Each of the constructor's parameter types is either a {lean}`Prop`, a parameter, or an index.
 

@@ -39,7 +39,7 @@ Topics:
 
 {deftech}[Propositions] are meaningful statements that admit proof. {index}[proposition]
 Nonsensical statements are not propositions, but false statements are.
-All propositions are classified by `Prop`.
+All propositions are classified by {lean}`Prop`.
 
 Propositions have the following properties:
 
@@ -76,7 +76,7 @@ example : Sort 5 := Sort 4
 example : Sort 2 := Sort 1
 ```
 
-On the other hand, `Sort 3` is not an element of `Sort 5`:
+On the other hand, {lean}`Sort 3` is not an element of {lean}`Sort 5`:
 ```lean (error := true) (name := sort3)
 example : Sort 5 := Sort 3
 ```
@@ -90,7 +90,7 @@ but is expected to have type
   Type 4 : Type 5
 ```
 
-Similarly, because `Unit` is in `Sort 1`, it is not in `Sort 2`:
+Similarly, because {lean}`Unit` is in {lean}`Sort 1`, it is not in {lean}`Sort 2`:
 ```lean
 example : Sort 1 := Unit
 ```
@@ -110,7 +110,7 @@ but is expected to have type
 Because propositions and data are used differently and are governed by different rules, the abbreviations {lean}`Type` and {lean}`Prop` are provided to make the distinction more convenient.  {index}[`Type`] {index}[`Prop`]
 `Type u` is an abbreviation for `Sort (u + 1)`, so {lean}`Type 0` is {lean}`Sort 1` and {lean}`Type 3` is {lean}`Sort 4`.
 {lean}`Type 0` can also be abbreviated {lean}`Type`, so `Unit : Type` and `Type : Type 1`.
-{lean}`Prop` is an abbreviation for `Sort 0`.
+{lean}`Prop` is an abbreviation for {lean}`Sort 0`.
 
 ### Predicativity
 
@@ -119,20 +119,33 @@ A function type's universe is determined by the universes of its argument and re
 The specific rules depend on whether the return type of the function is a proposition.
 
 Predicates, which are functions that return propositions (that is, where the result type of the function is some type in `Prop`) may have argument types in any universe whatsoever, but the function type itself remains in `Prop`.
-In other words, propositions feature {deftech}[_impredicative_] {index}[impredicative]{index subterm := "impredicative"}[quantification] quantification, because propositions can themselves be statements about all propositions.
-For example, proof irrelevance can be written as a proposition that quantifies over all propositions:
+In other words, propositions feature {deftech}[_impredicative_] {index}[impredicative]{index subterm := "impredicative"}[quantification] quantification, because propositions can themselves be statements about all propositions (and all other types).
+
+:::example "Impredicativity"
+Proof irrelevance can be written as a proposition that quantifies over all propositions:
 ```lean
 example : Prop := ∀ (P : Prop) (p1 p2 : P), p1 = p2
 ```
 
+A proposition may also quantify over all types, at any given level:
+```lean
+example : Prop := ∀ (α : Type), ∀ (x : α), x = x
+example : Prop := ∀ (α : Type 5), ∀ (x : α), x = x
+```
+:::
+
 For universes at {tech key:="universe level"}[level] `1` and higher (that is, the `Type u` hierarchy), quantification is {deftech}[_predicative_]. {index}[predicative]{index subterm := "predicative"}[quantification]
 For these universes, the universe of a function type is the least upper bound of the argument and return types' universes.
 
+:::example "Universe levels of function types"
+Both of these types are in {lean}`Type 2`:
 ```lean
 example (α : Type 1) (β : Type 2) : Type 2 := α → β
 example (α : Type 2) (β : Type 1) : Type 2 := α → β
 ```
+:::
 
+:::example "Predicativity of {lean}`Type`"
 This example is not accepted, because `α`'s level is greater than `1`. In other words, the annotated universe is smaller than the function type's universe:
 ```lean error := true name:=toosmall
 example (α : Type 2) (β : Type 1) : Type 1 := α → β
@@ -145,8 +158,12 @@ has type
 but is expected to have type
   Type 1 : Type 2
 ```
+:::
 
-Lean's universes are not cumulative; a type in `Type u` is not automatically also in `Type (u + 1)`.
+Lean's universes are not {deftech}[cumulative];{index}[cumulativity] a type in `Type u` is not automatically also in `Type (u + 1)`.
+Each type inhabits precisely one universe.
+
+:::example "No cumulativity"
 This example is not accepted because the annotated universe is larger than the function type's universe:
 ```lean error := true name:=toobig
 example (α : Type 2) (β : Type 1) : Type 3 := α → β
@@ -159,6 +176,7 @@ has type
 but is expected to have type
   Type 3 : Type 4
 ```
+:::
 
 ### Polymorphism
 
@@ -166,16 +184,21 @@ Lean supports {deftech}_universe polymorphism_, {index subterm:="universe"}[poly
 These parameters can then be instantiated with universe levels when the constant is used.
 Universe parameters are written in curly braces following a dot after a constant name.
 
+:::example "Universe-polymorphic identity function"
 When fully explicit, the identity function takes a universe parameter `u`. Its signature is:
 ```signature
 id.{u} {α : Sort u} (x : α) : α
 ```
+:::
 
-Universe variables may additionally occur in universe level expressions, which provide specific universe levels in definitions.
+Universe variables may additionally occur in {ref "level-expressions"}[universe level expressions], which provide specific universe levels in definitions.
 When the polymorphic definition is instantiated with concrete levels, these universe level expressions are also evaluated to yield concrete levels.
 
-In this example, a structure is in a universe that is one greater than the universe of the type it contains:
-```lean (keep := true)
+::::keepEnv
+:::example "Universe level expressions"
+
+In this example, {lean}`Codec` is in a universe that is one greater than the universe of the type it contains:
+```lean
 structure Codec.{u} : Type (u + 1) where
   type : Type u
   encode : Array UInt32 → type → Array UInt32
@@ -196,8 +219,13 @@ def Codec.char : Codec where
     else
       failure
 ```
+:::
+::::
 
 Universe-polymorphic definitions in fact create a _schematic definition_ that can be instantiated at a variety of levels, and different instantiations of universes create incompatible values.
+
+:::example "Universe polymorhism is not first-class"
+
 This can be seen in the following example, in which `T` is a gratuitously-universe-polymorphic definition that always returns the constructor of the unit type.
 Both instantiations of `T` have the same value, and both have the same type, but their differing universe instantiations make them incompatible:
 ```lean (error := true) (name := uniIncomp) (keep := false)
@@ -216,14 +244,13 @@ but is expected to have type
   Eq.{1} T.{u} T.{v} : Prop
 ```
 
-```lean (error := false) (name := uniIncomp) (keep := false)
+```lean (error := false) (keep := false) (show := false)
 -- check that the above statement stays true
 abbrev T : Unit := (fun (α : Type) => ()) Unit
 
-set_option pp.universes true
-
 def test : T = T := rfl
 ```
+:::
 
 Auto-bound implicit arguments are as universe-polymorphic as possible.
 Defining the identity function as follows:
@@ -234,6 +261,8 @@ results in the signature:
 ```signature
 id'.{u} {α : Sort u} (x : α) : α
 ```
+
+:::example "Universe monomorphism in auto-bound implicit"
 On the other hand, because {name}`Nat` is in universe {lean}`Type 0`, this function automatically ends up with a concrete universe level for `α`, because `m` is applied to both {name}`Nat` and `α`, so both must have the same type and thus be in the same universe:
 ```lean
 partial def count [Monad m] (p : α → Bool) (act : m α) : m Nat := do
@@ -254,8 +283,12 @@ info: count.{u_1} {m : Type → Type u_1} {α : Type} [Monad m] (p : α → Bool
 #guard_msgs in
 #check count
 ```
+:::
 
 #### Level Expressions
+%%%
+tag := "level-expressions"
+%%%
 
 Levels that occur in a definition are not restricted to just variables and addition of constants.
 More complex relationships between universes can be defined using level expressions.
@@ -273,29 +306,36 @@ The `imax` operation is defined as follows:
 
 $$``\mathtt{imax}\ u\ v = \begin{cases}0 & \mathrm{when\ }v = 0\\\mathtt{max}\ u\ v&\mathrm{otherwise}\end{cases}``
 
-`imax` is used to implement impredicative quantification for {lean}`Prop`.
+`imax` is used to implement {tech}[impredicative] quantification for {lean}`Prop`.
 In particular, if `A : Sort u` and `B : Sort v`, then `(x : A) → B : Sort (imax u v)`.
-If `B : Prop`, then the function type is itself a `Prop`; otherwise, the function type's level is the maximum of `u` and `v`.
+If `B : Prop`, then the function type is itself a {lean}`Prop`; otherwise, the function type's level is the maximum of `u` and `v`.
 
 #### Universe Variable Bindings
 
 Universe-polymorphic definitions bind universe variables.
 These bindings may be either explicit or implicit.
-Explicit universe variable binding and instantiaion occurs as a suffix to the definition's name, as in the following declaration of `map`, which declares two universe parameters (`u` and `v`) and instantiates the polymorphic `List` with each in turn:
-```lean (keep := false)
-def map.{u, v} {α : Type u} {β : Type v} (f : α → β) : List.{u} α → List.{v} β
+Explicit universe variable binding and instantiation occurs as a suffix to the definition's name.
+Universe parameters are defined or provided by suffixing the name of a constant with a period (`.`) followed by a comma-separated sequence of universe variables between curly braces.
+
+::::keepEnv
+:::example "Universe-polymorphic `map`"
+The following declaration of {lean}`map` declares two universe parameters (`u` and `v`) and instantiates the polymorphic {name}`List` with each in turn:
+```lean
+def map.{u, v} {α : Type u} {β : Type v}
+    (f : α → β) :
+    List.{u} α → List.{v} β
   | [] => []
   | x :: xs => f x :: map f xs
 ```
+:::
+::::
 
-Just as Lean automatically instantiates implicit parameters, it also automatically instantiates universe parameters:
-```lean (keep := false)
-def map.{u} {α : Type u} {β : Type v} (f : α → β) : List α → List β
-  | [] => []
-  | x :: xs => f x :: map f xs
-```
+Just as Lean automatically instantiates implicit parameters, it also automatically instantiates universe parameters.
+When the {TODO}[describe this option and add xref] `autoImplicit` option is set to {lean}`true` (the default), it is not necessary to explicitly bind universe variables.
+When it is set to {lean}`false`, then they must be added explicitly or declared using the `universe` command. {TODO}[xref]
 
-When the {TODO}[describe this option and add xref] `autoImplicit` option is set, it is not necessary to explicitly bind universe variables:
+::: example "Auto-implicits and universe polymorphism"
+When `autoImplicit` is {lean}`true` (which is the default setting), this definition is accepted even though it does not bind its universe parameters:
 ```lean (keep := false)
 set_option autoImplicit true
 def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
@@ -303,7 +343,7 @@ def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
   | x :: xs => f x :: map f xs
 ```
 
-Without this setting, the definition is rejected because `u` and `v` are not in scope:
+When `autoImplicit` is {lean}`false`, the definition is rejected because `u` and `v` are not in scope:
 ```lean (error := true) (name := uv)
 set_option autoImplicit false
 def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
@@ -316,6 +356,7 @@ unknown universe level 'u'
 ```leanOutput uv
 unknown universe level 'v'
 ```
+:::
 
 In addition to using `autoImplicit`, particular identifiers can be declared as universe variables in a particular {tech}[scope] using the `universe` command.
 
@@ -326,17 +367,21 @@ universe $x:ident $xs:ident*
 
 Declares one or more universe variables for the extent of the current scope.
 
-Just as the `variable` command causes a particular identifier to be treated as a parameter with a paricular type, the `universe` command causes the subsequent identifiers to be treated consistently as universe parameters, even if they are not mentioned in a signature or if the option `autoImplicit` is {lean}`false`.
+Just as the `variable` command causes a particular identifier to be treated as a parameter with a particular type, the `universe` command causes the subsequent identifiers to be implicitly quantified as as universe parameters in declarations that mention them, even if the option `autoImplicit` is {lean}`false`.
 :::
 
-When `u` is declared to be a universe variable, it can be used as a parameter.
+:::example "The `universe` command when `autoImplicit` is `false`"
 ```lean
 set_option autoImplicit false
 universe u
 def id₃ (α : Type u) (a : α) := a
 ```
+:::
 
-Because automatic implicit arguments only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declaread with `universe` even when `autoImplicit` is `true`.
+Because automatic implicit arguments only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with `universe` even when `autoImplicit` is `true`.
+
+:::example "Automatic universe parameters and the `universe` command"
+
 This definition with an explicit universe parameter is accepted:
 ```lean (keep := false)
 def L.{u} := List (Type u)
@@ -355,12 +400,14 @@ universe u
 def L := List (Type u)
 ```
 The resulting definition of `L` is universe-polymorphic, with `u` inserted as a universe parameter.
+
 Declarations in the scope of a `universe` command are not made polymorphic if the universe variables do not occur in them or in other automatically-inserted arguments.
 ```lean
 universe u
 def L := List (Type 0)
 #check L
 ```
+:::
 
 #### Universe Unification
 

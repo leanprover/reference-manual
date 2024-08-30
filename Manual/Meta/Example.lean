@@ -85,10 +85,10 @@ def example.descr : BlockDescr where
           | none => #[]
           | some (_, t) => #[("id", t)]
         pure {{
-          <div class="example" {{attrs}}>
-            <div class="description">{{← description.mapM goI}}</div>
+          <details class="example" {{attrs}}>
+            <summary class="description">{{← description.mapM goI}}</summary>
             {{← blocks.extract 1 blocks.size |>.mapM goB}}
-          </div>
+          </details>
         }}
   extraCss := [
 r#".example {
@@ -102,9 +102,11 @@ r#".example {
 .example .description::before {
   content: "Example: ";
 }
+.example[open] .description {
+  margin-bottom: 1em;
+}
 .example .description {
   font-style: italic;
-  margin-bottom: 1em;
   font-family: var(--verso-structure-font-family);
 }
 "#
