@@ -34,7 +34,7 @@ def Inline.keywordOf : Inline where
 structure SyntaxConfig where
   name : Name
   «open» : Bool := true
-  aliases : List Name
+  aliases : List Name := []
 
 structure KeywordOfConfig where
   ofSyntax : Ident
@@ -161,6 +161,7 @@ def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
 inductive GrammarTag where
   | keyword
   | nonterminal (name : Name) (docstring? : Option String)
+  | fromNonterminal (name : Name) (docstring? : Option String)
   | error
   | bnf
 deriving Repr, FromJson, ToJson, Inhabited
@@ -171,6 +172,7 @@ instance : Quote GrammarTag where
   quote
     | keyword => mkCApp ``keyword #[]
     | nonterminal x d => mkCApp ``nonterminal #[quote x, quote d]
+    | fromNonterminal x d => mkCApp ``fromNonterminal #[quote x, quote d]
     | GrammarTag.error => mkCApp ``GrammarTag.error #[]
     | bnf => mkCApp ``bnf #[]
 
@@ -203,8 +205,8 @@ where
 
   nonTerm : Name → String
   | .str x "pseudo" => nonTerm x
-  | .str _ x => s!"⟨{x}⟩"
-  | x => s!"⟨{x.toString}⟩"
+  | .str _ x => x
+  | x => x.toString
 
   empty : Syntax → Bool
   | .node _ _ #[] => true
@@ -228,11 +230,7 @@ where
 
   production (stx : Syntax) : TagFormatT GrammarTag DocElabM Format := do
     match stx with
-    | .atom info str => do
-      return (← tag .keyword s!"{str}") ++
-        if let .original _ _ trailing _ := info then
-          if trailing.any (· == '\n') then .line else .nil
-        else .nil
+    | .atom info str => infoWrap info <$> tag .keyword str
     | .missing => tag .error "<missing>"
     | .ident info _ x _ =>
       let d? ← findDocString? (← getEnv) x
@@ -242,52 +240,48 @@ where
           match x with
           | .str x' "pseudo" => x'.toString
           | _ => x.toString
-      return tok ++
-        if let .original _ _ trailing _ := info then
-          if trailing.any (· == '\n') then .line else .nil
-        else .nil
+      return infoWrap info tok
     | .node info k args => do
-      .group <$>
+      infoWrap info <$>
       match k, antiquoteOf k, args with
-      | `many.antiquot_suffix_splice, _, #[starred, star] => production starred >>= kleene starred
-      | `optional.antiquot_suffix_splice, _, #[starred, star] => production starred >>= perhaps starred
-      | `sepBy.antiquot_suffix_splice, _, #[starred, star] => production starred >>= kleeneLike ",*" starred
-      | `many.antiquot_scope, _, #[_dollar, _null, _brack, contents, _brack2, .atom info _star] => do
-        let doc ← production contents >>= kleene contents
-        return doc ++
-          if let .original _ _ trailing _ := info then
-            if trailing.any (· == '\n') then .line else .nil
-          else .nil
-      | `optional.antiquot_scope, _, #[_dollar, _null, _brack, contents, _brack2, .atom info _star] => do
-        let doc ← production contents >>= perhaps contents
-        return doc ++
-          if let .original _ _ trailing _ := info then
-            if trailing.any (· == '\n') then .line else .nil
-          else .nil
-      | `sepBy.antiquot_scope, _, #[_dollar, _null, _brack, contents, _brack2, .atom info _star] => do
-        let doc ← production contents >>= kleeneLike ",*" contents
-        return doc ++
-          if let .original _ _ trailing _ := info then
-            if trailing.any (· == '\n') then .line else .nil
-          else .nil
+      | `many.antiquot_suffix_splice, _, #[starred, star] =>
+        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleene starred)
+      | `optional.antiquot_suffix_splice, _, #[starred, star] =>
+        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= perhaps starred)
+      | `sepBy.antiquot_suffix_splice, _, #[starred, star] =>
+        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleeneLike ",*" starred)
+      | `many.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
+        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleene contents)
+      | `optional.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
+        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= perhaps contents)
+      | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
+        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleeneLike ",*" contents)
+      | `choice, _, opts => do
+        return (← tag .bnf "(") ++ (" " ++ (← tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM production) ++ (← tag .bnf ")")
       | _, some k', #[a, b, c, d] => do
-        let d? ← findDocString? (← getEnv) k'
-        let doc ← tag (.nonterminal k' d?) (nonTerm k')
-        return doc ++
-          if let some (.original _ _ trailing _) := stx.getTailInfo? then
-            if trailing.any (· == '\n') then .line else .nil
-          else .nil
+        let doc? ← findDocString? (← getEnv) k'
+        let last :=
+          if let .node _ _ #[] := d then c else d
+        infoWrap2 a.getHeadInfo last.getTailInfo <$> tag (.nonterminal k' doc?) (nonTerm k')
       | _, _, _ => do -- return ((← args.mapM production) |>.toList |> (Format.joinSep · " "))
         let mut out := Format.nil
         for a in args do
           out := out ++ (← production a)
-          unless empty a do
-            if let some (.original _ _ trailing _) := a.getTailInfo? then
-              if trailing.any (· == '\n') then
-                --out := out ++ .line
-                continue
-            out := out ++ " "
-        pure out
+        let doc? ← findDocString? (← getEnv) k
+        tag (.fromNonterminal k doc?) out
+
+  lined (ws : String) : Format :=
+    Format.line.joinSep (ws.splitOn "\n")
+
+  infoWrap (info : SourceInfo) (doc : Format) : Format :=
+    if let .original leading _ trailing _ := info then
+      lined leading.toString ++ doc ++ lined trailing.toString
+    else doc
+
+  infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format :=
+    let pre := if let .original leading _ _ _ := info1 then lined leading.toString else .nil
+    let post := if let .original _ _ trailing _ := info2 then lined trailing.toString else .nil
+    pre ++ doc ++ post
 
   categoryOf (env : Environment) (kind : Name) : Option Name := do
     for (catName, contents) in (Lean.Parser.parserExtension.getState env).categories do
@@ -297,8 +291,10 @@ where
 
   elabGrammar config isFirst howMany (argsStx : Array Syntax) (str : TSyntax `str) col «open» i info close := do
     let args ← parseArgs <| argsStx.map (⟨·⟩)
-    let #[] := args
-      | throwErrorAt str "Expected 0 arguments"
+    let config ←
+      if let #[] := args then pure config
+      else if let #[.named _ ⟨.ident _ _ `of _⟩ (.name n)] := args then pure {name := n.getId, «open» := false}
+      else throwErrorAt str "Expected optional 'of' to specify alternate nonterminal"
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
     match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
@@ -308,8 +304,7 @@ where
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
-      `(asldfkj)
-
+      `(sorry)
   getBnf config isFirst howMany (stx : Syntax) : DocElabM (TaggedText GrammarTag) := do
     return (← renderBnf config isFirst howMany stx |>.run).render (w := 5)
 
@@ -364,21 +359,13 @@ partial def grammar.descr : BlockDescr where
 r#"pre.grammar .keyword {
   font-weight: bold;
 }
-pre.grammar .keyword::before {
-  content: '“';
-  font-weight: normal;
-}
-pre.grammar .keyword::after {
-  content: '”';
-  font-weight: normal;
-}
 pre.grammar .nonterminal {
   font-style: italic;
 }
-pre.grammar .nonterminal > .hover-info {
+pre.grammar .nonterminal > .hover-info, pre.grammar .from-nonterminal > .hover-info {
   display: none;
 }
-pre.grammar .nonterminal.documented:hover {
+pre.grammar .active {
   background-color: #eee;
   border-radius: 2px;
 }
@@ -388,17 +375,10 @@ pre.grammar .nonterminal.documented:hover {
     highlightingJs,
 r#"
 window.addEventListener("load", () => {
-  tippy('pre.grammar.hl.lean .nonterminal.documented', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
       const content = document.createElement("span");
       const state = tgt.querySelector(".hover-info").cloneNode(true);
       state.style.display = "block";
@@ -418,7 +398,27 @@ window.addEventListener("load", () => {
       content.className = "hl lean popup";
       return content;
     }
-  });
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented', innerProps), outerProps);
 });
 "#
   ]
@@ -436,8 +436,15 @@ where
     | .error => ({{<span class="err">{{·}}</span>}})
     | .keyword => ({{<span class="keyword">{{·}}</span>}})
     | .nonterminal k none => ({{<span class="nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
+    | .fromNonterminal k none => ({{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
     | .nonterminal k (some doc) => ({{
         <span class="nonterminal documented" {{#[("data-kind", k.toString)]}}>
+          <code class="hover-info"><code class="docstring">{{doc}}</code></code>
+          {{·}}
+        </span>
+      }})
+    | .fromNonterminal k (some doc) => ({{
+        <span class="from-nonterminal documented" {{#[("data-kind", k.toString)]}}>
           <code class="hover-info"><code class="docstring">{{doc}}</code></code>
           {{·}}
         </span>
