@@ -11,6 +11,7 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.Lean.Scopes
 
 
 open Lean Elab
@@ -40,16 +41,20 @@ structure LeanBlockConfig where
 def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanBlockConfig :=
   LeanBlockConfig.mk <$> .named `show .bool true <*> .named `keep .bool true <*> .named `name .name true <*> .named `error .bool true
 
+open Manual.Meta.Lean.Scopes (getScopes setScopes)
+
 @[code_block_expander lean]
 def lean : CodeBlockExpander
   | args, str => do
     let config ← LeanBlockConfig.parse.run args
+    let origScopes ← getScopes
 
     let altStr ← parserInputString str
 
     let ictx := Parser.mkInputContext altStr (← getFileName)
     let cctx : Command.Context := { fileName := ← getFileName, fileMap := FileMap.ofString altStr, tacticCache? := none, snap? := none, cancelTk? := none}
-    let mut cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, scopes := [{header := ""}, {header := ""}]}
+
+    let mut cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, scopes := origScopes}
     let mut pstate := {pos := 0, recovering := false}
     let mut cmds := #[]
 
@@ -72,6 +77,8 @@ def lean : CodeBlockExpander
     let origEnv ← getEnv
     try
       setEnv cmdState.env
+      setScopes cmdState.scopes
+
       for t in cmdState.infoState.trees do
         pushInfoTree t
 
@@ -132,7 +139,7 @@ def leanInline : RoleExpander
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          discard <| Elab.Term.elabTerm stx none
+          discard <| Manual.Meta.Lean.Scopes.runWithVariables fun _ => Elab.Term.elabTerm stx none
           Core.getMessageLog
         finally
           Core.setMessageLog initMsgs

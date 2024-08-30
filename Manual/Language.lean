@@ -371,7 +371,7 @@ Just as the `variable` command causes a particular identifier to be treated as a
 :::
 
 :::example "The `universe` command when `autoImplicit` is `false`"
-```lean
+```lean (keep := false)
 set_option autoImplicit false
 universe u
 def id₃ (α : Type u) (a : α) := a
