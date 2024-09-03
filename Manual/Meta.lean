@@ -14,6 +14,7 @@ import Manual.Meta.Basic
 import Manual.Meta.Example
 import Manual.Meta.Figure
 import Manual.Meta.Lean
+import Manual.Meta.Marginalia
 import Manual.Meta.Syntax
 
 open Lean Elab
@@ -86,6 +87,8 @@ span.TODO {
   display: inline;
   position: relative;
   float: right;
+  clear: right;
+  margin-top: 1rem;
   width: 15vw;
   margin-right: -17vw;
   color: red;

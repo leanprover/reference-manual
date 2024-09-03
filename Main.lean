@@ -11,7 +11,7 @@ def main :=
 where
   config := {
     extraFiles := [("static", "static")],
-    extraCss := ["/static/theme.css", "/static/inter/inter.css", "/static/firacode/fira_code.css", "/static/katex/katex.min.css"],
+    extraCss := ["/static/colors.css", "/static/theme.css", "/static/inter/inter.css", "/static/firacode/fira_code.css", "/static/katex/katex.min.css"],
     extraJs := ["/static/katex/katex.min.js", "/static/math.js"]
     emitTeX := false
     emitHtmlSingle := false

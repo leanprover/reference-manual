@@ -10,7 +10,7 @@ open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 #doc (Manual) "Inductive Types" =>
 
 {deftech}_Inductive types_ are the primary means of introducing new types to Lean.
-While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other {tech}[canonical] {TODO}[Harmonize terminology: "type constructor" is probably better] type former in Lean is an inductive type.
+While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other type in Lean is either an inductive type or defined in terms universes, functions, and inductive types..
 Inductive types are specified by their {deftech}_type constructors_ {index}[type constructor] and their {deftech}_constructors_; {index}[constructor] their other properties are derived from these.
 Each inductive type has a single type constructor, which may take both {tech}[universe parameters] and ordinary parameters.
 Inductive types may have any number of constructors; these constructors introduce new values whose types are headed by the inductive type's type constructor.
@@ -18,8 +18,8 @@ Inductive types may have any number of constructors; these constructors introduc
 Based on the type constructor and the constructors for an inductive type, Lean derives a {deftech}_recursor_{index}[recursor]{see "recursor"}[eliminator].
 Logically, recursors represent induction principles or elimination rules; computationally, they represent primitive recursive computations.
 The termination of recursive functions is justified by translating them into uses of the recursors, so Lean's kernel only needs to perform type checking of recursor applications, rather than including a separate termination analysis.
-Lean additionally produces a number of helper constructions based on the recursor, which are used elsewhere in the system.
-{TODO}[Sidebar note: "recursor" is always used, even for non-recursive types]
+Lean additionally produces a number of helper constructions based on the recursor,{margin}[The term _recursor_ is always used, even for non-recursive datatypes.] which are used elsewhere in the system.
+
 
 _Structures_ are a special case of inductive types that have exactly one constructor.
 When a structure is declared, Lean generates helpers that enable additional language features to be used with the new structure.
