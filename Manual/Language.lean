@@ -4,7 +4,10 @@ import Manual.Meta
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
 
+import Lean.Parser.Command
+
 open Verso.Genre Manual
+open Lean.Parser.Command (declModifiers)
 
 set_option pp.rawOnError true
 
@@ -419,9 +422,159 @@ def L := List (Type 0)
 {include 2 Language.InductiveTypes}
 
 
-# Organizational Features
+# Module Structure
+
 
 ## Commands and Declarations
+
+### Definition-Like Commands
+
+The following commands in Lean are definition-like: {TODO}[Render commands as their name (a la tactic index)]
+ * {syntaxKind}`def`
+ * {syntaxKind}`abbrev`
+ * {syntaxKind}`example`
+ * {syntaxKind}`theorem`
+
+All of these commands cause Lean to {tech}[elaborate] a term based on a signature.
+With the exception of {syntaxKind}`example`, which discards the result, the resulting expression in Lean's core language is saved for future use in the environment.
+
+:::syntax Lean.Parser.Command.declaration
+```grammar
+$_:declModifiers
+$_:definition
+```
+:::
+
+:::syntax Lean.Parser.Command.definition
+```grammar
+def $_ $_ := $_
+```
+
+```grammar
+def $_ $_
+  $[| $_ => $_]*
+```
+
+```grammar
+def $_ $_ where
+  $_*
+```
+:::
+
+:::syntax Lean.Parser.Command.theorem
+```grammar
+theorem $_ $_ := $_
+```
+
+```grammar
+theorem $_ $_
+  $[| $_ => $_]*
+```
+
+```grammar
+theorem $_ $_ where
+  $_*
+```
+:::
+
+:::syntax Lean.Parser.Command.abbrev
+```grammar
+abbrev $_ $_ := $_
+```
+
+```grammar
+abbrev $_ $_
+  $[| $_ => $_]*
+```
+
+```grammar
+abbrev $_ $_ where
+  $_*
+```
+:::
+
+
+:::TODO
+Move `instance` to type classes section with a backreference from here
+:::
+
+:::syntax Lean.Parser.Command.instance
+```grammar
+instance $_? : $_ := $_
+```
+
+```grammar
+instance $_? : $_
+  $[| $_ => $_]*
+```
+
+```grammar
+instance $_? : $_ where
+  $_*
+```
+:::
+
+
+:::syntax Lean.Parser.Command.example
+```grammar
+example $_ $_ := $_
+```
+
+```grammar
+example $_ $_
+  $[| $_ => $_]*
+```
+
+```grammar
+example $_ $_ where
+  $_*
+```
+:::
+
+:::syntax Lean.Parser.Command.opaque
+```grammar
+opaque $_ $_
+```
+:::
+
+:::syntax Lean.Parser.Command.axiom
+```grammar
+axiom $_ $_
+```
+:::
+
+
+### Modifiers
+%%%
+tag := "declaration-modifiers"
+%%%
+
+::: planned
+A description of each modifier allowed in the production `declModifiers`
+:::
+
+:::syntax declModifiers alias:=Lean.Parser.Command.declModifiers
+
+```grammar
+$_
+$_
+$_
+$_
+$_
+$_
+```
+
+:::
+
+### Signatures
+
+:::planned
+Describe signatures, including the following topics:
+ * Explicit, implicit, instance-implicit, and strict implicit parameter binders
+ * Auto-implicits
+ * Argument names and by-name syntax
+ * Which parts can be omitted where? Why?
+:::
 
 ### Headers
 
@@ -432,12 +585,15 @@ The {deftech}[_header_] of a definition or declaration specifies the signature o
 * Mention interaction with autoimplicits
 :::
 
-## Scopes
+## Section Scopes
 %%%
 tag := "scopes"
 %%%
 
-::: TODO
- * Many commands have an effect for the current {deftech}[_scope_]
- * A scope ends when a namespace ends, a section ends, or a file ends
+::: planned
+Many commands have an effect for the current {deftech key:="scope"}[_section scope_] (sometimes just called "scope" when clear).
+A section scope ends when a namespace ends, a section ends, or a file ends.
+They can also be anonymously and locally created via `in`.
+
+This section will describe this mechanism.
 :::

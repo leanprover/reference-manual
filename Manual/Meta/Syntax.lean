@@ -22,6 +22,8 @@ namespace Manual
 --   let stx ← `(command|universe $xs*)
 --   dbg_trace stx
 
+def syntaxKindDomain := `Manual.syntaxKind
+
 def Block.syntax : Block where
   name := `Manual.syntax
 
@@ -192,7 +194,7 @@ partial def «syntax» : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other Block.syntax #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Name × Option Tag × Array Name) ($(quote config.name), none, $(quote config.aliases.toArray))} #[$content,*])]
 where
   isGrammar? : Syntax → Option (Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
   | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
@@ -320,59 +322,60 @@ where
     return .nest 4 bnf -- ++ .line ++ repr stx
 
 
-def grammar := ()
-
 @[block_extension «syntax»]
 def syntax.descr : BlockDescr where
-  traverse _ _ _ := do
-    pure none
+  traverse id data contents := do
+    if let .ok (kind, tag, aliases) := FromJson.fromJson? (α := Name × Option Tag × Array Name) data then
+      modify fun st => st.saveDomainObject syntaxKindDomain kind.toString id
+      for a in aliases do
+        modify fun st => st.saveDomainObject syntaxKindDomain a.toString id
+      if tag.isSome then
+        pure none
+      else
+        let path := (← read).path
+        let tag ← Verso.Genre.Manual.externalTag id path kind.toString
+        pure <| some <| Block.other {Block.syntax with id := some id, data := toJson (kind, some tag, aliases)} contents
+    else
+      logError "Couldn't deserialize kind name for syntax block"
+      pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
-    some <| fun _ goB _ _ content => do
+    open Verso.Output.Html Verso.Doc.Html in
+    some <| fun _ goB id _ content => do
+      let xref ← HtmlT.state
+      let attrs := match xref.externalTags[id]? with
+        | none => #[]
+        | some (_, t) => #[("id", t)]
       pure {{
-        <div class="namedocs">
+        <div class="namedocs" {{attrs}}>
           <span class="label">"syntax"</span>
           {{← content.mapM goB}}
         </div>
       }}
 
-@[block_extension grammar]
-partial def grammar.descr : BlockDescr where
-  traverse _ _ _ := do
-    pure none
-  toTeX := none
-  toHtml :=
-    open Verso.Output.Html in
-    some <| fun _ goB _ info _ => do
-      match FromJson.fromJson? (α := TaggedText GrammarTag) info with
-      | .ok bnf =>
-        pure {{
-          <pre class="grammar hl lean">
-            {{ bnfHtml bnf }}
-          </pre>
-        }}
-      | .error e =>
-        Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
-        pure .empty
-  extraCss := [
-r#"pre.grammar .keyword {
+def grammar := ()
+
+def grammarCss :=
+r#".grammar .keyword {
   font-weight: bold;
 }
-pre.grammar .nonterminal {
+.grammar .nonterminal {
   font-style: italic;
 }
-pre.grammar .nonterminal > .hover-info, pre.grammar .from-nonterminal > .hover-info {
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info {
   display: none;
 }
-pre.grammar .active {
+.grammar .active {
   background-color: #eee;
   border-radius: 2px;
 }
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
 "#
-  ]
-  extraJs := [
-    highlightingJs,
+
+def grammarJs :=
 r#"
 window.addEventListener("load", () => {
   const innerProps = {
@@ -421,31 +424,117 @@ window.addEventListener("load", () => {
   tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented', innerProps), outerProps);
 });
 "#
-  ]
+
+open Verso.Output Html HtmlT in
+private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT ExtensionImpls IO) Html := do
+  let xref ← match (← state).resolveDomainObject syntaxKindDomain kind.toString with
+    | .error _ =>
+      pure none
+    | .ok (path, id) =>
+      pure (some s!"{String.join <| path.toList.map (s!"/{·}")}#{id}")
+  let addXref := fun html =>
+    match xref with
+    | none => html
+    | some tgt => {{<a href={{tgt}}>{{html}}</a>}}
+
+  return addXref <|
+    match doc? with
+    | some doc => {{
+        <span class="nonterminal documented" {{#[("data-kind", kind.toString)]}}>
+          <code class="hover-info"><code class="docstring">{{doc}}</code></code>
+          {{rendered}}
+        </span>
+      }}
+    | none => {{
+        <span class="nonterminal" {{#[("data-kind", kind.toString)]}}>
+          {{rendered}}
+        </span>
+      }}
+
+
+open Verso.Output Html in
+@[block_extension grammar]
+partial def grammar.descr : BlockDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ info _ => do
+      match FromJson.fromJson? (α := TaggedText GrammarTag) info with
+      | .ok bnf => pure {{
+          <pre class="grammar hl lean">
+            {{← bnfHtml bnf }}
+          </pre>
+        }}
+      | .error e =>
+        Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
+        pure .empty
+  extraCss := [grammarCss]
+  extraJs := [highlightingJs, grammarJs]
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
 where
-  bnfHtml : TaggedText GrammarTag → Verso.Output.Html
-  | .text str => .text true str
-  | .tag t txt => tagHtml t (bnfHtml txt)
-  | .append txts => .seq (txts.map bnfHtml)
-  tagHtml (t : GrammarTag) : Verso.Output.Html → Verso.Output.Html :=
+  bnfHtml : TaggedText GrammarTag → HtmlT Manual (ReaderT ExtensionImpls IO) Html
+  | .text str => pure <| .text true str
+  | .tag t txt => bnfHtml txt >>= tagHtml t
+  | .append txts => .seq <$> txts.mapM bnfHtml
+
+  tagHtml (t : GrammarTag) : Verso.Output.Html → HtmlT Manual (ReaderT ExtensionImpls IO) Html :=
     open Verso.Output.Html in
     match t with
-    | .bnf => ({{<span class="bnf">{{·}}</span>}})
-    | .error => ({{<span class="err">{{·}}</span>}})
-    | .keyword => ({{<span class="keyword">{{·}}</span>}})
-    | .nonterminal k none => ({{<span class="nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
-    | .fromNonterminal k none => ({{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
-    | .nonterminal k (some doc) => ({{
-        <span class="nonterminal documented" {{#[("data-kind", k.toString)]}}>
-          <code class="hover-info"><code class="docstring">{{doc}}</code></code>
-          {{·}}
-        </span>
-      }})
-    | .fromNonterminal k (some doc) => ({{
+    | .bnf => (pure {{<span class="bnf">{{·}}</span>}})
+    | .error => (pure {{<span class="err">{{·}}</span>}})
+    | .keyword => (pure {{<span class="keyword">{{·}}</span>}})
+    | .nonterminal k doc? => nonTermHtmlOf k doc?
+    | .fromNonterminal k none => (pure {{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
+    | .fromNonterminal k (some doc) => (pure {{
         <span class="from-nonterminal documented" {{#[("data-kind", k.toString)]}}>
           <code class="hover-info"><code class="docstring">{{doc}}</code></code>
           {{·}}
         </span>
       }})
+
+def Inline.syntaxKind : Inline where
+  name := `Manual.syntaxKind
+
+@[role_expander syntaxKind]
+def syntaxKind : RoleExpander
+  | args, inlines => do
+    let config ← ArgParse.done.run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code{ $syntaxKindName:str }) := arg
+      | throwErrorAt arg "Expected code literal with the syntax kind name"
+    let kName := syntaxKindName.getString.toName
+    let id : Ident := mkIdentFrom syntaxKindName kName
+    let k ← try realizeGlobalConstNoOverloadWithInfo id catch _ => pure kName
+    let doc? ← findDocString? (← getEnv) k
+    return #[← `(Doc.Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × Option String) ($(quote k), $(quote doc?))} #[Doc.Inline.code $(quote k.toString)])]
+
+
+@[inline_extension syntaxKind]
+def syntaxKind.inlinedescr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX :=
+    some <| fun go _ _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  extraCss := [grammarCss]
+  extraJs := [highlightingJs, grammarJs]
+  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun goI _ data inls => do
+      match FromJson.fromJson? (α := Name × Option String) data with
+      | .error e =>
+        Html.HtmlT.logError s!"Couldn't deserialize syntax kind name: {e}"
+        return {{<code>{{← inls.mapM goI}}</code>}}
+      | .ok (k, doc?) =>
+        return {{
+          <code class="grammar">
+            {{← nonTermHtmlOf k doc? k.toString}}
+          </code>
+        }}

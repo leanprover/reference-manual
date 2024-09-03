@@ -98,6 +98,36 @@ span.TODO {
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
+def Block.planned : Block where
+  name := `Manual.planned
+
+@[directive_expander planned]
+def planned : DirectiveExpander
+  | args, blocks => do
+    ArgParse.done.run args
+    let content ← blocks.mapM elabBlock
+    pure #[← `(Doc.Block.other Block.planned #[$content,*])]
+
+@[block_extension planned]
+def planned.descr : BlockDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  extraCss := [r#"
+div.planned {
+  font-style: italic;
+}
+div.planned .label {
+  font-size: large;
+  text-align: center;
+  font-family: var(--verso-structure-font-family);
+}
+"#]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{<div class="planned"><div class="label">"Planned Content"</div>{{← content.mapM goB}}</div>}}
+
 
 @[role_expander versionString]
 def versionString : RoleExpander
@@ -172,7 +202,7 @@ def ffi.descr : BlockDescr where
         | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize FFI doc data"; pure .empty
       let sig : Html := {{<pre>{{signature}}</pre>}}
 
-      let (_, _, xref) ← read
+      let xref ← HtmlT.state
       let idAttr :=
         if let some (_, htmlId) := xref.externalTags[id]? then
           #[("id", htmlId)]

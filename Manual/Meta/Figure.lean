@@ -89,7 +89,7 @@ def figure.descr : BlockDescr where
       else
         let .para caption := blocks[0]
           | HtmlT.logError "Malformed figure - caption not paragraph"; pure .empty
-        let (_, _, xref) ← read
+        let xref ← HtmlT.state
         let attrs := match xref.externalTags[id]? with
           | none => #[]
           | some (_, t) => #[("id", t)]
