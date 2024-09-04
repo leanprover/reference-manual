@@ -36,7 +36,7 @@ structure RecStruct where
 # Structure Parameters
 
 Just like ordinary inductive type declarations, the header of the structure declaration contains a signature that may specify both parameters and a resulting universe.
-Structures may not define indexed families. {TODO}[insert this terminology earlier at the right spot]
+Structures may not define {tech}[indexed families].
 
 # Fields
 
@@ -118,7 +118,7 @@ Fields are numbered beginning with `1`.
 
 Structure constructors may be explicitly named by providing the constructor name and `::` prior to the fields.
 If no name is explicitly provided, then the constructor is named `mk` in the structure type's namespace.
-Declaration modifiers {TODO}[xref] may additionally be provided along with an explicit constructor name.
+{ref "declaration-modifiers"}[Declaration modifiers] may additionally be provided along with an explicit constructor name.
 
 ::: example "Non-default constructor name"
 The structure  {lean}`Palindrome` contains a string and a proof that the string is the same when reversed:
@@ -138,17 +138,26 @@ Its constructor is named {name}`Palindrome.ofString`, rather than `Palindrome.mk
 The structure {lean}`NatStringBimap` maintains a finite bijection between natural numbers and strings.
 It consists of a pair of maps, such that the keys each occur as values exactly once in the other map.
 Because the constructor is private, code outside the defining module can't construct new instances and must use the provided API, which maintains the invariants of the datatype.
-Additionally, providing the default constructor name explicitly is an opportunity to attach a {TODO}[xref] documentation comment to the constructor.
+Additionally, providing the default constructor name explicitly is an opportunity to attach a {tech}[documentation comment] to the constructor.
 
 ```lean
 structure NatStringBimap where
-  /-- Build a finite bijection between some natural numbers and strings -/
+  /--
+  Build a finite bijection between some
+  natural numbers and strings
+  -/
   private mk ::
   natToString : Std.HashMap Nat String
   stringToNat : Std.HashMap String Nat
 
-def NatStringBimap.insert (nat : Nat) (string : String) (map : NatStringBimap) : Option NatStringBimap :=
-  if map.natToString.contains nat || map.stringToNat.contains string then
+def NatStringBimap.empty : NatStringBimap := ⟨{}, {}⟩
+
+def NatStringBimap.insert
+    (nat : Nat) (string : String)
+    (map : NatStringBimap) :
+    Option NatStringBimap :=
+  if map.natToString.contains nat ||
+      map.stringToNat.contains string then
     none
   else
     some (NatStringBimap.mk (map.natToString.insert nat string) (map.stringToNat.insert string nat))
@@ -175,7 +184,7 @@ $x := $y
 $f:ident
 ```
 
-A `structInstLVal` {TODO}[role for nonterminals] is a field name (an identifier), a field index (a natural number), or a term in square brackets, followed by a sequence of zero or more subfields.
+A {syntaxKind}`structInstLVal` is a field name (an identifier), a field index (a natural number), or a term in square brackets, followed by a sequence of zero or more subfields.
 Subfields are either a field name or index preceded by a dot, or a term in square brackets.
 
 This syntax is elaborated to applications of structure constructors.

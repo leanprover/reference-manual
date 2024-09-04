@@ -244,6 +244,49 @@ def lean.inlinedescr : InlineDescr where
       | .ok (hl : Highlighted) =>
         hl.inlineHtml "examples"
 
+def Inline.option : Inline where
+  name := `Manual.option
+
+@[role_expander option]
+def option : RoleExpander
+  | args, inlines => do
+    let () ← ArgParse.done.run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code{ $optName:str }) := arg
+      | throwErrorAt arg "Expected code literal with the option name"
+    let optName := optName.getString.toName
+    let optDecl ← getOptionDecl optName
+    let hl : Highlighted := optTok optName optDecl.declName optDecl.descr
+
+    pure #[← `(Inline.other {Inline.option with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote optName.toString)])]
+where
+  optTok (name declName : Name) (descr : String) : Highlighted :=
+    .token ⟨.option name declName descr , name.toString⟩
+
+@[inline_extension option]
+def option.descr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX :=
+    some <| fun go _ _ content => do
+      pure <| .seq <| ← content.mapM fun b => do
+        pure <| .seq #[← go b, .raw "\n"]
+  extraCss := [highlightingStyle]
+  extraJs := [highlightingJs]
+  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ _ data _ => do
+      match FromJson.fromJson? data with
+      | .error err =>
+        HtmlT.logError <| "Couldn't deserialize Lean option code while rendering HTML: " ++ err
+        pure .empty
+      | .ok (hl : Highlighted) =>
+        hl.inlineHtml "examples"
+
+
 
 def Block.signature : Block where
   name := `Manual.signature
@@ -576,7 +619,7 @@ where
 
 
 @[role_expander name]
-partial def name : RoleExpander
+def name : RoleExpander
   | args, #[arg] => do
     let cfg ← NameConfig.parse.run args
     let `(inline|code{ $name:str }) := arg

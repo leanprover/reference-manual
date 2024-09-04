@@ -550,7 +550,7 @@ tag := "declaration-modifiers"
 %%%
 
 ::: planned
-A description of each modifier allowed in the production `declModifiers`
+A description of each modifier allowed in the production `declModifiers`, including {deftech}[documentation comments].
 :::
 
 :::syntax declModifiers alias:=Lean.Parser.Command.declModifiers
@@ -571,7 +571,7 @@ $_
 :::planned
 Describe signatures, including the following topics:
  * Explicit, implicit, instance-implicit, and strict implicit parameter binders
- * Auto-implicits
+ * {deftech}_Automatic implicits_
  * Argument names and by-name syntax
  * Which parts can be omitted where? Why?
 :::
@@ -594,6 +594,74 @@ tag := "scopes"
 Many commands have an effect for the current {deftech key:="scope"}[_section scope_] (sometimes just called "scope" when clear).
 A section scope ends when a namespace ends, a section ends, or a file ends.
 They can also be anonymously and locally created via `in`.
+Section scopes track the following:
+ * The {deftech}_current namespace_
+ * The {deftech}_open namespaces_
+ * The values of all {deftech}_options_
+ * Variable and universe declarations
 
 This section will describe this mechanism.
+:::
+
+# Recursive Definitions
+
+## Structural Recursion
+::: planned
+This section will describe the specification of the translation to recursors.
+:::
+
+### Mutual Structural Recursion
+
+::: planned
+This section will describe the specification of the translation to recursors.
+:::
+
+## Well-Founded Recursion
+%%%
+tag := "well-founded-recursion"
+%%%
+
+::: planned
+This section will describe the translation of {deftech}[well-founded recursion].
+:::
+
+
+# Type Classes
+
+## Class Declarations
+
+::: planned
+This section will describe the syntax of `class` and `class inductive` declarations.
+The desugaring of `class` to `structure` and thus `inductive` will be addressed, along with the determining of implicitness of method parameters.
+:::
+
+## Instance Declarations
+
+::: planned
+This section will describe the syntax of `instance` declarations, priorities, and names.
+:::
+
+
+## Instance Synthesis
+
+::: planned
+This section will specify the instance synthesis algorithm.
+:::
+
+## Deriving Instances
+%%%
+tag := "deriving-instances"
+%%%
+
+::: planned
+This section will specify syntax of `deriving` clauses and list the valid places where they may occur.
+It will also describe `deriving instance`.
+It will list the deriving handlers that ship with Lean by default.
+:::
+
+
+### Deriving Handlers
+
+::: planned
+This section will describe deriving handlers and how they are invoked.
 :::

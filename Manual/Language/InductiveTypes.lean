@@ -57,8 +57,8 @@ A declaration signature follows the name.
 The signature may specify any parameters, modulo the well-formedness requirements for inductive type declarations, but the return type of the signature must be in the inductive type being specified.
 If no signature is provided, then the constructor's type is inferred by inserting sufficient implicit parameters to construct a well-formed return type.
 
-The new inductive type's name is prefixed by the {TODO}[xref] current namespace.
-Each constructor's name is prefixed by the current namespace and the inductive type's name.
+The new inductive type's name is defined in the {tech}[current namespace].
+Each constructor's name is in the inductive type's namespace.{index subterm:="of inductive type"}[namespace]
 
 ## Parameters and Indices
 
@@ -70,6 +70,10 @@ All parameters must precede all indices in the type constructor's signature.
 Parameters that occur prior to the colon (`':'`) in the type constructor's signature are considered parameters to the entire inductive type declaration.
 They are always parameters, while those that occur after the colon may by parameters or indices.
 The distinction is inferred from the way in which they are used in the specifications of the constructors.
+
+Indices can be seen as defining a _family_ of types.
+Each choice of indices selects a type from the family, which has its own set of available constructors.
+Type constructors that take index parameters are referred to as {deftech}_indexed families_ of types.
 
 ## Example Inductive Types
 
@@ -243,7 +247,7 @@ inductive Either'' : Type u → Type v → Type (max u v) where
   | left : {α : Type u} → {β : Type v} → α → Either'' α β
   | right : α → Either'' α β
 ```
-{name}`Either''.right`'s type parameters are discovered via Lean's ordinary rules for unbound implicit arguments. {TODO}[xref]
+{name}`Either''.right`'s type parameters are discovered via Lean's ordinary rules for {tech}[automatic implicit] parameters.
 ::::
 :::::
 
@@ -294,12 +298,7 @@ def AtLeastOne.head' : AtLeastOne α → α
 ## Deriving Instances
 
 The optional {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`deriving` clause of an inductive type declaration can be used to derive instances of type classes.
-Please refer to {TODO}[write it!] the section on instance deriving for more information.
-
-:::TODO
- * Deriving (just xref)
- * Interaction with `variable` (xref)
-:::
+Please refer to {ref "deriving-instances"}[the section on instance deriving] for more information.
 
 
 {include 0 Manual.Language.InductiveTypes.Structures}
@@ -533,8 +532,8 @@ All occurrences of the type being defined in the types of the parameters of the 
 A position is strictly positive if it is not in a function's argument type (no matter how many function types are nested around it) and it is not an argument of any expression other than type constructors of inductive types.
 This restriction rules out unsound inductive type definitions, at the cost of also ruling out some unproblematic ones.
 
-::::example "Non-strictly-positive inductive types"
-:::keepEnv
+:::::example "Non-strictly-positive inductive types"
+::::keepEnv
 The datatype `Bad` would make Lean inconsistent if it were not rejected:
 ```lean (name := Bad) (error := true)
 inductive Bad where
@@ -543,8 +542,15 @@ inductive Bad where
 ```leanOutput Bad
 (kernel) arg #1 of 'Bad.bad' has a non positive occurrence of the datatypes being declared
 ```
-This is because it would be possible to write a circular argument that proves `False` under the assumption `Bad`.
-`Bad.bad` is rejected because the constructor's parameter has type `Bad → Bad`, which is a function type in which `Bad` occurs as an argument type.
+
+:::keepEnv
+```lean (show := false)
+axiom Bad : Type
+axiom Bad.bad : (Bad → Bad) → Bad
+```
+This is because it would be possible to write a circular argument that proves {lean}`False` under the assumption {lean}`Bad`.
+{lean}`Bad.bad` is rejected because the constructor's parameter has type {lean}`Bad → Bad`, which is a function type in which {lean}`Bad` occurs as an argument type.
+:::
 
 This declaration of a fixed point operator is rejected, because `Fix` occurs as an argument to `f`:
 ```lean (name := Fix) (error := true)
@@ -563,18 +569,41 @@ axiom Fix : (Type → Type) → Type
 ```lean
 def Bad : Type := Fix fun t => t → t
 ```
-:::
 ::::
+:::::
 
 
 ### Prop vs Type
 
-:::TODO
-Explain this:
-````
-invalid universe polymorphic type, the resultant universe is not Prop (i.e., 0), but it may be Prop for some parameter values (solution: use 'u+1' or 'max 1 u'){indentD u}"
-````
+Lean rejects universe-polymorphic types that could not, in practice, be used polymorphically.
+This could arise if certain instantiations of the universe parameters would cause the type itself to be a {lean}`Prop`.
+If this type is not a {tech}[subsingleton], then is recursor can only target propositions (that is, the {tech}[motive] must return a {lean}`Prop`).
+These types only really make sense as {lean}`Prop`s themselves, so the universe polymorphism is probably a mistake.
+Because they are largely useless, Lean's datatype elaborator has not been designed to support these types.
+
+When such universe-polymorphic inductive types are indeed subsingletons, it can make sense to define them.
+Lean's standard library defines {name}`PUnit` and {name}`PEmpty`.
+To define a subsingleton that can inhabit {lean}`Prop` or a {lean}`Type`, set the option {option}`bootstrap.inductiveCheckResultingUniverse` to {lean}`false`.
+
+{optionDocs bootstrap.inductiveCheckResultingUniverse}
+
+::::keepEnv
+:::example "Overly-universe-polymorphic {lean}`Bool`"
+Defining a version of {lean}`Bool` that can be in any universe is not allowed:
+```lean (error := true) (name := PBool)
+inductive PBool : Sort u where
+  | true
+  | false
+```
+
+
+```leanOutput PBool
+invalid universe polymorphic type, the resultant universe is not Prop (i.e., 0), but it may be Prop for some parameter values (solution: use 'u+1' or 'max 1 u')
+  u
+```
 :::
+::::
+
 
 
 # Constructions for Termination Checking
@@ -589,7 +618,7 @@ First, the equation compiler (which translates recursive functions with pattern 
  * `noConfusionType` is the motive used for `noConfusion` that determines what the consequences of two constructors being equal would be. For separate constructors, this is {lean}`False`; if both constructors are the same, then the consequence is the equality of their respective parameters.
 
 
-For well-founded recursion{TODO}[xref], it is frequently useful to have a generic notion of size available.
+For {tech}[well-founded recursion], it is frequently useful to have a generic notion of size available.
 This is captured in the {name}`SizeOf` class.
 
 {docstring SizeOf}
@@ -727,6 +756,92 @@ Figure out how to test/validate/CI these statements
 
 
 # Mutual Inductive Types
+
+Inductive types may be mutually recursive.
+Mutually recursive definitions of inductive types are specified by defining the types in a `mutual ... end` block.
+The inductive types declared in a `mutual` block are considered as a group; they must collectively satisfy generalized versions of the well-formedness criteria for non-mutually-recursive inductive types.
+
+## Requirements
+
+### Mutual Dependencies
+
+Each type constructor's signature must be able to be elaborated without reference to the other inductive types in the `mutual` group.
+
+### Parameters Must Match
+
+### Universe Levels
+
+The universe levels of each inductive type in a mutual group must obey the same requirements as non-mutually-recursive inductive types.
+It is permitted to mutually define datatypes and inductive predicates.
+
+```lean (error:=true)
+mutual
+  inductive FreshList (α : Type) (r : α → α → Prop) : Type where
+    | nil : FreshList α r
+    | cons (x : α) (xs : FreshList α r) (all : All α r x xs)
+  inductive All (α : Type) (pred : α → Prop) : (x : α) → FreshList α r → Prop where
+    | nil : All α
+end
+```
+
+### Positivity
+Each inductive type that is defined in the `mutual` group may occur only strictly positively in the types of the parameters of the constructors of all the types in the group.
+
+::: example "Mutual Strict Positivity"
+In the following mutual group, `Tm` occurs in a negative position in the argument to `Binding.scope`:
+```lean (error := true) (name := mutualHoas)
+mutual
+  inductive Tm where
+    | app : Tm → Tm → Tm
+    | lam : Binding → Tm
+  inductive Binding where
+    | scope : (Tm → Tm) → Binding
+end
+```
+Because `Tm` is part of the same mutual group, it must occur only strictly positively in the arguments to the constructors of `Binding`.
+It occurs, however, negatively:
+```leanOutput mutualHoas
+(kernel) arg #1 of 'Binding.scope' has a non positive occurrence of the datatypes being declared
+```
+:::
+
+## Recursors
+
+Each inducuti
+
+::: example "Even and Odd"
+```lean
+mutual
+  inductive Even : Nat → Prop where
+    | zero : Even 0
+    | succ : Odd n → Even (n + 1)
+  inductive Odd : Nat → Prop where
+    | succ : Even n → Odd (n + 1)
+end
+
+#check Odd.rec
+```
+
+```signature
+Even.rec
+  {motive_1 : (a : Nat) → Even a → Prop}
+  {motive_2 : (a : Nat) → Odd a → Prop}
+  (zero : motive_1 0 Even.zero)
+  (succ : {n : Nat} → (a : Odd n) → motive_2 n a → motive_1 (n + 1) (Even.succ a)) :
+  (∀ {n : Nat} (a : Even n), motive_1 n a → motive_2 (n + 1) (Odd.succ a)) →
+  ∀ {a : Nat} (t : Even a), motive_1 a t
+```
+
+```signature
+Odd.rec
+  {motive_1 : (a : Nat) → Even a → Prop}
+  {motive_2 : (a : Nat) → Odd a → Prop}
+  (zero : motive_1 0 Even.zero)
+  (succ : ∀ {n : Nat} (a : Odd n), motive_2 n a → motive_1 (n + 1) (Even.succ a)) :
+  (∀ {n : Nat} (a : Even n), motive_1 n a → motive_2 (n + 1) (Odd.succ a)) → ∀ {a : Nat} (t : Odd a), motive_2 a t
+```
+
+:::
 
 ::: TODO
 1. Explain syntax
