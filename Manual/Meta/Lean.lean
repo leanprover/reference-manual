@@ -41,7 +41,7 @@ structure LeanBlockConfig where
 def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanBlockConfig :=
   LeanBlockConfig.mk <$> .named `show .bool true <*> .named `keep .bool true <*> .named `name .name true <*> .named `error .bool true
 
-open Manual.Meta.Lean.Scopes (getScopes setScopes)
+open Manual.Meta.Lean.Scopes (getScopes setScopes runWithOpenDecls runWithVariables)
 
 @[code_block_expander lean]
 def lean : CodeBlockExpander
@@ -139,7 +139,7 @@ def leanInline : RoleExpander
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          discard <| Manual.Meta.Lean.Scopes.runWithVariables fun _ => Elab.Term.elabTerm stx none
+          discard <| runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm stx none
           Core.getMessageLog
         finally
           Core.setMessageLog initMsgs
@@ -563,15 +563,15 @@ def Inline.name : Inline where
 structure NameConfig where
   full : Option Name
 
-def NameConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m NameConfig :=
+def NameConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] [MonadLiftT TermElabM m] : ArgParse m NameConfig :=
   NameConfig.mk <$> ((fun _ => none) <$> .done <|> .positional `name ref <|> pure none)
 where
   ref : ValDesc m (Option Name) := {
     description := m!"reference name"
     get := fun
       | .name x =>
-        some <$> liftM (realizeGlobalConstNoOverloadWithInfo x)
-      | other => throwError "Expected Boolean, got {repr other}"
+        some <$> liftM (runWithOpenDecls (runWithVariables fun _ => realizeGlobalConstNoOverloadWithInfo x))
+      | other => throwError "Expected reference name, got {repr other}"
   }
 
 
@@ -583,9 +583,13 @@ partial def name : RoleExpander
       | throwErrorAt arg "Expected code literal with the example name"
     let exampleName := name.getString.toName
     let identStx := mkIdentFrom arg (cfg.full.getD exampleName) (canonical := true)
-    let _resolvedName ← withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.name, stx := identStx})) <| realizeGlobalConstNoOverloadWithInfo identStx
 
-    let hl : Highlighted ← constTok (cfg.full.getD exampleName) name.getString
+    let resolvedName ←
+      runWithOpenDecls <| runWithVariables fun _ =>
+        withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.name, stx := identStx})) do
+          realizeGlobalConstNoOverloadWithInfo identStx
+
+    let hl : Highlighted ← constTok resolvedName name.getString
 
     pure #[← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString)])]
   | _, more =>

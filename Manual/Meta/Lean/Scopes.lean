@@ -27,6 +27,13 @@ def getScopes [Monad m] [MonadEnv m] [MonadOptions m] [MonadResolveName m] : m (
 def setScopes [Monad m] [MonadEnv m] (scopes : List Scope) : m Unit := do
   modifyEnv (leanSampleScopes.setState · scopes)
 
+deriving instance Repr for OpenDecl
+
+def runWithOpenDecls (act : TermElabM α) : TermElabM α := do
+  let scope := (← getScopes).head!
+  withTheReader Core.Context ({· with currNamespace := scope.currNamespace, openDecls := scope.openDecls}) do
+    act
+
 /--
 A version of Lean.Elab.Command.runTermElabM that uses the saved scopes instead of the command
 context to provide access to variables.
