@@ -124,7 +124,7 @@ This is reflected in the types of recursors for inductively defined propositions
 For these types, if there's more than one potential proof of the theorem then the motive may only return another {lean}`Prop`.
 If the type is structured such that there's only at most one proof anyway, then the motive may return a type in any universe.
 A proposition that has at most one inhabitant is called a {deftech}_subsingleton_.
-Rather than obligating users to _prove_ that there's only one possible proof, a conservative syntactic overapproximation is used to check whether a proposition is a subsingleton.
+Rather than obligating users to _prove_ that there's only one possible proof, a conservative syntactic approximation is used to check whether a proposition is a subsingleton.
 Propositions that fulfill both of the following requirements are considered to be subsingletons:
  * There is at most one constructor.
  * Each of the constructor's parameter types is either a {lean}`Prop`, a parameter, or an index.
@@ -212,8 +212,8 @@ They are conservative: there exist potential inductive types that do not undermi
 
 Type constructors of inductive types must either inhabit a {tech}[universe] or a function type whose return type is a universe.
 Each constructor must inhabit a function type that returns a saturated application of the inductive type.
-If the inductive type's universe is {lean}`Prop`, then there are no further restrictions on universes.
-If the is not {lean}`Prop`, then the following must hold for each parameter to the constructor:
+If the inductive type's universe is {lean}`Prop`, then there are no further restrictions on universes, because {lean}`Prop` is {tech}[impredicative].
+If the universe is not {lean}`Prop`, then the following must hold for each parameter to the constructor:
  * If the constructor's parameter is a parameter (in the sense of parameters vs indices) of the inductive type, then this parameter's type may be no larger than the type constructor's universe.
  * All other constructor parameters must be smaller than the type constructor's universe.
 

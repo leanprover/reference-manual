@@ -50,14 +50,15 @@ Inductive type declarations must satisfy {ref "well-formed-inductives"}[a number
 
 The first line of the declaration, from {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`inductive` to {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`where`, specifies the new {tech}[type constructor]'s name and type.
 If a type signature for the type constructor is provided, then its result type must be a {tech}[universe], but the parameters do not need to be types.
-If no signature is provided, then Lean will infer a universe that's just big enough to contain the resulting type.
+If no signature is provided, then Lean will attempt to infer a universe that's just big enough to contain the resulting type.
+In some situations, this process may fail to find a minimal universe or fail to find one at all, necessitating an annotation.
 
 The constructor specifications follow {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`where`.
 Constructors are not mandatory, as constructorless datatypes such as {lean}`False` and {lean}`Empty` are perfectly sensible.
 Each constructor specification begins with a vertical bar (`'|'`, Unicode `'VERTICAL BAR' (U+007c)`), declaration modifiers, and a name.
 The name is a {tech}[raw identifier].
 A declaration signature follows the name.
-The signature may specify any parameters, modulo the well-formedness requirements for inductive type declarations, but the return type of the signature must be in the inductive type being specified.
+The signature may specify any parameters, modulo the well-formedness requirements for inductive type declarations, but the return type in the signature must be a saturated application of the type constructor of the inductive type being specified.
 If no signature is provided, then the constructor's type is inferred by inserting sufficient implicit parameters to construct a well-formed return type.
 
 The new inductive type's name is defined in the {tech}[current namespace].
@@ -71,8 +72,12 @@ Indices may vary among the occurrences of the type constructor.
 All parameters must precede all indices in the type constructor's signature.
 
 Parameters that occur prior to the colon (`':'`) in the type constructor's signature are considered parameters to the entire inductive type declaration.
-They are always parameters, while those that occur after the colon may by parameters or indices.
-The distinction is inferred from the way in which they are used in the specifications of the constructors.
+They are always parameters that must be uniform throughout the type's definition.
+Generally speaking, parameters that occur after the colon are indices that may vary throughout the definition of the type.
+However, if the option {option}`inductive.autoPromoteIndices` is {lean}`true`, then syntactic indices that could have been parameters are made into parameters.
+An index could have been a parameter if all of its type dependencies are themselves parameters and it is used uniformly as an uninstantiated variable in all occurrences of the inductive type's type constructor in all constructors.
+
+{optionDocs inductive.autoPromoteIndices}
 
 Indices can be seen as defining a _family_ of types.
 Each choice of indices selects a type from the family, which has its own set of available constructors.
@@ -686,8 +691,6 @@ mutual
   inductive Odd : Nat → Prop where
     | succ : Even n → Odd (n + 1)
 end
-
-#check Odd.rec
 ```
 
 ```signature
