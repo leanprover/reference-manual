@@ -349,7 +349,9 @@ def syntax.descr : BlockDescr where
       pure {{
         <div class="namedocs" {{attrs}}>
           <span class="label">"syntax"</span>
-          {{← content.mapM goB}}
+          <div class="text">
+            {{← content.mapM goB}}
+          </div>
         </div>
       }}
 
