@@ -1,6 +1,5 @@
 import Lake
 open Lake DSL
-
 require verso from git "https://github.com/leanprover/verso"@"main"
 
 package "verso-manual" where

@@ -16,6 +16,7 @@ import Manual.Meta.Figure
 import Manual.Meta.Lean
 import Manual.Meta.Marginalia
 import Manual.Meta.Syntax
+import Manual.Meta.Tactics
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
