@@ -35,7 +35,7 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
     synthesizeSyntheticMVars (postpone := .no)
   -- `runTactic` extraction done. Now prettyprint the proof state.
   let st1 := goalsToMessageData remainingGoals
-  logInfoAt proofPrefix st1
+  --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
   if pre.getString != goodPre then
     logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getString}"
@@ -46,7 +46,7 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
       set (Tactic.State.mk remainingGoals)
       evalTactic tactic
   let st2 := goalsToMessageData remainingGoals'
-  logInfoAt tactic st2
+  --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
   if post.getString != goodPost then
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
@@ -76,7 +76,7 @@ def checkTacticExample'
 
   -- `runTactic` extraction done. Now prettyprint the proof state.
   let st1 := goalsToMessageData remainingGoals
-  logInfoAt proofPrefix st1
+  --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
   if pre.getString.trim != goodPre.trim then
     Verso.Doc.Suggestion.saveSuggestion pre (goodPre.take 30 ++ "…") (goodPre ++ "\n")
@@ -97,7 +97,7 @@ def checkTacticExample'
       set (Tactic.State.mk remainingGoals)
       evalTactic tactic
   let st2 := goalsToMessageData remainingGoals'
-  logInfoAt tactic st2
+  --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
   if post.getString.trim != goodPost.trim then
     Verso.Doc.Suggestion.saveSuggestion post (goodPost.take 30 ++ "…") (goodPost ++ "\n")
