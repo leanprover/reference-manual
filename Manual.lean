@@ -26,19 +26,27 @@ authors := ["Lean Developers"]
 
 {include Manual.Terms}
 
-{include Manual.Tactics}
+# Monads and `do`-Notation
 
-{include Manual.Simp}
+# IO
 
+{include 0 Manual.Tactics}
 
-{include Manual.BuiltInTypes}
+{include 0 Manual.Simp}
+
+{include 0 Manual.BuiltInTypes}
+
+# Macros
+
+# Lake and Reservoir
+
 
 
 # Progress
 
 :::progress
 ```namespace
-String Char Nat
+String Char Nat Lean.Elab.Tactic
 ```
 ```exceptions
 String.revFindAux String.extract.go₂ String.substrEq.loop String.casesOn
@@ -106,6 +114,26 @@ Nat.le.below.rec
 Nat.le.below.recOn
 Nat.le.below.refl
 Nat.le.below.casesOn
+```
+
+```exceptions
+Lean.Elab.Tactic.evalUnfold.go
+Lean.Elab.Tactic.dsimpLocation.go
+Lean.Elab.Tactic.withCollectingNewGoalsFrom.go
+Lean.Elab.Tactic.evalRunTac.unsafe_impl_1
+Lean.Elab.Tactic.evalRunTac.unsafe_1
+Lean.Elab.Tactic.evalTactic.handleEx
+Lean.Elab.Tactic.simpLocation.go
+Lean.Elab.Tactic.instToSnapshotTreeTacticParsedSnapshot.go
+Lean.Elab.Tactic.dsimpLocation'.go
+Lean.Elab.Tactic.withRWRulesSeq.go
+Lean.Elab.Tactic.runTermElab.go
+Lean.Elab.Tactic.getMainGoal.loop
+Lean.Elab.Tactic.elabSimpArgs.isSimproc?
+Lean.Elab.Tactic.elabSimpArgs.resolveSimpIdTheorem?
+Lean.Elab.Tactic.tactic.dbg_cache
+Lean.Elab.Tactic.tactic.simp.trace
+Lean.Elab.Tactic.liftMetaTacticAux
 ```
 
 :::

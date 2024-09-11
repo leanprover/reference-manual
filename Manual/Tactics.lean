@@ -4,11 +4,16 @@ import Lean.Parser.Term
 
 import Manual.Meta
 
+import Manual.Tactics.Reference
+import Manual.Tactics.Impls
+
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
+
+open Lean.Elab.Tactic
 
 #doc (Manual) "Tactic Proofs" =>
 
@@ -48,588 +53,152 @@ Tactics are invoked using the {keywordOf Lean.Parser.Term.byTactic}`by` term.
 When the elaborator encounters {keywordOf Lean.Parser.Term.byTactic}`by`, it invokes the tactic interpreter to construct the resulting term.
 Tactic proofs may be embedded via {keywordOf Lean.Parser.Term.byTactic}`by` in any context in which a term can occur.
 
-# Tactic Overview
+# Reading Proof States
 
-## Assumptions
-
-
-:::tactic Lean.Parser.Tactic.assumption
-:::
-
-:::tactic "rename"
-:::
-
-:::tactic "rename_i"
-:::
-
-:::tactic "have"
-:::
-
-:::tactic Lean.Parser.Tactic.«tacticHave'_:=_»
-:::
-
-:::tactic Lean.Parser.Tactic.tacticHaveI_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticHave'_
-:::
-
-:::tactic "revert"
-:::
-
-:::tactic "clear"
-:::
-
-:::tactic Lean.Parser.Tactic.applyAssumption
-:::
-
-## Quantifiers
-
-:::TODO
-Work around Markdown headers in `intro`, `intros` docs
-:::
-
-:::tactic Lean.Parser.Tactic.introMatch
-:::
-
-
-:::tactic "rintro"
-:::
-
-:::tactic "exists"
-:::
-
-
-Here is {tactic}`rintro` and Here is {tactic}`induction`
-
-:::tacticExample
-The goal is {goal}`∀(n : Nat), n = n`.
-```setup
-intro
-```
-After some tactics, it ends up being:
-```pre
-n✝ : Nat
-⊢ n✝ = n✝
-```
-Running {tacticStep}`skip` leaves
-```post
-n✝ : Nat
-⊢ n✝ = n✝
-```
-:::
-
-:::tacticExample
-The goal is {goal}`∀(n : Nat), n = n`.
-```setup
-intro n; induction n
-```
-After some tactics, it ends up being:
-```pre
-case zero
-⊢ 0 = 0
-
-case succ
-n✝ : Nat
-a✝ : n✝ = n✝
-⊢ n✝ + 1 = n✝ + 1
-```
-Running {tacticStep}`skip` leaves
-```post
-case zero
-⊢ 0 = 0
-
-case succ
-n✝ : Nat
-a✝ : n✝ = n✝
-⊢ n✝ + 1 = n✝ + 1
-```
-:::
-
-## Lemmas
-
-:::tactic "exact"
-:::
-
-:::tactic "apply"
-:::
-
-:::tactic "refine"
-:::
-
-:::tactic "refine'"
-:::
-
-
-## Falsehood
-
-:::tactic "exfalso"
-:::
-
-:::tactic "contradiction"
-:::
-
-:::tactic Lean.Parser.Tactic.falseOrByContra
-:::
-
-
-## Goal Management
-
-:::tactic "suffices"
-:::
-
-:::tactic "change"
-:::
-
-:::tactic Lean.Parser.Tactic.changeWith
-:::
-
-:::tactic "generalize"
-:::
-
-:::tactic "specialize"
-:::
-
-:::tactic "obtain"
-:::
-
-:::tactic "show"
-:::
-
-:::tactic Lean.Parser.Tactic.showTerm
-:::
-
-
-### Goal Selection
-
-:::tactic Lean.cdot
-:::
-
-:::tactic "case"
-:::
-
-:::tactic "case'"
-:::
-
-:::tactic "next"
-:::
-
-:::tactic "all_goals"
-:::
-
-:::tactic "any_goals"
-:::
-
-:::tactic "focus"
-:::
-
-:::tactic Lean.Parser.Tactic.rotateLeft
-:::
-
-:::tactic Lean.Parser.Tactic.rotateRight
-:::
-
-
-## Cast Management
-
-:::tactic Lean.Parser.Tactic.pushCast
-:::
-
-:::tactic Lean.Parser.Tactic.normCast0
-:::
-
-:::tactic Lean.Parser.Tactic.tacticNorm_cast_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticExact_mod_cast_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticApply_mod_cast_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticRw_mod_cast___
-:::
-
-:::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast
-:::
-
-## Relations
-
-:::tactic "rfl"
-:::
-
-:::tactic Lean.Parser.Tactic.applyRfl
-:::
-
-:::tactic Lean.Parser.Tactic.tacticRfl
-:::
-
-:::tactic "symm"
-:::
-
-:::tactic "calc"
-:::
-
-
-### Equality
-
-:::tactic "subst"
-:::
-
-:::tactic "subst_eqs"
-:::
-
-:::tactic "subst_vars"
-:::
-
-:::tactic "congr"
-:::
-
-:::tactic "eq_refl"
-:::
-
-:::tactic "ac_rfl"
-:::
-
-## Extensionality
-
-
-:::tactic "ext"
-:::
-
-:::tactic Lean.Elab.Tactic.Ext.tacticExt1___
-:::
-
-:::tactic Lean.Elab.Tactic.Ext.applyExtTheorem
-:::
-
-:::tactic "funext"
-:::
-
-## Simplification
-
-:::tactic "simp"
+:::planned
+ * Assumptions and inaccessible names
+ * Cases and case labels
+ * Diff labels
 :::
 
-:::tactic "simp?"
-:::
-
-:::tactic "simp?!"
-:::
-
-:::tactic "simp_arith"
-:::
-
-:::tactic Lean.Parser.Tactic.simpArithAutoUnfold
-:::
-
-:::tactic "dsimp"
-:::
-
-:::tactic "dsimp?"
-:::
-
-:::tactic "dsimp?!"
-:::
-
-:::tactic "dsimp!"
-:::
-
-:::tactic "simp_all"
-:::
-
-:::tactic "simp_all?"
-:::
-
-:::tactic "simp_all?!"
-:::
-
-
-:::tactic "simp_all_arith"
-:::
-
-:::tactic "simpa"
-:::
-
-:::tactic "simpa?"
-:::
-
-:::tactic "simpa!"
-:::
-
-:::tactic "simpa?!"
-:::
-
-
-## Rewriting
-
-:::tactic "rw"
-:::
-
-:::tactic "rewrite"
-:::
-
-:::tactic "erw"
-:::
-
-:::tactic Lean.Parser.Tactic.tacticRwa__
-:::
-
-:::tactic "unfold"
-:::
-
-:::tactic "replace"
-:::
-
-:::tactic "delta"
-:::
-
-
-## Inductive Types
-
-:::tactic "constructor"
-:::
-
-:::tactic "cases"
-:::
-
-:::tactic "rcases"
-:::
-
-:::tactic "induction"
-:::
-
-:::tactic "injection"
-:::
-
-:::tactic "injections"
-:::
-
-:::tactic "left"
-:::
-
-:::tactic "right"
-:::
-
-
-## Library Search
-
-:::tactic "exact?"
-:::
-
-:::tactic "apply?"
-:::
+# Hygiene
 
-:::tactic "rw?"
-:::
-
-## Case Analysis
-
-:::tactic "split"
-:::
-
-:::tactic "by_cases"
-:::
-
-## Decision Procedures
-
-:::tactic "omega"
-:::
-
-:::TODO
-`decide`
-:::
-
-:::tactic Lean.Parser.Tactic.nativeDecide
-:::
-
-### SAT Solver Integration
-
-:::tactic "bv_omega"
-:::
-
-:::tactic "bv_decide"
-:::
+# Options
 
-:::tactic "bv_normalize"
-:::
-
-:::tactic "bv_check"
-:::
-
-:::tactic Lean.Parser.Tactic.bvTrace
-:::
+{optionDocs tactic.dbg_cache}
 
-## Control Flow
+{optionDocs tactic.hygienic}
 
-:::tactic "skip"
-:::
+{optionDocs tactic.customEliminators}
 
-:::tactic "<;>"
-:::
+{optionDocs tactic.skipAssignedInstances}
 
-:::tactic "try"
-:::
+{optionDocs tactic.simp.trace}
 
-:::tactic "first"
-:::
+# Extensions
 
-:::tactic Lean.Parser.Tactic.tacIfThenElse
+::: planned
+ * Adding tactics with `macro_rules`
+ * Extending existing tactics via `macro_rules`
+ * The tactic monad `TacticM`
 :::
 
-:::tactic Lean.Parser.Tactic.tacDepIfThenElse
-:::
+## The Tactic Monad
 
-:::tactic Lean.Parser.Tactic.match
+::: planned
+ * Overview of available effects
+ * Checkpointing
 :::
 
-:::tactic "nofun"
-:::
+{docstring Lean.Elab.Tactic.Tactic}
 
-:::tactic "nomatch"
-:::
+{docstring Lean.Elab.Tactic.TacticM}
 
-:::tactic "iterate"
-:::
+{docstring Lean.Elab.Tactic.run}
 
-:::tactic "repeat"
-:::
+{docstring Lean.Elab.Tactic.runTermElab}
 
-:::tactic "repeat'"
-:::
+### Control
 
-:::tactic "repeat1'"
-:::
+{docstring Lean.Elab.Tactic.tryTactic}
 
+{docstring Lean.Elab.Tactic.tryTactic?}
 
-:::tactic "fail"
-:::
+### Expressions
 
-:::tactic "fail_if_success"
-:::
+{docstring Lean.Elab.Tactic.ensureHasNoMVars}
 
-:::tactic Lean.Parser.Tactic.guardHyp
-:::
+{docstring Lean.Elab.Tactic.getFVarId}
 
-:::tactic Lean.Parser.Tactic.guardTarget
-:::
+{docstring Lean.Elab.Tactic.getFVarIds}
 
-:::tactic Lean.Parser.Tactic.guardExpr
-:::
+{docstring Lean.Elab.Tactic.sortMVarIdsByIndex}
 
-:::tactic "done"
-:::
+{docstring Lean.Elab.Tactic.sortMVarIdArrayByIndex}
 
-:::tactic "sleep"
-:::
+### Source Locations
 
-:::tactic "let"
-:::
+{docstring Lean.Elab.Tactic.withLocation}
 
-:::tactic Lean.Parser.Tactic.tacticLet_
-:::
+### Goals
 
-:::tactic Lean.Parser.Tactic.tacticLetI_
-:::
+{docstring Lean.Elab.Tactic.getGoals}
 
-:::tactic Lean.Parser.Tactic.tacticLet'_
-:::
+{docstring Lean.Elab.Tactic.setGoals}
 
+{docstring Lean.Elab.Tactic.getMainGoal}
 
+{docstring Lean.Elab.Tactic.getMainTag}
 
-:::tactic "checkpoint"
-:::
+{docstring Lean.Elab.Tactic.closeMainGoal}
 
-:::tactic "save"
-:::
+{docstring Lean.Elab.Tactic.focus}
 
-:::tactic "stop"
-:::
+{docstring Lean.Elab.Tactic.tagUntaggedGoals}
 
+{docstring Lean.Elab.Tactic.getUnsolvedGoals}
 
+{docstring Lean.Elab.Tactic.pruneSolvedGoals}
 
-## Namespace and Option Management
+{docstring Lean.Elab.Tactic.appendGoals}
 
-:::tactic Lean.Parser.Tactic.set_option
-:::
+{docstring Lean.Elab.Tactic.closeMainGoalUsing}
 
-:::tactic Lean.Parser.Tactic.open
-:::
+### Term Elaboration
 
-:::tactic Lean.Parser.Tactic.withReducibleAndInstances
-:::
+{docstring Lean.Elab.Tactic.elabTerm}
 
-:::tactic Lean.Parser.Tactic.withReducible
-:::
+{docstring Lean.Elab.Tactic.elabTermEnsuringType}
 
-:::tactic Lean.Parser.Tactic.withUnfoldingAll
-:::
+{docstring Lean.Elab.Tactic.elabTermWithHoles}
 
 
-## Term Elaboration Backends
+### Low-Level Operations
 
-These tactics are used during elaboration of terms to satisfy obligations that arise.
+These operations are primarily used as part of the implementation of {name}`TacticM` or of particular tactics.
+It's rare that they are useful when implementing new tactics.
 
-:::tactic "decreasing_tactic"
-:::
+#### Monad Class Implementations
 
-:::tactic "decreasing_trivial"
-:::
+These operations are exposed through standard Lean monad type classes.
 
-:::tactic "decreasing_trivial_pre_omega"
-:::
+{docstring Lean.Elab.Tactic.tryCatch}
 
-:::tactic "get_elem_tactic"
-:::
+{docstring Lean.Elab.Tactic.liftMetaMAtMain}
 
-:::tactic "get_elem_tactic_trivial"
-:::
+{docstring Lean.Elab.Tactic.getMainModule}
 
-:::tactic "array_get_dec"
-:::
+{docstring Lean.Elab.Tactic.orElse}
 
-:::tactic tacticDecreasing_with_
-:::
+#### Macro Expansion
 
-## Conv
+{docstring Lean.Elab.Tactic.getCurrMacroScope}
 
-:::tactic "conv"
-:::
+{docstring Lean.Elab.Tactic.adaptExpander}
 
-:::tactic Lean.Parser.Tactic.Conv.convTactic
-:::
+#### Case Analysis
 
-## Debugging Utilities
+{docstring Lean.Elab.Tactic.elabCasesTargets}
 
-:::tactic "sorry"
-:::
+#### Simplifier
 
-:::tactic "admit"
-:::
+{docstring Lean.Elab.Tactic.elabSimpArgs}
 
-:::tactic "dbg_trace"
-:::
+{docstring Lean.Elab.Tactic.elabSimpConfig}
 
-:::tactic Lean.Parser.Tactic.traceState
-:::
+{docstring Lean.Elab.Tactic.elabSimpConfigCtxCore}
 
-:::tactic Lean.Parser.Tactic.traceMessage
-:::
+{docstring Lean.Elab.Tactic.dsimpLocation'}
 
+{docstring Lean.Elab.Tactic.elabDSimpConfigCore}
 
-## Other
+#### Attributes
 
-:::tactic "trivial"
-:::
+{docstring Lean.Elab.Tactic.tacticElabAttribute}
 
-:::tactic "solve"
-:::
+{docstring Lean.Elab.Tactic.mkTacticAttribute}
 
-:::tactic "solve_by_elim"
-:::
 
+{include 2 Manual.Tactics.Impls}
 
-:::tactic "infer_instance"
-:::
-:::tactic Lean.Parser.Tactic.tacticUnhygienic_
-:::
+{include 0 Manual.Tactics.Reference}
