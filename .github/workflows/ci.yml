@@ -50,7 +50,15 @@ jobs:
 
       - name: Generate HTML
         run: |
-          lake exe generate-manual --depth 2
+          lake exe generate-manual --depth 2 --with-word-count "words.txt"
+
+      - name: Report word count
+        run: |
+          echo "# Word Counts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "`````" >> $GITHUB_STEP_SUMMARY
+          cat words.txt >> $GITHUB_STEP_SUMMARY
+          echo "`````" >> $GITHUB_STEP_SUMMARY
 
       - name: Offline link checker
         uses: lycheeverse/lychee-action@v1.9.0
