@@ -57,11 +57,15 @@ jobs:
           echo "Word Counts"
           echo "-----------"
           cat words.txt
+
+      - name: Save word count
+        run: |
           echo "# Word Counts" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "`````" >> $GITHUB_STEP_SUMMARY
           cat words.txt >> $GITHUB_STEP_SUMMARY
           echo "`````" >> $GITHUB_STEP_SUMMARY
+          cat $GITHUB_STEP_SUMMARY
 
       - name: Offline link checker
         uses: lycheeverse/lychee-action@v1.9.0
