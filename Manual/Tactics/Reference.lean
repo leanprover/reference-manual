@@ -29,6 +29,44 @@ set_option linter.unusedVariables false
 :::tactic "exists"
 :::
 
+# Relations
+
+:::tactic "rfl"
+:::
+
+:::tactic Lean.Parser.Tactic.applyRfl
+:::
+
+:::tactic Lean.Parser.Tactic.tacticRfl
+:::
+
+:::tactic "symm"
+:::
+
+:::tactic "calc"
+:::
+
+
+## Equality
+
+:::tactic "subst"
+:::
+
+:::tactic "subst_eqs"
+:::
+
+:::tactic "subst_vars"
+:::
+
+:::tactic "congr"
+:::
+
+:::tactic "eq_refl"
+:::
+
+:::tactic "ac_rfl"
+:::
+
 # Lemmas
 
 :::tactic "exact"
@@ -106,43 +144,8 @@ set_option linter.unusedVariables false
 :::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast
 :::
 
-# Relations
-
-:::tactic "rfl"
-:::
-
-:::tactic Lean.Parser.Tactic.applyRfl
-:::
-
-:::tactic Lean.Parser.Tactic.tacticRfl
-:::
-
-:::tactic "symm"
-:::
-
-:::tactic "calc"
-:::
 
 
-## Equality
-
-:::tactic "subst"
-:::
-
-:::tactic "subst_eqs"
-:::
-
-:::tactic "subst_vars"
-:::
-
-:::tactic "congr"
-:::
-
-:::tactic "eq_refl"
-:::
-
-:::tactic "ac_rfl"
-:::
 
 # Extensionality
 
@@ -160,6 +163,8 @@ set_option linter.unusedVariables false
 :::
 
 # Simplification
+
+The simplifier is described in greater detail in {ref "the-simplifier"}[its dedicated chapter].
 
 :::tactic "simp"
 :::
@@ -254,6 +259,13 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "induction"
 :::
 
+:::tactic "nofun"
+:::
+
+:::tactic "nomatch"
+:::
+
+
 :::tactic "injection"
 :::
 
@@ -320,12 +332,6 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "skip"
 :::
 
-:::tactic "nofun"
-:::
-
-:::tactic "nomatch"
-:::
-
 
 :::tactic Lean.Parser.Tactic.guardHyp
 :::
@@ -341,7 +347,6 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 
 :::tactic "sleep"
 :::
-
 
 
 :::tactic "checkpoint"

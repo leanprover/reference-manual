@@ -11,6 +11,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "The Simplifier" =>
+%%%
+tag := "the-simplifier"
+%%%
 
 :::planned
 Describe {tactic}`simp` in detail, including:
