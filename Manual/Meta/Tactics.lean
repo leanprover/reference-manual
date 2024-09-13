@@ -99,10 +99,14 @@ def checkTacticExample'
   let st2 := goalsToMessageData remainingGoals'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
+
   if post.getString.trim != goodPost.trim then
     Verso.Doc.Suggestion.saveSuggestion post (goodPost.take 30 ++ "…") (goodPost ++ "\n")
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
 
+  let ci : ContextInfo := { ci with
+    mctx := ← getMCtx
+  }
   let hlPost ← highlightProofState ci remainingGoals' (PersistentArray.empty.push postTree)
   -- TODO messages
   -- TODO suppress proof state bubbles here, at least as an option - `Inline.lean` needs to take that as an argument
@@ -410,7 +414,9 @@ def pre : CodeBlockExpander
   | args, str => do
     let () ← ArgParse.done.run args
     let hlPre ← savePre str
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPre)} #[Doc.Block.code $str])]
+    -- The quote step here is to prevent the editor from showing document AST internals when the
+    -- cursor is on the code block
+    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPre)} #[Doc.Block.code $(quote str.getString)])]
 
 
 @[code_block_expander post]
@@ -418,4 +424,6 @@ def post : CodeBlockExpander
   | args, str => do
     let () ← ArgParse.done.run args
     let hlPost ← savePost str
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPost)} #[Doc.Block.code $str])]
+    -- The quote step here is to prevent the editor from showing document AST internals when the
+    -- cursor is on the code block
+    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPost)} #[Doc.Block.code $(quote str.getString)])]

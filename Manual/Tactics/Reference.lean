@@ -11,108 +11,25 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-#doc (Manual) "Reference" =>
+#doc (Manual) "Tactic Reference" =>
 
 
-# Tactic Reference
-
-## Assumptions
+# Assumptions
 
 
 :::tactic Lean.Parser.Tactic.assumption
 :::
 
-:::tactic "rename"
-:::
-
-:::tactic "rename_i"
-:::
-
-:::tactic "have"
-:::
-
-:::tactic Lean.Parser.Tactic.«tacticHave'_:=_»
-:::
-
-:::tactic Lean.Parser.Tactic.tacticHaveI_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticHave'_
-:::
-
-:::tactic "revert"
-:::
-
-:::tactic "clear"
-:::
 
 :::tactic Lean.Parser.Tactic.applyAssumption
 :::
 
-## Quantifiers
-
-:::TODO
-Work around Markdown headers in `intro`, `intros` docs
-:::
-
-:::tactic Lean.Parser.Tactic.introMatch
-:::
-
-
-:::tactic "rintro"
-:::
+# Quantifiers
 
 :::tactic "exists"
 :::
 
-
-Here is {tactic}`rintro` and Here is {tactic}`induction`
-
-:::tacticExample
-The goal is {goal}`∀(n : Nat), n = n`.
-```setup
-intro
-```
-After some tactics, it ends up being:
-```pre
-n✝ : Nat
-⊢ n✝ = n✝
-```
-Running {tacticStep}`skip` leaves
-```post
-n✝ : Nat
-⊢ n✝ = n✝
-```
-:::
-
-:::tacticExample
-The goal is {goal}`∀(n : Nat), n = n`.
-```setup
-intro n; induction n
-```
-After some tactics, it ends up being:
-```pre
-case zero
-⊢ 0 = 0
-
-case succ
-n✝ : Nat
-a✝ : n✝ = n✝
-⊢ n✝ + 1 = n✝ + 1
-```
-Running {tacticStep}`skip` leaves
-```post
-case zero
-⊢ 0 = 0
-
-case succ
-n✝ : Nat
-a✝ : n✝ = n✝
-⊢ n✝ + 1 = n✝ + 1
-```
-:::
-
-## Lemmas
+# Lemmas
 
 :::tactic "exact"
 :::
@@ -127,7 +44,7 @@ a✝ : n✝ = n✝
 :::
 
 
-## Falsehood
+# Falsehood
 
 :::tactic "exfalso"
 :::
@@ -139,7 +56,7 @@ a✝ : n✝ = n✝
 :::
 
 
-## Goal Management
+# Goal Management
 
 :::tactic "suffices"
 :::
@@ -166,37 +83,7 @@ a✝ : n✝ = n✝
 :::
 
 
-### Goal Selection
-
-:::tactic Lean.cdot
-:::
-
-:::tactic "case"
-:::
-
-:::tactic "case'"
-:::
-
-:::tactic "next"
-:::
-
-:::tactic "all_goals"
-:::
-
-:::tactic "any_goals"
-:::
-
-:::tactic "focus"
-:::
-
-:::tactic Lean.Parser.Tactic.rotateLeft
-:::
-
-:::tactic Lean.Parser.Tactic.rotateRight
-:::
-
-
-## Cast Management
+# Cast Management
 
 :::tactic Lean.Parser.Tactic.pushCast
 :::
@@ -219,7 +106,7 @@ a✝ : n✝ = n✝
 :::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast
 :::
 
-## Relations
+# Relations
 
 :::tactic "rfl"
 :::
@@ -237,7 +124,7 @@ a✝ : n✝ = n✝
 :::
 
 
-### Equality
+## Equality
 
 :::tactic "subst"
 :::
@@ -257,7 +144,7 @@ a✝ : n✝ = n✝
 :::tactic "ac_rfl"
 :::
 
-## Extensionality
+# Extensionality
 
 
 :::tactic "ext"
@@ -272,7 +159,7 @@ a✝ : n✝ = n✝
 :::tactic "funext"
 :::
 
-## Simplification
+# Simplification
 
 :::tactic "simp"
 :::
@@ -327,7 +214,7 @@ a✝ : n✝ = n✝
 :::
 
 
-## Rewriting
+# Rewriting
 
 :::tactic "rw"
 :::
@@ -353,7 +240,7 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
 
-## Inductive Types
+# Inductive Types
 
 :::tactic "constructor"
 :::
@@ -380,7 +267,7 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
 
-## Library Search
+# Library Search
 
 :::tactic "exact?"
 :::
@@ -391,7 +278,7 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "rw?"
 :::
 
-## Case Analysis
+# Case Analysis
 
 :::tactic "split"
 :::
@@ -399,19 +286,19 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "by_cases"
 :::
 
-## Decision Procedures
+# Decision Procedures
 
 :::tactic "omega"
 :::
 
-:::TODO
-`decide`
+:::tactic Lean.Parser.Tactic.decide show:="decide"
 :::
 
-:::tactic Lean.Parser.Tactic.nativeDecide
+
+:::tactic Lean.Parser.Tactic.nativeDecide show:="native_decide"
 :::
 
-### SAT Solver Integration
+## SAT Solver Integration
 
 :::tactic "bv_omega"
 :::
@@ -428,27 +315,9 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic Lean.Parser.Tactic.bvTrace
 :::
 
-## Control Flow
+# Control Flow
 
 :::tactic "skip"
-:::
-
-:::tactic "<;>"
-:::
-
-:::tactic "try"
-:::
-
-:::tactic "first"
-:::
-
-:::tactic Lean.Parser.Tactic.tacIfThenElse
-:::
-
-:::tactic Lean.Parser.Tactic.tacDepIfThenElse
-:::
-
-:::tactic Lean.Parser.Tactic.match
 :::
 
 :::tactic "nofun"
@@ -457,24 +326,6 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "nomatch"
 :::
 
-:::tactic "iterate"
-:::
-
-:::tactic "repeat"
-:::
-
-:::tactic "repeat'"
-:::
-
-:::tactic "repeat1'"
-:::
-
-
-:::tactic "fail"
-:::
-
-:::tactic "fail_if_success"
-:::
 
 :::tactic Lean.Parser.Tactic.guardHyp
 :::
@@ -491,18 +342,6 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::tactic "sleep"
 :::
 
-:::tactic "let"
-:::
-
-:::tactic Lean.Parser.Tactic.tacticLet_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticLetI_
-:::
-
-:::tactic Lean.Parser.Tactic.tacticLet'_
-:::
-
 
 
 :::tactic "checkpoint"
@@ -515,26 +354,7 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
 
-
-## Namespace and Option Management
-
-:::tactic Lean.Parser.Tactic.set_option
-:::
-
-:::tactic Lean.Parser.Tactic.open
-:::
-
-:::tactic Lean.Parser.Tactic.withReducibleAndInstances
-:::
-
-:::tactic Lean.Parser.Tactic.withReducible
-:::
-
-:::tactic Lean.Parser.Tactic.withUnfoldingAll
-:::
-
-
-## Term Elaboration Backends
+# Term Elaboration Backends
 
 These tactics are used during elaboration of terms to satisfy obligations that arise.
 
@@ -559,15 +379,7 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::tactic tacticDecreasing_with_
 :::
 
-## Conv
-
-:::tactic "conv"
-:::
-
-:::tactic Lean.Parser.Tactic.Conv.convTactic
-:::
-
-## Debugging Utilities
+# Debugging Utilities
 
 :::tactic "sorry"
 :::
@@ -585,7 +397,7 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::
 
 
-## Other
+# Other
 
 :::tactic "trivial"
 :::
