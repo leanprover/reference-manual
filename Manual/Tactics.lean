@@ -56,9 +56,183 @@ Tactic proofs may be embedded via {keywordOf Lean.Parser.Term.byTactic}`by` in a
 
 # Reading Proof States
 
+The goals in a proof state are displayed in order, with the main goal on top.
+Goals may be either named or anonymous.
+Named goals are indicated with `case` at the top (called a {deftech}_case label_), while anonymous goals have no such indicator.
+Tactics assign goal names, typically on the basis of constructor names, parameter names, structure field names, or the nature of the reasoning step implemented by the tactic.
+
+::::example "Named goals"
+```CSS
+#lawful-option-cases .goal-name { background-color: var(--lean-compl-yellow); }
+```
+
+This proof state contains four goals, all of which are named.
+This is part of a proof that the {lean}`Monad Option` instance is lawful (that is, to provide the {lean}`LawfulMonad Option` instance), and the case names (highlighted below) come from the names of the fields of {name}`LawfulMonad`.
+
+```proofState tag:="lawful-option-cases"
+LawfulMonad Option := by
+constructor
+intro α β f x
+rotate_right
+intro α β γ x f g
+rotate_right
+intro α β x f
+rotate_right
+intro α β f x
+rotate_right
+```
+::::
+
+
+::::example "Anonymous Goals"
+This proof state contains a single anonymous goal.
+
+```proofState
+∀ (n k : Nat), n + k = k + n := by
+intro n k
+```
+::::
+
+The {tactic}`case` tactic can be used to select a different goal as the main goal using the desired main goal's name.
+When names are assigned in the context of a main goal which itself has a name, the new goals's names are appended to the main goal's name.
+
+::::example "Hierarchical Goal Names"
+
+:::tacticExample
+```setup
+intro n k
+induction n
+```
+
+
+In the course of an attempt to prove {goal}`∀ (n k : Nat), n + k = k + n`, this proof state can occur:
+```pre
+case zero
+k : Nat
+⊢ 0 + k = k + 0
+
+case succ
+k n✝ : Nat
+a✝ : n✝ + k = k + n✝
+⊢ n✝ + 1 + k = k + (n✝ + 1)
+```
+
+After {tacticStep}`induction k`, the two new cases' names have `zero` as a prefix, because they were created in a goal named `zero`:
+
+```CSS
+#hierarchical-case-names .goal:not(:last-child) .goal-name { background-color: var(--lean-compl-yellow); }
+```
+
+```post tag:="hierarchical-case-names"
+case zero.zero
+⊢ 0 + 0 = 0 + 0
+
+case zero.succ
+n✝ : Nat
+a✝ : 0 + n✝ = n✝ + 0
+⊢ 0 + (n✝ + 1) = n✝ + 1 + 0
+
+case succ
+k n✝ : Nat
+a✝ : n✝ + k = k + n✝
+⊢ n✝ + 1 + k = k + (n✝ + 1)
+```
+:::
+::::
+
+Each goal consists of a sequence of assumptions and a desired conclusion.
+Each assumption has a name and a type; the conclusion is a type.
+Assumptions are either arbitrary elements of some type or statements that are presumed true.
+
+::::example "Assumption Names and Conclusion"
+
+```CSS
+#ex-assumption-names .hypothesis .name { background-color: var(--lean-compl-yellow); }
+```
+
+This goal has four assumptions:
+
+```proofState tag:="ex-assumption-names"
+∀ (α) (xs : List α), xs ++ [] = xs := by
+intro α xs
+induction xs
+sorry
+rename_i x xs ih
+```
+
+:::keepEnv
+```lean show:=false
+axiom α : Type
+axiom x : α
+axiom xs : List α
+axiom ih : xs ++ [] = xs
+```
+
+They are:
+
+ * {lean}`α`, an arbitrary type
+ * {lean}`x`, an arbitrary {lean}`α`
+ * {lean}`xs`, an arbitrary {lean}`List α`
+ * {lean}`ih`, an induction hypothesis that asserts that appending the empty list to {lean}`xs` is equal to {lean}`xs`.
+
+The conclusion is the statement that prepending `x` to both sides of the equality in the induction hypothesis results in equal lists.
+:::
+
+::::
+
+Some assumptions are {deftech}_inaccessible_, which means that they cannot be referred to by name.
+Inaccessible assumptions occur when an assumption is created without a specified name.
+Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may occur in the types of later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
+In particular, inaccessible assumptions are presented with daggers (`†`) after their names.
+
+
+
+::::example "Accessible Assumption Names"
+```CSS
+#option-cases-accessible .hypothesis .name { background-color: var(--lean-compl-yellow); }
+```
+
+In this proof state, all assumptions are accessible.
+
+```proofState tag:="option-cases-accessible"
+LawfulMonad Option := by
+constructor
+intro α β f x
+rotate_right
+sorry
+rotate_right
+sorry
+rotate_right
+sorry
+rotate_right
+```
+::::
+
+::::example "Inaccessible Assumption Names"
+```CSS
+#option-cases-inaccessible .hypotheses .hypothesis:nth-child(even) .name { background-color: var(--lean-compl-yellow); }
+```
+
+In this proof state, only the first and third assumptions are accessible.
+The second and fourth are inaccessible, and their names include a dagger to indicate that they cannot be referenced.
+
+```proofState tag:="option-cases-inaccessible"
+LawfulMonad Option := by
+constructor
+intro α _ f _
+rotate_right
+sorry
+rotate_right
+sorry
+rotate_right
+sorry
+rotate_right
+```
+::::
+
+
 :::planned
  * Assumptions and inaccessible names
- * Cases and {deftech}_case labels_
  * Diff labels
 :::
 

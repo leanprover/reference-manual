@@ -11,6 +11,7 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.CustomStyle
 import Manual.Meta.Example
 import Manual.Meta.Figure
 import Manual.Meta.Lean

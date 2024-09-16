@@ -363,7 +363,84 @@ def tacticStepInline : RoleExpander
 def Block.proofState : Block where
   name := `Manual.proofState
 
-def proofState := ()
+structure ProofStateOptions where
+  tag : Option String := none
+
+
+def ProofStateOptions.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m ProofStateOptions :=
+  ProofStateOptions.mk <$> .named `tag .string true
+
+
+open Lean.Parser in
+/--
+Show a proof state in the text. The proof goal is expected as a documentation comment immediately
+prior to tactics.
+-/
+@[code_block_expander proofState]
+def proofState : CodeBlockExpander
+  | args, str => do
+    let opts ← ProofStateOptions.parse.run args
+    let altStr ← parserInputString str
+    let p :=
+      node nullKind <|
+      andthen ⟨{}, whitespace⟩ <|
+      andthen termParser <|
+      andthen ⟨{}, whitespace⟩ <|
+      andthen ":=" <| andthen ⟨{}, whitespace⟩ <| andthen "by" <|
+      andthen ⟨{}, whitespace⟩ <|
+      andthen {fn := (fun _ => (·.pushSyntax (mkIdent `tacticSeq)))} (parserOfStack 0)
+    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
+    | .error es =>
+      for (pos, msg) in es do
+        log (severity := .error) (mkErrorStringWithPos  "<setup>" pos msg)
+      throwErrorAt str "Failed to parse config (expected doc comment with goal followed by tactics)"
+    | .ok stx =>
+      let goalStx := stx[0]
+      let tacticStx := stx[4]
+      let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm goalStx none
+      let mv ← Meta.mkFreshExprMVar (some goalExpr)
+        let Expr.mvar mvarId := mv
+          | throwError "Not an mvar!"
+      let (remainingGoals, infoTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `proofState (← getRef)) do
+            Tactic.run mvarId <|
+            withoutTacticIncrementality true <|
+            withTacticInfoContext tacticStx do
+              evalTactic tacticStx
+      synthesizeSyntheticMVars (postpone := .no)
+      let ci : ContextInfo := {
+        env := ← getEnv, fileMap := ← getFileMap, ngen := ← getNGen,
+        mctx := ← getMCtx, options := ← getOptions,
+        currNamespace := ← getCurrNamespace, openDecls := ← getOpenDecls
+      }
+      let hlState ← highlightProofState ci remainingGoals (PersistentArray.empty.push infoTree)
+      let st := goalsToMessageData remainingGoals
+      --logInfoAt proofPrefix st1
+      let stStr ← (← addMessageContext st).toString
+      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Doc.Block.code $(quote stStr)])]
+
+where
+  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
+    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
+    let ctx := PartialContextInfo.commandCtx {
+      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
+      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
+    }
+    return InfoTree.context ctx tree
+
+  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
+    modifyInfoState fun s => { s with trees := f s.trees }
+
+  -- TODO - consider how to upstream this
+  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
+    let treesSaved ← getResetInfoTrees
+    MonadFinally.tryFinally' x fun _ => do
+      let st    ← getInfoState
+      let tree  ← mkInfoTree st.trees
+      modifyInfoTrees fun _ => treesSaved.push tree
+      pure tree
+
+
+
 
 def proofStateStyle := r#"
 .hl.lean.tactic-view {
@@ -382,9 +459,19 @@ def proofStateStyle := r#"
 }
 "#
 
+
+
 @[block_extension Manual.proofState]
 def proofState.descr : BlockDescr where
-  traverse _ _ _ := pure none
+  traverse id data content := do
+    match FromJson.fromJson? data (α := Option String × Array (Highlighted.Goal Highlighted)) with
+    | .error e => logError s!"Error deserializing proof state info: {e}"; pure none
+    | .ok (none, _) => pure none
+    | .ok (some t, v) =>
+      let path ← (·.path) <$> read
+      let _tag ← Verso.Genre.Manual.externalTag id path t
+      pure <| some <| Block.other {Block.proofState with id := some id, data := ToJson.toJson (α := (Option String × _)) (none, v)} content
+
   toTeX := none
   extraCss := [highlightingStyle, proofStateStyle]
   extraJs := [highlightingJs]
@@ -392,15 +479,19 @@ def proofState.descr : BlockDescr where
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
-    some <| fun _ _ _ data _ => do
-      match FromJson.fromJson? data with
+    some <| fun _ _ id data _ => do
+      match FromJson.fromJson? (α := Option Tag × Array (Highlighted.Goal Highlighted)) data with
       | .error err =>
         HtmlT.logError <| "Couldn't deserialize proof state while rendering HTML: " ++ err
         pure .empty
-      | .ok (goals : Array (Highlighted.Goal Highlighted)) =>
+      | .ok (_, goals) =>
+        let idAttr :=
+          if let some (_, t) := (← read).traverseState.externalTags.get? id then
+            #[("id", t)]
+          else #[]
         pure {{
           <div class="hl lean tactic-view">
-            <div class="tactic-state">
+            <div class="tactic-state" {{idAttr}}>
               {{← if goals.isEmpty then
                   pure {{"All goals completed! 🐙"}}
                 else
@@ -409,21 +500,27 @@ def proofState.descr : BlockDescr where
           </div>
         }}
 
+structure StateConfig where
+  tag : Option String := none
+
+def StateConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m StateConfig :=
+  StateConfig.mk <$> .named `tag .string true
+
 @[code_block_expander pre]
 def pre : CodeBlockExpander
   | args, str => do
-    let () ← ArgParse.done.run args
+    let opts ← StateConfig.parse.run args
     let hlPre ← savePre str
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPre)} #[Doc.Block.code $(quote str.getString)])]
+    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Doc.Block.code $(quote str.getString)])]
 
 
 @[code_block_expander post]
 def post : CodeBlockExpander
   | args, str => do
-    let () ← ArgParse.done.run args
+    let opts ← StateConfig.parse.run args
     let hlPost ← savePost str
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Array (Highlighted.Goal Highlighted)) $(hlPost)} #[Doc.Block.code $(quote str.getString)])]
+    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Doc.Block.code $(quote str.getString)])]
