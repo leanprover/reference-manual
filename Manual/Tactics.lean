@@ -24,9 +24,9 @@ This distinction exists because it's important that definitions pick out the pre
 For example, given two assumptions of a given type, a program must be carefully written to use the correct one, while a proof may use either without consequence.
 
 Tactics are imperative programs that modify a {deftech}_proof state_.{index}[proof state]
-A proof state consists of an ordered sequence of {deftech}_goals_, which are contexts of local assumptions together with types to be inhabited; a tactic may either _succeed_ with a possibly-empty sequence of further goals or _fail_ if it cannot make progress.
-If tactic succeeds with no further goals, then the proof is complete.
-If it succeeds with one or more further goals, then its goal or goals will be proved when those further goals have been proved.
+A proof state consists of an ordered sequence of {deftech}_goals_, which are contexts of local assumptions together with types to be inhabited; a tactic may either _succeed_ with a possibly-empty sequence of further goals (called {deftech}_subgoals_) or _fail_ if it cannot make progress.
+If tactic succeeds with no subgoals, then the proof is complete.
+If it succeeds with one or more subgoals, then its goal or goals will be proved when those subgoals have been proved.
 The first goal in the proof state is called the {deftech}_main goal_.{index subterm:="main"}[goal]{index}[main goal]
 While most tactics affect only the first goal in the sequence, operators such as {tactic}`<;>` and {tactic}`all_goals` can be used to apply a tactic to many goals, and operators such as bullets, {tactic}`next` or {tactic}`case` can narrow the focus of subsequent tactics to only a single goal in the proof state.
 
@@ -180,11 +180,10 @@ The conclusion is the statement that prepending `x` to both sides of the equalit
 
 ::::
 
-Some assumptions are {deftech}_inaccessible_, which means that they cannot be referred to by name.
+Some assumptions are {deftech}_inaccessible_, which means that they cannot be referred to explicitly by name.
 Inaccessible assumptions occur when an assumption is created without a specified name.
 Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may occur in the types of later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
 In particular, inaccessible assumptions are presented with daggers (`†`) after their names.
-
 
 
 ::::example "Accessible Assumption Names"
@@ -207,6 +206,7 @@ sorry
 rotate_right
 ```
 ::::
+
 
 ::::example "Inaccessible Assumption Names"
 ```CSS
@@ -231,9 +231,224 @@ rotate_right
 ::::
 
 
+Inaccessible assumptions can still be used.
+Tactics such as {tactic}`assumption` or {tactic}`simp` can scan the entire list of assumptions, finding one that is useful, and {tactic}`contradiction` can eliminate the current goal by finding an impossible assumption without naming it.
+Additionally, assumptions can be referred to by their type, by writing the type in single guillemets.
+
+::::syntax term
+Single guillemets around a term represent a reference to some term in scope with that type.
+
+```grammar
+‹$t›
+```
+
+This can be used to refer to local lemmas by their theorem statement rather than by name, or to refer to assumptions regardless of whether they have explicit names.
+::::
+
+::::example "Assumptions by Type"
+
+In the following proof, {tactic}`cases` is repeatedly used to analyze a number.
+At the beginning of the proof, the number is named `x`, but {tactic}`cases` generates an inaccessible name for subsequent numbers.
+Rather than providing names, the proof takes advantage of the fact that there is a single assumption of type {lean}`Nat` at any given time and uses {lean}`‹Nat›` to refer to it.
+After the iteration, there is an assumption that `n + 3 < 3`, which {tactic}`contradiction` can use to remove the goal from consideration.
+```lean
+example : x < 3 → x ∈ [0, 1, 2] := by
+  intros
+  iterate 3
+    cases ‹Nat›
+    . decide
+  contradiction
+```
+::::
+
+::::example "Assumptions by Type, Outside Proofs"
+
+Single-guillemet syntax also works outside of proofs:
+
+```lean name:=evalGuillemets
+#eval
+  let x := 1
+  let y := 2
+  ‹Nat›
+```
+```leanOutput evalGuillemets
+2
+```
+
+This is generally not a good idea for non-propositions, however—when it matters _which_ element of a type is selected, it's better to select it explicitly.
+::::
+
+## Hiding Proofs and Large Terms
+
+Terms in proof states can be quite big, and there may be many assumptions.
+Because of definitional proof irrelevance, proof terms typically give little useful information.
+By default, they are not shown in goals in proof states unless they are {deftech}_atomic_, meaning that they contain no subterms.
+
+
+:::example "Elided Proof Terms"
+In this proof state, the proof that `0 < n` is elided.
+
+```proofState
+∀ (n : Nat) (i : Fin n), i.val > 5 → (⟨0, by cases i; omega⟩ : Fin n) < i := by
+  intro n i gt
+/--
+n : Nat
+i : Fin n
+gt : ↑i > 5
+⊢ ⟨0, ⋯⟩ < i
+-/
+
+```
+:::
+
+Hiding proofs is controlled by two options: {option}`pp.proofs` turns the feature on and off, while {option}`pp.proofs.threshold` adjusts a size threshold for proof hiding.
+
+{optionDocs pp.proofs}
+
+{optionDocs pp.proofs.threshold}
+
+
+Additionally, non-proof terms may be omitted when they are too large.
+In particular, Lean will omit terms that are below a configurable depth threshold, and it will omit the remainder of a term once a certain amount in total has been printed.
+Showing deep terms can enabled or disabled with the option {option}`pp.deepTerms`, and the depth threshold can be configured with the option {option}`pp.deepTerms.threshold`.
+The maximum number of pretty-printer steps can be configured with the option {option}`pp.maxSteps`.
+Printing very large terms can lead to slowdowns or stack overflows in tooling; please be conservative when adjusting these options' values.
+
+{optionDocs pp.deepTerms}
+
+{optionDocs pp.deepTerms.threshold}
+
+{optionDocs pp.maxSteps}
+
+## Metavariables
+
+Terms that begin with a question mark are _metavariables_ that correspond to an unknown value in a proof.
+They may stand for either {tech}[universe] levels or for terms.
+Some metavariables arise as part of Lean's elaboration process, when not enough information is yet available to determine a value.
+These metavariables' names have a numeric component at the end, such as `?m.392` or `?u.498`.
+Other metavariables come into existence as a result of tactics or {tech}[named holes].
+These metavariables' names do not have a numeric component.
+Metavariables that result from tactics frequently appear as goals whose {tech}[case labels] match the name of the metavariable.
+
+
+::::example "Universe Level Metavariables"
+In this proof state, the universe level of `α` is unknown:
+```proofState
+∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
+  intros α x xs elem
+/--
+α : Type ?u.782
+x : α
+xs : List α
+elem : x ∈ xs
+⊢ xs.length > 0
+-/
+```
+::::
+
+::::example "Type Metavariables"
+In this proof state, the type of list elements is unknown.
+The metavariable is repeated because the unknown type must be the same in both positions.
+```proofState
+∀ (x : _) (xs : List _), x ∈ xs → xs.length > 0 := by
+  intros x xs elem
+/--
+x : ?m.899
+xs : List ?m.899
+elem : x ∈ xs
+⊢ xs.length > 0
+-/
+
+```
+::::
+
+
+::::example "Metavariables in Proofs"
+
+:::tacticExample
+
+{goal show:=false}`∀ (i j k  : Nat), i < j → j < k → i < k`
+
+```setup
+  intros i j k h1 h2
+```
+
+In this proof state,
+```pre
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ i < k
+```
+applying the tactic {tacticStep}`apply Nat.lt_trans` results in the following proof state, in which the middle value of the transitivity step `?m` is unknown:
+```post
+case h₁
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ i < ?m
+
+case a
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ ?m < k
+
+case m
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ Nat
+```
+:::
+::::
+
+::::example "Explicitly-Created Metavariables"
+:::tacticExample
+{goal show:=false}`∀ (i j k  : Nat), i < j → j < k → i < k`
+
+```setup
+  intros i j k h1 h2
+```
+
+Explicit named holes are represented by metavariables, and additionally give rise to proof goals.
+In this proof state,
+```pre
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ i < k
+```
+applying the tactic {tacticStep}`apply @Nat.lt_trans i ?middle k ?p1 ?p2` results in the following proof state, in which the middle value of the transitivity step `?middle` is unknown and goals have been created for each of the named holes in the term:
+```post
+case middle
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ Nat
+
+case p1
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ i < ?middle
+
+case p2
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ ?middle < k
+```
+:::
+::::
+
+The display of metavariable numbers can be disabled using the {option}`pp.mvars`.
+
+{optionDocs pp.mvars}
+
+
 :::planned
- * Assumptions and inaccessible names
- * Diff labels
+Demonstrate and explain diff labels that show the difference between the steps of a proof state.
 :::
 
 # The Tactic Language
@@ -365,14 +580,91 @@ Goal selection tactics provide a way to treat a different goal as the main one, 
 
 #### Sequencing
 
-The {tactic}`<;>` tactic combinator allows a tactic to be applied to _every_ subgoal produced by some other tactic.
+In addition to running tactics one after the other, each being used to solve the main goal, the tactic language supports sequencing tactics according to the way in which goals are produced.
+The {tactic}`<;>` tactic combinator allows a tactic to be applied to _every_ {tech}[subgoal] produced by some other tactic.
+If no new goals are produced, then the second tactic is not run.
 
 :::tactic "<;>"
+
+If the tactic fails on any of the {tech}[subgoals], then the whole {tactic}`<;>` tactic fails.
 :::
 
-:::TODO
-examples
+::::example "Subgoal Sequencing"
+:::tacticExample
+
+```setup
+  intro x h
+```
+
+{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+
+In a this proof state:
+```pre
+x : Nat
+h : x = 1 ∨ x = 2
+⊢ x < 3
+```
+the tactic {tacticStep}`cases h` yields the following two goals:
+```post
+case inl
+x : Nat
+h✝ : x = 1
+⊢ x < 3
+
+case inr
+x : Nat
+h✝ : x = 2
+⊢ x < 3
+```
+
 :::
+:::tacticExample
+
+```setup
+  intro x h
+```
+
+{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+
+```pre (show := false)
+x : Nat
+h : x = 1 ∨ x = 2
+⊢ x < 3
+```
+
+Running {tacticStep}`cases h ; simp [*]` causes {tactic}`simp` to solve the first goal, leaving the second behind:
+```post
+case inr
+x : Nat
+h✝ : x = 2
+⊢ x < 3
+```
+
+:::
+
+:::tacticExample
+
+```setup
+  intro x h
+```
+
+{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+
+```pre (show := false)
+x : Nat
+h : x = 1 ∨ x = 2
+⊢ x < 3
+```
+
+Replacing the `;` with {tactic}`<;>` and running {tacticStep}`cases h <;> simp [*]` solves *both* of the new goals with {tactic}`simp`:
+
+```post
+
+```
+
+:::
+
+::::
 
 #### Working on Multiple Goals
 
@@ -390,7 +682,7 @@ The difference between them is that if the tactic fails for in any of the goals,
 
 
 Focusing tactics remove some subset of the proof goals (typically leaving only the main goal) from the consideration of some further tactics.
-In addition to the tactics described here, the {tactic}`case` tactic focuses on the selected goal.
+In addition to the tactics described here, the {tactic}`case` and {tactic}`case'` tactics focus on the selected goal.
 
 :::tactic Lean.cdot show:="·"
 
@@ -594,9 +886,165 @@ The argument to {tactic}`conv` is written in a separate language that interopera
 :::tactic Lean.Parser.Tactic.Conv.convTactic
 :::
 
-::: TODO
- Adapt tactic documentation feature to show conv documentation as well, and include the conv tactics here
+:::conv skip show:= "skip"
 :::
+
+:::conv lhs show:= "lhs"
+:::
+
+:::conv rhs show:= "rhs"
+:::
+
+:::conv fun show:= "fun"
+:::
+
+:::conv whnf show:= "whnf"
+:::
+
+:::conv zeta show:= "zeta"
+:::
+
+:::conv reduce show:= "reduce"
+:::
+
+:::conv congr show:= "congr"
+:::
+
+:::conv arg show:= "arg [@]i"
+:::
+
+:::conv ext show:= "ext"
+:::
+
+:::conv change show:= "change"
+:::
+
+:::conv delta show:= "delta"
+:::
+
+:::conv unfold show:= "unfold"
+:::
+
+:::conv pattern show:= "pattern"
+:::
+
+:::conv rewrite show:= "rewrite"
+:::
+
+:::conv simp show:= "simp"
+:::
+
+:::conv dsimp show:= "dsimp"
+:::
+
+:::conv simpMatch show:= "simp_match"
+:::
+
+:::conv nestedTactic show:= "tactic"
+:::
+
+:::conv nestedTacticCore show:= "tactic'"
+:::
+
+:::tactic Lean.Parser.Tactic.Conv.convTactic show:= "conv'"
+:::
+
+:::conv nestedConv show:= "{ ... }"
+:::
+
+:::conv paren show:= "( ... )"
+:::
+
+:::conv convRfl show:= "rfl"
+:::
+
+:::conv convDone show:= "done"
+:::
+
+:::conv convTrace_state show:= "trace_state"
+:::
+
+:::conv allGoals show:= "all_goals"
+:::
+
+:::conv anyGoals show:= "any_goals"
+:::
+
+:::conv case show:= "case ... => ..."
+:::
+
+:::conv case' show:= "case' ... => ..."
+:::
+
+:::conv «convNext__=>_» show:= "next ... => ..."
+:::
+
+:::conv focus show := "focus"
+:::
+
+:::conv convConvSeq show := "conv => ..."
+:::
+
+:::conv «conv·._» show := ". ..."
+:::
+
+:::conv «conv·._» show := "· ..."
+:::
+
+:::conv failIfSuccess show := "fail_if_success"
+:::
+
+:::conv convRw__ show := "rw"
+:::
+
+:::conv convErw_ show := "erw"
+:::
+
+:::conv convArgs show := "args"
+:::
+
+:::conv convLeft show := "left"
+:::
+
+:::conv convRight show := "right"
+:::
+
+:::conv convIntro___ show := "intro"
+:::
+
+:::syntax Lean.Parser.Tactic.Conv.enterArg
+```grammar
+$i:num
+```
+```grammar
+@$i:num
+```
+```grammar
+$x:ident
+```
+:::
+
+:::conv «convEnter[_]» show := "enter"
+:::
+
+:::conv convApply_ show := "apply"
+:::
+
+:::conv first show := "first"
+:::
+
+:::conv convTry_ show := "try"
+:::
+
+:::conv «conv_<;>_» show:="<;>"
+:::
+
+:::conv convRepeat_ show := "repeat"
+:::
+
+:::conv normCast show := "norm_cast"
+:::
+
 
 # Custom Tactics
 

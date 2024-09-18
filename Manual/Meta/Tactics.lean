@@ -19,6 +19,20 @@ open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Manual.Meta.Lean.Scopes
 open SubVerso.Highlighting
 
+structure TacticOutputConfig where
+  «show» : Bool := true
+  severity : Option MessageSeverity
+  summarize : Bool
+  whitespace : GuardMsgs.WhitespaceMode
+
+def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
+  TacticOutputConfig.mk <$>
+    ((·.getD true) <$> .named `show .bool true) <*>
+    .named `severity LeanOutputConfig.parser.sev true <*>
+    ((·.getD false) <$> .named `summarize .bool true) <*>
+    ((·.getD .exact) <$> .named `whitespace LeanOutputConfig.parser.ws true)
+
+
 def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
   let statement ← elabType goal
   let mv ← Meta.mkFreshExprMVar (some statement)
@@ -51,28 +65,37 @@ def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (p
   if post.getString != goodPost then
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
 
+open Lean.Elab.Tactic.GuardMsgs in
 def checkTacticExample'
     (goal : Expr) (proofPrefix : Syntax) (tactic : Syntax)
-    (pre : TSyntax `str) (post : TSyntax `str) :
+    (pre : TSyntax `str) (post : TSyntax `str)
+    (output : Option (TSyntax `str × TacticOutputConfig)) :
     TermElabM
       (Array (Highlighted.Goal Highlighted) ×
         Array (Highlighted.Goal Highlighted) ×
-        Highlighted) := do
+        Highlighted ×
+        MessageSeverity) := do
   let mv ← Meta.mkFreshExprMVar (some goal)
   let Expr.mvar mvarId := mv
     | throwError "Not an mvar!"
   -- `runTactic` is too specialized for this purpose - we need to capture the unsolved goals, not
   -- throw them as an exception. This code is adapted from `runTactic`.
-  let (remainingGoals, preTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
-    let remainingGoals ←
-      withInfoHole mvarId <| Tactic.run mvarId <|
-      withoutTacticIncrementality true <|
-      withTacticInfoContext proofPrefix do
-        -- also put an info node on the `by` keyword specifically -- the token may be `canonical` and thus shown in the info
-        -- view even though it is synthetic while a node like `tacticCode` never is (#1990)
-        evalTactic proofPrefix
-    synthesizeSyntheticMVars (postpone := .no)
-    pure remainingGoals
+  let ((remainingGoals, _setupMsgs), preTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+    let initMsgs ← Core.getMessageLog
+    try
+      Core.resetMessageLog
+      let remainingGoals ←
+        withInfoHole mvarId <| Tactic.run mvarId <|
+        withoutTacticIncrementality true <|
+        withTacticInfoContext proofPrefix do
+          -- also put an info node on the `by` keyword specifically -- the token may be `canonical` and thus shown in the info
+          -- view even though it is synthetic while a node like `tacticCode` never is (#1990)
+          evalTactic proofPrefix
+      synthesizeSyntheticMVars (postpone := .no)
+      let msgs ← Core.getMessageLog
+      pure (remainingGoals, msgs)
+    finally Core.setMessageLog initMsgs
+
 
   -- `runTactic` extraction done. Now prettyprint the proof state.
   let st1 := goalsToMessageData remainingGoals
@@ -90,12 +113,18 @@ def checkTacticExample'
   let hlPre ← highlightProofState ci remainingGoals (PersistentArray.empty.push preTree)
 
   -- Run the example
-  let (remainingGoals', postTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
-    Tactic.run mvarId <|
-    withoutTacticIncrementality true <|
-    withTacticInfoContext tactic do
-      set (Tactic.State.mk remainingGoals)
-      evalTactic tactic
+  let ((remainingGoals', msgs), postTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+    let initMsgs ← Core.getMessageLog
+    try
+      Core.resetMessageLog
+      let remainingGoals' ← Tactic.run mvarId <|
+        withoutTacticIncrementality true <|
+        withTacticInfoContext tactic do
+          set (Tactic.State.mk remainingGoals)
+          evalTactic tactic
+      let msgs ← Core.getMessageLog
+      pure (remainingGoals', msgs)
+    finally Core.setMessageLog initMsgs
   let st2 := goalsToMessageData remainingGoals'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
@@ -108,12 +137,38 @@ def checkTacticExample'
     mctx := ← getMCtx
   }
   let hlPost ← highlightProofState ci remainingGoals' (PersistentArray.empty.push postTree)
-  -- TODO messages
-  -- TODO suppress proof state bubbles here, at least as an option - `Inline.lean` needs to take that as an argument
-  let hlTac ← highlight tactic #[] (PersistentArray.empty.push postTree)
 
-  return (hlPre, hlPost, hlTac)
+  -- TODO suppress proof state bubbles here, at least as an option - `Inline.lean` needs to take that as an argument
+  let hlTac ← highlight tactic msgs.toArray (PersistentArray.empty.push postTree)
+  let outSev ← id <| do -- This 'id' is needed so that `return` in the `do` goes here
+    if let some (wantedOut, config) := output then
+      let processed ← msgs.toArray.mapM fun msg => do
+            let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+            let txt := withNewline <| head ++ (← msg.data.toString)
+            pure (msg.severity, txt)
+      for (sev, txt) in processed do
+        if mostlyEqual config.whitespace wantedOut.getString txt then
+          if let some s := config.severity then
+            if s != sev then
+              throwErrorAt wantedOut s!"Expected severity {sevStr s}, but got {sevStr sev}"
+          return sev
+      for (_, m) in processed do
+        Verso.Doc.Suggestion.saveSuggestion wantedOut (m.take 30 ++ "…") m
+      throwErrorAt wantedOut "Didn't match - expected one of: {indentD (toMessageData <| processed.map (·.2))}\nbut got:{indentD (toMessageData wantedOut.getString)}"
+    else pure .information
+
+  return (hlPre, hlPost, hlTac, outSev)
 where
+  withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+
+  sevStr : MessageSeverity → String
+    | .error => "error"
+    | .information => "information"
+    | .warning => "warning"
+
+  mostlyEqual (ws : WhitespaceMode) (s1 s2 : String) : Bool :=
+    ws.apply s1.trim == ws.apply s2.trim
+
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : TermElabM InfoTree := do
     let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
     let ctx := PartialContextInfo.commandCtx {
@@ -150,19 +205,22 @@ structure TacticExampleContext where
   tacticName : Ident
   post : Option (TSyntax `str) := none
   postName : Ident
+  output : Option (TSyntax `str × TacticOutputConfig) := none
+  outputSeverityName : Ident
 
 initialize tacticExampleCtx : Lean.EnvExtension (Option TacticExampleContext) ←
   Lean.registerEnvExtension (pure none)
 
-def startExample [Monad m] [MonadEnv m] [MonadError m] [MonadQuotation m] (ref : Syntax) : m Unit := do
+def startExample [Monad m] [MonadEnv m] [MonadError m] [MonadQuotation m] [MonadRef m] : m Unit := do
   match tacticExampleCtx.getState (← getEnv) with
   | some _ => throwError "Can't initialize - already in a context"
   | none =>
-    let preName ← mkFreshIdent ref
-    let tacticName ← mkFreshIdent ref
-    let postName ← mkFreshIdent ref
+    let preName ← mkFreshIdent (← getRef)
+    let tacticName ← mkFreshIdent (← getRef)
+    let postName ← mkFreshIdent (← getRef)
+    let outputSeverityName ← mkFreshIdent (← getRef)
     modifyEnv fun env =>
-      tacticExampleCtx.setState env (some {preName, tacticName, postName})
+      tacticExampleCtx.setState env (some {preName, tacticName, postName, outputSeverityName})
 
 def saveGoal [Monad m] [MonadEnv m] [MonadError m] (goal : Expr) : m Unit := do
   match tacticExampleCtx.getState (← getEnv) with
@@ -201,6 +259,18 @@ def savePre [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [Add
       logErrorAt (← getRef) "Pre-state already specified"
     return st.preName
 
+def saveOutput [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (output : TSyntax `str) (options : TacticOutputConfig) : m Ident := do
+  match tacticExampleCtx.getState (← getEnv) with
+  | none => throwError "Can't set expected output - not in a tactic example"
+  | some st =>
+    match st.output with
+    | none =>
+      modifyEnv fun env => tacticExampleCtx.setState env (some {st with output := (output, options)})
+    | some _ =>
+      logErrorAt (← getRef) "Expected output already specified"
+    return st.outputSeverityName
+
+
 def savePost [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [AddMessageContext m] [MonadOptions m] (post : TSyntax `str) : m Ident := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwError "Can't set post-state - not in a tactic example"
@@ -216,7 +286,7 @@ def savePost [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [Ad
 def endExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwErrorAt body "Can't end examples - never started"
-  | some {goal, setup, pre, preName, tactic, tacticName, post, postName} =>
+  | some {goal, setup, pre, preName, tactic, tacticName, post, postName, output, outputSeverityName} =>
     modifyEnv fun env =>
       tacticExampleCtx.setState env none
     let some goal := goal
@@ -230,18 +300,19 @@ def endExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
     let some post := post
       | throwErrorAt body "No post-state specified"
 
-    let (hlPre, hlPost, hlTactic) ← checkTacticExample' goal setup tactic pre post
+    let (hlPre, hlPost, hlTactic, outputSeverity) ← checkTacticExample' goal setup tactic pre post output
 
-    `(let $preName := $(quote hlPre)
-      let $postName := $(quote hlPost)
-      let $tacticName := $(quote hlTactic)
+    `(let $preName : Array (Highlighted.Goal Highlighted) := $(quote hlPre)
+      let $postName : Array (Highlighted.Goal Highlighted) := $(quote hlPost)
+      let $tacticName : Highlighted := $(quote hlTactic)
+      let $outputSeverityName : MessageSeverity := $(quote outputSeverity)
       $body)
 
 @[directive_expander tacticExample]
 def tacticExample : DirectiveExpander
  | args, blocks => do
     ArgParse.done.run args
-    startExample (← getRef)
+    startExample
     let body ← blocks.mapM elabBlock
     let body' ← `(Verso.Doc.Block.concat #[$body,*]) >>= endExample
     pure #[body']
@@ -328,6 +399,21 @@ def setup : CodeBlockExpander
       saveSetup stx
       pure #[]
 
+
+open Lean.Parser in
+@[code_block_expander tacticOutput]
+def tacticOutput : CodeBlockExpander
+  | args, str => do
+    let opts ← TacticOutputConfig.parser.run args
+    let outputSeverityName ← saveOutput str opts
+
+    if opts.show then
+      return #[← `(Block.other {Block.leanOutput with data := ToJson.toJson ($outputSeverityName, $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
+    else
+      return #[]
+
+
+open Lean.Parser in
 @[code_block_expander tacticStep]
 def tacticStep : CodeBlockExpander
   | args, str => do
@@ -335,13 +421,17 @@ def tacticStep : CodeBlockExpander
 
     let altStr ← parserInputString str
 
-    match Parser.runParserCategory (← getEnv) `tacticSeq altStr (← getFileName) with
-    | .error e => throwErrorAt str e
+    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent `tacticSeq)))} (parserOfStack 0)
+    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
+    | .error es =>
+      for (pos, msg) in es do
+        log (severity := .error) (mkErrorStringWithPos  "<setup>" pos msg)
+      throwErrorAt str "Failed to parse tactic step"
     | .ok stx =>
       let hlTac ← saveTactic stx
-
       pure #[← `(Block.other {Block.lean with data := ToJson.toJson (α := Highlighted) $hlTac} #[Block.code $(quote str.getString)])]
 
+open Lean.Parser in
 @[role_expander tacticStep]
 def tacticStepInline : RoleExpander
   | args, inlines => do
@@ -353,8 +443,12 @@ def tacticStepInline : RoleExpander
 
     let altStr ← parserInputString tacStr
 
-    match Parser.runParserCategory (← getEnv) `tactic altStr (← getFileName) with
-    | .error e => throwErrorAt tacStr e
+    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent `tacticSeq)))} (parserOfStack 0)
+    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
+    | .error es =>
+      for (pos, msg) in es do
+        log (severity := .error) (mkErrorStringWithPos  "<setup>" pos msg)
+      throwErrorAt arg "Failed to parse tactic step"
     | .ok stx =>
       let hlTac ← saveTactic stx
 
@@ -388,15 +482,22 @@ def proofState : CodeBlockExpander
       andthen ⟨{}, whitespace⟩ <|
       andthen ":=" <| andthen ⟨{}, whitespace⟩ <| andthen "by" <|
       andthen ⟨{}, whitespace⟩ <|
-      andthen {fn := (fun _ => (·.pushSyntax (mkIdent `tacticSeq)))} (parserOfStack 0)
+      andthen (andthen {fn := (fun _ => (·.pushSyntax (mkIdent `tacticSeq)))} (parserOfStack 0)) <|
+      optional <|
+        andthen  ⟨{}, whitespace⟩ <|
+        Command.docComment
     match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<setup>" pos msg)
-      throwErrorAt str "Failed to parse config (expected doc comment with goal followed by tactics)"
+      throwErrorAt str "Failed to parse config (expected goal term, followed by ':=', 'by', and tactics, with optional docstring)"
     | .ok stx =>
       let goalStx := stx[0]
       let tacticStx := stx[4]
+      let desired :=
+        match stx[5][0] with
+        | .missing => none
+        | other => some (⟨other⟩ : TSyntax `Lean.Parser.Command.docComment)
       let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm goalStx none
       let mv ← Meta.mkFreshExprMVar (some goalExpr)
         let Expr.mvar mvarId := mv
@@ -416,6 +517,10 @@ def proofState : CodeBlockExpander
       let st := goalsToMessageData remainingGoals
       --logInfoAt proofPrefix st1
       let stStr ← (← addMessageContext st).toString
+      if let some s := desired then
+        if stStr.trim != s.getDocString.trim then
+          logErrorAt s m!"Expected: {indentD stStr}\n\nGot: {indentD s.getDocString}"
+          Verso.Doc.Suggestion.saveSuggestion s (stStr.take 30 ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
       pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Doc.Block.code $(quote stStr)])]
 
 where
@@ -502,9 +607,10 @@ def proofState.descr : BlockDescr where
 
 structure StateConfig where
   tag : Option String := none
+  «show» : Bool := true
 
 def StateConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m StateConfig :=
-  StateConfig.mk <$> .named `tag .string true
+  StateConfig.mk <$> .named `tag .string true <*> ((·.getD true) <$> .named `show .bool true)
 
 @[code_block_expander pre]
 def pre : CodeBlockExpander
@@ -513,7 +619,10 @@ def pre : CodeBlockExpander
     let hlPre ← savePre str
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Doc.Block.code $(quote str.getString)])]
+    if opts.show then
+      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Doc.Block.code $(quote str.getString)])]
+    else
+      pure #[]
 
 
 @[code_block_expander post]
@@ -523,4 +632,7 @@ def post : CodeBlockExpander
     let hlPost ← savePost str
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
-    pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Doc.Block.code $(quote str.getString)])]
+    if opts.show then
+      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Doc.Block.code $(quote str.getString)])]
+    else
+      pure #[]

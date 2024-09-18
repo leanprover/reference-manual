@@ -20,4 +20,5 @@ This chapter will describe Lean's term language, including the following feature
  * Conditionals and their relationship to {name}`Decidable`
  * Pattern matching, including `match`, `let`, `if let`, `matches`, `nomatch`, `nofun`
  * Do-notation, including `let mut`, `for`, `while`, `repeat`, `break`, `return`
+ * {deftech}_Holes_ and {deftech}_named holes_
 :::

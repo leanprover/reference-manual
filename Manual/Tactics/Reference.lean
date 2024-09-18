@@ -281,11 +281,43 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 
 # Library Search
 
+The library search tactics are intended for interactive use.
+When run, they search the Lean library for lemmas or rewrite rules that could be applicable in the current situation, and suggests a new tactic.
+These tactics should not be left in a proof; rather, their suggestions should be incorporated.
+
 :::tactic "exact?"
 :::
 
 :::tactic "apply?"
 :::
+
+
+
+
+:::tacticExample
+{goal show:=false}`∀ (i j k : Nat), i < j → j < k → i < k`
+```setup
+intro i j k h1 h2
+```
+In this proof state:
+```pre
+i j k : Nat
+h1 : i < j
+h2 : j < k
+⊢ i < k
+```
+
+invoking {tacticStep}`apply?` suggests:
+
+```tacticOutput
+Try this: exact Nat.lt_trans h1 h2
+```
+
+```post (show := false)
+
+```
+:::
+
 
 :::tactic "rw?"
 :::
