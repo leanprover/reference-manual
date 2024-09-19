@@ -5,7 +5,6 @@ import Lean.Parser.Term
 import Manual.Meta
 
 import Manual.Tactics.Reference
-import Manual.Tactics.Impls
 import Manual.Tactics.Conv
 
 open Verso.Genre Manual
@@ -19,7 +18,8 @@ open Lean.Elab.Tactic
 #doc (Manual) "Tactic Proofs" =>
 
 The tactic language is a special-purpose programming language for constructing proofs.
-In Lean, statements are represented by types, and proofs are terms that inhabit these types.
+In Lean, {tech}[propositions] are represented by types, and proofs are terms that inhabit these types.
+{margin}[The {ref "propositions"}[section on propositions] describes propositions in more detail.]
 While terms are designed to make it convenient to indicate a specific inhabitant of a type, tactics are designed to make it convenient to demonstrate that a type is inhabited.
 This distinction exists because it's important that definitions pick out the precise objects of interest and that programs return the intended results, but proof irrelevance means that there's no _technical_ reason to prefer one proof term over another.
 For example, given two assumptions of a given type, a program must be carefully written to use the correct one, while a proof may use either without consequence.
@@ -29,14 +29,18 @@ A proof state consists of an ordered sequence of {deftech}_goals_, which are con
 If tactic succeeds with no subgoals, then the proof is complete.
 If it succeeds with one or more subgoals, then its goal or goals will be proved when those subgoals have been proved.
 The first goal in the proof state is called the {deftech}_main goal_.{index subterm:="main"}[goal]{index}[main goal]
-While most tactics affect only the first goal in the sequence, operators such as {tactic}`<;>` and {tactic}`all_goals` can be used to apply a tactic to many goals, and operators such as bullets, {tactic}`next` or {tactic}`case` can narrow the focus of subsequent tactics to only a single goal in the proof state.
+While most tactics affect only the main goal, operators such as {tactic}`<;>` and {tactic}`all_goals` can be used to apply a tactic to many goals, and operators such as bullets, {tactic}`next` or {tactic}`case` can narrow the focus of subsequent tactics to only a single goal in the proof state.
 
 Behind the scenes, tactics construct {deftech}[proof terms].
-Proof terms are independently checkable evidence of a theorem's truth, written in Lean's core type theory.
+Proof terms are independently checkable evidence of a theorem's truth, written in Lean's type theory.
 Each proof is checked in the {tech}[kernel], and can be verified with independently-implemented external checkers, so the worst outcome from a bug in a tactic is a confusing error message, rather than an incorrect proof.
 Each goal in a tactic proof corresponds to an incomplete portion of a proof term.
 
 # Running Tactics
+
+:::TODO
+The syntax of `by` is showing with commas instead of semicolons below
+:::
 
 :::syntax Lean.Parser.Term.byTactic
 Tactics are included in terms using {keywordOf Lean.Parser.Term.byTactic}`by`, which is followed by a sequence of tactics in which each has the same indentation:
@@ -94,8 +98,8 @@ intro n k
 ```
 ::::
 
-The {tactic}`case` tactic can be used to select a different goal as the main goal using the desired main goal's name.
-When names are assigned in the context of a main goal which itself has a name, the new goals's names are appended to the main goal's name.
+The {tactic}`case` and {tactic}`case'` tactics can be used to select a new main goal using the desired  goal's name.
+When names are assigned in the context of a goal which itself has a name, the new goals's names are appended to the main goal's name with a dot (`'.', Unicode FULL STOP (0x2e)`) between them.
 
 ::::example "Hierarchical Goal Names"
 
@@ -141,6 +145,7 @@ a✝ : n✝ + k = k + n✝
 :::
 ::::
 
+
 Each goal consists of a sequence of assumptions and a desired conclusion.
 Each assumption has a name and a type; the conclusion is a type.
 Assumptions are either arbitrary elements of some type or statements that are presumed true.
@@ -181,9 +186,9 @@ The conclusion is the statement that prepending `x` to both sides of the equalit
 
 ::::
 
-Some assumptions are {deftech}_inaccessible_, which means that they cannot be referred to explicitly by name.
+Some assumptions are {deftech}_inaccessible_, {index}[inaccessible] {index subterm:="inaccessible"}[assumption] which means that they cannot be referred to explicitly by name.
 Inaccessible assumptions occur when an assumption is created without a specified name.
-Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may occur in the types of later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
+Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may be referred to in later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
 In particular, inaccessible assumptions are presented with daggers (`†`) after their names.
 
 
@@ -284,10 +289,10 @@ This is generally not a good idea for non-propositions, however—when it matter
 Terms in proof states can be quite big, and there may be many assumptions.
 Because of definitional proof irrelevance, proof terms typically give little useful information.
 By default, they are not shown in goals in proof states unless they are {deftech}_atomic_, meaning that they contain no subterms.
+Hiding proofs is controlled by two options: {option}`pp.proofs` turns the feature on and off, while {option}`pp.proofs.threshold` determines a size threshold for proof hiding.
 
-
-:::example "Elided Proof Terms"
-In this proof state, the proof that `0 < n` is elided.
+:::example "Hiding Proof Terms"
+In this proof state, the proof that `0 < n` is hidden.
 
 ```proofState
 ∀ (n : Nat) (i : Fin n), i.val > 5 → (⟨0, by cases i; omega⟩ : Fin n) < i := by
@@ -302,18 +307,18 @@ gt : ↑i > 5
 ```
 :::
 
-Hiding proofs is controlled by two options: {option}`pp.proofs` turns the feature on and off, while {option}`pp.proofs.threshold` adjusts a size threshold for proof hiding.
+
 
 {optionDocs pp.proofs}
 
 {optionDocs pp.proofs.threshold}
 
 
-Additionally, non-proof terms may be omitted when they are too large.
-In particular, Lean will omit terms that are below a configurable depth threshold, and it will omit the remainder of a term once a certain amount in total has been printed.
+Additionally, non-proof terms may be hidden when they are too large.
+In particular, Lean will hide terms that are below a configurable depth threshold, and it will hide the remainder of a term once a certain amount in total has been printed.
 Showing deep terms can enabled or disabled with the option {option}`pp.deepTerms`, and the depth threshold can be configured with the option {option}`pp.deepTerms.threshold`.
 The maximum number of pretty-printer steps can be configured with the option {option}`pp.maxSteps`.
-Printing very large terms can lead to slowdowns or stack overflows in tooling; please be conservative when adjusting these options' values.
+Printing very large terms can lead to slowdowns or even stack overflows in tooling; please be conservative when adjusting these options' values.
 
 {optionDocs pp.deepTerms}
 
@@ -323,7 +328,7 @@ Printing very large terms can lead to slowdowns or stack overflows in tooling; p
 
 ## Metavariables
 
-Terms that begin with a question mark are _metavariables_ that correspond to an unknown value in a proof.
+Terms that begin with a question mark are _metavariables_ that correspond to an unknown value.
 They may stand for either {tech}[universe] levels or for terms.
 Some metavariables arise as part of Lean's elaboration process, when not enough information is yet available to determine a value.
 These metavariables' names have a numeric component at the end, such as `?m.392` or `?u.498`.
@@ -444,6 +449,7 @@ h2 : j < k
 ::::
 
 The display of metavariable numbers can be disabled using the {option}`pp.mvars`.
+This can be useful when using features such as {keywordOf Lean.guardMsgsCmd}`#guard_msgs` that match Lean's output against a desired string, which is very useful when writing tests for custom tactics.
 
 {optionDocs pp.mvars}
 
@@ -460,15 +466,12 @@ Explicit curly braces and semicolons may be used instead of indentation.
 Tactic sequences may be grouped by parentheses.
 This allows a sequence of tactics to be used in a position where a single tactic would otherwise be grammatically expected.
 
-:::tactic Lean.Parser.Tactic.paren
-:::
-
 Generally, execution proceeds from top to bottom, with each tactic running in the proof state left behind by the prior tactic.
 The tactic language contains a number of control structures that can modify this flow.
 
 Each tactic is a syntax extension in the `tactic` category.
 This means that tactics are free to define their own concrete syntax and parsing rules.
-However, with a few exceptions, the majority of tactics can be identified by a leading keyword; the exceptions are typically frequently-used built-in control structures.
+However, with a few exceptions, the majority of tactics can be identified by a leading keyword; the exceptions are typically frequently-used built-in control structures such as {tactic}`<;>`.
 
 ## Control Structures
 
@@ -699,14 +702,14 @@ These proof terms exist in a local context, because assumptions in proof states 
 Uses of assumptions correspond to variable references.
 It is very important that the naming of assumptions be predictable; otherwise, small changes to the internal implementation of a tactic could either lead to variable capture or to a broken reference if they cause different names to be selected.
 
-Lean's tactic language is _hygienic_.
-This means that the tactic language respects lexical scope, even though it is generating code.
+Lean's tactic language is _hygienic_. {index subterm := "in tactics"}[hygiene]
+This means that the tactic language respects lexical scope: names that occur in a tactic refer to the enclosing binding in the source code, rather than being determined by the generated code, and the tactic framework is responsible for maintaining this property.
 Variable references in tactic scripts refer either to names that were in scope at the beginning of the script or to bindings that were explicitly introduced as part of the tactics, rather than to the names chosen for use in the proof term behind the scenes.
 
 A consequence of hygienic tactics is that the only way to refer to an assumption is to explicitly name it.
-Tactics cannot assign assumption names names themselves, but must rather accept names from users; users are correspondingly obligated to provide names for assumptions that they wish to refer to.
+Tactics cannot assign assumption names themselves, but must rather accept names from users; users are correspondingly obligated to provide names for assumptions that they wish to refer to.
 When an assumption does not have a user-provided name, it is shown in the proof state with a dagger (`'†', DAGGER	0x2020`).
-The dagger indicates that the name is _inaccessible_.
+The dagger indicates that the name is _inaccessible_ and cannot be explicitly referred to.
 
 Hygiene can be disabled by setting the option {option}`tactic.hygienic` to `false`.
 This is not recommended, as many tactics rely on the hygiene system to prevent capture and thus do not incur the overhead of careful manual name selection.
@@ -766,6 +769,9 @@ When an assumption does not have a name, one can be assigned using {tactic}`next
 
 ## Assumption Management
 
+Larger proofs can benefit from management of proof states, removing irrelevant assumptions and making their names easier to understand.
+Along with these operators, {tactic}`rename_i` allows inaccessible assumptions to be renamed, and {tactic}`intro`, {tactic}`intros` and {tactic}`rintro` convert goals that are implications or universal quantification into goals with additional assumptions.
+
 :::tactic "rename"
 :::
 
@@ -775,18 +781,6 @@ When an assumption does not have a name, one can be assigned using {tactic}`next
 :::tactic "clear"
 :::
 
-:::tactic "intro"
-:::
-
-
-:::tactic "intros"
-:::
-
-:::tactic Lean.Parser.Tactic.introMatch (show := "intro | ... => ... | ... => ...")
-:::
-
-:::tactic "rintro"
-:::
 
 ## Local Definitions and Proofs
 
@@ -824,11 +818,18 @@ Mark as alias upstream in Lean
 
 ## Namespace and Option Management
 
+Namespaces and options can be adjusted in tactic scripts using the same syntax as in terms.
+
 :::tactic Lean.Parser.Tactic.set_option show:="set_option"
 :::
 
 :::tactic Lean.Parser.Tactic.open show:="open"
 :::
+
+### Controlling Unfolding
+
+By default, only definitions marked reducible are unfolded, except when checking definitional equality.
+These operators allow this default to be adjusted for some part of a tactic script.
 
 :::tactic Lean.Parser.Tactic.withReducibleAndInstances
 :::
@@ -841,6 +842,8 @@ Mark as alias upstream in Lean
 
 
 # Options
+
+These options affect the meaning of tactics.
 
 {optionDocs tactic.dbg_cache}
 
@@ -1071,6 +1074,3 @@ These operations are exposed through standard Lean monad type classes.
 {docstring Lean.Elab.Tactic.tacticElabAttribute}
 
 {docstring Lean.Elab.Tactic.mkTacticAttribute}
-
-
-{include 2 Manual.Tactics.Impls}

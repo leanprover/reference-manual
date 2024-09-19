@@ -14,6 +14,8 @@ set_option linter.unusedVariables false
 #doc (Manual) "Tactic Reference" =>
 
 
+
+
 # Assumptions
 
 
@@ -29,7 +31,25 @@ set_option linter.unusedVariables false
 :::tactic "exists"
 :::
 
+:::tactic "intro"
+:::
+
+
+:::tactic "intros"
+:::
+
+:::tactic Lean.Parser.Tactic.introMatch (show := "intro | ... => ... | ... => ...")
+:::
+
+:::tactic "rintro"
+:::
+
+
 # Relations
+
+:::planned
+ * Descriptions of the `symm` and `refl` and `trans` attributes
+:::
 
 :::tactic "rfl"
 :::
@@ -39,9 +59,6 @@ set_option linter.unusedVariables false
 
 
 :::tactic Lean.Parser.Tactic.applyRfl
-:::
-
-:::tactic Lean.Parser.Tactic.tacticRfl
 :::
 
 :::tactic "symm"
@@ -116,7 +133,7 @@ set_option linter.unusedVariables false
 :::tactic "change"
 :::
 
-:::tactic Lean.Parser.Tactic.changeWith
+:::tactic Lean.Parser.Tactic.changeWith show:="change ... with ..."
 :::
 
 :::tactic "generalize"
@@ -137,10 +154,13 @@ set_option linter.unusedVariables false
 
 # Cast Management
 
-:::tactic Lean.Parser.Tactic.pushCast
-:::
+The tactics in this section make it easier avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
+They are described in more detail in [_Simplifying Casts and Coercions_](https://arxiv.org/abs/2001.10594) by Robert Y. Lewis and Paul-Nicolas Madelaine.
 
 :::tactic Lean.Parser.Tactic.tacticNorm_cast_
+:::
+
+:::tactic Lean.Parser.Tactic.pushCast
 :::
 
 :::tactic Lean.Parser.Tactic.tacticExact_mod_cast_
@@ -273,7 +293,30 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 
 # Inductive Types
 
+## Introduction
+
 :::tactic "constructor"
+:::
+
+
+:::tactic "injection"
+:::
+
+:::tactic "injections"
+:::
+
+:::tactic "left"
+:::
+
+:::tactic "right"
+:::
+
+## Elimination
+
+:::planned
+
+Description of the `@[induction_eliminator]` and `@[cases_eliminator]` attributes
+
 :::
 
 :::tactic "cases"
@@ -289,19 +332,6 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
 :::tactic "nomatch"
-:::
-
-
-:::tactic "injection"
-:::
-
-:::tactic "injections"
-:::
-
-:::tactic "left"
-:::
-
-:::tactic "right"
 :::
 
 
@@ -358,20 +388,21 @@ Try this: exact Nat.lt_trans h1 h2
 
 # Decision Procedures
 
-:::tactic "omega"
-:::
-
 :::tactic Lean.Parser.Tactic.decide show:="decide"
 :::
-
 
 :::tactic Lean.Parser.Tactic.nativeDecide show:="native_decide"
 :::
 
-## SAT Solver Integration
+:::tactic "omega"
+:::
 
 :::tactic "bv_omega"
 :::
+
+
+## SAT Solver Integration
+
 
 :::tactic "bv_decide"
 :::
@@ -427,8 +458,12 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::tactic "decreasing_trivial"
 :::
 
-:::tactic "decreasing_trivial_pre_omega"
+:::tactic "array_get_dec"
 :::
+
+:::tactic tacticDecreasing_with_
+:::
+
 
 :::tactic "get_elem_tactic"
 :::
@@ -436,11 +471,7 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::tactic "get_elem_tactic_trivial"
 :::
 
-:::tactic "array_get_dec"
-:::
 
-:::tactic tacticDecreasing_with_
-:::
 
 # Debugging Utilities
 

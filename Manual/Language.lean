@@ -39,6 +39,9 @@ Topics:
 :::
 
 ## Propositions
+%%%
+tag := "propositions"
+%%%
 
 {deftech}[Propositions] are meaningful statements that admit proof. {index}[proposition]
 Nonsensical statements are not propositions, but false statements are.
