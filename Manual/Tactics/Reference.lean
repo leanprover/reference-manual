@@ -21,7 +21,7 @@ set_option linter.unusedVariables false
 :::
 
 
-:::tactic Lean.Parser.Tactic.applyAssumption
+:::tactic "apply_assumption"
 :::
 
 # Quantifiers
@@ -34,6 +34,10 @@ set_option linter.unusedVariables false
 :::tactic "rfl"
 :::
 
+:::tactic "rfl'"
+:::
+
+
 :::tactic Lean.Parser.Tactic.applyRfl
 :::
 
@@ -42,6 +46,10 @@ set_option linter.unusedVariables false
 
 :::tactic "symm"
 :::
+
+:::tactic "symm_saturate"
+:::
+
 
 :::tactic "calc"
 :::
@@ -81,6 +89,12 @@ set_option linter.unusedVariables false
 :::tactic "refine'"
 :::
 
+:::tactic "solve_by_elim"
+:::
+
+
+:::tactic "apply_rules"
+:::
 
 # Falsehood
 
@@ -126,9 +140,6 @@ set_option linter.unusedVariables false
 :::tactic Lean.Parser.Tactic.pushCast
 :::
 
-:::tactic Lean.Parser.Tactic.normCast0
-:::
-
 :::tactic Lean.Parser.Tactic.tacticNorm_cast_
 :::
 
@@ -169,6 +180,9 @@ The simplifier is described in greater detail in {ref "the-simplifier"}[its dedi
 :::tactic "simp"
 :::
 
+:::tactic "simp!"
+:::
+
 :::tactic "simp?"
 :::
 
@@ -178,10 +192,13 @@ The simplifier is described in greater detail in {ref "the-simplifier"}[its dedi
 :::tactic "simp_arith"
 :::
 
-:::tactic Lean.Parser.Tactic.simpArithAutoUnfold
+:::tactic "simp_arith!"
 :::
 
 :::tactic "dsimp"
+:::
+
+:::tactic "dsimp!"
 :::
 
 :::tactic "dsimp?"
@@ -190,10 +207,11 @@ The simplifier is described in greater detail in {ref "the-simplifier"}[its dedi
 :::tactic "dsimp?!"
 :::
 
-:::tactic "dsimp!"
-:::
 
 :::tactic "simp_all"
+:::
+
+:::tactic "simp_all!"
 :::
 
 :::tactic "simp_all?"
@@ -206,18 +224,26 @@ The simplifier is described in greater detail in {ref "the-simplifier"}[its dedi
 :::tactic "simp_all_arith"
 :::
 
+
+:::tactic "simp_all_arith!"
+:::
+
+
 :::tactic "simpa"
+:::
+
+
+:::tactic "simpa!"
 :::
 
 :::tactic "simpa?"
 :::
 
-:::tactic "simpa!"
-:::
-
 :::tactic "simpa?!"
 :::
 
+:::tactic "simp_wf"
+:::
 
 # Rewriting
 
@@ -442,11 +468,14 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::tactic "solve"
 :::
 
-:::tactic "solve_by_elim"
+:::tactic "and_intros"
 :::
-
 
 :::tactic "infer_instance"
 :::
+
 :::tactic Lean.Parser.Tactic.tacticUnhygienic_
+:::
+
+:::tactic Lean.Parser.Tactic.runTac
 :::

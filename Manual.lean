@@ -36,7 +36,20 @@ authors := ["Lean Developers"]
 
 {include 0 Manual.BuiltInTypes}
 
-# Macros
+# Notations and Macros
+
+:::planned
+A presentation of macros, covering
+ * `notation`
+ * Definition of {deftech}_macro_
+ * Syntax extension and syntax categories
+   * Precedence
+ * `macro_rules`
+   * Syntax patterns
+   * Backtracking on expansion failure
+ * {deftech}[Hygiene] and quotation
+ * The `macro` command
+:::
 
 # Lake and Reservoir
 
@@ -134,6 +147,17 @@ Lean.Elab.Tactic.elabSimpArgs.resolveSimpIdTheorem?
 Lean.Elab.Tactic.tactic.dbg_cache
 Lean.Elab.Tactic.tactic.simp.trace
 Lean.Elab.Tactic.liftMetaTacticAux
+```
+
+```exceptions
+List.tacticSizeOf_list_dec
+Lean.Parser.Tactic.tacticRefine_lift_
+Lean.Parser.Tactic.tacticRefine_lift'_
+Array.tacticArray_mem_dec
+Lean.Parser.Tactic.normCast0
+tacticClean_wf
+Lean.Parser.Tactic.nestedTactic
+Lean.Parser.Tactic.unknown
 ```
 
 :::
