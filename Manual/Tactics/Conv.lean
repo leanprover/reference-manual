@@ -16,14 +16,52 @@ set_option linter.unusedVariables false
 
 The {tactic}`conv`, or conversion, tactic allows targeted rewriting within a goal.
 The argument to {tactic}`conv` is written in a separate language that interoperates with the main tactic language; it features commands to navigate to specific subterms within the goal along with commands that allow these subterms to be rewritten.
-{tactic}`conv` is useful when rewrites should only be applied in part of a goal (e.g. only on one side of an equality), rather than across the board.
+{tactic}`conv` is useful when rewrites should only be applied in part of a goal (e.g. only on one side of an equality), rather than across the board, or when rewrites should be applied underneath a binder that prevents tactics like {tactic}`rw` from accessing the term.
 
 The conversion tactic language is very similar to the main tactic language: it uses the same proof states, tactics work primarily on the main goal and may either fail or succeed with a sequence of new goals, and macro expansion is interleaved with tactic execution.
-Unlike the main tactic language, most {tactic}`conv` tactics return only a single goal, and a {tactic}`conv` tactic script is not generally expected to terminate with fewer goals; rather, the {tactic}`conv` tactic is used to _change_ a goal so that it becomes amenable to further processing in the main tactic language.
+Unlike the main tactic language, in which tactics are intended to eventually solve goals, the {tactic}`conv` tactic is used to _change_ a goal so that it becomes amenable to further processing in the main tactic language.
 Goals that are intended to be rewritten with {tactic}`conv` are shown with a vertical bar instead of a turnstile.
 
 :::tactic "conv"
 :::
+
+::::example "Navigation and Rewriting with {tactic}`conv`"
+
+In this example, there are multiple instances of addition, and {tactic}`rw` would by default rewrite the first instance that it encounters.
+Using {tactic}`conv` to navigate to the specific subterm before rewriting leaves {tactic}`rw` no choice but to rewrite the correct term.
+
+```lean
+example (x y z : Nat) : x + (y + z) = (x + z) + y := by
+  conv =>
+    lhs
+    arg 2
+    rw [Nat.add_comm]
+  rw [Nat.add_assoc]
+```
+
+::::
+
+::::example "Rewriting Under Binders with {tactic}`conv`"
+
+In this example, addition occurs under binders, so {tactic}`rw` can't be used.
+However, after using {tactic}`conv` to navigate to the function body, it succeeds.
+The nested use of {tactic}`conv` causes control to return to the current position in the term after performing further coversions on one of its subterms.
+Because the goal is a reflexive equation after rewriting, {tactic}`conv` automatically closes it.
+
+```lean
+example : (fun (x y z : Nat) => x + (y + z)) = (fun x y z => (z + x) + y) := by
+  conv =>
+    lhs
+    intro x y z
+    conv =>
+      arg 2
+      rw [Nat.add_comm]
+    rw [← Nat.add_assoc]
+    arg 1
+    rw [Nat.add_comm]
+```
+
+::::
 
 # Control Structures
 
