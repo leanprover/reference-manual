@@ -56,11 +56,130 @@ This simultaneous simplification makes proofs more robust to changes in the {tec
 
 The simplification tactics have the following grammar:
 
-:::TODO
-
-Put it here
-
+:::syntax tactic
+```grammar
+simp $[(config := $cfg)]? $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
+```
 :::
+
+In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:
+ * A configuration specifier, which should be an instance of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
+ * The {keywordOf Lean.Parser.Tactic.simp}`only` modifier excludes the default simp set, instead beginning with an empty simp set.
+ * The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:
+   * `*`, which adds all assumptions in the proof state to the simp set
+   * `-` followed by a lemma, which removes the lemma from the simp set
+   * A lemma specifier, consisting of the following in sequence:
+      * An optional `↑` or `↓`, which determines whether to apply a lemma before or after entering a subterm {TODO}[Precisely describe what this means]
+      * An optional `←`, which causes equational lemmas to be used from right to left rather than from left to right
+      * A mandatory lemma, which can be a simp set name, a lemma name, or a term. {TODO}[What are the precise semantics of a term like `(· + ·)` there?]
+ * A location specifier, preceded by {keywordOf Lean.Parser.Tactic.simp}`at`, which consists of a sequence of locations. Locations may be:
+
+   - The name of an assumption, indicating that its type should be simplified
+   - An asterisk `*`, indicating that all assumptions and the conclusion should be simplified
+   - A turnstile `⊢`, indicating that the conclusion should be simplified
+
+  By default, only the conclusion is simplified.
+
+::::example "Location specifiers for {tactic}`simp`"
+:::tacticExample
+{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+```setup
+intro p x h h'
+```
+
+In this proof state,
+```pre
+p : Nat → Prop
+x : Nat
+h : p (x + 5 + 2)
+h' : p (3 + x + 9)
+⊢ p (6 + x + 1)
+```
+
+the tactic {tacticStep}`simp_arith` simplifies only the goal:
+
+```post
+p : Nat → Prop
+x : Nat
+h : p (x + 5 + 2)
+h' : p (3 + x + 9)
+⊢ p (x + 7)
+```
+:::
+
+:::tacticExample
+{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+```setup
+intro p x h h'
+```
+```pre (show := false)
+p : Nat → Prop
+x : Nat
+h : p (x + 5 + 2)
+h' : p (3 + x + 9)
+⊢ p (6 + x + 1)
+```
+
+Invoking {tacticStep}`simp_arith at h` yields a goal in which the hypothesis `h` has been simplified:
+
+```post
+p : Nat → Prop
+x : Nat
+h' : p (3 + x + 9)
+h : p (x + 7)
+⊢ p (6 + x + 1)
+```
+:::
+
+:::tacticExample
+{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+```setup
+intro p x h h'
+```
+```pre (show := false)
+p : Nat → Prop
+x : Nat
+h : p (x + 5 + 2)
+h' : p (3 + x + 9)
+⊢ p (6 + x + 1)
+```
+
+The conclusion can be additionally simplified by adding `⊢`, that is, {tacticStep}`simp_arith at h ⊢`:
+
+```post
+p : Nat → Prop
+x : Nat
+h' : p (3 + x + 9)
+h : p (x + 7)
+⊢ p (x + 7)
+```
+:::
+
+:::tacticExample
+{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+```setup
+intro p x h h'
+```
+```pre (show := false)
+p : Nat → Prop
+x : Nat
+h : p (x + 5 + 2)
+h' : p (3 + x + 9)
+⊢ p (6 + x + 1)
+```
+
+Using {tacticStep}`simp_arith at *` simplifies all assumptions together with the conclusion:
+
+```post
+p : Nat → Prop
+x : Nat
+h : p (x + 7)
+h' : p (x + 12)
+⊢ p (x + 7)
+```
+:::
+::::
+
 
 # Rewrite Rules
 
@@ -265,6 +384,12 @@ If your library relies on additional simplification rules for other libraries, p
 
 # Terminal vs Non-Terminal Positions
 
+To write maintainable proofs, avoid using {tactic}`simp` without {keywordOf Lean.Parser.Tactic.simp}`only` unless it closes the goal.
+Such uses of {tactic}`simp` that do not close a goal are referred to as {deftech}_non-terminal simps_.
+This is because additions to the default simp set may make {tactic}`simp` more powerful or just cause it to select a different sequence of rewrites and arrive at a different simp normal form.
+When {keywordOf Lean.Parser.Tactic.simp}`only` is specified, additional lemmas will not affect that invocation of the tactic.
+In practice, terminal uses of {tactic}`simp` are not nearly as likely to be broken by the addition of new simp lemmas, and when they are, it's easier to understand the issue and fix it.
+
 
 # Configuring Simplification
 
@@ -289,5 +414,5 @@ Some global options affect {tactic}`simp`:
 # Simplification vs Rewriting
 
 :::planned
-A comparison of {tactic}`simp` and {tactic}`rw` and their rewriting strategies
+A comparison of {tactic}`simp` and {tactic}`rw` and their rewriting strategies. Refer to internal Zulip thread where Leo lays it out.
 :::
