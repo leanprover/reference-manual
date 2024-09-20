@@ -194,6 +194,9 @@ They are described in more detail in [_Simplifying Casts and Coercions_](https:/
 :::
 
 # Simplification
+%%%
+tag := "simp-tactics"
+%%%
 
 The simplifier is described in greater detail in {ref "the-simplifier"}[its dedicated chapter].
 
@@ -463,7 +466,6 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 
 :::tactic tacticDecreasing_with_
 :::
-
 
 :::tactic "get_elem_tactic"
 :::

@@ -65,6 +65,11 @@ Propositions have the following properties:
 
   With the exception of singletons, propositions cannot be eliminated into non-proposition types.
 
+: {deftech key:="propositional extensionality"}[Extensionality] {index subterm:="of propositions"}[extensionality]
+
+  Any two logically equivalent propositions can be proven to be equal with the {lean}`propext` axiom.
+
+{docstring propext}
 
 ## Universes
 
@@ -628,6 +633,11 @@ tag := "well-founded-recursion"
 This section will describe the translation of {deftech}[well-founded recursion].
 :::
 
+## Controlling Reduction
+
+:::planned
+This section will describe {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
+:::
 
 # Type Classes
 
