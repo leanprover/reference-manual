@@ -187,7 +187,7 @@ The conclusion is the statement that prepending `x` to both sides of the equalit
 ::::
 
 Some assumptions are {deftech}_inaccessible_, {index}[inaccessible] {index subterm:="inaccessible"}[assumption] which means that they cannot be referred to explicitly by name.
-Inaccessible assumptions occur when an assumption is created without a specified name.
+Inaccessible assumptions occur when an assumption is created without a specified name or when the assumption's name is shadowed by a later assumption.
 Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may be referred to in later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
 In particular, inaccessible assumptions are presented with daggers (`†`) after their names.
 
@@ -239,6 +239,7 @@ rotate_right
 
 Inaccessible assumptions can still be used.
 Tactics such as {tactic}`assumption` or {tactic}`simp` can scan the entire list of assumptions, finding one that is useful, and {tactic}`contradiction` can eliminate the current goal by finding an impossible assumption without naming it.
+Other tactics, such as {tactic}`rename_i` and {tactic}`next`, can be used to name inaccessible assumptions, making them accessible.
 Additionally, assumptions can be referred to by their type, by writing the type in single guillemets.
 
 ::::syntax term
@@ -804,11 +805,12 @@ Mark as alias upstream in Lean
 :::
 
 
-:::tactic "let"
+:::tactic Lean.Parser.Tactic.tacticLet_ show:="let"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLet_
+:::tactic Lean.Parser.Tactic.letrec show:="let rec"
 :::
+
 
 :::tactic Lean.Parser.Tactic.tacticLetI_
 :::
