@@ -21,7 +21,6 @@ The simplifier is highly configurable, and a number of tactics use it in differe
 
 # Invoking the Simplifier
 
-
 Lean's simplifier can be invoked in a variety of ways.
 The most common patterns are captured in a set of tactics.
 The {ref "simp-tactics"}[tactic reference] contains a complete list of simplification tactics.
@@ -64,14 +63,14 @@ simp $[(config := $cfg)]? $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
 
 In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:
  * A configuration specifier, which should be an instance of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
- * The {keywordOf Lean.Parser.Tactic.simp}`only` modifier excludes the default simp set, instead beginning with an empty simp set.
+ * The {keywordOf Lean.Parser.Tactic.simp}`only` modifier excludes the default simp set, instead beginning with an empty{margin}[Technically, the simp set always includes {name}`eq_self` and {name}`iff_self` in order to discharge reflexive cases.] simp set.
  * The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:
    * `*`, which adds all assumptions in the proof state to the simp set
    * `-` followed by a lemma, which removes the lemma from the simp set
    * A lemma specifier, consisting of the following in sequence:
-      * An optional `↑` or `↓`, which determines whether to apply a lemma before or after entering a subterm {TODO}[Precisely describe what this means]
-      * An optional `←`, which causes equational lemmas to be used from right to left rather than from left to right
-      * A mandatory lemma, which can be a simp set name, a lemma name, or a term. {TODO}[What are the precise semantics of a term like `(· + ·)` there?]
+      * An optional `↓` or `↑`, which respectively cause the lemma to be applied before or after entering a subterm (`↑` is the default). The simplifier typically simplifies subterms before attempting to simplify parent terms, as simplified arguments often make more rules applicable; `↓` causes the parent term to be simplified with the rule prior to the simplification of subterms.
+      * An optional `←`, which causes equational lemmas to be used from right to left rather than from left to right.
+      * A mandatory lemma, which can be a simp set name, a lemma name, or a term. Terms are treated as if they were named lemmas with fresh names.
  * A location specifier, preceded by {keywordOf Lean.Parser.Tactic.simp}`at`, which consists of a sequence of locations. Locations may be:
 
    - The name of an assumption, indicating that its type should be simplified
@@ -197,7 +196,7 @@ The simplifier has three kinds of rewrite rules:
 
   The simplifier supports simplification procedures, known as {deftech}_simprocs_, that use Lean metaprogramming to perform rewrites that can't be efficiently specified using equations. Lean includes simprocs for the most important operations on built-in types.
 
-
+:::keepEnv
 ```lean (show := false)
 -- Validate the above description of reducibility
 
@@ -262,6 +261,7 @@ example : foo'' (x, y) = (y, x) := by
   simp
 
 ```
+:::
 
 Due to {tech}[propositional extensionality], equational lemmas can rewrite propositions to simpler, logically equivalent propositions.
 When the simplifier rewrites a proof goal to {lean}`True`, it automatically closes it.
@@ -303,6 +303,8 @@ Prod.mk.injEq.{u, v} {α : Type u} {β : Type v} (fst : α) (snd : β) :
 ::::
 :::::
 
+In addition to rewrite rules, {tactic}`simp` has a number of built-in reduction rules, {ref "simp-config"}[controlled by the `config` parameter].
+Even when the simp set is empty, {tactic}`simp` can replace `let`-bound variables with their values, reduce {keywordOf Lean.Parser.Term.match}`match` expressions whose scrutinees are constructor applications, reduce structure projections applied to constructors, or apply lambdas to their arguments.
 
 # Simp sets
 
@@ -312,20 +314,6 @@ These modifications can include adding rules, removing rules, or adding a set of
 The `only` modifier to the {tactic}`simp` tactic causes it to start with an empty simp set, rather than the default one.
 Rules are added to the default simp set using the {attr}`simp` attribute.
 
-
-:::TODO
-Figure out exactly what `simp only` does, and document it here (it's not a no-op).
-:::
-
-:::TODO
-Also describe putting expressions in the simp set rather than constant names
-:::
-
-:::planned
-* simp?
-* what's allowed in the square brackets
-
-:::
 
 :::syntax attr alias := Lean.Meta.simpExtension label:="attribute"
 The {attr}`simp` attribute adds a declaration to the default simp set.
@@ -342,6 +330,10 @@ simp ↑ $p?
 
 ```grammar
 simp ↓ $p?
+```
+
+```grammar
+simp $p:prio
 ```
 
 ```lean (show := false)
@@ -374,12 +366,16 @@ The order in which the rules are applied can be changed by assigning priorities 
 
 When designing a Lean library, it's important to think about what the appropriate simp normal form for the various combinations of the library's operators is.
 This can serve as a guide when selecting which rules the library should add to the default simp set.
-Even though simplification doesn't need to be confluent, striving for confluence is helpful because it makes the library more predictable and tends to reveal missing or poorly chosen.
+In particular, the right-hand side of simp lemmas should be in simp normal form; this helps ensure that simplification terminates.
+Additionally, each concept in the library should be expressed through one simp normal form, even if there are multiple equivalent ways to state it.
+If a concept is stated in two different ways in different simp lemmas, then some desired simplifications may not occur because the simplifier does not connect them.
+
+Even though simplification doesn't need to be confluent, striving for confluence is helpful because it makes the library more predictable and tends to reveal missing or poorly chosen simp lemmas.
 The default simp set is as much a part of a library's interface as the type signatures of the constants that it exports.
 
 Libraries should not add rules to the default simp set that don't mention at least one constant defined in the library.
 Otherwise, importing a library could change the behavior of {tactic}`simp` for some unrelated library.
-If your library relies on additional simplification rules for other libraries, please create a custom simp set and either instruct users to use it or provide a custom tactic.
+If a library relies on additional simplification rules for definitions or declarations from other libraries, please create a custom simp set and either instruct users to use it or provide a dedicated tactic.
 
 
 # Terminal vs Non-Terminal Positions
@@ -390,8 +386,39 @@ This is because additions to the default simp set may make {tactic}`simp` more p
 When {keywordOf Lean.Parser.Tactic.simp}`only` is specified, additional lemmas will not affect that invocation of the tactic.
 In practice, terminal uses of {tactic}`simp` are not nearly as likely to be broken by the addition of new simp lemmas, and when they are, it's easier to understand the issue and fix it.
 
+When working in non-terminal positions, {tactic}`simp?` (or one of the other simplification tactics with `?` in their names) can be used to generate an appropriate invocation with{keywordOf Lean.Parser.Tactic.simp}`only`.
+Just as {tactic}`apply?` or {tactic}`rw?` suggest the use of relevant lemmas, {tactic}`simp?` suggests an invocation of {tactic}`simp` with a minimal simp set that was used to reach the normal form.
+
+:::example "Using {tactic}`simp?`"
+
+The non-terminal {tactic}`simp?` in this proof suggests a smaller {tactic}`simp` with {keywordOf Lean.Parser.Tactic.simp}`only`:
+```lean (name:=simpHuhDemo)
+example (xs : Array Unit) : xs.size = 2 → xs = #[(), ()] := by
+  intros
+  ext
+  simp?
+  assumption
+```
+The suggested rewrite is:
+```leanOutput simpHuhDemo
+Try this: simp only [Array.size_toArray, List.length_cons, List.length_singleton, Nat.reduceAdd]
+```
+which results in the more maintainable proof:
+```lean
+example (xs : Array Unit) : xs.size = 2 → xs = #[(), ()] := by
+  intros
+  ext
+  simp only [Array.size_toArray, List.length_cons, List.length_singleton, Nat.reduceAdd]
+  assumption
+```
+
+:::
+
 
 # Configuring Simplification
+%%%
+tag := "simp-config"
+%%%
 
 {tactic}`simp` is primarily configured via a configuration parameter, passed as a named argument called `config`.
 
@@ -410,6 +437,10 @@ Some global options affect {tactic}`simp`:
 {optionDocs tactic.simp.trace}
 
 {optionDocs linter.unnecessarySimpa}
+
+{optionDocs trace.Meta.Tactic.simp.rewrite}
+
+{optionDocs trace.Meta.Tactic.simp.discharge}
 
 # Simplification vs Rewriting
 

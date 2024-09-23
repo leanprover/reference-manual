@@ -109,6 +109,9 @@ r#".example {
   font-style: italic;
   font-family: var(--verso-structure-font-family);
 }
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 "#
   ]
 
