@@ -5,6 +5,7 @@ require verso from git "https://github.com/leanprover/verso"@"main"
 
 package "verso-manual" where
   -- add package configuration options here
+  moreLinkArgs := #["-Wl,-ignore_optimization_hints"]
 
 lean_lib Manual where
 
