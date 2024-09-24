@@ -3,6 +3,7 @@ import VersoManual
 import Lean.Parser.Term
 
 import Manual.Meta
+import Manual.Tactics.Reference.Simp
 
 
 open Verso.Genre Manual
@@ -14,14 +15,10 @@ set_option linter.unusedVariables false
 #doc (Manual) "Tactic Reference" =>
 
 
-
-
 # Assumptions
-
 
 :::tactic Lean.Parser.Tactic.assumption
 :::
-
 
 :::tactic "apply_assumption"
 :::
@@ -193,80 +190,7 @@ They are described in more detail in [_Simplifying Casts and Coercions_](https:/
 :::tactic "funext"
 :::
 
-# Simplification
-%%%
-tag := "simp-tactics"
-%%%
-
-The simplifier is described in greater detail in {ref "the-simplifier"}[its dedicated chapter].
-
-:::tactic "simp"
-:::
-
-:::tactic "simp!"
-:::
-
-:::tactic "simp?"
-:::
-
-:::tactic "simp?!"
-:::
-
-:::tactic "simp_arith"
-:::
-
-:::tactic "simp_arith!"
-:::
-
-:::tactic "dsimp"
-:::
-
-:::tactic "dsimp!"
-:::
-
-:::tactic "dsimp?"
-:::
-
-:::tactic "dsimp?!"
-:::
-
-
-:::tactic "simp_all"
-:::
-
-:::tactic "simp_all!"
-:::
-
-:::tactic "simp_all?"
-:::
-
-:::tactic "simp_all?!"
-:::
-
-
-:::tactic "simp_all_arith"
-:::
-
-
-:::tactic "simp_all_arith!"
-:::
-
-
-:::tactic "simpa"
-:::
-
-
-:::tactic "simpa!"
-:::
-
-:::tactic "simpa?"
-:::
-
-:::tactic "simpa?!"
-:::
-
-:::tactic "simp_wf"
-:::
+{include 0 Manual.Tactics.Reference.Simp}
 
 # Rewriting
 
@@ -281,6 +205,15 @@ The simplifier is described in greater detail in {ref "the-simplifier"}[its dedi
 
 :::tactic Lean.Parser.Tactic.tacticRwa__
 :::
+
+{docstring Lean.Meta.Rewrite.Config}
+
+{docstring Lean.Meta.Occurrences}
+
+{docstring Lean.Meta.TransparencyMode}
+
+{docstring Lean.Meta.Rewrite.NewGoals}
+
 
 :::tactic "unfold"
 

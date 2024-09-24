@@ -344,7 +344,7 @@ simp $p:prio
 ```
 :::
 
-Custom simp sets are created with {name Lean.Meta.registerSimpAttr}`registerSimpAttr`, which must be run in an {keywordOf Lean.Parser.Command.initialize}`initialize` block.{TODO}[xref]
+Custom simp sets are created with {name Lean.Meta.registerSimpAttr}`registerSimpAttr`, which must be run during {tech}[initialization] by placing it in an {keywordOf Lean.Parser.Command.initialize}`initialize` block.
 As a side effect, it creates a new attribute with the same interface as {attr}`simp` that adds rules to the custom simp set.
 The returned value is a {name Lean.Meta.SimpExtension}`SimpExtension`, which can be used to programmatically access the contents of the custom simp set.
 The {tactic}`simp` tactics can be instructed to use the new simp set by including its attribute name in the rule list.
@@ -444,6 +444,14 @@ Some global options affect {tactic}`simp`:
 
 # Simplification vs Rewriting
 
-:::planned
-A comparison of {tactic}`simp` and {tactic}`rw` and their rewriting strategies. Refer to internal Zulip thread where Leo lays it out.
-:::
+Both {tactic}`simp` and {tactic}`rw`/{tactic}`rewrite` use equational lemmas to replace parts of terms with equivalent alternatives.
+Their intended uses and their rewriting strategies differ, however.
+Tactics in the {tactic}`simp` family are primarily used to reformulate a problem in a standardized way, making it more amenable to both human understanding and further automation.
+In particular, simplification should never render an otherwise-provable goal impossible.
+Tactics in the {tactic}`rw` family are primarily used to apply hand-selected transformations that do not always preserve provability nor place terms in standardized forms.
+These different emphases are reflected in the differences of behavior between the two families of tactics.
+
+The {tactic}`simp` tactics primarily rewrite from the inside out.
+The smallest possible expressions are simplified first so that they can unlock further simplification opportunities for the surrounding expressions.
+The {tactic}`rw` tactics select the leftmost outermost subterm that matches the pattern, rewriting it a single time.
+Both tactics allow their strategy to be overridden: when adding a lemma to a simp set, the `↓` modifier causes it to be applied prior to the simplification of subterms, and the {name Lean.Meta.Rewrite.Config.occs}`occs` field of {tactic}`rw`'s configuration parameter allows a different occurrence to be selected, either via a whitelist or a blacklist.
