@@ -28,14 +28,14 @@ Lean's core type theory is expressive enough to capture very complicated mathema
 The core type theory is implemented in a minimal {tech}[kernel] that does nothing other than check proof terms.
 This core theory and kernel are supported by advanced automation, realized in {ref "tactics"}[an expressive tactic language].
 Each tactic produces a term in the core type theory that is checked by the kernel, so bugs in tactics do not threaten the soundness of Lean as a whole.
-The tactic language is user-extensible, so it can be built up to meet the needs of a given formalization project.
+Along with many other parts of Lean, the tactic language is user-extensible, so it can be built up to meet the needs of a given formalization project.
 Tactics are written in Lean itself, and can be used immediately upon definition; rebuilding the prover or loading external modules is not required.
 
 Lean is also a pure *functional programming language*, with features such as a run-time system based on reference counting that can efficiently work with packed array structures, multi-threading, and monadic {name}`IO`.
 As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech}[elaborator], and tactic system.
 This very book is written in [Verso](https://github.com/leanprover/verso), a documentation authoring tool written in Lean.
 
-Familiarity with Lean's programming features is an important part of becoming an expert in writing proofs, because Lean programs are used to implement new tactics and proof automation.
+Familiarity with Lean's programming features is valuable even for users whose primary interest is in writing proofs, because Lean programs are used to implement new tactics and proof automation.
 Thus, this reference manual does not draw a barrier between the two aspects, but rather describes them together so they can shed light on one another.
 
 ## History
@@ -55,7 +55,7 @@ Development of Lean 4 began in 2018, culminating in the 4.0 release on September
 Lean 4 represents an important milestone: as of version 4, Lean is self-hosted - approximately 90% of the code that implements Lean is itself written in Lean.
 Lean 4's rich extension API provides users with the ability to adapt it to their needs, rather than relying on the core developers to add necessary features.
 Additionally, self-hosting makes the development process much faster, so features and performance can be delivered more quickly; Lean 4 is faster and scales to larger problems than Lean 3.
-Mathlib was ported to Lean 4, and it now contains more than 1.5 million lines.
+Mathlib was successfully ported to Lean 4 in 2023 through a community effort supported by the Lean developers, and it has now grown to over 1.5 million lines
 Even though Mathlib has grown by 50%, Lean 4 checks it faster than Lean 3 could check its smaller library.
 The development process for Lean 4 was approximately as long as that of all prior versions combined, and we are now delighted with its design—no further rewrites are planned.
 
@@ -74,7 +74,7 @@ Past development team members include:
   - [Johannes Hölzl](https://home.in.tum.de/~hoelzl/) (Apple)
 
 
-Leonardo de Moura and his co-founder, Sebastian Ullrich, launched the Lean Focused Research Organization (FRO) nonprofit in August of 2023 within Convergent Research, with philanthropic support from the Simons Foundation International, the Alfred P. Sloan Foundation, and Richard Merkin.
+Leonardo de Moura and his co-founder, Sebastian Ullrich, launched the Lean Focused Research Organization (FRO) nonprofit in July of 2023 within Convergent Research, with philanthropic support from the Simons Foundation International, the Alfred P. Sloan Foundation, and Richard Merkin.
 The FRO currently has thirteen employees working to support the growth and scalability of Lean and the broader Lean community.
 
 
