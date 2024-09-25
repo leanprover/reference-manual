@@ -4,11 +4,12 @@ open Lake DSL
 require verso from git "https://github.com/leanprover/verso"@"main"
 
 package "verso-manual" where
-  -- add package configuration options here
+  -- work around clang emitting invalid linker optimization hints that lld rejects
   moreLinkArgs :=
     if System.Platform.isOSX then
       #["-Wl,-ignore_optimization_hints"]
     else #[]
+
 lean_lib Manual where
 
 def inputTextFile' (path : FilePath) : SpawnM (BuildJob FilePath) :=

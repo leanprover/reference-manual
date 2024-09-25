@@ -807,7 +807,6 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::tactic Lean.Parser.Tactic.letrec show:="let rec"
 :::
 
-
 :::tactic Lean.Parser.Tactic.tacticLetI_
 :::
 
