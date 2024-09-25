@@ -59,23 +59,8 @@ Mathlib was successfully ported to Lean 4 in 2023 through a community effort sup
 Even though Mathlib has grown by 50%, Lean 4 checks it faster than Lean 3 could check its smaller library.
 The development process for Lean 4 was approximately as long as that of all prior versions combined, and we are now delighted with its design—no further rewrites are planned.
 
-Over the years, many people have contributed to Lean.
-Past development team members include:
-  - [Gabriel Ebner](https://gebner.org/) (Microsoft Research)
-  - [Dany Fabian](https://www.microsoft.com/en-us/research/people/danfab) (Microsoft)
-  - Daniel Selsam (OpenAI)
-  - [Jared Roesch](http://jroesch.github.io/) (OctoML)
-  - [Robert Lewis](https://robertylewis.com/) (Brown University)
-  - [Floris van Doorn](http://florisvandoorn.com/) (University of Bonn)
-  - [Soonho Kong](http://www.cs.cmu.edu/~soonhok) (AWS)
-  - [Jakob von Raumer](http://von-raumer.de/) (University of Nottingham)
-  - [Jeremy Avigad](http://www.andrew.cmu.edu/user/avigad) (Carnegie Mellon University)
-  - [Mario Carneiro](https://digama0.github.io/) (Carnegie Mellon University)
-  - [Johannes Hölzl](https://home.in.tum.de/~hoelzl/) (Apple)
-
-
 Leonardo de Moura and his co-founder, Sebastian Ullrich, launched the Lean Focused Research Organization (FRO) nonprofit in July of 2023 within Convergent Research, with philanthropic support from the Simons Foundation International, the Alfred P. Sloan Foundation, and Richard Merkin.
-The FRO currently has thirteen employees working to support the growth and scalability of Lean and the broader Lean community.
+The FRO currently has several employees working to support the growth and scalability of Lean and the broader Lean community.
 
 
 # Typographical Conventions
