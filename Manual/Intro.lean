@@ -60,7 +60,7 @@ Even though Mathlib has grown by 50%, Lean 4 checks it faster than Lean 3 could 
 The development process for Lean 4 was approximately as long as that of all prior versions combined, and we are now delighted with its design—no further rewrites are planned.
 
 Leonardo de Moura and his co-founder, Sebastian Ullrich, launched the Lean Focused Research Organization (FRO) nonprofit in July of 2023 within Convergent Research, with philanthropic support from the Simons Foundation International, the Alfred P. Sloan Foundation, and Richard Merkin.
-The FRO currently has several employees working to support the growth and scalability of Lean and the broader Lean community.
+The FRO currently has more than ten employees working to support the growth and scalability of Lean and the broader Lean community.
 
 
 # Typographical Conventions
