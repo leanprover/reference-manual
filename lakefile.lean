@@ -4,7 +4,8 @@ open Lake DSL
 require verso from git "https://github.com/leanprover/verso"@"main"
 
 package "verso-manual" where
-  -- add package configuration options here
+  -- work around clang emitting invalid linker optimization hints that lld rejects
+  moreLinkArgs := #["-Wl,-ignore_optimization_hints"]
 
 lean_lib Manual where
 

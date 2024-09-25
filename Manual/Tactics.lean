@@ -344,7 +344,7 @@ In this proof state, the universe level of `α` is unknown:
 ∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
   intros α x xs elem
 /--
-α : Type ?u.782
+α : Type ?u.783
 x : α
 xs : List α
 elem : x ∈ xs
@@ -360,8 +360,8 @@ The metavariable is repeated because the unknown type must be the same in both p
 ∀ (x : _) (xs : List _), x ∈ xs → xs.length > 0 := by
   intros x xs elem
 /--
-x : ?m.899
-xs : List ?m.899
+x : ?m.902
+xs : List ?m.902
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
@@ -795,13 +795,6 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::
 
 :::tactic Lean.Parser.Tactic.tacticHave'_
-:::
-
-::: TODO
-Mark as alias upstream in Lean
-:::
-
-:::tactic Lean.Parser.Tactic.«tacticHave'_:=_»
 :::
 
 
