@@ -321,6 +321,9 @@ invalid universe polymorphic type, the resultant universe is not Prop (i.e., 0),
 
 
 # Constructions for Termination Checking
+%%%
+tag := "recursor-elaboration-helpers"
+%%%
 
 In addition to the type constructor, constructors, and recursors that Lean's core type theory prescribes for inductive types, Lean constructs a number of useful helpers.
 First, the equation compiler (which translates recursive functions with pattern matching in to applications of recursors) makes use of these additional constructs:

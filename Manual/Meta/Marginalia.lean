@@ -10,22 +10,7 @@ open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
 
-def Inline.margin : Inline where
-  name := `Manual.margin
-
-@[role_expander margin]
-def margin : RoleExpander
-  | args, inlines => do
-    ArgParse.done.run args
-    let content ← inlines.mapM elabInline
-    pure #[← `(Doc.Inline.other Inline.margin #[$content,*])]
-
-@[inline_extension margin]
-def margin.descr : InlineDescr where
-  traverse _ _ _ := do
-    pure none
-  toTeX := none
-  extraCss := [r#"
+def Marginalia.css := r#"
 .marginalia .note {
   position: relative;
   padding: 0.5rem;
@@ -78,8 +63,29 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
-"#]
+"#
+
+open Verso.Output Html in
+def Marginalia.html (content : Html) : Html :=
+  {{<span class="marginalia"><span class="note">{{content}}</span></span>}}
+
+def Inline.margin : Inline where
+  name := `Manual.margin
+
+@[role_expander margin]
+def margin : RoleExpander
+  | args, inlines => do
+    ArgParse.done.run args
+    let content ← inlines.mapM elabInline
+    pure #[← `(Doc.Inline.other Inline.margin #[$content,*])]
+
+@[inline_extension margin]
+def margin.descr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  extraCss := [Marginalia.css]
   toHtml :=
     open Verso.Output.Html in
     some <| fun goI _ _ content  => do
-      pure {{<span class="marginalia"><span class="note">{{← content.mapM goI}}</span></span>}}
+      Marginalia.html <$> content.mapM goI
