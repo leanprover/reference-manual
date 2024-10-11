@@ -155,11 +155,8 @@ deriving instance TypeName for Unit
 Info trees relate metadata to the user's original syntax.
 Their tree structure corresponds closely to the tree structure of the syntax, although a given node in the syntax tree may have many corresponding info tree nodes that document different aspects of it.
 This metadata includes the elaborator's output in Lean's core language, the proof state active at a given point, suggestions for interactive identifier completion, and much more.
-The metadata can also be extended; the constructor {lean}`Info.ofCustomInfo` {lean}``Info.ofCustomInfo ⟨.missing, .mk ()⟩`` accepts a {lean}`Dynamic` type.
-
-:::planned
-Cross-reference to chapter with details about {lean}`Info`
-:::
+The metadata can also be arbitrarily extended; the constructor {lean}`Info.ofCustomInfo` accepts a {lean}`Dynamic` type.
+This can be used to add information to be used by custom code actions or other user interface extensions.
 
 # The Kernel
 
