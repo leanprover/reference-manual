@@ -31,7 +31,7 @@ def ullrich23 : Thesis where
   url := some "https://www.lean-lang.org/papers/thesis-sebastian.pdf"
   degree := .concat (inlines!"Dr. Ing. dissertation")
 
-#doc (Manual) "Elaboration, Evaluation, and Compilation" =>
+#doc (Manual) "Elaboration and Compilation" =>
 %%%
 htmlSplit := .never
 %%%
