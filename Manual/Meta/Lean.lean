@@ -135,12 +135,19 @@ def leanInline : RoleExpander
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
     | .ok stx =>
-      let (newMsgs, tree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `leanInline (← getRef)) do
+      let (newMsgs, tree) ← do
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          discard <| runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm stx none
-          Core.getMessageLog
+          let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
+            discard <| Elab.Term.elabTerm (catchExPostpone := true) stx none
+            Term.synthesizeSyntheticMVarsNoPostponing
+            let ctx := PartialContextInfo.commandCtx {
+              env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
+              openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
+            }
+            pure <| InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees)
+          pure (← Core.getMessageLog, tree')
         finally
           Core.setMessageLog initMsgs
 
@@ -152,6 +159,8 @@ def leanInline : RoleExpander
 
           pure (msg.severity, txt)
         modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
+
+      pushInfoTree tree
 
       match config.error with
       | none =>
@@ -177,13 +186,7 @@ def leanInline : RoleExpander
         pure #[]
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
-  mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
-    let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
-    let ctx := PartialContextInfo.commandCtx {
-      env := ← getEnv, fileMap := ← getFileMap, mctx := {}, currNamespace := ← getCurrNamespace,
-      openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
-    }
-    return InfoTree.context ctx tree
+
 
   modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
     modifyInfoState fun s => { s with trees := f s.trees }
