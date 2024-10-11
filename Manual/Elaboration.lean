@@ -87,7 +87,7 @@ Parsers are highly extensible: users may define new syntax in any command, and t
 The open namespaces in the current {tech}[scope] also influences which parsing rules are used, because parser extensions may be set to be active only when a given namespace is open.
 
 When ambiguity is encountered, the longest matching parse is selected.
-If there is no unique longest match, then both matching parses are saved in the AST in a {deftech}[choice node] to be resolved later by the elaborator.
+If there is no unique longest match, then both matching parses are saved in the syntax tree in a {deftech}[choice node] to be resolved later by the elaborator.
 When the parser fails, it returns a {lean}`Syntax.missing` node, allowing for error recovery.
 
 When successful, the parser saves sufficient information to reconstruct the original source file.
