@@ -16,5 +16,6 @@ for f in *.tex; do
 done
 
 cd ..
+mkdir -p static/figures
 cp figures/*.pdf static/figures/
 cp figures/*.svg static/figures/
