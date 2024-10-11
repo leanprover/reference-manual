@@ -44,10 +44,6 @@ jobs:
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
 
-      - name: Ensure figures are rendered
-        run: |
-          ./figures.sh
-
       - name: Build
         run: |
           lake build
@@ -73,6 +69,7 @@ jobs:
       - name: Offline link checker
         uses: lycheeverse/lychee-action@v1.9.0
         with:
+          fail: true
           args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
 
       # deploy-alias computes a stable, but difficult-to-guess, URL component

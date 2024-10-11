@@ -1,0 +1,134 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\usepackage{fontawesome}
+\usepackage[svgnames]{xcolor}
+\setmonofont{Fira Code}[
+  Contextuals=Alternate  % Activate the calt feature
+]
+\usepackage{tikz}
+
+\usetikzlibrary{matrix, positioning, decorations.pathreplacing, calligraphy, shapes, arrows.meta}
+
+
+\makeatletter
+\pgfdeclareshape{document}{
+\inheritsavedanchors[from=rectangle] % this is nearly a rectangle
+\inheritanchorborder[from=rectangle]
+\inheritanchor[from=rectangle]{center}
+\inheritanchor[from=rectangle]{north}
+\inheritanchor[from=rectangle]{south}
+\inheritanchor[from=rectangle]{west}
+\inheritanchor[from=rectangle]{east}
+% ... and possibly more
+\backgroundpath{% this is new
+% store lower right in xa/ya and upper right in xb/yb
+\southwest \pgf@xa=\pgf@x \pgf@ya=\pgf@y
+\northeast \pgf@xb=\pgf@x \pgf@yb=\pgf@y
+% compute corner of ‘‘flipped page’’
+\pgf@xc=\pgf@xb \advance\pgf@xc by-18pt % this should be a parameter
+\pgf@yc=\pgf@yb \advance\pgf@yc by-18pt
+% construct main path
+\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+\pgfpathclose
+% add little corner
+\pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+}
+}
+\makeatother
+
+
+\tikzset{
+  >={Stealth[width=3mm, length=3mm]},
+  layout/.style={
+    matrix of nodes,
+    thick,
+    row sep=-\pgflinewidth,
+    %column sep=-\pgflinewidth,
+    column sep=2pt,
+    nodes={rectangle, draw=black, align=center, font=\ttfamily},
+    minimum height=1.5em,
+    text depth=0.5ex,
+    text height=2ex,
+    nodes in empty cells,
+  },
+  descr/.style={
+    matrix of nodes,
+    row sep=-\pgflinewidth,
+    column sep=-\pgflinewidth,
+    nodes={rectangle, align=right, draw=black},
+    minimum height=1.5em,
+    text depth=0.5ex,
+    text height=2ex,
+    nodes in empty cells,
+    column 1/.style={anchor=base east},
+  },
+  header/.style={
+    text width=10em
+  },
+  sizet/.style={
+    text width=6.5em
+  },
+  arr/.style={
+    text width=10em
+  },
+  legend/.style={
+    decorate, decoration={calligraphic brace, amplitude=10pt, mirror}, line width=0.5pt,
+    % node options
+    align=center, midway, below
+  },
+  adjust height/.style={minimum height=#1*\pgfkeysvalueof{/pgf/minimum width}},
+  doc/.style={
+    draw,
+    thick,
+    align=center,
+    color=black,
+    shape=document,
+    inner sep=2ex,
+    adjust height=1.4
+  },
+  obj/.style={
+    draw,
+    thick,
+    align=center,
+    color=black,
+    shape=rectangle,
+    inner sep=2ex,
+    text width=6em
+  },
+  pass/.style={
+    thick, arrows={->}
+  },
+}
+
+\usepackage[sfdefault]{inter}
+
+\begin{document}
+
+
+
+\begin{tikzpicture}[node distance=2cm]
+  \node(code) [doc, text width=5em, minimum width=6em]{Code.lean};
+  \node(ast) [obj, draw, below=of code, text width=5em]{Syntax Tree};
+  \node(core) [obj, draw, below=of ast]{Core Type Theory};
+  \node(core2) [obj, draw, right=3cm of core, text width=6.8em]{Core Type Theory\\(no recursion)};
+  \node(ok) [below=of core2]{\huge {\color{Green}\faCheck{}}/\faTimes{}};
+  \node(exe) [obj, draw, below=of core]{Executable};
+  \draw[pass] (code) edge node[anchor=west]{Parsing} (ast);
+  \draw[pass] (ast) edge node[anchor=west]{Elaboration} (core);
+  \draw[pass] (core) edge node[anchor=west]{Compilation} (exe);
+  \draw[pass] (core) edge node[anchor=north, text width=6em]{Recursion Elimination} (core2);
+  \draw[pass] (core2) edge node[anchor=west, text width=4em, align=center]{Kernel Check} (ok);
+  \draw[pass, loop left] (ast) edge node[] {Macro Expansion} (ast);
+\end{tikzpicture}
+\end{document}
+
+% Local Variables:
+% TeX-engine: luatex
+% End:
