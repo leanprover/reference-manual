@@ -430,6 +430,16 @@ def L := List (Type 0)
 {include 2 Language.InductiveTypes}
 
 
+## Quotients
+%%%
+tag := "quotients"
+%%%
+
+:::planned
+ * Define quotient type
+ * Show the computation rule
+:::
+
 # Module Structure
 
 
@@ -637,6 +647,15 @@ This section will describe the translation of {deftech}[well-founded recursion].
 
 :::planned
 This section will describe {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
+:::
+
+## Partial and Unsafe Recursive Definitions
+%%%
+tag := "partial-unsafe"
+%%%
+
+:::planned
+This section will describe `partial` and `unsafe` definitions
 :::
 
 # Type Classes

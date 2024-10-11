@@ -37,7 +37,7 @@ The recursor takes the following parameters:
 The result type of the recursor is the motive applied to these indices and the target.
 
 :::example "The recursor for {lean}`Bool`"
-{lean}`Bool`'s recursor {lean}`Bool.rec` has the following parameters:
+{lean}`Bool`'s recursor {name}`Bool.rec` has the following parameters:
 
  * The motive computes a type in any universe, given a Bool.
  * There are cases for both constructors, in which the motive is satisfied for both {lean}`false` and {lean}`true`.
@@ -54,7 +54,7 @@ Bool.rec.{u} {motive : Bool → Sort u}
 :::
 
 ::::example "The recursor for {lean}`List`"
-{lean}`List`'s recursor {lean}`List.rec` has the following parameters:
+{lean}`List`'s recursor {name}`List.rec` has the following parameters:
 
 :::keepEnv
 ```lean (show := false)

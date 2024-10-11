@@ -8,6 +8,7 @@ set_option pp.rawOnError true
 
 open Lean (Syntax SourceInfo)
 
+
 def pratt73 : InProceedings where
   title := .concat (inlines!"Top down operator precedence")
   authors := #[.concat (inlines!"Vaughan Pratt")]
@@ -35,15 +36,6 @@ def ullrich23 : Thesis where
 htmlSplit := .never
 %%%
 
-:::planned
-
-
- * Describe the roles of the {deftech}_kernel_, the interpreter, the compiler, the {deftech}[elaborator], and how they interact
- * Sketch the pipeline (parser -> command elaborator (with macro expansion) -> term elaborator (with macro expansion) -> ...
- * Cost model for programs - what data is present at which stage?
-:::
-
-
 Roughly speaking, Lean's processing of a source file can be divided into the following stages:
 
 : Parsing
@@ -54,11 +46,13 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 : Macro Expansion
 
   Macros are transformations that replace syntactic sugar with more basic syntax.
+  Both the input and output of macro expansion have type {lean}`Syntax`.
 
 : Elaboration
 
-  Elaboration is the process of transforming Lean's user-facing syntax into its core type theory.
+  {deftech key:="elaborator"}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
   This core theory is much simpler, enabling the trusted kernel to be very small.
+  Elaboration additionally produces metadata, such as proof states or the types of expressions, used for Lean's interactive features, storing them in a side table.
 
 : Kernel Checking
 
@@ -66,7 +60,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 : Compilation
 
-  The compiler transforms Lean code into executables that can be run.
+  The compiler transforms elaborated Lean code into executables that can be run.
 
 
 :::figure "The Lean Pipeline" (name := "pipeline-overview")
@@ -111,11 +105,7 @@ Each production in Lean's grammar is named.
 The name of a production is called its {deftech}_kind_.
 These syntax kinds are important, because they are the key used to look up the interpretation of the syntax in the elaborator's tables.
 
-::: TODO
-Insert "see also" for sections about:
- * Extending the syntax (`declare_syntax_cat`, `syntax`)
- * Parsing details ({lean}`Lean.Parser.ParserFn`, etc)
-:::
+Syntax extensions are described in more detail in {ref "language-extension"}[a dedicated chapter].
 
 # Macro Expansion and Elaboration
 
@@ -128,7 +118,7 @@ Command elaboration may have side effects on an environment, and it has access t
 Lean environments contain the usual mapping from names to definitions along with additional data defined in {deftech}[environment extensions], which are additional tables associated with an environment; environment extensions are used to track most other information about Lean code, including {tactic}`simp` lemmas, custom pretty printers, and internals such as the compiler's intermediate representations.
 Command elaboration also maintains a message log with the contents of the compiler's informational output, warnings, and errors, a set of {tech}[info trees] that associate metadata with the original syntax (used for interactive features such as displaying proof states, identifier completion, and showing documentation), accumulated debugging traces, the open {tech}[scopes], and some internal state related to macro expansion.
 Term elaboration may modify all of these fields except the open scopes.
-Additionally, it has access to all the machinery needed to create fully-explicit terms in the core language from Lean's terse, friendly syntax, including unification.{TODO}[more, but not exhaustive]
+Additionally, it has access to all the machinery needed to create fully-explicit terms in the core language from Lean's terse, friendly syntax, including unification, type class instance synthesis, and type checking.
 
 The first step in both term and command elaboration is macro expansion.
 There is a table that maps syntax kinds to macro implementations; macro implementations are monadic functions that transform the macro syntax into new syntax.
@@ -137,7 +127,7 @@ If the syntax returned by the macro is itself a macro, then that syntax is again
 Typical macros process some outer layer of their syntax, leaving some subterms untouched.
 This means that even when macro expansion has been completed, there still may be macro invocations remaining in the syntax below the top level.
 New macros may be added to the macro table.
-This is described in {TODO}[xref].
+Defining new macros is described in detail in {ref "macros"}[the section on macros].
 
 After macro expansion, both the term and command elaborators consult tables that map syntax kinds to elaboration procedures.
 Term elaborators map syntax and an optional expected type to a core language expression using the very featureful monad mentioned above.
@@ -145,7 +135,7 @@ Command elaborators accept syntax and return no value, but may have monadic side
 While both term and command elaborators have access to {lean}`IO`, it's unusual that they perform side effects; exceptions include interactions with external tools or solvers.
 
 The elaborator tables may be extended to enable the use of new syntax for both terms and commands by extending the tables.
-See {TODO}[xref] for a description of how to add additional elaborators to Lean.
+See {ref "elaborators"}[the section on elaborators] for a description of how to add additional elaborators to Lean.
 When commands or terms contain further commands or terms, they recursively invoke the appropriate elaborator on the nested syntax.
 This elaborator will then expand macros before invoking elaborators from the table.
 While macro expansion occurs prior to elaboration for a given “layer” of the syntax, macro expansion and elaboration are interleaved in general.
@@ -158,13 +148,14 @@ The information necessary to use Lean interactively is stored in a side table ca
 
 ````lean (show := false)
 open Lean.Elab (Info)
+deriving instance TypeName for Unit
 ````
 
 
 Info trees relate metadata to the user's original syntax.
 Their tree structure corresponds closely to the tree structure of the syntax, although a given node in the syntax tree may have many corresponding info tree nodes that document different aspects of it.
 This metadata includes the elaborator's output in Lean's core language, the proof state active at a given point, suggestions for interactive identifier completion, and much more.
-The metadata can also be extended; the constructor {lean}`Info.ofCustomInfo` accepts a {lean}`Dynamic` type.
+The metadata can also be extended; the constructor {lean}`Info.ofCustomInfo` {lean}``Info.ofCustomInfo ⟨.missing, .mk ()⟩`` accepts a {lean}`Dynamic` type.
 
 :::planned
 Cross-reference to chapter with details about {lean}`Info`
@@ -184,7 +175,7 @@ The language implemented by the kernel is a version of the Calculus of Construct
  * Inductively-defined datatypes that may be mutually inductive or include recursion nested under other inductive types
  * An {tech}[impredicative], definitionally proof-irrelevant, extensional {tech}[universe] of {tech}[propositions]
  * A {tech}[predicative], non-cumulative hierarchy of universes of data
- * Quotient types with a definitional computation rule{TODO}[xref]
+ * {ref "quotients"}[Quotient types] with a definitional computation rule
  * Propositional function extensionality{margin}[Function extensionality is a theorem that can be proved using quotient types, but it is such an important consequence that it's worth listing separately.]
  * Definitional η-equality for functions and products
  * Universe-polymorphic definitions
@@ -270,8 +261,8 @@ fun {α} motive x h_1 h_2 =>
 The elaborated definition is then sent to the compiler and to the kernel.
 The compiler receives the version in which recursion is still present, while the version sent to the kernel undergoes a second transformation that replaces explicit recursion with uses of recursors.
 This split is for three reasons:
- * The compiler can compile `partial` functions{TODO}[xref] that the kernel treats as opaque constants for the purposes of reasoning.
- * The compiler can also compile `unsafe` functions that bypass the kernel entirely.
+ * The compiler can compile {ref "partial-unsafe"}[`partial` functions] that the kernel treats as opaque constants for the purposes of reasoning.
+ * The compiler can also compile {ref "partial-unsafe"}[`unsafe` functions] that bypass the kernel entirely.
  * Translation to recursors does not necessarily preserve the cost model expected by programmers, in particular laziness vs strictness, but compiled code must have predictable performance.
 The compiler stores an intermediate representation in an environment extension.
 

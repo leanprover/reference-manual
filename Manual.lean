@@ -37,18 +37,46 @@ authors := ["Lean Developers"]
 {include 0 Manual.BuiltInTypes}
 
 # Notations and Macros
+%%%
+tag := "language-extension"
+%%%
+
+## Notations
 
 :::planned
-A presentation of macros, covering
- * `notation`
- * Definition of {deftech}_macro_
+A presentation of the `notation` command and how to define infix operators
+:::
+
+## Syntax Categories and Extensions
+
+:::planned
  * Syntax extension and syntax categories
    * Precedence
+:::
+
+
+## Macros
+%%%
+tag := "macros"
+%%%
+
+:::planned
+ * Definition of {deftech}_macro_
  * `macro_rules`
    * Syntax patterns
    * Backtracking on expansion failure
  * {deftech}[Hygiene] and quotation
  * The `macro` command
+:::
+
+
+## Elaborators
+%%%
+tag := "elaborators"
+%%%
+
+:::planned
+For now, a quick overview of elaborators - detailed description to be written in a later revision
 :::
 
 # Lake and Reservoir
