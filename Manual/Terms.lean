@@ -21,20 +21,6 @@ This chapter will describe Lean's term language, including the following feature
  * Pattern matching, including `match`, `let`, `if let`, `matches`, `nomatch`, `nofun`
  * Do-notation, including `let mut`, `for`, `while`, `repeat`, `break`, `return`
  * {deftech}_Holes_ and {deftech}_named holes_
- * The various forms of reduction:
-   : β (beta)
 
-    Applying a `fun`-term to an argument by substitution for the bound variable
 
-   : δ (delta)
-
-    Replacing occurrences of defined names by the definition's value
-
-   : ι (iota)
-
-    Reduction of recursors whose targets are constructors
-
-   : ζ (zeta)
-
-     Replacement of let-bound variables by their defined values
 :::

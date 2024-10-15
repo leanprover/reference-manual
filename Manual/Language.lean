@@ -19,15 +19,112 @@ set_option linter.unusedVariables false
 
 # Types
 
-::: planned 49
+{deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean.
+Lean's type system relates terms to their _types_, which are also themselves terms.
+Types can be thought of as denoting sets, while terms denote individual elements of these sets.
+A term is {deftech}_well-typed_ if it has a type under the rules of Lean's type theory.
+Only well-typed terms have a meaning.
 
-Basic framework of the type theory goes here.
+Terms are a dependently typed λ-calculus: they include function abstraction, application, variables, and `let`-bindings.
+In addition to bound variables, variables in the term language may refer to {tech}[constructors], {tech}[type constructors], {tech}[recursors], {deftech}[defined constants], or opaque constants.
+Constructors, type constructors, recursors, and opaque constants are not subject to substitution, while defined constants may be replaced with their definitions.
 
-{deftech}[Canonical] type formers, definitional equality, types as first-class entities, large elimination
+A {deftech}_derivation_ demonstrates the well-typedness of a term by explicitly indicating the precise inference rules that are used.
+Implicitly, well-typed terms can stand in for the derivations that demonstrate their well-typedness.
+Lean's type theory is explicit enough that derivations can be reconstructed from well-typed terms, which greatly reduces the overhead that would be incurred from storing a complete derivation, while still being expressive enough to represent modern research mathematics.
+This means that proof terms are sufficient evidence of the truth of a theorem and are amenable to independent verification.
 
+In addition to having types, terms are also related by {deftech}_definitional equality_.
+This is the mechanically-checkable relation that equates terms modulo their computational behavior.
+Definitional equality includes the following forms of reduction:
+
+ : β (beta)
+
+    Applying a function abstraction to an argument by substitution for the bound variable
+
+ : δ (delta)
+
+    Replacing occurrences of {tech}[defined constants] by the definition's value
+
+ : ι (iota)
+
+    Reduction of recursors whose targets are constructors (primitive recursion)
+
+ : ζ (zeta)
+
+     Replacement of let-bound variables by their defined values
+
+::::keepEnv
+```lean (show := false)
+axiom α : Type
+axiom β : Type
+axiom f : α → β
+
+structure S where
+  f1 : α
+  f2 : β
+
+axiom x : S
+
+-- test claims in next para
+
+example : (fun x => f x) = f := by rfl
+example : S.mk x.f1 x.f2 = x := by rfl
+
+export S (f1 f2)
+```
+
+Definitional equality includes η-equivalence of functions and single-constructor inductive types.
+That is, {lean}`fun x => f x` is definitionally equal to {lean}`f`, and {lean}`S.mk x.f1 x.f2` is definitionally equal to {lean}`x`, if {lean}`S` is a structure with fields {lean}`f1` and {lean}`f2`.
+It also features proof irrelevance, so any two proofs of the same theorem are definitionally equal.
+It is reflexive, symmetric, and a congruence.
+::::
+
+Definitional equality is used by conversion: if two terms are definitionally equal, and a given term has one of them as its type, then it also has the other as its type.
+Because definitional equality includes reduction, types can result from computations over data.
+
+::::keepEnv
+:::example "Computing types"
+
+When passed a natural number, the function {lean}`LengthList` computes a type that corresponds to a list with precisely that many entries in it:
+
+```lean
+def LengthList (α : Type u) : Nat → Type u
+  | 0 => PUnit
+  | n + 1 => α × LengthList α n
+```
+
+Because Lean's tuples nest to the right, multiple nested parentheses are not needed:
+````lean
+example : LengthList Int 0 := ()
+
+example : LengthList String 2 :=
+  ("Hello", "there", ())
+````
+
+If the length does not match the number of entries, then the computed type will not match the term:
+```lean error:=true name:=wrongNum
+example : LengthList String 5 :=
+  ("Wrong", "number", ())
+```
+```leanOutput wrongNum
+application type mismatch
+  ("number", ())
+argument
+  ()
+has type
+  Unit : Type
+but is expected to have type
+  LengthList String 3 : Type
+```
 :::
+::::
+
+The basic types in Lean are {tech}[universes], {tech}[function] types, and {tech}[type constructors] of {tech}[inductive types].
+{tech}[Defined constants], applications of {tech}[recursors], function application, {tech}[axioms] or {tech}[opaque constants] may additionally give types, just as they can give rise to terms in any other type.
 
 ## Functions
+
 
 ::: planned 50
 
@@ -554,6 +651,8 @@ example $_ $_ where
 ```
 :::
 
+{deftech}_Opaque constants_ are defined constants that cannot be reduced to their definition.
+
 :::syntax Lean.Parser.Command.opaque
 ```grammar
 opaque $_ $_
@@ -630,6 +729,12 @@ Section scopes track the following:
 
 This section will describe this mechanism.
 
+:::
+
+# Axioms
+
+:::planned 78
+Describe {deftech}_axioms_ in detail
 :::
 
 # Recursive Definitions

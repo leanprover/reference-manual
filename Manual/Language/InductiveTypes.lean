@@ -409,6 +409,8 @@ Within each group the fields are ordered in declaration order. **Warning**: Triv
 * To access {lean}`USize` fields, use `lean_ctor_get_usize(val, n+i)` to get the `i`th usize field and `n` is the total number of fields of the first kind.
 * To access other scalar fields, use `lean_ctor_get_uintN(val, off)` or `lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at `n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
 
+::::keepEnv
+
 For example, a structure such as
 ```lean
 structure S where
@@ -441,6 +443,8 @@ would get re-sorted into the following memory order:
 * {name}`S.sc16_2` - `lean_ctor_get_uint16(val, sizeof(void*)*5 + 30)`
 * {name}`S.sc8_1` - `lean_ctor_get_uint8(val, sizeof(void*)*5 + 32)`
 * {name}`S.sc8_2` - `lean_ctor_get_uint8(val, sizeof(void*)*5 + 33)`
+
+::::
 
 ::: TODO
 Figure out how to test/validate/CI these statements
