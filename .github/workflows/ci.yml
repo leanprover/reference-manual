@@ -52,6 +52,11 @@ jobs:
         run: |
           lake exe generate-manual --depth 2 --with-word-count "words.txt"
 
+      - name: Generate proofreading HTML
+        if: github.event_name == 'pull_request'
+        run: |
+          lake exe generate-manual --depth 2 --with-word-count "words.txt" --draft --output "_out/draft"
+
       - name: Report word count
         run: |
           echo "Word Counts"
@@ -123,6 +128,28 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
+
+      - name: Deploy with proofreading info
+        id: deploy-draft
+        uses: nwtgck/actions-netlify@v2.0
+        if:
+          github.event_name == 'pull_request'
+        with:
+          publish-dir: _out/draft/html-multi
+          production-branch: main
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: |
+            ${{ github.event_name == 'pull_request' && format('pr#{0} proofreading: {1}', github.event.number, github.event.pull_request.title) }}
+          alias: draft-${{ steps.deploy-alias.outputs.result }}
+          enable-commit-comment: false
+          enable-pull-request-comment: false
+          github-deployment-environment: |
+            ${{ github.event_name == 'pull_request' && format('lean-ref-pr-draft-#{0}', github.event.number) }}
+          fails-without-credentials: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
+
 
 
   check-links:

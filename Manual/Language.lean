@@ -19,7 +19,7 @@ set_option linter.unusedVariables false
 
 # Types
 
-::: TODO
+::: planned
 Basic framework of the type theory goes here.
 
 {deftech}[Canonical] type formers, definitional equality, types as first-class entities, large elimination
@@ -27,7 +27,7 @@ Basic framework of the type theory goes here.
 
 ## Functions
 
-::: TODO
+::: planned
 Write this section.
 
 Topics:

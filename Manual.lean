@@ -82,8 +82,16 @@ For now, a quick overview of elaborators - detailed description to be written in
 # Lake and Reservoir
 
 
+# Index
+%%%
+number := false
+%%%
 
-# Progress
+{theIndex}
+
+
+
+::::::draft
 
 :::progress
 ```namespace
@@ -289,10 +297,4 @@ tacticDecreasing_trivial_pre_omega
 
 :::
 
-
-# Index
-%%%
-number := false
-%%%
-
-{theIndex}
+::::::

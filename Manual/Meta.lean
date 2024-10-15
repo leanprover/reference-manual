@@ -57,7 +57,7 @@ def TODOinline : RoleExpander
 @[block_extension TODO]
 def TODO.descr : BlockDescr where
   traverse _ _ _ := do
-    pure none
+    if ← isDraft then pure none else pure (some <| .concat #[])
   toTeX := none
   extraCss := [r#"
 div.TODO {
@@ -83,7 +83,7 @@ div.TODO::before {
 @[inline_extension TODO]
 def TODO.inlineDescr : InlineDescr where
   traverse _ _ _ := do
-    pure none
+    if ← isDraft then pure none else pure (some <| .concat #[])
   toTeX := none
   extraCss := [r#"
 span.TODO {
