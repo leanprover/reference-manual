@@ -85,6 +85,7 @@ For now, a quick overview of elaborators - detailed description to be written in
 # Index
 %%%
 number := false
+file := some "the-index"
 %%%
 
 {theIndex}
