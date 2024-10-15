@@ -81,9 +81,7 @@ def example.descr : BlockDescr where
         let .para description := blocks[0]
           | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
         let xref ← HtmlT.state
-        let attrs := match xref.externalTags[id]? with
-          | none => #[]
-          | some (_, t) => #[("id", t)]
+        let attrs := xref.htmlId id
         pure {{
           <details class="example" {{attrs}}>
             <summary class="description">{{← description.mapM goI}}</summary>

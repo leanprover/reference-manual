@@ -590,10 +590,9 @@ def proofState.descr : BlockDescr where
         HtmlT.logError <| "Couldn't deserialize proof state while rendering HTML: " ++ err
         pure .empty
       | .ok (_, goals) =>
-        let idAttr :=
-          if let some (_, t) := (← read).traverseState.externalTags.get? id then
-            #[("id", t)]
-          else #[]
+        let xref ← HtmlT.state
+        let idAttr := xref.htmlId id
+
         pure {{
           <div class="hl lean tactic-view">
             <div class="tactic-state" {{idAttr}}>

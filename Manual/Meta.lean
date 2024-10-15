@@ -210,11 +210,7 @@ def ffi.descr : BlockDescr where
       let sig : Html := {{<pre>{{signature}}</pre>}}
 
       let xref ← HtmlT.state
-      let idAttr :=
-        if let some (_, htmlId) := xref.externalTags[id]? then
-          #[("id", htmlId)]
-        else #[]
-
+      let idAttr := xref.htmlId id
 
       return {{
         <div class="namedocs" {{idAttr}}>

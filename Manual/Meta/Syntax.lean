@@ -352,9 +352,7 @@ def syntax.descr : BlockDescr where
           HtmlT.logError s!"Failed to deserialize syntax docs: {e}"
           pure "syntax"
       let xref ← HtmlT.state
-      let attrs := match xref.externalTags[id]? with
-        | none => #[]
-        | some (_, t) => #[("id", t)]
+      let attrs := xref.htmlId id
       pure {{
         <div class="namedocs" {{attrs}}>
           <span class="label">{{label}}</span>
