@@ -1,6 +1,7 @@
 import VersoManual
 
 import Manual.Meta
+import Manual.Language.Functions
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
 
@@ -19,7 +20,8 @@ set_option linter.unusedVariables false
 
 # Types
 
-{deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean.
+{deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean's core language.
+They are produced from user-written syntax by the {tech}[elaborator].
 Lean's type system relates terms to their _types_, which are also themselves terms.
 Types can be thought of as denoting sets, while terms denote individual elements of these sets.
 A term is {deftech}_well-typed_ if it has a type under the rules of Lean's type theory.
@@ -36,7 +38,7 @@ This means that proof terms are sufficient evidence of the truth of a theorem an
 
 In addition to having types, terms are also related by {deftech}_definitional equality_.
 This is the mechanically-checkable relation that equates terms modulo their computational behavior.
-Definitional equality includes the following forms of reduction:
+Definitional equality includes the following forms of {deftech}[reduction]:
 
  : β (beta)
 
@@ -123,19 +125,8 @@ but is expected to have type
 The basic types in Lean are {tech}[universes], {tech}[function] types, and {tech}[type constructors] of {tech}[inductive types].
 {tech}[Defined constants], applications of {tech}[recursors], function application, {tech}[axioms] or {tech}[opaque constants] may additionally give types, just as they can give rise to terms in any other type.
 
-## Functions
 
-
-::: planned 50
-
-Topics:
- * Dependent vs non-dependent {deftech}[function] types
- * Eta equivalence
- * Don't talk recursion (that goes in inductive types), but xref to it
- * Syntax of anonymous functions with/without pattern matching
- * Strictness
-
-:::
+{include Manual.Language.Functions}
 
 ## Propositions
 %%%
@@ -534,12 +525,9 @@ def L := List (Type 0)
 tag := "quotients"
 %%%
 
-::: planned 51
-
-Quotient types:
- * Define quotient type
+:::planned 51
+ * Define {deftech}[quotient] type
  * Show the computation rule
-
 :::
 
 # Module Structure
@@ -803,6 +791,9 @@ This section will describe the syntax of `instance` declarations, priorities, an
 
 
 ## Instance Synthesis
+%%%
+tag := "instance-synth"
+%%%
 
 ::: planned 63
 This section will specify the instance synthesis algorithm.

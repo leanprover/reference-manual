@@ -38,6 +38,7 @@ structure SyntaxConfig where
   name : Name
   «open» : Bool := true
   label : String := "syntax"
+  title : Option String := none
   aliases : List Name := []
 
 structure KeywordOfConfig where
@@ -161,6 +162,7 @@ def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
     .positional `name .name <*>
     ((·.getD true) <$> (.named `open .bool true)) <*>
     ((·.getD "syntax") <$> .named `label .string true) <*>
+    .named `title .string true <*>
     (many (.named `alias .resolvedName false) <* .done)
 
 inductive GrammarTag where
@@ -181,6 +183,16 @@ instance : Quote GrammarTag where
     | GrammarTag.error => mkCApp ``GrammarTag.error #[]
     | bnf => mkCApp ``bnf #[]
 
+structure GrammarConfig where
+  of : Option Name
+  prec : Nat := 0
+
+def GrammarConfig.parse [Monad m] [MonadInfoTree m] [MonadEnv m] [MonadError m] : ArgParse m GrammarConfig :=
+  GrammarConfig.mk <$>
+    .named `of .name true <*>
+    ((·.getD 0) <$> .named `prec .nat true)
+
+
 open Manual.Meta.PPrint in
 @[directive_expander «syntax»]
 partial def «syntax» : DirectiveExpander
@@ -197,7 +209,7 @@ partial def «syntax» : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Name × String × Option Tag × Array Name) ($(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
 where
   isGrammar? : Syntax → Option (Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
   | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
@@ -296,13 +308,14 @@ where
 
   elabGrammar config isFirst howMany (argsStx : Array Syntax) (str : TSyntax `str) col «open» i info close := do
     let args ← parseArgs <| argsStx.map (⟨·⟩)
-    let config ←
-      if let #[] := args then pure config
-      else if let #[.named _ ⟨.ident _ _ `of _⟩ (.name n)] := args then pure {name := n.getId, «open» := false}
-      else throwErrorAt str "Expected optional 'of' to specify alternate nonterminal"
+    let {of, prec} ← GrammarConfig.parse.run args
+    let config : SyntaxConfig :=
+      if let some n := of then
+        {name := n, «open» := false}
+      else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
-    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) with
+    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
     | .ok stx =>
       let bnf ← getBnf config isFirst howMany stx
       `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText GrammarTag)} #[])
@@ -328,7 +341,7 @@ where
 @[block_extension «syntax»]
 def syntax.descr : BlockDescr where
   traverse id data contents := do
-    if let .ok (kind, label, tag, aliases) := FromJson.fromJson? (α := Name × String × Option Tag × Array Name) data then
+    if let .ok (title, kind, label, tag, aliases) := FromJson.fromJson? (α := Option String × Name × String × Option Tag × Array Name) data then
       modify fun st => st.saveDomainObject syntaxKindDomain kind.toString id
       for a in aliases do
         modify fun st => st.saveDomainObject syntaxKindDomain a.toString id
@@ -337,7 +350,7 @@ def syntax.descr : BlockDescr where
       else
         let path := (← read).path
         let tag ← Verso.Genre.Manual.externalTag id path kind.toString
-        pure <| some <| Block.other {Block.syntax with id := some id, data := toJson (kind, label, some tag, aliases)} contents
+        pure <| some <| Block.other {Block.syntax with id := some id, data := toJson (title, kind, label, some tag, aliases)} contents
     else
       logError "Couldn't deserialize kind name for syntax block"
       pure none
@@ -345,22 +358,36 @@ def syntax.descr : BlockDescr where
   toHtml :=
     open Verso.Output.Html Verso.Doc.Html in
     some <| fun _ goB id data content => do
-      let label ←
-        match FromJson.fromJson? (α := Name × String × Option Tag × Array Name) data with
-        | .ok (_, label, _, _) => pure label
+      let (title, label) ←
+        match FromJson.fromJson? (α := Option String × Name × String × Option Tag × Array Name) data with
+        | .ok (title, _, label, _, _) => pure (title, label)
         | .error e =>
-          HtmlT.logError s!"Failed to deserialize syntax docs: {e}"
-          pure "syntax"
+          HtmlT.logError s!"Failed to deserialize syntax docs: {e} from {data}"
+          pure (none, "syntax")
       let xref ← HtmlT.state
       let attrs := xref.htmlId id
       pure {{
         <div class="namedocs" {{attrs}}>
           <span class="label">{{label}}</span>
+          {{if let some t := title then {{<span class="title">{{t}}</span>}} else .empty}}
           <div class="text">
             {{← content.mapM goB}}
           </div>
         </div>
       }}
+  extraCss := [
+r#"
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1.5em;
+  margin-right: 1.5em;
+  margin-bottom: 0.5em;
+  display: inline-block;
+}
+"#
+]
 
 def grammar := ()
 

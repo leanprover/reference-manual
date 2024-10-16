@@ -1,7 +1,17 @@
 import Lean.Data.Position
 import Lean.Parser
 
+import Verso.Doc.ArgParse
+
 open Lean
+
+open Verso.ArgParse in
+def Verso.ArgParse.ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
+  description := m!"a name"
+  get
+    | .num n => pure n.getNat
+    | other => throwError "Expected string, got {repr other}"
+
 
 namespace Manual
 
@@ -38,9 +48,10 @@ where
     errs.reverse
 
 open Lean.Parser in
-def runParser (env : Environment) (opts : Lean.Options) (p : Parser) (input : String) (fileName : String := "<example>") : Except (List (Position × String)) Syntax :=
+def runParser (env : Environment) (opts : Lean.Options) (p : Parser) (input : String) (fileName : String := "<example>") (prec : Nat := 0) : Except (List (Position × String)) Syntax :=
     let ictx := mkInputContext input fileName
-    let s := p.fn.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
+    let p' := adaptCacheableContext ({· with prec}) p
+    let s := p'.fn.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
     if !s.allErrors.isEmpty  then
       Except.error (toErrorMsg ictx s)
     else if ictx.input.atEnd s.pos then

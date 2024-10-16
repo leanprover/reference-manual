@@ -366,12 +366,6 @@ structure SyntaxErrorConfig where
   category : Name := `command
   prec : Nat := 0
 
-defmethod ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
-  description := m!"a natural number"
-  get
-    | .num x => pure x.getNat
-    | other => throwError "Expected number, got {repr other}"
-
 def SyntaxErrorConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SyntaxErrorConfig :=
   SyntaxErrorConfig.mk <$>
     .positional `name .name <*>
