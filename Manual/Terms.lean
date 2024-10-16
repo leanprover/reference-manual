@@ -10,7 +10,7 @@ set_option linter.unusedVariables false
 
 #doc (Manual) "Terms" =>
 
-::: planned
+::: planned 66
 This chapter will describe Lean's term language, including the following features:
  * Name resolution, including variable occurrences, `open` declarations and terms
  * Function application, including implicit, instance, and named arguments

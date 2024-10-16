@@ -43,13 +43,13 @@ tag := "language-extension"
 
 ## Notations
 
-:::planned
+:::planned 69
 A presentation of the `notation` command and how to define infix operators
 :::
 
 ## Syntax Categories and Extensions
 
-:::planned
+:::planned 70
  * Syntax extension and syntax categories
    * Precedence
 :::
@@ -60,7 +60,7 @@ A presentation of the `notation` command and how to define infix operators
 tag := "macros"
 %%%
 
-:::planned
+:::planned 71
  * Definition of {deftech}_macro_
  * `macro_rules`
    * Syntax patterns
@@ -75,12 +75,38 @@ tag := "macros"
 tag := "elaborators"
 %%%
 
-:::planned
+:::planned 72
 For now, a quick overview of elaborators - detailed description to be written in a later revision
+:::
+
+# Elan
+
+::: planned 74
+
+This section will describe Elan and how to use it:
+
+ * `lean-toolchain` files
+ * `+`-syntax for toolchain selection
+ * Specific overrides
+ * Using a local development build of Lean with Elan
 :::
 
 # Lake and Reservoir
 
+## Lake
+
+::: planned 75
+ * Port and organize the information in the Lake README
+ * Describe the underlying Lake-specific concepts of traces, artifacts, workspaces, and facets
+:::
+
+## Reservoir
+
+::: planned 76
+ * Concepts
+ * Package and toolchain versions
+ * Tags and builds
+:::
 
 # Index
 %%%

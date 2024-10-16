@@ -105,15 +105,21 @@ span.TODO {
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
+structure PlannedConfig where
+  issue : Nat
+
+def PlannedConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m PlannedConfig :=
+  PlannedConfig.mk <$> .positional `issue .nat
+
 def Block.planned : Block where
   name := `Manual.planned
 
 @[directive_expander planned]
 def planned : DirectiveExpander
   | args, blocks => do
-    ArgParse.done.run args
+    let {issue} ← PlannedConfig.parse.run args
     let content ← blocks.mapM elabBlock
-    pure #[← `(Doc.Block.other Block.planned #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.planned with data := $(quote issue)} #[$content,*])]
 
 @[block_extension planned]
 def planned.descr : BlockDescr where
@@ -132,8 +138,25 @@ div.planned .label {
 "#]
   toHtml :=
     open Verso.Output.Html in
-    some <| fun _ goB _ _ content => do
-      pure {{<div class="planned"><div class="label">"Planned Content"</div>{{← content.mapM goB}}</div>}}
+    some <| fun _ goB _ data content => do
+      let issue : Nat ←
+        match FromJson.fromJson? (α := Nat) data with
+        | .ok v => pure v
+        | .error e =>
+          HtmlT.logError s!"Failed to deserialize issue number from {data}: {e}"
+          pure 0
+      pure {{
+        <div class="planned">
+          <div class="label">"Planned Content"</div>
+          {{← content.mapM goB}}
+          <p>
+            "Tracked at issue "
+            <a href=s!"https://github.com/leanprover/reference-manual/issues/{issue}">
+              s!"#{issue}"
+            </a>
+          </p>
+          </div>
+      }}
 
 
 @[role_expander versionString]

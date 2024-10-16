@@ -44,7 +44,7 @@ set_option linter.unusedVariables false
 
 # Relations
 
-:::planned
+:::planned 47
  * Descriptions of the `symm` and `refl` and `trans` attributes
 :::
 
@@ -249,7 +249,7 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 
 ## Elimination
 
-:::planned
+:::planned 48
 
 Description of the `@[induction_eliminator]` and `@[cases_eliminator]` attributes
 

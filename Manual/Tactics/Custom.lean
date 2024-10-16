@@ -117,7 +117,7 @@ Backtracking is at the granularity of {keywordOf Lean.Parser.Command.macro_rules
 
 # The Tactic Monad
 
-::: planned
+::: planned 67
  * Relationship to {name}`Lean.Elab.Term.TermElabM`, {name}`Lean.Meta.MetaM`
  * Overview of available effects
  * Checkpointing

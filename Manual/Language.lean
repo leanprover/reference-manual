@@ -19,16 +19,17 @@ set_option linter.unusedVariables false
 
 # Types
 
-::: planned
+::: planned 49
+
 Basic framework of the type theory goes here.
 
 {deftech}[Canonical] type formers, definitional equality, types as first-class entities, large elimination
+
 :::
 
 ## Functions
 
-::: planned
-Write this section.
+::: planned 50
 
 Topics:
  * Dependent vs non-dependent {deftech}[function] types
@@ -36,6 +37,7 @@ Topics:
  * Don't talk recursion (that goes in inductive types), but xref to it
  * Syntax of anonymous functions with/without pattern matching
  * Strictness
+
 :::
 
 ## Propositions
@@ -435,9 +437,12 @@ def L := List (Type 0)
 tag := "quotients"
 %%%
 
-:::planned
+::: planned 51
+
+Quotient types:
  * Define quotient type
  * Show the computation rule
+
 :::
 
 # Module Structure
@@ -567,8 +572,10 @@ axiom $_ $_
 tag := "declaration-modifiers"
 %%%
 
-::: planned
+::: planned 52
+
 A description of each modifier allowed in the production `declModifiers`, including {deftech}[documentation comments].
+
 :::
 
 :::syntax declModifiers alias:=Lean.Parser.Command.declModifiers
@@ -586,12 +593,14 @@ $_
 
 ### Signatures
 
-:::planned
+:::planned 53
+
 Describe signatures, including the following topics:
  * Explicit, implicit, instance-implicit, and strict implicit parameter binders
  * {deftech}_Automatic implicits_
  * Argument names and by-name syntax
  * Which parts can be omitted where? Why?
+
 :::
 
 ### Headers
@@ -608,7 +617,8 @@ The {deftech}[_header_] of a definition or declaration specifies the signature o
 tag := "scopes"
 %%%
 
-::: planned
+::: planned 54
+
 Many commands have an effect for the current {deftech key:="scope"}[_section scope_] (sometimes just called "scope" when clear).
 A section scope ends when a namespace ends, a section ends, or a file ends.
 They can also be anonymously and locally created via `in`.
@@ -619,18 +629,19 @@ Section scopes track the following:
  * Variable and universe declarations
 
 This section will describe this mechanism.
+
 :::
 
 # Recursive Definitions
 
 ## Structural Recursion
-::: planned
+::: planned 55
 This section will describe the specification of the translation to recursors.
 :::
 
 ### Mutual Structural Recursion
 
-::: planned
+::: planned 56
 This section will describe the specification of the translation to recursors.
 :::
 
@@ -639,13 +650,13 @@ This section will describe the specification of the translation to recursors.
 tag := "well-founded-recursion"
 %%%
 
-::: planned
+::: planned 57
 This section will describe the translation of {deftech}[well-founded recursion].
 :::
 
 ## Controlling Reduction
 
-:::planned
+:::planned 58
 This section will describe {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
 :::
 
@@ -654,29 +665,41 @@ This section will describe {deftech}[reducible], {deftech}[semireducible], and {
 tag := "partial-unsafe"
 %%%
 
-:::planned
-This section will describe `partial` and `unsafe` definitions
+:::planned 59
+This section will describe `partial` and `unsafe` definitions:
+
+
+ * Interaction with the kernel and elaborator
+ * What guarantees are there, and what aren't there?
+ * How to bridge from unsafe to safe code?
+
 :::
 
 # Type Classes
 
+:::planned 61
+
+This introduction will describe the overall feature.
+
+:::
+
 ## Class Declarations
 
-::: planned
+::: planned 60
 This section will describe the syntax of `class` and `class inductive` declarations.
-The desugaring of `class` to `structure` and thus `inductive` will be addressed, along with the determining of implicitness of method parameters.
+The desugaring of `class` to `structure` and thus `inductive` will be addressed, along with the determining of implicitness of method parameters. `outParam` and `semiOutParam` will also be described.
 :::
 
 ## Instance Declarations
 
-::: planned
+::: planned 62
 This section will describe the syntax of `instance` declarations, priorities, and names.
 :::
 
 
 ## Instance Synthesis
 
-::: planned
+::: planned 63
 This section will specify the instance synthesis algorithm.
 :::
 
@@ -685,7 +708,7 @@ This section will specify the instance synthesis algorithm.
 tag := "deriving-instances"
 %%%
 
-::: planned
+::: planned 64
 This section will specify syntax of `deriving` clauses and list the valid places where they may occur.
 It will also describe `deriving instance`.
 It will list the deriving handlers that ship with Lean by default.
@@ -694,6 +717,6 @@ It will list the deriving handlers that ship with Lean by default.
 
 ### Deriving Handlers
 
-::: planned
+::: planned 65
 This section will describe deriving handlers and how they are invoked.
 :::

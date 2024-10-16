@@ -367,7 +367,7 @@ structure SyntaxErrorConfig where
   prec : Nat := 0
 
 defmethod ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
-  description := m!"a name"
+  description := m!"a natural number"
   get
     | .num x => pure x.getNat
     | other => throwError "Expected number, got {repr other}"

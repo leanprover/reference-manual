@@ -459,7 +459,7 @@ This can be useful when using features such as {keywordOf Lean.guardMsgsCmd}`#gu
 {optionDocs pp.mvars}
 
 
-:::planned
+:::planned 68
 Demonstrate and explain diff labels that show the difference between the steps of a proof state.
 :::
 
