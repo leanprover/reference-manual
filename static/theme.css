@@ -161,3 +161,29 @@ figcaption {
     margin-left: 3.5em;
     position: relative;
 }
+
+/** Temporary measures until the real release **/
+
+body::before {
+    content: 'Preview Release';
+    position: fixed;
+    top: 0;
+    right: 0;
+    transform:
+        /* first undo the effect of the rotation, pushing it to the right*/
+        translateX(25%)
+        /* then shove it against the side, sticking the box out of the viewport */
+        translateX(5em) translateY(-5em)
+        /* and rotate! */
+        rotate(45deg);
+    transform-origin: top left;
+    padding: 1em 8em;
+    background-color: var(--lean-compl-yellow);
+    font-family: var(--verso-structure-font-family);
+    font-size: large;
+    z-index: 10; /* don't show under marginal notes*/
+}
+
+#print {
+    display: none;
+}
