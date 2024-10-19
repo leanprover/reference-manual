@@ -16,9 +16,28 @@ jobs:
       ref-url: ${{ steps.deploy.outputs.deploy-url }}
 
     steps:
-      - name: Install deps for figures
+      - name: Install deps for figures (OS packages)
         run: |
-          sudo apt update && sudo apt install -y texlive-latex-base texlive-pictures texlive-luatex texlive-latex-extra fonts-firacode texlive-fonts-extra poppler-utils
+          sudo apt update && sudo apt install -y fonts-firacode poppler-utils
+
+      - name: Install deps for figures (TeX)
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          packages: |
+            scheme-minimal
+            latex-bin
+            fontspec
+            standalone
+            pgf
+            pdftexcmds
+            luatex85
+            infwarerr
+            ltxcmds
+            xcolor
+            fontawesome
+            spath3
+            inter
+            epstopdf-pkg
 
       - name: Install elan
         run: |
