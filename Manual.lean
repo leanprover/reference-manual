@@ -14,9 +14,6 @@ set_option pp.rawOnError true
 
 #doc (Manual) "The Lean Language Reference" =>
 
-%%%
-authors := ["Lean Developers"]
-%%%
 
 {include Manual.Intro}
 
