@@ -113,7 +113,7 @@ jobs:
             if (process.env.PR) {
                 return `pr-${process.env.PR}`
             } else {
-                return 'main-review';
+                return 'deploy-preview-main';
             }
         env:
           PR: ${{ github.event.number }}
@@ -136,7 +136,6 @@ jobs:
           publish-dir: _out/html-multi
           production-branch: main
           production-deploy: true
-          alias: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
             Release from tag ${{ github.ref }}
@@ -155,7 +154,7 @@ jobs:
         with:
           publish-dir: _out/html-multi
           production-branch: main
-          production-deploy: false
+          production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
             ${{ github.event_name == 'pull_request' && format('pr#{0}: {1}', github.event.number, github.event.pull_request.title) || format('ref/{0}: {1}', github.ref_name, steps.deploy-info.outputs.message) }}
@@ -169,7 +168,7 @@ jobs:
           fails-without-credentials: true
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
+          NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
 
       # When pushing to `main` or a PR branch, deploy it with proofreading info as well
       - name: Deploy with proofreading info (draft mode, for PRs)
@@ -194,7 +193,7 @@ jobs:
           fails-without-credentials: true
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
+          NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
 
 
 
