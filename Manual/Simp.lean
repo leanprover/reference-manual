@@ -44,7 +44,7 @@ Aside from that, they are named according to a system of prefixes and suffixes t
 
 : `-_arith` suffix
 
-  Enables the use of linear arithmetic simplfication rules
+  Enables the use of linear arithmetic simplification rules
 
 : `d-` prefix
 
