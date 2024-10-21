@@ -11,7 +11,7 @@ import Manual.Language
 import Manual.Terms
 import Manual.Tactics
 import Manual.Simp
-import Manual.BuiltInTypes
+import Manual.BasicTypes
 
 open Verso.Genre Manual
 
@@ -36,7 +36,11 @@ set_option pp.rawOnError true
 
 {include 0 Manual.Simp}
 
-{include 0 Manual.BuiltInTypes}
+{include 0 Manual.BasicTypes}
+
+# Standard Library
+
+## Optional Values
 
 # Notations and Macros
 %%%

@@ -8,9 +8,9 @@ import VersoManual
 
 import Manual.Meta
 
-import Manual.BuiltInTypes.String.Logical
-import Manual.BuiltInTypes.String.Literals
-import Manual.BuiltInTypes.String.FFI
+import Manual.BasicTypes.String.Logical
+import Manual.BasicTypes.String.Literals
+import Manual.BasicTypes.String.FFI
 
 open Manual.FFIDocType
 
@@ -32,7 +32,7 @@ The fact that strings are internally represented as UTF-8-encoded byte arrays is
  * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use a {name}`String.Iterator`] in a loop instead of a {name}`Nat`.
  * Strings are indexed by {name}`String.Pos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time. Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
 
-{include 0 Manual.BuiltInTypes.String.Logical}
+{include 0 Manual.BasicTypes.String.Logical}
 
 # Run-Time Representation
 %%%
@@ -72,7 +72,7 @@ Otherwise, a new string must be allocated.
 Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.mk` and {name}`String.data` take *time linear in the length of the string*.
 This is because they must implement the conversions between lists of characters and packed arrays of bytes, which must necessarily visit each character.
 
-{include 0 Manual.BuiltInTypes.String.Literals}
+{include 0 Manual.BasicTypes.String.Literals}
 
 # API Reference
 
@@ -367,4 +367,4 @@ TODO Substring API xref
 {docstring String.crlfToLf}
 
 
-{include 0 Manual.BuiltInTypes.String.FFI}
+{include 0 Manual.BasicTypes.String.FFI}
