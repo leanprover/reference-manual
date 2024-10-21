@@ -52,8 +52,8 @@ target figures : Array FilePath := do
         ensureDir "static"
         ensureDir figureOutDir
         for fmt in ["pdf", "svg"] do
-          IO.println s!"Format: {fmt}"
           let built := s!"{f}.{fmt}"
+          IO.println s!"Generated: {figureOutDir.join built}"
           IO.FS.withFile (figureDir.join built) .read fun h =>
             IO.FS.withFile (figureOutDir.join built) .write fun h' => do
               let mut buf ← h.read 1024
