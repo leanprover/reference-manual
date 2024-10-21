@@ -26,10 +26,33 @@ Other types don't have special compiler support _per se_, but rely in important 
 {include 0 Manual.BasicTypes.Nat}
 
 # Integers
+::: planned 104
+ * Compile-time and run-time characteristics, and how they're inherited from {lean}`Nat`
+ * API reference
+:::
 
 # Fixed-Precision Integer Types
 
+::: planned 105
+ * Compile-time and run-time characteristics for {lean}`UInt8`, {lean}`UInt16`, {lean}`UInt32`, {lean}`UInt64`
+ * API reference
+:::
+
+# Bitvectors
+
+:::planned 106
+ * Run-time and kernel representations of {name}`BitVec`
+ * API reference
+ * Cross-reference to TBW chapter on `bv_decide`
+:::
+
 # Floating-Point Numbers
+
+:::planned 107
+ * Run-time and kernel representations
+ * Precision, and whether it's platform-dependent
+ * Relationship between IEEE floats and decidable equality
+:::
 
 # Characters
 
@@ -66,6 +89,13 @@ In monomorphic contexts, characters are represented as 32-bit immediate values. 
 {include 0 Manual.BasicTypes.String}
 
 # Linked Lists
+
+::: planned 108
+ * Representation at compile time and run time
+ * API reference
+ * Literal syntax
+ * Constructor/pattern syntax
+:::
 
 # Arrays
 

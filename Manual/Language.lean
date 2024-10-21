@@ -24,7 +24,7 @@ set_option linter.unusedVariables false
 
 {include Manual.Language.Files}
 
-# Types
+# The Type System
 
 {deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean's core language.
 They are produced from user-written syntax by the {tech}[elaborator].
@@ -518,9 +518,10 @@ def L := List (Type 0)
 
 #### Universe Unification
 
-:::TODO
+:::planned 00
  * Rules for unification, properties of algorithm
  * Lack of injectivity
+ * Universe inference for unannotated inductive types
 :::
 
 {include 2 Language.InductiveTypes}
@@ -536,12 +537,27 @@ tag := "quotients"
  * Show the computation rule
 :::
 
-# Module Structure
+# Module Contents
 
+As described {ref "module-structure"}[in the section on the syntax of files], a Lean module consists of a header followed by a sequence of commands.
 
 ## Commands and Declarations
 
+After the header, every top-level phrase of a Lean module is a command.
+Commands may add new types, define new constants, or query Lean for information.
+Commands may even {ref "language-extension"}[change the syntax used to parse subsequent commands].
+
+::: planned 100
+ * Describe the various families of available commands (definition-like, `#eval`-like, etc).
+ * Refer to specific chapters that describe major commands, such as `inductive`.
+:::
+
 ### Definition-Like Commands
+
+::: planned 101
+ * Precise descriptions of these commands and their syntax
+ * Comparison of each kind of definition-like command to the others
+:::
 
 The following commands in Lean are definition-like: {TODO}[Render commands as their name (a la tactic index)]
  * {syntaxKind}`def`

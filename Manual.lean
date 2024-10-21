@@ -19,6 +19,9 @@ set_option pp.rawOnError true
 
 #doc (Manual) "The Lean Language Reference" =>
 
+This is the _Lean Language Reference_, an in-progress reference work on Lean.
+It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
+For other documentation, please refer to the [Lean documentation site](https://lean-lang.org/documentation/).
 
 {include Manual.Intro}
 
@@ -30,7 +33,17 @@ set_option pp.rawOnError true
 
 # Monads and `do`-Notation
 
+:::planned 102
+This chapter will describe `do`-notation in Lean:
+ * Desugaring of `do` and its associated control structures
+ * Comprehensive description of the syntax of `do`-notation
+ * Definition of being in the "same `do`-block"
+:::
+
 # IO
+:::planned 102
+This chapter will describe features for writing programs that can have side effects on the real world.
+:::
 
 {include 0 Manual.Tactics}
 
@@ -40,7 +53,15 @@ set_option pp.rawOnError true
 
 # Standard Library
 
+:::planned 109
+Overview of the standard library, including types from the prelude and those that require imports.
+:::
+
 ## Optional Values
+:::planned 110
+Describe {name}`Option`, including the default coercions and its API.
+:::
+
 
 # Notations and Macros
 %%%

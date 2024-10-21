@@ -486,6 +486,11 @@ However, with a few exceptions, the majority of tactics can be identified by a l
 
 ## Control Structures
 
+Strictly speaking, there is no fundamental distinction between control structures and other tactics.
+Any tactic is free to take others as arguments and arrange for their execution in any context that it sees fit.
+Even if a distinction is arbitrary, however, it can still be useful.
+The tactics in this section are those that resemble traditional control structures from programming, or those that _only_ recombine other tactics rather than making progress themselves.
+
 ### Success and Failure
 
 When run in a proof state, every tactic either succeeds or fails.

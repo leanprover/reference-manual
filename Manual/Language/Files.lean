@@ -12,6 +12,10 @@ open Verso.Genre Manual
 
 #doc (Manual) "Files" =>
 
+The smallest unit of compilation in Lean is a single {deftech}[module].
+Modules correspond to source files, and are imported into other modules based on their filenames.
+In other words, the names and folder structures of files are significant in Lean code.
+
 # Modules
 
 Every Lean file defines a module.
@@ -140,7 +144,9 @@ Identifiers that contain one or more `'.'` characters, and thus consist of more 
 Hierarchical identifiers are used to represent both module names and names in a namespace.
 
 ## Structure
-
+%%%
+tag := "module-structure"
+%%%
 
 
 :::syntax Lean.Parser.Module.module (open := false)

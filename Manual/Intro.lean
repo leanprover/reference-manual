@@ -71,6 +71,8 @@ The FRO currently has more than ten employees working to support the growth and 
 
 # Typographical Conventions
 
+This document makes use of a number of typographical and layout conventions to indicate various aspects of the information being presented.
+
 ## Lean Code
 
 This document contains many Lean code examples.
