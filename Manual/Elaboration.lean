@@ -170,7 +170,7 @@ It does not include a syntactic termination checker, nor does it perform unifica
 Before new inductive types or definitions are added to the environment by the command or term elaborators, they must be checked by the kernel to guard against potential bugs in elaboration.
 
 Lean's kernel is written in C++.
-There is an independent re-implementation in Rust, and the Lean project is interested in having as many implementations as possible so that they can be cross-checked against each other.
+There are independent re-implementations in [Rust](https://github.com/ammkrn/nanoda_lib) and [Lean](https://github.com/digama0/lean4lean), and the Lean project is interested in having as many implementations as possible so that they can be cross-checked against each other.
 
 The language implemented by the kernel is a version of the Calculus of Constructions, a dependent type theory with the following features:
  * Full dependent types
