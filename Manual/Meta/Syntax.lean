@@ -552,7 +552,7 @@ def syntaxKind : RoleExpander
     let id : Ident := mkIdentFrom syntaxKindName kName
     let k ← try realizeGlobalConstNoOverloadWithInfo id catch _ => pure kName
     let doc? ← findDocString? (← getEnv) k
-    return #[← `(Doc.Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × Option String) ($(quote k), $(quote doc?))} #[Doc.Inline.code $(quote k.toString)])]
+    return #[← `(Doc.Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Doc.Inline.code $(quote k.toString)])]
 
 
 @[inline_extension syntaxKind]
@@ -570,13 +570,13 @@ def syntaxKind.inlinedescr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun goI _ data inls => do
-      match FromJson.fromJson? (α := Name × Option String) data with
+      match FromJson.fromJson? (α := Name × String × Option String) data with
       | .error e =>
         Html.HtmlT.logError s!"Couldn't deserialize syntax kind name: {e}"
         return {{<code>{{← inls.mapM goI}}</code>}}
-      | .ok (k, doc?) =>
+      | .ok (k, showAs, doc?) =>
         return {{
           <code class="grammar">
-            {{← nonTermHtmlOf k doc? k.toString}}
+            {{← nonTermHtmlOf k doc? showAs}}
           </code>
         }}
