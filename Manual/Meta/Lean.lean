@@ -541,7 +541,7 @@ defmethod Lean.NameMap.getOrSuggest [Monad m] [MonadInfoTree m] [MonadError m]
   | none =>
     for (n, _) in map do
       -- TODO once Levenshtein is merged upstream, use it here
-      if FuzzyMatching.fuzzyMatch key.getId.toString n.toString || FuzzyMatching.fuzzyMatch n.toString key.getId.toString  then
+      if FuzzyMatching.fuzzyMatch key.getId.toString n.toString || FuzzyMatching.fuzzyMatch n.toString key.getId.toString then
         Suggestion.saveSuggestion key n.toString n.toString
     throwErrorAt key "'{key}' not found - options are {map.toList.map (·.fst)}"
 

@@ -39,7 +39,7 @@ def runParserCategory (env : Environment) (opts : Lean.Options) (catName : Name)
     let p := andthenFn whitespace (categoryParserFnImpl catName)
     let ictx := mkInputContext input fileName
     let s := p.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
-    if !s.allErrors.isEmpty  then
+    if !s.allErrors.isEmpty then
       Except.error (toErrorMsg ictx s)
     else if ictx.input.atEnd s.pos then
       Except.ok s.stxStack.back
@@ -58,7 +58,7 @@ def runParser (env : Environment) (opts : Lean.Options) (p : Parser) (input : St
     let ictx := mkInputContext input fileName
     let p' := adaptCacheableContext ({· with prec}) p
     let s := p'.fn.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
-    if !s.allErrors.isEmpty  then
+    if !s.allErrors.isEmpty then
       Except.error (toErrorMsg ictx s)
     else if ictx.input.atEnd s.pos then
       Except.ok s.stxStack.back

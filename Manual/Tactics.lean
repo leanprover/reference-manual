@@ -108,7 +108,7 @@ intro n k
 ```
 ::::
 
-The {tactic}`case` and {tactic}`case'` tactics can be used to select a new main goal using the desired  goal's name.
+The {tactic}`case` and {tactic}`case'` tactics can be used to select a new main goal using the desired goal's name.
 When names are assigned in the context of a goal which itself has a name, the new goals's names are appended to the main goal's name with a dot (`'.', Unicode FULL STOP (0x2e)`) between them.
 
 ::::example "Hierarchical Goal Names"
@@ -744,7 +744,7 @@ When proving that {goal}`∀ (n : Nat), 0 + n = n`, the initial proof state is:
 ⊢ ∀ (n : Nat), 0 + n = n
 ```
 
-The tactic {tacticStep}`intro` results in a proof state with an inaccessible  assumption:
+The tactic {tacticStep}`intro` results in a proof state with an inaccessible assumption:
 
 ```post
 n✝ : Nat
