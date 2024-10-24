@@ -51,7 +51,7 @@ example (x y z : Nat) : x + (y + z) = (x + z) + y := by
 
 In this example, addition occurs under binders, so {tactic}`rw` can't be used.
 However, after using {tactic}`conv` to navigate to the function body, it succeeds.
-The nested use of {tactic}`conv` causes control to return to the current position in the term after performing further coversions on one of its subterms.
+The nested use of {tactic}`conv` causes control to return to the current position in the term after performing further conversions on one of its subterms.
 Because the goal is a reflexive equation after rewriting, {tactic}`conv` automatically closes it.
 
 ```lean
