@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Language.Classes
 import Manual.Language.Functions
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
@@ -792,51 +793,4 @@ This section will describe `partial` and `unsafe` definitions:
 
 :::
 
-# Type Classes
-
-:::planned 61
-
-This introduction will describe the overall feature.
-
-:::
-
-## Class Declarations
-
-::: planned 60
-This section will describe the syntax of `class` and `class inductive` declarations.
-The desugaring of `class` to `structure` and thus `inductive` will be addressed, along with the determining of implicitness of method parameters. `outParam` and `semiOutParam` will also be described.
-:::
-
-## Instance Declarations
-
-::: planned 62
-This section will describe the syntax of `instance` declarations, priorities, and names.
-:::
-
-
-## Instance Synthesis
-%%%
-tag := "instance-synth"
-%%%
-
-::: planned 63
-This section will specify the instance synthesis algorithm.
-:::
-
-## Deriving Instances
-%%%
-tag := "deriving-instances"
-%%%
-
-::: planned 64
-This section will specify syntax of `deriving` clauses and list the valid places where they may occur.
-It will also describe `deriving instance`.
-It will list the deriving handlers that ship with Lean by default.
-:::
-
-
-### Deriving Handlers
-
-::: planned 65
-This section will describe deriving handlers and how they are invoked.
-:::
+{include 0 Manual.Language.Classes}
