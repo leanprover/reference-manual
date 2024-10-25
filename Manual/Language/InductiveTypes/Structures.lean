@@ -13,6 +13,9 @@ open Verso.Genre Manual
 open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 
 #doc (Manual) "Structure Declarations" =>
+%%%
+tag := "structures"
+%%%
 
 :::syntax command
 ```grammar
@@ -40,11 +43,17 @@ structure RecStruct where
 ```
 
 # Structure Parameters
+%%%
+tag := "structure-params"
+%%%
 
 Just like ordinary inductive type declarations, the header of the structure declaration contains a signature that may specify both parameters and a resulting universe.
 Structures may not define {tech}[indexed families].
 
 # Fields
+%%%
+tag := "structure-fields"
+%%%
 
 Each field of a structure declaration corresponds to a parameter of the constructor.
 Auto-implicit arguments are inserted in each field separately, even if their names coincide, and the fields become constructor parameters that quantify over types.
@@ -121,6 +130,10 @@ Fields are numbered beginning with `1`.
 
 
 # Structure Constructors
+%%%
+tag := "structure-constructors"
+%%%
+
 
 Structure constructors may be explicitly named by providing the constructor name and `::` prior to the fields.
 If no name is explicitly provided, then the constructor is named `mk` in the structure type's namespace.

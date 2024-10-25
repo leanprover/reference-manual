@@ -17,6 +17,7 @@ set_option pp.rawOnError true
 #doc (Manual) "Introduction" =>
 %%%
 htmlSplit := .never
+tag := "introduction"
 %%%
 
 The _Lean Language Reference_ is intended as a comprehensive, precise description of Lean.
@@ -28,6 +29,10 @@ For tutorials and learning materials, please visit [the Lean documentation page]
 This document describes version {versionString}[] of Lean.
 
 # Lean
+%%%
+tag := "what-is-lean"
+%%%
+
 
 Lean is an *interactive theorem prover* based on dependent type theory, designed for use both in cutting-edge mathematics and in software verification.
 Lean's core type theory is expressive enough to capture very complicated mathematical objects, but simple enough to admit independent implementations, reducing the risk of bugs that affect soundness.
@@ -45,6 +50,9 @@ Familiarity with Lean's programming features is valuable even for users whose pr
 Thus, this reference manual does not draw a barrier between the two aspects, but rather describes them together so they can shed light on one another.
 
 ## History
+%%%
+tag := "history-of-lean"
+%%%
 
 Leonardo de Moura launched the Lean project when he was at Microsoft Research in 2013, and Lean 0.1 was officially released on June 16, 2014.
 The goal of the Lean project is to combine the high level of trust provided by a small, independently-implementable logical kernel with the convenience and automation of tools like SMT solvers, while scaling to large problems.
@@ -70,10 +78,17 @@ The FRO currently has more than ten employees working to support the growth and 
 
 
 # Typographical Conventions
+%%%
+tag := "typographical-conventions"
+%%%
 
 This document makes use of a number of typographical and layout conventions to indicate various aspects of the information being presented.
 
 ## Lean Code
+%%%
+tag := "code-samples"
+%%%
+
 
 This document contains many Lean code examples.
 They are formatted as follows:
@@ -139,6 +154,10 @@ skip
 Identifiers in code examples are hyperlinked to their documentation.
 
 ## Examples
+%%%
+tag := "example-boxes"
+%%%
+
 
 Illustrative examples are in callout boxes, as below:
 
@@ -156,11 +175,19 @@ inductive Even : Nat → Prop where
 ::::
 
 ## Technical Terminology
+%%%
+tag := "technical-terms"
+%%%
+
 
 {deftech}_Technical terminology_ refers to terms used in a very specific sense when writing technical material, such as this reference.
 Uses of {tech}[technical terminology] are frequently hyperlinked to their definition sites, using links like this one.
 
 ## Constant, Syntax, and Tactic References
+%%%
+tag := "reference-boxes"
+%%%
+
 
 Definitions, inductive types, syntax formers, and tactics have specific descriptions.
 These descriptions are marked as follows:

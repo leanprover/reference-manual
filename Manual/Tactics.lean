@@ -70,6 +70,9 @@ When the elaborator encounters {keywordOf Lean.Parser.Term.byTactic}`by`, it inv
 Tactic proofs may be embedded via {keywordOf Lean.Parser.Term.byTactic}`by` in any context in which a term can occur.
 
 # Reading Proof States
+%%%
+tag := "proof-states"
+%%%
 
 The goals in a proof state are displayed in order, with the main goal on top.
 Goals may be either named or anonymous.
@@ -264,10 +267,15 @@ This can be used to refer to local lemmas by their theorem statement rather than
 
 ::::example "Assumptions by Type"
 
+:::keepEnv
+```lean
+variable (n : Nat)
+```
 In the following proof, {tactic}`cases` is repeatedly used to analyze a number.
 At the beginning of the proof, the number is named `x`, but {tactic}`cases` generates an inaccessible name for subsequent numbers.
 Rather than providing names, the proof takes advantage of the fact that there is a single assumption of type {lean}`Nat` at any given time and uses {lean}`‹Nat›` to refer to it.
 After the iteration, there is an assumption that `n + 3 < 3`, which {tactic}`contradiction` can use to remove the goal from consideration.
+:::
 ```lean
 example : x < 3 → x ∈ [0, 1, 2] := by
   intros
@@ -296,6 +304,9 @@ This is generally not a good idea for non-propositions, however—when it matter
 ::::
 
 ## Hiding Proofs and Large Terms
+%%%
+tag := "hiding-terms-in-proof-states"
+%%%
 
 Terms in proof states can be quite big, and there may be many assumptions.
 Because of definitional proof irrelevance, proof terms typically give little useful information.
@@ -338,6 +349,9 @@ Printing very large terms can lead to slowdowns or even stack overflows in tooli
 {optionDocs pp.maxSteps}
 
 ## Metavariables
+%%%
+tag := "metavariables-in-proofs"
+%%%
 
 Terms that begin with a question mark are _metavariables_ that correspond to an unknown value.
 They may stand for either {tech}[universe] levels or for terms.
@@ -354,12 +368,13 @@ In this proof state, the universe level of `α` is unknown:
 ∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
   intros α x xs elem
 /--
-α : Type ?u.783
+α : Type ?u.787
 x : α
 xs : List α
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
+
 ```
 ::::
 
@@ -370,11 +385,12 @@ The metavariable is repeated because the unknown type must be the same in both p
 ∀ (x : _) (xs : List _), x ∈ xs → xs.length > 0 := by
   intros x xs elem
 /--
-x : ?m.902
-xs : List ?m.902
+x : ?m.906
+xs : List ?m.906
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
+
 
 ```
 ::::
@@ -470,6 +486,9 @@ Demonstrate and explain diff labels that show the difference between the steps o
 :::
 
 # The Tactic Language
+%%%
+tag := "tactic-language"
+%%%
 
 A tactic script consists of a sequence of tactics, separated either by semicolons or newlines.
 When separated by newlines, tactics must be indented to the same level.
@@ -485,6 +504,9 @@ This means that tactics are free to define their own concrete syntax and parsing
 However, with a few exceptions, the majority of tactics can be identified by a leading keyword; the exceptions are typically frequently-used built-in control structures such as {tactic}`<;>`.
 
 ## Control Structures
+%%%
+tag := "tactic-language-control"
+%%%
 
 Strictly speaking, there is no fundamental distinction between control structures and other tactics.
 Any tactic is free to take others as arguments and arrange for their execution in any context that it sees fit.
@@ -492,6 +514,9 @@ Even if a distinction is arbitrary, however, it can still be useful.
 The tactics in this section are those that resemble traditional control structures from programming, or those that _only_ recombine other tactics rather than making progress themselves.
 
 ### Success and Failure
+%%%
+tag := "tactic-language-success-failure"
+%%%
 
 When run in a proof state, every tactic either succeeds or fails.
 Tactic failure is akin to exceptions: failures typically "bubble up" until handled.
@@ -511,6 +536,9 @@ Unlike exceptions, there is no operator to distinguish between reasons for failu
 
 
 ### Branching
+%%%
+tag := "tactic-language-branching"
+%%%
 
 Tactic proofs may use pattern matching and conditionals.
 However, their meaning is not quite the same as it is in terms.
@@ -558,6 +586,10 @@ example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
 :::
 
 ### Goal Selection
+%%%
+tag := "tactic-language-goal-selection"
+%%%
+
 
 Most tactics affect the {tech}[main goal].
 Goal selection tactics provide a way to treat a different goal as the main one, rearranging the sequence of goals in the proof state.
@@ -577,6 +609,9 @@ Goal selection tactics provide a way to treat a different goal as the main one, 
 :::
 
 #### Sequencing
+%%%
+tag := "tactic-language-sequencing"
+%%%
 
 In addition to running tactics one after the other, each being used to solve the main goal, the tactic language supports sequencing tactics according to the way in which goals are produced.
 The {tactic}`<;>` tactic combinator allows a tactic to be applied to _every_ {tech}[subgoal] produced by some other tactic.
@@ -665,6 +700,9 @@ Replacing the `;` with {tactic}`<;>` and running {tacticStep}`cases h <;> simp [
 ::::
 
 #### Working on Multiple Goals
+%%%
+tag := "tactic-language-multiple-goals"
+%%%
 
 The tactics {tactic}`all_goals` and {tactic}`any_goals` allow a tactic to be applied to every goal in the proof state.
 The difference between them is that if the tactic fails for in any of the goals, {tactic}`all_goals` itself fails, while {tactic}`any_goals` fails only if the tactic fails in all of the goals.
@@ -677,7 +715,9 @@ The difference between them is that if the tactic fails for in any of the goals,
 
 
 ### Focusing
-
+%%%
+tag := "tactic-language-focusing"
+%%%
 
 Focusing tactics remove some subset of the proof goals (typically leaving only the main goal) from the consideration of some further tactics.
 In addition to the tactics described here, the {tactic}`case` and {tactic}`case'` tactics focus on the selected goal.
@@ -696,6 +736,9 @@ This makes it easier to read and maintain proofs, because the connections betwee
 :::
 
 ### Repetition and Iteration
+%%%
+tag := "tactic-language-iteration"
+%%%
 
 :::tactic "iterate"
 :::
@@ -711,7 +754,9 @@ This makes it easier to read and maintain proofs, because the connections betwee
 
 
 ## Names and Hygiene
-
+%%%
+tag := "tactic-language-hygiene"
+%%%
 
 Behind the scenes, tactics generate proof terms.
 These proof terms exist in a local context, because assumptions in proof states correspond to local binders in terms.
@@ -775,6 +820,9 @@ n : Nat
 ::::
 
 ### Accessing Assumptions
+%%%
+tag := "tactic-language-assumptions"
+%%%
 
 Many tactics provide a means of specifying names for the assumptions that they introduce.
 For example, {tactic}`intro` and {tactic}`intros` take assumption names as arguments, and {tactic}`induction`'s {keywordOf Lean.Parser.Tactic.induction}`with`-form allows simultaneous case selection, assumption naming, and focusing.
@@ -784,6 +832,9 @@ When an assumption does not have a name, one can be assigned using {tactic}`next
 :::
 
 ## Assumption Management
+%%%
+tag := "tactic-language-assumption-management"
+%%%
 
 Larger proofs can benefit from management of proof states, removing irrelevant assumptions and making their names easier to understand.
 Along with these operators, {tactic}`rename_i` allows inaccessible assumptions to be renamed, and {tactic}`intro`, {tactic}`intros` and {tactic}`rintro` convert goals that are implications or universal quantification into goals with additional assumptions.
@@ -799,6 +850,9 @@ Along with these operators, {tactic}`rename_i` allows inaccessible assumptions t
 
 
 ## Local Definitions and Proofs
+%%%
+tag := "tactic-language-local-defs"
+%%%
 
 {tactic}`have` and {tactic}`let` both create local assumptions.
 Generally speaking, {tactic}`have` should be used when proving an intermediate lemma; {tactic}`let` should be reserved for local definitions.
@@ -825,6 +879,9 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::
 
 ## Namespace and Option Management
+%%%
+tag := "tactic-language-namespaces-options"
+%%%
 
 Namespaces and options can be adjusted in tactic scripts using the same syntax as in terms.
 
@@ -835,6 +892,9 @@ Namespaces and options can be adjusted in tactic scripts using the same syntax a
 :::
 
 ### Controlling Unfolding
+%%%
+tag := "tactic-language-unfolding"
+%%%
 
 By default, only definitions marked reducible are unfolded, except when checking definitional equality.
 These operators allow this default to be adjusted for some part of a tactic script.
@@ -850,6 +910,9 @@ These operators allow this default to be adjusted for some part of a tactic scri
 
 
 # Options
+%%%
+tag := "tactic-language-options"
+%%%
 
 These options affect the meaning of tactics.
 

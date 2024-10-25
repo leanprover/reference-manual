@@ -18,6 +18,10 @@ set_option pp.rawOnError true
 
 
 #doc (Manual) "Basic Types" =>
+%%%
+tag := "basic-types"
+%%%
+
 
 Lean includes a number of built-in datatypes that are specially supported by the compiler.
 Some, such as {lean}`Nat`, additionally have special support in the kernel.
@@ -26,12 +30,20 @@ Other types don't have special compiler support _per se_, but rely in important 
 {include 0 Manual.BasicTypes.Nat}
 
 # Integers
+%%%
+tag := "Int"
+%%%
+
 ::: planned 104
  * Compile-time and run-time characteristics, and how they're inherited from {lean}`Nat`
  * API reference
 :::
 
 # Fixed-Precision Integer Types
+%%%
+tag := "fixed-ints"
+%%%
+
 
 ::: planned 105
  * Compile-time and run-time characteristics for {lean}`UInt8`, {lean}`UInt16`, {lean}`UInt32`, {lean}`UInt64`
@@ -39,6 +51,10 @@ Other types don't have special compiler support _per se_, but rely in important 
 :::
 
 # Bitvectors
+%%%
+tag := "BitVec"
+%%%
+
 
 :::planned 106
  * Run-time and kernel representations of {name}`BitVec`
@@ -47,6 +63,10 @@ Other types don't have special compiler support _per se_, but rely in important 
 :::
 
 # Floating-Point Numbers
+%%%
+tag := "Float"
+%%%
+
 
 :::planned 107
  * Run-time and kernel representations
@@ -55,23 +75,44 @@ Other types don't have special compiler support _per se_, but rely in important 
 :::
 
 # Characters
+%%%
+tag := "Char"
+%%%
+
 
 {docstring Char}
 
 ## Syntax
+%%%
+tag := "char-syntax"
+%%%
+
 
 ## Logical Model
-
-
+%%%
+tag := "char-model"
+%%%
 
 ## Run-Time Representation
+%%%
+tag := "char-runtime"
+%%%
+
 
 In monomorphic contexts, characters are represented as 32-bit immediate values. In other words, a field of a datatype or structure of type `Char` does not require indirection to access. In polymorphic contexts, characters are boxed.
 
 
 ## API Reference
+%%%
+tag := "char-api"
+%%%
+
 
 ### Character Classes
+%%%
+tag := "char-api-classes"
+%%%
+
 
 {docstring Char.isAlpha}
 
@@ -89,6 +130,10 @@ In monomorphic contexts, characters are represented as 32-bit immediate values. 
 {include 0 Manual.BasicTypes.String}
 
 # Linked Lists
+%%%
+tag := "List"
+%%%
+
 
 ::: planned 108
  * Representation at compile time and run time
@@ -98,6 +143,9 @@ In monomorphic contexts, characters are represented as 32-bit immediate values. 
 :::
 
 # Arrays
+%%%
+tag := "Array"
+%%%
 
 ::: planned 91
 Description and API reference for {name}`Thunk`:
@@ -108,6 +156,10 @@ Description and API reference for {name}`Thunk`:
 
 
 # Lazy Computations
+%%%
+tag := "Thunk"
+%%%
+
 
 ::: planned 92
 Description and API reference for {name}`Thunk`:
@@ -117,6 +169,10 @@ Description and API reference for {name}`Thunk`:
 :::
 
 # Tasks and Threads
+%%%
+tag := "concurrency"
+%%%
+
 
 ::: planned 90
 Description and API reference for {name}`Task` and runtime threads, including {lean}`IO.Promise`

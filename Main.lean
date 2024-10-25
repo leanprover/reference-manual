@@ -19,5 +19,7 @@ where
     extraJs := ["/static/katex/katex.min.js", "/static/math.js", "/static/print.js"],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
-    logo := some "/static/lean_logo.svg"
+    logo := some "/static/lean_logo.svg",
+    sourceLink := some "https://github.com/leanprover/reference-manual",
+    issueLink := some "https://github.com/leanprover/reference-manual/issues"
   }

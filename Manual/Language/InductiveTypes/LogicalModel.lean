@@ -14,14 +14,25 @@ open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 set_option maxRecDepth 800
 
 #doc (Manual) "Logical Model" =>
+%%%
+tag := "inductive-types-logical-model"
+%%%
+
 
 # Recursors
+%%%
+tag := "recursors"
+%%%
 
 Every inductive type is equipped with a {tech}[recursor].
 The recursor is completely determined by the signatures of the type constructor and the constructors.
 Recursors have function types, but they are primitive and are not definable using `fun`.
 
 ## Recursor Types
+%%%
+tag := "recursor-types"
+%%%
+
 
 The recursor takes the following parameters:
 : The inductive type's {tech}[parameters]
@@ -197,6 +208,10 @@ This means that proofs of equality can be used to rewrite the types of non-propo
 :::
 
 ## Reduction
+%%%
+tag := "iota-reduction"
+%%%
+
 
 In addition to adding new constants to the logic, inductive datatype declarations also add new reduction rules.
 These rules govern the interaction between recursors and constructors; specifically recursors that have constructors as their targets.
@@ -247,6 +262,10 @@ It would, however, be impossible to add a constructor to {name}`Spurious` withou
 :::::
 
 ## Strict Positivity
+%%%
+tag := "strict-positivity"
+%%%
+
 
 All occurrences of the type being defined in the types of the parameters of the constructors must be in {deftech}_strictly positive_ positions.
 A position is strictly positive if it is not in a function's argument type (no matter how many function types are nested around it) and it is not an argument of any expression other than type constructors of inductive types.
@@ -294,6 +313,9 @@ def Bad : Type := Fix fun t => t → t
 
 
 ## Prop vs Type
+%%%
+tag := "prop-vs-type"
+%%%
 
 Lean rejects universe-polymorphic types that could not, in practice, be used polymorphically.
 This could arise if certain instantiations of the universe parameters would cause the type itself to be a {lean}`Prop`.

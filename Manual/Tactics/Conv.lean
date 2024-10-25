@@ -18,7 +18,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Targeted Rewriting with {tactic}`conv`" =>
-
+%%%
+tag := "conv"
+%%%
 
 The {tactic}`conv`, or conversion, tactic allows targeted rewriting within a goal.
 The argument to {tactic}`conv` is written in a separate language that interoperates with the main tactic language; it features commands to navigate to specific subterms within the goal along with commands that allow these subterms to be rewritten.
@@ -70,6 +72,9 @@ example : (fun (x y z : Nat) => x + (y + z)) = (fun x y z => (z + x) + y) := by
 ::::
 
 # Control Structures
+%%%
+tag := "conv-control"
+%%%
 
 
 :::conv first show := "first"
@@ -97,6 +102,10 @@ example : (fun (x y z : Nat) => x + (y + z)) = (fun x y z => (z + x) + y) := by
 :::
 
 # Goal Selection
+%%%
+tag := "conv-goals"
+%%%
+
 
 :::conv allGoals show:= "all_goals"
 :::
@@ -127,6 +136,10 @@ example : (fun (x y z : Nat) => x + (y + z)) = (fun x y z => (z + x) + y) := by
 
 
 # Navigation
+%%%
+tag := "conv-nav"
+%%%
+
 
 :::conv lhs show:= "lhs"
 :::
@@ -178,7 +191,15 @@ $x:ident
 :::
 
 # Changing the Goal
+%%%
+tag := "conv-change"
+%%%
+
 ## Reduction
+%%%
+tag := "conv-reduction"
+%%%
+
 
 :::conv whnf show:= "whnf"
 :::
@@ -196,6 +217,10 @@ $x:ident
 :::
 
 ## Simplification
+%%%
+tag := "conv-simp"
+%%%
+
 :::conv simp show:= "simp"
 :::
 
@@ -206,7 +231,9 @@ $x:ident
 :::
 
 ## Rewriting
-
+%%%
+tag := "conv-rw"
+%%%
 
 :::conv change show:= "change"
 :::
@@ -223,8 +250,11 @@ $x:ident
 :::conv convApply_ show := "apply"
 :::
 
-
 # Nested Tactics
+%%%
+tag := "conv-nested"
+%%%
+
 
 :::tactic Lean.Parser.Tactic.Conv.convTactic
 :::
@@ -243,12 +273,18 @@ $x:ident
 
 
 # Debugging Utilities
+%%%
+tag := "conv-debug"
+%%%
 
 :::conv convTrace_state show:= "trace_state"
 :::
 
 
 # Other
+%%%
+tag := "conv-other"
+%%%
 
 :::conv convRfl show:= "rfl"
 :::

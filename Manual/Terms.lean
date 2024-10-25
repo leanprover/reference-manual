@@ -15,6 +15,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Terms" =>
+%%%
+tag := "terms"
+%%%
 
 ::: planned 66
 This chapter will describe Lean's term language, including the following features:

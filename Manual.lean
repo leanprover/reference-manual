@@ -18,6 +18,10 @@ open Verso.Genre Manual
 set_option pp.rawOnError true
 
 #doc (Manual) "The Lean Language Reference" =>
+%%%
+tag := "lean-language-reference"
+%%%
+
 
 This is the _Lean Language Reference_, an in-progress reference work on Lean.
 It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
@@ -32,6 +36,10 @@ For other documentation, please refer to the [Lean documentation site](https://l
 {include Manual.Terms}
 
 # Monads and `do`-Notation
+%%%
+tag := "monads-and-do"
+%%%
+
 
 :::planned 102
 This chapter will describe `do`-notation in Lean:
@@ -41,6 +49,10 @@ This chapter will describe `do`-notation in Lean:
 :::
 
 # IO
+%%%
+tag := "io"
+%%%
+
 :::planned 102
 This chapter will describe features for writing programs that can have side effects on the real world.
 :::
@@ -52,12 +64,20 @@ This chapter will describe features for writing programs that can have side effe
 {include 0 Manual.BasicTypes}
 
 # Standard Library
+%%%
+tag := "standard-library"
+%%%
+
 
 :::planned 109
 Overview of the standard library, including types from the prelude and those that require imports.
 :::
 
 ## Optional Values
+%%%
+tag := "option"
+%%%
+
 :::planned 110
 Describe {name}`Option`, including the default coercions and its API.
 :::
@@ -69,12 +89,19 @@ tag := "language-extension"
 %%%
 
 ## Notations
+%%%
+tag := "notations"
+%%%
+
 
 :::planned 69
 A presentation of the `notation` command and how to define infix operators
 :::
 
 ## Syntax Categories and Extensions
+%%%
+tag := "syntax-categories"
+%%%
 
 :::planned 70
  * Syntax extension and syntax categories
@@ -107,6 +134,10 @@ For now, a quick overview of elaborators - detailed description to be written in
 :::
 
 # Elan
+%%%
+tag := "elan"
+%%%
+
 
 ::: planned 74
 
@@ -119,8 +150,15 @@ This section will describe Elan and how to use it:
 :::
 
 # Lake and Reservoir
+%%%
+tag := "build-tools-and-distribution"
+%%%
 
 ## Lake
+%%%
+tag := "lake"
+%%%
+
 
 ::: planned 75
  * Port and organize the information in the Lake README
@@ -128,6 +166,10 @@ This section will describe Elan and how to use it:
 :::
 
 ## Reservoir
+%%%
+tag := "reservoir"
+%%%
+
 
 ::: planned 76
  * Concepts

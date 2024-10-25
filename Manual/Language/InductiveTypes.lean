@@ -17,6 +17,10 @@ open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 set_option maxRecDepth 800
 
 #doc (Manual) "Inductive Types" =>
+%%%
+tag := "inductive-types"
+%%%
+
 
 {deftech}_Inductive types_ are the primary means of introducing new types to Lean.
 While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other type in Lean is either an inductive type or defined in terms universes, functions, and inductive types..
@@ -36,7 +40,9 @@ When a structure is declared, Lean generates helpers that enable additional lang
 This section describes the specific details of the syntax used to specify both inductive types and structures, the new constants and definitions in the environment that result from inductive type declarations, and the run-time representation of inductive types' values in compiled code.
 
 # Inductive Type Declarations
-
+%%%
+tag := "inductive-declarations"
+%%%
 
 :::syntax command (alias := «inductive»)
 ```grammar
@@ -71,6 +77,9 @@ The new inductive type's name is defined in the {tech}[current namespace].
 Each constructor's name is in the inductive type's namespace.{index subterm:="of inductive type"}[namespace]
 
 ## Parameters and Indices
+%%%
+tag := "inductive-datatypes-parameters-and-indices"
+%%%
 
 Type constructors may take two kinds of arguments: {deftech}_parameters_ {index subterm:="of inductive type"}[parameter] and {deftech key:="index"}_indices_.{index subterm:="of inductive type"}[index]
 Parameters must be used consistently in the entire definition; all occurrences of the type constructor in each constructor in the declaration must take precisely the same argument.
@@ -90,11 +99,14 @@ Each choice of indices selects a type from the family, which has its own set of 
 Type constructors that take index parameters are referred to as {deftech}_indexed families_ {index subterm:="of types"}[indexed family] of types.
 
 ## Example Inductive Types
+%%%
+tag := "example-inductive-types"
+%%%
 
 :::example "A constructorless type"
-{lean}`Zero` is an empty datatype, equivalent to Lean's {lean}`Empty` type:
+{lean}`Vacant` is an empty datatype, equivalent to Lean's {lean}`Empty` type:
 ```lean
-inductive Zero : Type where
+inductive Vacant : Type where
 ```
 
 Empty datatypes are not useless; they can be used to indicate unreachable code.
@@ -267,6 +279,9 @@ inductive Either'' : Type u → Type v → Type (max u v) where
 
 
 ## Anonymous Constructor Syntax
+%%%
+tag := "anonymous-constructor-syntax"
+%%%
 
 If an inductive type has just one constructor, then this constructor is eligible for {deftech}_anonymous constructor syntax_.
 Instead of writing the constructor's name applied to its arguments, the explicit arguments can be enclosed in angle brackets (`'⟨'` and `'⟩'`, Unicode `MATHEMATICAL LEFT ANGLE BRACKET	(U+0x27e8)` and `MATHEMATICAL RIGHT ANGLE BRACKET	(U+0x27e9)`) and separated with commas.
@@ -310,6 +325,9 @@ def AtLeastOne.head' : AtLeastOne α → α
 
 
 ## Deriving Instances
+%%%
+tag := "inductive-declarations-deriving-instances"
+%%%
 
 The optional {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`deriving` clause of an inductive type declaration can be used to derive instances of type classes.
 Please refer to {ref "deriving-instances"}[the section on instance deriving] for more information.
@@ -327,6 +345,9 @@ tag := "run-time-inductives"
 An inductive type's run-time representation depends both on how many constructors it has, how many arguments each constructor takes, and whether these arguments are {tech}[relevant].
 
 ## Exceptions
+%%%
+tag := "inductive-types-runtime-special-support"
+%%%
 
 Not every inductive type is represented as indicated here—some inductive types have special support from the Lean compiler:
 :::keepEnv
@@ -348,6 +369,10 @@ axiom α : Prop
 :::
 
 ## Relevance
+%%%
+tag := "inductive-types-runtime-relevance"
+%%%
+
 
 Types and proofs have no run-time representation.
 That is, if an inductive type is a `Prop`, then its values are erased prior to compilation.
@@ -374,6 +399,9 @@ In most cases, irrelevant values simply disappear from compiled code.
 However, in cases where some representation is required (such as when they are arguments to polymorphic constructors), they are represented by a trivial value.
 
 ## Trivial Wrappers
+%%%
+tag := "inductive-types-trivial-wrappers"
+%%%
 
 If an inductive type has exactly one constructor, and that constructor has exactly one run-time relevant parameter, then the inductive type is represented identically to its parameter.
 
@@ -388,6 +416,10 @@ Thus, subtypes impose no runtime overhead in compiled code, and are represented 
 :::
 
 ## Other Inductive Types
+%%%
+tag := "inductive-types-standard-representation"
+%%%
+
 
 If an inductive type doesn't fall into one of the categories above, then its representation is determined by its constructors.
 Constructors without relevant parameters are represented by their index into the list of constructors, as unboxed unsigned machine integers (scalars).
@@ -398,6 +430,9 @@ Recursive functions are compiled as they are in most programming languages, rath
 Elaborating recursive functions to recursors serves to provide reliable termination evidence, not executable code.
 
 ### FFI
+%%%
+tag := "inductive-types-ffi"
+%%%
 
 From the perspective of C, these other inductive types are represented by `lean_object *`.
 Each constructor is stored as a `lean_ctor_object`, and `lean_is_ctor` will return true.
@@ -458,6 +493,10 @@ Figure out how to test/validate/CI these statements
 
 
 # Mutual Inductive Types
+%%%
+tag := "mutual-inductive-types"
+%%%
+
 
 Inductive types may be mutually recursive.
 Mutually recursive definitions of inductive types are specified by defining the types in a `mutual ... end` block.
@@ -488,11 +527,18 @@ invalid dotted identifier notation, unknown identifier `OddList.nil` from expect
 :::
 
 ## Requirements
+%%%
+tag := "mutual-inductive-types-requirements"
+%%%
+
 
 The inductive types declared in a `mutual` block are considered as a group; they must collectively satisfy generalized versions of the well-formedness criteria for non-mutually-recursive inductive types.
 This is true even if they could be defined without the `mutual` block, because they are not in fact mutually recursive.
 
 ### Mutual Dependencies
+%%%
+tag := "mutual-inductive-types-dependencies"
+%%%
 
 Each type constructor's signature must be able to be elaborated without reference to the other inductive types in the `mutual` group.
 In other words, the inductive types in the `mutual` group may not take each other as arguments.
@@ -519,6 +565,9 @@ unknown identifier 'FreshList'
 
 
 ### Parameters Must Match
+%%%
+tag := "mutual-inductive-types-same-parameters"
+%%%
 
 All inductive types in the `mutual` group must have the same {tech}[parameters].
 Their indices may differ.
@@ -565,6 +614,9 @@ but is expected to have type
 ::::
 
 ### Universe Levels
+%%%
+tag := "mutual-inductive-types-same-universe"
+%%%
 
 The universe levels of each inductive type in a mutual group must obey the same requirements as non-mutually-recursive inductive types.
 Additionally, all the inductive types in a mutual group must be in the same universe, which implies that their constructors are similarly limited with respect to their parameters' universes.
@@ -649,6 +701,10 @@ example : RLE [1, 1, 2, 2, 3, 1, 1, 1] where
 
 
 ### Positivity
+%%%
+tag := "mutual-inductive-types-positivity"
+%%%
+
 Each inductive type that is defined in the `mutual` group may occur only strictly positively in the types of the parameters of the constructors of all the types in the group.
 In other words, in the type of each parameter to each constructor in all the types of the group, none of the type constructors in the group occur to the left of any arrows, and none of them occur in argument positions unless they are an argument to an inductive datatype's type constructor.
 
@@ -685,6 +741,9 @@ end
 :::
 
 ## Recursors
+%%%
+tag := "mutual-inductive-types-recursors"
+%%%
 
 Mutual inductive types are provided with primitive recursors, just like non-mutually-defined inductive types.
 These recursors take into account that they must process the other types in the group, and thus will have a motive for each inductive type.
@@ -746,6 +805,9 @@ Two.rec.{u} {α : Type}
 :::
 
 ## Run-Time Representation
+%%%
+tag := "mutual-inductive-types-run-time"
+%%%
 
 Mutual inductive types are represented identically to {ref "run-time-inductives"}[non-mutual inductive types] in compiled code and in the runtime.
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.

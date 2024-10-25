@@ -11,12 +11,18 @@ import Manual.Meta
 open Verso.Genre Manual
 
 #doc (Manual) "Files" =>
+%%%
+tag := "files"
+%%%
 
 The smallest unit of compilation in Lean is a single {deftech}[module].
 Modules correspond to source files, and are imported into other modules based on their filenames.
 In other words, the names and folder structures of files are significant in Lean code.
 
 # Modules
+%%%
+tag := "modules"
+%%%
 
 Every Lean file defines a module.
 A module's name is derived from a combination of its filename and the way in which Lean was invoked: Lean has a _root directory_ in which it expects to find code, and the module's name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
@@ -27,6 +33,9 @@ Describe case sensitivity/preservation for filenames here
 :::
 
 ## Encoding and Representation
+%%%
+tag := "module-encoding"
+%%%
 
 Lean modules are Unicode text files encoded in UTF-8. {TODO}[Figure out the status of BOM and Lean]
 Lines may end either with newline characters (`"\n"`, Unicode `'LINE FEED (LF)' (U+000A)`) or with a form feed and newline sequence (`"\r\n"`, Unicode `'CARRIAGE RETURN (CR)' (U+000D)` followed by `'LINE FEED (LF)' (U+000A)`).
@@ -36,18 +45,30 @@ Marginal note: this is to make cached files and `#guard_msgs` and the like work 
 :::
 
 ## Concrete Syntax
+%%%
+tag := "module-syntax"
+%%%
+
 
 Lean's concrete syntax is extensible.
 In a language like Lean, it's not possible to completely describe the syntax once and for all, because libraries may define syntax in addition to new constants or datatypes.
 Rather than completely describing the language here, the overall framework is described, while the syntax of each language construct is documented in the section to which it belongs.
 
 ### Whitespace
+%%%
+tag := "whitespace"
+%%%
+
 
 Tokens in Lean may be separated by any number of {deftech}[_whitespace_] character sequences.
 Whitespace may be a space (`" "`, Unicode `'SPACE (SP)' (U+0020)`), a valid newline sequence, or a comment. {TODO}[xref]
 Neither tab characters nor carriage returns not followed by newlines are valid whitespace sequences.
 
 ### Comments
+%%%
+tag := "comments"
+%%%
+
 
 Comments are stretches of the file that, despite not being whitespace, are treated as such.
 Lean has two syntaxes for comments:
@@ -61,6 +82,10 @@ Lean has two syntaxes for comments:
   A `/-` that does not occur as part of a token and is not immediately followed by a `-` character begins a _block comment_.{index (subterm := "block")}[comment] `/--` begins a documentation string {TODO}[xref] rather than a comment.
 
 ### Keywords and Identifiers
+%%%
+tag := "keywords-and-identifiers"
+%%%
+
 
 An {deftech}[identifier] consists of one or more identifier components, separated by `'.'`.{index}[identifier]
 
@@ -160,6 +185,10 @@ A module consists of a {deftech}_module header_ followed by a sequence of {defte
 
 
 ### Module Headers
+%%%
+tag := "module-headers"
+%%%
+
 
 The module header consists of a sequence of {deftech}[`import` statements].
 
@@ -200,6 +229,10 @@ Lean searches its include path for the corresponding importable module file.
 :::
 
 ### Commands
+%%%
+tag := "commands"
+%%%
+
 
 {tech}[Commands] are top-level statements in Lean.
 Some examples are inductive type declarations, theorems, function definitions, namespace modifiers like `open` or `variable`, and interactive queries such as `#check`.
@@ -211,6 +244,10 @@ Make the index include links to all commands, then xref from here
 :::
 
 ## Contents
+%%%
+tag := "module-contents"
+%%%
+
 
 A module includes an {TODO}[def and xref] environment, which includes both the datatype and constant definitions from an environment and any data stored in {TODO}[xref] its environment extensions.
 As the module is processed by Lean, commands add content to the environment.
@@ -219,6 +256,10 @@ This means that an imported module can be loaded without re-executing all of its
 
 
 # Packages, Libraries, and Targets
+%%%
+tag := "code-distribution"
+%%%
+
 
 Lean code is organized into {deftech}_packages_, which are units of code distribution.
 A {tech}[package] may contain multiple libraries or executables.

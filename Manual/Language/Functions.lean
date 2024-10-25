@@ -11,6 +11,10 @@ import Manual.Meta
 open Verso.Genre Manual
 
 #doc (Manual) "Functions" =>
+%%%
+tag := "functions"
+%%%
+
 
 Function types are a built-in feature of Lean.
 {deftech}[Functions] map the values of one type (the {deftech}_domain_) into those of another type (the {deftech}_range_), and {deftech}_function types_ specify the domain and range of functions.
@@ -103,6 +107,10 @@ i : Nat
 :::::
 
 # Functions
+%%%
+tag := "function-terms"
+%%%
+
 
 Terms with function types can be created via abstractions, introduced with the {keywordOf Lean.Parser.Term.fun}`fun` keyword.
 
@@ -125,6 +133,10 @@ Function definitions defined with keywords such as {keywordOf Lean.Parser.Comman
 However, not all functions originate from abstractions: {tech}[type constructors], {tech}[constructors], and {tech}[recursors] may have function types, but they cannot be defined using function abstractions alone.
 
 # Currying
+%%%
+tag := "currying"
+%%%
+
 
 In Lean's core type theory, every function maps each element of the domain to a single element of the range.
 In other words, every function expects exactly one parameter.
@@ -154,6 +166,10 @@ These are equivalent to writing nested {keywordOf Lean.Parser.Term.fun}`fun` ter
 
 
 # Implicit Functions
+%%%
+tag := "implicit-functions"
+%%%
+
 
 Lean supports implicit parameters to functions.
 This means that Lean itself can supply arguments to functions, rather than requiring users to supply all needed arguments.
@@ -317,6 +333,10 @@ fun n =>
 ::::
 
 # Extensionality
+%%%
+tag := "function-extensionality"
+%%%
+
 
 Definitional equality of functions in Lean is {deftech}_intensional_.
 This means that definitional equality is defined _syntactically_, modulo renaming of bound variables and {tech}[reduction].
@@ -344,6 +364,10 @@ When reasoning about functions, the theorem {lean}`funext`{margin}[Unlike some i
 {docstring funext}
 
 # Totality and Termination
+%%%
+tag := "totality"
+%%%
+
 
 Functions can be defined recursively using {keywordOf Lean.Parser.Command.declaration}`def`.
 From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the domain to an element of the range in finite time.{margin}[Some programming language communities use the term _total_ in a more restricted sense, where functions are considered total if they do not crash but nontermination is ignored.]
@@ -373,5 +397,4 @@ Indeed, both are equal to {lean}`'A'`, which happens to be the default fallback 
 example : thirdChar #['!'] = 'A' := rfl
 example : thirdChar #['-', 'x'] = 'A' := rfl
 ```
-
 :::

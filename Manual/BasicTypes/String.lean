@@ -21,6 +21,10 @@ set_option pp.rawOnError true
 example := Char
 
 #doc (Manual) "Strings" =>
+%%%
+tag := "String"
+%%%
+
 
 Strings represent Unicode text.
 Strings are specially supported by Lean:
@@ -68,6 +72,10 @@ Otherwise, a new string must be allocated.
 
 
 ## Performance Notes
+%%%
+tag := "string-performance"
+%%%
+
 
 Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.mk` and {name}`String.data` take *time linear in the length of the string*.
 This is because they must implement the conversions between lists of characters and packed arrays of bytes, which must necessarily visit each character.
@@ -75,8 +83,16 @@ This is because they must implement the conversions between lists of characters 
 {include 0 Manual.BasicTypes.String.Literals}
 
 # API Reference
+%%%
+tag := "string-api"
+%%%
+
 
 ## Constructing
+%%%
+tag := "string-api-build"
+%%%
+
 
 {docstring String.singleton}
 
@@ -87,6 +103,10 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.intercalate}
 
 ## Conversions
+%%%
+tag := "string-api-convert"
+%%%
+
 
 {docstring String.toList}
 
@@ -105,6 +125,9 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.toFormat}
 
 ## Properties
+%%%
+tag := "string-api-props"
+%%%
 
 {docstring String.isEmpty}
 
@@ -113,6 +136,9 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.str}
 
 ## Positions
+%%%
+tag := "string-api-pos"
+%%%
 
 {docstring String.Pos}
 
@@ -135,6 +161,9 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.Pos.min}
 
 ## Lookups and Modifications
+%%%
+tag := "string-api-lookup"
+%%%
 
 {docstring String.get}
 
@@ -196,6 +225,9 @@ This is because they must implement the conversions between lists of characters 
 
 
 ## Folds and Aggregation
+%%%
+tag := "string-api-fold"
+%%%
 
 {docstring String.map}
 
@@ -208,6 +240,9 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.any}
 
 ## Comparisons
+%%%
+tag := "string-api-compare"
+%%%
 
 {docstring String.le}
 
@@ -226,6 +261,9 @@ This is because they must implement the conversions between lists of characters 
 {docstring String.hash}
 
 ## Manipulation
+%%%
+tag := "string-api-modify"
+%%%
 
 {docstring String.split}
 
@@ -289,14 +327,24 @@ Clients are responsible for checking whether they've reached the beginning or en
 {docstring String.Iterator.pos}
 
 ## Substrings
+%%%
+tag := "string-api-substring"
+%%%
 
-TODO Substring API xref
+
+:::TODO
+Substring API xref
+:::
 
 {docstring String.toSubstring}
 
 {docstring String.toSubstring'}
 
 ## Proof Automation
+%%%
+tag := "string-simp"
+%%%
+
 
 {docstring String.reduceGT}
 
@@ -323,6 +371,10 @@ TODO Substring API xref
 {docstring String.reduceNe}
 
 ## Metaprogramming
+%%%
+tag := "string-api-meta"
+%%%
+
 
 {docstring String.toName}
 
@@ -333,6 +385,10 @@ TODO Substring API xref
 {docstring String.fromExpr?}
 
 ## Encodings
+%%%
+tag := "string-api-encoding"
+%%%
+
 
 {docstring String.utf16PosToCodepointPos}
 

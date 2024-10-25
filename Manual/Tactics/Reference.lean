@@ -19,9 +19,16 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Tactic Reference" =>
+%%%
+tag := "tactic-ref"
+%%%
+
 
 
 # Assumptions
+%%%
+tag := "tactic-ref-assumptions"
+%%%
 
 :::tactic Lean.Parser.Tactic.assumption
 :::
@@ -30,6 +37,9 @@ set_option linter.unusedVariables false
 :::
 
 # Quantifiers
+%%%
+tag := "tactic-ref-quantifiers"
+%%%
 
 :::tactic "exists"
 :::
@@ -49,6 +59,9 @@ set_option linter.unusedVariables false
 
 
 # Relations
+%%%
+tag := "tactic-ref-relations"
+%%%
 
 :::planned 47
  * Descriptions of the `symm` and `refl` and `trans` attributes
@@ -76,6 +89,9 @@ set_option linter.unusedVariables false
 
 
 ## Equality
+%%%
+tag := "tactic-ref-equality"
+%%%
 
 :::tactic "subst"
 :::
@@ -96,6 +112,9 @@ set_option linter.unusedVariables false
 :::
 
 # Lemmas
+%%%
+tag := "tactic-ref-lemmas"
+%%%
 
 :::tactic "exact"
 :::
@@ -117,6 +136,9 @@ set_option linter.unusedVariables false
 :::
 
 # Falsehood
+%%%
+tag := "tactic-ref-false"
+%%%
 
 :::tactic "exfalso"
 :::
@@ -129,6 +151,9 @@ set_option linter.unusedVariables false
 
 
 # Goal Management
+%%%
+tag := "tactic-ref-goals"
+%%%
 
 :::tactic "suffices"
 :::
@@ -156,6 +181,9 @@ set_option linter.unusedVariables false
 
 
 # Cast Management
+%%%
+tag := "tactic-ref-casts"
+%%%
 
 The tactics in this section make it easier avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
 They are described in more detail in [_Simplifying Casts and Coercions_](https://arxiv.org/abs/2001.10594) by Robert Y. Lewis and Paul-Nicolas Madelaine.
@@ -178,11 +206,10 @@ They are described in more detail in [_Simplifying Casts and Coercions_](https:/
 :::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast
 :::
 
-
-
-
 # Extensionality
-
+%%%
+tag := "tactic-ref-ext"
+%%%
 
 :::tactic "ext"
 :::
@@ -199,6 +226,9 @@ They are described in more detail in [_Simplifying Casts and Coercions_](https:/
 {include 0 Manual.Tactics.Reference.Simp}
 
 # Rewriting
+%%%
+tag := "tactic-ref-rw"
+%%%
 
 :::tactic "rw"
 :::
@@ -234,8 +264,14 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 
 
 # Inductive Types
+%%%
+tag := "tactic-ref-inductive"
+%%%
 
 ## Introduction
+%%%
+tag := "tactic-ref-inductive-intro"
+%%%
 
 :::tactic "constructor"
 :::
@@ -254,6 +290,9 @@ Implemented by {name}`Lean.Elab.Tactic.evalUnfold`.
 :::
 
 ## Elimination
+%%%
+tag := "tactic-ref-inductive-elim"
+%%%
 
 :::planned 48
 
@@ -278,6 +317,9 @@ Description of the `@[induction_eliminator]` and `@[cases_eliminator]` attribute
 
 
 # Library Search
+%%%
+tag := "tactic-ref-search"
+%%%
 
 The library search tactics are intended for interactive use.
 When run, they search the Lean library for lemmas or rewrite rules that could be applicable in the current situation, and suggests a new tactic.
@@ -321,6 +363,10 @@ Try this: exact Nat.lt_trans h1 h2
 :::
 
 # Case Analysis
+%%%
+tag := "tactic-ref-cases"
+%%%
+
 
 :::tactic "split"
 :::
@@ -329,6 +375,10 @@ Try this: exact Nat.lt_trans h1 h2
 :::
 
 # Decision Procedures
+%%%
+tag := "tactic-ref-decision"
+%%%
+
 
 :::tactic Lean.Parser.Tactic.decide show:="decide"
 :::
@@ -344,7 +394,9 @@ Try this: exact Nat.lt_trans h1 h2
 
 
 ## SAT Solver Integration
-
+%%%
+tag := "tactic-ref-sat"
+%%%
 
 :::tactic "bv_decide"
 :::
@@ -359,6 +411,10 @@ Try this: exact Nat.lt_trans h1 h2
 :::
 
 # Control Flow
+%%%
+tag := "tactic-ref-control"
+%%%
+
 
 :::tactic "skip"
 :::
@@ -391,6 +447,10 @@ Try this: exact Nat.lt_trans h1 h2
 
 
 # Term Elaboration Backends
+%%%
+tag := "tactic-ref-term-helpers"
+%%%
+
 
 These tactics are used during elaboration of terms to satisfy obligations that arise.
 
@@ -415,6 +475,10 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 
 
 # Debugging Utilities
+%%%
+tag := "tactic-ref-debug"
+%%%
+
 
 :::tactic "sorry"
 :::
@@ -433,6 +497,9 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 
 
 # Other
+%%%
+tag := "tactic-ref-other"
+%%%
 
 :::tactic "trivial"
 :::

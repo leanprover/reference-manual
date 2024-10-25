@@ -22,6 +22,10 @@ set_option linter.unusedVariables false
 open Lean.Elab.Tactic
 
 #doc (Manual) "Custom Tactics" =>
+%%%
+tag := "custom-tactics"
+%%%
+
 
 ```lean (show := false)
 open Lean
@@ -34,6 +38,9 @@ A custom tactic consists of an extension to the `tactic` category along with eit
  * an elaborator that carries out {name}`TacticM` actions to implement the tactic.
 
 # Tactic Macros
+%%%
+tag := "tactic-macros"
+%%%
 
 The easiest way to define a new tactic is as a {tech}[macro] that expands into already-existing tactics.
 Macro expansion is interleaved with tactic execution.
@@ -67,6 +74,10 @@ When defining a tactic macro, it's important to specify that the syntax being ma
 Otherwise, the syntax will be interpreted as that of a term, which will match against or construct an incorrect AST for tactics.
 
 ## Extensible Tactic Macros
+%%%
+tag := "tactic-macro-extension"
+%%%
+
 
 Because macro expansion can fail, {TODO}[xref] multiple macros can match the same syntax, allowing backtracking.
 Tactic macros take this further: even if a tactic macro expands successfully, if the expansion fails when interpreted, the tactic interpreter will attempt the next expansion.
@@ -122,6 +133,9 @@ Backtracking is at the granularity of {keywordOf Lean.Parser.Command.macro_rules
 
 
 # The Tactic Monad
+%%%
+tag := "tactic-monad"
+%%%
 
 ::: planned 67
  * Relationship to {name}`Lean.Elab.Term.TermElabM`, {name}`Lean.Meta.MetaM`

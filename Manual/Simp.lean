@@ -26,6 +26,10 @@ It performs inside-out rewriting of terms based on a database of simplification 
 The simplifier is highly configurable, and a number of tactics use it in different ways.
 
 # Invoking the Simplifier
+%%%
+tag := "simp-tactic-naming"
+%%%
+
 
 Lean's simplifier can be invoked in a variety of ways.
 The most common patterns are captured in a set of tactics.
@@ -58,6 +62,9 @@ There are two further simplification tactics, {tactic}`simpa` and {tactic}`simpa
 This simultaneous simplification makes proofs more robust to changes in the {tech}[simp set].
 
 ## Parameters
+%%%
+tag := "simp-tactic-params"
+%%%
 
 The simplification tactics have the following grammar:
 
@@ -187,6 +194,9 @@ h' : p (x + 12)
 
 
 # Rewrite Rules
+%%%
+tag := "simp-rewrites"
+%%%
 
 The simplifier has three kinds of rewrite rules:
 
@@ -313,6 +323,9 @@ In addition to rewrite rules, {tactic}`simp` has a number of built-in reduction 
 Even when the simp set is empty, {tactic}`simp` can replace `let`-bound variables with their values, reduce {keywordOf Lean.Parser.Term.match}`match` expressions whose scrutinees are constructor applications, reduce structure projections applied to constructors, or apply lambdas to their arguments.
 
 # Simp sets
+%%%
+tag := "simp-sets"
+%%%
 
 A collection of rules used by the simplifier is called a {deftech}_simp set_.
 A simp set is specified in terms of modifications from a _default simp set_.
@@ -362,6 +375,10 @@ The {tactic}`simp` tactics can be instructed to use the new simp set by includin
 
 
 # Simp Normal Forms
+%%%
+tag := "simp-normal-forms"
+%%%
+
 
 The default {tech}[simp set] contains all the theorems and simplification procedures marked with the {attr}`simp` attribute.
 The {deftech}_simp normal form_ of an expression is the result of applying the default simp set via the {tactic}`simp` tactic until no more rules can be applied.
@@ -385,6 +402,9 @@ If a library relies on additional simplification rules for definitions or declar
 
 
 # Terminal vs Non-Terminal Positions
+%%%
+tag := "terminal-simp"
+%%%
 
 To write maintainable proofs, avoid using {tactic}`simp` without {keywordOf Lean.Parser.Tactic.simp}`only` unless it closes the goal.
 Such uses of {tactic}`simp` that do not close a goal are referred to as {deftech}_non-terminal simps_.
@@ -435,6 +455,9 @@ tag := "simp-config"
 {docstring Lean.Meta.DSimp.Config}
 
 ## Options
+%%%
+tag := "simp-options"
+%%%
 
 Some global options affect {tactic}`simp`:
 
@@ -449,6 +472,10 @@ Some global options affect {tactic}`simp`:
 {optionDocs trace.Meta.Tactic.simp.discharge}
 
 # Simplification vs Rewriting
+%%%
+tag := "simp-vs-rw"
+%%%
+
 
 Both {tactic}`simp` and {tactic}`rw`/{tactic}`rewrite` use equational lemmas to replace parts of terms with equivalent alternatives.
 Their intended uses and their rewriting strategies differ, however.

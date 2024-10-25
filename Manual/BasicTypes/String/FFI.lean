@@ -15,6 +15,10 @@ set_option pp.rawOnError true
 
 
 #doc (Manual) "FFI" =>
+%%%
+tag := "string-ffi"
+%%%
+
 
 {docstring String.csize}
 

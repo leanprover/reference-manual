@@ -13,6 +13,9 @@ open Manual.FFIDocType
 open Verso.Genre Manual
 
 #doc (Manual) "Natural Numbers" =>
+%%%
+tag := "Nat"
+%%%
 
 The natural numbers are nonnegative integers.
 Logically, they are the numbers 0, 1, 2, 3, …, generated from the constructors {lean}`Nat.zero` and {lean}`Nat.succ`.
@@ -21,6 +24,10 @@ Lean imposes no upper bound on the representation of natural numbers other than 
 Because the natural numbers are fundamental to both mathematical reasoning and programming, they are specially supported by Lean's implementation. The logical model of the natural numbers is as an inductive datatype, and arithmetic operations are specified using this model. In Lean's kernel, the interpreter, and compiled code, closed natural numbers are represented as efficient arbitrary-precision integers. Sufficiently small numbers are immediate values that don't require indirection through a pointer. Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
 
 # Logical Model
+%%%
+tag := "nat-model"
+%%%
+
 
 {docstring Nat}
 
@@ -53,6 +60,10 @@ theorem succ_not_zero : ¬n + 1 = 0 := noConfusion (n + 1) 0
 ```
 
 # Run-Time Representation
+%%%
+tag := "nat-runtime"
+%%%
+
 
 :::TODO
 
@@ -61,6 +72,10 @@ Look up and document
 :::
 
 ## Performance Notes
+%%%
+tag := "nat-performance"
+%%%
+
 
 Using Lean's built-in arithmetic operators, rather than redefining them, is essential.
 The logical model of {lean}`Nat` is essentially a linked list, so addition would take time linear in the size of one argument.
@@ -68,6 +83,10 @@ Still worse, multiplication takes quadradic time in this model.
 While defining arithmetic from scratch can be a useful learning exercise, these redefined operations will not be nearly as fast.
 
 # Syntax
+%%%
+tag := "nat-syntax"
+%%%
+
 
 Natural number literals are overridden using the {lean}`OfNat` type class.
 
@@ -77,8 +96,15 @@ Document this elsewhere, insert a cross-reference here
 
 
 # API Reference
+%%%
+tag := "nat-api"
+%%%
+
 
 ## Arithmetic
+%%%
+tag := "nat-api-arithmetic"
+%%%
 
 {docstring Nat.pred}
 
@@ -99,6 +125,9 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.log2}
 
 ### Bitwise Operations
+%%%
+tag := "nat-api-bitwise"
+%%%
 
 {docstring Nat.shiftLeft}
 
@@ -115,6 +144,10 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.testBit}
 
 ## Minimum and Maximum
+%%%
+tag := "nat-api-minmax"
+%%%
+
 
 {docstring Nat.min}
 
@@ -123,20 +156,36 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.imax}
 
 ## GCD and LCM
+%%%
+tag := "nat-api-gcd-lcm"
+%%%
+
 
 {docstring Nat.gcd}
 
 {docstring Nat.lcm}
 
 ## Powers of Two
+%%%
+tag := "nat-api-pow2"
+%%%
+
 
 {docstring Nat.isPowerOfTwo}
 
 {docstring Nat.nextPowerOfTwo}
 
 ## Comparisons
+%%%
+tag := "nat-api-comparison"
+%%%
+
 
 ### Boolean Comparisons
+%%%
+tag := "nat-api-comparison-bool"
+%%%
+
 
 {docstring Nat.beq}
 
@@ -145,6 +194,9 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.blt}
 
 ### Decidable Equality
+%%%
+tag := "nat-api-deceq"
+%%%
 
 {docstring Nat.decEq}
 
@@ -153,6 +205,9 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.decLt}
 
 ### Predicates
+%%%
+tag := "nat-api-predicates"
+%%%
 
 {docstring Nat.le}
 
@@ -161,6 +216,9 @@ Document this elsewhere, insert a cross-reference here
 {docstring Nat.lt_wfRel}
 
 ## Iteration
+%%%
+tag := "nat-api-iteration"
+%%%
 
 Many iteration operators come in two versions: a structurally recursive version and a tail-recursive version.
 The structurally recursive version is typically easier to use in contexts where definitional equality is important, as it will compute when only some prefix of a natural number is known.
@@ -196,6 +254,9 @@ The structurally recursive version is typically easier to use in contexts where 
 {docstring Nat.anyM}
 
 ## Conversion
+%%%
+tag := "nat-api-conversion"
+%%%
 
 {docstring Nat.toUInt8}
 
@@ -232,18 +293,29 @@ The structurally recursive version is typically easier to use in contexts where 
 {docstring Nat.superDigitChar}
 
 ### Metaprogramming and Internals
+%%%
+tag := "nat-api-meta"
+%%%
 
 {docstring Nat.fromExpr?}
 
 {docstring Nat.toLevel}
 
 ## Casts
+%%%
+tag := "nat-api-cast"
+%%%
+
 
 {docstring NatCast}
 
 {docstring Nat.cast}
 
 ## Elimination
+%%%
+tag := "nat-api-elim"
+%%%
+
 
 The recursion principle that is automatically generated for {lean}`Nat` results in proof goals that are phrased in terms of {lean}`Nat.zero` and {lean}`Nat.succ`.
 This is not particularly user-friendly, so an alternative logically-equivalent recursion principle is provided that results in goals that are phrased in terms of {lean}`0` and `n + 1`.
@@ -269,6 +341,10 @@ Insert reference to section on how to do this
 {docstring Nat.elimOffset}
 
 ### Alternative Induction Principles
+%%%
+tag := "nat-api-induction"
+%%%
+
 
 {docstring Nat.strongInductionOn}
 
@@ -281,16 +357,10 @@ Insert reference to section on how to do this
 {docstring Nat.mod.inductionOn}
 
 # Simplification
+%%%
+tag := "nat-simp"
+%%%
 
-## Normal Form
-
-:::TODO
-
-Document!
-
-:::
-
-## Helpers
 
 {docstring Nat.isValue}
 
