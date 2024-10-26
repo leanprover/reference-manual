@@ -50,7 +50,7 @@ Here are some typical use cases for type classes:
  * Type classes can represent an algebraic structure, provided both the extra structure and the axioms required by the structure. For example, a type class that represents an Abelian group may contain methods for a binary operator, a unary inverse operator, an identity element, as well as proofs that the binary operator is associative and commutative, that the identity is an identity, and that the inverse operator yields the identity element on both sides of the operator. Here, there may not be a canonical choice of structure, and a library may provide many ways to instantiate a given set of axioms.
  * Type classes can represent a framework of type-drive code generation, where polymorphic types each contribute some portion of a final program.
     The {name}`Repr` class defines a canonical pretty-printer for a datatype, and polymorphic types end up with polymorphic {name}`Repr` instances.
-    When pretty printing is finally invoked on a concrete type, such as {Lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
+    When pretty printing is finally invoked on a concrete type, such as {lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
 
 # Class Declarations
 %%%
@@ -334,9 +334,229 @@ instance [Add α] [Mul α] : AddMul' α where
 ::::
 
 # Instance Declarations
+%%%
+tag := "instance-declarations"
+%%%
+
+
+The syntax of instance declarations is almost identical to that of definitions.
+The only syntactic differences are that the keyword {keywordOf Lean.Parser.Command.declaration}`def` is replaced by {keywordOf Lean.Parser.Command.declaration}`instance` and the name is optional:
+
+:::syntax Lean.Parser.Command.instance
+
+Most instances take the form of definitions of each method:
+
+```grammar
+instance $_? : $_ where
+  $_*
+```
+
+However, type classes are inductive types and instances can be constructed using any expression with an appropriate type:
+
+```grammar
+instance $_? : $_ := $_
+```
+
+Instances may also be defined by cases; however, this feature is rarely used:
+
+```grammar
+instance $_? : $_
+  $[| $_ => $_]*
+```
+
+:::
+
+Elaboration of instances is almost identical to the elaboration of ordinary definitions, with the exception of the caveats documented below.
+If no name is provided, then one is created automatically.
+It is possible to refer to this generated name directly, but the algorithm used to generate the names has changed in the past and may change in the future.
+It's better to explicitly name instances that will be referred to directly.
+After elaboration, the new instance is registered as a candidate for instance search.
+Adding the attribute {attr}`instance` to a name can be used to mark any other defined name as a candidate.
+
+:::example "Instance Name Generation"
+
+Following these declarations:
+```lean
+structure NatWrapper where
+  val : Nat
+
+instance : BEq NatWrapper where
+  beq
+    | ⟨x⟩, ⟨y⟩ => x == y
+```
+
+the name {lean}`instBEqNatWrapper` refers to the new instance.
+:::
+
+## Recursive Instances
+%%%
+tag := "recursive-instances"
+%%%
+
+Functions defined in {keywordOf Lean.Parser.Command.declaration}`where` structure syntax are not recursive.
+Furthermore, instances are not available for instance synthesis during their own definitions, which could be quite error-prone.
+However, instances for recursive inductive types are common, and frequently necessary.
+There are two standard ways to work around these challenges:
+ 1. Define a recursive function independently of the instance, and then refer to it in the instance definition.
+    By convention, these recursive functions have the name of the corresponding method, but are defined in the datatype's namespace.
+ 2. Create a local instance in a recursively-defined function that includes a reference to the function being defined, taking advantage of the fact that instance synthesis considers every binding the local context as a candidate.
+
+
+::: example "Instances are not recursive"
+Given this definition of {lean}`NatTree`:
+```lean
+inductive NatTree where
+  | leaf
+  | branch (left : NatTree) (val : Nat) (right : NatTree)
+```
+the following {name}`BEq` instance fails:
+```lean (error := true) (name := beqNatTreeFail)
+instance : BEq NatTree where
+  beq
+    | .leaf, .leaf => true
+    | .branch l1 v1 r1, .branch l2 v2 r2 => l1 == l2 && v1 == v2 && r1 == r2
+    | _, _ => false
+```
+with errors in both the left and right recursive calls that read:
+```leanOutput beqNatTreeFail
+failed to synthesize
+  BEq NatTree
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+Given a suitable recursive function, such as {lean}`NatTree.beq`:
+```lean
+def NatTree.beq : NatTree → NatTree → Bool
+  | .leaf, .leaf => true
+  | .branch l1 v1 r1, .branch l2 v2 r2 => l1 == l2 && v1 == v2 && r1 == r2
+  | _, _ => false
+```
+the instance can be created in a second step:
+```lean
+instance : BEq NatTree where
+  beq := NatTree.beq
+```
+or, equivalently, using anonymous constructor syntax:
+```lean
+instance : BEq NatTree := ⟨NatTree.beq⟩
+```
+:::
+
+::: example "Instances for nested types"
+Given this definition of {lean}`NatRoseTree` in which the type being defined occurs nested under another inductive type constructor:
+```lean
+inductive NatRoseTree where
+  | node (val : Nat) (children : Array NatRoseTree)
+
+```
+defining instances may require appealing to existing instances.
+However, instances are not typically available for instance synthesis during their own definitions, so the following definition fails:
+```lean (error := true) (name := natRoseTreeBEqFail) (keep := false)
+def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
+  | .node val1 children1, .node val2 children2 =>
+    val1 == val2 &&
+    children1 == children2
+```
+```leanOutput natRoseTreeBEqFail
+failed to synthesize
+  BEq (Array NatRoseTree)
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+Instances may be `let`-bound, allowing a recursively-defined function to be used in its own definition:
+
+```lean
+partial def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
+  | .node val1 children1, .node val2 children2 =>
+    let _ : BEq NatRoseTree := ⟨NatRoseTree.beq⟩
+    val1 == val2 &&
+    children1 == children2
+```
+The use of array equality on the children finds the recursively-defined instance during instance synthesis.
+:::
+
+## Instances of `class inductive`s
+%%%
+tag := "class-inductive-instances"
+%%%
+
+Many instances have function types: any instance that itself recursively invokes instance search is a function, as is any instance with implicit parameters.
+Defining instances of class inductives typically means defining a function that pattern-matches one or more of its arguments, allowing it to select a constructor.
+This is done using ordinary Lean function syntax.
+If the function in question is recursive, then it will not be available for instance synthesis in its own definition.
+::::keepEnv
+:::example "An instance for a sum class"
+```lean (show := false)
+axiom α : Type
+```
+Because {lean}`DecidableEq α` is an abbreviation for {lean}`(a b : α) → Decidable (Eq a b)`, its arguments can be used directly, as in this example:
+
+```lean
+inductive ThreeChoices where
+  | yes | no | maybe
+
+instance : DecidableEq ThreeChoices
+  | .yes, .yes => .isTrue rfl
+  | .no, .no => .isTrue rfl
+  | .maybe, .maybe => .isTrue rfl
+  | .yes, .maybe | .yes, .no
+  | .maybe, .yes | .maybe, .no
+  | .no, .yes | .no, .maybe => .isFalse nofun
+
+```
+
+:::
+::::
+
+::::keepEnv
+:::example "A recursive instance for a sum class"
+Given this type of lists of strings:
+```lean
+inductive StringList where
+  | nil
+  | cons (hd : String) (tl : StringList)
+```
+a {name}`DecidableEq` instance is not automatically available for instance search in its own definition:
+```lean (error := true) (name := stringListNoRec)
+instance : DecidableEq StringList
+  | .nil, .nil => .isTrue rfl
+  | .cons h1 t1, .cons h2 t2 =>
+    if h : h1 = h2 then
+      if h' : t1 = t2 then
+        _
+      else
+        .isFalse (by intro hEq; cases hEq; trivial)
+    else
+      .isFalse (by intro hEq; cases hEq; trivial)
+  | .nil, .cons _ _ | .cons _ _, .nil => .isFalse nofun
+```
+```leanOutput stringListNoRec
+failed to synthesize
+  Decidable (t1 = t2)
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+However, because it is an ordinary Lean function, it can recursively refer to its own explicit name:
+```lean
+instance instDecidableEqStringList : DecidableEq StringList
+  | .nil, .nil => .isTrue rfl
+  | .cons h1 t1, .cons h2 t2 =>
+    if h : h1 = h2 then
+      if h' : instDecidableEqStringList t1 t2 then
+        .isTrue (by simp [*])
+      else
+        .isFalse (by intro hEq; cases hEq; trivial)
+    else
+      .isFalse (by intro hEq; cases hEq; trivial)
+  | .nil, .cons _ _ | .cons _ _, .nil => .isFalse nofun
+```
+:::
+::::
+
+
+## Instance Priorities
+
 
 ::: planned 62
-This section will describe the syntax of `instance` declarations, priorities, and names.
+This section will describe the specification of priorities, but not their function in the synthesis algorithm..
 :::
 
 
