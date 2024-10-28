@@ -344,27 +344,30 @@ The only syntactic differences are that the keyword {keywordOf Lean.Parser.Comma
 
 :::syntax Lean.Parser.Command.instance
 
-Most instances take the form of definitions of each method:
+Most instances define each method using {keywordOf Lean.Parser.Command.declaration}`where` syntax:
 
 ```grammar
-instance $_? : $_ where
+instance $[(priority := $p:prio)]? $name? $_ where
   $_*
 ```
 
-However, type classes are inductive types and instances can be constructed using any expression with an appropriate type:
+However, type classes are inductive types, so instances can be constructed using any expression with an appropriate type:
 
 ```grammar
-instance $_? : $_ := $_
+instance $[(priority := $p:prio)]? $_? $_ :=
+  $_
 ```
 
-Instances may also be defined by cases; however, this feature is rarely used:
+Instances may also be defined by cases; however, this feature is rarely used outside of {name}`Decidable` instances:
 
 ```grammar
-instance $_? : $_
+instance $[(priority := $p:prio)]? $_? $_
   $[| $_ => $_]*
 ```
 
 :::
+
+
 
 Elaboration of instances is almost identical to the elaboration of ordinary definitions, with the exception of the caveats documented below.
 If no name is provided, then one is created automatically.
@@ -556,9 +559,47 @@ instance instDecidableEqStringList : DecidableEq StringList
 
 
 ::: planned 62
-This section will describe the specification of priorities, but not their function in the synthesis algorithm..
+This section will describe the specification of priorities, but not their function in the synthesis algorithm.
 :::
 
+Instances may be assigned {deftech}_priorities_.
+During instance synthesis, higher-priority instances are preferred; see {TODO}[ref] for details of instance synthesis.
+
+:::syntax prio open:=false
+Priorities may be numeric:
+```grammar
+$n:num
+```
+
+If no priority is specified, the default priority that corresponds to {evalPrio}`default` is used:
+```grammar
+default
+```
+
+Three named priorities are available when numeric values are too fine-grained, corresponding to {evalPrio}`low`, {evalPrio}`mid`, and {evalPrio}`high` respectively.
+The {keywordOf prioMid}`mid` priority is lower than {keywordOf prioDefault}`default`.
+```grammar
+low
+```
+```grammar
+mid
+```
+```grammar
+high
+```
+
+Finally, priorities can be added and subtracted, so `default + 2` is a valid priority, corresponding to {evalPrio}`default + 2`:
+```grammar
+($_)
+```
+```grammar
+$_ + $_
+```
+```grammar
+$_ - $_
+```
+
+:::
 
 # Instance Synthesis
 %%%

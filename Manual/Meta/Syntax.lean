@@ -31,6 +31,24 @@ namespace Manual
 -- TODO upstream this to enable cross-reference generation the usual Verso way
 def syntaxKindDomain := `Manual.syntaxKind
 
+@[role_expander evalPrio]
+def evalPrio : RoleExpander
+  | args, inlines => do
+    ArgParse.done.run args
+    let #[inl] := inlines
+      | throwError "Expected a single code argument"
+    let `(inline|code{ $s:str }) := inl
+      | throwErrorAt inl "Expected code literal with the priority"
+    let altStr ← parserInputString s
+    match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ priorityParser) altStr (← getFileName) with
+    | .ok stx =>
+      let n ← liftMacroM (Lean.evalPrio stx)
+      pure #[← `(Verso.Doc.Inline.text $(quote s!"{n}"))]
+    | .error es =>
+      for (pos, msg) in es do
+        log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
+      throwError s!"Failed to parse priority from '{s.getString}'"
+
 def Block.syntax : Block where
   name := `Manual.syntax
 
@@ -199,7 +217,104 @@ def GrammarConfig.parse [Monad m] [MonadInfoTree m] [MonadEnv m] [MonadError m] 
     ((·.getD 0) <$> .named `prec .nat true)
 
 
-open Manual.Meta.PPrint in
+namespace Meta.PPrint.Grammar
+def antiquoteOf : Name → Option Name
+  | .str n "antiquot" => pure n
+  | _ => none
+
+def nonTerm : Name → String
+  | .str x "pseudo" => nonTerm x
+  | .str _ x => x
+  | x => x.toString
+
+def empty : Syntax → Bool
+  | .node _ _ #[] => true
+  | _ => false
+
+partial def kleeneLike (mod : String) : Syntax → Format → TagFormatT GrammarTag DocElabM Format
+  | .atom .., f
+  | .ident .., f
+  | .missing, f => do return f ++ (← tag .bnf mod)
+  | .node _ _ args, f => do
+    let nonempty := args.filter (!empty ·)
+    if h : nonempty.size = 1 then
+      kleeneLike mod nonempty[0] f
+    else
+      return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
+
+def kleene := kleeneLike "*"
+
+def perhaps := kleeneLike "?"
+
+def lined (ws : String) : Format :=
+  Format.line.joinSep (ws.splitOn "\n")
+
+
+def infoWrap (info : SourceInfo) (doc : Format) : Format :=
+  if let .original leading _ trailing _ := info then
+    lined leading.toString ++ doc ++ lined trailing.toString
+  else doc
+
+def infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format :=
+  let pre := if let .original leading _ _ _ := info1 then lined leading.toString else .nil
+  let post := if let .original _ _ trailing _ := info2 then lined trailing.toString else .nil
+  pre ++ doc ++ post
+
+partial def production (stx : Syntax) : TagFormatT GrammarTag DocElabM Format := do
+  match stx with
+  | .atom info str => infoWrap info <$> tag .keyword str
+  | .missing => tag .error "<missing>"
+  | .ident info _ x _ =>
+    let d? ← findDocString? (← getEnv) x
+    -- TODO render markdown
+    let tok ←
+      tag (.nonterminal x d?) <|
+        match x with
+        | .str x' "pseudo" => x'.toString
+        | _ => x.toString
+    return infoWrap info tok
+  | .node info k args => do
+    infoWrap info <$>
+    match k, antiquoteOf k, args with
+    | `many.antiquot_suffix_splice, _, #[starred, star] =>
+      infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleene starred)
+    | `optional.antiquot_suffix_splice, _, #[questioned, star] => -- See also the case for antiquoted identifiers below
+      infoWrap2 questioned.getHeadInfo star.getTailInfo <$> (production questioned >>= perhaps questioned)
+    | `sepBy.antiquot_suffix_splice, _, #[starred, star] =>
+      infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleeneLike ",*" starred)
+    | `many.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
+      infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleene contents)
+    | `optional.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
+      infoWrap2 dollar.getHeadInfo info <$> (production contents >>= perhaps contents)
+    | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
+      infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleeneLike ",*" contents)
+    | `choice, _, opts => do
+      return (← tag .bnf "(") ++ (" " ++ (← tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM production) ++ (← tag .bnf ")")
+    | _, some k', #[a, b, c, d] => do
+      --
+      let doc? ← findDocString? (← getEnv) k'
+      let last :=
+        if let .node _ _ #[] := d then c else d
+      -- Optional quasiquotes $NAME? where kind FOO is expected look like this:
+      --   k := FOO.antiquot
+      --   k' := FOO
+      --   args := #["$", [], `NAME?, []]
+      if let (.atom _ "$", .node _ nullKind #[], .ident _ _ x _) := (a, b, c) then
+        if x.toString.back == '?' then
+          return infoWrap2 a.getHeadInfo last.getTailInfo ((← tag (.nonterminal k' doc?) (nonTerm k')) ++ (← tag .bnf "?"))
+
+      infoWrap2 a.getHeadInfo last.getTailInfo <$> tag (.nonterminal k' doc?) (nonTerm k')
+    | _, _, _ => do -- return ((← args.mapM production) |>.toList |> (Format.joinSep · " "))
+      let mut out := Format.nil
+      for a in args do
+        out := out ++ (← production a)
+      let doc? ← findDocString? (← getEnv) k
+      tag (.fromNonterminal k doc?) out
+
+end Meta.PPrint.Grammar
+
+
+open Manual.Meta.PPrint Grammar in
 @[directive_expander «syntax»]
 partial def «syntax» : DirectiveExpander
   | args, blocks => do
@@ -221,90 +336,6 @@ where
   | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
     if nameStx.getId == `grammar then some (argsStx, contents, info, col, «open», i, close) else none
   | _ => none
-
-  antiquoteOf : Name → Option Name
-  | .str n "antiquot" => pure n
-  | _ => none
-
-  nonTerm : Name → String
-  | .str x "pseudo" => nonTerm x
-  | .str _ x => x
-  | x => x.toString
-
-  empty : Syntax → Bool
-  | .node _ _ #[] => true
-  | _ => false
-
-  kleeneLike (mod : String) : Syntax → Format → TagFormatT GrammarTag DocElabM Format
-  | .atom .., f
-  | .ident .., f
-  | .missing, f => do return f ++ (← tag .bnf mod)
-  | .node _ _ args, f => do
-    let nonempty := args.filter (!empty ·)
-    if h : nonempty.size = 1 then
-      kleeneLike mod nonempty[0] f
-    else
-      return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
-
-  kleene := kleeneLike "*"
-
-  perhaps := kleeneLike "?"
-
-
-  production (stx : Syntax) : TagFormatT GrammarTag DocElabM Format := do
-    match stx with
-    | .atom info str => infoWrap info <$> tag .keyword str
-    | .missing => tag .error "<missing>"
-    | .ident info _ x _ =>
-      let d? ← findDocString? (← getEnv) x
-      -- TODO render markdown
-      let tok ←
-        tag (.nonterminal x d?) <|
-          match x with
-          | .str x' "pseudo" => x'.toString
-          | _ => x.toString
-      return infoWrap info tok
-    | .node info k args => do
-      infoWrap info <$>
-      match k, antiquoteOf k, args with
-      | `many.antiquot_suffix_splice, _, #[starred, star] =>
-        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleene starred)
-      | `optional.antiquot_suffix_splice, _, #[starred, star] =>
-        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= perhaps starred)
-      | `sepBy.antiquot_suffix_splice, _, #[starred, star] =>
-        infoWrap2 starred.getHeadInfo star.getTailInfo <$> (production starred >>= kleeneLike ",*" starred)
-      | `many.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
-        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleene contents)
-      | `optional.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
-        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= perhaps contents)
-      | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
-        infoWrap2 dollar.getHeadInfo info <$> (production contents >>= kleeneLike ",*" contents)
-      | `choice, _, opts => do
-        return (← tag .bnf "(") ++ (" " ++ (← tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM production) ++ (← tag .bnf ")")
-      | _, some k', #[a, b, c, d] => do
-        let doc? ← findDocString? (← getEnv) k'
-        let last :=
-          if let .node _ _ #[] := d then c else d
-        infoWrap2 a.getHeadInfo last.getTailInfo <$> tag (.nonterminal k' doc?) (nonTerm k')
-      | _, _, _ => do -- return ((← args.mapM production) |>.toList |> (Format.joinSep · " "))
-        let mut out := Format.nil
-        for a in args do
-          out := out ++ (← production a)
-        let doc? ← findDocString? (← getEnv) k
-        tag (.fromNonterminal k doc?) out
-
-  lined (ws : String) : Format :=
-    Format.line.joinSep (ws.splitOn "\n")
-
-  infoWrap (info : SourceInfo) (doc : Format) : Format :=
-    if let .original leading _ trailing _ := info then
-      lined leading.toString ++ doc ++ lined trailing.toString
-    else doc
-
-  infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format :=
-    let pre := if let .original leading _ _ _ := info1 then lined leading.toString else .nil
-    let post := if let .original _ _ trailing _ := info2 then lined trailing.toString else .nil
-    pre ++ doc ++ post
 
   categoryOf (env : Environment) (kind : Name) : Option Name := do
     for (catName, contents) in (Lean.Parser.parserExtension.getState env).categories do
@@ -329,6 +360,7 @@ where
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
       `(sorry)
+
   getBnf config isFirst howMany (stx : Syntax) : DocElabM (TaggedText GrammarTag) := do
     return (← renderBnf config isFirst howMany stx |>.run).render (w := 5)
 
