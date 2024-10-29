@@ -73,9 +73,16 @@ jobs:
         run: |
           lake build
 
-      - name: Generate HTML
+      - name: Generate HTML (non-release)
+        if: github.event_name != 'release'
         run: |
           lake exe generate-manual --depth 2 --with-word-count "words.txt"
+
+      - name: Generate HTML (release)
+        if: github.event_name == 'release'
+        # Include the base to fix trailing slash issue on Netlify
+        run: |
+          lake exe generate-manual --depth 2 --with-word-count "words.txt" --base-url "/doc/reference/latest/"
 
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
