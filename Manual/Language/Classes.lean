@@ -10,6 +10,7 @@ import Manual.Meta
 import Manual.Language.Functions
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
+import Manual.Language.Classes.InstanceSynth
 
 import Lean.Parser.Command
 
@@ -41,7 +42,7 @@ All of these possibilities are used in practice, from overloading natural number
 
 While ordinary polymorphic definitions simply expect instantiation with arbitrary parameters, the operators overloaded with type classes are to be instantiated with {deftech}_instances_ that define the overloaded operation for some specific set of parameters.
 These instance parameters are indicated in square brackets, and the values that are suitable for selection as instance parameters are tracked in internal tables.
-At invocation sites, Lean either _synthesizes_ a suitable instance from the available candidates or signals an error.
+At invocation sites, Lean either {deftech key:="synthesis"}_synthesizes_ {index}[instance synthesis] {index subterm:="of instances"}[synthesis] a suitable instance from the available candidates or signals an error.
 Because instances may themselves have instance parameters, this search process may be recursive and result in a final composite instance value that combines code from a variety of instances.
 Thus, type class instance synthesis is also a means of constructing programs in a type-directed manner.
 
@@ -601,19 +602,19 @@ $_ - $_
 
 :::
 
-# Instance Synthesis
-%%%
-tag := "instance-synth"
-%%%
+## The Instance Attribute
 
-::: planned 63
-This section will specify the instance synthesis algorithm.
+The {attr}`instance` attribute declares a name to be an instance, with the specified priority.
+Like other attributes, {attr}`instance` can be applied globally, locally, or only when the current namespace is opened.
+The {keywordOf Lean.Parser.Command.declaration}`instance` declaration is a form of definition that automatically applies the {attr}`instance` attribute.
+
+:::syntax attr
+```grammar
+instance $p?
+```
 :::
 
-{docstring outParam}
-
-{docstring semiOutParam}
-
+{include 0 Manual.Language.Classes.InstanceSynth}
 
 # Deriving Instances
 %%%

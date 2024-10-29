@@ -756,7 +756,7 @@ This section will describe the translation of {deftech}[well-founded recursion].
 ## Controlling Reduction
 
 :::planned 58
-This section will describe {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
+This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
 :::
 
 ## Partial and Unsafe Recursive Definitions
