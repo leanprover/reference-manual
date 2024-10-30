@@ -103,8 +103,9 @@ jobs:
           cat words.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-      - name: Offline link checker
+      - name: Offline link checker (non-release)
         uses: lycheeverse/lychee-action@v1.9.0
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           fail: true
           args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
