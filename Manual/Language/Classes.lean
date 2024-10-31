@@ -623,12 +623,6 @@ instance $p?
 tag := "deriving-instances"
 %%%
 
-::: planned 64
-This section will specify syntax of `deriving` clauses and list the valid places where they may occur.
-It will also describe `deriving instance`.
-It will list the deriving handlers that ship with Lean by default.
-:::
-
 
 {include 2 Manual.Language.Classes.DerivingHandlers}
 

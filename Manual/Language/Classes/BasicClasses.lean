@@ -18,6 +18,8 @@ open Verso.Genre.Manual
 tag := "basic-classes"
 %%%
 
+Many Lean type classes exist in order to allow built-in notations such as addition or array indexing to be overloaded.
+
 # Boolean Equality Tests
 
 {docstring BEq}
