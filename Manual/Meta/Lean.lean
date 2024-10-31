@@ -631,6 +631,12 @@ where
       | other => throwError "Expected reference name, got {repr other}"
   }
 
+def constTok [Monad m] [MonadEnv m] [MonadLiftT MetaM m] [MonadLiftT IO m]
+    (name : Name) (str : String) :
+    m Highlighted := do
+  let docs ← findDocString? (← getEnv) name
+  let sig := toString (← (PrettyPrinter.ppSignature name)).1
+  pure <| .token ⟨.const name sig docs, str⟩
 
 @[role_expander name]
 def name : RoleExpander
@@ -654,11 +660,7 @@ def name : RoleExpander
       throwErrorAt more[0] "Unexpected contents"
     else
       throwError "Unexpected arguments"
-where
-  constTok name str := do
-    let docs ← findDocString? (← getEnv) name
-    let sig := toString (← (PrettyPrinter.ppSignature name)).1
-    pure <| .token ⟨.const name sig docs, str⟩
+
 
 @[inline_extension name]
 def name.descr : InlineDescr where

@@ -5,6 +5,7 @@ Author: David Thrane Christiansen
 -/
 import Lake
 open Lake DSL
+open System (FilePath)
 
 require verso from git "https://github.com/leanprover/verso"@"main"
 

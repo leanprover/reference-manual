@@ -368,7 +368,7 @@ In this proof state, the universe level of `α` is unknown:
 ∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
   intros α x xs elem
 /--
-α : Type ?u.787
+α : Type ?u.861
 x : α
 xs : List α
 elem : x ∈ xs
@@ -385,12 +385,11 @@ The metavariable is repeated because the unknown type must be the same in both p
 ∀ (x : _) (xs : List _), x ∈ xs → xs.length > 0 := by
   intros x xs elem
 /--
-x : ?m.906
-xs : List ?m.906
+x : ?m.980
+xs : List ?m.980
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
-
 
 ```
 ::::

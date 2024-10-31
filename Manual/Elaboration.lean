@@ -235,9 +235,8 @@ def third_of_five : List α → Option α
   | _ => none
 set_option pp.match false
 /--
-info: third_of_five.eq_def.{u_1} {α : Type u_1} :
-  ∀ (x : List α),
-    third_of_five x = third_of_five.match_1 (fun x => Option α) x (fun head head x head head => some x) fun x => none
+info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
+  third_of_five x✝ = third_of_five.match_1 (fun x => Option α) x✝ (fun head head x head head => some x) fun x => none
 -/
 #guard_msgs in
 #check third_of_five.eq_def

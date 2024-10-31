@@ -11,6 +11,8 @@ import Manual.Language.Functions
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
 import Manual.Language.Classes.InstanceSynth
+import Manual.Language.Classes.DerivingHandlers
+import Manual.Language.Classes.BasicClasses
 
 import Lean.Parser.Command
 
@@ -628,8 +630,6 @@ It will list the deriving handlers that ship with Lean by default.
 :::
 
 
-## Deriving Handlers
+{include 2 Manual.Language.Classes.DerivingHandlers}
 
-::: planned 65
-This section will describe deriving handlers and how they are invoked.
-:::
+{include 0 Manual.Language.Classes.BasicClasses}

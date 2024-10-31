@@ -156,12 +156,11 @@ Membership.{u, v} (α : outParam (Type u)) (γ : Type v) : Type (max u v)
 ```
 
 Type class parameters can be declared as outputs by wrapping their types in the {name}`outParam` {tech}[gadget].
-When a class parameter is an output, instance synthesis will not require that it be known.
-If it is unknown, and a candidate instance matches the input parameters, then that instance is selected; the instance's assignment of the output parameter becomes its value.
-If it is known, then only instances that match the already-known value are considered.
+When a class parameter is an output, instance synthesis will not require that it be known; in fact, any existing value is ignored completely.
+The first instance that matches the input parameters is selected, and that instance's assignment of the output parameter becomes its value.
+If there was a pre-existing value, then it is compared with the assignment after synthesis is complete, and it is an error if they do not match.
 
 {docstring outParam}
-
 
 ::::example "Output Parameters and Stuck Search"
 :::keepEnv
@@ -216,10 +215,96 @@ example := ser (2, 3)
 :::
 ::::
 
+::::keepEnv
+:::example "Output Parameters with Pre-Existing Values"
+The class {name}`OneSmaller` represents a way to transform non-maximal elements of a type into elements of a type that one fewer elements.
+It has two separate instances that can match an input type {lean}`Option Bool`, with different outputs:
+```lean
+class OneSmaller (α : Type) (β : outParam Type) where
+  biggest : α
+  shrink : (x : α) → x ≠ biggest → β
+
+instance : OneSmaller (Option α) α where
+  biggest := none
+  shrink
+    | some x, _ => x
+
+instance : OneSmaller (Option Bool) (Option Unit) where
+  biggest := some true
+  shrink
+    | none, _ => none
+    | some false, _ => some ()
+
+instance : OneSmaller Bool Unit where
+  biggest := true
+  shrink
+    | false, _ => ()
+```
+Because instance synthesis selects the most recently defined instance, the following code is an error:
+```lean (error := true) (name := nosmaller)
+#check OneSmaller.shrink (β := Bool) (some false) sorry
+```
+```leanOutput nosmaller
+failed to synthesize
+  OneSmaller (Option Bool) Bool
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+The {lean}`OneSmaller (Option Bool) (Option Unit)` instance was selected during instance synthesis, without regard to the supplied value of `β`.
+:::
+::::
+
+Semi-output parameters are like output parameters in that they are not required to be known prior to synthesis commencing; unlike output parameters, their values are taken into account when selecting instances.
+
 {docstring semiOutParam}
 
+Semi-output parameters impose a requirement on instances: each instance of a class with semi-output parameters should determine the values of its semi-output parameters.
+:::TODO
+What goes wrong if they can't?
+:::
+
+::::keepEnv
+:::example "Semi-Output Parameters with Pre-Existing Values"
+The class {name}`OneSmaller` represents a way to transform non-maximal elements of a type into elements of a type that one fewer elements.
+It has two separate instances that can match an input type {lean}`Option Bool`, with different outputs:
+```lean
+class OneSmaller (α : Type) (β : semiOutParam Type) where
+  biggest : α
+  shrink : (x : α) → x ≠ biggest → β
+
+instance : OneSmaller (Option α) α where
+  biggest := none
+  shrink
+    | some x, _ => x
+
+instance : OneSmaller (Option Bool) (Option Unit) where
+  biggest := some true
+  shrink
+    | none, _ => none
+    | some false, _ => some ()
+
+instance : OneSmaller Bool Unit where
+  biggest := true
+  shrink
+    | false, _ => ()
+```
+
+Because instance synthesis takes semi-output parameters into account when selecting instances, the {lean}`OneSmaller (Option Bool) (Option Unit)` instance is passed over due to the supplied value for `β`:
+```lean (name := nosmaller2)
+#check OneSmaller.shrink (β := Bool) (some false) sorry
+```
+```leanOutput nosmaller2
+OneSmaller.shrink (some false) ⋯ : Bool
+```
+:::
+::::
 
 # "Morally Canonical" Instances
+
+:::TODO
+
+Write me!
+
+:::
 
 # Options
 
