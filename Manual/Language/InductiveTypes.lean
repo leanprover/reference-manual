@@ -751,6 +751,7 @@ Because all inductive types in the `mutual` group are required to have identical
 Additionally, because the recursor must process the group's other types, it will require cases for each constructor of each of the types in the group.
 The actual dependency structure between the types is not taken into account; even if an additional motive or constructor case is not really required due to there being fewer mutual dependencies than there could be, the generated recursor still requires them.
 
+::::keepEnv
 ::: example "Even and odd"
 ```lean
 mutual
@@ -782,7 +783,9 @@ Odd.rec
 ```
 
 :::
+::::
 
+::::keepEnv
 :::example "Spuriously mutual types"
 The types {name}`Two` and {name}`Three` are defined in a mutual block, even though they do not refer to each other:
 ```lean
@@ -803,6 +806,7 @@ Two.rec.{u} {α : Type}
 ```
 
 :::
+::::
 
 ## Run-Time Representation
 %%%

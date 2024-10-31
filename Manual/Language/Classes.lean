@@ -25,7 +25,6 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
--- TODO figure out why this is needed.
 set_option maxRecDepth 100000
 #doc (Manual) "Type Classes" =>
 %%%
@@ -566,7 +565,7 @@ This section will describe the specification of priorities, but not their functi
 :::
 
 Instances may be assigned {deftech}_priorities_.
-During instance synthesis, higher-priority instances are preferred; see {TODO}[ref] for details of instance synthesis.
+During instance synthesis, higher-priority instances are preferred; see {ref "instance-synth"}[the section on instance synthesis] for details of instance synthesis.
 
 :::syntax prio open:=false
 Priorities may be numeric:
@@ -604,6 +603,75 @@ $_ - $_
 
 :::
 
+## Default Instances
+
+The {attr}`default_instance` attribute specifies that an instance {ref "default-instance-synth"}[should be used as a fallback in situations where there is not enough information to select it otherwise].
+If no priority is specified, then the default priority `default` is used.
+
+:::syntax attr
+```grammar
+default_instance $p?
+```
+:::
+
+:::::keepEnv
+::::example "Default Instances"
+A default instance of {lean}`OfNat Nat` is used to select {lean}`Nat` for natural number literals in the absence of other type information.
+It is declared in the Lean standard library with priority 100.
+Given this representation of even numbers, in which an even number is represented by half of it:
+```lean
+structure Even where
+  half : Nat
+```
+
+the following instances allow numeric literals to be used for small {lean}`Even` values (a limit on the depth of type class instance search prevents them from being used for arbitrarily large literals):
+```lean (name := insts)
+instance ofNatEven0 : OfNat Even 0 where
+  ofNat := ⟨0⟩
+
+instance ofNatEvenPlusTwo [OfNat Even n] : OfNat Even (n + 2) where
+  ofNat := ⟨(OfNat.ofNat n : Even).half + 1⟩
+
+#eval (0 : Even)
+#eval (34 : Even)
+#eval (254 : Even)
+```
+```leanOutput insts
+{ half := 0 }
+```
+```leanOutput insts
+{ half := 17 }
+```
+```leanOutput insts
+{ half := 127 }
+```
+
+Specifying them as default instances with a priority greater than or equal to 100 causes them to be used instead of {lean}`Nat`:
+```lean
+attribute [default_instance 100] ofNatEven0
+attribute [default_instance 100] ofNatEvenPlusTwo
+```
+```lean (name := withDefaults)
+#eval 0
+#eval 34
+```
+```leanOutput withDefaults
+{ half := 0 }
+```
+```leanOutput withDefaults
+{ half := 17 }
+```
+
+Non-even numerals still use the {lean}`OfNat Nat` instance:
+```lean (name := stillNat)
+#eval 5
+```
+```leanOutput stillNat
+5
+```
+::::
+:::::
+
 ## The Instance Attribute
 
 The {attr}`instance` attribute declares a name to be an instance, with the specified priority.
@@ -623,6 +691,42 @@ instance $p?
 tag := "deriving-instances"
 %%%
 
+Lean can automatically generate instances for many classes, a process known as {deftech}_deriving_ instances.
+Instance deriving can be invoked either when defining a type or as a stand-alone command.
+
+:::syntax Lean.Parser.Command.optDeriving
+As part of a command that creates a new inductive type, a {keywordOf Lean.Parser.Command.declaration}`deriving` clause specifies a comma-separated list of class names for which instances should be generated:
+```grammar
+deriving $[$_],*
+```
+:::
+
+:::syntax Lean.Parser.Command.deriving
+The stand-alone {keywordOf Lean.Parser.Command.deriving}`deriving` command specifies a number of class names and subject names.
+Each of the specified classes are derived for each of the specified subjects.
+```grammar
+deriving instance $[$_],* for $_,*
+```
+:::
+
+::::keepEnv
+:::example "Deriving Multiple Classes"
+After specifying multiple classes to derive for multiple types, as in this code:
+```lean
+structure A where
+structure B where
+
+deriving instance BEq, Repr for A, B
+```
+all the instances exist for all the types, so all four {keywordOf Lean.Parser.Command.synth}`#synth` commands succeed:
+```lean
+#synth BEq A
+#synth BEq B
+#synth Repr A
+#synth Repr B
+```
+:::
+::::
 
 {include 2 Manual.Language.Classes.DerivingHandlers}
 

@@ -18,9 +18,6 @@ open Verso.Genre.Manual
 tag := "instance-synth"
 %%%
 
-::: planned 63
-This section will specify the instance synthesis algorithm.
-:::
 
 Instance synthesis is a recursive search procedure that either finds an instance for a given type class or fails.
 In other words, given a type that is registered as a type class, instance synthesis attempts constructs a term with said type.
@@ -298,18 +295,37 @@ OneSmaller.shrink (some false) ⋯ : Bool
 :::
 ::::
 
-# "Morally Canonical" Instances
+# Default Instances
+%%%
+tag := "default-instance-synth"
+%%%
 
-:::TODO
+When instance synthesis would otherwise fail, having not selected an instance, the default instances specified using the {attr}`default_instance` attribute are attempted in order of priority.
+When priorities are equal, more recently-defined default instances are chosen before earlier ones.
+The first default instance that causes the search to succeed is chosen.
 
-Write me!
+Default instances may induce further recursive instance search if the default instances themselves have instance-implicit parameters.
+If the recursive search fails, the search process backtracks and the next default instance is tried.
 
-:::
+# “Morally Canonical” Instances
+
+During instance synthesis, if a goal is fully known (that is, contains no metavariables) and search succeeds, no further instances will be attempted for that same goal.
+In other words, when search succeeds for a goal in a way that can't be refuted by a subsequent increase in information, the goal will not be attempted again, even if there are other instances that could have been used.
+This optimization can prevent a failure in a later branch of an instance synthesis search from causing spurious backtracking that replaces a fast solution from an earlier branch with a slow exploration of a large state space.
+
+The optimization relies on the assumption that instances are {deftech}_morally canonical_.
+Even if there is more than one potential implementation of a given type class's overloaded operations, or more than one way to synthesize an instance due to diamonds, _any discovered instance should be considered as good as any other_.
+In other words, there's no need to consider _all_ potential instances so long as one of them has been guaranteed to work.
+The optimization may be disabled with the backwards-compatibility option {option}`backward.synthInstance.canonInstances`.
+
+Code that uses instance-implicit parameters should be prepared to consider all instances as equivalent.
+In other words, it should be robust in the face of differences in synthesized instances.
+When the code relies on instances being _in fact_  equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
 # Options
+
+{optionDocs backward.synthInstance.canonInstances}
 
 {optionDocs synthInstance.maxHeartbeats}
 
 {optionDocs synthInstance.maxSize}
-
-{optionDocs backward.synthInstance.canonInstances}
