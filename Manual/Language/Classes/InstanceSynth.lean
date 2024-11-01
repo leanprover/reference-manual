@@ -37,6 +37,12 @@ If it succeeds, then the resulting term is output.
 ```
 :::
 
+Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to synthesize an instance in a position where the instance itself is needed.
+
+{docstring inferInstance}
+
+{docstring inferInstanceAs}
+
 # Instance Search Problems
 
 Instance search occurs during the elaboration of (potentially nullary) function applications.

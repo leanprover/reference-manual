@@ -25,34 +25,64 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
+def wadlerBlott89 : InProceedings where
+  title := .concat (inlines!"How to make ad-hoc polymorphism less ad hoc")
+  authors := #[.concat (inlines!"Philip Wadler"), .concat (inlines!"Stephen Blott")]
+  year := 1980
+  booktitle := .concat (inlines!"Proceedings of the 16th Symposium on Principles of Programming Languages")
+
 set_option maxRecDepth 100000
 #doc (Manual) "Type Classes" =>
 %%%
 tag := "type-classes"
 %%%
 
-Type classes are a structured approach to {deftech}_ad-hoc polymorphism_, in which operations to be overloaded may have different implementations for different types.
-Ordinary polymorphic definitions implement operations that are uniform for any choice of parameters; for example, {name}`List.map` does not suddenly compute a different result depending on whether the input list contains {name}`String`s or {name}`Nat`s.
-Ad-hoc polymorphic operations are useful when there is no “uniform” way to implement an operation; the canonical use case is for overloading arithmetic operators so that they work with {name}`Nat`, {name}`Int`, {name}`Float`, and any other suitable type.
-A type class describes a collection of overloaded operations (called {deftech}_methods_) together with the involved types.
+An operation is _polymorphic_ if it can be used with multiple types.
+In Lean, polymorphism comes in three varieties:
+
+ 1. {tech}[universe polymorphism], where the sorts in a definition can be instantiated in various ways,
+ 2. functions that take types as (potentially implicit) parameters, allowing a single body of code to work with any type, and
+ 3. {deftech}_ad-hoc polymorphism_, implemented with type classes, in which operations to be overloaded may have different implementations for different types.
+
+Because Lean does not allow case analysis of types, polymorphic functions implement operations that are uniform for any choice of type argument; for example, {name}`List.map` does not suddenly compute differently depending on whether the input list contains {name}`String`s or {name}`Nat`s.
+Ad-hoc polymorphic operations are useful when there is no “uniform” way to implement an operation; the canonical use case is for overloading arithmetic operators so that they work with {name}`Nat`, {name}`Int`, {name}`Float`, and any other type that has a sensible notion of addition.
+Ad-hoc polymorphism may also involve multiple types; looking up a value at a given index in a collection involves the collection type, the index type, and the type of member elements to be extracted.
+A {deftech}_type class_{margin}[Type classes were first described in {citehere wadlerBlott89}[]] describes a collection of overloaded operations (called {deftech}_methods_) together with the involved types.
 
 Type classes are very flexible.
 Overloading may involve multiple types; operations like indexing into a data structure can be overloaded for a specific choice of data structure, index type, element type, and even a predicate that asserts the presence of the key in the structure.
-Due to Lean's expressive type system, overloading is not restricted even to types; type classes may be parameterized over ordinary values, over functions or indexed families of types, and predicates or propositions.
-All of these possibilities are used in practice, from overloading natural number notation using {name}`OfNat`, contexts in which certain computational effects may occur using {name}`Monad`, and predicates using {name}`Decidable`.
+Due to Lean's expressive type system, overloading operations is not restricted only to types; type classes may be parameterized by ordinary values, by families of types, and even by predicates or propositions.
+All of these possibilities are used in practice:
+
+: Natural number literals
+
+  The {name}`OfNat` type class is used to interpret natural number literals.
+  Instances may depend not only on the type being instantiated, but also on the number literal itself.
+
+: Computational effects
+
+  Type classes such as {name}`Monad`, whose parameter is a function from one type to another, are used to provide {ref "monads-and-do"}[special syntax for effectful operations.]
+  The “type” for which operations are overloaded is actually a type-level function, such as {name}`Option`, {name}`IO`, or {name}`Except`.
+
+: Predicates and propositions
+
+  The {name}`Decidable` type class allows a decision procedure for a proposition to be found automatically by Lean.
+  This is used as the basis for {keywordOf termIfThenElse}`if`-expressions, which may branch on any decidable proposition.
 
 While ordinary polymorphic definitions simply expect instantiation with arbitrary parameters, the operators overloaded with type classes are to be instantiated with {deftech}_instances_ that define the overloaded operation for some specific set of parameters.
-These instance parameters are indicated in square brackets, and the values that are suitable for selection as instance parameters are tracked in internal tables.
-At invocation sites, Lean either {deftech key:="synthesis"}_synthesizes_ {index}[instance synthesis] {index subterm:="of instances"}[synthesis] a suitable instance from the available candidates or signals an error.
+These {deftech}[instance-implicit] parameters are indicated in square brackets.
+At invocation sites, Lean either {deftech key:="synthesis"}_synthesizes_ {index}[instance synthesis] {index subterm:="of type class instances"}[synthesis] a suitable instance from the available candidates or signals an error.
 Because instances may themselves have instance parameters, this search process may be recursive and result in a final composite instance value that combines code from a variety of instances.
 Thus, type class instance synthesis is also a means of constructing programs in a type-directed manner.
 
 Here are some typical use cases for type classes:
- * Type classes may represent overloaded operators, such as arithmetic that works on a variety of types of numbers or a membership predicate that can be used for a variety of data structures. There is often a single canonical choice of operator for a given type.
- * Type classes can represent an algebraic structure, provided both the extra structure and the axioms required by the structure. For example, a type class that represents an Abelian group may contain methods for a binary operator, a unary inverse operator, an identity element, as well as proofs that the binary operator is associative and commutative, that the identity is an identity, and that the inverse operator yields the identity element on both sides of the operator. Here, there may not be a canonical choice of structure, and a library may provide many ways to instantiate a given set of axioms.
- * Type classes can represent a framework of type-drive code generation, where polymorphic types each contribute some portion of a final program.
+ * Type classes may represent overloaded operators, such as arithmetic that can be used with a variety of types of numbers or a membership predicate that can be used for a variety of data structures. There is often a single canonical choice of operator for a given type—after all, there is no sensible alternative definition of addition for {lean}`Nat`—but this is not an essential property, and libraries may provide alternative instances if needed.
+ * Type classes can represent an algebraic structure, providing both the extra structure and the axioms required by the structure. For example, a type class that represents an Abelian group may contain methods for a binary operator, a unary inverse operator, an identity element, as well as proofs that the binary operator is associative and commutative, that the identity is an identity, and that the inverse operator yields the identity element on both sides of the operator. Here, there may not be a canonical choice of structure, and a library may provide many ways to instantiate a given set of axioms; there are two equally canonical monoid structures over the integers.
+ * A type class can represent a relation between two types that allows them to be used together in some novel way by a library.
+   The {lean}`Coe` class represents automatically-inserted coercions from one type to another, and {lean}`MonadLift` represents a way to run operations with one kind of effect in a context that expects another kind.
+ * Type classes can represent a framework of type-driven code generation, where instances for polymorphic types each contribute some portion of a final program.
     The {name}`Repr` class defines a canonical pretty-printer for a datatype, and polymorphic types end up with polymorphic {name}`Repr` instances.
-    When pretty printing is finally invoked on a concrete type, such as {lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
+    When pretty printing is finally invoked on an expression with a known concrete type, such as {lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the {name}`Repr` instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
 
 # Class Declarations
 %%%
@@ -92,15 +122,18 @@ The differences between structure and class declarations are:
 
 : Methods instead of fields
 
-  Instead of creating field projections that take a value of the structure type as an explicit parameter, methods are created. Each method takes the corresponding instance as an instance-implicit parameter.
+  Instead of creating field projections that take a value of the structure type as an explicit parameter, {tech}[methods] are created. Each method takes the corresponding instance as an instance-implicit parameter.
 
 : Instance-implicit parent classes
 
-  The constructor of a class that extends other classes takes its class parents' instances as instance-implicit parameters, rather than explicit parameters. Parents that are not classes are still explicit parameters.
+  The constructor of a class that extends other classes takes its class parents' instances as instance-implicit parameters, rather than explicit parameters.
+  When instances of this class are defined, instance synthesis is used to find the values of inherited fields.
+  Parents that are not classes are still explicit parameters to the underlying constructor.
 
 : Parent projections via instance synthesis
 
-  Structure field projections make use of {ref "structure-inheritance"}[inheritance information] to project parent structure fields from children. Classes instead use instance synthesis: given a child class instance, synthesis will construct the parent; thus, methods are not added to child classes as projections are added to child structures.
+  Structure field projections make use of {ref "structure-inheritance"}[inheritance information] to project parent structure fields from child structure values.
+  Classes instead use instance synthesis: given a child class instance, synthesis will construct the parent; thus, methods are not added to child classes in the same way that projections are added to child structures.
 
 : Registered as class
 
@@ -111,6 +144,21 @@ The differences between structure and class declarations are:
   The {name}`outParam` and {name}`semiOutParam` {tech}[gadgets] have no meaning in structure definitions, but they are used in class definitions to control instance search.
 
 While {keywordOf Lean.Parser.Command.declaration}`deriving` clauses are allowed for class definitions to maintain the parallel between class and structure elaboration, they are not frequently used and should be considered an advanced feature.
+
+:::example "No Instances of Non-Classes"
+
+Lean rejects instance-implicit parameters of types that are not classes:
+```lean (error := true) (name := notClass)
+def f [n : Nat] : n = n := rfl
+```
+
+```leanOutput notClass
+invalid binder annotation, type is not a class instance
+  Nat
+use the command `set_option checkBinderAnnotations false` to disable the check
+```
+
+:::
 
 ::::example "Class vs Structure Constructors"
 A very small algebraic hierarchy can be represented either as structures ({name}`S.Magma`, {name}`S.Semigroup`, and {name}`S.Monoid` below), a mix of structures and classes ({name}`C1.Monoid`), or only using classes ({name}`C2.Magma`, {name}`C2.Semigroup`, and {name}`C2.Monoid`):
@@ -192,7 +240,7 @@ C2.Semigroup.mk.{u} {α : Type u} [toMagma : C2.Magma α]
 ```
 
 Finally, {name}`C2.Monoid.mk` takes its semigroup parent as an instance implicit parameter.
-Similarly, the references to {name}`C2.Magma.op` refer directly to {name}`C2.Magma.op`, relying on instance synthesis to recover the implementation from the {name}`C2.Semigroup` instance-implicit parameter:
+The references to `op` become references to the method {name}`C2.Magma.op`, relying on instance synthesis to recover the implementation from the {name}`C2.Semigroup` instance-implicit parameter via its parent projection:
 ```signature
 C2.Monoid.mk.{u} {α : Type u}
   [toSemigroup : C2.Semigroup α]
@@ -205,7 +253,7 @@ C2.Monoid.mk.{u} {α : Type u}
 
 Parameters to type classes may be marked with {deftech}_gadgets_, which are special versions of the identity function that cause the elaborator to treat a value differently.
 Gadgets never change the _meaning_ of a term, but they may cause it to be treated differently in elaboration-time search procedures.
-As the gadgets {name}`outParam` and {name}`semiOutParam` affect {ref "instance-synth"}[instance synthesis], they are documented in that section.
+The gadgets {name}`outParam` and {name}`semiOutParam` affect {ref "instance-synth"}[instance synthesis], so they are documented in that section.
 
 Whether a type is a class or not has no effect on definitional equality.
 Two instances of the same class with the same parameters are not necessarily identical and may in fact be very different.
@@ -262,9 +310,10 @@ In the improved definitions, {name}`Heap'.bubbleUp` is needlessly explicit; the 
 tag := "class inductive"
 %%%
 
-Most type classes follow the paradigm of a set of overloaded methods from which clients may choose freely by applying the appropriate projection to the underlying product type.
-Some classes, however, are sum types: they require that the recipient of the synthesized instance first check _which_ of the kinds of instance were available.
-To account for these classes, a class declaration may consist of an arbitrary inductive datatype, not just a form of structures.
+Most type classes follow the paradigm of a set of overloaded methods from which clients may choose freely.
+This is naturally modeled by a product type, from which the overloaded methods are projections.
+Some classes, however, are sum types: they require that the recipient of the synthesized instance first check _which_ of the available instance constructors was provided.
+To account for these classes, a class declaration may consist of an arbitrary {tech}[inductive type], not just an extended form of structure declaration.
 
 :::syntax Lean.Parser.Command.declaration
 ```grammar
@@ -276,7 +325,7 @@ $[deriving $[$_ $[with $_]?],*]?
 :::
 
 Class inductive types are just like other inductive types, except they may participate in instance synthesis.
-The paradigmatic example of a class inductive is {name}`Decidable`.
+The paradigmatic example of a class inductive is {name}`Decidable`: synthesizing an instance in a context with free variables amounts to synthesizing the decision procedure, but if there are no free variables, then the truth of the proposition can be established by instance synthesis alone (as is done by the {tactic (show:="decide")}`Lean.Parser.Tactic.decide` tactic).
 
 ## Class Abbreviations
 %%%
@@ -288,7 +337,8 @@ Rather than writing all the names repeatedly, it would be possible to define a c
 However, this new class has a disadvantage: its instances must be declared explicitly.
 
 The {keywordOf Lean.Parser.Command.classAbbrev}`class abbrev` command allows the creation of {deftech}_class abbreviations_ in which one name is short for a number of other class parameters.
-Behind the scenes, a class abbreviation is represented by a class that extends all the others; its constructor is additionally added to the instance synthesis table so that an instance need not be added manually.
+Behind the scenes, a class abbreviation is represented by a class that extends all the others.
+Its constructor is additionally declared to be an instance so the new class can be constructed by instance synthesis alone.
 
 ::::keepEnv
 
@@ -369,7 +419,7 @@ instance $[(priority := $p:prio)]? $_? $_
 
 :::
 
-
+Instances defined with explicit terms often consist of either anonymous constructors ({keywordOf Lean.Parser.Term.anonymousCtor}`⟨...⟩`) wrapping method implementations or of invocations of {name}`inferInstanceAs` on definitionally equal types.
 
 Elaboration of instances is almost identical to the elaboration of ordinary definitions, with the exception of the caveats documented below.
 If no name is provided, then one is created automatically.
@@ -378,6 +428,7 @@ It's better to explicitly name instances that will be referred to directly.
 After elaboration, the new instance is registered as a candidate for instance search.
 Adding the attribute {attr}`instance` to a name can be used to mark any other defined name as a candidate.
 
+::::keepEnv
 :::example "Instance Name Generation"
 
 Following these declarations:
@@ -392,20 +443,54 @@ instance : BEq NatWrapper where
 
 the name {lean}`instBEqNatWrapper` refers to the new instance.
 :::
+::::
 
+::::keepEnv
+:::example "Variations in Instance Definitions"
+
+Given this structure type:
+```lean
+structure NatWrapper where
+  val : Nat
+```
+all of the following ways of defining a {name}`BEq` instance are equivalent:
+```lean
+instance : BEq NatWrapper where
+  beq
+    | ⟨x⟩, ⟨y⟩ => x == y
+
+instance : BEq NatWrapper :=
+  ⟨fun x y => x.val == y.val⟩
+
+instance : BEq NatWrapper :=
+  ⟨fun ⟨x⟩ ⟨y⟩ => x == y⟩
+```
+
+Aside from introducing different names into the environment, the following are also equivalent:
+```lean
+@[instance]
+def instBeqNatWrapper : BEq NatWrapper where
+  beq
+    | ⟨x⟩, ⟨y⟩ => x == y
+
+instance : BEq NatWrapper :=
+  ⟨fun x y => x.val == y.val⟩
+
+instance : BEq NatWrapper :=
+  ⟨fun ⟨x⟩ ⟨y⟩ => x == y⟩
+```
+:::
+::::
 ## Recursive Instances
 %%%
 tag := "recursive-instances"
 %%%
 
-Functions defined in {keywordOf Lean.Parser.Command.declaration}`where` structure syntax are not recursive.
-Furthermore, instances are not available for instance synthesis during their own definitions, which could be quite error-prone.
-However, instances for recursive inductive types are common, and frequently necessary.
-There are two standard ways to work around these challenges:
- 1. Define a recursive function independently of the instance, and then refer to it in the instance definition.
-    By convention, these recursive functions have the name of the corresponding method, but are defined in the datatype's namespace.
- 2. Create a local instance in a recursively-defined function that includes a reference to the function being defined, taking advantage of the fact that instance synthesis considers every binding the local context as a candidate.
-
+Functions defined in {keywordOf Lean.Parser.Command.declaration}`where` structure definition syntax are not recursive.
+Because instance declaration is a version of structure definition, type class methods are also not recursive by default.
+Instances for recursive inductive types are common, however.
+There is a standard idiom to work around this limitation: define a recursive function independently of the instance, and then refer to it in the instance definition.
+By convention, these recursive functions have the name of the corresponding method, but are defined in the datatype's namespace.
 
 ::: example "Instances are not recursive"
 Given this definition of {lean}`NatTree`:
@@ -446,15 +531,21 @@ instance : BEq NatTree := ⟨NatTree.beq⟩
 ```
 :::
 
+Furthermore, instances are not available for instance synthesis during their own definitions.
+They are first marked as being available for instance synthesis after they are defined.
+Nested inductive types, in which the recursive occurrence of the type occurs as a parameter to some other inductive type, may require an instance to be available to write even the recursive function.
+The standard idiom to work around this limitation is to create a local instance in a recursively-defined function that includes a reference to the function being defined, taking advantage of the fact that instance synthesis may use every binding in the local context with the right type.
+
+
 ::: example "Instances for nested types"
-Given this definition of {lean}`NatRoseTree` in which the type being defined occurs nested under another inductive type constructor:
+In this definition of {lean}`NatRoseTree`, the type being defined occurs nested under another inductive type constructor ({name}`Array`):
 ```lean
 inductive NatRoseTree where
   | node (val : Nat) (children : Array NatRoseTree)
 
 ```
-defining instances may require appealing to existing instances.
-However, instances are not typically available for instance synthesis during their own definitions, so the following definition fails:
+Checking the equality of rose trees requires checking equality of of arrays.
+However, instances are not typically available for instance synthesis during their own definitions, so the following definition fails, even though {lean}`NatRoseTree.beq` is a recursive function and is in scope in its own definition.
 ```lean (error := true) (name := natRoseTreeBEqFail) (keep := false)
 def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
   | .node val1 children1, .node val2 children2 =>
@@ -467,7 +558,7 @@ failed to synthesize
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
-Instances may be `let`-bound, allowing a recursively-defined function to be used in its own definition:
+To solve this, a local {lean}`BEq NatRoseTree` instance may be `let`-bound:
 
 ```lean
 partial def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
@@ -476,7 +567,7 @@ partial def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
     val1 == val2 &&
     children1 == children2
 ```
-The use of array equality on the children finds the recursively-defined instance during instance synthesis.
+The use of array equality on the children finds the let-bound instance during instance synthesis.
 :::
 
 ## Instances of `class inductive`s
@@ -485,9 +576,9 @@ tag := "class-inductive-instances"
 %%%
 
 Many instances have function types: any instance that itself recursively invokes instance search is a function, as is any instance with implicit parameters.
-Defining instances of class inductives typically means defining a function that pattern-matches one or more of its arguments, allowing it to select a constructor.
+While most instances only project method implementations from their own instance parameters, instances of class inductives typically pattern-match one or more of their arguments, allowing the instance to select the appropriate constructor.
 This is done using ordinary Lean function syntax.
-If the function in question is recursive, then it will not be available for instance synthesis in its own definition.
+Just as with other instances, the function in question is not available for instance synthesis in its own definition.
 ::::keepEnv
 :::example "An instance for a sum class"
 ```lean (show := false)
@@ -500,12 +591,16 @@ inductive ThreeChoices where
   | yes | no | maybe
 
 instance : DecidableEq ThreeChoices
-  | .yes, .yes => .isTrue rfl
-  | .no, .no => .isTrue rfl
-  | .maybe, .maybe => .isTrue rfl
-  | .yes, .maybe | .yes, .no
-  | .maybe, .yes | .maybe, .no
-  | .no, .yes | .no, .maybe => .isFalse nofun
+  | .yes,   .yes   =>
+    .isTrue rfl
+  | .no,    .no    =>
+    .isTrue rfl
+  | .maybe, .maybe =>
+    .isTrue rfl
+  | .yes,   .maybe | .yes,   .no
+  | .maybe, .yes   | .maybe, .no
+  | .no,    .yes   | .no,    .maybe =>
+    .isFalse nofun
 
 ```
 
@@ -514,20 +609,20 @@ instance : DecidableEq ThreeChoices
 
 ::::keepEnv
 :::example "A recursive instance for a sum class"
-Given this type of lists of strings:
+The type {lean}`StringList` represents monomorphic lists of strings:
 ```lean
 inductive StringList where
   | nil
   | cons (hd : String) (tl : StringList)
 ```
-a {name}`DecidableEq` instance is not automatically available for instance search in its own definition:
-```lean (error := true) (name := stringListNoRec)
+In the following attempt at defining a {name}`DecidableEq` instance, instance synthesis invoked while elaborating the inner {keywordOf termIfThenElse}`if` fails because the instance is not available for instance synthesis in its own definition:
+```lean (error := true) (name := stringListNoRec) (keep := false)
 instance : DecidableEq StringList
   | .nil, .nil => .isTrue rfl
   | .cons h1 t1, .cons h2 t2 =>
     if h : h1 = h2 then
       if h' : t1 = t2 then
-        _
+        .isTrue (by simp [*])
       else
         .isFalse (by intro hEq; cases hEq; trivial)
     else
@@ -539,7 +634,7 @@ failed to synthesize
   Decidable (t1 = t2)
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
-However, because it is an ordinary Lean function, it can recursively refer to its own explicit name:
+However, because it is an ordinary Lean function, it can recursively refer to its own explicitly-provided name:
 ```lean
 instance instDecidableEqStringList : DecidableEq StringList
   | .nil, .nil => .isTrue rfl
@@ -558,11 +653,6 @@ instance instDecidableEqStringList : DecidableEq StringList
 
 
 ## Instance Priorities
-
-
-::: planned 62
-This section will describe the specification of priorities, but not their function in the synthesis algorithm.
-:::
 
 Instances may be assigned {deftech}_priorities_.
 During instance synthesis, higher-priority instances are preferred; see {ref "instance-synth"}[the section on instance synthesis] for details of instance synthesis.

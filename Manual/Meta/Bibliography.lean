@@ -24,6 +24,7 @@ open Verso.ArgParse
 inductive Style where
   | textual
   | parenthetical
+  | here
 deriving ToJson, FromJson, Repr
 
 inductive Month where
@@ -99,9 +100,10 @@ def Citable.sortKey (c : Citable) := c.authors.map slugString |>.foldr (init := 
 
 private def andList (xs : Array Html) : Html :=
   if h : xs.size = 1 then xs[0]
+  else if h : xs.size = 2 then xs[0] ++ " and " ++ xs[1]
   else
     open Html in
-    (xs.extract 0 (xs.size - 2)).foldr (init := {{" and " {{xs.back}} }}) (· ++ ", " ++ ·)
+    (xs.extract 0 (xs.size - 1)).foldr (init := {{" and " {{xs.back}} }}) (· ++ ", " ++ ·)
 
 partial def Bibliography.lastName (inl : Doc.Inline Manual) : Doc.Inline Manual :=
   let ws := words inl
@@ -130,6 +132,19 @@ where
   | other => #[other]
 
 
+def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html) (c : Citable) : HtmlT Manual (ReaderT ExtensionImpls IO) Html := open Html in do
+  match c with
+  |  .inProceedings p =>
+    let authors ← andList <$> p.authors.mapM go
+    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{"(" {{·}} ")" }}) |>.getD .empty}} }}
+  | .thesis p =>
+    return {{ {{← go p.author}} s!", {p.year}. " <em>{{link (← go p.title)}}</em> ". " {{← go p.degree}} ", " {{← go p.university}} }}
+where
+  link (title : Html) : Html :=
+    match c.url with
+    | none => title
+    | some u => {{<a href={{u}}>{{title}}</a>}}
+
 def Citable.inlineHtml
     (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html)
     (p : Citable)
@@ -151,19 +166,8 @@ def Citable.inlineHtml
       return {{ {{authors}} s!" ({p.year})"}}
     | .parenthetical =>
       return {{" ("{{authors}} s!", {p.year})"}}
-
-def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html) (c : Citable) : HtmlT Manual (ReaderT ExtensionImpls IO) Html := open Html in do
-  match c with
-  |  .inProceedings p =>
-    let authors ← andList <$> p.authors.mapM go
-    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{"(" {{·}} ")" }}) |>.getD .empty}} }}
-  | .thesis p =>
-    return {{ {{← go p.author}} s!", {p.year}. " <em>{{link (← go p.title)}}</em> ". " {{← go p.degree}} ", " {{← go p.university}} }}
-where
-  link (title : Html) : Html :=
-    match c.url with
-    | none => title
-    | some u => {{<a href={{u}}>{{title}}</a>}}
+    | .here =>
+      p.bibHtml go
 
 def Inline.cite (citation : Citable) (style : Style := .parenthetical) : Inline where
   name := `Manual.citation
@@ -190,6 +194,13 @@ def citet : RoleExpander
     let config ← CiteConfig.parse.run args
     let x := mkIdent config.citation
     return #[← `(Doc.Inline.other (Inline.cite ($x : Citable) .textual) #[$(← extra.mapM elabInline),*])]
+
+@[role_expander citehere]
+def citehere : RoleExpander
+  | args, extra => do
+    let config ← CiteConfig.parse.run args
+    let x := mkIdent config.citation
+    return #[← `(Doc.Inline.other (Inline.cite ($x : Citable) .here) #[$(← extra.mapM elabInline),*])]
 
 def citation := ()
 
@@ -220,8 +231,11 @@ partial def cite.inlineDescr : InlineDescr where
         | .error e => HtmlT.logError s!"Failed to deserialize citation: {e}"; return {{""}}
         | .ok (v' : Citable) =>
           let inl ← v'.inlineHtml go v.2
-          let m ← v'.bibHtml go
-          pure <| inl ++ Marginalia.html m
+          if let .here := v.2 then
+            pure inl
+          else
+            let m ← v'.bibHtml go
+            pure <| inl ++ Marginalia.html m
 where
   cmp : Json → Json → Ordering
     | .null, .null => .eq
