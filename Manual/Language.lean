@@ -775,3 +775,13 @@ This section will describe `partial` and `unsafe` definitions:
 :::
 
 {include 0 Manual.Language.Classes}
+
+# Dynamic Typing
+
+{docstring TypeName}
+
+{docstring Dynamic}
+
+{docstring Dynamic.mk}
+
+{docstring Dynamic.get?}

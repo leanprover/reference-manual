@@ -44,7 +44,7 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 {docstring DecidableEq}
 
-# Inhabited
+# Inhabited Types
 
 {docstring Inhabited}
 
@@ -52,23 +52,23 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Visible Representations
 
+:::planned 135
+
+ * How to write a correct {name}`Repr` instance
+ * {name}`ReprAtom`
+ * Useful helpers, like {name}`Repr.addAppParen` and {name}`reprArg`
+ * When to use {name}`Repr` vs {name}`ToString`
+:::
+
 {docstring Repr}
 
 {docstring ToString}
 
-# Dynamic Typing
-
-{docstring TypeName}
-
-{docstring Dynamic}
-
-{docstring Dynamic.mk}
-
-{docstring Dynamic.get?}
-
 # Arithmetic and Bitwise Operators
 
 {docstring Zero}
+
+{docstring NeZero}
 
 {docstring HAdd}
 

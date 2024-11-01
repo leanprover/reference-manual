@@ -52,23 +52,29 @@ Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to s
 # Instance Search Summary
 
 Generally speaking, instance synthesis is a recursive search procedure that may, in general, backtrack arbitrarily.
+Synthesis may _succeed_ with an instance term, _fail_ if no such term can be found, or get _stuck_ if there is insufficient information.
 A detailed description of the instance synthesis algorithm is available in {citet tabledRes}[].
 An instance search problem is given by a type class applied to concrete arguments; these argument values may or may not be known.
 Instance search attempts every locally-bound variable whose type is a class, as well as each registered instance, in order of priority and definition.
 When candidate instances themselves have instance-implicit parameters, they impose further synthesis tasks.
 
 A problem is only attempted when all of the input parameters to the type class are known.
+When a problem cannot yet be attempted, then that branch is stuck; progress in other subproblems may result in the problem becoming solvable.
 Output or semi-output parameters may be either known or unknown at the start of instance search.
-Output parameters are ignored when checking whether an instance matches the problem, while semioutput parameters are considered.
+Output parameters are ignored when checking whether an instance matches the problem, while semi-output parameters are considered.
 
 Every candidate solution for a given problem is saved in a table; this prevents infinite regress in case of cycles as well as exponential search overheads in the presence of diamonds (that is, multiple paths by which the same goal can be achieved).
 A branch of the search fails when any of the following occur:
  * All potential instances have been attempted, and the search space is exhausted.
  * The instance size limit specified by the option {option}`synthInstance.maxSize` is reached.
  * The synthesized value of an output parameter does not match the specified value in the search problem.
-
 Failed branches are not retried.
-Additionally, successful branches in which the problem is fully known (that is, in which there are no unsolved metavariables) are pruned, and further potentially-successful instances are not attempted, because no later instance could cause the previously-succeeding branch to fail.
+
+If search would otherwise fail or get stuck, the search process attempts to use matching {tech}[default instances] in order of priority.
+For default instances, the input parameters do not need to be fully known, and may be instantiated by the instances parameter values.
+Default instances may take instance-implicit parameters, which induce further recursive search.
+
+Successful branches in which the problem is fully known (that is, in which there are no unsolved metavariables) are pruned, and further potentially-successful instances are not attempted, because no later instance could cause the previously-succeeding branch to fail.
 
 # Instance Search Problems
 
@@ -138,13 +144,13 @@ The local instance is selected instead of the global one:
 ::::
 
 # Instance Parameters and Synthesis
+%%%
+tag := "instance-synth-parameters"
+%%%
 
 The search process for instances is largely governed by class parameters.
-Type classes take a certain number of parameters, and instances are tried during the search when their choice of parameters is compatible with those in the class type for which the instance is being synthesized.
-Here, classes can be seen as relations between types, and instances as governing which types are related.
-An instance synthesis problem consists of instantiations of parameters to a class.
+Type classes take a certain number of parameters, and instances are tried during the search when their choice of parameters is _compatible_ with those in the class type for which the instance is being synthesized.
 
-Parameters are not limited to classes.
 Instances themselves may also take parameters, but the role of instances' parameters in instance synthesis is very different.
 Instances' parameters represent either variables that may be instantiated by instance synthesis or further synthesis work to be done before the instance can be used.
 In particular, parameters to instances may be explicit, implicit, or instance-implicit.
@@ -152,7 +158,7 @@ If they are instance implicit, then they induce further recursive instance searc
 
 ::::keepEnv
 :::example "Implicit and Explicit Parameters to Instances"
-While instances typically take parameters either implicitly or instance implicitly, explicit parameters may be filled out as if they were implicit during instance synthesis.
+While instances typically take parameters either implicitly or instance-implicitly, explicit parameters may be filled out as if they were implicit during instance synthesis.
 In this example, {name}`aNonemptySumInstance` is found by synthesis, applied explicitly to {lean}`Nat`, which is needed to make it type-correct.
 ```lean
 instance aNonemptySumInstance (α : Type) {β : Type} [inst : Nonempty α] : Nonempty (α ⊕ β) :=
@@ -177,8 +183,12 @@ tag := "class-output-parameters"
 %%%
 
 By default, the parameters of a type class are considered to be _inputs_ to the search process.
-If the parameters are not known, then the search process gets stuck, because choosing an instance would require the parameters to have values that match those in the instance.
-In some cases, the choice of one parameter should cause an automatic choice of another; for example, the overloaded membership predicate type class {name}`Membership` treats the type of elements of a data structure as an output, so that the type of element can be determined by the type of data structure at a use site, instead of requiring that there be sufficient type annotations to determine both types prior to starting instance synthesis.
+If the parameters are not known, then the search process gets stuck, because choosing an instance would require the parameters to have values that match those in the instance, which cannot be determined on the basis of incomplete information.
+In most cases, guessing instances would make instance synthesis unpredictable.
+
+In some cases, however, the choice of one parameter should cause an automatic choice of another.
+For example, the overloaded membership predicate type class {name}`Membership` treats the type of elements of a data structure as an output, so that the type of element can be determined by the type of data structure at a use site, instead of requiring that there be sufficient type annotations to determine _both_ types prior to starting instance synthesis.
+An element of a {lean}`List Nat` can be concluded to be a {lean}`Nat` simply on the basis of its membership in the list.
 
 ```signature (show := false)
 -- Test the above claim
@@ -247,8 +257,8 @@ example := ser (2, 3)
 
 ::::keepEnv
 :::example "Output Parameters with Pre-Existing Values"
-The class {name}`OneSmaller` represents a way to transform non-maximal elements of a type into elements of a type that one fewer elements.
-It has two separate instances that can match an input type {lean}`Option Bool`, with different outputs:
+The class {name}`OneSmaller` represents a way to transform non-maximal elements of a type into elements of a type that has one fewer elements.
+There are two separate instances that can match an input type {lean}`Option Bool`, with different outputs:
 ```lean
 class OneSmaller (α : Type) (β : outParam Type) where
   biggest : α
@@ -333,7 +343,7 @@ OneSmaller.shrink (some false) ⋯ : Bool
 tag := "default-instance-synth"
 %%%
 
-When instance synthesis would otherwise fail, having not selected an instance, the default instances specified using the {attr}`default_instance` attribute are attempted in order of priority.
+When instance synthesis would otherwise fail, having not selected an instance, the {deftech}_default instances_ specified using the {attr}`default_instance` attribute are attempted in order of priority.
 When priorities are equal, more recently-defined default instances are chosen before earlier ones.
 The first default instance that causes the search to succeed is chosen.
 
@@ -343,17 +353,17 @@ If the recursive search fails, the search process backtracks and the next defaul
 # “Morally Canonical” Instances
 
 During instance synthesis, if a goal is fully known (that is, contains no metavariables) and search succeeds, no further instances will be attempted for that same goal.
-In other words, when search succeeds for a goal in a way that can't be refuted by a subsequent increase in information, the goal will not be attempted again, even if there are other instances that could have been used.
+In other words, when search succeeds for a goal in a way that can't be refuted by a subsequent increase in information, the goal will not be attempted again, even if there are other instances that could potentially have been used.
 This optimization can prevent a failure in a later branch of an instance synthesis search from causing spurious backtracking that replaces a fast solution from an earlier branch with a slow exploration of a large state space.
 
 The optimization relies on the assumption that instances are {deftech}_morally canonical_.
 Even if there is more than one potential implementation of a given type class's overloaded operations, or more than one way to synthesize an instance due to diamonds, _any discovered instance should be considered as good as any other_.
 In other words, there's no need to consider _all_ potential instances so long as one of them has been guaranteed to work.
-The optimization may be disabled with the backwards-compatibility option {option}`backward.synthInstance.canonInstances`.
+The optimization may be disabled with the backwards-compatibility option {option}`backward.synthInstance.canonInstances`, which may be removed in a future version of Lean.
 
 Code that uses instance-implicit parameters should be prepared to consider all instances as equivalent.
 In other words, it should be robust in the face of differences in synthesized instances.
-When the code relies on instances being _in fact_  equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
+When the code relies on instances _in fact_ being equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
 # Options
 

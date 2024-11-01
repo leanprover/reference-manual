@@ -398,10 +398,10 @@ tag := "deriving-instances"
 Lean can automatically generate instances for many classes, a process known as {deftech}_deriving_ instances.
 Instance deriving can be invoked either when defining a type or as a stand-alone command.
 
-:::syntax Lean.Parser.Command.optDeriving
+:::syntax Lean.Parser.Command.optDeriving (open := false)
 As part of a command that creates a new inductive type, a {keywordOf Lean.Parser.Command.declaration}`deriving` clause specifies a comma-separated list of class names for which instances should be generated:
 ```grammar
-deriving $[$_],*
+$[deriving $[$_],*]?
 ```
 :::
 

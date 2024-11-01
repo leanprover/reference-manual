@@ -49,7 +49,7 @@ Instance deriving uses a table of {deftech}_deriving handlers_ that maps type cl
 Deriving handlers may be added to the table using {lean}`registerDerivingHandler`, which should be called in an {keywordOf Lean.Parser.Command.initialize}`initialize` block.
 Each deriving handler should have the type {lean}`Array Name → CommandElabM Bool`.
 When a user requests that an instance of a class be derived, its registered handlers are called one at a time.
-They are provided with all of the names in the mutual block for which the instance is to be derived, and should either correctly derive an instance and returning {lean}`true` or have no effect and return {lean}`false`.
+They are provided with all of the names in the mutual block for which the instance is to be derived, and should either correctly derive an instance and return {lean}`true` or have no effect and return {lean}`false`.
 When a handler returns {lean}`true`, no further handlers are called.
 
 Lean includes deriving handlers for the following classes:
@@ -103,14 +103,18 @@ def deriveIsEnum (declNames : Array Name) : CommandElabM Bool := do
       let mut to_froms := #[]
       let mut from_tos := #[]
       let mut i := 0
+
       for ctorName in ind.ctors do
         let c := mkIdent ctorName
         let n := Syntax.mkNumLit (toString i)
-        tos := tos.push (← `(matchAltExpr| | $c => $n))
+
+        tos      := tos.push      (← `(matchAltExpr| | $c => $n))
         from_tos := from_tos.push (← `(matchAltExpr| | $c => rfl))
-        froms := froms.push (← `(matchAltExpr| | $n => $c))
+        froms    := froms.push    (← `(matchAltExpr| | $n => $c))
         to_froms := to_froms.push (← `(matchAltExpr| | $n => rfl))
+
         i := i + 1
+
       let cmd ← `(instance : IsEnum $(mkIdent declNames[0]) where
                     size := $(quote ind.ctors.length)
                     toIdx $tos:matchAlt*
@@ -118,6 +122,7 @@ def deriveIsEnum (declNames : Array Name) : CommandElabM Bool := do
                     to_from_id $to_froms:matchAlt*
                     from_to_id $from_tos:matchAlt*)
       elabCommand cmd
+
       return true
   return false
 
