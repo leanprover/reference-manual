@@ -13,6 +13,12 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 
+def tabledRes : ArXiv where
+  title := .concat (inlines!"Tabled typeclass resolution")
+  authors := #[.concat (inlines!"Daniel Selsam"), .concat (inlines!"Sebastian Ullrich"), .concat (inlines!"Leonardo de Moura")]
+  year := 2020
+  id := "2001.04301"
+
 #doc (Manual) "Instance Synthesis" =>
 %%%
 tag := "instance-synth"
@@ -43,6 +49,27 @@ Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to s
 
 {docstring inferInstanceAs}
 
+# Instance Search Summary
+
+Generally speaking, instance synthesis is a recursive search procedure that may, in general, backtrack arbitrarily.
+A detailed description of the instance synthesis algorithm is available in {citet tabledRes}[].
+An instance search problem is given by a type class applied to concrete arguments; these argument values may or may not be known.
+Instance search attempts every locally-bound variable whose type is a class, as well as each registered instance, in order of priority and definition.
+When candidate instances themselves have instance-implicit parameters, they impose further synthesis tasks.
+
+A problem is only attempted when all of the input parameters to the type class are known.
+Output or semi-output parameters may be either known or unknown at the start of instance search.
+Output parameters are ignored when checking whether an instance matches the problem, while semioutput parameters are considered.
+
+Every candidate solution for a given problem is saved in a table; this prevents infinite regress in case of cycles as well as exponential search overheads in the presence of diamonds (that is, multiple paths by which the same goal can be achieved).
+A branch of the search fails when any of the following occur:
+ * All potential instances have been attempted, and the search space is exhausted.
+ * The instance size limit specified by the option {option}`synthInstance.maxSize` is reached.
+ * The synthesized value of an output parameter does not match the specified value in the search problem.
+
+Failed branches are not retried.
+Additionally, successful branches in which the problem is fully known (that is, in which there are no unsolved metavariables) are pruned, and further potentially-successful instances are not attempted, because no later instance could cause the previously-succeeding branch to fail.
+
 # Instance Search Problems
 
 Instance search occurs during the elaboration of (potentially nullary) function applications.
@@ -50,7 +77,7 @@ Some of the implicit parameters' values are forced by others; for instance, an i
 Implicit parameters may also be solved using information from the expected type at that point in the program.
 The search for instance implicit arguments may make use of the implicit argument values that have been found, and may additionally solve others.
 
-Instance implicit search begins with the type of the instance implicit parameter.
+Instance synthesis begins with the type of the instance-implicit parameter.
 This type must be the application of a type class to zero or more arguments; these argument values may be known or unknown when search begins.
 If an argument to a class is unknown, the search process will not instantiate it unless the corresponding parameter is {ref "class-output-parameters"}[marked as an output parameter], explicitly making it an output of the instance synthesis routine.
 
@@ -63,7 +90,7 @@ If this does not occur, stuck searches become failures.
 
 Instance synthesis uses both local and global instances in its search.
 {deftech}_Local instances_ are those available in the local context; they may be either parameters to a function or locally defined with `let`. {TODO}[xref to docs for `let`]
-Local instances do not need to be indicated specially; any local variable whose type is a type class is a candidate for instance search.
+Local instances do not need to be indicated specially; any local variable whose type is a type class is a candidate for instance synthesis.
 {deftech}_Global instances_ are those available in the global environment; every global instance is a defined name with the {attr}`instance` attribute applied.{margin}[{keywordOf Lean.Parser.Command.declaration}`instance` declarations automatically apply the {attr}`instance` attribute.]
 
 ::::keepEnv
@@ -79,7 +106,7 @@ def addPairs (p1 p2 : NatPair) : NatPair :=
     ⟨fun ⟨x1, y1⟩ ⟨x2, y2⟩ => ⟨x1 + x2, y1 + y2⟩⟩
   p1 + p2
 ```
-The local instance is used to synthesize the instance used for the addition.
+The local instance is used for the addition, having been found by instance synthesis.
 :::
 ::::
 

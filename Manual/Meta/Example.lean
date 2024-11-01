@@ -101,6 +101,7 @@ r#".example {
   border-radius: 0.5em;
   margin-bottom: 0.75em;
   margin-top: 0.75em;
+  clear: both; /* Don't overlap margin notes with examples */
 }
 .example p:last-child {margin-bottom:0;}
 .example .description::before {

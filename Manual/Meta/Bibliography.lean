@@ -52,15 +52,22 @@ structure Thesis where
   url : Option String := none
 deriving ToJson, FromJson, BEq, Hashable, Ord
 
+structure ArXiv where
+  title : Doc.Inline Manual
+  authors : Array (Doc.Inline Manual)
+  year : Int
+  id : String
+deriving ToJson, FromJson, BEq, Hashable
 
 section
 attribute [local instance] Ord.arrayOrd
-deriving instance Ord for InProceedings
+deriving instance Ord for InProceedings, ArXiv
 end
 
 inductive Citable where
   | inProceedings : InProceedings → Citable
   | thesis : Thesis → Citable
+  | arXiv : ArXiv → Citable
 deriving ToJson, FromJson, BEq, Hashable, Ord
 
 instance : Coe InProceedings Citable where
@@ -69,21 +76,23 @@ instance : Coe InProceedings Citable where
 instance : Coe Thesis Citable where
   coe := .thesis
 
+instance : Coe ArXiv Citable where
+  coe := .arXiv
+
 def Citable.authors : Citable → Array (Doc.Inline Manual)
-  | .inProceedings p => p.authors
+  | .inProceedings p | .arXiv p => p.authors
   | .thesis p => #[p.author]
 
 def Citable.title : Citable → Doc.Inline Manual
-  | .inProceedings p => p.title
-  | .thesis p => p.title
+  | .inProceedings p | .arXiv p | .thesis p => p.title
 
 def Citable.year : Citable → Int
-  | .inProceedings p => p.year
-  | .thesis p => p.year
+  | .inProceedings p | .arXiv p | .thesis p => p.year
 
 def Citable.url : Citable → Option String
   | .inProceedings p => p.url
   | .thesis p => p.url
+  | .arXiv p => some s!"https://arxiv.org/abs/{p.id}"
 
 
 private def slugString : Doc.Inline Manual → String
@@ -139,6 +148,9 @@ def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT Exte
     return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{"(" {{·}} ")" }}) |>.getD .empty}} }}
   | .thesis p =>
     return {{ {{← go p.author}} s!", {p.year}. " <em>{{link (← go p.title)}}</em> ". " {{← go p.degree}} ", " {{← go p.university}} }}
+  | .arXiv p =>
+    let authors ← andList <$> p.authors.mapM go
+    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". arXiv:" {{p.id}} }}
 where
   link (title : Html) : Html :=
     match c.url with
