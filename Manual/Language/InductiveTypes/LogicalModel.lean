@@ -56,7 +56,7 @@ The result type of the recursor is the motive applied to these indices and the t
 :::example "The recursor for {lean}`Bool`"
 {lean}`Bool`'s recursor {name}`Bool.rec` has the following parameters:
 
- * The motive computes a type in any universe, given a Bool.
+ * The motive computes a type in any universe, given a {lean}`Bool`.
  * There are cases for both constructors, in which the motive is satisfied for both {lean}`false` and {lean}`true`.
  * The target is some {lean}`Bool`.
 
@@ -168,7 +168,7 @@ This is because it is not mentioned in any further parameters' types, so it coul
 
 
 :::example "{name}`And` is a subsingleton"
-{lean}`And` is a subsingleton because it has one constructor, and both of the constructor's parameters's types are propositions.
+{lean}`And` is a subsingleton because it has one constructor, and both of the constructor's parameters' types are propositions.
 Its recursor has the following signature:
 ```signature
 And.rec.{u} {a b : Prop} {motive : a ∧ b → Sort u}
@@ -213,7 +213,7 @@ tag := "iota-reduction"
 %%%
 
 
-In addition to adding new constants to the logic, inductive datatype declarations also add new reduction rules.
+In addition to adding new constants to the logic, inductive type declarations also add new reduction rules.
 These rules govern the interaction between recursors and constructors; specifically recursors that have constructors as their targets.
 This form of reduction is called {deftech}_ι-reduction_ (iota reduction){index}[ι-reduction]{index (subterm:="ι (iota)")}[reduction].
 
@@ -225,7 +225,7 @@ If there are recursive parameters, then these arguments to the case are found by
 tag := "well-formed-inductives"
 %%%
 
-Inductive datatype declarations are subject to a number of well-formedness requirements.
+Inductive type declarations are subject to a number of well-formedness requirements.
 These requirements ensure that Lean remains consistent as a logic when it is extended with the inductive type's new rules.
 They are conservative: there exist potential inductive types that do not undermine consistency, but that these requirements nonetheless reject.
 
@@ -273,7 +273,7 @@ This restriction rules out unsound inductive type definitions, at the cost of al
 
 :::::example "Non-strictly-positive inductive types"
 ::::keepEnv
-The datatype `Bad` would make Lean inconsistent if it were not rejected:
+The type `Bad` would make Lean inconsistent if it were not rejected:
 ```lean (name := Bad) (error := true)
 inductive Bad where
   | bad : (Bad → Bad) → Bad
@@ -321,7 +321,7 @@ Lean rejects universe-polymorphic types that could not, in practice, be used pol
 This could arise if certain instantiations of the universe parameters would cause the type itself to be a {lean}`Prop`.
 If this type is not a {tech}[subsingleton], then is recursor can only target propositions (that is, the {tech}[motive] must return a {lean}`Prop`).
 These types only really make sense as {lean}`Prop`s themselves, so the universe polymorphism is probably a mistake.
-Because they are largely useless, Lean's datatype elaborator has not been designed to support these types.
+Because they are largely useless, Lean's inductive type elaborator has not been designed to support these types.
 
 When such universe-polymorphic inductive types are indeed subsingletons, it can make sense to define them.
 Lean's standard library defines {name}`PUnit` and {name}`PEmpty`.

@@ -119,7 +119,7 @@ Functions defined in {keywordOf Lean.Parser.Command.declaration}`where` structur
 Because instance declaration is a version of structure definition, type class methods are also not recursive by default.
 Instances for recursive inductive types are common, however.
 There is a standard idiom to work around this limitation: define a recursive function independently of the instance, and then refer to it in the instance definition.
-By convention, these recursive functions have the name of the corresponding method, but are defined in the datatype's namespace.
+By convention, these recursive functions have the name of the corresponding method, but are defined in the type's namespace.
 
 ::: example "Instances are not recursive"
 Given this definition of {lean}`NatTree`:
@@ -173,7 +173,7 @@ inductive NatRoseTree where
   | node (val : Nat) (children : Array NatRoseTree)
 
 ```
-Checking the equality of rose trees requires checking equality of of arrays.
+Checking the equality of rose trees requires checking equality of arrays.
 However, instances are not typically available for instance synthesis during their own definitions, so the following definition fails, even though {lean}`NatRoseTree.beq` is a recursive function and is in scope in its own definition.
 ```lean (error := true) (name := natRoseTreeBEqFail) (keep := false)
 def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
@@ -205,7 +205,7 @@ tag := "class-inductive-instances"
 %%%
 
 Many instances have function types: any instance that itself recursively invokes instance search is a function, as is any instance with implicit parameters.
-While most instances only project method implementations from their own instance parameters, instances of class inductives typically pattern-match one or more of their arguments, allowing the instance to select the appropriate constructor.
+While most instances only project method implementations from their own instance parameters, instances of class inductive types typically pattern-match one or more of their arguments, allowing the instance to select the appropriate constructor.
 This is done using ordinary Lean function syntax.
 Just as with other instances, the function in question is not available for instance synthesis in its own definition.
 ::::keepEnv

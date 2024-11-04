@@ -95,6 +95,21 @@ jobs:
           echo "-----------"
           cat words.txt
 
+      - name: Preprocess HTML for prose linter
+        run: |
+          # First the HTML needs preprocessing to work well with Vale
+          pushd _out
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install beautifulsoup4
+          python ../.vale/scripts/rewrite_html.py html-multi html-vale
+          popd
+      - name: Prose linter
+        uses: errata-ai/vale-action@v2.1.1
+        with:
+          files: _out/html-vale/
+          fail_on_error: true
+
       - name: Save word count
         run: |
           echo "# Word Counts" >> $GITHUB_STEP_SUMMARY

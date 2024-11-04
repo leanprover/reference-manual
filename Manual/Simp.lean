@@ -202,7 +202,7 @@ The simplifier has three kinds of rewrite rules:
 
 : Declarations to unfold
 
-  The simplifier will only unfold {tech}[reducible] definitions by default. However, a rewrite rule can be added for any {tech}[semireducible] or {tech}[irreducible] definition that causes the simplifier to unfold it as well. When the simplifier is running in definitional mode ({tactic}`dsimp` and its variants), definition unfolding only replaces the defined name with its value; otherwise, it also uses the equational lemmas produced by the equation compiler.
+  The simplifier will only unfold {tech}[reducible] definitions by default. However, a rewrite rule can be added for any {tech}[semi-reducible] or {tech}[irreducible] definition that causes the simplifier to unfold it as well. When the simplifier is running in definitional mode ({tactic}`dsimp` and its variants), definition unfolding only replaces the defined name with its value; otherwise, it also uses the equational lemmas produced by the equation compiler.
 
 : Equational lemmas
 

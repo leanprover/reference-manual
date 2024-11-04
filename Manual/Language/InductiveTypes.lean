@@ -31,7 +31,7 @@ Inductive types may have any number of constructors; these constructors introduc
 Based on the type constructor and the constructors for an inductive type, Lean derives a {deftech}_recursor_{index}[recursor]{see "recursor"}[eliminator].
 Logically, recursors represent induction principles or elimination rules; computationally, they represent primitive recursive computations.
 The termination of recursive functions is justified by translating them into uses of the recursors, so Lean's kernel only needs to perform type checking of recursor applications, rather than including a separate termination analysis.
-Lean additionally produces a number of helper constructions based on the recursor,{margin}[The term _recursor_ is always used, even for non-recursive datatypes.] which are used elsewhere in the system.
+Lean additionally produces a number of helper constructions based on the recursor,{margin}[The term _recursor_ is always used, even for non-recursive types.] which are used elsewhere in the system.
 
 
 _Structures_ are a special case of inductive types that have exactly one constructor.
@@ -66,7 +66,7 @@ If no signature is provided, then Lean will attempt to infer a universe that's j
 In some situations, this process may fail to find a minimal universe or fail to find one at all, necessitating an annotation.
 
 The constructor specifications follow {keywordOf Lean.Parser.Command.declaration (parser:=«inductive»)}`where`.
-Constructors are not mandatory, as constructorless datatypes such as {lean}`False` and {lean}`Empty` are perfectly sensible.
+Constructors are not mandatory, as constructorless inductive types such as {lean}`False` and {lean}`Empty` are perfectly sensible.
 Each constructor specification begins with a vertical bar (`'|'`, Unicode `'VERTICAL BAR' (U+007c)`), declaration modifiers, and a name.
 The name is a {tech}[raw identifier].
 A declaration signature follows the name.
@@ -104,12 +104,12 @@ tag := "example-inductive-types"
 %%%
 
 :::example "A constructorless type"
-{lean}`Vacant` is an empty datatype, equivalent to Lean's {lean}`Empty` type:
+{lean}`Vacant` is an empty inductive type, equivalent to Lean's {lean}`Empty` type:
 ```lean
 inductive Vacant : Type where
 ```
 
-Empty datatypes are not useless; they can be used to indicate unreachable code.
+Empty inductive types are not useless; they can be used to indicate unreachable code.
 :::
 
 :::example "A constructorless proposition"
@@ -365,7 +365,7 @@ axiom α : Prop
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
- * {lean}`Nat` is represented by `lean_object *`. Its run-time value is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is `1` (checked by `lean_is_scalar`), an encoded unboxed natural number (`lean_box`/`lean_unbox`). {TODO}[Move these to FFI section or Nat chapter]
+ * {lean}`Nat` is represented by `lean_object *`. Its run-time value is either a pointer to an opaque arbitrary-precision integer object or, if the lowest bit of the “pointer” is `1` (checked by `lean_is_scalar`), an encoded unboxed natural number (`lean_box`/`lean_unbox`). {TODO}[Move these to FFI section or Nat chapter]
 :::
 
 ## Relevance
@@ -447,7 +447,7 @@ The memory order of the fields is derived from the types and order of the fields
 Within each group the fields are ordered in declaration order. **Warning**: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
 
 * To access fields of the first kind, use `lean_ctor_get(val, i)` to get the `i`th non-scalar field.
-* To access {lean}`USize` fields, use `lean_ctor_get_usize(val, n+i)` to get the `i`th usize field and `n` is the total number of fields of the first kind.
+* To access {lean}`USize` fields, use `lean_ctor_get_usize(val, n+i)` to get the `i`th `USize` field and `n` is the total number of fields of the first kind.
 * To access other scalar fields, use `lean_ctor_get_uintN(val, off)` or `lean_ctor_get_usize(val, off)` as appropriate. Here `off` is the byte offset of the field in the structure, starting at `n*sizeof(void*)` where `n` is the number of fields of the first two kinds.
 
 ::::keepEnv
@@ -503,7 +503,7 @@ Mutually recursive definitions of inductive types are specified by defining the 
 
 :::example "Mutually Defined Inductive Types"
 The type {name}`EvenOddList` in a prior example used a Boolean index to select whether the list in question should have an even or odd number of elements.
-This distinction can also be expressed by the choice of one of two mutually inductive datatypes {name}`EvenList` and {name}`OddList`:
+This distinction can also be expressed by the choice of one of two mutually inductive types {name}`EvenList` and {name}`OddList`:
 
 ```lean
 mutual
@@ -706,7 +706,7 @@ tag := "mutual-inductive-types-positivity"
 %%%
 
 Each inductive type that is defined in the `mutual` group may occur only strictly positively in the types of the parameters of the constructors of all the types in the group.
-In other words, in the type of each parameter to each constructor in all the types of the group, none of the type constructors in the group occur to the left of any arrows, and none of them occur in argument positions unless they are an argument to an inductive datatype's type constructor.
+In other words, in the type of each parameter to each constructor in all the types of the group, none of the type constructors in the group occur to the left of any arrows, and none of them occur in argument positions unless they are an argument to an inductive type's type constructor.
 
 ::: example "Mutual strict positivity"
 In the following mutual group, `Tm` occurs in a negative position in the argument to `Binding.scope`:

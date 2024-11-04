@@ -60,7 +60,7 @@ After the object header, a string contains:
 
 : length
 
-  The length of the encoded string, which may be shorter than the byte count due to UTF-8 multibyte characters
+  The length of the encoded string, which may be shorter than the byte count due to UTF-8 multi-byte characters
 
 : data
 

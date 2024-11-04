@@ -37,11 +37,11 @@ The following forms of escape sequences are accepted:
 
 : `\xNN`
 
-  When `NN` is a sequence of two hexadecimal digits, this escape denotes the character whose Unicode codepoint is indicated by the two-digit hexadecimal code.
+  When `NN` is a sequence of two hexadecimal digits, this escape denotes the character whose Unicode code point is indicated by the two-digit hexadecimal code.
 
 : `\uNNNN`
 
-  When `NN` is a sequence of two hexadecimal digits, this escape denotes the character whose Unicode codepoint is indicated by the four-digit hexadecimal code.
+  When `NN` is a sequence of two hexadecimal digits, this escape denotes the character whose Unicode code point is indicated by the four-digit hexadecimal code.
 
 
 String literals may contain {deftech}[_gaps_].

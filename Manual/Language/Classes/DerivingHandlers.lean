@@ -71,7 +71,7 @@ class IsEnum (α : Type) where
   from_to_id : ∀ (x : α), fromIdx (toIdx x) = x
 ```
 
-For datatypes that are trivial enumerations, where no constructor expects any parameters, instances of this class are quite repetitive.
+For inductive types that are trivial enumerations, where no constructor expects any parameters, instances of this class are quite repetitive.
 The instance for `Bool` is typical:
 ```lean
 instance : IsEnum Bool where

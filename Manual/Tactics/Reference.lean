@@ -18,6 +18,13 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
+def castPaper : ArXiv where
+  title := .concat (inlines!"Simplifying Casts and Coercions")
+  authors := #[.concat (inlines!"Robert Y. Lewis"), .concat (inlines!"Paul-Nicolas Madelaine")]
+  year := 2020
+  id := "2001.10594"
+
+
 #doc (Manual) "Tactic Reference" =>
 %%%
 tag := "tactic-ref"
@@ -186,7 +193,7 @@ tag := "tactic-ref-casts"
 %%%
 
 The tactics in this section make it easier avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
-They are described in more detail in [_Simplifying Casts and Coercions_](https://arxiv.org/abs/2001.10594) by Robert Y. Lewis and Paul-Nicolas Madelaine.
+They are described in more detail by {citet castPaper}[].
 
 :::tactic Lean.Parser.Tactic.tacticNorm_cast_
 :::

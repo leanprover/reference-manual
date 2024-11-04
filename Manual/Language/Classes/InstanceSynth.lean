@@ -27,7 +27,7 @@ tag := "instance-synth"
 
 Instance synthesis is a recursive search procedure that either finds an instance for a given type class or fails.
 In other words, given a type that is registered as a type class, instance synthesis attempts constructs a term with said type.
-It respects {tech}[reducibility]: {tech}[semireducible] or {tech}[irreducible] definitions are not unfolded, so instances for a definition are not automatically treated as instances for its unfolding unless it is {tech}[reducible].
+It respects {tech}[reducibility]: {tech}[semi-reducible] or {tech}[irreducible] definitions are not unfolded, so instances for a definition are not automatically treated as instances for its unfolding unless it is {tech}[reducible].
 There may be multiple possible instances for a given class; in this case, declared priorities and order of declaration are used as tiebreakers, in that order, with more recent instances taking precedence over earlier ones with the same priority.
 
 This search procedure is efficient in the presence of diamonds and does not loop indefinitely when there are cycles.

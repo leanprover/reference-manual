@@ -62,7 +62,7 @@ All of these possibilities are used in practice:
 
 : Computational effects
 
-  Type classes such as {name}`Monad`, whose parameter is a function from one type to another, are used to provide {ref "monads-and-do"}[special syntax for effectful operations.]
+  Type classes such as {name}`Monad`, whose parameter is a function from one type to another, are used to provide {ref "monads-and-do"}[special syntax for programs with side effects.]
   The “type” for which operations are overloaded is actually a type-level function, such as {name}`Option`, {name}`IO`, or {name}`Except`.
 
 : Predicates and propositions
@@ -82,7 +82,7 @@ Here are some typical use cases for type classes:
  * A type class can represent a relation between two types that allows them to be used together in some novel way by a library.
    The {lean}`Coe` class represents automatically-inserted coercions from one type to another, and {lean}`MonadLift` represents a way to run operations with one kind of effect in a context that expects another kind.
  * Type classes can represent a framework of type-driven code generation, where instances for polymorphic types each contribute some portion of a final program.
-    The {name}`Repr` class defines a canonical pretty-printer for a datatype, and polymorphic types end up with polymorphic {name}`Repr` instances.
+    The {name}`Repr` class defines a canonical pretty-printer for a type, and polymorphic types end up with polymorphic {name}`Repr` instances.
     When pretty printing is finally invoked on an expression with a known concrete type, such as {lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the {name}`Repr` instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
 
 # Class Declarations
@@ -138,7 +138,7 @@ The differences between structure and class declarations are:
 
 : Registered as class
 
-  The resulting datatype is registered as a type class, for which instances may be defined and that may be used as the type of instance-implicit arguments.
+  The resulting inductive type is registered as a type class, for which instances may be defined and that may be used as the type of instance-implicit arguments.
 
 : Out and semi-out parameters are considered
 
@@ -283,7 +283,7 @@ def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=
 
 The problem is that a heap constructed with one {name}`Ord` instance may later be used with another, leading to the breaking of the heap invariant.
 
-One way to correct this is to making the heap datatype depend on the selected `Ord` instance:
+One way to correct this is to making the heap type depend on the selected `Ord` instance:
 ```lean
 structure Heap' (α : Type u) [Ord α] where
   contents : Array α

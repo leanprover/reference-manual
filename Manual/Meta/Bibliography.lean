@@ -141,7 +141,7 @@ where
   | other => #[other]
 
 
-def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html) (c : Citable) : HtmlT Manual (ReaderT ExtensionImpls IO) Html := open Html in do
+def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html) (c : Citable) : HtmlT Manual (ReaderT ExtensionImpls IO) Html :=   wrap <$> open Html in do
   match c with
   |  .inProceedings p =>
     let authors ← andList <$> p.authors.mapM go
@@ -152,6 +152,7 @@ def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT Exte
     let authors ← andList <$> p.authors.mapM go
     return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". arXiv:" {{p.id}} }}
 where
+  wrap (content : Html) : Html := {{<span class="citation">{{content}}</span>}}
   link (title : Html) : Html :=
     match c.url with
     | none => title

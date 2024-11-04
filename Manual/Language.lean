@@ -334,7 +334,7 @@ def Codec.char : Codec where
 
 Universe-polymorphic definitions in fact create a _schematic definition_ that can be instantiated at a variety of levels, and different instantiations of universes create incompatible values.
 
-:::Manual.example "Universe polymorhism is not first-class"
+:::Manual.example "Universe polymorphism is not first-class"
 
 This can be seen in the following example, in which `T` is a gratuitously-universe-polymorphic definition that always returns the constructor of the unit type.
 Both instantiations of `T` have the same value, and both have the same type, but their differing universe instantiations make them incompatible:
@@ -488,7 +488,7 @@ def id₃ (α : Type u) (a : α) := a
 ```
 :::
 
-Because automatic implicit arguments only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with `universe` even when `autoImplicit` is `true`.
+Because the automatic implicit parameter feature only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with `universe` even when `autoImplicit` is `true`.
 
 :::Manual.example "Automatic universe parameters and the `universe` command"
 
@@ -496,7 +496,7 @@ This definition with an explicit universe parameter is accepted:
 ```lean (keep := false)
 def L.{u} := List (Type u)
 ```
-Even with automatic implicits, this definition is rejected, because `u` is not mentioned in the header, which precedes the `:=`:
+Even with automatic implicit parameters, this definition is rejected, because `u` is not mentioned in the header, which precedes the `:=`:
 ```lean (error := true) (name := unknownUni) (keep := false)
 set_option autoImplicit true
 def L := List (Type u)
@@ -690,7 +690,7 @@ $_
 
 Describe signatures, including the following topics:
  * Explicit, implicit, instance-implicit, and strict implicit parameter binders
- * {deftech}_Automatic implicits_
+ * {deftech}_Automatic implicit_ parameters
  * Argument names and by-name syntax
  * Which parts can be omitted where? Why?
 
@@ -756,7 +756,7 @@ This section will describe the translation of {deftech}[well-founded recursion].
 ## Controlling Reduction
 
 :::planned 58
-This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semireducible], and {deftech}[irreducible] definitions.
+This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semi-reducible], and {deftech}[irreducible] definitions.
 :::
 
 ## Partial and Unsafe Recursive Definitions

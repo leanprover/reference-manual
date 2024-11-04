@@ -23,7 +23,7 @@ tag := "basic-types"
 %%%
 
 
-Lean includes a number of built-in datatypes that are specially supported by the compiler.
+Lean includes a number of built-in types that are specially supported by the compiler.
 Some, such as {lean}`Nat`, additionally have special support in the kernel.
 Other types don't have special compiler support _per se_, but rely in important ways on the internal representation of types for performance reasons.
 
@@ -99,7 +99,7 @@ tag := "char-runtime"
 %%%
 
 
-In monomorphic contexts, characters are represented as 32-bit immediate values. In other words, a field of a datatype or structure of type `Char` does not require indirection to access. In polymorphic contexts, characters are boxed.
+In monomorphic contexts, characters are represented as 32-bit immediate values. In other words, a field of a constructor or structure of type `Char` does not require indirection to access. In polymorphic contexts, characters are boxed.
 
 
 ## API Reference

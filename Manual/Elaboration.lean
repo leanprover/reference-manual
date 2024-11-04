@@ -46,7 +46,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 : Parsing
 
   The parser transforms sequences of characters into syntax trees of type {lean}`Syntax`.
-  Lean's parser is extensible, so the {lean}`Syntax` datatype is very general.
+  Lean's parser is extensible, so the {lean}`Syntax` type is very general.
 
 : Macro Expansion
 
@@ -77,7 +77,7 @@ In reality, the stages described above do not strictly occur one after the other
 Lean parses a single {tech}[command] (top-level declaration), elaborates it, and performs any necessary kernel checks.
 Macro expansion is part of elaboration; before translating a piece of syntax, the elaborator first expands any macros present at the outermost layer.
 Macro syntax may remain at deeper layers, but it will be expanded when the elaborator reaches those layers.
-There are multiple kinds of elaboration: command elaboration implements the effects of each top-level command (e.g. declaring datatypes, saving definitions, evaluating expressions), while term elaboration is responsible for constructing the terms that occur in many commands (e.g. types in signatures, the right-hand sides of definitions, or expressions to be evaluated).
+There are multiple kinds of elaboration: command elaboration implements the effects of each top-level command (e.g. declaring {tech}[inductive types], saving definitions, evaluating expressions), while term elaboration is responsible for constructing the terms that occur in many commands (e.g. types in signatures, the right-hand sides of definitions, or expressions to be evaluated).
 Tactic execution is a specialization of term elaboration.
 
 When a command is elaborated, the state of Lean changes.
@@ -135,7 +135,7 @@ New macros may be added to the macro table.
 Defining new macros is described in detail in {ref "macros"}[the section on macros].
 
 After macro expansion, both the term and command elaborators consult tables that map syntax kinds to elaboration procedures.
-Term elaborators map syntax and an optional expected type to a core language expression using the very featureful monad mentioned above.
+Term elaborators map syntax and an optional expected type to a core language expression using the very powerful monad mentioned above.
 Command elaborators accept syntax and return no value, but may have monadic side effects on the global command state.
 While both term and command elaborators have access to {lean}`IO`, it's unusual that they perform side effects; exceptions include interactions with external tools or solvers.
 
@@ -174,7 +174,7 @@ There are independent re-implementations in [Rust](https://github.com/ammkrn/nan
 
 The language implemented by the kernel is a version of the Calculus of Constructions, a dependent type theory with the following features:
  * Full dependent types
- * Inductively-defined datatypes that may be mutually inductive or include recursion nested under other inductive types
+ * Inductively-defined types that may be mutually inductive or include recursion nested under other inductive types
  * An {tech}[impredicative], definitionally proof-irrelevant, extensional {tech}[universe] of {tech}[propositions]
  * A {tech}[predicative], non-cumulative hierarchy of universes of data
  * {ref "quotients"}[Quotient types] with a definitional computation rule
@@ -209,9 +209,9 @@ The presence of explicit proof terms makes it feasible to implement independent 
 It is described in detail by {citet carneiro19}[] and {citet ullrich23}[].
 
 Lean's type theory does not feature subject reduction, the definitional equality is not necessarily transitive, and it is possible to make the type checker fail to terminate.
-None of these metatheoretic properties cause problems in practice—failures of transitivity are exceedingly rare, and as far as we know, nontermination has not occurred except when crafting code specifically to exercise it.
+None of these metatheoretic properties cause problems in practice—failures of transitivity are exceedingly rare, and as far as we know, non-termination has not occurred except when crafting code specifically to exercise it.
 Most importantly, logical soundness is not affected.
-In practice, apparent nontermination is indistinguishable from sufficiently slow programs; the latter are the causes observed in the wild.
+In practice, apparent non-ermination is indistinguishable from sufficiently slow programs; the latter are the causes observed in the wild.
 These metatheoretic properties are a result of having impredicativity, quotient types that compute, definitional proof irrelevance, and propositional extensionality; these features are immensely valuable both to support ordinary mathematical practice and to enable automation.
 
 # Elaboration Results
@@ -267,9 +267,9 @@ This split is for three reasons:
  * Translation to recursors does not necessarily preserve the cost model expected by programmers, in particular laziness vs strictness, but compiled code must have predictable performance.
 The compiler stores an intermediate representation in an environment extension.
 
-For straightforwardly structurally recursive functions, the translation will use the datatype's recursor.
+For straightforwardly structurally recursive functions, the translation will use the type's recursor.
 These functions tend to be relatively efficient when run in the kernel, their defining equations hold definitionally, and they are easy to understand.
-Functions that use other patterns of recursion that cannot be captured by the datatype's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some measure decreases at each recursive call.
+Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some measure decreases at each recursive call.
 Lean can automatically derive many of these cases, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
 To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves equational lemmas that relate the function to its original definition.
@@ -335,7 +335,7 @@ def everyOther : List α → List α
 
 equational lemmas are generated that relate {lean}`everyOther`'s recursor-based implementation to its original recursive definition.
 
-{lean}`everyOther.eq_unfold` states that a fully unapplied `everyOther` is equal to its unfolding:
+{lean}`everyOther.eq_unfold` states that `everyOther` with no arguments is equal to its unfolding:
 ```signature
 everyOther.eq_unfold.{u} :
   @everyOther.{u} = fun {α} x =>
@@ -389,7 +389,7 @@ The contents of `.ilean` files are an implementation detail and may change at an
 Finally, the compiler is invoked to translate the intermediate representation of functions stored in its environment extension into C code.
 A C file is produced for each Lean module; these are then compiled to native code using a bundled C compiler.
 If the `precompileModules` option is set in the build configuration, then this native code can be dynamically loaded and invoked by Lean; otherwise, an interpreter is used.
-For most workloads, the overhead of compilation is larger than the time saved by avoiding the interpreter, but some workloads can be sped up dramatically by precompiling tactics, language extensions, or other extensions to Lean.
+For most workloads, the overhead of compilation is larger than the time saved by avoiding the interpreter, but some workloads can be sped up dramatically by pre-compiling tactics, language extensions, or other extensions to Lean.
 
 
 # Initialization

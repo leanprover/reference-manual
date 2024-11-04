@@ -21,7 +21,7 @@ The natural numbers are nonnegative integers.
 Logically, they are the numbers 0, 1, 2, 3, …, generated from the constructors {lean}`Nat.zero` and {lean}`Nat.succ`.
 Lean imposes no upper bound on the representation of natural numbers other than physical constraints imposed by the available memory of the computer.
 
-Because the natural numbers are fundamental to both mathematical reasoning and programming, they are specially supported by Lean's implementation. The logical model of the natural numbers is as an inductive datatype, and arithmetic operations are specified using this model. In Lean's kernel, the interpreter, and compiled code, closed natural numbers are represented as efficient arbitrary-precision integers. Sufficiently small numbers are immediate values that don't require indirection through a pointer. Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
+Because the natural numbers are fundamental to both mathematical reasoning and programming, they are specially supported by Lean's implementation. The logical model of the natural numbers is as an {tech}[inductive type], and arithmetic operations are specified using this model. In Lean's kernel, the interpreter, and compiled code, closed natural numbers are represented as efficient arbitrary-precision integers. Sufficiently small numbers are immediate values that don't require indirection through a pointer. Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
 
 # Logical Model
 %%%
@@ -79,7 +79,7 @@ tag := "nat-performance"
 
 Using Lean's built-in arithmetic operators, rather than redefining them, is essential.
 The logical model of {lean}`Nat` is essentially a linked list, so addition would take time linear in the size of one argument.
-Still worse, multiplication takes quadradic time in this model.
+Still worse, multiplication takes quadratic time in this model.
 While defining arithmetic from scratch can be a useful learning exercise, these redefined operations will not be nearly as fast.
 
 # Syntax

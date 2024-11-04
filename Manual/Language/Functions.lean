@@ -370,7 +370,7 @@ tag := "totality"
 
 
 Functions can be defined recursively using {keywordOf Lean.Parser.Command.declaration}`def`.
-From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the domain to an element of the range in finite time.{margin}[Some programming language communities use the term _total_ in a more restricted sense, where functions are considered total if they do not crash but nontermination is ignored.]
+From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the domain to an element of the range in finite time.{margin}[Some programming language communities use the term _total_ in a more restricted sense, where functions are considered total if they do not crash but non-termination is ignored.]
 The values of total functions are defined for all type-correct arguments, and they cannot fail to terminate or crash due to a missing case in a pattern match.
 
 While the logical model of Lean considers all functions to be total, Lean is also a practical programming language that provides certain "escape hatches".

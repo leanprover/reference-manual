@@ -82,7 +82,7 @@ MyStructure.mk.{u, v}
 ::::
 
 
-For each field, a {deftech}[projection function] is generated that extracts the field's value from the underlying datatype's constructor.
+For each field, a {deftech}[projection function] is generated that extracts the field's value from the underlying type's constructor.
 This function is in the structure's name's namespace.
 Structure field projections are handled specially by the elaborator (as described in the {ref "structure-inheritance"}[section on structure inheritance]), which performs extra steps beyond looking up a namespace.
 When field types depend on prior fields, the types of the dependent projection functions are written in terms of earlier projections, rather than explicit pattern matching.
@@ -156,7 +156,7 @@ Its constructor is named {name}`Palindrome.ofString`, rather than `Palindrome.mk
 ::: example "Modifiers on structure constructor"
 The structure {lean}`NatStringBimap` maintains a finite bijection between natural numbers and strings.
 It consists of a pair of maps, such that the keys each occur as values exactly once in the other map.
-Because the constructor is private, code outside the defining module can't construct new instances and must use the provided API, which maintains the invariants of the datatype.
+Because the constructor is private, code outside the defining module can't construct new instances and must use the provided API, which maintains the invariants of the type.
 Additionally, providing the default constructor name explicitly is an opportunity to attach a {tech}[documentation comment] to the constructor.
 
 ```lean

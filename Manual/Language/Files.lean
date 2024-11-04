@@ -51,7 +51,7 @@ tag := "module-syntax"
 
 
 Lean's concrete syntax is extensible.
-In a language like Lean, it's not possible to completely describe the syntax once and for all, because libraries may define syntax in addition to new constants or datatypes.
+In a language like Lean, it's not possible to completely describe the syntax once and for all, because libraries may define syntax in addition to new constants or {tech}[inductive types].
 Rather than completely describing the language here, the overall framework is described, while the syntax of each language construct is documented in the section to which it belongs.
 
 ### Whitespace
@@ -89,9 +89,9 @@ tag := "keywords-and-identifiers"
 
 An {deftech}[identifier] consists of one or more identifier components, separated by `'.'`.{index}[identifier]
 
-{deftech}[Identifier components] consist of a letter or letterlike character or an underscore (`'_'`), followed by zero or more identifier continuation characters.
-Letters are English letters, upper- or lowercase, and the letterlike characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, as well as the members of the Unicode letterlike symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations.
-Identifier continuation characters consist of letters, letterlike characters, underscore (`'_'`), exclamation mark (`!`), question mark (`?`), subscripts, and single quotes (`'`).
+{deftech}[Identifier components] consist of a letter or letter-like character or an underscore (`'_'`), followed by zero or more identifier continuation characters.
+Letters are English letters, upper- or lowercase, and the letter-like characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, as well as the members of the Unicode letter-like symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations.
+Identifier continuation characters consist of letters, letter-like characters, underscore (`'_'`), exclamation mark (`!`), question mark (`?`), subscripts, and single quotes (`'`).
 As an exception, underscore alone is not a valid identifier.
 
 ````lean (show := false)
@@ -163,7 +163,7 @@ Such identifier components may contain any character at all, aside from `'»'`, 
 Some potential identifier components may be reserved keywords.
 The specific set of reserved keywords depends on the set of active syntax extensions, which may depend on the set of imported modules and the currently-opened {TODO}[xref/deftech for namespace] namespaces; it is impossible to enumerate for Lean as a whole.
 These keywords must also be quoted with guillemets to be used as identifier components in most syntactic contexts.
-Contexts in which keywords may be used as identifiers without guillemets, such as constructor names in inductive datatypes, are {deftech}_raw identifier_ contexts.{index (subterm:="raw")}[identifier]
+Contexts in which keywords may be used as identifiers without guillemets, such as constructor names in inductive types, are {deftech}_raw identifier_ contexts.{index (subterm:="raw")}[identifier]
 
 Identifiers that contain one or more `'.'` characters, and thus consist of more than one identifier component, are called {deftech}[hierarchical identifiers].
 Hierarchical identifiers are used to represent both module names and names in a namespace.
@@ -249,7 +249,7 @@ tag := "module-contents"
 %%%
 
 
-A module includes an {TODO}[def and xref] environment, which includes both the datatype and constant definitions from an environment and any data stored in {TODO}[xref] its environment extensions.
+A module includes an {TODO}[def and xref] environment, which includes both the inductive type and constant definitions from an environment and any data stored in {TODO}[xref] its environment extensions.
 As the module is processed by Lean, commands add content to the environment.
 A module's environment can be serialized to a {deftech (key:="olean")}[`.olean` file], which contains both the environment and a compacted heap region with the run-time objects needed by the environment.
 This means that an imported module can be loaded without re-executing all of its commands.
