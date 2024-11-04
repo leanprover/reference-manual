@@ -20,3 +20,36 @@ Please remember to get in touch ahead of time to plan a contribution. In general
  * Technical terms should be introduced using the `deftech` role and referred to using the `tech` role.
  * Write in US English, deferring to the Chicago Manual of Style when in doubt. Exceptions to this style may be added and documented.
  * One sentence per line, to make diffs easier to follow.
+
+## CI
+
+The CI requires that various checks are passed.
+
+One of them is that the text must live up to a number of rules written with Vale. The style implementation is still quite incomplete; just because your prose passes the linter doesn't mean it will necessarily be accepted!
+
+To run the check, first install Vale. The next step is to preprocess the generated HTML to remove features that Vale can't cope with. Finally, Vale itself can be run.
+
+To preprocess the HTML, use the script `.vale/scripts/rewrite_html.py`. It requires BeautifulSoup, so here's the overall steps to get it working the first time:
+
+```
+$ cd .vale/scripts
+$ python3 -m venv venv
+$ . ./venv/bin/activate # or the appropriate script for your shell, e.g. activate.fish
+$ pip install beautifulsoup4
+```
+After that, just run
+```
+$ . .vale/scripts/venv/bin/activate
+```
+to set up the Python environment.
+
+The next step is to run this on Verso's output. If it's in `_out/html-multi`, do this via:
+```
+$ cd _out
+$ python ../.vale/scripts/rewrite_html.py html-multi html-vale
+```
+
+Now, run `vale`:
+```
+$ vale html-vale
+```
