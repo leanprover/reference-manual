@@ -104,11 +104,13 @@ jobs:
           pip install beautifulsoup4
           python ../.vale/scripts/rewrite_html.py html-multi html-vale
           popd
+
       - name: Prose linter
         uses: errata-ai/vale-action@v2.1.1
         with:
           files: _out/html-vale/
           fail_on_error: true
+          filter_mode: nofilter
 
       - name: Save word count
         run: |
