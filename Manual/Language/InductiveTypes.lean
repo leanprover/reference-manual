@@ -49,7 +49,7 @@ tag := "inductive-declarations"
 $_:declModifiers
 inductive $d:declId $_:optDeclSig where
   $[| $_ $c:ident $_]*
-$[deriving $[$_ $[with $_]?],*]?
+$[deriving $[$x:ident],*]?
 ```
 
 Declares a new inductive type.

@@ -32,11 +32,17 @@ namespace Manual
 initialize leanOutputs : EnvExtension (NameMap (List (MessageSeverity × String))) ←
   registerEnvExtension (pure {})
 
-def Block.lean : Block where
+def Block.lean (hls : Highlighted) : Block where
   name := `Manual.lean
+  data :=
+    let defined := hls.definedNames.toArray
+    Json.arr #[ToJson.toJson hls, ToJson.toJson defined]
 
-def Inline.lean : Inline where
+def Inline.lean (hls : Highlighted) : Inline where
   name := `Manual.lean
+  data :=
+    let defined := hls.definedNames.toArray
+    Json.arr #[ToJson.toJson hls, ToJson.toJson defined]
 
 structure LeanBlockConfig where
   «show» : Option Bool := none
@@ -94,7 +100,7 @@ def lean : CodeBlockExpander
         hls := hls ++ (← highlight cmd cmdState.messages.toArray cmdState.infoState.trees)
 
       if config.show.getD true then
-        pure #[← `(Block.other {Block.lean with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])]
+        pure #[← ``(Block.other (Block.lean $(quote hls)) #[Block.code $(quote str.getString)])]
       else
         pure #[]
     finally
@@ -186,8 +192,9 @@ def leanInline : RoleExpander
 
       let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
 
+
       if config.show.getD true then
-        pure #[← `(Inline.other {Inline.lean with data := ToJson.toJson $(quote hls)} #[Inline.code $(quote term.getString)])]
+        pure #[← `(Inline.other (Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
       else
         pure #[]
 where
@@ -210,8 +217,19 @@ where
 
 @[block_extension lean]
 def lean.descr : BlockDescr where
-  traverse _ _ _ := do
-    pure none
+  traverse id data _ := do
+    let .arr #[_, defined] := data
+      | logError "Expected two-element JSON for Lean code" *> pure none
+    match FromJson.fromJson? defined with
+    | .error err =>
+      logError <| "Couldn't deserialize Lean code while traversing block example: " ++ err
+      pure none
+    | .ok (defs : Array Name) =>
+      let path ← (·.path) <$> read
+      for n in defs do
+        let _ ← externalTag id path n.toString
+        modify (·.saveDomainObject exampleDomain n.toString id)
+      pure none
   toTeX :=
     some <| fun _ go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
@@ -223,7 +241,9 @@ def lean.descr : BlockDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ _ data _ => do
-      match FromJson.fromJson? data with
+      let .arr #[hlJson, _] := data
+        | HtmlT.logError "Expected two-element JSON for Lean code" *> pure .empty
+      match FromJson.fromJson? hlJson with
       | .error err =>
         HtmlT.logError <| "Couldn't deserialize Lean code block while rendering HTML: " ++ err
         pure .empty
@@ -233,8 +253,19 @@ def lean.descr : BlockDescr where
 
 @[inline_extension lean]
 def lean.inlinedescr : InlineDescr where
-  traverse _ _ _ := do
-    pure none
+  traverse id data _ := do
+    let .arr #[_, defined] := data
+      | logError "Expected two-element JSON for Lean code" *> pure none
+    match FromJson.fromJson? defined with
+    | .error err =>
+      logError <| "Couldn't deserialize Lean code while traversing inline example: " ++ err
+      pure none
+    | .ok (defs : Array Name) =>
+      let path ← (·.path) <$> read
+      for n in defs do
+        let _ ← externalTag id path n.toString
+        modify (·.saveDomainObject exampleDomain n.toString id)
+      pure none
   toTeX :=
     some <| fun go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
@@ -246,7 +277,9 @@ def lean.inlinedescr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ data _ => do
-      match FromJson.fromJson? data with
+      let .arr #[hlJson, _] := data
+        | HtmlT.logError "Expected two-element JSON for Lean code" *> pure .empty
+      match FromJson.fromJson? hlJson with
       | .error err =>
         HtmlT.logError <| "Couldn't deserialize Lean code while rendering inline HTML: " ++ err
         pure .empty
@@ -636,7 +669,7 @@ def constTok [Monad m] [MonadEnv m] [MonadLiftT MetaM m] [MonadLiftT IO m]
     m Highlighted := do
   let docs ← findDocString? (← getEnv) name
   let sig := toString (← (PrettyPrinter.ppSignature name)).1
-  pure <| .token ⟨.const name sig docs, str⟩
+  pure <| .token ⟨.const name sig docs false, str⟩
 
 @[role_expander name]
 def name : RoleExpander

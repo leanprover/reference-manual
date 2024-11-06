@@ -372,7 +372,7 @@ results in the signature:
 id'.{u} {α : Sort u} (x : α) : α
 ```
 
-:::Manual.example "Universe monomorphism in auto-bound implicit"
+:::Manual.example "Universe monomorphism in auto-bound implicit parameters"
 On the other hand, because {name}`Nat` is in universe {lean}`Type 0`, this function automatically ends up with a concrete universe level for `α`, because `m` is applied to both {name}`Nat` and `α`, so both must have the same type and thus be in the same universe:
 ```lean
 partial def count [Monad m] (p : α → Bool) (act : m α) : m Nat := do

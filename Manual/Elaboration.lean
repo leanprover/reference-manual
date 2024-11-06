@@ -85,6 +85,9 @@ New definitions or types may have been saved for future use, the syntax may be e
 The next command is parsed and elaborated in this updated state, and itself updates the state for subsequent commands.
 
 # Parsing
+%%%
+tag := "parser"
+%%%
 
 Lean's parser is a recursive-descent parser that uses dynamic tables based on Pratt parsing{citep pratt73}[] to resolve operator precedence and associativity.
 When grammars are unambiguous, the parser does not need to backtrack; in the case of ambiguous grammars, a memoization table similar to that used in Packrat parsing avoids exponential blowup.
@@ -113,6 +116,9 @@ These syntax kinds are important, because they are the key used to look up the i
 Syntax extensions are described in more detail in {ref "language-extension"}[a dedicated chapter].
 
 # Macro Expansion and Elaboration
+%%%
+tag := "macro-and-elab"
+%%%
 
 Having parsed a command, the next step is to elaborate it.
 The precise meaning of _elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.

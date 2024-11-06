@@ -99,7 +99,7 @@ class $d:declId $_:bracketedBinder*
     $[extends $_,*]? $[: $_]? where
   $[$_:declModifiers $_ ::]?
   $_
-$[deriving $[$_ $[with $_]?],*]?
+$[deriving $[$x:ident],*]?
 ```
 
 Declares a new type class.
@@ -285,6 +285,7 @@ The problem is that a heap constructed with one {name}`Ord` instance may later b
 
 One way to correct this is to making the heap type depend on the selected `Ord` instance:
 ```lean
+
 structure Heap' (α : Type u) [Ord α] where
   contents : Array α
 
@@ -321,7 +322,7 @@ To account for these classes, a class declaration may consist of an arbitrary {t
 $_:declModifiers
 class inductive $d:declId $_:optDeclSig where
   $[| $_ $c:ident $_]*
-$[deriving $[$_ $[with $_]?],*]?
+$[deriving $[$x:ident],*]?
 ```
 :::
 

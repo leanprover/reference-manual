@@ -877,6 +877,45 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::tactic Lean.Parser.Tactic.tacticLet'_
 :::
 
+## Configuration
+%%%
+tag := "tactic-config"
+%%%
+
+Many tactics are configurable.{index subterm:="of tactics"}[configuration]
+By convention, tactics share a configuration syntax, described using {syntaxKind}`optConfig`.
+The specific options available to each tactic are described in the tactic's documentation.
+
+:::syntax Lean.Parser.Tactic.optConfig (open := false)
+A tactic configuration consists of zero or more {deftech}[configuration items]:
+```grammar
+$x:configItem*
+```
+:::
+
+:::syntax Lean.Parser.Tactic.configItem (open := false)
+Each configuration item has a name that corresponds to an underlying tactic option.
+Boolean options may be enabled or disabled using prefix `+` and `-`:
+```grammar
++$x
+```
+```grammar
+-$x
+```
+
+Options may be assigned specific values using a syntax similar to that for named function arguments:
+```grammar
+($x:ident := $t)
+```
+
+Finally, the name `config` is reserved; it is used to pass an entire set of options as a data structure.
+The specific type expected depends on the tactic.
+```grammar
+(config := $t)
+```
+
+:::
+
 ## Namespace and Option Management
 %%%
 tag := "tactic-language-namespaces-options"

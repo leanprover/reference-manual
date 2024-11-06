@@ -12,6 +12,7 @@ import Manual.Terms
 import Manual.Tactics
 import Manual.Simp
 import Manual.BasicTypes
+import Manual.NotationsMacros
 
 open Verso.Genre Manual
 
@@ -82,56 +83,8 @@ tag := "option"
 Describe {name}`Option`, including the default coercions and its API.
 :::
 
+{include 0 Manual.NotationsMacros}
 
-# Notations and Macros
-%%%
-tag := "language-extension"
-%%%
-
-## Notations
-%%%
-tag := "notations"
-%%%
-
-
-:::planned 69
-A presentation of the `notation` command and how to define infix operators
-:::
-
-## Syntax Categories and Extensions
-%%%
-tag := "syntax-categories"
-%%%
-
-:::planned 70
- * Syntax extension and syntax categories
-   * Precedence
-:::
-
-
-## Macros
-%%%
-tag := "macros"
-%%%
-
-:::planned 71
- * Definition of {deftech}_macro_
- * `macro_rules`
-   * Syntax patterns
-   * Backtracking on expansion failure
- * {deftech}[Hygiene] and quotation
- * The `macro` command
-:::
-
-
-## Elaborators
-%%%
-tag := "elaborators"
-%%%
-
-:::planned 72
-For now, a quick overview of elaborators - detailed description to be written in a later revision
-:::
 
 # Elan
 %%%

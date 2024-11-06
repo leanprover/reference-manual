@@ -70,12 +70,12 @@ The simplification tactics have the following grammar:
 
 :::syntax tactic
 ```grammar
-simp $[(config := $cfg)]? $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
+simp $_:optConfig $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
 ```
 :::
 
 In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:
- * A configuration specifier, which should be an instance of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
+ * A {ref "tactic-config"}[configuration options], which should the fields of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
  * The {keywordOf Lean.Parser.Tactic.simp}`only` modifier excludes the default simp set, instead beginning with an empty{margin}[Technically, the simp set always includes {name}`eq_self` and {name}`iff_self` in order to discharge reflexive cases.] simp set.
  * The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:
    * `*`, which adds all assumptions in the proof state to the simp set

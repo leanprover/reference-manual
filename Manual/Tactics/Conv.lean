@@ -168,7 +168,7 @@ $x:ident
 ```
 :::
 
-:::conv «convEnter[_]» show := "enter"
+:::conv enter show := "enter"
 :::
 
 
@@ -244,7 +244,7 @@ tag := "conv-rw"
 :::conv convRw__ show := "rw"
 :::
 
-:::conv convErw_ show := "erw"
+:::conv convErw__ show := "erw"
 :::
 
 :::conv convApply_ show := "apply"

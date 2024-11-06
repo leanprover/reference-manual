@@ -24,22 +24,27 @@ structure $d:declId $_:bracketedBinder*
     $[extends $_,*]? $[: $_]? where
   $[$_:declModifiers $_ ::]?
   $_
-$[deriving $[$_ $[with $_]?],*]?
+$[deriving $[$_],*]?
 ```
 
 Declares a new structure type.
 :::
 
-{deftech}[Structures] are non-recursive inductive types that have only a single constructor and no indices.
+{deftech}[Structures] are inductive types that have only a single constructor and no indices.
 In exchange for these restrictions, Lean generates code for structures that offers a number of conveniences: accessor functions are generated for each field, an additional constructor syntax based on field names rather than positional arguments is available, a similar syntax may be used to replace the values of certain named fields, and structures may extend other structures.
+Just like other inductive types, structures may be recursive; they are subject to the same restrictions regarding strict positivity.
 Structures do not add any expressive power to Lean; all of their features are implemented in terms of code generation.
 
 ```lean (show := false)
--- Test claim about non-recursive above
-/-- error: unknown identifier 'RecStruct' -/
+-- Test claim about recursive above
+
+/--
+error: (kernel) arg #1 of 'RecStruct.mk' has a non positive occurrence of the datatypes being declared
+-/
 #guard_msgs in
 structure RecStruct where
-  next : Option RecStruct
+  next : RecStruct → RecStruct
+
 ```
 
 # Structure Parameters

@@ -359,7 +359,7 @@ where
     | .error es =>
       for (pos, msg) in es do
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
-      `(sorry)
+      throwError "Parse errors prevented grammar from being processed."
 
   getBnf config isFirst howMany (stx : Syntax) : DocElabM (TaggedText GrammarTag) := do
     return (← renderBnf config isFirst howMany stx |>.run).render (w := 5)

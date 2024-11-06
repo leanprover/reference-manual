@@ -362,7 +362,7 @@ def goal : RoleExpander
 
       if config.show then
         -- Just emit a normal Lean node - no need to do anything special with the rendered result
-        pure #[← `(Inline.other {Inline.lean with data := ToJson.toJson $(quote hls)} #[Inline.code $(quote term.getString)])]
+        pure #[← ``(Inline.other (Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
       else
         pure #[]
 where
@@ -435,7 +435,7 @@ def tacticStep : CodeBlockExpander
       throwErrorAt str "Failed to parse tactic step"
     | .ok stx =>
       let hlTac ← saveTactic stx
-      pure #[← `(Block.other {Block.lean with data := ToJson.toJson (α := Highlighted) $hlTac} #[Block.code $(quote str.getString)])]
+      pure #[← ``(Block.other (Block.lean $hlTac) #[Block.code $(quote str.getString)])]
 
 open Lean.Parser in
 @[role_expander tacticStep]
@@ -458,7 +458,7 @@ def tacticStepInline : RoleExpander
     | .ok stx =>
       let hlTac ← saveTactic stx
 
-      pure #[← `(Inline.other {Inline.lean with data := ToJson.toJson (α := Highlighted) $hlTac} #[Inline.code $(quote tacStr.getString)])]
+      pure #[← ``(Inline.other (Inline.lean $hlTac) #[Inline.code $(quote tacStr.getString)])]
 
 def Block.proofState : Block where
   name := `Manual.proofState
