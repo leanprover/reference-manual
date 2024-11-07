@@ -95,6 +95,10 @@ jobs:
           echo "-----------"
           cat words.txt
 
+      - name: Install prose linter
+        run: |
+          sudo snap install vale
+
       - name: Preprocess HTML for prose linter
         run: |
           # First the HTML needs preprocessing to work well with Vale
@@ -106,11 +110,9 @@ jobs:
           popd
 
       - name: Prose linter
-        uses: errata-ai/vale-action@v2.1.1
-        with:
-          files: _out/html-vale/
-          fail_on_error: true
-          filter_mode: nofilter
+        run: |
+          set -o pipefail
+          vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
 
       - name: Save word count
         run: |
