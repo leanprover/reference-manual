@@ -85,7 +85,7 @@ tag := "macros"
    * Troubleshooting: longest match
 :::
 
-## Macro attribute
+## Macro Attribute
 
 ## The `macro_rules` and `macro` commands
 

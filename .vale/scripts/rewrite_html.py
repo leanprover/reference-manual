@@ -32,6 +32,10 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="namedocs"):
         element.decompose()
 
+    # Delete grammar specifications
+    for element in soup.find_all(class_="grammar"):
+        element.decompose()
+
     # Replace citations with their text
     for element in soup.find_all(class_="citation"):
         for inner in element.contents:
