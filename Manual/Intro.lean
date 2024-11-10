@@ -153,6 +153,17 @@ skip
 
 Identifiers in code examples are hyperlinked to their documentation.
 
+Examples of code with syntax errors are shown with an indicator of where the parser stopped, along with the error message:
+```syntaxError intro
+def f : Option Nat → Type
+  | some 0 => Unit
+  | => Option (f t)
+  | none => Empty
+```
+```leanOutput intro
+<example>:3:4: expected term
+```
+
 ## Examples
 %%%
 tag := "example-boxes"

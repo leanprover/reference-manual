@@ -41,20 +41,21 @@ def attr : RoleExpander
     match Parser.runParserCategory (← getEnv) `attr altStr (← getFileName) with
     | .error e => throwErrorAt a e
     | .ok stx =>
-      match stx.getKind with
-      | `Lean.Parser.Attr.simple =>
-        let attrName := stx[0].getId
-        throwErrorAt a "Simple: {attrName} {isAttribute (← getEnv) attrName}"
-      | .str (.str (.str (.str .anonymous "Lean") "Parser") "Attr") k =>
-        match getAttributeImpl (← getEnv) k.toName with
-        | .error e => throwErrorAt a e
-        | .ok {descr, name, ref, ..} =>
-          let attrTok := a.getString
-          let hl : Highlighted := attrToken ref descr attrTok
-          discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
-          pure #[← `(Verso.Doc.Inline.other {Inline.attr with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote attrTok)])]
-      | other =>
-      throwErrorAt a "Kind is {stx.getKind} {isAttribute (← getEnv) stx.getKind} {attributeExtension.getState (← getEnv) |>.map |>.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString) |> repr}"
+      let attrName ←
+        match stx.getKind with
+        | `Lean.Parser.Attr.simple => pure stx[0].getId
+        | .str (.str (.str (.str .anonymous "Lean") "Parser") "Attr") k => pure k.toName
+        | other =>
+          let allAttrs := attributeExtension.getState (← getEnv) |>.map |>.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)
+          throwErrorAt a "Failed to process attribute kind: {stx.getKind} {isAttribute (← getEnv) stx.getKind} {allAttrs |> repr}"
+      match getAttributeImpl (← getEnv) attrName with
+      | .error e => throwErrorAt a e
+      | .ok {descr, name, ref, ..} =>
+        let attrTok := a.getString
+        let hl : Highlighted := attrToken ref descr attrTok
+        discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
+        pure #[← `(Verso.Doc.Inline.other {Inline.attr with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote attrTok)])]
+
 
 where
   -- TODO: This will eventually generate the right cross-reference, but VersoManual needs to have a

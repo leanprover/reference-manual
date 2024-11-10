@@ -49,6 +49,24 @@ def evalPrio : RoleExpander
         log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
       throwError s!"Failed to parse priority from '{s.getString}'"
 
+@[role_expander evalPrec]
+def evalPrec : RoleExpander
+  | args, inlines => do
+    ArgParse.done.run args
+    let #[inl] := inlines
+      | throwError "Expected a single code argument"
+    let `(inline|code{ $s:str }) := inl
+      | throwErrorAt inl "Expected code literal with the precedence"
+    let altStr ← parserInputString s
+    match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ (categoryParser `prec 1024)) altStr (← getFileName) with
+    | .ok stx =>
+      let n ← liftMacroM (Lean.evalPrec stx)
+      pure #[← `(Verso.Doc.Inline.text $(quote s!"{n}"))]
+    | .error es =>
+      for (pos, msg) in es do
+        log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
+      throwError s!"Failed to parse precedence from '{s.getString}'"
+
 def Block.syntax : Block where
   name := `Manual.syntax
 

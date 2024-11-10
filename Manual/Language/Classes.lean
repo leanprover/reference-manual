@@ -285,7 +285,6 @@ The problem is that a heap constructed with one {name}`Ord` instance may later b
 
 One way to correct this is to making the heap type depend on the selected `Ord` instance:
 ```lean
-
 structure Heap' (α : Type u) [Ord α] where
   contents : Array α
 

@@ -85,6 +85,14 @@ Describe {name}`Option`, including the default coercions and its API.
 
 {include 0 Manual.NotationsMacros}
 
+# Output from Lean
+
+:::planned 122
+ * {deftech}[Unexpanders]
+ * Delaboration
+ * Pretty printing
+ * Parenthesizers
+:::
 
 # Elan
 %%%

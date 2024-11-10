@@ -481,6 +481,9 @@ def syntaxError.descr : BlockDescr where
 }
 .syntax-error .parse-message {
   position: relative;
+  width: 1em;
+  height: 1em;
+  display: inline-block;
 }
 .syntax-error .parse-message::before {
   content: '🛑';
@@ -520,7 +523,7 @@ def syntaxError.descr : BlockDescr where
               if pos' > lineEnd then break
               msgs := more
               line := line.push <| str.extract pos pos'
-              line := line.push {{<span class="parse-message has-info error"><code class="hover-info">{{msg}}</code></span>"\n"}}
+              line := line.push {{<span class="parse-message has-info error"><code class="hover-info">{{msg}}</code></span>}}
               pos := pos'
           line := line.push <| str.extract pos lineEnd
           out := out.push {{<code class="line">{{line}}</code>}}

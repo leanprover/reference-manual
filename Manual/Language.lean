@@ -468,7 +468,7 @@ unknown universe level 'v'
 ```
 :::
 
-In addition to using `autoImplicit`, particular identifiers can be declared as universe variables in a particular {tech}[scope] using the `universe` command.
+In addition to using `autoImplicit`, particular identifiers can be declared as universe variables in a particular {tech}[section scope] using the `universe` command.
 
 :::syntax Lean.Parser.Command.universe
 ```grammar
@@ -712,17 +712,34 @@ tag := "scopes"
 
 ::: planned 54
 
-Many commands have an effect for the current {deftech key:="scope"}[_section scope_] (sometimes just called "scope" when clear).
+Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called "scope" when clear).
 A section scope ends when a namespace ends, a section ends, or a file ends.
 They can also be anonymously and locally created via `in`.
 Section scopes track the following:
  * The {deftech}_current namespace_
- * The {deftech}_open namespaces_
+ * The {deftech key:="open namespace"}_open namespaces_
  * The values of all {deftech}_options_
  * Variable and universe declarations
 
 This section will describe this mechanism.
 
+:::
+
+:::syntax attrKind (open := false)
+Globally-scoped declarations (the default) are in effect whenever the {tech}[module] in which they're established is transitively imported.
+They are indicated by the absence of another scope modifier.
+```grammar
+```
+
+Locally-scoped declarations are in effect only for the extent of the {tech}[section scope] in which they are established.
+```grammar
+local
+```
+
+Scoped declarations are in effect whenever the {tech key:="open namespace"}[namespace] in which they are established is opened.
+```grammar
+scoped
+```
 :::
 
 # Axioms
@@ -772,6 +789,18 @@ This section will describe `partial` and `unsafe` definitions:
  * What guarantees are there, and what aren't there?
  * How to bridge from unsafe to safe code?
 
+:::
+
+# Attributes
+%%%
+tag := "attributes"
+%%%
+
+:::planned 144
+ * Concrete syntax of {deftech}[attributes]
+ * Use cases
+ * Scope
+ * When can they be added?
 :::
 
 {include 0 Manual.Language.Classes}
