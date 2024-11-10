@@ -814,3 +814,15 @@ tag := "attributes"
 {docstring Dynamic.mk}
 
 {docstring Dynamic.get?}
+
+# Coercions
+%%%
+tag := "coercions"
+%%%
+
+:::planned 146
+ * {deftech}[Coercions]
+ * When they are inserted
+ * Varieties of coercions
+ * When should each be used?
+:::

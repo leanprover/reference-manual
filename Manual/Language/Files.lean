@@ -87,7 +87,7 @@ tag := "keywords-and-identifiers"
 %%%
 
 
-An {deftech}[identifier] consists of one or more identifier components, separated by `'.'`.{index}[identifier]
+An {tech}[identifier] consists of one or more identifier components, separated by `'.'`.{index}[identifier]
 
 {deftech}[Identifier components] consist of a letter or letter-like character or an underscore (`'_'`), followed by zero or more identifier continuation characters.
 Letters are English letters, upper- or lowercase, and the letter-like characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, as well as the members of the Unicode letter-like symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations.

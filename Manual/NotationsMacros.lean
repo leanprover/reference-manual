@@ -504,20 +504,415 @@ Left-associative operators use the higher precedence for their right argument, w
 
 # Defining New Syntax
 
+Lean's uniform representation of syntax is very general and flexible.
+This means that extensions to Lean's parser do not require extensions to the representation of parsed syntax.
+
 ## Syntax Model
 
-:::TODO
- * {deftech}[atom]
-:::
+Lean's parser produces a concrete syntax tree, of type {name}`Lean.Syntax`.
+{name}`Lean.Syntax` is an inductive type that represents all of Lean's syntax, including commands, terms, tactics, and any custom extensions.
+All of these are represented by a few basic building blocks:
 
-## Syntax Categories and Extensions
+: {deftech}[Atoms]
+
+  Atoms are the fundamental terminals of the grammar, including literals (such as those for characters and numbers), parentheses, operators, and keywords.
+
+: {deftech}[Identifiers]
+
+  :::keepEnv
+  ```lean (show := false)
+  variable {α : Type u}
+  variable {x : α}
+  ```
+  Identifiers represent names, such as {lean}`x`, {lean}`Nat`, or {lean}`Nat.add`.
+  Identifier syntax includes a list of pre-resolved names that the identifier might refer to.
+  :::
+
+: {deftech}[Nodes]
+
+  Nodes represent the parsing of nonterminals.
+  Nodes contain a {deftech}_syntax kind_, which identifies the syntax rule that the node results from, along with an array of child {name Lean.Syntax}`Syntax` values.
+
+: Missing Syntax
+
+  When the parser encounters an error, it returns a partial result, so Lean can provide some feedback about partially-written programs or programs that contain mistakes.
+  Partial results contain one or more instances of missing syntax.
+
+Atoms and identifiers are collectively referred to as {deftech}_tokens_.
+
+{docstring Lean.Syntax}
+
+{docstring Lean.Syntax.Preresolved}
+
+### Syntax Node Kinds
+
+Syntax node kinds typically identify the parser that produced the node.
+This is one place where the names given to operators or notations (or their automatically-generated internal names) occur.
+While only nodes contain a field that identifies their kind, identifiers have the kind {name Lean.identKind}`identKind` by convention, while atoms have their internal string as their kind by convention.
+The kind of a syntax value can be extracted using {name Lean.Syntax.getKind}`Syntax.getKind`.
+
+{docstring Lean.SyntaxNodeKind}
+
+{docstring Lean.Syntax.isOfKind}
+
+{docstring Lean.Syntax.getKind}
+
+{docstring Lean.Syntax.setKind}
+
+#### Token and Literal Kinds
+
+A number of named kinds are associated with the basic tokens produced by the parser.
+Typically, single-token syntax productions consist of a {name Lean.Syntax.node}`node` that contains a single {name Lean.Syntax.atom}`atom`; the kind saved in the node allows the value to be recognized.
+Atoms for literals are not interpreted by the parser: string atoms include their leading and trailing double-quote characters along with any escape sequences contained within, and hexadecimal numerals are saved as a string that begins with {lean}`"0x"`.
+Helpers such as {name}`Lean.TSyntax.getString` are provided to perform this decoding on demand.
+
+```lean (show := false) (keep := false)
+-- Verify claims about atoms and nodes
+open Lean in
+partial def noInfo : Syntax → Syntax
+  | .node _ k children => .node .none k (children.map noInfo)
+  | .ident _ s x pre => .ident .none s x pre
+  | .atom _ s => .atom .none s
+  | .missing => .missing
+/--
+info: Lean.Syntax.node (Lean.SourceInfo.none) `num #[Lean.Syntax.atom (Lean.SourceInfo.none) "0xabc123"]
+-/
+#guard_msgs in
+#eval noInfo <$> `(term|0xabc123)
+
+/--
+info: Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.SourceInfo.none) "\"ab\\tc\""]
+-/
+#guard_msgs in
+#eval noInfo <$> `(term|"ab\tc")
+```
+
+{docstring Lean.identKind}
+
+{docstring Lean.strLitKind}
+
+{docstring Lean.interpolatedStrKind}
+
+{docstring Lean.interpolatedStrLitKind}
+
+{docstring Lean.charLitKind}
+
+{docstring Lean.numLitKind}
+
+{docstring Lean.scientificLitKind}
+
+{docstring Lean.nameLitKind}
+
+{docstring Lean.fieldIdxKind}
+
+#### Internal Kinds
+
+{docstring Lean.groupKind}
+
+{docstring Lean.nullKind}
+
+{docstring Lean.choiceKind}
+
+{docstring Lean.hygieneInfoKind}
+
+### Source Positions
+%%%
+tag := "source-info"
+%%%
+
+Atoms, identifiers, and nodes optionally contain {deftech}[source information] that tracks their correspondence with the original file.
+The parser saves source information for all tokens, but not for nodes; position information for parsed nodes is reconstructed from their first and last tokens.
+Not all {name Lean.Syntax}`Syntax` data results from the parser: it may be the result of {tech}[macro expansion], in which case it typically contains a mix of generated and parsed syntax, or it may be the result of {tech key:="delaborate"}[delaborating] an internal term to display it to a user.
+In these use cases, nodes may themselves contain source information.
+
+Source information comes in two varieties:
+
+: {deftech}[Original]
+
+  Original source information comes from the parser.
+  In addition to the original source location, it also contains leading and trailing whitespace that was skipped by the parser, which allows the original string to be reconstructed.
+  This whitespace is saved as offsets into the string representation of the original source code (that is, as {name}`Substring`) to avoid having to allocate copies of substrings.
+
+: {deftech}[Synthetic]
+
+  Synthetic source information comes from metaprograms (including macros) or from Lean's internals.
+  Because there is no original string to be reconstructed, it does not save leading and trailing whitespace.
+  Synthetic source positions are used to provide accurate feedback even when terms have been automatically transformed, as well as to track the correspondence between elaborated expressions and their presentation in Lean's output.
+  A synthetic position may be marked {deftech}_canonical_, in which case some operations that would ordinarily ignore synthetic positions will treat it as if it were not.
+
+{docstring Lean.SourceInfo}
+
+### Typed Syntax
+
+Syntax may additionally be annotated with a type that specifies which {tech}[syntax category] it belongs to.
+{TODO}[Describe the problem here - complicated invisible internal invariants leading to weird error msgs]
+The {name Lean.TSyntax}`TSyntax` structure contains a type-level list of syntax categories along with a syntax tree.
+The list of syntax categories typically contains precisely one element, in which case the list structure itself is not shown.
+
+{docstring Lean.TSyntax}
+
+{tech}[Quasiquotations] prevent the substitution of typed syntax that does not come from the correct syntactic category.
+For many of Lean's built-in syntactic categories, there is a set of {tech}[coercions] that appropriately wrap one kind of syntax for another category, such as a coercion from the syntax of string literals to the syntax of terms.
+Additionally, many helper functions that are only valid on some syntactic categories are defined for the appropriate typed syntax only.
+
+```lean (show := false)
+/-- info: instCoeHTCTOfCoeHTC -/
+#guard_msgs in
+open Lean in
+#synth CoeHTCT (TSyntax `str) (TSyntax `term)
+```
+
+The constructor of {name Lean.TSyntax}`TSyntax` is public, and nothing prevents users from constructing values that break internal invariants.
+The use of {name Lean.TSyntax}`TSyntax` should be seen as a way to reduce common mistakes, rather than rule them out entirely.
+
+#### Aliases
+
+A number of aliases are provided for commonly-used typed syntax varieties.
+These aliases allow code to be written at a higher level of abstraction.
+
+{docstring Lean.Term}
+
+{docstring Lean.Command}
+
+{docstring Lean.Level}
+
+{docstring Lean.Syntax.Tactic}
+
+{docstring Lean.Prec}
+
+{docstring Lean.Prio}
+
+{docstring Lean.Ident}
+
+{docstring Lean.StrLit}
+
+{docstring Lean.CharLit}
+
+{docstring Lean.NameLit}
+
+{docstring Lean.NumLit}
+
+{docstring Lean.ScientificLit}
+
+{docstring Lean.HygieneInfo}
+
+#### Helpers for Typed Syntax
+
+For literals, Lean's parser produces a singleton node that contains an {name Lean.Syntax.atom}`atom`.
+The inner atom contains a string with source information, while the node's kind specifies how the atom is to be interpreted.
+This may involve decoding string escape sequences or interpreting base-16 numeric literals.
+The helpers in this section perform the correct interpretation.
+
+{docstring Lean.TSyntax.getId}
+
+{docstring Lean.TSyntax.getName}
+
+{docstring Lean.TSyntax.getNat}
+
+{docstring Lean.TSyntax.getScientific}
+
+{docstring Lean.TSyntax.getString}
+
+{docstring Lean.TSyntax.getChar}
+
+{docstring Lean.TSyntax.getHygieneInfo}
+
+## Syntax Categories
 %%%
 tag := "syntax-categories"
 %%%
 
-:::TODO
- * {deftech}_Atoms_ and other kinds of syntax
+Lean's parser contains a table of {deftech}_syntax categories_, which correspond to nonterminals in a context-free grammar.
+Some of the most important categories are terms, commands, universe levels, priorities, precedences, and the categories that represent tokens such as literals.
+Typically, each {tech}[syntax kind] corresponds to a category.
+New categories can be declared using {keywordOf Lean.Parser.Command.syntaxCat}`declare_syntax_cat`.
+
+:::syntax command
+Declares a new syntactic category.
+
+```grammar
+$[$_:docComment]?
+declare_syntax_cat $_ $[(behavior := $_)]?
+```
 :::
+
+The leading identifier behavior is an advanced feature that usually does not need to be modified.
+It controls the behavior of the parser when it encounters an identifier, and can sometimes cause the identifier to be treated as a non-reserved keyword instead.
+This is used to avoid turning the name of every {ref "tactics"}[tactic] into a reserved keyword.
+
+{docstring Lean.Parser.LeadingIdentBehavior}
+
+## Syntax Rules
+
+Each {tech}[syntax category] is associated with a set of {deftech}_syntax rules_, which correspond to productions in a context-free grammar.
+Syntax rules can be defined using the {keywordOf Lean.Parser.Command.syntax}`syntax` command.
+
+:::syntax command
+```grammar
+$[$_:docComment]?
+$[$_:attributes]?
+$_:attrKind
+syntax$[:$p]? $[(name := $x)]? $[(priority := $p)]? $_* : $c
+```
+:::
+
+As with operator and notation declarations, the contents of the documentation comments are shown to users while they interact with the new syntax.
+Attributes may be added to invoke compile-time metaprograms on the resulting definition.
+
+Syntax rules interact with {tech}[section scopes] in the same manner as attributes, operators, and notations.
+By default, syntax rules are available to the parser in any module that transitively imports the one in which they are established, but they may be declared `scoped` or `local` to restrict their availability either to contexts in which the current namespace has been opened or to the current {tech}[section scope], respectively.
+
+:::TODO
+What is the priority?
+:::
+
+The syntax rule's precedence, written immediately after the {keywordOf Lean.Parser.Command.syntax}`syntax` keyword, restricts the parser to use this new syntax only when the precedence context is at least the provided value.
+{TODO}[Default precedence]
+Just as with operators and notations, syntax rules may be manually provided with a name; if they are not, an otherwise-unused name is generated.
+Whether provided or generated, this name is used as the syntax kind in the resulting {name Lean.Syntax.node}`node`.
+
+The body of a syntax declaration is even more flexible than that of a notation.
+String literals specify atoms to match.
+Subterms may be drawn from any syntax category, rather than just terms, and they may be optional or repeated, with or without interleaved comma separators.
+Identifiers in syntax rules indicate syntax categories, rather than naming subterms as they do in notations.
+
+
+Finally, the syntax rule specifies which syntax category it extends.
+It is an error to declare a syntax rule in a nonexistent category.
+
+```lean (show := false)
+-- verify preceding para
+/-- error: unknown category 'nuhUh' -/
+#guard_msgs in
+syntax "blah" : nuhUh
+```
+
+
+:::syntax stx (open := false)
+The syntactic category `stx` is the grammar of specifiers that may occur in the body of a {keywordOf Lean.Parser.Command.syntax}`syntax` command.
+
+String literals are parsed as {tech}[atoms] (including both keywords such as `if`, `#eval`, or `where`):
+```grammar
+$s:str
+```
+Leading and trailing spaces in the strings do not affect parsing, but they cause Lean to insert spaces in the corresponding position when displaying the syntax in {tech}[proof states] and error messages.
+Ordinarily, valid identifiers occurring as atoms in syntax rules become reserved keywords.
+Preceding a string literal with an ampersand (`&`) suppresses this behavior:
+```grammar
+&$s:str
+```
+
+Identifiers specify the syntactic category expected in a given position, and may optionally provide a precedence:{TODO}[Default prec here?]
+```grammar
+$x:ident$[:$p]?
+```
+
+The `*` modifier is the Kleene star, matching zero or more repetitions of the preceding syntax:
+```grammar
+$s:stx *
+```
+The `+` modifier matches one or more repetitions of the preceding syntax:
+```grammar
+$s:stx +
+```
+The `?` modifier makes a subterm optional, and matches zero or one, but not more, repetitions of the preceding syntax:
+```grammar
+$s:stx ?
+```
+
+The `,*` modifier matches zero or more repetitions of the preceding syntax with interleaved commas:
+```grammar
+$_:stx ,*
+```
+
+The `,+` modifier matches one or more repetitions of the preceding syntax with interleaved commas:
+```grammar
+$_:stx ,+
+```
+
+The `,*,?` modifier matches zero or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
+```grammar
+$_:stx ,*,?
+```
+
+The `,*,?` modifier matches one or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
+```grammar
+$_:stx ,+,?
+```
+
+The `<|>` operator matches either syntax.
+However, if the first branch consumes any tokens, then it is committed to, and failures will not be backtracked:
+```grammar
+$_:stx <|> $_:stx
+```
+
+The `!` operator matches the complement of its argument.
+If its argument fails, then it succeeds, resetting the parsing state.
+```grammar
+! $_:stx
+```
+
+Syntax specifiers may be grouped using parentheses.
+```grammar
+($_:stx)
+```
+:::
+
+:::example "Parsing Matched Parentheses and Brackets"
+
+A language that consists of matched parentheses and brackets can be defined using syntax rules.
+The first step is to declare a new {tech}[syntax category]:
+```lean
+declare_syntax_cat balanced
+```
+Next, rules can be added for parentheses and square brackets.
+To rule out empty strings, the base cases consist of empty pairs.
+```lean
+syntax "(" ")" : balanced
+syntax "[" "]" : balanced
+syntax "(" balanced ")" : balanced
+syntax "[" balanced "]" : balanced
+syntax balanced balanced : balanced
+```
+
+In order to invoke Lean's parser on these rules, there must also be an embedding from the new syntax category into one that may already be parsed:
+```lean
+syntax (name := termBalanced) "balanced " balanced : term
+```
+
+These terms cannot be elaborated, but reaching an elaboration error indicates that parsing succeeded:
+```lean
+/--
+error: elaboration function for 'termBalanced' has not been implemented
+  balanced ()
+-/
+#guard_msgs in
+example := balanced ()
+
+/--
+error: elaboration function for 'termBalanced' has not been implemented
+  balanced []
+-/
+#guard_msgs in
+example := balanced []
+
+/--
+error: elaboration function for 'termBalanced' has not been implemented
+  balanced [[]()([])]
+-/
+#guard_msgs in
+example := balanced [[] () ([])]
+```
+
+Similarly, parsing fails when they are mismatched:
+```syntaxError mismatch
+example := balanced [() (]]
+```
+```leanOutput mismatch
+<example>:1:25: expected ')' or balanced
+```
+:::
+
 
 # Macros
 %%%
@@ -526,10 +921,11 @@ tag := "macros"
 
 :::planned 71
  * Definition of {deftech}_macro_
+ * {deftech}_Macro expansion_
  * `macro_rules`
    * Syntax patterns
    * Backtracking on expansion failure
- * {deftech}[Hygiene] and quotation
+ * {deftech}[Hygiene] and {deftech}[quasiquotation]
  * The `macro` command
 :::
 
