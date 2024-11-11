@@ -497,7 +497,7 @@ tag := "operators-and-notations"
 
 Internally, operator declarations are translated into notation declarations.
 Term notation items are inserted where the operator would expect arguments, and in the corresponding positions in the expansion.
-For prefix and postfix operators, the notation's precedence as well as the precedences of its term iters is the operator's declared precedence.
+For prefix and postfix operators, the notation's precedence as well as the precedences of its term items is the operator's declared precedence.
 For non-associative infix operators, the notation's precedence is the declared precedence, but both arguments are parsed at a precedence level that is one higher, which prevents successive uses of the notation without parentheses.
 Associative infix operators use the operator's precedence for the notation and for one argument, while a precedence that is one level higher is used for the other argument; this prevents successive applications in one direction only.
 Left-associative operators use the higher precedence for their right argument, while right-associative operators use the higher precedence for their left argument.
@@ -835,7 +835,7 @@ The `,*,?` modifier matches zero or more repetitions of the preceding syntax wit
 $_:stx ,*,?
 ```
 
-The `,*,?` modifier matches one or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
+The `,+,?` modifier matches one or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
 ```grammar
 $_:stx ,+,?
 ```
