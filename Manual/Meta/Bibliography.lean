@@ -112,17 +112,17 @@ private def andList (xs : Array Html) : Html :=
   else if h : xs.size = 2 then xs[0] ++ " and " ++ xs[1]
   else
     open Html in
-    (xs.extract 0 (xs.size - 1)).foldr (init := {{" and " {{xs.back}} }}) (· ++ ", " ++ ·)
+    (xs.extract 0 (xs.size - 1)).foldr (init := {{" and " {{xs.back!}} }}) (· ++ ", " ++ ·)
 
 partial def Bibliography.lastName (inl : Doc.Inline Manual) : Doc.Inline Manual :=
   let ws := words inl
   if _ : ws.size = 0 then inl
   else if _ : ws.size = 1 then ws[0]
   else Id.run do
-    let mut lst := #[ws.back]
+    let mut lst := #[ws.back!]
     let mut rest := ws.pop
     while rest.back?.isSome do
-      let w := rest.back
+      let w := rest.back!
       rest := rest.pop
       if parts.contains w then
         lst := lst.push w
@@ -160,60 +160,67 @@ where
 
 def Citable.inlineHtml
     (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT ExtensionImpls IO) Html)
-    (p : Citable)
+    (ps : List Citable)
     (fmt : Style) :
-    HtmlT Manual (ReaderT ExtensionImpls IO) Html :=
-  open Html in do
-    let authors ←
-      if p.authors.size = 0 then
-        pure {{""}}
-      else if h : p.authors.size = 1 then
-        go <| Bibliography.lastName p.authors[0]
-      else if h : p.authors.size > 3 then
-        (· ++ {{<em>"et al"</em>}}) <$> go (Bibliography.lastName p.authors[0])
-      else andList <$> p.authors.mapM go
-    -- TODO disambiguate when there are duplicate author/years
-    -- TODO link to bibliography once it exists
-    match fmt with
-    | .textual =>
-      return {{ {{authors}} s!" ({p.year})"}}
-    | .parenthetical =>
-      return {{" ("{{authors}} s!", {p.year})"}}
-    | .here =>
-      p.bibHtml go
+    HtmlT Manual (ReaderT ExtensionImpls IO) Html := open Html in do
+  match fmt with
+  | .textual =>
+    let out : Array Html ← ps.toArray.mapM fun p => do
+      let m ← p.bibHtml go
+      pure <| {{ {{← authorHtml p}} s!" ({p.year})"}} ++ Marginalia.html m
+    pure <| andList out
+  | .parenthetical =>
+    let out : Array Html ← ps.toArray.mapM fun p => do
+      let m ← p.bibHtml go
+      pure <| {{" (" {{← authorHtml p}} s!", {p.year})"}} ++ Marginalia.html m
+    pure <| andList out
+  | .here => do
+    pure <| andList (← ps.toArray.mapM (·.bibHtml go))
+where
+  authorHtml p := open Html in do
+    if p.authors.size = 0 then
+      pure {{""}}
+    else if h : p.authors.size = 1 then
+      go <| Bibliography.lastName p.authors[0]
+    else if h : p.authors.size > 3 then
+      (· ++ {{<em>"et al"</em>}}) <$> go (Bibliography.lastName p.authors[0])
+    else andList <$> p.authors.mapM (go ∘ Bibliography.lastName)
 
-def Inline.cite (citation : Citable) (style : Style := .parenthetical) : Inline where
+def Inline.cite (citations : List Citable) (style : Style := .parenthetical) : Inline where
   name := `Manual.citation
    -- The nested bit here _should_ be a no-op, but it's to avoid deserialization overhead during the traverse pass
-  data := ToJson.toJson (ToJson.toJson citation, style)
+  data := ToJson.toJson (ToJson.toJson citations, style)
 
 structure CiteConfig where
-  citation : Name
+  citations : List Name
 
-def CiteConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m CiteConfig :=
-  CiteConfig.mk <$> .positional `citation .resolvedName
+partial def CiteConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m CiteConfig :=
+  CiteConfig.mk <$> many1 (.positional `citation .resolvedName)
+where
+  many1 p := (· :: ·) <$> p <*> many p
+  many p := (· :: ·) <$> p <*> many p <|> pure []
 
 
 @[role_expander citep]
 def citep : RoleExpander
   | args, extra => do
     let config ← CiteConfig.parse.run args
-    let x := mkIdent config.citation
-    return #[← `(Doc.Inline.other (Inline.cite ($x : Citable) .parenthetical) #[$(← extra.mapM elabInline),*])]
+    let xs := config.citations.map mkIdent |>.toArray
+    return #[← `(Doc.Inline.other (Inline.cite ([$xs,*] : List Citable) .parenthetical) #[$(← extra.mapM elabInline),*])]
 
 @[role_expander citet]
 def citet : RoleExpander
   | args, extra => do
     let config ← CiteConfig.parse.run args
-    let x := mkIdent config.citation
-    return #[← `(Doc.Inline.other (Inline.cite ($x : Citable) .textual) #[$(← extra.mapM elabInline),*])]
+    let xs := config.citations.map mkIdent |>.toArray
+    return #[← `(Doc.Inline.other (Inline.cite ([$xs,*] : List Citable) .textual) #[$(← extra.mapM elabInline),*])]
 
 @[role_expander citehere]
 def citehere : RoleExpander
   | args, extra => do
     let config ← CiteConfig.parse.run args
-    let x := mkIdent config.citation
-    return #[← `(Doc.Inline.other (Inline.cite ($x : Citable) .here) #[$(← extra.mapM elabInline),*])]
+    let xs := config.citations.map mkIdent |>.toArray
+    return #[← `(Doc.Inline.other (Inline.cite ([$xs,*] : List Citable) .here) #[$(← extra.mapM elabInline),*])]
 
 def citation := ()
 
@@ -221,7 +228,7 @@ def citation := ()
 partial def cite.inlineDescr : InlineDescr where
   traverse _ data _ := do
     match FromJson.fromJson? data with
-    | .error e => logError "Failed to deserialize citation"; return none
+    | .error e => logError s!"Failed to deserialize citation: {e}"; return none
     | .ok (v : Json × Style) =>
       let cited : Option (Except String (Array Json)) := (← get).get? `Manual.Bibliography
       match cited with
@@ -242,13 +249,8 @@ partial def cite.inlineDescr : InlineDescr where
       | .ok (v : Json × Style) =>
         match FromJson.fromJson? v.1 with
         | .error e => HtmlT.logError s!"Failed to deserialize citation: {e}"; return {{""}}
-        | .ok (v' : Citable) =>
-          let inl ← v'.inlineHtml go v.2
-          if let .here := v.2 then
-            pure inl
-          else
-            let m ← v'.bibHtml go
-            pure <| inl ++ Marginalia.html m
+        | .ok (v' : List Citable) =>
+          Citable.inlineHtml go v' v.2
 where
   cmp : Json → Json → Ordering
     | .null, .null => .eq

@@ -7,17 +7,14 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Papers
 
 
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 
-def tabledRes : ArXiv where
-  title := .concat (inlines!"Tabled typeclass resolution")
-  authors := #[.concat (inlines!"Daniel Selsam"), .concat (inlines!"Sebastian Ullrich"), .concat (inlines!"Leonardo de Moura")]
-  year := 2020
-  id := "2001.04301"
+
 
 #doc (Manual) "Instance Synthesis" =>
 %%%

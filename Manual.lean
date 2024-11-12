@@ -44,6 +44,7 @@ tag := "monads-and-do"
 
 :::planned 102
 This chapter will describe `do`-notation in Lean:
+ * Overview of {deftech}[monads]
  * Desugaring of `do` and its associated control structures
  * Comprehensive description of the syntax of `do`-notation
  * Definition of being in the "same `do`-block"

@@ -9,6 +9,7 @@ import VersoManual
 import Lean.Parser.Term
 
 import Manual.Meta
+import Manual.Papers
 import Manual.Tactics.Reference.Simp
 
 
@@ -18,11 +19,6 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-def castPaper : ArXiv where
-  title := .concat (inlines!"Simplifying Casts and Coercions")
-  authors := #[.concat (inlines!"Robert Y. Lewis"), .concat (inlines!"Paul-Nicolas Madelaine")]
-  year := 2020
-  id := "2001.10594"
 
 
 #doc (Manual) "Tactic Reference" =>

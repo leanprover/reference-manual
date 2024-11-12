@@ -6,6 +6,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Papers
 
 open Verso.Genre Manual
 
@@ -14,27 +15,6 @@ set_option pp.rawOnError true
 open Lean (Syntax SourceInfo)
 
 
-def pratt73 : InProceedings where
-  title := .concat (inlines!"Top down operator precedence")
-  authors := #[.concat (inlines!"Vaughan Pratt")]
-  year := 1973
-  booktitle := .concat (inlines!"Proceedings of the 1st Annual ACM SIGACT-SIGPLAN Symposium on Principles of Programming Languages")
-
-def carneiro19 : Thesis where
-  title := .concat (inlines!"The Type Theory of Lean")
-  author := .concat (inlines!"Mario Carneiro")
-  year := 2019
-  university := .concat (inlines!"Carnegie Mellon University")
-  url := some "https://github.com/digama0/lean-type-theory/releases/download/v1.0/main.pdf"
-  degree := .concat (inlines!"Masters thesis")
-
-def ullrich23 : Thesis where
-  title := .concat (inlines!"An Extensible Theorem Proving Frontend")
-  author := .concat (inlines!"Sebastian Ullrich")
-  year := 2023
-  university := .concat (inlines!"Karlsruhe Institute of Technology")
-  url := some "https://www.lean-lang.org/papers/thesis-sebastian.pdf"
-  degree := .concat (inlines!"Dr. Ing. dissertation")
 
 #doc (Manual) "Elaboration and Compilation" =>
 %%%
