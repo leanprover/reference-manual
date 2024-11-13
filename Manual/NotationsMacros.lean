@@ -191,6 +191,193 @@ Source information comes in two varieties:
 
 {docstring Lean.SourceInfo}
 
+### Inspecting Syntax
+
+```lean (show := false)
+section Inspecting
+open Lean
+```
+
+There are three primary ways to inspect {lean}`Syntax` values:
+
+ : The {lean}`Repr` Instance
+
+  The {lean}`Repr Syntax` instance produces a very detailed representation of syntax in terms of the constructors of the {lean}`Syntax` type.
+
+ : The {lean}`ToString` Instance
+
+  The {lean}`ToString Syntax` instance produces a compact view, representing certain syntax kinds with particular conventions that can make it easier to read at a glance.
+  This instance suppresses source position information.
+
+ : The Pretty Printer
+
+  Lean's pretty printer attempts to render the syntax as it would look in a source file, but fails if the nesting structure of the syntax doesn't match the expected shape.
+
+::::keepEnv
+:::example "Representing Syntax as Constructors"
+The {name}`Repr` instance's representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
+To reduce the size of the example output, the helper {lean}`removeSourceInfo` is used to remove source information prior to display.
+```lean
+partial def removeSourceInfo : Syntax → Syntax
+  | .atom _ str => .atom .none str
+  | .ident _ str x pre => .ident .none str x pre
+  | .node _ k children => .node .none k (children.map removeSourceInfo)
+  | .missing => .missing
+```
+
+```lean (name := reprStx1)
+#eval do
+  let stx ← `(2 + $(⟨.missing⟩))
+  logInfo (repr (removeSourceInfo stx.raw))
+```
+```leanOutput reprStx1
+Lean.Syntax.node
+  (Lean.SourceInfo.none)
+  `«term_+_»
+  #[Lean.Syntax.node (Lean.SourceInfo.none) `num #[Lean.Syntax.atom (Lean.SourceInfo.none) "2"],
+    Lean.Syntax.atom (Lean.SourceInfo.none) "+", Lean.Syntax.missing]
+```
+
+In the second example, {tech}[macro scopes] inserted by quotation are visible on the call to {name}`List.length`.
+```lean (name := reprStx2)
+#eval do
+  let stx ← `(List.length ["Rose", "Daffodil", "Lily"])
+  logInfo (repr (removeSourceInfo stx.raw))
+```
+The contents of the {tech}[pre-resolved identifier] {name}`List.length` are visible here:
+```leanOutput reprStx2
+Lean.Syntax.node
+  (Lean.SourceInfo.none)
+  `Lean.Parser.Term.app
+  #[Lean.Syntax.ident
+      (Lean.SourceInfo.none)
+      "List.length".toSubstring
+      (Lean.Name.mkNum `List.length._@.Manual.NotationsMacros._hyg 2)
+      [Lean.Syntax.Preresolved.decl `List.length [], Lean.Syntax.Preresolved.namespace `List.length],
+    Lean.Syntax.node
+      (Lean.SourceInfo.none)
+      `null
+      #[Lean.Syntax.node
+          (Lean.SourceInfo.none)
+          `«term[_]»
+          #[Lean.Syntax.atom (Lean.SourceInfo.none) "[",
+            Lean.Syntax.node
+              (Lean.SourceInfo.none)
+              `null
+              #[Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.SourceInfo.none) "\"Rose\""],
+                Lean.Syntax.atom (Lean.SourceInfo.none) ",",
+                Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.SourceInfo.none) "\"Daffodil\""],
+                Lean.Syntax.atom (Lean.SourceInfo.none) ",",
+                Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.SourceInfo.none) "\"Lily\""]],
+            Lean.Syntax.atom (Lean.SourceInfo.none) "]"]]]
+```
+:::
+::::
+
+The {name}`ToString` instance represents the constructors of {name}`Syntax` as follows:
+
+ * The {name Syntax.ident}`ident` constructor is represented as the underlying name. Source information and preresolved names are not shown.
+ * The {name Syntax.atom}`atom` constructor is represented as a string.
+ * The {name Syntax.missing}`missing` constructor is represented by `<missing>`.
+ * The representation of the {name Syntax.node}`node` constructor depends on the kind.
+   If the kind is ``​`null``, then the node is represented by its child nodes order in square brackets.
+   Otherwise, the node is represented by its kind followed by its child nodes, both surrounded by parentheses.
+
+:::example "Syntax as Strings"
+The string representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
+
+```lean (name := toStringStx1)
+#eval do
+  let stx ← `(2 + $(⟨.missing⟩))
+  logInfo (toString stx)
+```
+```leanOutput toStringStx1
+(«term_+_» (num "2") "+" <missing>)
+```
+
+In the second example, {tech}[macro scopes] inserted by quotation are visible on the call to {name}`List.length`.
+```lean (name := toStringStx2)
+#eval do
+  let stx ← `(List.length ["Rose", "Daffodil", "Lily"])
+  logInfo (toString stx)
+```
+```leanOutput toStringStx2
+(Term.app
+ `List.length._@.Manual.NotationsMacros._hyg.2
+ [(«term[_]» "[" [(str "\"Rose\"") "," (str "\"Daffodil\"") "," (str "\"Lily\"")] "]")])
+```
+:::
+
+Pretty printing syntax is typically most useful when including it in a message to a user.
+Normally, Lean automatically invokes the pretty printer when necessary.
+However, {name}`ppTerm` can be explicitly invoked if needed.
+
+::::keepEnv
+:::example "Pretty-Printed Syntax"
+```lean (show := false)
+open Lean Elab Command
+```
+
+The string representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
+Because new syntax declarations also equip the pretty printer with instructions for displaying them, the pretty printer requires a configuration object.
+This context can be constructed with a helper:
+```lean
+def getPPContext : CommandElabM PPContext := do
+  return {
+    env := (← getEnv),
+    opts := (← getOptions),
+    currNamespace := (← getCurrNamespace),
+    openDecls := (← getOpenDecls)
+  }
+```
+
+```lean (name := ppStx1)
+#eval show CommandElabM Unit from do
+  let stx ← `(2 + 5)
+  let fmt ← ppTerm (← getPPContext) stx
+  logInfo fmt
+```
+```leanOutput ppStx1
+2 + 5
+```
+
+In the second example, the {tech}[macro scopes] inserted on {name}`List.length` by quotation cause it to be displayed with a dagger (`✝`).
+```lean (name := ppStx2)
+#eval do
+  let stx ← `(List.length ["Rose", "Daffodil", "Lily"])
+  let fmt ← ppTerm (← getPPContext) stx
+  logInfo fmt
+```
+```leanOutput ppStx2
+List.length✝ ["Rose", "Daffodil", "Lily"]
+```
+
+Pretty printing wraps lines and inserts indentation automatically.
+A {tech}[coercion] typically converts the pretty printer's output to the type expected by {name}`logInfo`, using a default layout width.
+The width can be controlled by explicitly calling {name Std.Format.pretty}`pretty` with a named argument.
+```lean (name := ppStx3)
+#eval do
+  let flowers := #["Rose", "Daffodil", "Lily"]
+  let manyFlowers := flowers ++ flowers ++ flowers
+  let stx ← `(List.length [$(manyFlowers.map (quote (k := `term))),*])
+  let fmt ← ppTerm (← getPPContext) stx
+  logInfo (fmt.pretty (width := 40))
+```
+```leanOutput ppStx3
+List.length✝
+  ["Rose", "Daffodil", "Lily", "Rose",
+    "Daffodil", "Lily", "Rose",
+    "Daffodil", "Lily"]
+```
+:::
+
+
+::::
+
+```lean (show := false)
+end Inspecting
+```
+
 ### Typed Syntax
 
 Syntax may additionally be annotated with a type that specifies which {tech}[syntax category] it belongs to.
@@ -213,6 +400,14 @@ open Lean in
 
 The constructor of {name Lean.TSyntax}`TSyntax` is public, and nothing prevents users from constructing values that break internal invariants.
 The use of {name Lean.TSyntax}`TSyntax` should be seen as a way to reduce common mistakes, rather than rule them out entirely.
+
+
+In addition to {name Lean.TSyntax}`TSyntax`, there are types that represent arrays of syntax, with or without separators.
+These correspond to {TODO}[xref] repeated elements in syntax declarations or antiquotations.
+
+{docstring Lean.TSyntaxArray}
+
+{docstring Lean.Syntax.TSepArray}
 
 #### Aliases
 
@@ -357,43 +552,56 @@ Identifiers specify the syntactic category expected in a given position, and may
 $x:ident$[:$p]?
 ```
 
-The `*` modifier is the Kleene star, matching zero or more repetitions of the preceding syntax:
+The `*` modifier is the Kleene star, matching zero or more repetitions of the preceding syntax.
+It can also be written using `many`.
 ```grammar
 $s:stx *
 ```
-The `+` modifier matches one or more repetitions of the preceding syntax:
+The `+` modifier matches one or more repetitions of the preceding syntax.
+It can also be written using `many1`.
 ```grammar
 $s:stx +
 ```
-The `?` modifier makes a subterm optional, and matches zero or one, but not more, repetitions of the preceding syntax:
+The `?` modifier makes a subterm optional, and matches zero or one, but not more, repetitions of the preceding syntax.
+It can also be written as `optional`.
 ```grammar
 $s:stx ?
 ```
+```grammar
+optional($s:stx)
+```
 
-The `,*` modifier matches zero or more repetitions of the preceding syntax with interleaved commas:
+The `,*` modifier matches zero or more repetitions of the preceding syntax with interleaved commas.
+It can also be written using `sepBy`.
 ```grammar
 $_:stx ,*
 ```
 
-The `,+` modifier matches one or more repetitions of the preceding syntax with interleaved commas:
+The `,+` modifier matches one or more repetitions of the preceding syntax with interleaved commas.
+It can also be written using `sepBy1`.
 ```grammar
 $_:stx ,+
 ```
 
-The `,*,?` modifier matches zero or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
+The `,*,?` modifier matches zero or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition.
+It can also be written using `sepBy` with the `allowTrailingSep` modifier.
 ```grammar
 $_:stx ,*,?
 ```
 
-The `,+,?` modifier matches one or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition:
+The `,+,?` modifier matches one or more repetitions of the preceding syntax with interleaved commas, allowing an optional trailing comma after the final repetition.
+It can also be written using `sepBy1` with the `allowTrailingSep` modifier.
 ```grammar
 $_:stx ,+,?
 ```
 
-The `<|>` operator matches either syntax.
+The `<|>` operator, which can be written `orelse`, matches either syntax.
 However, if the first branch consumes any tokens, then it is committed to, and failures will not be backtracked:
 ```grammar
 $_:stx <|> $_:stx
+```
+```grammar
+orelse($_:stx, $_:stx)
 ```
 
 The `!` operator matches the complement of its argument.
@@ -406,8 +614,48 @@ Syntax specifiers may be grouped using parentheses.
 ```grammar
 ($_:stx)
 ```
+
+Repetitions may be defined using `many` and `many1`.
+The latter requires at least one instance of the repeated syntax.
+```grammar
+many($_:stx)
+```
+```grammar
+many1($_:stx)
+```
+
+Repetitions with separators may be defined using `sepBy` and `sepBy1`, which respectively match zero or more occurrences and one or more occurrences, separated by some other syntax.
+They come in three varieties:
+ * The two-parameter version uses the atom provided in the string literal to parse the separators, and does not allow trailing separators.
+ * The three-parameter version uses the third parameter to parse the separators, using the atom for pretty-printing.
+ * The four-parameter version optionally allows the separator to occur an extra time at the end of the sequence.
+    The fourth argument must always literally be the keyword `allowTrailingSep`.
+
+```grammar
+sepBy($_:stx, $_:str)
+```
+```grammar
+sepBy($_:stx, $_:str, $_:stx)
+```
+```grammar
+sepBy($_:stx, $_:str, $_:stx, allowTrailingSep)
+```
+```grammar
+sepBy1($_:stx, $_:str)
+```
+```grammar
+sepBy1($_:stx, $_:str, $_:stx)
+```
+```grammar
+sepBy1($_:stx, $_:str, $_:stx, allowTrailingSep)
+```
 :::
 
+:::TODO
+`withPosition`, `colGt`, etc
+:::
+
+::::keepEnv
 :::example "Parsing Matched Parentheses and Brackets"
 
 A language that consists of matched parentheses and brackets can be defined using syntax rules.
@@ -462,7 +710,30 @@ example := balanced [() (]]
 <example>:1:25: expected ')' or balanced
 ```
 :::
+::::
 
+::::keepEnv
+:::example "Parsing Comma-Separated Repetitions"
+A variant of list literals that requires double square brackets and allows a trailing comma can be added with the following syntax:
+```lean
+syntax "[[" term,*,? "]]" : term
+```
+
+Adding a {deftech}[macro] that describes how to translate it into an ordinary list literal allows it to be used in tests.
+```lean
+macro_rules
+  | `(term|[[$e:term,*]]) => `([$e,*])
+```
+
+```lean (name := evFunnyList)
+#eval [["Dandelion", "Thistle",]]
+```
+```leanOutput evFunnyList
+["Dandelion", "Thistle"]
+```
+
+:::
+::::
 
 # Macros
 %%%
@@ -645,9 +916,9 @@ They can check whether a constant exists and resolve names, but further introspe
 
 {docstring Lean.Macro.resolveGlobalName}
 
-## Quasiquotation
+## Quotation
 %%%
-tag := "quasiquotation"
+tag := "quotation"
 %%%
 
 {deftech}_Quotation_ marks code for representation as data of type {name}`Syntax`.
@@ -810,11 +1081,17 @@ open Lean in
 example [Monad m] [MonadQuotation m] : m Syntax := `(term|2 + 2)
 ```
 
+### Quasiquotation
+%%%
+tag := "quasiquotation"
+%%%
+
 {deftech}_Quasiquotation_ is a form of quotation that may contain {deftech}_antiquotations_, which are regions of the quotation that are not quoted, but instead are expressions that are evaluated to yield syntax.
 A quasiquotation is essentially a template; the outer quoted region provides a fixed framework that always yields the same outer syntax, while the antiquotations yield the parts of the final syntax that vary.
 All quotations in Lean are quasiquotations, so no special syntax is needed to distinguish quasiquotations from other quotations.
+The quotation process does not add macro scopes to identifiers that are inserted via antiquotations, because these identifiers either come from another quotation (in which case they already have macro scopes) or from the macro's input (in which case they should not have macro scopes, because they are not introduced by the macro).
 
-Basic antiquotations consist of a dollar sign (`$`) followed by an identifier.
+Basic antiquotations consist of a dollar sign (`$`) immediately followed by an identifier.
 This means that the identifier's value, which should be a syntax tree, is to be substituted into this position of the quoted syntax.
 Entire expressions may be used as antiquotations by wrapping them in parentheses.
 
@@ -826,7 +1103,6 @@ example (e : Term) : MacroM Syntax := `(term| $e)
 example (e : Term) : MacroM Syntax := `(term| $(e))
 
 --example (e : Term) : MacroM Syntax := `(term| $ (e))
-
 
 end
 ```
@@ -840,13 +1116,37 @@ variable {c : SyntaxNodeKinds}
 ```
 
 Lean's parser assigns every antiquotation a syntax category based on what the parser expects at the given position.
-If the parser expects syntax category {lean}`c`, then the antiquotation's type must be {lean}`TSyntax c`.
+If the parser expects syntax category {lean}`c`, then the antiquotation's type is {lean}`TSyntax c`.
+
+
 Some syntax categories can be matched by elements of other categories.
 For example, numeric and string literals are valid terms in addition to being their own syntax categories.
-Antiquotations may be annotated with the expected category, which causes the parser to validate that the annotated category is acceptable in the given position and construct any intermediate layers that are required in the parse tree.
+Antiquotations may be annotated with the expected category by suffixing them with a colon and the category name, which causes the parser to validate that the annotated category is acceptable in the given position and construct any intermediate layers that are required in the parse tree.
 
-::::keepEnv
-:::example "Antiquotation Annotations"
+:::freeSyntax antiquot title:="Antiquotations" open := false
+```grammar
+"$"ident(":"ident)?
+*******
+"$("term")"(":"ident)?
+```
+Whitespace is not permitted between the dollar sign ('$') that initiates an antiquotation and the identifier or parenthesized term that follows.
+Similarly, no whitespace is permitted around the colon that annotates the syntax category of the antiquotation.
+:::
+
+:::example "Quasiquotation"
+
+Both forms of antiquotation are used in this example.
+Because natural numbers are not syntax, {name Lean.quote}`quote` is used to transform a number into syntax that represents it.
+
+```lean
+open Lean in
+example [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
+  `($x + $(quote (n + 2)))
+```
+:::
+
+:::::keepEnv
+::::example "Antiquotation Annotations"
 ```lean (show := false)
 open Lean
 ```
@@ -874,20 +1174,125 @@ def ex2 (e) := show m _ from `(2 + $e:num)
 ```leanOutput ex2
 ex2 {m : Type → Type} [Monad m] [MonadQuotation m] (e : TSyntax `num) : m (TSyntax `term)
 ```
-:::
+
+Spaces are not allowed between the dollar sign and the identifier.
+```syntaxError ex2err1
+def ex2 (e) := show m _ from `(2 + $ e:num)
+```
+```leanOutput ex2err1
+<example>:1:35: expected '`(tactic|' or no space before spliced term
+```
+
+Spaces are also not allowed before the colon:
+```syntaxError ex2err2
+def ex2 (e) := show m _ from `(2 + $e :num)
+```
+```leanOutput ex2err2
+<example>:1:38: expected ')'
+```
 ::::
+:::::
 
 ```lean (show := false)
 end
 ```
 
-Antiquotations also support optionality and repetition with optional separators.
+::::keepEnv
+:::example "Expanding Quasiquotation"
+Printing the definition of {name}`f` demonstrates the expansion of a quasiquotation.
+```lean (name := expansion)
+open Lean in
+def f [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
+  `(fun k => $x + $(quote (n + 2)) + k)
+#print f
+```
+```leanOutput expansion
+def f : {m : Type → Type} → [inst : Monad m] → [inst : Lean.MonadQuotation m] → Lean.Term → Nat → m Syntax :=
+fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
+  let info ← Lean.MonadRef.mkInfoFromRefPos
+  let scp ← Lean.getCurrMacroScope
+  let mainModule ← Lean.getMainModule
+  pure
+      {
+          raw :=
+            Syntax.node2 info `Lean.Parser.Term.fun (Syntax.atom info "fun")
+              (Syntax.node4 info `Lean.Parser.Term.basicFun
+                (Syntax.node1 info `null (Syntax.ident info "k".toSubstring' (Lean.addMacroScope mainModule `k scp) []))
+                (Syntax.node info `null #[]) (Syntax.atom info "=>")
+                (Syntax.node3 info `«term_+_»
+                  (Syntax.node3 info `«term_+_» x.raw (Syntax.atom info "+") (Lean.quote `term (n + 2)).raw)
+                  (Syntax.atom info "+")
+                  (Syntax.ident info "k".toSubstring' (Lean.addMacroScope mainModule `k scp) []))) }.raw
+```
+
+```lean (show := false)
+section
+variable {x : Term} {n : Nat}
+```
+
+In this output, the quotation is a {keywordOf Lean.Parser.Term.do}`do` block.
+It begins by constructing the source information for the resulting syntax, obtained by querying the compiler about the current user syntax being processed.
+It then obtains the current macro scope and the name of the module being processed, because macro scopes are added with respect to a module to enable independent compilation and avoid the need for a global counter.
+It then constructs a node using helpers such as {name}`Syntax.node1` and {name}`Syntax.node2`, which create a {name}`Syntax.node` with the indicated number of children.
+The macro scope is added to each identifier, and {name Lean.TSyntax.raw}`TSyntax.raw` is used to extract the contents of typed syntax wrappers.
+The antiquotations of {lean}`x` and {lean}`quote (n + 2)` occur directly in the expansion, as parameters to {name}`Syntax.node3`.
+
+```lean (show := false)
+end
+```
+:::
+::::
+
+
+### Splices
+%%%
+tag := "splices"
+%%%
+
+In addition to including other syntax via antiquotations, quasiquotations can include {deftech}_splices_.
+Splices indicate that the elements of an array are to be inserted in order.
+The repeated elements may include separators, such as the commas between list or array elements.
+Splices may consist of an ordinary antiquotation with a {deftech}_splice suffix_, or they may be {deftech}_extended splices_ that provide additional repeated structure.
+
+Splice suffixes consist of either an asterisk or a valid atom followed by an asterisk (`*`).
+Suffixes may follow any identifier or term antiquotation.
+An antiquotation with the splice suffix `*` corresponds to a use of `many` or `many1`; both the `*` and `+` suffixes in syntax rules correspond to the `*` splice suffix.
+An antiquotation with a splice suffix that includes an atom prior to the asterisk corresponds to a use of `sepBy` or `sepBy1`.
+The splice suffix `?` corresponds to a use of `optional` or the `?` suffix in a syntax rule.
+Because `?` is a valid identifier character, identifiers must be parenthesized to use it as a suffix.
+
+While there is overlap between repetition specifiers for syntax and antiquotation suffixes, they have distinct syntaxes.
+When defining syntax, the suffixes `*`, `+`, `,*`, `,+`, `,*,?`, and `,+,?` are built in to Lean.
+There is no shorter way to specify separators other than `,`.
+Antiquotation suffixes are either just `*` or whatever atom was provided to `sepBy` or `sepBy1` followed by `*`.
+The syntax repetitions `+` and `*` correspond to the splice suffix `*`; the repetitions `,*`, `,+`, `,*,?`, and `,+,?` correspond to `,*`.
+The optional suffix `?` in syntax and splices correspond with each other.
+
+
+:::table (header := true)
+ * ignore
+   - Syntax Repetition
+   - Splice Suffix
+ * ignore
+   - `+` `*`
+   - `*`
+ * ignore
+   - `,*` `,+` `,*,?` `,+,?`
+   - `,*`
+ * ignore
+   - `sepBy(_, "S")` `sepBy1(_, "S")`
+   - `S*`
+ * ignore
+   - `?`
+   - `?`
+:::
 
 
 ::::keepEnv
-:::example "Repetition Annotations"
+:::example "Suffixed Splices"
 ```lean (show := false)
 open Lean
+open Lean.Elab.Command (CommandElabM)
 ```
 
 This example requires that {lean}`m` is a monad that can perform quotation.
@@ -911,6 +1316,87 @@ def ex2 (xs : Array (TSyntax `term)) := show m _ from `(#[$xs,*])
 ```
 ```leanOutput ex2
 ex2 {m : Type → Type} [Monad m] [MonadQuotation m] (xs : Array (TSyntax `term)) : m (TSyntax `term)
+```
+
+Repetition annotations may also be used with term antiquotations and syntax category annotations.
+This example is in {name Lean.Elab.Command.CommandElabM}`CommandElabM` so the result can be conveniently logged.
+```lean (name := ex3)
+def ex3 (size : Nat) := show CommandElabM _ from do
+  let mut nums : Array Nat := #[]
+  for i in [0:size] do
+    nums := nums.push i
+  let stx ← `(#[$(nums.map (Syntax.mkNumLit ∘ toString)):num,*])
+  -- Using logInfo here causes the syntax to be pretty printed.
+  logInfo stx
+
+#eval ex3 4
+```
+```leanOutput ex3
+#[0, 1, 2, 3]
+```
+:::
+::::
+
+::::keepEnv
+:::example "Non-Comma Separators"
+The following unconventional syntax for lists separates numeric elements by either em dashes or double asterisks, rather than by commas.
+```lean
+syntax "⟦" sepBy1(num, " — ") "⟧": term
+syntax "⟦" sepBy1(num, " ** ") "⟧": term
+```
+This means that `—*` and `***` are valid splice suffixes between the `⟦` and `⟧` atoms.
+In the case of `***`, the first two asterisks are the atom in the syntax rule, while the third is the repetition suffix.
+```lean
+macro_rules
+  | `(⟦$n:num—*⟧) => `(⟦$n***⟧)
+  | `(⟦$n:num***⟧) => `([$n,*])
+```
+```lean (name := nonComma)
+#eval ⟦1 — 2 — 3⟧
+```
+```leanOutput nonComma
+[1, 2, 3]
+```
+:::
+::::
+
+::::keepEnv
+:::example "Optional Splices"
+The following syntax declaration optionally matches a term between two tokens.
+The parentheses around the nested `term` are needed because `term?` is a valid identifier.
+```lean (show := false)
+open Lean
+```
+```lean
+syntax "⟨| " (term)? " |⟩": term
+```
+
+The `?` splice suffix for a term expects an {lean}`Option Term`:
+```lean
+def mkStx [Monad m] [MonadQuotation m] (e) : m Term :=
+  `(⟨| $(e)? |⟩)
+```
+```lean (name := checkMkStx)
+#check mkStx
+```
+```leanOutput checkMkStx
+mkStx {m : Type → Type} [Monad m] [MonadQuotation m] (e : Option (TSyntax `term)) : m Term
+```
+
+Supplying {name}`some` results in the optional term being present.
+```lean (name := someMkStx)
+#eval do logInfo (← mkStx (some (quote 5)))
+```
+```leanOutput someMkStx
+⟨| 5 |⟩
+```
+
+Supplying {name}`none` results in the optional term being absent.
+```lean (name := noneMkStx)
+#eval do logInfo (← mkStx none))
+```
+```leanOutput noneMkStx
+⟨| |⟩
 ```
 
 :::
@@ -941,51 +1427,24 @@ variable {k k' : SyntaxNodeKinds} {sep : String} [Coe (TSyntax k) (TSyntax k')]
 end
 ```
 
-:::freeSyntax antiquot (open := true) (title := "Token Antiquotations")
+### Token Antiquotations
+%%%
+tag := "token-antiquotations"
+%%%
 
+In addition to antiquotations of complete syntax, Lean features {deftech}_token antiquotations_ which allow the source information of an atom to be replaced with the source information from some other syntax.
+This is primarily useful to control the placement of error messages or other information that Lean reports to users.
+A token antiquotation does not allow an arbitrary atom to be inserted via evaluation.
+A token antiquotation consists of an atom (that is, a keyword)
+
+:::freeSyntax antiquot (open := true) (title := "Token Antiquotations")
 Token antiquotations replace the source information (of type {name Lean.SourceInfo}`SourceInfo`) on a token with the source information from some other syntax.
 
 ```grammar
-str"%$"ident
+atom"%$"ident
 ```
 :::
 
-::: TODO
-Syntax of antiquotes (requires hack)
-
-All kinds of antiquotes:
- * `$x`
- * `$x:cat`
- * `$(tm)`
- * `$x\*`
- * `$[$x]?/*,`
- * `"foo"%$tk`
-:::
-
-
-:::example "Quasiquotation"
-
-Both forms of antiquotation are used in this example.
-Because natural numbers are not syntax, {name Lean.quote}`quote` is used to transform a number into syntax that represents it.
-
-```lean
-open Lean in
-example [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
-  `($x + $(quote (n + 2)))
-```
-:::
-
-::::keepEnv
-:::example "Expanding Quasiquotation"
-```lean
-open Lean in
-def f [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
-  `(fun k => $x + $(quote (n + 2)) + k)
-#print f
-```
-
-:::
-::::
 
 ## Matching Syntax
 

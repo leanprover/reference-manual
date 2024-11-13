@@ -25,6 +25,7 @@ import Manual.Meta.Figure
 import Manual.Meta.Lean
 import Manual.Meta.Marginalia
 import Manual.Meta.Syntax
+import Manual.Meta.Table
 import Manual.Meta.Tactics
 
 open Lean Elab

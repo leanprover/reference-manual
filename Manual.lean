@@ -91,7 +91,7 @@ Describe {name}`Option`, including the default coercions and its API.
 :::planned 122
  * {deftech}[Unexpanders]
  * {deftech key:="delaborate"}[Delaboration]
- * Pretty printing
+ * {deftech}[Pretty printing]
  * Parenthesizers
 :::
 
