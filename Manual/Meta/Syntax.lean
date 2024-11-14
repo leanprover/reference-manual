@@ -23,6 +23,8 @@ open Lean.Widget (TaggedText)
 
 namespace Manual
 
+set_option guard_msgs.diff true
+
 -- run_elab do
 --   let xs := _
 --   let stx ← `(command|universe $xs*)
@@ -256,6 +258,8 @@ scoped syntax (name := checked) Term.dynamicQuot : free_syntax_item
 declare_syntax_cat free_syntax
 scoped syntax (name := rule) free_syntax_item* : free_syntax
 
+scoped syntax (name := embed) "free{" free_syntax_item* "}" : term
+
 declare_syntax_cat syntax_sep
 
 open Lean Elab Command in
@@ -277,19 +281,30 @@ partial def decodeMany (stx : Syntax) : List Syntax :=
   | ``more => stx[0] :: decodeMany stx[2]
   | _ => [stx]
 
-/-- Translate freely specified syntax into what the output of the Lean parser would have been -/
-partial def decode (stx : Syntax) : Syntax :=
-  (Syntax.copyHeadTailInfoFrom · stx) <|
-  match stx.getKind with
-  | `null =>  stx.setArgs (stx.getArgs.map decode)
-  | ``rule => stx.setArgs (stx.getArgs.map decode)
-  | ``strItem =>
-    .atom .none (⟨stx[0]⟩ : StrLit).getString
-  | ``checked =>
-    let quote := stx[0]
-    -- 0: `( ; 1: parser ; 2: | ; 3: content ; 4: )
-    quote[3]
-  | _ => stx
+mutual
+  /-- Translate freely specified syntax into what the output of the Lean parser would have been -/
+  partial def decode (stx : Syntax) : Syntax :=
+    (Syntax.copyHeadTailInfoFrom · stx) <|
+    Id.run <| stx.rewriteBottomUp fun stx' =>
+      match stx'.getKind with
+      | ``strItem =>
+        .atom .none (⟨stx'[0]⟩ : StrLit).getString
+      | ``embed =>
+        stx'[1]
+      | ``checked =>
+        let quote := stx'[0]
+        -- 0: `( ; 1: parser ; 2: | ; 3: content ; 4: )
+        quote[3]
+      | _ => stx'
+
+  /-- Find instances of freely specified syntax in the result of parsing checked syntax, and decode them -/
+  partial def decodeIn (stx : Syntax) : Syntax :=
+    Id.run <| stx.rewriteBottomUp fun
+      | `(term|free{$stxs*}) => .node .none `null (stxs.map decode)
+      | other => other
+end
+
+
 end FreeSyntax
 
 namespace Meta.PPrint.Grammar
@@ -583,8 +598,8 @@ example := () -- Keep it from eating the next doc comment
 
 /--
 info: antiquot ::= ...
-    | $ident(":"ident)?suffix?
-    | $( term )(":"ident)?suffix?
+    | $ident(:ident)?suffix?
+    | $( term )(:ident)?suffix?
 -/
 #guard_msgs in
 #test_free_syntax antiquot
@@ -594,49 +609,6 @@ info: antiquot ::= ...
 
 
 end Tests
-
-open Manual.Meta.PPrint Grammar in
-/--
-Display actual Lean syntax, validated by the parser.
--/
-@[directive_expander «syntax»]
-def «syntax» : DirectiveExpander
-  | args, blocks => do
-    let config ← SyntaxConfig.parse.run args
-    let mut content := #[]
-    let mut firstGrammar := true
-    for b in blocks do
-      match isGrammar? b with
-      | some (argsStx, contents, info, _, _, _, _) =>
-        let grm ← elabGrammar config firstGrammar argsStx (Syntax.mkStrLit contents info)
-        content := content.push grm
-        firstGrammar := false
-      | _ =>
-        content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
-where
-  isGrammar? : Syntax → Option (Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
-  | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
-    if nameStx.getId == `grammar then some (argsStx, contents, info, col, «open», i, close) else none
-  | _ => none
-
-  elabGrammar config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
-    let args ← parseArgs <| argsStx.map (⟨·⟩)
-    let {of, prec} ← GrammarConfig.parse.run args
-    let config : SyntaxConfig :=
-      if let some n := of then
-        {name := n, «open» := false}
-      else config
-    let altStr ← parserInputString str
-    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
-    match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
-    | .ok stx =>
-      let bnf ← getBnf config.toFreeSyntaxConfig isFirst [stx]
-      `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText GrammarTag)} #[])
-    | .error es =>
-      for (pos, msg) in es do
-        log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
-      throwError "Parse errors prevented grammar from being processed."
 
 instance : MonadWithReaderOf Core.Context DocElabM := inferInstanceAs (MonadWithReaderOf Core.Context (ReaderT PartElabM.State (StateT DocElabM.State TermElabM)))
 
@@ -650,6 +622,53 @@ def withOpenedNamespace (ns : Name) (act : DocElabM α) : DocElabM α :=
     withTheReader Core.Context ({· with openDecls := openDecls}) act
   finally
     popScope
+
+
+open Manual.Meta.PPrint Grammar in
+/--
+Display actual Lean syntax, validated by the parser.
+-/
+@[directive_expander «syntax»]
+def «syntax» : DirectiveExpander
+  | args, blocks => do
+    let config ← SyntaxConfig.parse.run args
+    let mut content := #[]
+    let mut firstGrammar := true
+    for b in blocks do
+      match isGrammar? b with
+      | some (nameStx, argsStx, contents, info, _, _, _, _) =>
+        let grm ← elabGrammar nameStx config firstGrammar argsStx (Syntax.mkStrLit contents info)
+        content := content.push grm
+        firstGrammar := false
+      | _ =>
+        content := content.push <| ← elabBlock b
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
+where
+  isGrammar? : Syntax → Option (Syntax × Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
+  | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
+    if nameStx.getId == `grammar then some (nameStx, argsStx, contents, info, col, «open», i, close) else none
+  | _ => none
+
+  elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
+    let args ← parseArgs <| argsStx.map (⟨·⟩)
+    let {of, prec} ← GrammarConfig.parse.run args
+    let config : SyntaxConfig :=
+      if let some n := of then
+        {name := n, «open» := false}
+      else config
+    let altStr ← parserInputString str
+    let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
+    withOpenedNamespace `Manual.FreeSyntax do
+      match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
+      | .ok stx =>
+        let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
+        Hover.addCustomHover nameStx s!"````````\n{bnf.stripTags}\n````````"
+
+        `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText GrammarTag)} #[])
+      | .error es =>
+        for (pos, msg) in es do
+          log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
+        throwError "Parse errors prevented grammar from being processed."
 
 open Manual.Meta.PPrint Grammar in
 /--
