@@ -120,6 +120,15 @@ Elaboration or tactic execution can then proceed.
 Only the outermost layer of syntax (typically a {name Lean.Syntax.node}`node`) is expanded, and the output of macro expansion may contain nested syntax that is a macro.
 These nested macros are expanded in turn when the elaborator reaches them.
 
+In particular, macro expansion occurs in three situations in Lean:
+
+ 1. During term elaboration, macros in the outermost layer of the syntax to be elaborated are expanded prior to invoking the {ref "elaborators"}[syntax's term elaborator].
+
+ 2. During command elaboration, macros in the outermost layer of the syntax to be elaborated are expanded prior to invoking the {ref "elaborators"}[syntax's command elaborator].
+
+ 3. During tactic execution, macros in the outermost layer of the syntax to be elaborated are expanded {ref "tactic-macros"}[prior to executing the syntax as a tactic].
+
+
 ```lean (keep := false) (show := false)
 -- Test claim in preceding paragraph that it's OK for macros to give up prior to elab
 syntax "doubled " term:arg : term
@@ -810,14 +819,24 @@ Because quotation pattern matching is based on the node kinds emitted by the par
 If in doubt, including the syntax category in the quotation can help.
 
 ## Defining Macros
+%%%
+tag := "defining-macros"
+%%%
+
 
 There are two primary ways to define macros: the {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command and the {keywordOf Lean.Parser.Command.macro}`macro` command.
 The {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command associates a macro with existing syntax, while the {keywordOf Lean.Parser.Command.macro}`macro` command simultaneously defines new syntax and a macro that translates it to existing syntax.
 The {keywordOf Lean.Parser.Command.macro}`macro` command can be seen as a generalization of {keywordOf Lean.Parser.Command.notation}`notation` that allows the expansion to be generated programmatically, rather than simply by substitution.
 
+### The `macro_rules` Command
+%%%
+tag := "macro_rules"
+%%%
+
 :::syntax command
 
-The {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command takes a sequence of syntax pattern matches and adds each as a macro.
+The {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command takes a sequence of rewrite rules, specified as syntax pattern matches, and adds each as a macro.
+The rules are attempted in order, before previously-defined macros, and later macro definitions may add further macro rules.
 
 ```grammar
 $[$d:docComment]?
@@ -835,7 +854,7 @@ In case of ambiguity, the term parser is chosen.
 Internally, macros are tracked in a table that maps each {tech}[syntax kind] to its macros.
 The {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command may be explicitly annotated with a syntax kind.
 
-If a kind is explicitly provided, the macro definition checks that each quotation pattern has that kind.
+If a syntax kind is explicitly provided, the macro definition checks that each quotation pattern has that kind.
 If the parse result for the quotation was a {tech}[choice node] (that is, if the parse was ambiguous), then the pattern is duplicated once for each alternative with the specified kind.
 It is an error if none of the alternatives have the specified kind.
 
@@ -843,16 +862,317 @@ If no kind is provided explicitly, then the kind determined by the parser is use
 The patterns are not required to all have the same syntax kind; macros are defined for each syntax kind used by at least one of the patterns.
 It is an error if the parse result for a quotation pattern was a {tech}[choice node] (that is, if the parse was ambiguous).
 
+The documentation comment associated with {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` is displayed to users if the syntax itself has no documentation comment.
+Otherwise, the documentation comment for the syntax itself is shown.
+
+As with {ref "notations"}[notations] and {ref "operators"}[operators], macro rules may be declared `scoped` or `local`.
+Scoped macros are only active when the current namespace is open, and local macro rules are only active in the current {tech}[section scope].
+
+::::keepEnv
+:::example "Idiom Brackets"
+Idiom brackets are an alternative syntax for working with applicative functors.
+If the idiom brackets contain a function application, then the function is wrapped in {name}`pure` and applied to each argument using `<*>`. {TODO}[Operator hyperlinking to docs]
+Lean does not support idiom brackets by default, but they can be defined using a macro.
+```lean
+syntax (name := idiom) "⟦" (term:arg)+ "⟧" : term
+
+macro_rules
+  | `(⟦$f $args*⟧) => do
+    let mut out ← `(pure $f)
+    for arg in args do
+      out ← `($out <*> $arg)
+    return out
+```
+
+This new syntax can be used immediately.
+```lean
+def addFirstThird [Add α] (xs : List α) : Option α :=
+  ⟦Add.add xs[0]? xs[2]?⟧
+```
+```lean (name := idiom1)
+#eval addFirstThird (α := Nat) []
+```
+```leanOutput idiom1
+none
+```
+```lean (name := idiom2)
+#eval addFirstThird [1]
+```
+```leanOutput idiom2
+none
+```
+```lean (name := idiom3)
+#eval addFirstThird [1,2,3,4]
+```
+```leanOutput idiom3
+some 4
+```
+:::
+::::
+
+::::keepEnv
+:::example "Scoped Macros"
+Scoped macro rules are active only in their namespace.
+When the namespace `ConfusingNumbers` is open, numeric literals will be assigned an incorrect meaning.
+````lean
+namespace ConfusingNumbers
+````
+
+The following macro recognizes terms that are odd numeric literals, and replaces them with double their value.
+If it unconditionally replaced them with double their value, then macro expansion would become an infinite loop because the same rule would always match the output.
+
+```lean
+scoped macro_rules
+  | `($n:num) => do
+    if n.getNat % 2 = 0 then Lean.Macro.throwUnsupported
+    let n' := (n.getNat * 2)
+    `($(Syntax.mkNumLit (info := n.raw.getHeadInfo) (toString n')))
+```
+
+Once the namespace ends, the macro is no longer used.
+````lean
+end ConfusingNumbers
+````
+
+Without opening the namespace, numeric literals function in the usual way.
+```lean (name := nums1)
+#eval (3, 4)
+```
+```leanOutput nums1
+(3, 4)
+```
+
+When the namespace is open, the macro replaces {lean}`3` with {lean}`6`.
+```lean (name := nums2)
+open ConfusingNumbers
+
+#eval (3, 4)
+```
+```leanOutput nums2
+(6, 4)
+```
+
+It is not typically useful to change the interpretation of numeric or other literals in macros.
+However, scoped macros can be very useful when adding new rules to extensible tactics such as {tactic}`trivial` that work well with the contents of the namespaces but should not always be used.
+:::
+::::
+
+Behind the scenes, a {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command generates one macro function for each syntax kind that is matched in its quote patterns.
+This function has a default case that throws the {name Lean.Macro.Exception.unsupportedSyntax}`unsupportedSyntax` exception, so further macros may be attempted.
 
 
-::: TODO
- * Expansion of `macro_rules` by
+A single {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command with two rules is not always equivalent to two separate single-match commands.
+First, the rules in a {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` are tried from top to bottom, but recently-declared macros are attempted first, so the order would need to be reversed.
+Additionally, if an earlier rule in the macro throws the {name Lean.Macro.Exception.unsupportedSyntax}`unsupportedSyntax` exception, then the later rules are not tried; if they were instead in separate {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` commands, then they would be attempted.
 
- * `macro` command
+::::example "One vs. Two Sets of Macro Rules"
+
+```lean (show := false)
+open Lean.Macro
+```
+
+The `arbitrary!` macro is intended to expand to some arbitrarily-determined value of a given type.
+
+```lean
+syntax (name := arbitrary!) "arbitrary!" term:arg : term
+```
+
+:::keepEnv
+```lean
+macro_rules
+  | `(arbitrary! ()) => `(())
+  | `(arbitrary! Nat) => `(42)
+  | `(arbitrary! ($t1 × $t2)) => `((arbitrary! $t1, arbitrary! $t2))
+  | `(arbitrary! Nat) => `(0)
+```
+
+Users may extend it by defining further sets of macro rules, such as this rule for {lean}`Empty` that fails:
+```lean
+macro_rules
+  | `(arbitrary! Empty) => throwUnsupported
+```
+
+```lean (name := arb1)
+#eval arbitrary! (Nat × Nat)
+```
+```leanOutput arb1
+(42, 42)
+```
 :::
 
-## The Macro Attribute
+:::keepEnv
+If all of the macro rules had been defined as individual cases, then the result would have instead used the later case for {lean}`Nat`.
+This is because the rules in a single {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command are checked from top to bottom, but more recently-defined {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` commands take precedence over earlier ones.
 
+```lean
+macro_rules
+  | `(arbitrary! ()) => `(())
+macro_rules
+  | `(arbitrary! Nat) => `(42)
+macro_rules
+  | `(arbitrary! ($t1 × $t2)) => `((arbitrary! $t1, arbitrary! $t2))
+macro_rules
+  | `(arbitrary! Nat) => `(0)
+macro_rules
+  | `(arbitrary! Empty) => throwUnsupported
+```
+
+```lean (name := arb2)
+#eval arbitrary! (Nat × Nat)
+```
+```leanOutput arb2
+(0, 0)
+```
+:::
+
+Additionally, if any rule throws the {name Lean.Macro.Exception.unsupportedSyntax}`unsupportedSyntax` exception, no further rules in that command are checked.
+```lean
+macro_rules
+  | `(arbitrary! Nat) => throwUnsupported
+  | `(arbitrary! Nat) => `(42)
+
+macro_rules
+  | `(arbitrary! Int) => `(42)
+macro_rules
+  | `(arbitrary! Int) => throwUnsupported
+```
+
+The case for {lean}`Nat` fails to elaborate, because macro expansion did not translate the {keywordOf arbitrary!}`arbitrary!` syntax into something supported by the elaborator.
+```lean (name := arb3) (error := true)
+#eval arbitrary! Nat
+```
+```leanOutput arb3
+elaboration function for 'arbitrary!' has not been implemented
+  arbitrary! Nat
+```
+
+The case for {lean}`Int` succeeds, because the first set of macro rules are attempted after the second throws the exception.
+```lean (name := arb4)
+#eval arbitrary! Int
+```
+```leanOutput arb4
+42
+```
+::::
+
+
+### The `macro` Command
+%%%
+tag := "macro-command"
+%%%
+
+```lean (show := false)
+section
+open Lean
+```
+
+The {keywordOf Lean.Parser.Command.macro}`macro` command simultaneously defines a new {tech}[syntax rule] and associates it with a {tech}[macro].
+Unlike {keywordOf Lean.Parser.Command.notation}`notation`, which can define only new term syntax and in which the expansion is a term into which the parameters are to be substituted, the {keywordOf Lean.Parser.Command.macro}`macro` command may define syntax in any {tech}[syntax category] and it may use arbitrary code in the {name}`MacroM` monad to generate the expansion.
+
+
+:::syntax command
+```grammar
+$[$_:docComment]?
+$[@[$attrs,*]]?
+$_:attrKind macro$[:$p]? $[(name := $_)]? $[(priority := $_)]? $xs:macroArg* : $k:ident =>
+  $tm
+```
+:::
+
+:::syntax Lean.Parser.Command.macroArg (open := false)
+A macro's arguments are either syntax items (as used in the {keywordOf Lean.Parser.Command.syntax}`syntax` command) or syntax items with attached names.
+```grammar
+$s:stx
+```
+```grammar
+$x:ident:$stx
+```
+:::
+
+In the expansion, the names that are attached to syntax items are bound; they have type {name Lean.TSyntax}`TSyntax` for the appropriate syntax kinds.
+If the syntax matched by the parser does not have a defined kind (e.g. because the name is applied to a complex specification), then the type is {lean}`TSyntax Name.anonymous`.
+
+```lean (show := false) (keep := false)
+-- Check the typing rules
+open Lean Elab Term Macro Meta
+
+elab "dbg_type " e:term ";" body:term : term => do
+  let e' ← elabTerm e none
+  let t ← inferType e'
+  logInfoAt e t
+  elabTerm body none
+
+/--
+info: TSyntax `str
+---
+info: TSyntax Name.anonymous
+---
+info: Syntax.TSepArray `num ","
+-/
+#guard_msgs in
+macro "gah!" thing:str other:(str <|> num) arg:num,* : term => do
+  dbg_type thing; pure ()
+  dbg_type other; pure ()
+  dbg_type arg; pure ()
+  return quote s!"{thing.raw} ||| {other.raw} ||| {arg.getElems}"
+
+/-- info: "(str \"\\\"one\\\"\") ||| (num \"44\") ||| #[(num \"2\"), (num \"3\")]" : String -/
+#guard_msgs in
+#check gah! "one" 44 2,3
+
+```
+
+The documentation comment is associated with the new syntax, and the attribute kind (none, `local`, or `scoped`) governs the visibility of the macro just as it does for notations: `scoped` macros are available in the namespace in which they are defined or in any {tech}[section scope] that opens that namespace, while `local` macros are available only in the local section scope.
+
+Behind the scenes, the {keywordOf Lean.Parser.Command.macro}`macro` command is itself implemented by a macro that expands it to a {keywordOf Lean.Parser.Command.syntax}`syntax` command and a {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command.
+Any attributes applied to the macro command are applied to the syntax definition, but not to the {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command.
+
+```lean (show := false)
+end
+```
+
+### The Macro Attribute
+%%%
+tag := "macro-attribute"
+%%%
+
+{tech}[Macros] can be manually added to a syntax kind using the {keywordOf Lean.Parser.Attr.macro}`macro` attribute.
+This low-level means of specifying macros is typically not useful, except as a result of code generation by macros that themselves generate macro definitions.
+
+:::syntax attr label:="attribute"
+The {keywordOf Lean.Parser.Attr.macro}`macro` attribute specifies that a function is to be considered a {tech}[macro] for the specified syntax kind.
+```grammar
+macro $_:ident
+```
+:::
+
+::::keepEnv
+:::example "The Macro Attribute"
+```lean (show := false)
+open Lean Macro
+```
+```lean
+/-- Generate a list based on N syntactic copies of a term -/
+syntax (name := rep) "[" num " !!! " term "]" : term
+
+@[macro rep]
+def expandRep : Macro
+  | `([ $n:num !!! $e:term]) =>
+    let e' := Array.mkArray n.getNat e
+    `([$e',*])
+  | _ =>
+    throwUnsupported
+```
+
+Evaluating this new expression demonstrates that the macro is present.
+```lean (name := attrEx1)
+#eval [3 !!! "hello"]
+```
+```leanOutput attrEx1
+["hello", "hello", "hello"]
+```
+:::
+::::
 
 
 # Elaborators
@@ -861,5 +1181,5 @@ tag := "elaborators"
 %%%
 
 :::planned 72
-For now, a quick overview of elaborators - detailed description to be written in a later revision
+For now, a quick overview of term and command elaborators, with a detailed description to be written in a later revision.
 :::
