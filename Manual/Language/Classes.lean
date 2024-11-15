@@ -82,7 +82,7 @@ Here are some typical use cases for type classes:
  * A type class can represent a relation between two types that allows them to be used together in some novel way by a library.
    The {lean}`Coe` class represents automatically-inserted coercions from one type to another, and {lean}`MonadLift` represents a way to run operations with one kind of effect in a context that expects another kind.
  * Type classes can represent a framework of type-driven code generation, where instances for polymorphic types each contribute some portion of a final program.
-    The {name}`Repr` class defines a canonical pretty-printer for a type, and polymorphic types end up with polymorphic {name}`Repr` instances.
+    The {name}`Repr` class defines a canonical pretty printer for a type, and polymorphic types end up with polymorphic {name}`Repr` instances.
     When pretty printing is finally invoked on an expression with a known concrete type, such as {lean}`List (Nat × (String ⊕ Int))`, the resulting pretty printer contains code assembled from the {name}`Repr` instances for {name}`List`, {name}`Prod`, {name}`Nat`, {name}`Sum`, {name}`String`, and {name}`Int`.
 
 # Class Declarations

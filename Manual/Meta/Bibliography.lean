@@ -125,6 +125,7 @@ partial def Bibliography.lastName (inl : Doc.Inline Manual) : Doc.Inline Manual 
       let w := rest.back!
       rest := rest.pop
       if parts.contains w then
+        lst := lst.push (.text " ") -- Non-breaking space is important so as to not split names
         lst := lst.push w
         continue
       else

@@ -245,7 +245,7 @@ Lean.Syntax.node
 
 The {name}`ToString` instance represents the constructors of {name}`Syntax` as follows:
 
- * The {name Syntax.ident}`ident` constructor is represented as the underlying name. Source information and preresolved names are not shown.
+ * The {name Syntax.ident}`ident` constructor is represented as the underlying name. Source information and pre-resolved names are not shown.
  * The {name Syntax.atom}`atom` constructor is represented as a string.
  * The {name Syntax.missing}`missing` constructor is represented by `<missing>`.
  * The representation of the {name Syntax.node}`node` constructor depends on the kind.

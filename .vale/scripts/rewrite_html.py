@@ -27,6 +27,8 @@ def process_html_file(filepath, output_filepath):
         if code_tag.next_sibling and code_tag.next_sibling.string and code_tag.next_sibling.string.startswith('th'):
             # Replace <code>XYZ</code>th with '5th'
             code_tag.replace_with("5")
+        elif code_tag.attrs and 'class' in code_tag.attrs and 'hl' in code_tag['class'] and 'lean' in code_tag['class']:
+            code_tag.decompose()
 
     # Delete docstring content (for now)
     for element in soup.find_all(class_="namedocs"):

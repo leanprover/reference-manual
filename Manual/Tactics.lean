@@ -339,7 +339,7 @@ gt : ↑i > 5
 Additionally, non-proof terms may be hidden when they are too large.
 In particular, Lean will hide terms that are below a configurable depth threshold, and it will hide the remainder of a term once a certain amount in total has been printed.
 Showing deep terms can enabled or disabled with the option {option}`pp.deepTerms`, and the depth threshold can be configured with the option {option}`pp.deepTerms.threshold`.
-The maximum number of pretty-printer steps can be configured with the option {option}`pp.maxSteps`.
+The maximum number of pretty printer steps can be configured with the option {option}`pp.maxSteps`.
 Printing very large terms can lead to slowdowns or even stack overflows in tooling; please be conservative when adjusting these options' values.
 
 {optionDocs pp.deepTerms}
