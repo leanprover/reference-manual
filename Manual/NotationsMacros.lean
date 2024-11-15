@@ -43,7 +43,7 @@ They can be combined flexibly to achieve the necessary results:
   Due to {tech}[hygiene] and automatic propagation of source positions, this process doesn't interfere with Lean's interactive features.
  * {ref "macro-and-elab"}[Elaborators] provide new syntax with the same tools available to Lean's own syntax in cases where a macro is insufficiently expressive.
  * {ref "notations"}[Notations] allow the simultaneous definition of a parser extension, a macro, and a pretty printer.
-   When defining infix, prefix, or postifx operators, {ref "operators"}[custom operators] automatically take care of precedence and associativity.
+   When defining infix, prefix, or postfix operators, {ref "operators"}[custom operators] automatically take care of precedence and associativity.
  * Low-level parser extensions allow the parser to be extended in ways that modify its rules for tokens and whitespace, or that even completely replace Lean's syntax. This is an advanced topic that requires familiarity with Lean internals; nevertheless, the possibility of doing this without modifying the compiler is important. This reference manual is written using a language extension that replaces Lean's concrete syntax with a Markdown-like language for writing documents, but the source files are still Lean files.
 
 {include 0 Manual.NotationsMacros.Operators}
