@@ -7,7 +7,7 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso"@"main"
+require verso from git "https://github.com/leanprover/verso"@"mobile-manual"
 
 package "verso-manual" where
   -- work around clang emitting invalid linker optimization hints that lld rejects
