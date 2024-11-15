@@ -82,7 +82,7 @@ The kind of a syntax value can be extracted using {name Lean.Syntax.getKind}`Syn
 A number of named kinds are associated with the basic tokens produced by the parser.
 Typically, single-token syntax productions consist of a {name Lean.Syntax.node}`node` that contains a single {name Lean.Syntax.atom}`atom`; the kind saved in the node allows the value to be recognized.
 Atoms for literals are not interpreted by the parser: string atoms include their leading and trailing double-quote characters along with any escape sequences contained within, and hexadecimal numerals are saved as a string that begins with {lean}`"0x"`.
-Helpers such as {name}`Lean.TSyntax.getString` are provided to perform this decoding on demand.
+{ref "typed-syntax-helpers"}[Helpers] such as {name}`Lean.TSyntax.getString` are provided to perform this decoding on demand.
 
 ```lean (show := false) (keep := false)
 -- Verify claims about atoms and nodes
@@ -387,7 +387,7 @@ These aliases allow code to be written at a higher level of abstraction.
 
 {docstring Lean.Command}
 
-{docstring Lean.Level}
+{docstring Lean.Syntax.Level}
 
 {docstring Lean.Syntax.Tactic}
 
@@ -410,6 +410,9 @@ These aliases allow code to be written at a higher level of abstraction.
 {docstring Lean.HygieneInfo}
 
 # Helpers for Typed Syntax
+%%%
+tag := "typed-syntax-helpers"
+%%%
 
 For literals, Lean's parser produces a singleton node that contains an {name Lean.Syntax.atom}`atom`.
 The inner atom contains a string with source information, while the node's kind specifies how the atom is to be interpreted.

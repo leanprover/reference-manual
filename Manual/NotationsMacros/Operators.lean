@@ -24,15 +24,15 @@ set_option linter.unusedVariables false
 tag := "operators"
 %%%
 
-Lean supports custom infix, prefix, and suffix operators.
+Lean supports custom infix, prefix, and postfix operators.
 New operators can be added by any Lean library, and the new operators have equal status to those that are part of the language.
 Each new operator is assigned an interpretation as a function, after which uses of the operator are translated into uses of the function.
 The operator's translation into a function call is referred to as its {deftech}_expansion_.
 If this function is a {tech}[type class] {tech}[method], then the resulting operator can be overloaded by defining instances of the class.
 
-All operators have a {deftech}[precedence].
+All operators have a {deftech}_precedence_.
 Operator precedence determines the order of operations for unparenthesized expressions: because multiplication has a higher precedence than addition, {lean}`2 + 3 * 4` is equivalent to {lean}`2 + (3 * 4)`, and {lean}`2 * 3 + 4` is equivalent to {lean}`(2 * 3) + 4`.
-Infix operators additionally have an {deftech}[associativity] that determines the meaning of a chain of operators that have the same precedence:
+Infix operators additionally have an {deftech}_associativity_ that determines the meaning of a chain of operators that have the same precedence:
 
 : {deftech}[Left-associative]
 
@@ -116,7 +116,7 @@ The attribute {attr}`inherit_doc` causes the documentation of the function that 
 Operators interact with {tech}[section scopes] in the same manner as attributes.
 By default, operators are available in any module that transitively imports the one in which they are established, but they may be declared `scoped` or `local` to restrict their availability either to contexts in which the current namespace has been opened or to the current {tech}[section scope], respectively.
 
-Operators require a {ref "precedence"}[precedence] specifier, following a colon.
+Custom operators require a {ref "precedence"}[precedence] specifier, following a colon.
 There is no default precedence to fall back to for custom operators.
 
 Operators may be explicitly named.
@@ -128,7 +128,6 @@ The specifics of the assignment of this name should not be relied upon, both bec
 :::example "Assigned Operator Names"
 Given this infix operator:
 ```lean
-@[inherit_doc]
 infix:90 " ⤴ " => Option.getD
 ```
 the internal name {name}`«term_⤴_»` is assigned to the resulting parser extension.
@@ -139,12 +138,23 @@ the internal name {name}`«term_⤴_»` is assigned to the resulting parser exte
 :::example "Provided Operator Names"
 Given this infix operator:
 ```lean
-@[inherit_doc]
 infix:90 (name := getDOp) " ⤴ " => Option.getD
 ```
 the resulting parser extension is named {name}`getDOp`.
 :::
 ::::
+
+::::keepEnv
+:::example "Inheriting Documentation"
+Given this infix operator:
+```lean
+@[inherit_doc]
+infix:90 " ⤴ " => Option.getD
+```
+the resulting parser extension has the same documentation as {name}`Option.getD`.
+:::
+::::
+
 
 
 When multiple operators are defined that share the same syntax, Lean's parser attempts all of them.
@@ -231,9 +241,10 @@ Additional diagnostic information may be available using the `set_option diagnos
 The actual operator is provided as a string literal.
 The new operator must satisfy the following requirements:
  * It must contain at least one character.
- * The first character may not be a single or double quote (`'` or `"`).
+ * The first character may not be a single or double quote (`'` or `"`), unless the operator is `''`.
  * It may not begin with a backtick (``​`​``) followed by a character that would be a valid prefix of a quoted name.
  * It may not begin with a digit.
+ * It may not include internal whitespace.
 
 The operator string literal may begin or end with a space.
 These are not part of the operator's syntax, and their presence does not require spaces around uses of the operator.

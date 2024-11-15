@@ -31,18 +31,19 @@ tag := "language-extension"
 %%%
 
 Different mathematical fields have their own notational conventions, and many notations are re-used with differing meanings in different fields.
-It is important that formal developments are able to use established notations: formalized mathematics is already difficult, and the mental overhead of translating between syntaxes can be substantial.
+It is important that formal developments are able to use established notations: formalizing mathematics is already difficult, and the mental overhead of translating between syntaxes can be substantial.
 At the same time, it's important to be able to control the scope of notational extensions.
 Many fields use related notations with very different meanings, and it should be possible to combine developments from these separate fields in a way where both readers and the system know which convention is in force in any given region of a file.
 
-Lean addresses the problem of notational extensibility with a variety of mechanisms, each of which solves different aspects of the problem.
+Lean addresses the problem of notational extensibility with a variety of mechanisms, each of which solves a different aspect of the problem.
 They can be combined flexibly to achieve the necessary results:
 
  * The {ref "parser"}_extensible parser_ {index}[parser] allows a great variety of notational conventions to be implemented declaratively, and combined flexibly.
  * {ref "macro-and-elab"}[Macros] allow new syntax to be easily mapped to existing syntax, which is a simple way to provide meaning to new constructs.
   Due to {tech}[hygiene] and automatic propagation of source positions, this process doesn't interfere with Lean's interactive features.
  * {ref "macro-and-elab"}[Elaborators] provide new syntax with the same tools available to Lean's own syntax in cases where a macro is insufficiently expressive.
- * {ref "notations"}[Notations] allow the simultaneous definition of a parser extension, a macro, and a pretty printer.{TODO}[check the details on pretty printers and syntax vs notation]
+ * {ref "notations"}[Notations] allow the simultaneous definition of a parser extension, a macro, and a pretty printer.
+   When defining infix, prefix, or postifx operators, {ref "operators"}[custom operators] automatically take care of precedence and associativity.
  * Low-level parser extensions allow the parser to be extended in ways that modify its rules for tokens and whitespace, or that even completely replace Lean's syntax. This is an advanced topic that requires familiarity with Lean internals; nevertheless, the possibility of doing this without modifying the compiler is important. This reference manual is written using a language extension that replaces Lean's concrete syntax with a Markdown-like language for writing documents, but the source files are still Lean files.
 
 {include 0 Manual.NotationsMacros.Operators}
@@ -57,14 +58,6 @@ They can be combined flexibly to achieve the necessary results:
 %%%
 tag := "macros"
 %%%
-
-:::planned 71
- * `macro_rules`
-   * Syntax patterns
-   * Backtracking on expansion failure
- * {deftech}[Hygiene] and {deftech}[quasiquotation]
- * The `macro` command
-:::
 
 {deftech}_Macros_ are transformations from {name Lean.Syntax}`Syntax` to {name Lean.Syntax}`Syntax` that occur during {tech key:="elaborator"}[elaboration] and during {ref "tactic-macros"}[tactic execution].
 Replacing syntax with the result of transforming it with a macro is called {deftech}_macro expansion_.
@@ -1069,7 +1062,7 @@ open Lean
 
 The {keywordOf Lean.Parser.Command.macro}`macro` command simultaneously defines a new {tech}[syntax rule] and associates it with a {tech}[macro].
 Unlike {keywordOf Lean.Parser.Command.notation}`notation`, which can define only new term syntax and in which the expansion is a term into which the parameters are to be substituted, the {keywordOf Lean.Parser.Command.macro}`macro` command may define syntax in any {tech}[syntax category] and it may use arbitrary code in the {name}`MacroM` monad to generate the expansion.
-
+Because macros are so much more flexible than notations, Lean cannot automatically generate an unexpander; this means that new syntax implemented via the {keywordOf Lean.Parser.Command.macro}`macro` command is available for use in _input_ to Lean, but Lean's output does not use it without further work.
 
 :::syntax command
 ```grammar
