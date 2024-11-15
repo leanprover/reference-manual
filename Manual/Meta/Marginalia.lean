@@ -22,30 +22,41 @@ def Marginalia.css := r#"
   padding: 0.5rem;
 }
 /* Wide viewport */
-@media (min-width: 1400px) {
-.marginalia .note {
-  float: right;
-  clear: right;
-  margin-right: -19vw;
-  width: 15vw;
-  margin-top: 1rem;
-}
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -19vw;
+    width: 15vw;
+    margin-top: 1rem;
+  }
 }
 
 .marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
   background-color: var(--lean-accent-light-blue);
 }
 
-/* Narrow viewport */
-@media (max-width: 1400px) {
-.marginalia .note {
-  float: right;
-  clear: right;
-  width: 40%;
-  margin: 1rem 0;
-  margin-left: 5%;
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 5%;
+  }
 }
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
 }
+
 body {
   counter-reset: margin-note-counter;
 }
