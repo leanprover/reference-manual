@@ -34,6 +34,10 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="namedocs"):
         element.decompose()
 
+    # Delete the index
+    for element in soup.find_all(class_="theIndex"):
+        element.decompose()
+
     # Delete grammar specifications
     for element in soup.find_all(class_="grammar"):
         element.decompose()
