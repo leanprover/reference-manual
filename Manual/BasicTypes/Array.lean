@@ -9,6 +9,7 @@ import VersoManual
 import Manual.Meta
 
 import Manual.BasicTypes.Array.Subarray
+import Manual.BasicTypes.Array.FFI
 
 open Manual.FFIDocType
 
@@ -42,6 +43,9 @@ The logical model of arrays is a structure that contains a single field, which i
 This is convenient when specifying and proving properties of array-processing functions at a low level.
 
 # Run-Time Representation
+%%%
+tag := "array-runtime"
+%%%
 
 Lean's arrays are {deftech}_dynamic arrays_, which are blocks of continuous memory with a defined capacity, not all of which is typically in use.
 As long as the number of elements in the array is less than the capacity, new items can be added to the end without reallocating or moving the data.
@@ -379,6 +383,8 @@ tag := "array-api"
 
 {docstring Array.partition}
 
+{docstring Array.groupByKey}
+
 
 ## Element Predicates
 
@@ -446,3 +452,5 @@ tag := "array-api"
 {docstring Array.reduceGetElem!}
 
 {include 1 Manual.BasicTypes.Array.Subarray}
+
+{include 0 Manual.BasicTypes.Array.FFI}

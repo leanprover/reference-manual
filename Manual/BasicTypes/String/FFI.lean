@@ -51,3 +51,7 @@ lean_string_object * lean_to_string(lean_object * o)
 ````
 Performs a runtime check that `o` is indeed a string. If `o` is not a string, an assertion fails.
 :::
+
+:::planned 158
+ * Complete C API for {lean}`String`
+:::
