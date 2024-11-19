@@ -14,7 +14,7 @@ open Verso.Genre Manual
 
 set_option pp.rawOnError true
 
-#doc (Manual) "Subarrays" =>
+#doc (Manual) "Sub-Arrays" =>
 %%%
 tag := "subarray"
 %%%

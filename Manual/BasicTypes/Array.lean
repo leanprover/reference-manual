@@ -120,21 +120,21 @@ def oneTwoThree : Array Nat := #[1, 2, 3]
 :::
 ::::
 
-Additionally, {ref "subarray"}[subarrays] may be extracted using the following syntax:
+Additionally, {ref "subarray"}[sub-arrays] may be extracted using the following syntax:
 :::syntax term
-A start index followed by a colon constructs a subarray that contains the values from the start index onwards (inclusive):
+A start index followed by a colon constructs a sub-array that contains the values from the start index onwards (inclusive):
 ```grammar
 $t[$t:term :]
 ```
 
-Providing start and end indices  constructs a subarray that contains the values from the start index (inclusive) to the end index (exclusive):
+Providing start and end indices  constructs a sub-array that contains the values from the start index (inclusive) to the end index (exclusive):
 ```grammar
 $t[$t:term : $_:term]
 ```
 :::
 
 ::::keepEnv
-:::example "Subarray Syntax"
+:::example "Sub-array Syntax"
 
 The array {lean}`ten` contains the first ten natural numbers.
 ```lean
@@ -142,7 +142,7 @@ def ten : Array Nat :=
   .range 10
 ```
 
-A subarray that represents the second half of {lean}`ten` can be constructed using the subarray syntax:
+A sub-array that represents the second half of {lean}`ten` can be constructed using the sub-array syntax:
 ```lean (name := subarr1)
 #eval ten[5:]
 ```
@@ -150,7 +150,7 @@ A subarray that represents the second half of {lean}`ten` can be constructed usi
 #[5, 6, 7, 8, 9].toSubarray
 ```
 
-Similarly, subarray that contains two through five can be constructed by providing a stopping point:
+Similarly, sub-array that contains two through five can be constructed by providing a stopping point:
 ```lean (name := subarr2)
 #eval ten[2:6]
 ```
@@ -158,7 +158,7 @@ Similarly, subarray that contains two through five can be constructed by providi
 #[2, 3, 4, 5].toSubarray
 ```
 
-Because subarrays merely store the start and end indices of interest in the underlying array, the array itself can be recovered:
+Because sub-arrays merely store the start and end indices of interest in the underlying array, the array itself can be recovered:
 ```lean (name := subarr3)
 #eval ten[2:6].array == ten
 ```
