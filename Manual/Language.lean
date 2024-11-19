@@ -334,33 +334,29 @@ def Codec.char : Codec where
 
 Universe-polymorphic definitions in fact create a _schematic definition_ that can be instantiated at a variety of levels, and different instantiations of universes create incompatible values.
 
-:::Manual.example "Universe polymorphism is not first-class"
+::::keepEnv
+:::Manual.example "Universe polymorphism and definitional equality"
 
-This can be seen in the following example, in which `T` is a gratuitously-universe-polymorphic definition that always returns the constructor of the unit type.
-Both instantiations of `T` have the same value, and both have the same type, but their differing universe instantiations make them incompatible:
-```lean (error := true) (name := uniIncomp) (keep := false)
-abbrev T.{u} : Unit := (fun (α : Sort u) => ()) PUnit.{u}
+This can be seen in the following example, in which {lean}`T` is a gratuitously-universe-polymorphic function that always returns {lean}`true`.
+Because it is marked {keywordOf Lean.Parser.Command.declaration}`opaque`, Lean can't check equality by unfolding the definitions.
+Both instantiations of {lean}`T` have the parameters and the same type, but their differing universe instantiations make them incompatible.
+```lean (error := true) (name := uniIncomp)
+opaque T.{u} (_ : Nat) : Bool := (fun (α : Sort u) => true) PUnit.{u}
 
 set_option pp.universes true
 
-def test.{u, v} : T.{u} = T.{v} := rfl
+def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
 type mismatch
   rfl.{1}
 has type
-  Eq.{1} T.{u} T.{u} : Prop
+  Eq.{1} (T.{u} 0) (T.{u} 0) : Prop
 but is expected to have type
-  Eq.{1} T.{u} T.{v} : Prop
-```
-
-```lean (error := false) (keep := false) (show := false)
--- check that the above statement stays true
-abbrev T : Unit := (fun (α : Type) => ()) Unit
-
-def test : T = T := rfl
+  Eq.{1} (T.{u} 0) (T.{v} 0) : Prop
 ```
 :::
+::::
 
 Auto-bound implicit arguments are as universe-polymorphic as possible.
 Defining the identity function as follows:
