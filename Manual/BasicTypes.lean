@@ -9,6 +9,7 @@ import VersoManual
 import Manual.Meta
 import Manual.BasicTypes.Nat
 import Manual.BasicTypes.String
+import Manual.BasicTypes.Array
 
 open Manual.FFIDocType
 
@@ -142,17 +143,8 @@ tag := "List"
  * Constructor/pattern syntax
 :::
 
-# Arrays
-%%%
-tag := "Array"
-%%%
 
-::: planned 91
-Description and API reference for {name}`Thunk`:
- * Logical model as wrapper around a function from {lean}`Unit`
- * Run-time realization as a lazy computation
- * API reference
-:::
+{include 0 Manual.BasicTypes.Array}
 
 
 # Lazy Computations

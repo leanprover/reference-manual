@@ -47,7 +47,7 @@ tag := "string-runtime"
 ![Memory layout of strings](/static/figures/string.svg)
 :::
 
-Strings are represented as dynamic arrays of bytes, encoded in UTF-8.
+Strings are represented as {tech}[dynamic arrays] of bytes, encoded in UTF-8.
 After the object header, a string contains:
 
 : byte count
