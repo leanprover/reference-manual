@@ -147,7 +147,7 @@ file := some "the-index"
 
 :::progress
 ```namespace
-String Char Nat Lean.Elab.Tactic Array Subarray
+String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath IO.Process IO.FS.Stream ST IO.Error
 ```
 ```exceptions
 String.revFindAux String.extract.go₂ String.substrEq.loop String.casesOn
@@ -479,6 +479,10 @@ Lean.Elab.Tactic.evalSkip
 Lean.Elab.Tactic.evalCalc.throwFailed
 Lean.Elab.Tactic.evalSubstEqs
 Lean.Elab.Tactic.evalTacticSeq1Indented
+```
+
+```exceptions
+IO.stdGenRef
 ```
 
 ```exceptions
