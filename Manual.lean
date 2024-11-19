@@ -13,6 +13,7 @@ import Manual.Tactics
 import Manual.Simp
 import Manual.BasicTypes
 import Manual.NotationsMacros
+import Manual.IO
 
 open Verso.Genre Manual
 
@@ -50,14 +51,7 @@ This chapter will describe `do`-notation in Lean:
  * Definition of being in the "same `do`-block"
 :::
 
-# IO
-%%%
-tag := "io"
-%%%
-
-:::planned 102
-This chapter will describe features for writing programs that can have side effects on the real world.
-:::
+{include 0 Manual.IO}
 
 {include 0 Manual.Tactics}
 
