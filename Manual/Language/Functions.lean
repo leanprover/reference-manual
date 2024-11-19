@@ -185,7 +185,7 @@ Implicit parameters come in three varieties:
   : Strict implicit parameters
 
     Strict implicit parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
-    Ordinary implicit parameters are written in double curly braces (`⦃` and `⦄`, or `{{` and `}}`).
+    Strict implicit parameters are written in double curly braces (`⦃` and `⦄`, or `{{` and `}}`).
 
   : Instance implicit parameters
 
