@@ -127,8 +127,27 @@ tag := "char-api-classes"
 
 {docstring Char.isWhitespace}
 
-
 {include 0 Manual.BasicTypes.String}
+
+# The Unit Type
+
+{docstring Unit}
+
+{docstring PUnit}
+
+:::planned 161
+ * Definitional equality
+ * {lean}`Unit` vs {lean}`PUnit`
+:::
+
+# Booleans
+
+{docstring Bool}
+
+:::planned 162
+ * Relationship to {lean}`Prop`
+ * Laziness of `&&` etc
+:::
 
 # Linked Lists
 %%%
