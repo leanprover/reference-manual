@@ -10,24 +10,43 @@ import Manual.Meta
 
 import Lean.Parser.Command
 
-open Manual hiding «example»
+open Manual
 open Verso.Genre
 open Verso.Genre.Manual
-open Lean.Parser.Command (declModifiers «example»)
 
 set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
 #doc (Manual) "IO" =>
-
 %%%
 tag := "io"
 %%%
 
+
+
+:::ioExample
+```ioLean
+def main : IO Unit :=
+  IO.println "Hello, world!"
+```
+```stdout
+Hello, world!
+```
+```stderr
+
+```
+:::
+
+```exampleFile input "foo"
+hey
+you
+```
+
+
 # Logical Model
 
-## The `EIO` and `IO` Monads
+## The `IO`, `EIO` and `BaseIO` Monads
 
 {docstring IO}
 
@@ -58,11 +77,44 @@ tag := "io"
 
 # Files, File Handles, and Streams
 
-::: TODO
- * Reading and writing files
- * How to close a file handle
- * Temporary files
-:::
+: {deftech}[Files]
+
+  Files are an abstraction provided by operating systems that provide random access to persistently-stored data, organized hierarchically into directories.
+
+: {deftech}[Directories]
+
+  Directories, also known as _folders_, may contain files or other directories.
+  Fundamentally, a directory maps names to the files and/or directories that it contains.
+
+: {deftech}[File Handles]
+
+  File handles ({name IO.FS.Handle}`Handle`) are abstract references to files that have been opened for reading and/or writing.
+  A file handle maintains a mode that determines whether reading and/or writing are allowed, along with a cursor that points at a specific location in the file.
+  Reading from or writing to a file handle advances the cursor.
+  File handles may be {deftech}[buffered], which means that reading from a file handle may not return the current contents of the persistent data, and writing to a file handle may not modify them immediately.
+
+: Paths
+
+  Files are primarily accessed via {deftech}_paths_ ({name}`System.FilePath`).
+  A path is a sequence of directory names, potentially terminated by a file name.
+  They are represented by strings in which separator characters {margin}[The current platform's separator characters are listed in {name}`System.FilePath.pathSeparators`.] delimit the names.
+
+  The details of paths are platform-specific.
+  Absolute paths begin in a {deftech}_root directory_; some operating systems have a single root, while others may have multiple root directories.
+  Relative paths do not begin in a root directory and require that some other directory be taken as a starting point.
+  In addition to directories, paths may contain the special directory names `.`, which refers to the directory in which it is found, and `..`, which refers to prior directory in the path.
+
+  Filenames, and thus paths, may end in one or more {deftech}_extensions_ that identify the file's type.
+  Extensions are delimited by the character {name}`System.FilePath.extSeparator`.
+  On some platforms, executable files have a special extension ({name}`System.FilePath.exeExtension`).
+
+## Low-Level File API
+
+At the lowest level, files are explicitly opened using {name IO.FS.Handle.mk}`Handle.mk`.
+When the last reference to the handle object is dropped, the file is closed.
+There is no explicit way to close a file handle other than
+
+{docstring IO.FS.Mode}
 
 {docstring IO.FS.Handle}
 
@@ -124,9 +176,72 @@ tag := "io"
 
 {docstring IO.FS.Stream.Buffer.pos}
 
+::::example "One File, Multiple Handles"
+This program has two handles to the same file.
+Because file I/O may be buffered independently for each handle, {name IO.FS.Handle.flush}`Handle.flush` should be called when the buffers need to be synchronized with the file's actual contents.
+Here, the two handles proceed in lock-step through the file, with one of them a single byte ahead of the other.
+The first handle is used to count the number of occurrences of `'A'`, while the second is used to replace each `'A'` with `'!'`.
+The second handle is opened in {name IO.FS.Mode.readWrite}`readWrite` mode rather than {name IO.FS.Mode.write}`write` mode because opening an existing file in {name IO.FS.Mode.write}`write` mode replaces it with an empty file.
+In this case, the buffers don't need to be flushed during execution because modifications occur only to parts of the file that will not be read again, but the write handle should be flushed after the loop has completed.
+
+:::ioExample
+```ioLean
+open IO.FS (Handle)
+
+def main : IO Unit := do
+  IO.println s!"Starting contents: '{(← IO.FS.readFile "data").trim}'"
+
+  let h ← Handle.mk "data" .read
+  let h' ← Handle.mk "data" .readWrite
+  h'.rewind
+
+  let mut count := 0
+  let mut buf : ByteArray ← h.read 1
+  while ok : buf.size = 1 do
+    if Char.ofUInt8 buf[0] == 'A' then
+      count := count + 1
+      h'.write (ByteArray.empty.push '!'.toUInt8)
+    else
+      h'.write buf
+    buf ← h.read 1
+
+  h'.flush
+
+  IO.println s!"Count: {count}"
+  IO.println s!"Contents: '{(← IO.FS.readFile "data").trim}'"
+```
+
+When run on this file:
+```inputFile "data"
+AABAABCDAB
+```
+
+the program outputs:
+```stdout
+Starting contents: 'AABAABCDAB'
+Count: 5
+Contents: '!!B!!BCD!B'
+```
+```stderr (show := false)
+```
+
+Afterwards, the file contains:
+```outputFile "data"
+!!B!!BCD!B
+```
+
+:::
+::::
+
 ## Paths
 
+:::TODO
+Platform concerns
+:::
+
 {docstring System.FilePath}
+
+{docstring System.mkFilePath}
 
 {docstring System.FilePath.join}
 
@@ -204,11 +319,7 @@ tag := "io"
 
 # Processes
 
-::: TODO
 
- * How to run a program in batch mode
- * How to run a program interactively
-:::
 
 ## Current Process
 
@@ -221,6 +332,13 @@ tag := "io"
 {docstring IO.Process.getPID}
 
 ## Running Processes
+
+::: TODO
+
+ * How to run a program in batch mode
+ * How to run a program interactively
+
+:::
 
 {docstring IO.Process.SpawnArgs}
 

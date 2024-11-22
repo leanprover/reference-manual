@@ -486,6 +486,13 @@ Lean.Elab.Tactic.evalTacticSeq1Indented
 IO.stdGenRef
 ```
 
+```exceptions
+IO.Process.StdioConfig.noConfusionType
+IO.Process.StdioConfig.recOn
+IO.Process.StdioConfig.rec
+IO.Process.StdioConfig.noConfusion
+IO.Process.StdioConfig.casesOn
+```
 
 ```exceptions
 IO.FS.lines.read

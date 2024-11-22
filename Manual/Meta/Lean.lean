@@ -18,6 +18,7 @@ import SubVerso.Examples
 
 import Manual.Meta.Basic
 import Manual.Meta.Lean.Scopes
+import Manual.Meta.Lean.Block
 
 
 open Lean Elab
@@ -31,12 +32,6 @@ namespace Manual
 
 initialize leanOutputs : EnvExtension (NameMap (List (MessageSeverity × String))) ←
   registerEnvExtension (pure {})
-
-def Block.lean (hls : Highlighted) : Block where
-  name := `Manual.lean
-  data :=
-    let defined := hls.definedNames.toArray
-    Json.arr #[ToJson.toJson hls, ToJson.toJson defined]
 
 def Inline.lean (hls : Highlighted) : Inline where
   name := `Manual.lean
@@ -213,42 +208,6 @@ where
       modifyInfoTrees fun _ => treesSaved.push tree
       pure tree
 
-
-
-@[block_extension lean]
-def lean.descr : BlockDescr where
-  traverse id data _ := do
-    let .arr #[_, defined] := data
-      | logError "Expected two-element JSON for Lean code" *> pure none
-    match FromJson.fromJson? defined with
-    | .error err =>
-      logError <| "Couldn't deserialize Lean code while traversing block example: " ++ err
-      pure none
-    | .ok (defs : Array Name) =>
-      let path ← (·.path) <$> read
-      for n in defs do
-        let _ ← externalTag id path n.toString
-        modify (·.saveDomainObject exampleDomain n.toString id)
-      pure none
-  toTeX :=
-    some <| fun _ go _ _ content => do
-      pure <| .seq <| ← content.mapM fun b => do
-        pure <| .seq #[← go b, .raw "\n"]
-  extraCss := [highlightingStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
-  toHtml :=
-    open Verso.Output.Html in
-    some <| fun _ _ _ data _ => do
-      let .arr #[hlJson, _] := data
-        | HtmlT.logError "Expected two-element JSON for Lean code" *> pure .empty
-      match FromJson.fromJson? hlJson with
-      | .error err =>
-        HtmlT.logError <| "Couldn't deserialize Lean code block while rendering HTML: " ++ err
-        pure .empty
-      | .ok (hl : Highlighted) =>
-        hl.blockHtml "examples"
 
 
 @[inline_extension lean]
