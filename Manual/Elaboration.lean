@@ -197,7 +197,7 @@ It is described in detail by {citet carneiro19}[] and {citet ullrich23}[].
 Lean's type theory does not feature subject reduction, the definitional equality is not necessarily transitive, and it is possible to make the type checker fail to terminate.
 None of these metatheoretic properties cause problems in practice—failures of transitivity are exceedingly rare, and as far as we know, non-termination has not occurred except when crafting code specifically to exercise it.
 Most importantly, logical soundness is not affected.
-In practice, apparent non-ermination is indistinguishable from sufficiently slow programs; the latter are the causes observed in the wild.
+In practice, apparent non-termination is indistinguishable from sufficiently slow programs; the latter are the causes observed in the wild.
 These metatheoretic properties are a result of having impredicativity, quotient types that compute, definitional proof irrelevance, and propositional extensionality; these features are immensely valuable both to support ordinary mathematical practice and to enable automation.
 
 # Elaboration Results
