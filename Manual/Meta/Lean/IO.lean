@@ -17,9 +17,11 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.Figure
 import Manual.Meta.Lean.Scopes
 import Manual.Meta.Lean.IO.Context
 import Manual.Meta.Lean.Block
+
 
 
 open Lean Elab

@@ -49,19 +49,19 @@ In addition to having types, terms are also related by {deftech}_definitional eq
 This is the mechanically-checkable relation that equates terms modulo their computational behavior.
 Definitional equality includes the following forms of {deftech}[reduction]:
 
- : β (beta)
+ : {deftech}[β] (beta)
 
     Applying a function abstraction to an argument by substitution for the bound variable
 
- : δ (delta)
+ : {deftech}[δ] (delta)
 
     Replacing occurrences of {tech}[defined constants] by the definition's value
 
- : ι (iota)
+ : {deftech}[ι] (iota)
 
     Reduction of recursors whose targets are constructors (primitive recursion)
 
- : ζ (zeta)
+ : {deftech}[ζ] (zeta)
 
      Replacement of let-bound variables by their defined values
 

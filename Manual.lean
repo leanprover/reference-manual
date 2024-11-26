@@ -49,6 +49,7 @@ This chapter will describe `do`-notation in Lean:
  * Desugaring of `do` and its associated control structures
  * Comprehensive description of the syntax of `do`-notation
  * Definition of being in the "same `do`-block"
+ * Various common kinds of monads, including reader monads, {deftech}[state monads], and {deftech}[exception monads].
 :::
 
 {include 0 Manual.IO}
@@ -148,7 +149,7 @@ file := some "the-index"
 :::progress
 ```namespace
 String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath IO.Process IO.FS.Stream ST IO.Error IO.FS.Stream.Buffer IO.FS.Handle
-IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio
+IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio IO.Ref ST.Ref IO.FS.Metadata IO.FS.DirEntry
 ```
 ```exceptions
 String.revFindAux String.extract.go₂ String.substrEq.loop String.casesOn
@@ -562,6 +563,9 @@ Lean.Parser.Tactic.paren
 tacticDecreasing_trivial_pre_omega
 ```
 
+```exceptions
+IO.Process.Stdio.toCtorIdx
+```
 :::
 
 ::::::

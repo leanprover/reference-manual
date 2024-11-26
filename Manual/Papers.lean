@@ -48,3 +48,9 @@ def ullrich23 : Thesis where
   university := .concat (inlines!"Karlsruhe Institute of Technology")
   url := some "https://www.lean-lang.org/papers/thesis-sebastian.pdf"
   degree := .concat (inlines!"Dr. Ing. dissertation")
+
+def launchbury94 : InProceedings where
+  title := .concat (inlines!"Lazy functional state threads")
+  authors := #[.concat (inlines! "John Launchbury"), .concat (inlines!"Simon L Peyton Jones")]
+  year := 1994
+  booktitle := .concat (inlines!"Proceedings of the ACM SIGPLAN 1994 Conference on Programming Language Design and Implementation")
