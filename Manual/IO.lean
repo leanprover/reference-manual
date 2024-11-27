@@ -11,6 +11,9 @@ import Manual.Papers
 
 import Lean.Parser.Command
 
+import Manual.IO.Threads
+import Manual.IO.Ref
+
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
@@ -87,6 +90,17 @@ example : BaseIO = EIO Empty := rfl
 
 {docstring EIO}
 
+{docstring IO.toEIO}
+
+{docstring EIO.toIO}
+
+{docstring EIO.toIO'}
+
+{docstring EIO.toBaseIO}
+
+{docstring IO.lazyPure}
+
+
 ## Errors and Error Handling
 
 Error handling in the {lean}`IO` monad uses the same facilities as any other exception monad.{TODO}[xref]
@@ -98,6 +112,12 @@ The most-used constructor is {name IO.Error.userError}`userError`, which covers 
 {docstring IO.Error}
 
 {docstring IO.Error.toString}
+
+{docstring IO.ofExcept}
+
+{docstring EIO.catchExceptions}
+
+{docstring IO.userError}
 
 ::::example "Throwing and Catching Errors"
 :::ioExample
@@ -203,6 +223,10 @@ Access granted!
 
 {docstring IO.Error.mkInappropriateTypeFile}
 
+# Control Structures
+
+{docstring IO.iterate}
+
 # Console IO
 
 Lean includes convenience functions for writing to {tech}[standard output] and {tech}[standard error].
@@ -216,155 +240,7 @@ All make use of {lean}`ToString` instances, and the varieties whose names end in
 
 {docstring IO.eprintln}
 
-# Mutable References
-
-While ordinary {tech}[state monads] encode stateful computations with tuples that track the contents of the state along with the computation's value, Lean's runtime system also provides mutable references that are always backed by mutable memory cells.
-Mutable references have a type {lean}`IO.Ref` that indicates that a cell is mutable, and reads and writes must be explicit.
-{lean}`IO.Ref` is implemented using {lean}`ST.Ref`, so the entire {ref "mutable-st-references"}[{lean}`ST.Ref` API] may also be used with {lean}`IO.Ref`.
-
-{docstring IO.Ref}
-
-{docstring IO.mkRef}
-
-
-
-## State Transformers
-
-Mutable references are often useful in contexts where arbitrary side effects are undesired.
-They can give a significant speedup when Lean is unable to optimize pure operations into mutation, and some algorithms are more easily expressed using mutable references than with state monads.
-Additionally, it has a property that other side effects do not have: if all of the mutable references used by a piece of code are created during its execution, and no mutable references from the code escape to other code, then the result of evaluation is deterministic.
-
-The {lean}`ST` monad is a restricted version of {lean}`IO` in which mutable state is the only side effect, and mutable references cannot escape.{margin}[{lean}`ST` was first described by {citehere launchbury94}[].]
-{lean}`ST` takes a type parameter that is never used to classify any terms.
-The {lean}`runST` function, which allow escape from {lean}`ST`, requires that the {lean}`ST` action that is passed to it can instantiate this type parameter with _any_ type.
-This unknown type does not exist except as a parameter to a function, which means that values whose types are “marked” by it cannot escape its scope.
-
-{docstring ST}
-
-{docstring runST}
-
-As with {lean}`IO` and {lean}`EIO`, there is also a variation of {lean}`ST` that takes a custom error type as a parameter.
-Here, {lean}`ST` is analogous to {lean}`BaseIO` rather than {lean}`IO`, because {lean}`ST` cannot result in errors being thrown.
-
-{docstring EST}
-
-{docstring runEST}
-
-### Mutable References
-%%%
-tag := "mutable-st-references"
-%%%
-
-{docstring ST.Ref}
-
-{docstring ST.mkRef}
-
-#### Reading and Writing
-
-{docstring ST.Ref.get}
-
-{docstring ST.Ref.set}
-
-::::example "Data races with {name ST.Ref.get}`get` and {name ST.Ref.set}`set`"
-:::ioExample
-```ioLean
-def main : IO Unit := do
-  let balance ← IO.mkRef (100 : Int)
-
-  let mut orders := #[]
-  IO.println "Sending out orders..."
-  for _ in [0:100] do
-    let o ← IO.asTask (prio := .dedicated) do
-      let cost ← IO.rand 1 100
-      IO.sleep (← IO.rand 10 100).toUInt32
-      if cost < (← balance.get) then
-        IO.sleep (← IO.rand 10 100).toUInt32
-        balance.set ((← balance.get) - cost)
-    orders := orders.push o
-
-  -- Wait until all orders are completed
-  for o in orders do
-    match o.get with
-    | .ok () => pure ()
-    | .error e => throw e
-
-  if (← balance.get) < 0 then
-    IO.eprintln "Final balance is negative!"
-  else
-    IO.println "Final balance is zero or positive."
-```
-```stdout
-Sending out orders...
-```
-```stderr
-Final balance is negative!
-```
-:::
-::::
-
-{docstring ST.Ref.modify}
-
-::::example "Avoiding data races with {name ST.Ref.modify}`modify`"
-:::ioExample
-```ioLean
-def main : IO Unit := do
-  let balance ← IO.mkRef (100 : Int)
-
-  let mut orders := #[]
-  IO.println "Sending out orders..."
-  for _ in [0:100] do
-    let o ← IO.asTask (prio := .dedicated) do
-      let cost ← IO.rand 1 100
-      IO.sleep (← IO.rand 10 100).toUInt32
-      balance.modify fun b =>
-        if cost < b then
-          b - cost
-        else b
-    orders := orders.push o
-
-  -- Wait until all orders are completed
-  for o in orders do
-    match o.get with
-    | .ok () => pure ()
-    | .error e => throw e
-
-  if (← balance.get) < 0 then
-    IO.eprintln "Final balance negative!"
-  else
-    IO.println "Final balance is zero or positive."
-```
-```stdout
-Sending out orders...
-Final balance is zero or positive.
-```
-```stderr
-```
-:::
-::::
-
-{docstring ST.Ref.modifyGet}
-
-#### Comparisons
-
-{docstring ST.Ref.ptrEq}
-
-#### Concurrency
-
-Mutable references can be used as a locking mechanism.
-_Taking_ the contents of the reference causes attempts to take it or to read from it to block until it is {name ST.Ref.set}`set` again.
-
-
-{docstring ST.Ref.take}
-
-{docstring ST.Ref.swap}
-
-{docstring ST.Ref.toMonadStateOf}
-
-:::example "Reference Cells as Locks"
-
-
-
-:::
+{include 0 Manual.IO.Ref}
 
 # Files, File Handles, and Streams
 
@@ -610,6 +486,12 @@ Some operations on paths consult the filesystem.
 
 {docstring System.FilePath.walkDir}
 
+{docstring IO.FileRight}
+
+{docstring IO.FileRight.flags}
+
+{docstring IO.setAccessRights}
+
 {docstring IO.FS.removeFile}
 
 {docstring IO.FS.rename}
@@ -729,6 +611,26 @@ Running {lean}`countdown` yields a string that contains the output:
 
 {docstring IO.currentDir}
 
+{docstring IO.appPath}
+
+{docstring IO.appDir}
+
+# Environment Variables
+
+{docstring IO.getEnv}
+
+# Timing
+
+{docstring IO.sleep}
+
+{docstring IO.monoNanosNow}
+
+{docstring IO.monoMsNow}
+
+{docstring IO.getNumHeartbeats}
+
+{docstring IO.addHeartbeats}
+
 # Processes
 
 ## Current Process
@@ -759,6 +661,14 @@ Running {lean}`countdown` yields a string that contains the output:
 {docstring IO.Process.Stdio.toHandleType}
 
 {docstring IO.Process.Child}
+
+{docstring IO.Process.Child.wait}
+
+{docstring IO.Process.Child.tryWait}
+
+{docstring IO.Process.Child.kill}
+
+{docstring IO.Process.Child.takeStdin}
 
 {docstring IO.Process.Output}
 
@@ -797,18 +707,4 @@ Running {lean}`countdown` yields a string that contains the output:
 
 {docstring IO.getRandomBytes}
 
-# Tasks and Threads
-
-{docstring Task}
-
-{docstring Task.spawn}
-
-{docstring Task.get}
-
-{docstring IO.asTask}
-
-{docstring IO.cancel}
-
-::: TODO
-
-:::
+{include 0 Manual.IO.Threads}
