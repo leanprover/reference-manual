@@ -108,6 +108,11 @@ Final balance is negative!
 {docstring ST.Ref.modify}
 
 ::::example "Avoiding data races with {name ST.Ref.modify}`modify`"
+
+This program launches 100 threads.
+Each thread simulates a purchase attempt: it generates a random price, and if the account balance is sufficient, it decrements it by the price.
+The balance check and the computation of the new value occur in an atomic call to {name}`ST.Ref.modify`.
+
 :::ioExample
 ```ioLean
 def main : IO Unit := do
@@ -155,7 +160,7 @@ Final balance is zero or positive.
 
 Mutable references can be used as a locking mechanism.
 _Taking_ the contents of the reference causes attempts to take it or to read from it to block until it is {name ST.Ref.set}`set` again.
-
+This is a low-level feature that can be used to implement other synchronization mechanisms; it's usually better to rely on higher-level abstractions when possible.
 
 {docstring ST.Ref.take}
 
@@ -164,9 +169,55 @@ _Taking_ the contents of the reference causes attempts to take it or to read fro
 {docstring ST.Ref.toMonadStateOf}
 
 
-{TODO}[Write this]
-:::example "Reference Cells as Locks"
+::::example "Reference Cells as Locks"
+This program launches 100 threads.
+Each thread simulates a purchase attempt: it generates a random price, and if the account balance is sufficient, it decrements it by the price.
+If the balance is not sufficient, then it is not decremented.
+Because each thread {name ST.Ref.take}`take`s the balance cell prior to checking it and only returns it when it is finished, the cell acts as a lock.
+Unlike using {name}`ST.Ref.modify`, which atomically modifies the contents of the cell using a pure function, other {name}`IO` actions may occur in the critical section
+This program's `main` function is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` because {name ST.Ref.take}`take` itself is unsafe.
 
+:::ioExample
+```ioLean
+unsafe def main : IO Unit := do
+  let balance ← IO.mkRef (100 : Int)
+  let validationUsed ← IO.mkRef false
 
+  let mut orders := #[]
 
+  IO.println "Sending out orders..."
+  for _ in [0:100] do
+    let o ← IO.asTask (prio := .dedicated) do
+      let cost ← IO.rand 1 100
+      IO.sleep (← IO.rand 10 100).toUInt32
+      let b ← balance.take
+      if cost ≤ b then
+        balance.set (b - cost)
+      else
+        balance.set b
+        validationUsed.set true
+    orders := orders.push o
+
+  -- Wait until all orders are completed
+  for o in orders do
+    match o.get with
+    | .ok () => pure ()
+    | .error e => throw e
+
+  if (← validationUsed.get) then
+    IO.println "Validation prevented a negative balance."
+
+  if (← balance.get) < 0 then
+    IO.eprintln "Final balance negative!"
+  else
+    IO.println "Final balance is zero or positive."
+```
+
+The program's output is:
+```stdout
+Sending out orders...
+Validation prevented a negative balance.
+Final balance is zero or positive.
+```
 :::
+::::

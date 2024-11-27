@@ -122,6 +122,8 @@ def Block.exampleFile.descr : BlockDescr where
   font-family: var(--verso-structure-font-family);
   margin: 1rem;
   width: fit-content;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
 }
 .example-file::before {
   counter-reset: linenumber;

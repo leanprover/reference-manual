@@ -64,8 +64,7 @@ These are the key concepts:
 
 At the lowest level, files are explicitly opened using {name IO.FS.Handle.mk}`Handle.mk`.
 When the last reference to the handle object is dropped, the file is closed.
-There is no explicit way to close a file handle other than by ensuring that there are no references.
-
+There is no explicit way to close a file handle other than by ensuring that there are no references to it.
 
 
 {docstring IO.FS.Handle}
@@ -192,7 +191,7 @@ To write Lean code that is as compatible as possible with multiple systems, it c
 Helpers such as {name}`System.FilePath.join` take platform-specific rules for absolute paths into account, {name}`System.FilePath.pathSeparator` contains the appropriate path separator for the current platform, and {name}`System.FilePath.exeExtension` contains any necessary extension for executable files.
 Avoid hard-coding these rules.
 
-As a slight abuse of notation, there is an instance of the {lean}`Div` type class for {name System.FilePath}`FilePath` which allows the slash operator to be used to concatenate paths.
+There is an instance of the {lean}`Div` type class for {name System.FilePath}`FilePath` which allows the slash operator to be used to concatenate paths.
 
 {docstring System.FilePath}
 
