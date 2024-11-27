@@ -368,7 +368,7 @@ name = \"{leanCodeName}\"
 
   let expectedStderr := stderr.map (·.getString) |>.getD ""
   if stderrOut.trim != expectedStderr.trim then
-    if let some stderrLit := stdout then
+    if let some stderrLit := stderr then
       Verso.Doc.Suggestion.saveSuggestion stderrLit (shorten stderrOut) stderrOut
     logErrorAt (loc stderr) s!"Mismatched stderr. Expected:\n{stderr.map (·.getString) |>.getD ""}\nGot:{stderrOut}\n"
 
