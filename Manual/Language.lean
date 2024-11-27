@@ -349,9 +349,9 @@ def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
 type mismatch
-  rfl.{1}
+  rfl.{?u.27}
 has type
-  Eq.{1} (T.{u} 0) (T.{u} 0) : Prop
+  Eq.{?u.27} ?m.29 ?m.29 : Prop
 but is expected to have type
   Eq.{1} (T.{u} 0) (T.{v} 0) : Prop
 ```

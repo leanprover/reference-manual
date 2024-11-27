@@ -367,7 +367,7 @@ def removeTrailing? : Syntax → Option Syntax
       have : children.size > 0 := by
         cases h; simp_all; omega
       if let some child' := removeTrailing? children[children.size - i - 1] then
-        return .node .none k (children.set ⟨children.size - i - 1, by omega⟩ child')
+        return .node .none k (children.set (children.size - i - 1) child')
     failure
   | .node info k children =>
     noTrailing info |>.map (.node · k children)

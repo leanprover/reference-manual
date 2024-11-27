@@ -30,7 +30,6 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
   if !(← dir.isDir) then
     throw (↑ s!"Not a directory: {dir}")
 
-
 target figures : Array FilePath := do
   let files := (← figureDir.readDir).filterMap fun f =>
     match f.path.extension with

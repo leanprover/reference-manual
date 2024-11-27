@@ -302,104 +302,92 @@ def saveStderr [Monad m] [MonadEnv m] [MonadError m] (contents : StrLit) : m Uni
     | none => modifyEnv fun env => ioExampleCtx.setState env (some {st with stderr := some contents})
     | some _ => throwError "stderr already specified"
 
-
 def check
     (leanCode : StrLit) (leanCodeName : Name)
     (inputFiles outputFiles : Array (System.FilePath × StrLit))
-    (stdin stdout stderr : Option StrLit) : DocElabM Highlighted := do
-  -- FIXME: add creation of temporary directories to Lean, then do this the right way
-  let mut n := (← IO.getRandomBytes 8).foldl (· + ·.toNat) (0 : Nat)
-  let tmpname : System.FilePath := "verso-temp"
-  let mut dirname := tmpname
-  repeat
-    let this := dirname / s!"example-{n}"
-    if ← this.pathExists then
-      n := n + 1
-      continue
-    else
-      dirname := this
-      break
+    (stdin stdout stderr : Option StrLit) : DocElabM Highlighted :=
+  IO.FS.withTempDir fun dirname => do
+    let toolchain : String ← IO.FS.readFile "lean-toolchain"
+    let leanCodeName : String :=
+      match leanCodeName with
+      -- | .str .anonymous n => n
+      | _ => "Main"
+    let leanFileName : System.FilePath := (leanCodeName : System.FilePath).addExtension "lean"
+    IO.FS.writeFile (dirname / "lean-toolchain") toolchain
+    IO.FS.writeFile (dirname / leanFileName) leanCode.getString
+    IO.FS.writeFile (dirname / "lakefile.toml")
+      s!"name = \"example\"
+  defaultTargets = [\"{leanCodeName}\"]
 
-  IO.FS.createDirAll dirname
-  let leanCodeName : String :=
-    match leanCodeName with
-    -- | .str .anonymous n => n
-    | _ => "Main"
-  let leanFileName : System.FilePath := (leanCodeName : System.FilePath).addExtension "lean"
-  IO.FS.writeFile (dirname / leanFileName) leanCode.getString
-  IO.FS.writeFile (dirname / "lakefile.toml")
-    s!"name = \"example\"
-defaultTargets = [\"{leanCodeName}\"]
-
-[[require]]
-name = \"subverso\"
-path = \"{← getSubversoDir }\"
+  [[require]]
+  name = \"subverso\"
+  path = \"{← getSubversoDir }\"
 
 
-[[lean_exe]]
-name = \"{leanCodeName}\"
-"
-  for (f, i) in inputFiles do
-    IO.FS.writeFile (dirname / f) i.getString
+  [[lean_exe]]
+  name = \"{leanCodeName}\"
+  "
+    for (f, i) in inputFiles do
+      IO.FS.writeFile (dirname / f) i.getString
 
-  let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
-  if out.exitCode != 0 then
-    throwError
-      m!"When running 'lake build' in {dirname}, the exit code was {out.exitCode}\n" ++
-      m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-  let proc ← IO.Process.spawn {cmd := "lake", args := #["--quiet", "exe", leanCodeName], cwd := some dirname, stdin := .piped, stdout := .piped, stderr := .piped}
-  let (stdinH, proc) ← proc.takeStdin
-  stdinH.putStr (stdin.map (·.getString) |>.getD "")
-  stdinH.flush
-  let stdoutTask ← IO.asTask proc.stdout.readToEnd Task.Priority.dedicated
-  let stderrOut ← proc.stderr.readToEnd
-  let exitCode ← proc.wait
+    let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake build' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let proc ← IO.Process.spawn {cmd := "lake", args := #["--quiet", "exe", leanCodeName], cwd := some dirname, stdin := .piped, stdout := .piped, stderr := .piped}
+    let (stdinH, proc) ← proc.takeStdin
+    stdinH.putStr (stdin.map (·.getString) |>.getD "")
+    stdinH.flush
+    let stdoutTask ← IO.asTask proc.stdout.readToEnd Task.Priority.dedicated
+    let stderrOut ← proc.stderr.readToEnd
+    let exitCode ← proc.wait
 
-  let ref ← getRef
-  let loc {k} (s : Option (TSyntax k)) : Syntax := s.map (·.raw) |>.getD ref
+    let ref ← getRef
+    let loc {k} (s : Option (TSyntax k)) : Syntax := s.map (·.raw) |>.getD ref
 
-  if exitCode != 0 then
-    logError s!"Running 'lake --quite exe {leanCodeName}' failed with exit code {exitCode}."
+    if exitCode != 0 then
+      logError s!"Running 'lake --quiet exe {leanCodeName}' failed with exit code {exitCode}."
 
-  let stdoutOut ← IO.ofExcept stdoutTask.get
-  let expectedStdout := stdout.map (·.getString) |>.getD ""
-  if stdoutOut.trim != expectedStdout.trim then
-    if let some stdoutLit := stdout then
-      Verso.Doc.Suggestion.saveSuggestion stdoutLit (shorten stdoutOut) stdoutOut
-    logErrorAt (loc stdout) s!"Mismatched stdout. Expected:\n{expectedStdout}\nGot:\n{stdoutOut}"
+    let stdoutOut ← IO.ofExcept stdoutTask.get
+    let expectedStdout := stdout.map (·.getString) |>.getD ""
+    if stdoutOut.trim != expectedStdout.trim then
+      if let some stdoutLit := stdout then
+        Verso.Doc.Suggestion.saveSuggestion stdoutLit (shorten stdoutOut) stdoutOut
+      logErrorAt (loc stdout) s!"Mismatched stdout. Expected:\n{expectedStdout}\nGot:\n{stdoutOut}"
 
-  let expectedStderr := stderr.map (·.getString) |>.getD ""
-  if stderrOut.trim != expectedStderr.trim then
-    if let some stderrLit := stderr then
-      Verso.Doc.Suggestion.saveSuggestion stderrLit (shorten stderrOut) stderrOut
-    logErrorAt (loc stderr) s!"Mismatched stderr. Expected:\n{stderr.map (·.getString) |>.getD ""}\nGot:{stderrOut}\n"
+    let expectedStderr := stderr.map (·.getString) |>.getD ""
+    if stderrOut.trim != expectedStderr.trim then
+      if let some stderrLit := stderr then
+        Verso.Doc.Suggestion.saveSuggestion stderrLit (shorten stderrOut) stderrOut
+      logErrorAt (loc stderr) s!"Mismatched stderr. Expected:\n{stderr.map (·.getString) |>.getD ""}\nGot:{stderrOut}\n"
 
-  for (f, o) in outputFiles do
-    let f' := dirname / f
-    if ← f'.pathExists then
-      let contents ← IO.FS.readFile f'
-      if contents.trim != o.getString.trim then
-        Verso.Doc.Suggestion.saveSuggestion o (shorten contents) contents
-        logErrorAt (loc (some o)) s!"Output file {f} mismatch. Got:\n{contents}"
-    else logError s!"Output file {f} not found"
+    for (f, o) in outputFiles do
+      let f' := dirname / f
+      if ← f'.pathExists then
+        let contents ← IO.FS.readFile f'
+        if contents.trim != o.getString.trim then
+          Verso.Doc.Suggestion.saveSuggestion o (shorten contents) contents
+          logErrorAt (loc (some o)) s!"Output file {f} mismatch. Got:\n{contents}"
+      else logError s!"Output file {f} not found"
 
-  let out ← IO.Process.output {cmd := "lake", args := #["update", "subverso"], cwd := some dirname}
-  if out.exitCode != 0 then
-    throwError
-      m!"When running 'lake update subverso' in {dirname}, the exit code was {out.exitCode}\n" ++
-      m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-  let jsonFile := s!"{leanCodeName}.json"
-  let out ← IO.Process.output {cmd := "lake", args := #["exe", s!"subverso-extract-mod", leanCodeName, jsonFile], cwd := some dirname}
-  if out.exitCode != 0 then
-    throwError
-      m!"When running 'lake exe subverso-extract-mod {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
-      m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-  let json ← IO.FS.readFile (dirname / jsonFile)
-  let json ← IO.ofExcept <| Json.parse json
-  match FromJson.fromJson? json with
-  | .ok v => pure v
-  | .error e =>
-    throwError m!"Failed to deserialized JSON output as highlighted Lean code. Error: {indentD e}"
+    let out ← IO.Process.output {cmd := "lake", args := #["update", "subverso"], cwd := some dirname}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake update subverso' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let jsonFile := s!"{leanCodeName}.json"
+    let out ← IO.Process.output {cmd := "lake", args := #["exe", s!"subverso-extract-mod", leanCodeName, jsonFile], cwd := some dirname}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake exe subverso-extract-mod {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let json ← IO.FS.readFile (dirname / jsonFile)
+    let json ← IO.ofExcept <| Json.parse json
+    match FromJson.fromJson? json with
+    | .ok v => pure v
+    | .error e =>
+      throwError m!"Failed to deserialized JSON output as highlighted Lean code. Error: {indentD e}"
 where
   shorten (str : String) : String :=
     if str.length < 30 then str else str.take 30 ++ "…"

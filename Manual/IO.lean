@@ -334,7 +334,7 @@ def main : IO Unit := do
 
   let palindromes ← IO.Process.run {
     cmd := "grep",
-    args := #[r#"^\(\d\)\(\d\)\2\1$"#, "numbers.txt"]
+    args := #[r#"^\([0-9]\)\([0-9]\)\2\1$"#, "numbers.txt"]
   }
 
   let count := palindromes.trim.splitOn "\n" |>.length
@@ -424,7 +424,7 @@ This code is only correct when `grep` is sufficiently fast and when the output p
 def main : IO Unit := do
   let grep ← IO.Process.spawn {
     cmd := "grep",
-    args := #[r#"^\(\d\)\(\d\)\2\1$"#],
+    args := #[r#"^\([0-9]\)\([0-9]\)\2\1$"#],
     stdin := .piped,
     stdout := .piped,
     stderr := .null
@@ -478,7 +478,7 @@ def main : IO UInt32 := do
   let grep ← do
     let (stdin, child) ← (← IO.Process.spawn {
       cmd := "grep",
-      args := #[r#"^\(\d\)\(\d\)\2\1$"#],
+      args := #[r#"^\([0-9]\)\([0-9]\)\2\1$"#],
       stdin := .piped,
       stdout := .piped,
       stderr := .null

@@ -133,8 +133,6 @@ tag := "string-api-props"
 
 {docstring String.length}
 
-{docstring String.str}
-
 ## Positions
 %%%
 tag := "string-api-pos"

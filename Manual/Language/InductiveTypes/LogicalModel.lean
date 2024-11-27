@@ -340,8 +340,9 @@ inductive PBool : Sort u where
 
 
 ```leanOutput PBool
-invalid universe polymorphic type, the resultant universe is not Prop (i.e., 0), but it may be Prop for some parameter values (solution: use 'u+1' or 'max 1 u')
-  u
+invalid universe polymorphic resulting type, the resulting universe is not 'Prop', but it may be 'Prop' for some parameter values:
+  Sort u
+Possible solution: use levels of the form 'max 1 _' or '_ + 1' to ensure the universe is of the form 'Type _'.
 ```
 :::
 ::::

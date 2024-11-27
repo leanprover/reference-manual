@@ -247,8 +247,6 @@ tag := "array-api"
 
 {docstring Array.eraseIdx}
 
-{docstring Array.feraseIdx}
-
 {docstring Array.eraseReps}
 
 {docstring Array.swap}
