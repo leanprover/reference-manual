@@ -144,10 +144,135 @@ tag := "char-api-classes"
 
 {docstring Bool}
 
-:::planned 162
- * Relationship to {lean}`Prop`
- * Laziness of `&&` etc
+The constructors {lean}`Bool.true` and {lean}`Bool.false` are exported from the {lean}`Bool` namespace, so they can be written {lean}`true` and {lean}`false`.
+
+## Run-Time Representation
+
+Because {lean}`Bool` is an {tech}[enum inductive] type, it is represented by a single byte in compiled code.
+
+## Booleans and Propositions
+
+Both {lean}`Bool` and {lean}`Prop` represent notions of truth.
+From a purely logical perspective, they are equivalent: {tech}[propositional extensionality] means that there are fundamentally only two propositions, namely {lean}`True` and {lean}`False`.
+However, there is an important pragmatic difference: {lean}`Bool` classifies _values_ that can be computed by programs, while {lean}`Prop` classifies statements for which code generation doesn't make sense.
+In other words, {lean}`Bool` is the notion of truth and falsehood that's appropriate for programs, while {lean}`Prop` is the notion that's appropriate for mathematics.
+Because proofs are erased from compiled programs, keeping {lean}`Bool` and {lean}`Prop` distinct makes it clear which parts of a Lean file are intended for computation.
+
+```lean (show := false)
+section BoolProp
+
+axiom b : Bool
+
+/-- info: b = true : Prop -/
+#guard_msgs in
+#check (b : Prop)
+
+example : (true = true) = True := by simp
+
+#check decide
+```
+
+A {lean}`Bool` can be used wherever a {lean}`Prop` is expected.
+There is a {tech}[coercion] from every {lean}`Bool` {lean}`b` to the proposition {lean}`b = true`.
+By {lean}`propext`, {lean}`true = true` is equal to {lean}`True`, and {lean}`false = true` is equal to {lean}`False`.
+
+Not every proposition can be used by programs to make run-time decisions.
+Otherwise, a program could branch on whether the Collatz conjecture is true or false!
+Many propositions, however, can be checked algorithmically.
+These propositions are called {tech}_decidable_ propositions, and have instances of the {lean}`Decidable` type class.
+The function {name}`Decidable.decide` converts a proof-carrying {lean}`Decidable` result into a {lean}`Bool`.
+This function is also a coercion from decidable propositions to {lean}`Bool`, so {lean}`(2 = 2 : Bool)` evaluates to {lean}`true`.
+
+```lean (show := false)
+/-- info: true -/
+#guard_msgs in
+#eval (2 = 2 : Bool)
+end BoolProp
+```
+
+## Syntax
+
+:::syntax term
+The infix operators `&&`, `||`, and `^^` are notations for {lean}`Bool.and`, {lean}`Bool.or`, and {lean}`Bool.xor`, respectively.
+
+```grammar
+$_:term && $_:term
+```
+```grammar
+$_:term || $_:term
+```
+```grammar
+$_:term ^^ $_:term
+```
 :::
+
+:::syntax term
+The prefix operator `!` is notation for {lean}`Bool.not`.
+```grammar
+!$_:term
+```
+:::
+
+
+## API Reference
+
+### Logical Operations
+
+```lean (show := false)
+section ShortCircuit
+
+axiom BIG_EXPENSIVE_COMPUTATION : Bool
+```
+
+The functions {name}`cond`, {name Bool.and}`and`, and {name Bool.or}`or` are short-circuiting.
+In other words, {lean}`false && BIG_EXPENSIVE_COMPUTATION` does not need to execute {lean}`BIG_EXPENSIVE_COMPUTATION` before returning `false`.
+These functions are defined using the {attr}`macro_inline` attribute, which causes the compiler to replace calls to them with their definitions while generating code, and the definitions use nested pattern matching to achieve the short-circuiting behavior.
+
+```lean (show := false)
+end ShortCircuit
+```
+
+
+{docstring cond}
+
+{docstring Bool.not}
+
+{docstring Bool.and}
+
+{docstring Bool.or}
+
+{docstring Bool.xor}
+
+{docstring Bool.atLeastTwo}
+
+### Comparisons
+
+{docstring Bool.decEq}
+
+### Conversions
+
+{docstring Bool.toISize}
+
+{docstring Bool.toUInt8}
+
+{docstring Bool.toUInt16}
+
+{docstring Bool.toUInt32}
+
+{docstring Bool.toUInt64}
+
+{docstring Bool.toUSize}
+
+{docstring Bool.toInt8}
+
+{docstring Bool.toInt16}
+
+{docstring Bool.toInt32}
+
+{docstring Bool.toInt64}
+
+{docstring Bool.toNat}
+
 
 # Linked Lists
 %%%

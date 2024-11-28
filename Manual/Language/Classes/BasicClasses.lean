@@ -38,11 +38,41 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Decidability
 
+A proposition is {deftech}_decidable_ if it can be checked algorithmically.{index}[decidable]{index subterm:="decidable"}[proposition]
+The Law of the Excluded Middle means that every proposition is true or false, but it provides no way to check which of the two cases holds, which can often be useful.
+By default, only algorithmic {lean}`Decidable` instances for which code can be generated are in scope; opening the `Classical` namespace makes every proposition decidable.
+
 {docstring Decidable}
 
 {docstring DecidableRel}
 
 {docstring DecidableEq}
+
+{docstring Decidable.decide}
+
+{docstring Decidable.byCases}
+
+::::keepEnv
+:::example "Excluded Middle and {lean}`Decidable`"
+The equality of functions from {lean}`Nat` to {lean}`Nat` is not decidable:
+```lean (error:=true) (name := NatFunNotDecEq)
+example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
+```
+```leanOutput NatFunNotDecEq
+failed to synthesize
+  Decidable (f = g)
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.
+```lean
+open Classical
+noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
+```
+
+:::
+::::
+
 
 # Inhabited Types
 
