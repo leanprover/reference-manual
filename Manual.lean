@@ -70,17 +70,6 @@ tag := "standard-library"
 Overview of the standard library, including types from the prelude and those that require imports.
 :::
 
-## Optional Values
-%%%
-tag := "option"
-%%%
-
-:::planned 110
-Describe {name}`Option`, including the default coercions and its API.
-:::
-
-{docstring Option}
-
 {include 0 Manual.NotationsMacros}
 
 # Output from Lean
@@ -154,6 +143,11 @@ String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath 
 IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio IO.Ref ST.Ref IO.FS.Metadata IO.FS.DirEntry EIO BaseIO
 IO.FileRight IO.FS.Stream Task Task.Priority Unit PUnit
 Bool Decidable
+System.Platform
+PLift ULift Subtype Option List
+USize
+UInt8 UInt16 UInt32 UInt64
+Int8 Int16 Int32 Int64
 ```
 
 ```exceptions

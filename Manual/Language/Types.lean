@@ -511,6 +511,16 @@ def L := List (Type 0)
  * Universe inference for unannotated inductive types
 :::
 
+### Universe Lifting
+
+:::planned 174
+ * When to use universe lifting?
+:::
+
+{docstring PLift}
+
+{docstring ULift}
+
 {include 0 Language.InductiveTypes}
 
 
