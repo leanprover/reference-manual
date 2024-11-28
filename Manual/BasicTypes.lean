@@ -40,16 +40,47 @@ tag := "Int"
  * API reference
 :::
 
+{docstring Int}
+
+# Finite Natural Numbers
+
+:::planned 169
+ * {lean}`Fin`
+ * Comparison to {lean}`UInt8` through {lean}`UInt32`
+:::
+
+{docstring Fin}
+
 # Fixed-Precision Integer Types
 %%%
 tag := "fixed-ints"
 %%%
 
-
 ::: planned 105
  * Compile-time and run-time characteristics for {lean}`UInt8`, {lean}`UInt16`, {lean}`UInt32`, {lean}`UInt64`
+ * Compile-time and run-time characteristics for {lean}`USize`
+ * Compile-time and run-time characteristics for {lean}`Int8`, {lean}`Int16`, {lean}`Int32`, {lean}`Int64`
  * API reference
 :::
+
+{docstring USize}
+
+{docstring UInt8}
+
+{docstring Int8}
+
+{docstring UInt16}
+
+{docstring Int16}
+
+{docstring UInt32}
+
+{docstring Int32}
+
+{docstring UInt64}
+
+{docstring Int64}
+
 
 # Bitvectors
 %%%
@@ -215,6 +246,18 @@ example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
 :::
 ::::
 
+# The Empty Type
+
+:::planned 170
+ * What is {lean}`Empty`?
+ * Contrast with {lean}`Unit` and {lean}`False`
+ * Definitional equality
+:::
+
+{docstring Empty}
+
+{docstring PEmpty}
+
 # Booleans
 
 {docstring Bool}
@@ -223,6 +266,46 @@ example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
  * Relationship to {lean}`Prop`
  * Laziness of `&&` etc
 :::
+
+# Optional Values
+%%%
+tag := "option"
+%%%
+
+:::planned 110
+Describe {name}`Option`, including the default coercions and its API.
+:::
+
+{docstring Option}
+
+# Tuples
+%%%
+tag := "tuples"
+%%%
+
+:::planned 171
+Describe {name}`Prod` and {name}`PProd`, their syntax and API
+:::
+
+{docstring Prod}
+
+{docstring PProd}
+
+{docstring MProd}
+
+# Sum Types
+%%%
+tag := "sum-types"
+%%%
+
+:::planned 172
+Describe {name}`Sum` and {name}`PSum`, their syntax and API
+:::
+
+{docstring Sum}
+
+{docstring PSum}
+
 
 # Linked Lists
 %%%
@@ -240,6 +323,14 @@ tag := "List"
 
 {include 0 Manual.BasicTypes.Array}
 
+# Subtypes
+
+:::planned 173
+ * When to use them?
+ * Run-time representation
+:::
+
+{docstring Subtype}
 
 # Lazy Computations
 %%%
