@@ -131,14 +131,89 @@ tag := "char-api-classes"
 
 # The Unit Type
 
+The unit type is the least informative type.
+It is used when a value is needed, but no further information is relevant.
+There are two varieties of the unit type:
+
+ * {lean}`Unit` is a {lean}`Type` that exists in the smallest non-propositional {tech}[universe].
+
+ * {lean}`PUnit` is {tech key:="universe polymorphism"}[universe polymorphic] and can be used in any non-propositional {tech}[universe].
+
+If in doubt, use {lean}`Unit` until universe errors occur.
+
 {docstring Unit}
+
+{docstring Unit.unit}
 
 {docstring PUnit}
 
-:::planned 161
- * Definitional equality
- * {lean}`Unit` vs {lean}`PUnit`
+## Definitional Equality
+
+{deftech}_Unit-like types_ are inductive types that have a single constructor which takes no non-proof parameters.
+{lean}`PUnit` is one such type.
+All elements of unit-like types are {tech key:="definitional equality"}[definitionally equal] to all other elements.
+
+:::example "Definitional Equality of {lean}`Unit`"
+Every term with type {lean}`Unit` is definitionally equal to every other term with type {lean}`Unit`:
+
+```lean
+example (e1 e2 : Unit) : e1 = e2 := rfl
+```
 :::
+
+::::keepEnv
+:::example "Definitional Equality of Unit-Like Types"
+
+Both {lean}`CustomUnit` and {lean}`AlsoUnit` are unit-like types, with a single constructor that takes no parameters.
+Every pair of terms with either type is definitionally equal.
+
+```lean
+inductive CustomUnit where
+  | customUnit
+
+example (e1 e2 : CustomUnit) : e1 = e2 := rfl
+
+structure AlsoUnit where
+
+example (e1 e2 : AlsoUnit) : e1 = e2 := rfl
+```
+
+Types with parameters, such as {lean}`WithParam`, are also unit-like if they have a single constructor that does not take parameters.
+
+```lean
+inductive WithParam (n : Nat) where
+  | mk
+
+example (x y : WithParam 3) : x = y := rfl
+```
+
+Constructors with non-proof parameters are not unit-like, even if the parameters are all unit-like types.
+```lean
+inductive NotUnitLike where
+  | mk (u : Unit)
+```
+
+```lean (error:=true) (name := NotUnitLike)
+example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
+```
+```leanOutput NotUnitLike
+type mismatch
+  rfl
+has type
+  ?m.13 = ?m.13 : Prop
+but is expected to have type
+  e1 = e2 : Prop
+```
+
+Constructors of unit-like types may take parameters that are proofs.
+```lean
+inductive ProofUnitLike where
+  | mk : 2 = 2 → ProofUnitLike
+
+example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
+```
+:::
+::::
 
 # Booleans
 
