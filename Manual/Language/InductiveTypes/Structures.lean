@@ -191,7 +191,7 @@ def NatStringBimap.insert
 Because structures are represented by single-constructor inductive types, their constructors can be invoked or matched against using {tech}[anonymous constructor syntax].
 Additionally, structures may be constructed or matched against using the names of the fields together with values for them.
 
-:::syntax term
+::::syntax term
 
 ```grammar
 { $_,*
@@ -204,7 +204,7 @@ Field specifiers may take two forms:
 $x := $y
 ```
 
-```grammar (of := Lean.Parser.Term.structInstFieldAbbrev)
+```grammar (of := Lean.Parser.Term.structInstField)
 $f:ident
 ```
 
@@ -226,9 +226,11 @@ In a pattern context, field names are mapped to patterns that match the correspo
 Default arguments are still present in patterns; if a pattern does not specify a value for a field with a default value, then the pattern only matches the default.
 
 The optional type annotation allows the structure type to be specified in contexts where it is not otherwise determined.
-:::
+::::
 
-:::example "Patterns and default values"
+:::::keepEnv
+
+::::example "Patterns and default values"
 The structure {name}`AugmentedIntList` contains a list together with some extra information, which is empty if omitted:
 ```lean
 structure AugmentedIntList where
@@ -247,7 +249,8 @@ def AugmentedIntList.isEmpty : AugmentedIntList → Bool
 ```leanOutput isEmptyDefaults
 false
 ```
-:::
+::::
+:::::
 
 
 :::syntax term

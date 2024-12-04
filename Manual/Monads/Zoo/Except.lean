@@ -20,6 +20,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Exceptions" =>
+%%%
+tag := "exception-monads"
+%%%
 
 {docstring MonadExcept}
 
@@ -30,6 +33,10 @@ set_option linter.unusedVariables false
 {docstring MonadExcept.orelse'}
 
 {docstring MonadExceptOf}
+
+{docstring throwThe}
+
+{docstring tryCatchThe}
 
 {docstring MonadFinally}
 

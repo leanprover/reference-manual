@@ -632,6 +632,7 @@ Display actual Lean syntax, validated by the parser.
 def «syntax» : DirectiveExpander
   | args, blocks => do
     let config ← SyntaxConfig.parse.run args
+
     let mut content := #[]
     let mut firstGrammar := true
     for b in blocks do
@@ -642,6 +643,10 @@ def «syntax» : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
+
+    Doc.PointOfInterest.save (← getRef) (config.title.getD config.name.toString)
+      (selectionRange := (← getRef)[0])
+
     pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
@@ -661,6 +666,7 @@ where
     withOpenedNamespace `Manual.FreeSyntax do
       match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
       | .ok stx =>
+        Doc.PointOfInterest.save stx stx.getKind.toString
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
         Hover.addCustomHover nameStx s!"````````\n{bnf.stripTags}\n````````"
 

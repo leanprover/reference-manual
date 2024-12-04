@@ -50,10 +50,28 @@ def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [Mona
 
 open Manual.Meta.Lean.Scopes (getScopes setScopes runWithOpenDecls runWithVariables)
 
+private def abbrevFirstLine (width : Nat) (str : String) : String :=
+  let str := str.trimLeft
+  let short := str.take width |>.replace "\n" "⏎"
+  if short == str then short else short ++ "…"
+
+def LeanBlockConfig.outlineMeta : LeanBlockConfig → String
+  | {«show», error, ..} =>
+    match «show», error with
+    | some true, true | none, true => " (error)"
+    | some false, true => " (hidden, error)"
+    | some false, false => " (hidden)"
+    | _, _ => " "
+
 @[code_block_expander lean]
 def lean : CodeBlockExpander
   | args, str => do
     let config ← LeanBlockConfig.parse.run args
+
+    PointOfInterest.save (← getRef) ((config.name.map toString).getD (abbrevFirstLine 20 str.getString))
+      (kind := Lsp.SymbolKind.file)
+      (detail? := some ("Lean code" ++ config.outlineMeta))
+
     let origScopes ← getScopes
 
     let altStr ← parserInputString str
@@ -314,6 +332,11 @@ def signature : CodeBlockExpander
     | .ok stx =>
       let `(signature_spec|$[$kw]? $name:declId $sig:declSig) := stx
         | throwError m!"Didn't understand parsed signature: {indentD stx}"
+
+      PointOfInterest.save (← getRef) (toString name.raw)
+        (kind := Lsp.SymbolKind.file)
+        (detail? := some "Signature")
+
       let cmdCtx : Command.Context := {
         fileName := ← getFileName,
         fileMap := ← getFileMap,
@@ -322,8 +345,15 @@ def signature : CodeBlockExpander
         cancelTk? := none
       }
       let cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, infoState := ← getInfoState}
-      let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
-      setInfoState st'.infoState
+      let hls ←
+        try
+          let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
+          setInfoState st'.infoState
+          pure hls
+        catch e =>
+          let fmt ← PrettyPrinter.ppSignature (TSyntax.mk name.raw[0]).getId
+          Suggestion.saveSuggestion str (fmt.fmt.pretty 60) (fmt.fmt.pretty 30 ++ "\n")
+          throw e
 
       if «show» then
         pure #[← `(Block.other {Block.signature with data := ToJson.toJson $(quote (Highlighted.seq hls))} #[Block.code $(quote str.getString)])]
@@ -387,6 +417,11 @@ open Lean.Parser in
 def syntaxError : CodeBlockExpander
   | args, str => do
     let config ← SyntaxErrorConfig.parse.run args
+
+    PointOfInterest.save (← getRef) config.name.toString
+      (kind := Lsp.SymbolKind.file)
+      (detail? := some "Syntax error")
+
     let s := str.getString
     match runParserCategory (← getEnv) (← getOptions) config.category s with
     | .ok stx =>
@@ -555,6 +590,11 @@ defmethod Lean.NameMap.getOrSuggest [Monad m] [MonadInfoTree m] [MonadError m]
 def leanOutput : CodeBlockExpander
  | args, str => do
     let config ← LeanOutputConfig.parser.run args
+    PointOfInterest.save (← getRef) (config.name.getId.toString)
+      (kind := Lsp.SymbolKind.file)
+      (selectionRange := config.name)
+      (detail? := some ("Lean output" ++ (config.severity.map (s!" ({sevStr ·})") |>.getD "")))
+
     let msgs : List (MessageSeverity × String) ← leanOutputs.getState (← getEnv) |>.getOrSuggest config.name
 
     for (sev, txt) in msgs do

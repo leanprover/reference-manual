@@ -255,20 +255,16 @@ Omitting them causes the operator's arguments to be displayed immediately next t
 :::keepEnv
 ```lean (show := false)
 -- Test claim about internal whitespace in preceding paragraph
+/--
+error: invalid atom
+---
+error: invalid syntax node kind '«term_<<<<_>>>>_»'
+-/
+#guard_msgs in
 infix:99 " <<<< >>>> " => Nat.add
 
-/-- info: 67 -/
-#guard_msgs in
-#eval 12 <<<< >>>> 55
 
--- Test claim about internal whitespace
-infix:99 " <<<<  >>>> " => Nat.mul
-
-/-- info: 660 -/
-#guard_msgs in
-#eval 12 <<<<  >>>> 55
-
---- Test negative claims about allowed atoms
+--- Test further claims about allowed atoms
 /--
 error: invalid atom
 ---
@@ -277,8 +273,18 @@ error: invalid syntax node kind 'bogus'
 #guard_msgs in
 infix:9 (name := bogus) "" => Nat.mul
 
+
+/--
+error: invalid atom
+---
+error: invalid syntax node kind 'alsobogus'
+-/
 #guard_msgs in
-infix:9 (name := nonbogus) " ` " => Nat.mul
+infix:9 (name := alsobogus) " ` " => Nat.mul
+
+-- this one's OK
+#guard_msgs in
+infix:9 (name := nonbogus) " `` " => Nat.mul
 
 /--
 error: invalid atom
