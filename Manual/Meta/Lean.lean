@@ -656,13 +656,18 @@ structure NameConfig where
   full : Option Name
 
 def NameConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] [MonadLiftT TermElabM m] : ArgParse m NameConfig :=
-  NameConfig.mk <$> ((fun _ => none) <$> .done <|> .positional `name ref <|> pure none)
+  NameConfig.mk <$> ((fun _ => none) <$> .done <|> .positional `name ref)
 where
   ref : ValDesc m (Option Name) := {
     description := m!"reference name"
     get := fun
       | .name x =>
-        some <$> liftM (runWithOpenDecls (runWithVariables fun _ => realizeGlobalConstNoOverloadWithInfo x))
+        try
+          let resolved ← liftM (runWithOpenDecls (runWithVariables fun _ => realizeGlobalConstNoOverloadWithInfo x))
+          return some resolved
+        catch
+          | .error ref e => throwErrorAt ref e
+          | _ => return none
       | other => throwError "Expected reference name, got {repr other}"
   }
 

@@ -423,13 +423,50 @@ Typically, this new monad has all the effects of the original monad along with s
 
 ```lean (show := false)
 variable (T : (Type u → Type v) → Type u → Type w) (m : Type u → Type v)
+
 ```
 A monad transformer consists of the following:
  * A function {lean}`T` that constructs the new monad's type from an existing monad
+ * A `run` function that adapts a {lean}`T m α` into some variant of {lean}`m`, often requiring additional parameters and returning a more specific type under {lean}`m`
  * An instance of {lean}`[Monad m] → Monad (T m)` that allows the transformed monad to be used as a monad
  * An instance of {lean}`MonadLift` that allows the original monad's code to be used in the transformed monad
+ * If possible, an instance of {lean}`MonadControl m (T m)` that allows actions from the transformed monad to be used in the original monad
 
-The Lean standard library provides transformer versions of many different monads, including {name}`ReaderT`, {name}`ExceptT`, and {name}`StateT`, variants using other representations such as {name}`StateCpsT`, {name StateRefT'}`StateRefT`, and {name}`ExceptCpsT`.
+Typically, a monad transformer also provides instances of one or more type classes that describe the effects that it introduces.
+The transformer's {name}`Monad` and {name}`MonadLift` instances make it practical to write code in the transformed monad, while the type class instances allow the transformed monad to be used with polymorphic functions.
+
+::::keepEnv
+```lean (show := false)
+universe u v
+variable {m : Type u → Type v} {α : Type u}
+```
+:::example "The Identity Monad Transformer "
+The identity monad transformer neither adds nor removes capabilities to the transformed monad.
+Its definition is the identity function, suitably specialized:
+```lean
+def IdT (m : Type u → Type v) : Type u → Type v := m
+```
+Similarly, the {name IdT.run}`run` function requires no additional arguments and just returns an {lean}`m α`:
+```lean
+def IdT.run (act : IdT m α) : m α := act
+```
+
+The monad instance relies on the monad instance for the transformed monad, selecting it via {tech}[type ascriptions]:
+```lean
+instance [Monad m] : Monad (IdT m) where
+  pure x := (pure x : m _)
+  bind x f := (x >>= f : m _)
+```
+
+Because {lean}`IdT m` is definitionally equal to {lean}`m`, the {lean}`MonadLift m (IdT m)` instance doesn't need to modify the action being lifted:
+```lean
+instance : MonadLift m (IdT m) where
+  monadLift x := x
+```
+:::
+::::
+
+The Lean standard library provides transformer versions of many different monads, including {name}`ReaderT`, {name}`ExceptT`, and {name}`StateT`, along with variants using other representations such as {name}`StateCpsT`, {name StateRefT'}`StateRefT`, and {name}`ExceptCpsT`.
 Additionally, the {name}`EStateM` monad is equivalent to combining {name}`ExceptT` and {name}`StateT`, but it can use a more specialized representation to improve performance.
 
 {include 2 Monads.Zoo.Id}
@@ -438,8 +475,8 @@ Additionally, the {name}`EStateM` monad is equivalent to combining {name}`Except
 
 {include 2 Monads.Zoo.Reader}
 
-{include 2 Monads.Zoo.Except}
+{include 2 Monads.Zoo.Option}
 
-{include 2 Monads.Zoo.Control}
+{include 2 Monads.Zoo.Except}
 
 {include 2 Monads.Zoo.Combined}

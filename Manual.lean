@@ -136,6 +136,8 @@ MonadExcept MonadExceptOf ExceptT Except
 MonadFunctor MonadFunctorT
 MonadControl MonadControlT
 MonadLift MonadLiftT
+OptionT
+StateRefT'
 StateCpsT
 ExceptCpsT
 LawfulFunctor
@@ -143,7 +145,7 @@ LawfulApplicative
 LawfulMonad
 Id
 ForM
-EStateM EStateM.Result
+EStateM EStateM.Result EStateM.Backtrackable
 String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath IO.Process IO.FS.Stream ST IO.Error IO.FS.Stream.Buffer IO.FS.Handle
 IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio IO.Ref ST.Ref IO.FS.Metadata IO.FS.DirEntry EIO BaseIO
 IO.FileRight IO.FS.Stream Task Task.Priority Unit PUnit
@@ -219,6 +221,11 @@ Nat.le.below.rec
 Nat.le.below.recOn
 Nat.le.below.refl
 Nat.le.below.casesOn
+```
+
+```exceptions
+EStateM.dummySave
+EStateM.dummyRestore
 ```
 
 ```exceptions

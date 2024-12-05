@@ -44,7 +44,7 @@ Users should not define new instances of {name}`MonadLiftT`, but it is useful as
 {docstring MonadLiftT}
 
 When a term of type {lean}`n β` is expected, but the provided term has type {lean}`m α`, and the two types are not definitionally equal, Lean attempts to insert lifts and coercions before reporting an error.
-There are the following possiblities:
+There are the following possibilities:
  1. If {lean}`m` and {lean}`n` can be unified to the same monad, then {lean}`α` and {lean}`β` are not the same.
     In this case, no monad lifts are necessary, but the value in the monad must be {tech key:="coercion"}[coerced].
     If the appropriate coercion is found, then a call to {name}`Lean.Internal.coeM` is inserted, which has the following signature:
@@ -125,3 +125,118 @@ def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
 Automatic lifting can be disabled by setting {option}`autoLift` to {lean}`false`.
 
 {optionDocs autoLift}
+
+# Reversing Lifts
+
+```lean (show := false)
+variable {m n : Type u → Type v} {α ε : Type u}
+```
+
+Monad lifting is not always sufficient to combine monads.
+Many operations provided by monads are higher order, taking an action _in the same monad_ as a parameter.
+Even if these operations are lifted to some more powerful monad, their arguments are still restricted to the original monad.
+
+There are two type classes that support this kind of “reverse lifting”: {name}`MonadFunctor` and {name}`MonadControl`.
+An instance of {lean}`MonadFunctor m n` explains how to interpret a fully-polymorphic function in {lean}`m` into {lean}`n`.
+This polymorphic function must work for _all_ types {lean}`α`: it has type {lean}`{α : Type u} → m α → m α`.
+Such a function can be thought of as one that may have effects, but can't do so based on specific values that are provided.
+An instance of {lean}`MonadControl m n` explains how to interpret an arbitrary action from {lean}`m` into {lean}`n`, while at the same time providing a “reverse interpreter” that allows the {lean}`m` action to run {lean}`n` actions.
+
+## Monad Functors
+
+{docstring MonadFunctor}
+
+{docstring MonadFunctorT}
+
+## Reversible Lifting with `MonadControl`
+
+{docstring MonadControl}
+
+{docstring MonadControlT}
+
+{docstring control}
+
+{docstring controlAt}
+
+
+::::keepEnv
+:::example "Exceptions and Lifting"
+One example is {name}`Except.tryCatch`:
+```signature
+Except.tryCatch.{u, v} {ε : Type u} {α : Type v}
+  (ma : Except ε α) (handle : ε → Except ε α) :
+  Except ε α
+```
+Both of its parameters are in {lean}`Except ε`.
+{name}`MonadLift` can lift the entire application of the handler.
+The function {lean}`getBytes`, which extracts the single bytes from an array of {lean}`Nat`s using state and exceptions, is written without {keywordOf Lean.Parser.Term.do}`do`-notation or automatic lifting in order to make its structure explicit.
+```lean
+set_option autoLift false
+
+def getByte (n : Nat) : Except String UInt8 :=
+  if n < 256 then
+    pure n.toUInt8
+  else throw s!"Out of range: {n}"
+
+def getBytes (input : Array Nat) : StateT (Array UInt8) (Except String) Unit := do
+  input.forM fun i =>
+    liftM (Except.tryCatch (some <$> getByte i) fun _ => pure none) >>=
+      fun
+        | some b => modify (·.push b)
+        | none => pure ()
+```
+
+```lean (name := getBytesEval1)
+#eval getBytes #[1, 58, 255, 300, 2, 1000000] |>.run #[] |>.map (·.2)
+```
+```leanOutput getBytesEval1
+Except.ok #[1, 58, 255, 2]
+```
+{name}`getBytes` uses an `Option` returned from the lifted action to signal the desired state updates.
+This quickly becomes unwieldy if there are more possible ways to react to the inner action, such as saving handled exceptions.
+Ideally, state updates would be performed within the {name}`tryCatch` call directly.
+
+
+Attempting to save bytes and handled exceptions does not work, however, because the arguments to {name}`Except.tryCatch` have type {lean}`Except String Unit`:
+```lean (error := true) (name := getBytesErr) (keep := false)
+def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+  input.forM fun i =>
+    liftM
+      (Except.tryCatch
+        (getByte i >>= fun b =>
+         modifyThe (Array UInt8) (·.push b))
+        fun e =>
+          modifyThe (Array String) (·.push e))
+```
+```leanOutput getBytesErr
+failed to synthesize
+  MonadStateOf (Array String) (Except String)
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+Because {name}`StateT` has a {name}`MonadControl` instance, {name}`control` can be used instead of {name}`liftM`.
+It provides the inner action with an interpreter for the outer monad.
+In the case of {name}`StateT`, this interpreter expects that the inner monad returns a tuple that includes the updated state, and takes care of providing the initial state and extracting the updated state from the tuple.
+
+```lean
+def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+  input.forM fun i =>
+    control fun run =>
+      (Except.tryCatch
+        (getByte i >>= fun b =>
+         run (modifyThe (Array UInt8) (·.push b))))
+        fun e =>
+          run (modifyThe (Array String) (·.push e))
+```
+
+```lean (name := getBytesEval2)
+#eval
+  getBytes' #[1, 58, 255, 300, 2, 1000000]
+  |>.run #[] |>.run #[]
+  |>.map (fun (((), bytes), errs) => (bytes, errs))
+```
+```leanOutput getBytesEval2
+Except.ok (#["Out of range: 300", "Out of range: 1000000"], #[1, 58, 255, 2])
+```
+:::
+::::
