@@ -141,6 +141,12 @@ Under these rules, {lean}`do f (← e1) (← e2); es` is translated to {lean}`do
 
 ## Early Return
 
+:::TODO
+
+This goes to the "nearest `do`". Define that!
+
+:::
+
 :::syntax Lean.Parser.Term.doSeqItem
 ```grammar
 return $e
@@ -199,11 +205,23 @@ When they occur as a step in a {keywordOf Lean.Parser.Term.do}`do` block, they a
 Each branch of the control structures is a sequence of {keywordOf Lean.Parser.Term.do}`do` items, rather than a term, and some of them are more syntactically flexible than their corresponding terms.
 
 :::syntax Lean.Parser.Term.doSeqItem
+In a {keywordOf Lean.Parser.Term.do}`do` block, {keywordOf Lean.Parser.Term.doIf}`if` statements may omit their {keywordOf Lean.Parser.Term.doIf}`else` branch.
+Omitting an {keywordOf Lean.Parser.Term.doIf}`else` branch is equivalent to using {name}`pure`{lean}` ()` as the contents of the branch.
 ```grammar
 if $[$h :]? $e then
   $e*
 $[else
   $_*]?
+```
+:::
+
+Syntactically, the {keywordOf Lean.Parser.Term.doIf}`then` branch cannot be omitted.
+For these cases, {keywordOf Lean.Parser.Term.doUnless}`unless` only executes its body when the condition is false.
+The {keywordOf Lean.Parser.Term.do}`do` in {keywordOf Lean.Parser.Term.doUnless}`unless` is part of its syntax and does not induce a nested {keywordOf Lean.Parser.Term.do}`do` block.
+:::syntax Lean.Parser.Term.doSeqItem
+```grammar
+unless $e do
+  $e*
 ```
 :::
 
@@ -215,12 +233,7 @@ match $[$[$h :]? $e],* with
 :::
 
 
-:::syntax Lean.Parser.Term.doSeqItem
-```grammar
-unless $e do
-  $e*
-```
-:::
+
 
 ## Iteration
 
@@ -317,6 +330,8 @@ end
 {docstring ForIn}
 
 {docstring ForIn'}
+
+{docstring ForInStep}
 
 {docstring ForM}
 
