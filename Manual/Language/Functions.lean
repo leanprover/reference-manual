@@ -343,7 +343,7 @@ This means that definitional equality is defined _syntactically_, modulo renamin
 To a first approximation, this means that two functions are definitionally equal if they implement the same algorithm, rather than the usual mathematical notion of equality that states that two functions are equal if they map equal elements of the domain to equal elements of the range.
 
 Intensional equality is mechanically decidable; Lean's type checker can decide whether two functions are intensionally equal.
-Extensional equality is not decidable, so it is instead made available as reasoning principle when proving the {tech}[proposition] that two functions are equal.
+Extensional equality is not decidable, so it is instead made available as a reasoning principle when proving the {tech}[proposition] that two functions are equal.
 
 ::::keepEnv
 ```lean (show := false)
