@@ -395,7 +395,7 @@ At this point, the number of environment extensions is known, so the pre-environ
 An {keywordOf Lean.Parser.Command.initialize}`initialize` block adds code to the module's initializers.
 The contents of an {keywordOf Lean.Parser.Command.initialize}`initialize` block are treated as the contents of a {keywordOf Lean.Parser.Term.do}`do` block in the {lean}`IO` monad.
 
-Sometimes, initialization only needs to extend internal data structures by side effect.
+Sometimes, initialization only needs to extend internal data structures by side effects.
 In that case the contents are expected to have type {lean}`IO Unit`:
 ```grammar
 initialize

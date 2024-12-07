@@ -23,7 +23,7 @@ tag := "inductive-types"
 
 
 {deftech}_Inductive types_ are the primary means of introducing new types to Lean.
-While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other type in Lean is either an inductive type or defined in terms universes, functions, and inductive types..
+While {tech}[universes] and {tech}[functions] are built-in primitives that could not be added by users, every other type in Lean is either an inductive type or defined in terms of universes, functions, and inductive types.
 Inductive types are specified by their {deftech}_type constructors_ {index}[type constructor] and their {deftech}_constructors_; {index}[constructor] their other properties are derived from these.
 Each inductive type has a single type constructor, which may take both {tech}[universe parameters] and ordinary parameters.
 Inductive types may have any number of constructors; these constructors introduce new values whose types are headed by the inductive type's type constructor.
