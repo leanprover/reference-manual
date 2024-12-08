@@ -604,7 +604,7 @@ def satisfyingIndices (p : α → Prop) [DecidablePred p] (xs : Array α) : Arra
 
 The body of a {keywordOf Lean.doElemWhile_Do_}`while` loop is repeated while the condition remains true.
 It is possible to write infinite loops using them in functions that are not marked {keywordOf Lean.Parser.Command.declaration}`partial`.
-This is because the {keywordOf Lean.Parser.Command.declaration}`partial` modifier only applies to nontermination or infinite regress induced by the function being defined, and not by those that it calls.
+This is because the {keywordOf Lean.Parser.Command.declaration}`partial` modifier only applies to non-termination or infinite regress induced by the function being defined, and not by those that it calls.
 The translation of {keywordOf Lean.doElemWhile_Do_}`while` loops relies on a separate helper.
 
 :::syntax Lean.Parser.Term.doSeqItem
@@ -735,7 +735,7 @@ def test : StateM Nat Unit := do
 ((), 6)
 ```
 
-This is because the {keywordOf Lean.Parser.Term.doReturn}`return` statement under the {keywordOf Lean.Parser.Term.doIf}`if` belongs to the the same {keywordOf Lean.Parser.Term.do}`do` as its immediate parent, which itself belongs to the same {keywordOf Lean.Parser.Term.do}`do` as the {keywordOf Lean.Parser.Term.doIf}`if`.
+This is because the {keywordOf Lean.Parser.Term.doReturn}`return` statement under the {keywordOf Lean.Parser.Term.doIf}`if` belongs to the same {keywordOf Lean.Parser.Term.do}`do` as its immediate parent, which itself belongs to the same {keywordOf Lean.Parser.Term.do}`do` as the {keywordOf Lean.Parser.Term.doIf}`if`.
 If {keywordOf Lean.Parser.Term.do}`do` blocks that occurred as items in other {keywordOf Lean.Parser.Term.do}`do` blocks instead created new blocks, then the example would output {lean}`7`.
 :::
 ::::
