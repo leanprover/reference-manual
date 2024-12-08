@@ -35,13 +35,26 @@ Automatic monad lifting is attempted before the general {tech}[coercion] mechani
 
 {docstring MonadLift}
 
-{tech key:="lift"}[Lifting] between monads is reflexive and transitive.
-Any monad can run its own actions.
-Lifts from {lean}`m` to {lean}`m'` and from {lean}`m'` to {lean}`n` can be composed to yield a lift from {lean}`m` to {lean}`n`.
+{tech key:="lift"}[Lifting] between monads is reflexive and transitive:
+ * Any monad can run its own actions.
+ * Lifts from {lean}`m` to {lean}`m'` and from {lean}`m'` to {lean}`n` can be composed to yield a lift from {lean}`m` to {lean}`n`.
 The utility type class {name}`MonadLiftT` constructs lifts via the reflexive and transitive closure of {name}`MonadLift` instances.
 Users should not define new instances of {name}`MonadLiftT`, but it is useful as an instance implicit parameter to a polymorphic function that needs to run actions from multiple monads in some user-provided monad.
 
 {docstring MonadLiftT}
+
+:::example "Monad Lifts in Function Signatures"
+The function {name}`IO.withStdin` has the following signature:
+```signature
+IO.withStdin.{u} {m : Type → Type u} {α : Type}
+  [Monad m] [MonadFinally m] [MonadLiftT BaseIO m]
+  (h : IO.FS.Stream) (x : m α) :
+  m α
+```
+Because it doesn't require its parameter to precisely be in {name}`IO`, it can be used in many monads, and the body does not need to restrict itself to {name}`IO`.
+The instance implicit parameter {lean}`MonadLiftT BaseIO m` allows the reflexive transitive closure of {name}`MonadLift` to be used to assemble the lift.
+:::
+
 
 When a term of type {lean}`n β` is expected, but the provided term has type {lean}`m α`, and the two types are not definitionally equal, Lean attempts to insert lifts and coercions before reporting an error.
 There are the following possibilities:

@@ -38,18 +38,17 @@ axiom x : f α
 :::keepEnv
 ```lean (show := false)
 section F
-axiom g : α → β
-axiom h : β → γ
-
+variable {f : Type u → Type v} [Functor f] {α β : Type u} {g : α → β} {h : β → γ} {x : f α}
 ```
 
-Having {name Functor.map}`map`, {name Pure.pure}`pure`, {name Seq.seq}`seq`, and {name Bind.bind}`bind` operators with the appropriate types is not really enough to make a type constructor into a functor, applicative functor, or monad.
-These operators must additionally satisfy certain axioms, which are often called the {deftech}_functor laws_.
+Having {name Functor.map}`map`, {name Pure.pure}`pure`, {name Seq.seq}`seq`, and {name Bind.bind}`bind` operators with the appropriate types is not really sufficient to have a functor, applicative functor, or monad.
+These operators must additionally satisfy certain axioms, which are often called the {deftech}_laws_ of the type class.
 
 For a functor, the {name Functor.map}`map` operation must preserve identity and function composition. In other words, given a purported {name}`Functor` {lean}`f`, for all {lean}`x`​` : `​{lean}`f α`:
  * {lean}`id <$> x = x`, and
  * for all function {lean}`g` and {lean}`h`, {lean}`(h ∘ g) <$> x = h <$> g <$> x`.
 Instances that violate these assumptions can be very surprising!
+Additionally, because {lean}`Functor` includes {name Functor.mapConst}`mapConst` to enable instances to provide a more efficient implementation, a lawful functor's {name Functor.mapConst}`mapConst` should be equivalent to its default implementation.
 
 The Lean standard library does not require profs of these properties in every instance of {name}`Functor`.
 Nonetheless, if an instance violates them, then it should be considered a bug.
@@ -63,48 +62,15 @@ end F
 ```
 :::
 
-```lean (show := false)
-section A
-axiom g : f (α → β)
-axiom g' : α → β
-axiom h : f (β → γ)
-axiom y : α
-variable [Applicative f]
-```
 
 
-Applicative functors {lean}`f` must satisfy four laws:
 
-: Identity
-
-  Applying the identity function through {lean}`f` should be equivalent to not applying it at all.
-  This means that {lean}`pure id <*> x = x`.
-
-: Composition
-
-  Composing two functions through {lean}`f` should be equivalent to sequentially applying them through {lean}`f`.
-  This means that {lean}`pure (·∘·) <*> h <*> g <*> x = h <*> (g <*> x)`.
-
-: Homomorphism
-
-  Applying a pure function {lean}`g'` to a pure value {lean}`y` through {lean}`f` should be equivalent to applying the function purely outside of {lean}`f`.
-  This means that {lean}`pure g' <*> pure y = (pure (g' y) : f β)`.
-
-: Interchange
-
-  Function application through {lean}`f` is equivalent on the left or right of {name Seq.seq}`seq`.
-  This means that {lean}`g <*> pure y = pure (· y) <*> g`.
-
+In addition to proving that the potentially-optimized {name}`SeqLeft.seqLeft` and {name}`SeqRight.seqRight` operations are equivalent to their default implementations, Applicative functors {lean}`f` must satisfy four laws.
 
 {docstring LawfulApplicative}
 
-Monads
+The {deftech}[monad laws] specify that {name}`pure` followed by {name}`bind` should be equivalent to function application (that is, {name}`pure` has no effects), that {name}`bind` followed by {name}`pure` around a function application is equivalent to {name Functor.map}`map`, and that {name}`bind` is associative.
 
 {docstring LawfulMonad}
 
 {docstring LawfulMonad.mk'}
-
-```lean (show := false)
-end A
-end Laws
-```

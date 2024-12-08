@@ -72,6 +72,8 @@ def lean : CodeBlockExpander
       (kind := Lsp.SymbolKind.file)
       (detail? := some ("Lean code" ++ config.outlineMeta))
 
+    let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
     let origScopes ← getScopes
 
     let altStr ← parserInputString str
@@ -112,6 +114,9 @@ def lean : CodeBlockExpander
       for cmd in cmds do
         hls := hls ++ (← highlight cmd cmdState.messages.toArray cmdState.infoState.trees)
 
+      if let some col := col? then
+        hls := hls.deIndent col
+
       if config.show.getD true then
         pure #[← ``(Block.other (Block.lean $(quote hls)) #[Block.code $(quote str.getString)])]
       else
@@ -147,6 +152,90 @@ def lean : CodeBlockExpander
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
 
+@[code_block_expander leanTerm]
+def leanTerm : CodeBlockExpander
+  | args, str => do
+    let config ← LeanBlockConfig.parse.run args
+
+    let altStr ← parserInputString str
+
+    let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
+    match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
+    | .error e => throwErrorAt str e
+    | .ok stx =>
+      let (newMsgs, tree) ← do
+        let initMsgs ← Core.getMessageLog
+        try
+          Core.resetMessageLog
+          let tree' ← runWithOpenDecls <| runWithVariables fun _vars => do
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            Term.synthesizeSyntheticMVarsNoPostponing
+            let _ ← Term.levelMVarToParam (← instantiateMVars e)
+
+            let ctx := PartialContextInfo.commandCtx {
+              env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
+              openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
+            }
+            pure <| InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, str⟩) (← getInfoState).trees)
+          pure (← Core.getMessageLog, tree')
+        finally
+          Core.setMessageLog initMsgs
+
+      if let some name := config.name then
+        let msgs ← newMsgs.toList.mapM fun msg => do
+
+          let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+          let txt := withNewline <| head ++ (← msg.data.toString)
+
+          pure (msg.severity, txt)
+        modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
+
+      pushInfoTree tree
+
+      match config.error with
+      | none =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+      | some true =>
+        if newMsgs.hasErrors then
+          for msg in newMsgs.errorsToWarnings.toArray do
+            logMessage msg
+        else
+          throwErrorAt str "Error expected in code, but none occurred"
+      | some false =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+        if newMsgs.hasErrors then
+          throwErrorAt str "No error expected in code, one occurred"
+
+      let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
+      let hls :=
+        if let some col := col? then
+          hls.deIndent col
+        else hls
+
+      if config.show.getD true then
+        pure #[← ``(Block.other (Block.lean $(quote hls)) #[Block.code $(quote str.getString)])]
+      else
+        pure #[]
+where
+  withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+
+
+  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
+    modifyInfoState fun s => { s with trees := f s.trees }
+
+  -- TODO - consider how to upstream this
+  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
+    let treesSaved ← getResetInfoTrees
+    MonadFinally.tryFinally' x fun _ => do
+      let st    ← getInfoState
+      let tree  ← mkInfoTree st.trees
+      modifyInfoTrees fun _ => treesSaved.push tree
+      pure tree
+
+
 @[role_expander lean]
 def leanInline : RoleExpander
   | args, inlines => do
@@ -165,7 +254,10 @@ def leanInline : RoleExpander
         try
           Core.resetMessageLog
           let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
-            discard <| Elab.Term.elabTerm (catchExPostpone := true) stx none
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            Term.synthesizeSyntheticMVarsNoPostponing
+            let _ ← Term.levelMVarToParam (← instantiateMVars e)
+
             Term.synthesizeSyntheticMVarsNoPostponing
             let ctx := PartialContextInfo.commandCtx {
               env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,

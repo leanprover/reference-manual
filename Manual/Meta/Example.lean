@@ -133,11 +133,8 @@ def keepEnv : DirectiveExpander
   | args, contents => do
     let () ← ArgParse.done.run args
     PointOfInterest.save (← getRef) "keepEnv" (kind := .package)
-    let env ← getEnv
-    try
-      contents.mapM elabBlock
-    finally
-      modifyEnv fun _ => env
+    withoutModifyingEnv <| withSaveInfoContext <| contents.mapM elabBlock
+
 
 @[block_extension keepEnv]
 def keepEnv.descr : BlockDescr where

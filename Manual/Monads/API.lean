@@ -21,11 +21,66 @@ set_option linter.unusedVariables false
 
 #doc (Manual) "API Reference" =>
 
-::: TODO
-All the stuff that works in any monad. Sorted by purpose rather than constraint, because who can remember which things are Monad vs Applicative?
+In addition to the general functions described here, there are some functions that are conventionally defined as part of the namespaced API of each collection type:
+ * `mapM` maps a monadic function.
+ * `forM` maps a monadic function, throwing away the result.
+ * `filterM` filters using a monadic predicate, returning the values that satisfy it.
 
-Include a remark about the various `mapM` included with each datatype's API
+
+::::example "Monadic Collection Operations"
+{name}`Array.filterM` can be used to write a filter that depends on a side effect.
+
+:::ioExample
+```ioLean
+def values := #[1, 2, 3, 5, 8]
+def main : IO Unit := do
+  let filtered ← values.filterM fun v => do
+    repeat
+      IO.println s!"Keep {v}? [y/n]"
+      let answer := (← (← IO.getStdin).getLine).trim
+      if answer == "y" then return true
+      if answer == "n" then return false
+    return false
+  IO.println "These values were kept:"
+  for v in filtered do
+    IO.println s!" * {v}"
+```
+```stdin
+y
+n
+oops
+y
+n
+y
+```
+```stdout
+Keep 1? [y/n]
+Keep 2? [y/n]
+Keep 3? [y/n]
+Keep 3? [y/n]
+Keep 5? [y/n]
+Keep 8? [y/n]
+These values were kept:
+ * 1
+ * 3
+ * 8
+```
 :::
+::::
+
+# Discarding Results
+
+The {name}`discard` function is especially useful when using an action that returns a value only for its side effects.
+
+{docstring discard}
+
+# Control Flow
+
+{docstring guard}
+
+{docstring optional}
+
+# Lifting Boolean Operations
 
 {docstring andM}
 
@@ -33,16 +88,19 @@ Include a remark about the various `mapM` included with each datatype's API
 
 {docstring notM}
 
-{docstring guard}
+# Kleisli Composition
 
-{docstring optional}
+{deftech}_Kleisli composition_ is the composition of monadic functions, analogous to {name}`Function.comp` for ordinary functions.
 
-{docstring discard}
-
-{docstring Functor.mapRev}
+{docstring Bind.kleisliRight}
 
 {docstring Bind.kleisliLeft}
 
-{docstring Bind.bindLeft}
+# Re-Ordered Operations
 
-{docstring Bind.kleisliRight}
+Sometimes, it can be convenient to partially apply a function to its second argument.
+These functions reverse the order of arguments, making it this easier.
+
+{docstring Functor.mapRev}
+
+{docstring Bind.bindLeft}
