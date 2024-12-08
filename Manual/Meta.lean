@@ -52,6 +52,9 @@ def Inline.TODO : Inline where
 def TODO : DirectiveExpander
   | args, blocks => do
     ArgParse.done.run args
+    PointOfInterest.save (← getRef) "TODO"
+      (kind := .null)
+      (detail? := some "Author's note")
     let content ← blocks.mapM elabBlock
     pure #[← `(Doc.Block.other Block.TODO #[$content,*])]
 
@@ -59,6 +62,9 @@ def TODO : DirectiveExpander
 def TODOinline : RoleExpander
   | args, inlines => do
     ArgParse.done.run args
+    PointOfInterest.save (← getRef) "TODO"
+      (kind := .null)
+      (detail? := some "Author's note")
     let content ← inlines.mapM elabInline
     pure #[← `(Doc.Inline.other Inline.TODO #[$content,*])]
 
@@ -127,6 +133,7 @@ def Block.planned : Block where
 def planned : DirectiveExpander
   | args, blocks => do
     let {issue} ← PlannedConfig.parse.run args
+    PointOfInterest.save (← getRef) s!"Planned content ({issue})" (kind := .event)
     let content ← blocks.mapM elabBlock
     pure #[← `(Doc.Block.other {Block.planned with data := $(quote issue)} #[$content,*])]
 

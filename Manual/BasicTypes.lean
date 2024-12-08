@@ -431,6 +431,18 @@ Describe {name}`Sum` and {name}`PSum`, their syntax and API
 
 {docstring PSum}
 
+# Dependent Pairs
+%%%
+tag := "sigma-types"
+%%%
+
+:::planned 176
+Describe {name}`Sigma` and {name}`PSigma`, their syntax and API. What is the relationship to {lean}`Subtype` and {lean}`Exists`?
+:::
+
+{docstring Sigma}
+
+{docstring PSigma}
 
 # Linked Lists
 %%%
@@ -445,6 +457,7 @@ tag := "List"
  * Constructor/pattern syntax
 :::
 
+{docstring List}
 
 {include 0 Manual.BasicTypes.Array}
 

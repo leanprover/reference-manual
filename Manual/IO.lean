@@ -38,8 +38,8 @@ During type checking, even terms with free variables are reduced; this would mak
 Finally, a basic principle of Lean's logic is that functions are _functions_ that map each element of the domain to a unique element of the range.
 Including side effects such as console I/O, arbitrary mutable state, or random number generation would violate this principle.
 
+:::::keepEnv
 ```lean (show := false)
-section Model
 /-- A type -/
 axiom α : Type
 ```
@@ -50,8 +50,15 @@ Many of the basic side effects, such as reading from files, are opaque constants
 Others are specified by code that is logically equivalent to the run-time version.
 At run time, the compiler produces ordinary code.
 
+:::::
+
 # Logical Model
 
+:::::keepEnv
+```lean (show := false)
+/-- A type -/
+axiom α : Type
+```
 Conceptually, Lean distinguishes evaluation or reduction of terms from _execution_ of side effects.
 Term reduction is specified by rules such as {tech}[β] and {tech}[δ], which may occur anywhere at any time.
 Side effects, which must be executed in the correct order, are abstractly described in Lean's logic.
@@ -63,13 +70,13 @@ It can be thought of as a {tech}[state monad] in which the state is the entire w
 Just as a value of type {lean}`StateM Nat Bool` computes a {lean}`Bool` while having the ability to mutate a natural number, a value of type {lean}`IO Bool` computes a {lean}`Bool` while potentially changing the world.
 Error handling is accomplished by layering an appropriate exception monad transformer on top of this.
 
+:::::
+
 Because the entire world can't be represented in memory, the actual implementation uses an abstract token that stands for its state.
 The Lean runtime system is responsible for providing the initial token when the program is run, and each primitive action accepts a token that represents the world and returns another when finished.
 This ensures that effects occur in the proper order, and it clearly separates the execution of side effects from the reduction semantics of Lean terms.
 
-```lean (show := false)
-end Model
-```
+
 
 Non-termination via general recursion is treated separately from the effects described by {name}`IO`.
 Programs that may not terminate due to infinite loops must be defined as {ref "partial-unsafe"}[`partial`] functions.

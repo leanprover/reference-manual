@@ -14,6 +14,7 @@ import Manual.Simp
 import Manual.BasicTypes
 import Manual.NotationsMacros
 import Manual.IO
+import Manual.Monads
 
 open Verso.Genre Manual
 
@@ -37,20 +38,7 @@ For other documentation, please refer to the [Lean documentation site](https://l
 
 {include Manual.Terms}
 
-# Monads and `do`-Notation
-%%%
-tag := "monads-and-do"
-%%%
-
-
-:::planned 102
-This chapter will describe `do`-notation in Lean:
- * Overview of {deftech}[monads]
- * Desugaring of `do` and its associated control structures
- * Comprehensive description of the syntax of `do`-notation
- * Definition of being in the "same `do`-block"
- * Various common kinds of monads, including reader monads, {deftech}[state monads], and {deftech}[exception monads].
-:::
+{include Manual.Monads}
 
 {include 0 Manual.IO}
 
@@ -139,6 +127,28 @@ file := some "the-index"
 
 :::progress
 ```namespace
+List
+Function
+Functor Applicative Monad Pure Bind Seq SeqLeft SeqRight
+MonadState MonadStateOf StateT StateM
+MonadReader MonadReaderOf ReaderT ReaderM
+MonadExcept MonadExceptOf ExceptT Except
+MonadFunctor MonadFunctorT
+MonadControl MonadControlT
+MonadLift MonadLiftT
+OptionT
+StateRefT'
+StateCpsT
+ExceptCpsT
+LawfulFunctor
+LawfulApplicative
+LawfulMonad
+Id
+ForM
+ForIn
+ForInStep
+ForIn'
+EStateM EStateM.Result EStateM.Backtrackable
 String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath IO.Process IO.FS.Stream ST IO.Error IO.FS.Stream.Buffer IO.FS.Handle
 IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio IO.Ref ST.Ref IO.FS.Metadata IO.FS.DirEntry EIO BaseIO
 IO.FileRight IO.FS.Stream Task Task.Priority Unit PUnit
@@ -225,6 +235,11 @@ Nat.le.below.rec
 Nat.le.below.recOn
 Nat.le.below.refl
 Nat.le.below.casesOn
+```
+
+```exceptions
+EStateM.dummySave
+EStateM.dummyRestore
 ```
 
 ```exceptions

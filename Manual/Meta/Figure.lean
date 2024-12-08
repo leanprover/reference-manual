@@ -64,6 +64,12 @@ def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEn
 def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
+
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption)
+      (selectionRange := mkNullNode cfg.caption)
+      (kind := Lsp.SymbolKind.interface)
+      (detail? := some "Figure")
+
     let caption ← cfg.caption.mapM elabInline
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON

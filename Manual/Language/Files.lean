@@ -102,7 +102,7 @@ def validIdentifier (str : String) : IO String :=
 #guard_msgs in
 #eval validIdentifier "ℕ"
 
-/-- info: "Failure: expected identifier\nFinal stack:\n  <missing>\nRemaining: \"?\"" -/
+/-- info: "Failure @0 (⟨1, 0⟩): expected identifier\nFinal stack:\n  <missing>\nRemaining: \"?\"" -/
 #guard_msgs in
 #eval validIdentifier "?"
 
@@ -110,7 +110,7 @@ def validIdentifier (str : String) : IO String :=
 #guard_msgs in
 #eval validIdentifier "ℕ?"
 
-/-- info: "Failure: expected identifier\nFinal stack:\n  <missing>\nRemaining: \"_\"" -/
+/-- info: "Failure @0 (⟨1, 0⟩): expected identifier\nFinal stack:\n  <missing>\nRemaining: \"_\"" -/
 #guard_msgs in
 #eval validIdentifier "_"
 
@@ -133,15 +133,19 @@ def validIdentifier (str : String) : IO String :=
 #guard_msgs in
 #eval validIdentifier "κύκλος"
 
-/-- info: "Failure: expected token\nFinal stack:\n  <missing>\nRemaining: \"øvelse\"" -/
+/-- info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"øvelse\"" -/
 #guard_msgs in
 #eval validIdentifier "øvelse"
 
-/-- info: "Failure: expected token\nFinal stack:\n  <missing>\nRemaining: \"Übersetzung\"" -/
+/--
+info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"Übersetzung\""
+-/
 #guard_msgs in
 #eval validIdentifier "Übersetzung"
 
-/-- info: "Failure: expected token\nFinal stack:\n  <missing>\nRemaining: \"переклад\"" -/
+/--
+info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"переклад\""
+-/
 #guard_msgs in
 #eval validIdentifier "переклад"
 

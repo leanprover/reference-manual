@@ -55,6 +55,10 @@ def «example» : DirectiveExpander
   | args, contents => do
     let cfg ← ExampleConfig.parse.run args
     let description ← cfg.description.mapM elabInline
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description)
+      (selectionRange := mkNullNode cfg.description)
+      (kind := Lsp.SymbolKind.interface)
+      (detail? := some "Example")
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     let blocks ← prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
@@ -128,11 +132,9 @@ def Block.keepEnv : Block where
 def keepEnv : DirectiveExpander
   | args, contents => do
     let () ← ArgParse.done.run args
-    let env ← getEnv
-    try
-      contents.mapM elabBlock
-    finally
-      modifyEnv fun _ => env
+    PointOfInterest.save (← getRef) "keepEnv" (kind := .package)
+    withoutModifyingEnv <| withSaveInfoContext <| contents.mapM elabBlock
+
 
 @[block_extension keepEnv]
 def keepEnv.descr : BlockDescr where
