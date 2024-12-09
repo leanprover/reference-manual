@@ -91,7 +91,7 @@ An {tech}[identifier] consists of one or more identifier components, separated b
 
 {deftech}[Identifier components] consist of a letter or letter-like character or an underscore (`'_'`), followed by zero or more identifier continuation characters.
 Letters are English letters, upper- or lowercase, and the letter-like characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, as well as the members of the Unicode letter-like symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations.
-Identifier continuation characters consist of letters, letter-like characters, underscore (`'_'`), exclamation mark (`!`), question mark (`?`), subscripts, and single quotes (`'`).
+Identifier continuation characters consist of letters, letter-like characters, underscores (`'_'`), exclamation marks (`!`), question marks (`?`), subscripts, and single quotes (`'`).
 As an exception, underscore alone is not a valid identifier.
 
 ````lean (show := false)
