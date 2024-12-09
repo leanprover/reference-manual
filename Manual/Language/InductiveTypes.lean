@@ -96,7 +96,7 @@ An index could have been a parameter if all of its type dependencies are themsel
 
 Indices can be seen as defining a _family_ of types.
 Each choice of indices selects a type from the family, which has its own set of available constructors.
-Type constructors that take index parameters are referred to as {deftech}_indexed families_ {index subterm:="of types"}[indexed family] of types.
+Type constructors with indices are said to specify {deftech}_indexed families_ {index subterm:="of types"}[indexed family] of types.
 
 ## Example Inductive Types
 %%%
