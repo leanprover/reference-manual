@@ -1,0 +1,72 @@
+on:
+  workflow_run:
+    workflows: ["Build HTML"]
+    types:
+      - completed
+
+name: Lint prose with Vale
+
+jobs:
+  vale:
+    name: Check HTML with Vale
+    runs-on: ubuntu-latest
+    if: >
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 'Download artifacts'
+        uses: actions/github-script@v3.1.0
+        with:
+          script: |
+            var artifacts = await github.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: ${{github.event.workflow_run.id }},
+            });
+            var matchArtifacts = artifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "pr" || artifact.name == "out"
+            });
+            var fs = require('fs');
+            matchArtifacts.forEach((matchArtifact) => {
+              var download = await github.actions.downloadArtifact({
+                 owner: context.repo.owner,
+                 repo: context.repo.repo,
+                 artifact_id: matchArtifact.id,
+                 archive_format: 'zip',
+              });
+            
+            fs.writeFileSync('${{github.workspace}}/' + matchArtifact.name + '.zip', Buffer.from(download.data));
+          });
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Install prose linter
+        run: |
+          sudo snap install vale
+
+      - name: Preprocess HTML for prose linter
+        run: |
+          # First the HTML needs preprocessing to work well with Vale
+          pushd _out
+          python3 -m venv venv
+          . venv/bin/activate
+          pip install beautifulsoup4
+          python ../.vale/scripts/rewrite_html.py html-multi html-vale
+          popd
+
+      - name: Prose linter
+        run: |
+          set -o pipefail
+          vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
+
+      - name: Offline link checker (non-release)
+        uses: lycheeverse/lychee-action@v1.9.0
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        with:
+          fail: true
+          args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
+

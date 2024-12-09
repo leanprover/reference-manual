@@ -10,7 +10,7 @@ on:
       - published
       - released
 
-name: Build and deploy sites
+name: Build HTML
 
 jobs:
   build:
@@ -95,30 +95,18 @@ jobs:
         run: |
           lake --quiet exe generate-manual --depth 2 --verbose --draft --output "_out/draft"
 
+      - name: Save HTML to artifact storage
+        uses: actions/upload-artifact@v4
+        with:
+          name: out
+          path: _out/
+          retention-days: 5
+
       - name: Report word count
         run: |
           echo "Word Counts"
           echo "-----------"
           cat words.txt
-
-      - name: Install prose linter
-        run: |
-          sudo snap install vale
-
-      - name: Preprocess HTML for prose linter
-        run: |
-          # First the HTML needs preprocessing to work well with Vale
-          pushd _out
-          python3 -m venv venv
-          . venv/bin/activate
-          pip install beautifulsoup4
-          python ../.vale/scripts/rewrite_html.py html-multi html-vale
-          popd
-
-      - name: Prose linter
-        run: |
-          set -o pipefail
-          vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
 
       - name: Save word count
         run: |
@@ -128,12 +116,19 @@ jobs:
           cat words.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-      - name: Offline link checker (non-release)
-        uses: lycheeverse/lychee-action@v1.9.0
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+      - name: Save PR number
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+
+      - name: Save PR number to artifact storage
+        uses: actions/upload-artifact@v2
         with:
-          fail: true
-          args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
+          name: pr
+          path: pr/
+          retention-days: 5
+
+
 
       # deploy-alias computes a URL component for the PR preview. This
       # is so we can have a stable name to use for feedback on draft
