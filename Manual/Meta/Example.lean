@@ -22,7 +22,7 @@ def Block.example (name : Option String) : Block where
   data := ToJson.toJson (name, (none : Option Tag))
 
 structure ExampleConfig where
-  description : Array Syntax
+  description : FileMap × Array Syntax
   /-- Name for refs -/
   name : Option String := none
 
@@ -54,9 +54,12 @@ def isLeanBlock : Syntax → CoreM Bool
 def «example» : DirectiveExpander
   | args, contents => do
     let cfg ← ExampleConfig.parse.run args
-    let description ← cfg.description.mapM elabInline
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description)
-      (selectionRange := mkNullNode cfg.description)
+
+    let description ←
+      DocElabM.withFileMap cfg.description.1 <|
+      cfg.description.2.mapM elabInline
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
+      (selectionRange := mkNullNode cfg.description.2)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them

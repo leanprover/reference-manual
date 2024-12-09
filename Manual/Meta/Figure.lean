@@ -17,7 +17,7 @@ namespace Verso.ArgParse
 
 variable {m} [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadFileMap m]
 
-def ValDesc.inlinesString : ValDesc m (Array Syntax) where
+def ValDesc.inlinesString : ValDesc m (FileMap × Array Syntax) where
   description := m!"a string that contains a sequence of inline elements"
   get
     | .str s => open Lean.Parser in do
@@ -31,7 +31,7 @@ def ValDesc.inlinesString : ValDesc m (Array Syntax) where
       if s'.allErrors.isEmpty then
         if s'.stxStack.size = 1 then
           match s'.stxStack.back with
-          | .node _ _ contents => pure contents
+          | .node _ _ contents => pure (FileMap.ofString input, contents)
           | other => throwError "Unexpected syntax from Verso parser. Expected a node, got {other}"
         else throwError "Unexpected internal stack size from Verso parser. Expected 1, got {s'.stxStack.size}"
       else
@@ -52,7 +52,7 @@ def Block.figure (name : Option String) : Block where
   data := ToJson.toJson (name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : Array Syntax
+  caption : FileMap × Array Syntax
   /-- Name for refs -/
   name : Option String := none
 
@@ -65,12 +65,13 @@ def figure : DirectiveExpander
   | args, contents => do
     let cfg ← FigureConfig.parse.run args
 
-    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption)
-      (selectionRange := mkNullNode cfg.caption)
+    PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.caption.2)
+      (selectionRange := mkNullNode cfg.caption.2)
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Figure")
 
-    let caption ← cfg.caption.mapM elabInline
+    let caption ← DocElabM.withFileMap cfg.caption.1 <|
+      cfg.caption.2.mapM elabInline
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON
     -- entails repeated (de)serialization.
