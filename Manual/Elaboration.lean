@@ -328,7 +328,7 @@ everyOther.eq_unfold.{u} :
     match x with
     | [] => []
     | [x] => [x]
-    | x :: head :: xs => x :: everyOther xs
+    | x :: _ :: xs => x :: everyOther xs
 ```
 
 {lean}`everyOther.eq_def` states that a `everyOther` is equal to its definition when applied to arguments:
@@ -339,7 +339,7 @@ everyOther.eq_def.{u} {α : Type u} :
       match x with
       | [] => []
       | [x] => [x]
-      | x :: head :: xs => x :: everyOther xs
+      | x :: _ :: xs => x :: everyOther xs
 ```
 
 {lean}`everyOther.eq_1` demonstrates its first pattern:
@@ -354,8 +354,8 @@ everyOther.eq_2.{u} {α : Type u} (x : α) : everyOther [x] = [x]
 
 {lean}`everyOther.eq_3` demonstrates its final pattern:
 ```signature
-everyOther.eq_3.{u} {α : Type u} (x_1 head : α) (xs : List α) :
-  everyOther (x_1 :: head :: xs) = x_1 :: everyOther xs
+everyOther.eq_3.{u} {α : Type u} (x y : α) (xs : List α) :
+  everyOther (x :: y :: xs) = x :: everyOther xs
 ```
 
 Because the patterns do not overlap, no assumptions about prior patterns not having matched are necessary for the equational lemmas.
