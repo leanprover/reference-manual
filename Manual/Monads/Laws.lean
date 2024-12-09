@@ -47,6 +47,7 @@ These operators must additionally satisfy certain axioms, which are often called
 For a functor, the {name Functor.map}`map` operation must preserve identity and function composition. In other words, given a purported {name}`Functor` {lean}`f`, for all {lean}`x`​` : `​{lean}`f α`:
  * {lean}`id <$> x = x`, and
  * for all function {lean}`g` and {lean}`h`, {lean}`(h ∘ g) <$> x = h <$> g <$> x`.
+
 Instances that violate these assumptions can be very surprising!
 Additionally, because {lean}`Functor` includes {name Functor.mapConst}`mapConst` to enable instances to provide a more efficient implementation, a lawful functor's {name Functor.mapConst}`mapConst` should be equivalent to its default implementation.
 
@@ -61,9 +62,6 @@ The {name}`LawfulFunctor` class includes the necessary proofs.
 end F
 ```
 :::
-
-
-
 
 In addition to proving that the potentially-optimized {name}`SeqLeft.seqLeft` and {name}`SeqRight.seqRight` operations are equivalent to their default implementations, Applicative functors {lean}`f` must satisfy four laws.
 
