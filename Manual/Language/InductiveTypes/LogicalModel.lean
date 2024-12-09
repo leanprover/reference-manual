@@ -186,7 +186,7 @@ Or.rec {a b : Prop} {motive : a ∨ b → Prop}
   (inr : ∀ (h : b), motive (.inr h))
   (t : a ∨ b) : motive t
 ```
-The motive's type indicates that it can only be used to recursor into other propositions.
+The motive's type indicates that {name}`Or.rec` can only be used to produce proofs.
 A proof of a disjunction can be used to prove something else, but there's no way for a program to inspect _which_ of the two disjuncts was true and used for the proof.
 :::
 
