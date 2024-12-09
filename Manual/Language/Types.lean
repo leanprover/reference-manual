@@ -150,7 +150,7 @@ Propositions have the following properties:
 
 : Restricted Elimination
 
-  With the exception of singletons, propositions cannot be eliminated into non-proposition types.
+  With the exception of {tech}[subsingletons], propositions cannot be eliminated into non-proposition types.
 
 : {deftech key:="propositional extensionality"}[Extensionality] {index subterm:="of propositions"}[extensionality]
 
