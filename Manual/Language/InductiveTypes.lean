@@ -361,7 +361,7 @@ axiom α : Prop
 
  * {lean}`Float` is represented by `double`
 
- * An {deftech}_enum inductive_ type of at least 2 and at most $`2^32` constructors, each of which has no parameters, is represented by the first type of `uint8_t`, `uint16_t`, `uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by `uint8_t`, with values `0` for {lean}`false` and `1` for {lean}`true`. {TODO}[Find out whether this should say "no relevant parameters"]
+ * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of `uint8_t`, `uint16_t`, `uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by `uint8_t`, with values `0` for {lean}`false` and `1` for {lean}`true`. {TODO}[Find out whether this should say "no relevant parameters"]
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
