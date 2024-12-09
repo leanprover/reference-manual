@@ -342,8 +342,13 @@ Definitional equality of functions in Lean is {deftech}_intensional_.
 This means that definitional equality is defined _syntactically_, modulo renaming of bound variables and {tech}[reduction].
 To a first approximation, this means that two functions are definitionally equal if they implement the same algorithm, rather than the usual mathematical notion of equality that states that two functions are equal if they map equal elements of the domain to equal elements of the range.
 
-Intensional equality is mechanically decidable; Lean's type checker can decide whether two functions are intensionally equal.
-Extensional equality is not decidable, so it is instead made available as a reasoning principle when proving the {tech}[proposition] that two functions are equal.
+
+Definitional equality is used by the type checker, so it's important that it be predictable.
+The syntactic character of intensional equality means that the algorithm to check it can be feasibly specified.
+Checking extensional equality involves proving essentially arbitrary theorems about equality of functions, and there is no clear specification for an algorithm to check it.
+This makes extensional equality a poor choice for a type checker.
+Function extensionality is instead made available as a reasoning principle that can be invoked when proving the {tech}[proposition] that two functions are equal.
+
 
 ::::keepEnv
 ```lean (show := false)
