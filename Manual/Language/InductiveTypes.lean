@@ -437,6 +437,8 @@ tag := "inductive-types-ffi"
 From the perspective of C, these other inductive types are represented by `lean_object *`.
 Each constructor is stored as a `lean_ctor_object`, and `lean_is_ctor` will return true.
 A `lean_ctor_object` stores the constructor index in its header, and the fields are stored in the `m_objs` portion of the object.
+Lean assumes that `sizeof(size_t) == sizeof(void*)`—while this is not guaranteed by C, the Lean run-time system contains an assertion that fails if this is not the case.
+
 
 The memory order of the fields is derived from the types and order of the fields in the declaration. They are ordered as follows:
 
