@@ -228,8 +228,8 @@ Importing a module makes its contents available in the current module, as well a
 Modules do not necessarily correspond to namespaces.
 Modules may add names to any namespace, and importing a module has no effect on the set of currently open namespaces.
 
-The imported module name is translated to a filename by replacing dots (`'.'`) in its name with directory separators.
-Lean searches its include path for the corresponding importable module file.
+The imported module name is translated to a filename by replacing dots (`'.'`) in its name with directory separators and appending `.lean` or `.olean`.
+Lean searches its include path for the corresponding intermediate build product or importable module file.
 :::
 
 ### Commands
