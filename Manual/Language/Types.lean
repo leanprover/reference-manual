@@ -216,7 +216,7 @@ Each universe contains dependent function types, which additionally represent un
 A function type's universe is determined by the universes of its argument and return types.
 The specific rules depend on whether the return type of the function is a proposition.
 
-Predicates, which are functions that return propositions (that is, where the result type of the function is some type in `Prop`) may have argument types in any universe whatsoever, but the function type itself remains in `Prop`.
+Predicates, which are functions that return propositions (that is, where the result of the function is some type in `Prop`) may have argument types in any universe whatsoever, but the function type itself remains in `Prop`.
 In other words, propositions feature {deftech}[_impredicative_] {index}[impredicative]{index subterm := "impredicative"}[quantification] quantification, because propositions can themselves be statements about all propositions (and all other types).
 
 :::Manual.example "Impredicativity"
