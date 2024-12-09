@@ -286,7 +286,7 @@ tag := "anonymous-constructor-syntax"
 If an inductive type has just one constructor, then this constructor is eligible for {deftech}_anonymous constructor syntax_.
 Instead of writing the constructor's name applied to its arguments, the explicit arguments can be enclosed in angle brackets (`'⟨'` and `'⟩'`, Unicode `MATHEMATICAL LEFT ANGLE BRACKET	(U+0x27e8)` and `MATHEMATICAL RIGHT ANGLE BRACKET	(U+0x27e9)`) and separated with commas.
 This works in both pattern and expression contexts.
-Providing arguments by name or converting all implicit parameters to explicit with `@` requires using the ordinary constructor syntax.
+Providing arguments by name or converting all implicit parameters to explicit parameters with `@` requires using the ordinary constructor syntax.
 
 ::::example "Anonymous constructors"
 
