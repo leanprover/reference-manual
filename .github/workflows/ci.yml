@@ -136,9 +136,10 @@ jobs:
           path: pr/
 
   deploy:
-    name: Deploy
+    name: Deploy release
     runs-on: ubuntu-latest
     needs: [build]
+    if: github.event_name == 'release'
     outputs:
       ref-url: ${{ steps.deploy-release.outputs.deploy-url }}
     steps:
