@@ -10,7 +10,7 @@ on:
       - published
       - released
 
-name: Build and deploy sites
+name: "Build and check HTML"
 
 jobs:
   build:
@@ -216,6 +216,19 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
+
+      # This saved number is used by a workflow_run trigger. It
+      # manages labels that indicate the status of the built HTML.
+      - name: Save PR number
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        if: github.event_name == 'pull_request'
+        with:
+          name: pr
+          path: pr/
 
 
   check-links:
