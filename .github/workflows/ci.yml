@@ -16,8 +16,6 @@ jobs:
   build:
     name: Build site and generate HTML
     runs-on: ubuntu-latest
-    outputs:
-      ref-url: ${{ steps.deploy.outputs.deploy-url }}
 
     steps:
       - name: Install deps for figures (OS packages)
@@ -124,6 +122,26 @@ jobs:
           fail: true
           args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
 
+      # This saved number is used by a workflow_run trigger. It
+      # manages labels that indicate the status of the built HTML.
+      - name: Save PR number
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: pr
+          path: pr/
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [build]
+    outputs:
+      ref-url: ${{ steps.deploy-release.outputs.deploy-url || steps.deploy-draft.outputs.deploy-url }}
+    steps:
       # deploy-alias computes a URL component for the PR preview. This
       # is so we can have a stable name to use for feedback on draft
       # material.
@@ -217,24 +235,11 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
 
-      # This saved number is used by a workflow_run trigger. It
-      # manages labels that indicate the status of the built HTML.
-      - name: Save PR number
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@v2
-        if: github.event_name == 'pull_request'
-        with:
-          name: pr
-          path: pr/
-
 
   check-links:
     name: Check links
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [deploy]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -245,7 +250,7 @@ jobs:
         uses: filiph/linkcheck@2.0.23
         continue-on-error: true
         with:
-          arguments: --skip-file .skip-link-check -e ${{ needs.build.outputs.ref-url }}
+          arguments: --skip-file .skip-link-check -e ${{ needs.deploy.outputs.ref-url }}
 
   prose-lint:
     name: Check prose
