@@ -21,18 +21,32 @@ jobs:
           path: _out
           allow_forks: false
 
-      # When pushing to `main` or a PR branch, deploy what it would look like if this were released
+      # deploy-alias computes a URL component for the PR preview. This
+      # is so we can have a stable name to use for feedback on draft
+      # material.
+      - id: deploy-alias
+        uses: actions/github-script@v7
+        name: Compute Alias
+        with:
+          script: |
+            if (process.env.PR) {
+                return `pr-${process.env.PR}`
+            } else {
+                return 'deploy-preview-main';
+            }
+        env:
+          PR: ${{ github.event.number }}
+
       - name: Deploy current draft
         id: deploy-draft
         uses: nwtgck/actions-netlify@v2.0
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
           publish-dir: _out/html-multi
           production-branch: main
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
-            ${{ github.event_name == 'pull_request' && format('pr#{0}: {1}', github.event.number, github.event.pull_request.title) || format('ref/{0}: {1}', github.ref_name, steps.deploy-info.outputs.message) }}
+            ${{ format('pr#{0}: {1}', github.event.number, github.event.pull_request.title) }}
           alias: ${{ steps.deploy-alias.outputs.result }}
           enable-commit-comment: false
           enable-pull-request-comment: false
@@ -57,12 +71,12 @@ jobs:
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
-            ${{ github.event_name == 'pull_request' && format('pr#{0} proofreading: {1}', github.event.number, github.event.pull_request.title) }}
+            ${{ format('pr#{0} proofreading: {1}', github.event.number, github.event.pull_request.title) }}
           alias: draft-${{ steps.deploy-alias.outputs.result }}
           enable-commit-comment: false
           enable-pull-request-comment: false
           github-deployment-environment: |
-            ${{ github.event_name == 'pull_request' && format('lean-ref-pr-draft-#{0}', github.event.number) }}
+            ${{ format('lean-ref-pr-draft-#{0}', github.event.number) }}
           github-deployment-description: |
             Draft with proofreading info
           fails-without-credentials: true
