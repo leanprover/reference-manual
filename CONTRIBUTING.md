@@ -53,3 +53,14 @@ Now, run `vale`:
 ```
 $ vale html-vale
 ```
+
+### Deployments from PRs
+
+To enable contributions from external forks while allowing HTML previews, the CI does the following:
+ 1. `ci.yml` builds the HTML for the pull request and saves it to artifact storage
+ 2. `label-pr.yml` is triggered when `ci.yml` completes. It (re)labels the
+    PR with `HTML available` to indicate that the artifact was built.
+ 3. Whenever the label is added, `pr-deploy.yml` runs _in the context
+    of `main`_ with access to secrets. It can deploy the previews.
+
+The second two steps run the CI code on `main`, not the config from the PR.
