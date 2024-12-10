@@ -80,7 +80,7 @@ jobs:
       - name: Generate HTML (non-release)
         if: github.event_name != 'release'
         run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose
+          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
 
       - name: Generate HTML (release)
         if: github.event_name == 'release'
@@ -91,7 +91,7 @@ jobs:
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
         run: |
-          lake --quiet exe generate-manual --depth 2 --verbose --draft --output "_out/draft"
+          lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
 
       - name: Save generated HTML to artifact storage
         uses: actions/upload-artifact@v4
