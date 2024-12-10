@@ -30,9 +30,6 @@ set_option guard_msgs.diff true
 --   let stx ← `(command|universe $xs*)
 --   dbg_trace stx
 
--- TODO upstream this to enable cross-reference generation the usual Verso way
-def syntaxKindDomain := `Manual.syntaxKind
-
 @[role_expander evalPrio]
 def evalPrio : RoleExpander
   | args, inlines => do
@@ -121,7 +118,7 @@ def keywordOf.descr : InlineDescr where
     pure none
   toTeX := none
   toHtml :=
-    open Verso.Output.Html in
+    open Verso.Output Html in
     some <| fun goI _ info content => do
       match FromJson.fromJson? (α := (String × Name × Name × Option String)) info with
       | .ok (kw, cat, kind, kindDoc) =>
@@ -130,6 +127,12 @@ def keywordOf.descr : InlineDescr where
         -- with first! Also TODO: we need docs for syntax categories, with human-readable names to
         -- show here. Use tactic index data for inspiration.
         -- For now, here's the underlying data so we don't have to fill in xrefs later and can debug.
+        let tgt := (← read).linkTargets.keyword kind
+        let addLink (html : Html) : Html :=
+          match tgt with
+          | none => html
+          | some href =>
+            {{<a href={{href}}>{{html}}</a>}}
         pure {{
           <span class="hl lean keyword-of">
             <code class="hover-info">
@@ -140,7 +143,7 @@ def keywordOf.descr : InlineDescr where
                   .empty
               }}
             </code>
-            <code class="kw">{{kw}}</code>
+            {{addLink {{<code class="kw">{{kw}}</code>}} }}
           </span>
         }}
       | .error e =>
@@ -423,8 +426,8 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
       infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleene)
     | `optional.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
       infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ perhaps)
-    | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info _star] =>
-      infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleeneLike ",*")
+    | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
+      infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleeneLike star)
     | `choice, _, opts => do
       return (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")")
     | ``FreeSyntax.docCommentItem, _, _ =>
@@ -668,9 +671,9 @@ where
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
-        Hover.addCustomHover nameStx s!"````````\n{bnf.stripTags}\n````````"
+        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}\n````````"
 
-        `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText GrammarTag)} #[])
+        `(Block.other {Block.grammar with data := ToJson.toJson (($(quote stx.getKind), $(quote bnf)) : Name × TaggedText GrammarTag)} #[])
       | .error es =>
         for (pos, msg) in es do
           log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
@@ -712,8 +715,8 @@ where
       match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := 0) with
       | .ok stx =>
         let bnf ← getBnf config isFirst (FreeSyntax.decodeMany stx |>.map FreeSyntax.decode)
-        Hover.addCustomHover nameStx s!"````````\n{bnf.stripTags}\n````````"
-        `(Block.other {Block.grammar with data := ToJson.toJson ($(quote bnf) : TaggedText GrammarTag)} #[])
+        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}\n````````"
+        `(Block.other {Block.grammar with data := ToJson.toJson (($(quote stx.getKind), $(quote bnf)) : Name × TaggedText GrammarTag)} #[])
       | .error es =>
         for (pos, msg) in es do
           log (severity := .error) (mkErrorStringWithPos  "<example>" pos msg)
@@ -889,19 +892,55 @@ private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html)
       }}
 
 
+structure GrammarHtmlContext where
+  skipKinds : NameSet := NameSet.empty.insert nullKind
+  lookingAt : Option Name := none
+
+namespace GrammarHtmlContext
+
+def default : GrammarHtmlContext := {}
+
+def skip (k : Name) (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
+  {ctx with skipKinds := ctx.skipKinds.insert k}
+
+def look (k : Name) (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
+  if ctx.skipKinds.contains k then ctx else {ctx with lookingAt := some k}
+
+def noLook (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
+  {ctx with lookingAt := none}
+
+end GrammarHtmlContext
+
+open Verso.Output Html in
+abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT ExtensionImpls IO))
+
+private def lookingAt (k : Name) : GrammarHtmlM α → GrammarHtmlM α := withReader (·.look k)
+
+private def notLooking : GrammarHtmlM α → GrammarHtmlM α := withReader (·.noLook)
+
 open Verso.Output Html in
 @[block_extension grammar]
 partial def grammar.descr : BlockDescr where
-  traverse _ _ _ := do
+  traverse id info _ := do
+    if let .ok (k, _) := FromJson.fromJson? (α := Name × TaggedText GrammarTag) info then
+      let path ← (·.path) <$> read
+      let _ ← Verso.Genre.Manual.externalTag id path k.toString
+      modify fun st => st.saveDomainObject syntaxKindDomain k.toString id
+    else
+      logError "Couldn't deserialize grammar info during traversal"
     pure none
   toTeX := none
   toHtml :=
     open Verso.Output.Html in
-    some <| fun _ goB _ info _ => do
-      match FromJson.fromJson? (α := TaggedText GrammarTag) info with
-      | .ok bnf => pure {{
-          <pre class="grammar hl lean" data-lean-context="--grammar">
-            {{← bnfHtml bnf }}
+    some <| fun _goI _goB id info _ => do
+      match FromJson.fromJson? (α := Name × TaggedText GrammarTag) info with
+      | .ok bnf =>
+        let t ← match (← read).traverseState.externalTags.get? id with
+          | some (_, t) => pure t.toString
+          | _ => Html.HtmlT.logError s!"Couldn't get HTML ID for grammar of {bnf.1}" *> pure ""
+        pure {{
+          <pre class="grammar hl lean" data-lean-context="--grammar" id={{t}}>
+            {{← bnfHtml bnf.2 |>.run (GrammarHtmlContext.default.skip bnf.1) }}
           </pre>
         }}
       | .error e =>
@@ -912,38 +951,52 @@ partial def grammar.descr : BlockDescr where
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
 where
-  bnfHtml : TaggedText GrammarTag → HtmlT Manual (ReaderT ExtensionImpls IO) Html
+
+  bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
   | .text str => pure <| .text true str
-  | .tag t txt => bnfHtml txt >>= tagHtml t
+  | .tag t txt => tagHtml t (bnfHtml txt)
   | .append txts => .seq <$> txts.mapM bnfHtml
 
-  tagHtml (t : GrammarTag) : Verso.Output.Html → HtmlT Manual (ReaderT ExtensionImpls IO) Html :=
-    open Verso.Output.Html in
+
+  tagHtml (t : GrammarTag) (go : GrammarHtmlM Html) : GrammarHtmlM Html :=
     match t with
-    | .bnf => (pure {{<span class="bnf">{{·}}</span>}})
-    | .comment => (pure {{<span class="comment">{{·}}</span>}})
-    | .error => (pure {{<span class="err">{{·}}</span>}})
-    | .keyword => (pure {{<span class="keyword">{{·}}</span>}})
-    | .nonterminal k doc? => nonTermHtmlOf k doc?
-    | .fromNonterminal k none => (pure {{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{·}}</span>}})
-    | .fromNonterminal k (some doc) => (pure {{
+    | .bnf => ({{<span class="bnf">{{·}}</span>}}) <$> notLooking go
+    | .comment => ({{<span class="comment">{{·}}</span>}}) <$> notLooking go
+    | .error => ({{<span class="err">{{·}}</span>}}) <$> notLooking go
+    | .keyword => do
+      let inner ← go
+      if let some k := (← read).lookingAt then
+        unless k == nullKind do
+          if let some tgt := (← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).linkTargets.keyword k then
+            return {{<a href={{tgt}}><span class="keyword">{{inner}}</span></a>}}
+      return {{<span class="keyword">{{inner}}</span>}}
+    | .nonterminal k doc? => do
+      let inner ← notLooking go
+      nonTermHtmlOf k doc? inner
+    | .fromNonterminal k none => do
+      let inner ← lookingAt k go
+      return {{<span class="from-nonterminal" {{#[("data-kind", k.toString)]}}>{{inner}}</span>}}
+    | .fromNonterminal k (some doc) => do
+      let inner ← lookingAt k go
+      return {{
         <span class="from-nonterminal documented" {{#[("data-kind", k.toString)]}}>
           <code class="hover-info"><code class="docstring">{{doc}}</code></code>
-          {{·}}
+          {{inner}}
         </span>
-      }})
-    | .localName x n cat doc? =>
+      }}
+    | .localName x n cat doc? => do
       let doc :=
         match doc? with
         | none => .empty
         | some d => {{<span class="sep"/><code class="docstring">{{d}}</code>}}
+      let inner ← notLooking go
       -- The "token" class below triggers binding highlighting
-      (pure {{
+      return {{
         <span class="local-name token documented" {{#[("data-kind", cat.toString)]}} data-binding=s!"grammar-var-{n}-{x}">
           <code class="hover-info"><code>{{x.toString}} " : " {{cat.toString}}</code>{{doc}}</code>
-          {{·}}
+          {{inner}}
         </span>
-      }})
+      }}
 
 
 def Inline.syntaxKind : Inline where

@@ -207,7 +207,7 @@ Instead, it provides low-level {tech}[recursors] that can be used to implement b
 Thus, the elaborator must translate definitions that use pattern matching and recursion into definitions that use recursors.
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
-The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to auxiliary functions that implement the particular case distinction that occurs in the code.
+The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
 These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration].]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
 To see auxiliary pattern matching functions in Lean's output, set the option {option}`pp.match` to {lean}`false`.
@@ -251,6 +251,7 @@ This split is for three reasons:
  * The compiler can compile {ref "partial-unsafe"}[`partial` functions] that the kernel treats as opaque constants for the purposes of reasoning.
  * The compiler can also compile {ref "partial-unsafe"}[`unsafe` functions] that bypass the kernel entirely.
  * Translation to recursors does not necessarily preserve the cost model expected by programmers, in particular laziness vs strictness, but compiled code must have predictable performance.
+
 The compiler stores an intermediate representation in an environment extension.
 
 For straightforwardly structurally recursive functions, the translation will use the type's recursor.

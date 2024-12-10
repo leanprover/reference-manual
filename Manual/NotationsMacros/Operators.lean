@@ -242,7 +242,7 @@ The actual operator is provided as a string literal.
 The new operator must satisfy the following requirements:
  * It must contain at least one character.
  * The first character may not be a single or double quote (`'` or `"`), unless the operator is `''`.
- * It may not begin with a backtick (``​`​``) followed by a character that would be a valid prefix of a quoted name.
+ * It may not begin with a backtick (`` ` ``) followed by a character that would be a valid prefix of a quoted name.
  * It may not begin with a digit.
  * It may not include internal whitespace.
 

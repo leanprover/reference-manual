@@ -10,6 +10,8 @@ open System (FilePath)
 require verso from git "https://github.com/leanprover/verso"@"main"
 
 package "verso-manual" where
+  -- building the C code cost much more than the optimizations save
+  moreLeancArgs := #["-O0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
   moreLinkArgs :=
     if System.Platform.isOSX then

@@ -69,7 +69,7 @@ Atoms and identifiers are collectively referred to as {deftech}_tokens_.
 Syntax node kinds typically identify the parser that produced the node.
 This is one place where the names given to operators or notations (or their automatically-generated internal names) occur.
 While only nodes contain a field that identifies their kind, identifiers have the kind {name Lean.identKind}`identKind` by convention, while atoms have their internal string as their kind by convention.
-Lean's parser wraps each keyword atom `KW` in a singleton node whose kind is ``​`token.KW``.
+Lean's parser wraps each keyword atom `KW` in a singleton node whose kind is `` `token.KW ``.
 The kind of a syntax value can be extracted using {name Lean.Syntax.getKind}`Syntax.getKind`.
 
 {docstring Lean.SyntaxNodeKind}
@@ -252,7 +252,7 @@ The {name}`ToString` instance represents the constructors of {name}`Syntax` as f
  * The {name Syntax.atom}`atom` constructor is represented as a string.
  * The {name Syntax.missing}`missing` constructor is represented by `<missing>`.
  * The representation of the {name Syntax.node}`node` constructor depends on the kind.
-   If the kind is ``​`null``, then the node is represented by its child nodes order in square brackets.
+   If the kind is {lean}`` `null ``, then the node is represented by its child nodes order in square brackets.
    Otherwise, the node is represented by its kind followed by its child nodes, both surrounded by parentheses.
 
 :::example "Syntax as Strings"

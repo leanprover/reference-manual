@@ -479,6 +479,9 @@ These locally-mutable bindings are less powerful than a {tech}[state monad] beca
 When {keywordOf Lean.Parser.Term.do}`do` blocks contain mutable bindings, the {keywordOf Lean.Parser.Term.do}`do` elaborator transforms the expression similarly to the way that {lean}`StateT` would, constructing a new monad and initializing it with the correct values.
 
 ## Control Structures
+%%%
+tag := "do-control-structures"
+%%%
 
 There are {keywordOf Lean.Parser.Term.do}`do` items that correspond to most of Lean's term-level control structures.
 When they occur as a step in a {keywordOf Lean.Parser.Term.do}`do` block, they are interpreted as {keywordOf Lean.Parser.Term.do}`do` items rather than terms.
