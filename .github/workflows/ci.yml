@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     outputs:
-      ref-url: ${{ steps.deploy-release.outputs.deploy-url || steps.deploy-draft.outputs.deploy-url }}
+      ref-url: ${{ steps.deploy-release.outputs.deploy-url }}
     steps:
       - name: Get generated HTML from artifact storage
         uses: actions/download-artifact@v4
@@ -192,60 +192,12 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
 
-      # When pushing to `main` or a PR branch, deploy what it would look like if this were released
-      - name: Deploy current draft
-        id: deploy-draft
-        uses: nwtgck/actions-netlify@v2.0
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        with:
-          publish-dir: _out/html-multi
-          production-branch: main
-          production-deploy: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: |
-            ${{ github.event_name == 'pull_request' && format('pr#{0}: {1}', github.event.number, github.event.pull_request.title) || format('ref/{0}: {1}', github.ref_name, steps.deploy-info.outputs.message) }}
-          alias: ${{ steps.deploy-alias.outputs.result }}
-          enable-commit-comment: false
-          enable-pull-request-comment: false
-          github-deployment-environment: |
-            ${{ github.event_name == 'pull_request' && format('lean-ref-pr-#{0}', github.event.number) || 'lean-ref' }}
-          github-deployment-description: |
-            Draft without proofreading info
-          fails-without-credentials: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
-
-      # When pushing to `main` or a PR branch, deploy it with proofreading info as well
-      - name: Deploy with proofreading info (draft mode, for PRs)
-        id: deploy-draft-proofreading
-        uses: nwtgck/actions-netlify@v2.0
-        if:
-          github.event_name == 'pull_request'
-        with:
-          publish-dir: _out/draft/html-multi
-          production-branch: main
-          production-deploy: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: |
-            ${{ github.event_name == 'pull_request' && format('pr#{0} proofreading: {1}', github.event.number, github.event.pull_request.title) }}
-          alias: draft-${{ steps.deploy-alias.outputs.result }}
-          enable-commit-comment: false
-          enable-pull-request-comment: false
-          github-deployment-environment: |
-            ${{ github.event_name == 'pull_request' && format('lean-ref-pr-draft-#{0}', github.event.number) }}
-          github-deployment-description: |
-            Draft with proofreading info
-          fails-without-credentials: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
-
 
   check-links:
     name: Check links
     runs-on: ubuntu-latest
     needs: [deploy]
+    if: github.event_name == 'release'
     steps:
       - uses: actions/checkout@v4
         with:
