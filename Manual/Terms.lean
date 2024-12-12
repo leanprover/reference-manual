@@ -312,13 +312,101 @@ Recurring over the function's argument types, arguments are selected from the se
  * If the parameter is explicit, then the next positional argument is selected and elaborated. If there are no positional arguments:
    * If the parameter is declared as an {tech}[optional parameter], then its default value is selected as the argument.
    * If the parameter is an {tech}[automatic parameter] then its associated tactic script is executed to construct the argument.
-   * If the parameter is neither optional nor automatic, then a fresh variable is selected as the argument.
+   * If the parameter is neither optional nor automatic, and no ellipsis is present, then a fresh variable is selected as the argument. If there is an ellipsis, a fresh metavariable is selected as if the argument were implicit.
+
+As a special case, when the function application occurs in a {ref "pattern-matching"}[pattern] and there is an ellipsis, optional and automatic arguments become universal patterns (`_`) instead of being inserted.
 
 It is an error if the type is not a function type and arguments remain.
-After all arguments have been inserted:
+After all arguments have been inserted and there is an ellipsis, then the missing arguments are all set to fresh metavariables, just as if they were implicit arguments.
+If any fresh variables were created for missing explicit positional arguments, the entire application is wrapped in a {keywordOf Lean.Parser.Term.fun}`fun` term that binds them.
+Finally, instance synthesis is invoked and as many metavariables as possible are solved:
  1. A type is inferred for the entire function application. This may cause some metavariables to be solved due to unification that occurs during type inference.
  2. The instance metavariables are synthesized. {tech}[Default instances] are only used if the inferred type is a metavariable that is the output parameter of one of the instances.
  3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech}[monad lifts].
+
+
+::::keepEnv
+:::example "Named Arguments"
+The {keywordOf Lean.Parser.Command.check}`#check` command can be used to inspect the arguments that were inserted for a function call.
+
+The function {name}`sum3` takes three explicit {lean}`Nat` parameters, named `x`, `y`, and `z`.
+```lean
+def sum3 (x y z : Nat) : Nat := x + y + z
+```
+
+All three arguments can be provided positionally.
+```lean (name := sum31)
+#check sum3 1 3 8
+```
+```leanOutput sum31
+sum3 1 3 8 : Nat
+```
+
+They can also be provided by name.
+```lean (name := sum32)
+#check sum3 (x := 1) (y := 3) (z := 8)
+```
+```leanOutput sum32
+sum3 1 3 8 : Nat
+```
+
+When arguments are provided by name, it can be in any order.
+```lean (name := sum33)
+#check sum3 (y := 3) (z := 8) (x := 1)
+```
+```leanOutput sum33
+sum3 1 3 8 : Nat
+```
+
+Named and positional arguments may be freely intermixed.
+```lean (name := sum34)
+#check sum3 1 (z := 8) (y := 3)
+```
+```leanOutput sum34
+sum3 1 3 8 : Nat
+```
+
+Named and positional arguments may be freely intermixed.
+If an argument is provided by name, it is used, even if it occurs after a positional argument that could have been used.
+```lean (name := sum342)
+#check sum3 1 (x := 8) (y := 3)
+```
+```leanOutput sum342
+sum3 8 3 1 : Nat
+```
+
+If a named argument is to be inserted after arguments that aren't provided, a function is created in which the provided argument is filled out.
+```lean (name := sum35)
+#check sum3 (z := 8)
+```
+```leanOutput sum35
+fun x y => sum3 x y 8 : Nat → Nat → Nat
+```
+
+Behind the scenes, the names of the arguments are preserved in the function type.
+This means that the remaining arguments can again be passed by name.
+```lean (name := sum36)
+#check (sum3 (z := 8)) (y := 1)
+```
+```leanOutput sum36
+fun x => (fun x y => sum3 x y 8) x 1 : Nat → Nat
+```
+
+```lean (show := false)
+-- This is not shown in the manual pending #6373
+-- https://github.com/leanprover/lean4/issues/6373
+-- When the issue is fixed, this code will stop working and the text can be updated.
+
+/--
+info: let x := 15;
+fun x y => sum3 x y x : Nat → Nat → Nat
+-/
+#guard_msgs in
+#check let x := 15; sum3 (z := x)
+```
+
+:::
+::::
 
 
 Optional and automatic parameters are not part of Lean's core type theory.
@@ -328,55 +416,6 @@ They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets
 
 {docstring autoParam}
 
-::::keepEnv
-:::example "Named Arguments"
-The {keywordOf Lean.Parser.Command.check}`#check` command can be used to inspect the arguments inserted for a function call.
-
-The function {name}`sum3` takes three explicit {lean}`Nat` parameters, named `x`, `y`, and `z`.
-```lean
-def sum3 (x y z : Nat) : Nat := x + y + z
-```
-
-```lean (name := sum31)
-#check sum3 1 3 8
-```
-```leanOutput sum31
-sum3 1 3 8 : Nat
-```
-```lean (name := sum32)
-#check sum3 (x := 1) (y := 3) (z := 8)
-```
-```leanOutput sum32
-sum3 1 3 8 : Nat
-```
-
-```lean (name := sum33)
-#check sum3 (y := 3) (z := 8) (x := 1)
-```
-```leanOutput sum33
-sum3 1 3 8 : Nat
-```
-
-```lean (name := sum34)
-#check sum3 1 (z := 8) (y := 3)
-```
-```leanOutput sum34
-sum3 1 3 8 : Nat
-```
-
-```lean (name := sum35)
-#check sum3 (z := 8)
-```
-```leanOutput sum35
-fun x y => sum3 x y 8 : Nat → Nat → Nat
-```
-
-
-:::
-::::
-
-
-* {deftech key:="ellipsis"}_Ellipses_
 
 # Functions
 
