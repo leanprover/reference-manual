@@ -7,7 +7,8 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"main"
+require subverso from git "https://github.com/leanprover/subverso.git"@"main"
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -31,6 +32,16 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
     IO.FS.createDirAll dir
   if !(← dir.isDir) then
     throw (↑ s!"Not a directory: {dir}")
+
+/-- Ensure that the subverso-extract-mod executable is available -/
+target subversoExtractMod : FilePath := do
+  if let some pkg := ← findPackage? `subverso then
+    if let some exe := pkg.findLeanExe? `«subverso-extract-mod» then
+      exe.recBuildExe
+    else
+      failure
+  else
+    failure
 
 target figures : Array FilePath := do
   let files := (← figureDir.readDir).filterMap fun f =>
@@ -67,5 +78,5 @@ target figures : Array FilePath := do
 
 @[default_target]
 lean_exe "generate-manual" where
-  extraDepTargets := #[`figures]
+  extraDepTargets := #[`figures, `subversoExtractMod]
   root := `Main

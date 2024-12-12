@@ -8,6 +8,7 @@ import Lean.Elab.Command
 import Lean.Elab.InfoTree
 
 import Verso
+import Verso.FS
 import Verso.Doc.ArgParse
 import Verso.Doc.Elab.Monad
 import VersoManual
@@ -302,6 +303,7 @@ def saveStderr [Monad m] [MonadEnv m] [MonadError m] (contents : StrLit) : m Uni
     | none => modifyEnv fun env => ioExampleCtx.setState env (some {st with stderr := some contents})
     | some _ => throwError "stderr already specified"
 
+
 def check
     (leanCode : StrLit) (leanCodeName : Name)
     (inputFiles outputFiles : Array (System.FilePath × StrLit))
@@ -312,6 +314,16 @@ def check
       match leanCodeName with
       -- | .str .anonymous n => n
       | _ => "Main"
+    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake env which subverso-extract-mod', the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let some «subverso-extract-mod» := out.stdout.splitOn "\n" |>.head?
+      | throwError "No executable path found"
+    let «subverso-extract-mod» ← IO.FS.realPath «subverso-extract-mod»
+
+    -- Avoid contention during parallel builds
     let leanFileName : System.FilePath := (leanCodeName : System.FilePath).addExtension "lean"
     IO.FS.writeFile (dirname / "lean-toolchain") toolchain
     IO.FS.writeFile (dirname / leanFileName) leanCode.getString
@@ -319,16 +331,17 @@ def check
       s!"name = \"example\"
   defaultTargets = [\"{leanCodeName}\"]
 
-  [[require]]
-  name = \"subverso\"
-  path = \"{← getSubversoDir }\"
-
-
   [[lean_exe]]
   name = \"{leanCodeName}\"
   "
     for (f, i) in inputFiles do
       IO.FS.writeFile (dirname / f) i.getString
+
+    let out ← IO.Process.output {cmd := "lake", args := #["clean"], cwd := some dirname}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake clean' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
     let out ← IO.Process.output {cmd := "lake", args := #["build"], cwd := some dirname}
     if out.exitCode != 0 then
@@ -377,10 +390,10 @@ def check
         m!"When running 'lake update subverso' in {dirname}, the exit code was {out.exitCode}\n" ++
         m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
     let jsonFile := s!"{leanCodeName}.json"
-    let out ← IO.Process.output {cmd := "lake", args := #["exe", s!"subverso-extract-mod", leanCodeName, jsonFile], cwd := some dirname}
+    let out ← IO.Process.output {cmd := toString «subverso-extract-mod» , args := #[leanCodeName, jsonFile], cwd := some dirname}
     if out.exitCode != 0 then
       throwError
-        m!"When running 'lake exe subverso-extract-mod {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"When running '{«subverso-extract-mod»} {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
         m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
     let json ← IO.FS.readFile (dirname / jsonFile)
     let json ← IO.ofExcept <| Json.parse json
