@@ -189,9 +189,9 @@ def NatStringBimap.insert
 :::
 
 Because structures are represented by single-constructor inductive types, their constructors can be invoked or matched against using {tech}[anonymous constructor syntax].
-Additionally, structures may be constructed or matched against using the names of the fields together with values for them.
+Additionally, structures may be constructed or matched against using {deftech}_structure instance_ notation, which includes the names of the fields together with values for them.
 
-::::syntax term
+::::syntax term (title := "Structure Instances")
 
 ```grammar
 { $_,*

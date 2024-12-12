@@ -37,6 +37,9 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 {docstring LE}
 
 # Decidability
+%%%
+tag := "decidable-propositions"
+%%%
 
 A proposition is {deftech}_decidable_ if it can be checked algorithmically.{index}[decidable]{index subterm:="decidable"}[proposition]
 The Law of the Excluded Middle means that every proposition is true or false, but it provides no way to check which of the two cases holds, which can often be useful.

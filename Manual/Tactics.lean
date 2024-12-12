@@ -47,6 +47,9 @@ Each proof is checked in the {tech}[kernel], and can be verified with independen
 Each goal in a tactic proof corresponds to an incomplete portion of a proof term.
 
 # Running Tactics
+%%%
+tag := "by"
+%%%
 
 :::TODO
 The syntax of `by` is showing with commas instead of semicolons below
