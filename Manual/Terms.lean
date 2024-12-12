@@ -24,8 +24,8 @@ tag := "terms"
 ::: planned 66
 This chapter will describe Lean's term language, including the following features:
  * Name resolution, including variable occurrences, `open` declarations and terms
- * Function application, including implicit, instance, and named arguments
- * Leading `.`-notation and accessor notation
+ * Function application, including implicit, instance, and named arguments, plus pipe notation
+ * Leading `.`-notation and field notation and pipe fields
  * `fun`, with and without pattern matching
  * Literals (some via cross-references to the appropriate types, e.g. {name}`String`)
  * Conditionals and their relationship to {name}`Decidable`
@@ -47,17 +47,17 @@ $x:ident
 
 As terms, an identifier is a reference to a name.
 The mapping from identifiers to names is not trivial: at any point in a {tech}[module], some number of {tech}[namespaces] will be open, there may be {tech}[section variables], and there may be local bindings.
-Furthermore, identifiers may contain multiple dot-separated atomic identifiers; the dot both separates namespaces from their contents and variables from fields or functions that use {tech}[accessor notation].
+Furthermore, identifiers may contain multiple dot-separated atomic identifiers; the dot both separates namespaces from their contents and variables from fields or functions that use {tech}[field notation].
 An identifier `A.B.C.D.e.f` could refer to any of the following:
 
  * A name `f` in the namespace `A.B.C.D.e` (for instance, a function defined in `e`'s {keywordOf Lean.Parser.Command.declaration}`where` block).
  * An application of `T.f` to `A.B.C.D.e` if `A.B.C.D.e` has type `T`
  * A projection of field `f` from a structure named `A.B.C.D.e`
- * A series of field projections `B.C.D.e` from structure value `A`, followed by an application of `f` using accessor notation
+ * A series of field projections `B.C.D.e` from structure value `A`, followed by an application of `f` using field notation
  * If namespace `Q` is opened, it could be a reference to any of the above with a `Q` prefix, such as a name `f` in the namespace `Q.A.B.C.D.e`
 
 This list is not exhaustive.
-Given an identifier, the elaborator must discover which name or names an identifier refers to, and whether any of the trailing components are fields or accessors.
+Given an identifier, the elaborator must discover which name or names an identifier refers to, and whether any of the trailing components are fields or functions applied via field notation.
 This is called {deftech}_resolving_ the name.
 In addition, some declarations in the global environment are lazily created the first time they are referenced.
 Resolving an identifier in a way that both creates one of these declarations and results in a reference to it is called {deftech}_realizing_ the name.
@@ -72,7 +72,7 @@ Name resolution is affected by the following:
 
 
 Any prefix of an identifier can resolve to a set of names.
-The suffix that was not included in the resolution process is then treated as field projections or accessor notation.
+The suffix that was not included in the resolution process is then treated as field projections or field notation.
 Resolutions of longer prefixes take precedence over resolutions of shorter prefixes.
 An identifier prefix may refer to any of the following, with earlier items taking precedence over later ones:
  1. A locally-bound variable whose name is identical to the identifier prefix, including macro scopes, with closer local bindings taking precedence over outer local bindings.
@@ -228,13 +228,69 @@ open D
 :::
 ::::
 
-## Accessor Notation
+## Generalized Field Notation
 
-:::TODO
-Write me!
+The {ref "structure-fields"}[section on structure fields] describes the notation for projecting a field from a term whose type is a structure.
+More generally, so long as a term's type is a constant applied to zero or more arguments, then field notation can be used to apply a function to it.
+Generalized field notation consists of a term followed by a dot (`.`) and an identifier, not separated by spaces.
+
+:::syntax term (title := "Field Notation")
+```grammar
+$e:term.$f:ident
+```
 :::
 
+The identifier is looked up in the namespace of the term's type, which is the constant's name.
+If the type is not an application of a constant (e.g., a function, a metavariable, or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+
+::: TODO
+
+Which arg (first matching)
+
+Example
+
+:::
+
+{optionDocs pp.fieldNotation}
+
+:::syntax attr (title := "Controlling Field Notation")
+The {attr}`pp_nodot` attribute causes Lean's pretty printer to not use field notation when printing a function.
+```grammar
+pp_nodot
+```
+:::
+
+::::keepEnv
+:::example "Turning Off Field Notation"
+{lean}`Nat.half` is printed using field notation by default.
+```lean
+def Nat.half : Nat → Nat
+  | 0 | 1 => 0
+  | n + 2 => n.half + 1
+```
+```lean (name := succ1)
+#check Nat.half Nat.zero
+```
+```leanOutput succ1
+Nat.zero.half : Nat
+```
+Adding {attr}`pp_nodot` to {name}`Nat.half` causes ordinary function application syntax to be used instead when displaying the term.
+```lean (name := succ2)
+attribute [pp_nodot] Nat.half
+
+#check Nat.half Nat.zero
+```
+```leanOutput succ2
+Nat.half Nat.zero : Nat
+```
+:::
+::::
+
+
 ## Leading `.`
+
+{tech}[Generalized field notation] is used when an identifier is attached to a term by a dot.
+A similar notation uses the type that's expected for the present term, rather than the type of some other term, to discover which namespace to {tech}[resolve] the identifier in.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
 If the type expected for a term is a constant applied to zero or more arguments, then its namespace is the constant's name.
@@ -440,6 +496,9 @@ They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets
 ```
 :::
 
+# Structures and Constructors
+
+{ref "anonymous-constructor-syntax"}[Anonymous constructors] and {ref "structure-constructors"}[structure instance syntax] are described in their respective sections.
 
 # Conditionals
 %%%
@@ -560,8 +619,12 @@ This term is called the {deftech}_right-hand side_ of the match alternative.
 
 :::syntax term (title := "Pattern Matching")
 ```grammar
-match $[(generalizing := $e)]? $[(motive := $e)]? $[$d:matchDiscr],* with
-  $[| $[$e,*]|* => $e]*
+match
+    $[(generalizing := $e)]?
+    $[(motive := $e)]?
+    $[$d:matchDiscr],*
+  with
+$[| $[$e,*]|* => $e]*
 ```
 :::
 
@@ -585,7 +648,7 @@ They consist of the following:
 
   The hole syntax {lean}`_` is a pattern that matches any value and binds no pattern variables.
   Catch-all patterns are not entirely equivalent to unused pattern variables.
-  They can be used in positions where the pattern's typing would otherwise require a more specific {tech}[inaccessible term], while variables cannot be used in these positions.
+  They can be used in positions where the pattern's typing would otherwise require a more specific {tech}[inaccessible pattern], while variables cannot be used in these positions.
 
 : Identifiers
 
@@ -623,11 +686,17 @@ They consist of the following:
   Macros in patterns are expanded.
   They are patterns if the resulting expansions are patterns.
 
-: Inaccessible Terms
+: Inaccessible patterns
 
-  {deftech}[Inaccessible terms] are terms that are forced to have a particular value by later typing constraints.
+  {deftech}[Inaccessible patterns] are patterns that are forced to have a particular value by later typing constraints.
   Any term may be used as an inaccessible term.
-  Inaccessible terms are written with a preceding period (`.`).
+  Inaccessible terms are parenthesized, with a preceding period (`.`).
+
+:::syntax term (title := "Inaccessible Patterns")
+```grammar
+.($e)
+```
+:::
 
 Patterns may additionally be named.
 {deftech}[Named patterns] associate a name with a pattern; in subsequent patterns and on the right-hand side of the match alternative, the name refers to the part of the value that was matched by the given pattern.
@@ -1074,6 +1143,66 @@ end
 end
 ```
 
+## Other Pattern Matching Operators
+
+In addition to {keywordOf Lean.Parser.Term.match}`match` and {keywordOf termIfLet}`if let`, there are a few other operators that perform pattern matching.
+
+:::syntax term
+The {keywordOf Lean.«term_Matches_|»}`matches` operator returns {lean}`true` if the term on the left matches the pattern on the right.
+```grammar
+$e matches $e
+```
+:::
+
+When branching on the result of {keywordOf Lean.«term_Matches_|»}`matches`, it's usually better to use {keywordOf termIfLet}`if let`, which can bind pattern variables in addition to checking whether a pattern matches.
+
+```lean (show := false)
+/--
+info: match 4 with
+| n.succ => true
+| x => false : Bool
+-/
+#guard_msgs in
+#check 4 matches (n + 1)
+```
+
+If there are no constructor patterns that could match a discriminant or sequence of discriminants, then the code in question is unreachable, as there must be a false assumption in the local context.
+The {keywordOf Lean.Parser.Term.nomatch}`nomatch` expression is a match with zero cases that can have any type whatsoever, so long as there are no possible cases that could match the discriminants.
+
+:::syntax term (title := "Caseless Pattern Matches")
+```grammar
+nomatch $e,*
+```
+:::
+
+::::keepEnv
+:::example "Inconsistent Indices"
+There are no constructor patterns that can match both proofs in this example:
+```lean
+example (p1 : x = "Hello") (p2 : x = "world") : False :=
+  nomatch p1, p2
+```
+
+This is because they separately refine the value of `x` to unequal strings.
+Thus, the {keywordOf Lean.Parser.Term.nomatch}`nomatch` operator allows the example's body to provee {lean}`False` (or any other proposition or type).
+:::
+::::
+
+When the expected type is a function type, {keywordOf Lean.Parser.Term.nofun}`nofun` is shorthand for a function that takes as many parameters as the type indicates in which the body is {keywordOf Lean.Parser.Term.nomatch}`nomatch` applied to all of the parameters.
+:::syntax term (title := "Caseless Functions")
+```grammar
+nofun
+```
+:::
+
+::::keepEnv
+:::example "Impossible Functions"
+Instead of introducing arguments for both equality proofs and then using both in a {keywordOf Lean.Parser.Term.nomatch}`nomatch`, it is possible to use {keywordOf Lean.Parser.Term.nofun}`nofun`.
+```lean
+example : x = "Hello" → x = "world" → False := nofun
+```
+:::
+::::
 
 # Holes
 
@@ -1082,9 +1211,17 @@ In terms, holes can be automatically filled when the surrounding context would o
 Otherwise, a hole is an error.
 In patterns, holes represent universal patterns that can match anything.
 
+
+:::syntax term (title := "Holes")
+Holes are written with underscores.
+```grammar
+_
+```
+:::
+
 ::::keepEnv
 :::example "Filling Holes with Unification"
-The function {lean}`the` can be used similarly to {keywordOf Lean.Parser.Term.show}`show` or a type ascription.
+The function {lean}`the` can be used similarly to {keywordOf Lean.Parser.Term.show}`show` or a {tech}[type ascription].
 ```lean
 def the (α : Sort u) (x : α) : α := x
 ```
@@ -1098,12 +1235,6 @@ Both of these commands are equivalent:
 :::
 ::::
 
-:::syntax term (title := "Holes")
-Holes are written with underscores.
-```grammar
-_
-```
-:::
 
 When writing proofs, it can be convenient to explicitly introduce unknown values.
 This is done via {deftech}_synthetic holes_, which are never solved by unification and may occur in multiple positions.
@@ -1120,14 +1251,15 @@ They are primarily useful in tactic proofs, and are described in {ref "metavaria
 
 # Type Ascription
 
-Type ascriptions are a way to provide Lean with the expected type for a term.
+{deftech}_Type ascriptions_ explicitly annotate terms with their types.
+They are a way to provide Lean with the expected type for a term.
 This type must be definitionally equal to the type that is expected based on the term's context.
 Type ascriptions are useful for more than just documenting a program:
  * There may not be sufficient information in the program text to derive a type for a term. Ascriptions are one way to provide the type.
  * An inferred type may not be the one that was desired for a term.
  * The expected type of a term is used to drive the insertion of {tech}[coercions], and ascriptions are one way to control where coercions are inserted.
 
-:::syntax term
+:::syntax term (title := "Postfix Type Ascriptions")
 Type ascriptions must be surrounded by parentheses.
 They indicate that the first term's type is the second term.
 ```grammar
@@ -1135,14 +1267,71 @@ They indicate that the first term's type is the second term.
 ```
 :::
 
-:::syntax term
+
+In cases where the term that requires a type ascription is long, such as a tactic proof or a {keywordOf Lean.Parser.Term.do}`do` block, the postfix type ascription with its mandatory parentheses can be difficult to read.
+Additionally, for both proofs and {keywordOf Lean.Parser.Term.do}`do` blocks, the term's type is essential to its interpretation.
+In these cases, the prefix versions can be easier to read.
+:::syntax term (title := "Prefix Type Ascriptions")
 ```grammar
 show $_ from $_
 ```
+When the term in the body of {keywordOf Lean.Parser.Term.show}`show` is a proof, the keyword {keywordOf Lean.Parser.Term.show}`from` may be omitted.
 ```grammar
 show $_ by $_
 ```
+:::
 
+:::example "Ascribing Statements to Proofs"
+This example is unable to execute the tactic proof because the desired proposition is not known.
+As part of running the earlier tactics, the proposition is automatically refined to be one that the tactics could prove.
+However, their default cases fill it out incorrectly, leading to a proof that fails.
+```lean (name := byBusted) (error := true)
+example (n : Nat) := by
+  induction n
+  next => rfl
+  next n' ih =>
+    simp only [HAdd.hAdd, Add.add, Nat.add] at *
+    rewrite [ih]
+    rfl
+```
+```leanOutput byBusted
+tactic 'rewrite' failed, equality or iff proof expected
+  HEq 0 n'
+n' : Nat
+ih : HEq 0 n'
+⊢ HEq 0 n'.succ
+```
+
+A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show` can be used to provide the proposition being proved.
+This can be useful in syntactic contexts where adding it as a local definition would be inconvenient.
+```lean
+example (n : Nat) := show 0 + n = n by
+  induction n
+  next => rfl
+  next n' ih =>
+    simp only [HAdd.hAdd, Add.add, Nat.add] at *
+    rewrite [ih]
+    rfl
+```
+:::
+
+:::example "Ascribing Types to {keywordOf Lean.Parser.Term.do}`do` Blocks"
+This example lacks sufficient type information to synthesize the {name}`Pure` instance.
+```lean (name := doBusted) (error := true)
+example := do
+  return 5
+```
+```leanOutput doBusted
+typeclass instance problem is stuck, it is often due to metavariables
+  Pure ?m.75
+```
+
+A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
+The {tech key:="default instance"}[default] {lean}`OfNat _ 5` instance provides enough type information to fill the hole with {lean}`Nat`.
+```lean
+example := show StateM String _ from do
+  return 5
+```
 :::
 
 # Quotation and Antiquotation

@@ -31,7 +31,7 @@ Declares a new structure type.
 :::
 
 {deftech}[Structures] are inductive types that have only a single constructor and no indices.
-In exchange for these restrictions, Lean generates code for structures that offers a number of conveniences: accessor functions are generated for each field, an additional constructor syntax based on field names rather than positional arguments is available, a similar syntax may be used to replace the values of certain named fields, and structures may extend other structures.
+In exchange for these restrictions, Lean generates code for structures that offers a number of conveniences: projection functions are generated for each field, an additional constructor syntax based on field names rather than positional arguments is available, a similar syntax may be used to replace the values of certain named fields, and structures may extend other structures.
 Just like other inductive types, structures may be recursive; they are subject to the same restrictions regarding strict positivity.
 Structures do not add any expressive power to Lean; all of their features are implemented in terms of code generation.
 
@@ -398,11 +398,11 @@ example : toAcademicWork = Textbook.toAcademicWork := by
 :::
 
 The resulting structure's projections can be used as if its fields are simply the union of the parents' fields.
-The Lean elaborator automatically generates an appropriate accessor when it encounters a projection.
+The Lean elaborator automatically generates an appropriate projection when fields are used.
 Likewise, the field-based initialization and structure update notations hide the details of the encoding of inheritance.
 The encoding is, however, visible when using the constructor's name, when using {tech}[anonymous constructor syntax], or when referring to fields by their index rather than their name.
 
-:::: example "Field indices and structure inheritance"
+:::: example "Field Indices and Structure Inheritance"
 
 ```lean
 structure Pair (α : Type u) where
