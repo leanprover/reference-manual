@@ -16,6 +16,8 @@ set_option linter.unusedVariables false
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
+set_option linter.constructorNameAsVariable false
+
 #doc (Manual) "Terms" =>
 %%%
 tag := "terms"
@@ -24,13 +26,8 @@ tag := "terms"
 ::: planned 66
 This chapter will describe Lean's term language, including the following features:
  * Name resolution, including variable occurrences, `open` declarations and terms
- * Function application, including implicit, instance, and named arguments, plus pipe notation
- * Leading `.`-notation and field notation and pipe fields
  * `fun`, with and without pattern matching
  * Literals (some via cross-references to the appropriate types, e.g. {name}`String`)
- * Conditionals and their relationship to {name}`Decidable`
- * Pattern matching, including `match`, `let`, `if let`, `matches`, `nomatch`, `nofun`
- * Do-notation, including `let mut`, `for`, `while`, `repeat`, `break`, `return`
 :::
 
 {deftech}_Terms_ are the principal means of writing mathematics and programs in Lean.
@@ -228,68 +225,10 @@ open D
 :::
 ::::
 
-## Generalized Field Notation
-
-The {ref "structure-fields"}[section on structure fields] describes the notation for projecting a field from a term whose type is a structure.
-More generally, so long as a term's type is a constant applied to zero or more arguments, then field notation can be used to apply a function to it.
-Generalized field notation consists of a term followed by a dot (`.`) and an identifier, not separated by spaces.
-
-:::syntax term (title := "Field Notation")
-```grammar
-$e:term.$f:ident
-```
-:::
-
-The identifier is looked up in the namespace of the term's type, which is the constant's name.
-If the type is not an application of a constant (e.g., a function, a metavariable, or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
-
-::: TODO
-
-Which arg (first matching)
-
-Example
-
-:::
-
-{optionDocs pp.fieldNotation}
-
-:::syntax attr (title := "Controlling Field Notation")
-The {attr}`pp_nodot` attribute causes Lean's pretty printer to not use field notation when printing a function.
-```grammar
-pp_nodot
-```
-:::
-
-::::keepEnv
-:::example "Turning Off Field Notation"
-{lean}`Nat.half` is printed using field notation by default.
-```lean
-def Nat.half : Nat → Nat
-  | 0 | 1 => 0
-  | n + 2 => n.half + 1
-```
-```lean (name := succ1)
-#check Nat.half Nat.zero
-```
-```leanOutput succ1
-Nat.zero.half : Nat
-```
-Adding {attr}`pp_nodot` to {name}`Nat.half` causes ordinary function application syntax to be used instead when displaying the term.
-```lean (name := succ2)
-attribute [pp_nodot] Nat.half
-
-#check Nat.half Nat.zero
-```
-```leanOutput succ2
-Nat.half Nat.zero : Nat
-```
-:::
-::::
-
 
 ## Leading `.`
 
-{tech}[Generalized field notation] is used when an identifier is attached to a term by a dot.
+{deftech}[Generalized field notation] is used when an identifier is attached to a term by a dot.
 A similar notation uses the type that's expected for the present term, rather than the type of some other term, to discover which namespace to {tech}[resolve] the identifier in.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
@@ -324,6 +263,19 @@ def MyList α := List α
 ```
 :::
 ::::
+
+# Function Types
+
+::: TODO
+move content
+:::
+
+# Functions
+
+::: TODO
+move content
+:::
+
 
 # Function Application
 
@@ -472,6 +424,219 @@ They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets
 
 {docstring autoParam}
 
+## Generalized Field Notation
+
+The {ref "structure-fields"}[section on structure fields] describes the notation for projecting a field from a term whose type is a structure.
+Generalized field notation consists of a term followed by a dot (`.`) and an identifier, not separated by spaces.
+
+:::syntax term (title := "Field Notation")
+```grammar
+$e:term.$f:ident
+```
+:::
+
+If a term's type is a constant applied to zero or more arguments, then field notation can be used to apply a function to it, regardless of whether the term is a structure or type class instance that has fields.
+The use of field notation to apply other functions is called {deftech}_generalized field notation_.
+
+The identifier after the dot is looked up in the namespace of the term's type, which is the constant's name.
+If the type is not an application of a constant (e.g., a function, a metavariable, or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+If the field is not found, but the constant can be unfolded to yield a further type which is a constant or application of a constant, then the process is repeated with the new constant.
+
+When a function is found, the term before the dot becomes an argument to the function.
+Specifically, it becomes the first explicit argument that would not be a type error.
+Aside from that, the application is elaborated as usual.
+
+::::keepEnv
+
+:::example "Generalized Field Notation"
+The type {lean}`Username` is a constant, so functions in the {name}`Username` namespace can be applied to terms with type {lean}`Username` with generalized field notation.
+```lean
+def Username := String
+```
+
+One such function is {name}`Username.validate`, which checks that a username contains no leading whitespace and that only a small set of acceptable characters are used.
+In its definition, generalized field notation is used to call the functions {lean}`String.isPrefixOf`, {lean}`String.any`, {lean}`Char.isAlpha`, and {lean}`Char.isDigit`.
+In the case of {lean}`String.isPrefixOf`, which takes two {lean}`String` arguments, {lean}`" "` is used as the first  because it's the term before the dot.
+{lean}`String.any` can be called on {lean}`name` using generalized field notation even though it has type {lean}`Username` because `Username.any` is not defined and {lean}`Username` unfolds to {lean}`String`.
+
+```lean
+def Username.validate (name : Username) : Except String Unit := do
+  if " ".isPrefixOf name then
+    throw "Unexpected leading whitespace"
+  if name.any notOk then
+    throw "Unexpected character"
+  return ()
+where
+  notOk (c : Char) : Bool :=
+    !c.isAlpha &&
+    !c.isDigit &&
+    !c ∈ ['_', ' ']
+
+def root : Username := "root"
+```
+
+```lean (show := false)
+section
+variable (name : Username)
+```
+
+However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
+```lean (error := true) (name := notString)
+#eval "root".validate
+```
+```leanOutput notString
+invalid field 'validate', the environment does not contain 'String.validate'
+  "root"
+has type
+  String
+```
+
+{lean}`root`, on the other hand, has type {lean}`Username`:
+```lean (name := isUsername)
+#eval root.validate
+```
+```leanOutput isUsername
+Except.ok ()
+```
+:::
+```lean (show := false)
+end
+```
+::::
+
+{optionDocs pp.fieldNotation}
+
+:::syntax attr (title := "Controlling Field Notation")
+The {attr}`pp_nodot` attribute causes Lean's pretty printer to not use field notation when printing a function.
+```grammar
+pp_nodot
+```
+:::
+
+::::keepEnv
+:::example "Turning Off Field Notation"
+{lean}`Nat.half` is printed using field notation by default.
+```lean
+def Nat.half : Nat → Nat
+  | 0 | 1 => 0
+  | n + 2 => n.half + 1
+```
+```lean (name := succ1)
+#check Nat.half Nat.zero
+```
+```leanOutput succ1
+Nat.zero.half : Nat
+```
+Adding {attr}`pp_nodot` to {name}`Nat.half` causes ordinary function application syntax to be used instead when displaying the term.
+```lean (name := succ2)
+attribute [pp_nodot] Nat.half
+
+#check Nat.half Nat.zero
+```
+```leanOutput succ2
+Nat.half Nat.zero : Nat
+```
+:::
+::::
+
+## Pipeline Syntax
+
+Pipeline syntax provides alternative ways to write function applications.
+Repeated pipelines use parsing precedence instead of nested parentheses to nest applications of functions to positional arguments.
+
+:::syntax term (title := "Pipelines")
+Right pipe notation applies the term to the right of the pipe to the one on its left.
+```grammar
+e |> e
+```
+Left pipe notation applies the term on the left of the pipe to the one on its right.
+```grammar
+e <| e
+```
+:::
+
+The intuition behind right pipeline notation is that the values on the left are being fed to the first function, its results are fed to the second one, and so forth.
+In left pipeline notation, values on the right are fed leftwards.
+
+:::example "Right pipeline notation"
+Right pipelines can be used to call a series of functions on a term.
+For readers, they tend to emphasize the data that's being transformed.
+```lean (name := rightPipe)
+#eval "Hello!" |> String.toList |> List.reverse |> List.head!
+```
+```leanOutput rightPipe
+'!'
+```
+:::
+
+:::example "Left pipeline notation"
+Left pipelines can be used to call a series of functions on a term.
+They tend to emphasize the fuctions over the data.
+```lean (name := lPipe)
+#eval List.head! <| List.reverse <| String.toList <| "Hello!"
+```
+```leanOutput lPipe
+'!'
+```
+:::
+
+:::syntax term (title := "Pipeline Fields")
+There is a version of pipeline notation that's used for {tech}[generalized field notation].
+```grammar
+$e |>.$ident
+```
+:::
+
+::::keepEnv
+```lean (show := false)
+section
+universe u
+axiom T : Nat → Type u
+variable {e : T 3}
+axiom T.f : {n : Nat} → Char → T n → String
+```
+
+{lean}`e |>.f ' '` is an alternative syntax for {lean}`(e).f ' '`.
+
+
+:::example "Pipeline Fields"
+
+Some functions are inconvenient to use with pipelines because their argument order is not conducive.
+For example, {name}`Array.push` takes an array as its first argument, not a {lean}`Nat`, leading to this error:
+```lean (name := arrPush)
+#eval #[1, 2, 3] |> Array.push 4
+```
+```leanOutput arrPush
+failed to synthesize
+  OfNat (Array ?m.4) 4
+numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
+  Array ?m.4
+due to the absence of the instance above
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+Using pipeline field notation causes the array to be inserted at the first type-correct position:
+```lean (name := arrPush2)
+#eval #[1, 2, 3] |>.push 4
+```
+```leanOutput arrPush2
+#[1, 2, 3, 4]
+```
+
+This process can be iterated:
+```lean (name := arrPush3)
+#eval #[1, 2, 3] |>.push 4 |>.reverse |>.push 0 |>.reverse
+```
+```leanOutput arrPush3
+#[0, 1, 2, 3, 4]
+```
+:::
+
+
+```lean (show := false)
+end
+```
+::::
 
 # Functions
 
@@ -495,6 +660,8 @@ They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets
 #[$_,*]
 ```
 :::
+
+
 
 # Structures and Constructors
 
@@ -1337,6 +1504,10 @@ example := show StateM String _ from do
 # Quotation and Antiquotation
 
 Quotation terms are described in the {ref "quotation"}[section on quotation].
+
+# `do`-Notation
+
+{keywordOf Lean.Parser.Term.do}`do`-notation is described {ref "do-notation"}[in the chapter on monads.]
 
 # Proofs
 

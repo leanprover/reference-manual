@@ -238,10 +238,20 @@ Describe {deftech}_axioms_ in detail
 
 # Recursive Definitions
 
+Allowing arbitrary recursive definitions would make Lean's logic inconsistent.
+Each recursive function needs to be justified.
+There are three main kinds of recursive functions that can be defined:
+ 1. Structurally recursive functions
+ 2. Functions defined via recursion over a proof that a relation is well founded
+ 3. Partial functions with nonempty ranges
+
+
 ## Structural Recursion
 ::: planned 55
 This section will describe the specification of the translation to recursors.
 :::
+
+Structurally recursive functions are those in which each recursive call is on a structurally smaller term than the argument.
 
 ### Mutual Structural Recursion
 
