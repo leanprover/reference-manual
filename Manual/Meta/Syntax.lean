@@ -684,6 +684,16 @@ open Manual.Meta.PPrint Grammar in
 Display free-form syntax that isn't validated by Lean's parser.
 
 Here, the name is simply for reference, and should not exist as a syntax kind.
+
+The grammar of free-form syntax items is:
+ * strings - atoms
+ * doc_comments - inline comments
+ * ident - instance of nonterminal
+ * $ident:ident('?'|'*'|'+')? - named quasiquote (the name is rendered, and can be referred to later)
+ * '(' ITEM+ ')'('?'|'*'|'+')? - grouped sequence (potentially modified/repeated)
+ * ` `( `ident|...) - embedding parsed Lean that matches the specified parser
+
+They can be separated by a row of `**************`
 -/
 @[directive_expander freeSyntax]
 def freeSyntax : DirectiveExpander

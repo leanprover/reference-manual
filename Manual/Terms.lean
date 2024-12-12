@@ -271,21 +271,112 @@ def MyList α := List α
 
 # Function Application
 
-* Ordinary application
-* By-name application
+Ordinarily, function application is written using juxtaposition: the argument is placed after the function, with at least one space between them.
+In Lean's type theory, all functions take exactly one argument and produce exactly one value.
+All function applications combine a single function with a single argument.
+Multiple arguments are represented via currying.
+
+The high-level term language treats a function together with one or more arguments as a single unit, and supports additional features such as implicit, optional, and by-name arguments along with ordinary positional arguments.
+The elaborator converts these to the simpler model of the core type theory.
+
+:::freeSyntax term
+A function application consists of a term followed by one or more arguments, or by zero or more arguments and a final ellipsis.
+```grammar
+$e:term $e:argument+
+***************
+$e:term $e:argument* ".."
+```
+:::
+
+{TODO}[Annotate with syntax kinds for incoming hyperlinks during traversal pass]
+:::freeSyntax Lean.Parser.Term.argument (title := "Arguments")
+Function arguments are either terms, named arguments, or ellipses.
+```grammar
+$e:term
+***********
+"("$x:ident ":=" $e:term")"
+```
+:::
+
+The function's core-language type determines the placement of the arguments in the final expression.
+Function types include names for their expected parameters.
+In Lean's core language, non-dependent function types are encoded as dependent function types in which the parameter name does not occur in the body.
+Furthermore, they are chosen internally such that they cannot be written as the name of a named argument; this is important to prevent accidental capture.
+
+Each parameter expected by the function has a name.
+Recurring over the function's argument types, arguments are selected from the sequence of arguments as follows:
+ * If the parameter's name matches the name provided for a named argument, then that argument is selected.
+ * If the parameter is {tech}[implicit], a fresh metavariable is created with the parameter's type and selected.
+ * If the parameter is {tech}[instance implicit], a fresh instance metavariable is created with the parameter's type and inserted. Instance metavariables are scheduled for later synthesis.
+ * If the parameter is {tech}[strictly implicit] and there are any named or positional arguments that have not yet been selected, a fresh metavariable is created with the parameter's type and selected.
+ * If the parameter is explicit, then the next positional argument is selected and elaborated. If there are no positional arguments:
+   * If the parameter is declared as an {tech}[optional parameter], then its default value is selected as the argument.
+   * If the parameter is an {tech}[automatic parameter] then its associated tactic script is executed to construct the argument.
+   * If the parameter is neither optional nor automatic, then a fresh variable is selected as the argument.
+
+It is an error if the type is not a function type and arguments remain.
+After all arguments have been inserted:
+ 1. A type is inferred for the entire function application. This may cause some metavariables to be solved due to unification that occurs during type inference.
+ 2. The instance metavariables are synthesized. {tech}[Default instances] are only used if the inferred type is a metavariable that is the output parameter of one of the instances.
+ 3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech}[monad lifts].
+
+
+Optional and automatic parameters are not part of Lean's core type theory.
+They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets].
+
+{docstring optParam}
+
+{docstring autoParam}
+
+::::keepEnv
+:::example "Named Arguments"
+The {keywordOf Lean.Parser.Command.check}`#check` command can be used to inspect the arguments inserted for a function call.
+
+The function {name}`sum3` takes three explicit {lean}`Nat` parameters, named `x`, `y`, and `z`.
+```lean
+def sum3 (x y z : Nat) : Nat := x + y + z
+```
+
+```lean (name := sum31)
+#check sum3 1 3 8
+```
+```leanOutput sum31
+sum3 1 3 8 : Nat
+```
+```lean (name := sum32)
+#check sum3 (x := 1) (y := 3) (z := 8)
+```
+```leanOutput sum32
+sum3 1 3 8 : Nat
+```
+
+```lean (name := sum33)
+#check sum3 (y := 3) (z := 8) (x := 1)
+```
+```leanOutput sum33
+sum3 1 3 8 : Nat
+```
+
+```lean (name := sum34)
+#check sum3 1 (z := 8) (y := 3)
+```
+```leanOutput sum34
+sum3 1 3 8 : Nat
+```
+
+```lean (name := sum35)
+#check sum3 (z := 8)
+```
+```leanOutput sum35
+fun x y => sum3 x y 8 : Nat → Nat → Nat
+```
+
+
+:::
+::::
+
+
 * {deftech key:="ellipsis"}_Ellipses_
-
-:::syntax term
-```grammar
-$e (x := 5) $_*
-```
-:::
-
-:::syntax Lean.Parser.Term.namedArgument (title := "Named Arguments")
-```grammar
-($x := $e)
-```
-:::
 
 # Functions
 
