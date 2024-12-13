@@ -259,7 +259,7 @@ The compiler stores an intermediate representation in an environment extension.
 
 For straightforwardly structurally recursive functions, the translation will use the type's recursor.
 These functions tend to be relatively efficient when run in the kernel, their defining equations hold definitionally, and they are easy to understand.
-Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some measure decreases at each recursive call.
+Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call.
 Lean can automatically derive many of these cases, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
 To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves equational lemmas that relate the function to its original definition.
@@ -380,6 +380,26 @@ Finally, the compiler is invoked to translate the intermediate representation of
 A C file is produced for each Lean module; these are then compiled to native code using a bundled C compiler.
 If the `precompileModules` option is set in the build configuration, then this native code can be dynamically loaded and invoked by Lean; otherwise, an interpreter is used.
 For most workloads, the overhead of compilation is larger than the time saved by avoiding the interpreter, but some workloads can be sped up dramatically by pre-compiling tactics, language extensions, or other extensions to Lean.
+
+## Memory Allocation and Reference Counting
+
+:::planned 208
+
+The most important topics related to Lean's reference-counting-based allocator:
+
+ * Overview of {deftech key:="reference count"}_reference counting_
+
+ * Compact regions
+
+ * When are counts incremented and decremented?
+
+ * Tools for debugging uniqueness issues
+
+ * When should C code increment or decrement reference counts?
+
+ * What is the meaning of the borrow annotation (`@&`)?
+
+:::
 
 
 # Initialization

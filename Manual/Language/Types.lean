@@ -507,7 +507,7 @@ def L := List (Type 0)
 
 ### Universe Unification
 
-:::planned 00
+:::planned 99
  * Rules for unification, properties of algorithm
  * Lack of injectivity
  * Universe inference for unannotated inductive types

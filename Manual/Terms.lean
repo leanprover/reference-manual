@@ -55,13 +55,13 @@ An identifier `A.B.C.D.e.f` could refer to any of the following:
 
 This list is not exhaustive.
 Given an identifier, the elaborator must discover which name or names an identifier refers to, and whether any of the trailing components are fields or functions applied via field notation.
-This is called {deftech}_resolving_ the name.
+This is called {deftech key:="resolve"}_resolving_ the name.
 In addition, some declarations in the global environment are lazily created the first time they are referenced.
 Resolving an identifier in a way that both creates one of these declarations and results in a reference to it is called {deftech}_realizing_ the name.
 The rules for resolving and realizing a name are the same, so even though this section refers only to resolving names, it applies to both.
 
 Name resolution is affected by the following:
- * {tech}[Preresolved names] attached to the identifier
+ * {tech key:="pre-resolved identifier"}[Pre-resolved names] attached to the identifier
  * The {tech}[macro scopes] attached to the identifier
  * The local bindings in scope, including auxiliary definitions created as part of the elaboration of {keywordOf Lean.Parser.Term.letrec}`let rec`.
  * Aliases created with {keywordOf Lean.Parser.Command.export}`export` in modules transitively imported by the current module
@@ -228,7 +228,7 @@ open D
 
 ## Leading `.`
 
-{deftech}[Generalized field notation] is used when an identifier is attached to a term by a dot.
+{deftech}[Generalized field notation], often referred to simply as {deftech}[field notation], is used when an identifier is attached to a term by a dot.
 A similar notation uses the type that's expected for the present term, rather than the type of some other term, to discover which namespace to {tech}[resolve] the identifier in.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
@@ -288,7 +288,7 @@ The high-level term language treats a function together with one or more argumen
 The elaborator converts these to the simpler model of the core type theory.
 
 :::freeSyntax term
-A function application consists of a term followed by one or more arguments, or by zero or more arguments and a final ellipsis.
+A function application consists of a term followed by one or more arguments, or by zero or more arguments and a final {deftech}[ellipsis].
 ```grammar
 $e:term $e:argument+
 ***************
@@ -316,7 +316,7 @@ Recurring over the function's argument types, arguments are selected from the se
  * If the parameter's name matches the name provided for a named argument, then that argument is selected.
  * If the parameter is {tech}[implicit], a fresh metavariable is created with the parameter's type and selected.
  * If the parameter is {tech}[instance implicit], a fresh instance metavariable is created with the parameter's type and inserted. Instance metavariables are scheduled for later synthesis.
- * If the parameter is {tech}[strictly implicit] and there are any named or positional arguments that have not yet been selected, a fresh metavariable is created with the parameter's type and selected.
+ * If the parameter is a {tech}[strict implicit] parameter and there are any named or positional arguments that have not yet been selected, a fresh metavariable is created with the parameter's type and selected.
  * If the parameter is explicit, then the next positional argument is selected and elaborated. If there are no positional arguments:
    * If the parameter is declared as an {tech}[optional parameter], then its default value is selected as the argument.
    * If the parameter is an {tech}[automatic parameter] then its associated tactic script is executed to construct the argument.
@@ -330,7 +330,7 @@ If any fresh variables were created for missing explicit positional arguments, t
 Finally, instance synthesis is invoked and as many metavariables as possible are solved:
  1. A type is inferred for the entire function application. This may cause some metavariables to be solved due to unification that occurs during type inference.
  2. The instance metavariables are synthesized. {tech}[Default instances] are only used if the inferred type is a metavariable that is the output parameter of one of the instances.
- 3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech}[monad lifts].
+ 3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech key:="lift"}[monad lifts].
 
 
 ::::keepEnv
@@ -571,7 +571,7 @@ For readers, they tend to emphasize the data that's being transformed.
 
 :::example "Left pipeline notation"
 Left pipelines can be used to call a series of functions on a term.
-They tend to emphasize the fuctions over the data.
+They tend to emphasize the functions over the data.
 ```lean (name := lPipe)
 #eval List.head! <| List.reverse <| String.toList <| "Hello!"
 ```
@@ -637,10 +637,6 @@ This process can be iterated:
 end
 ```
 ::::
-
-# Functions
-
-* `fun` (move the content here?)
 
 # Literals
 
@@ -769,6 +765,13 @@ Should we document bif?
 :::
 
 # Pattern Matching
+%%%
+tag := "pattern-matching"
+%%%
+
+::: TODO
+Compare with Manual.Language.Functions section that has same header
+:::
 
 * `match`, with and without name
 * Simultaneous matching vs tuple matching
@@ -1354,7 +1357,7 @@ example (p1 : x = "Hello") (p2 : x = "world") : False :=
 ```
 
 This is because they separately refine the value of `x` to unequal strings.
-Thus, the {keywordOf Lean.Parser.Term.nomatch}`nomatch` operator allows the example's body to provee {lean}`False` (or any other proposition or type).
+Thus, the {keywordOf Lean.Parser.Term.nomatch}`nomatch` operator allows the example's body to prove {lean}`False` (or any other proposition or type).
 :::
 ::::
 
@@ -1379,7 +1382,7 @@ example : x = "Hello" → x = "world" → False := nofun
 tag := "pattern-match-elaboration"
 %%%
 
-:::planned
+:::planned 209
 Specify the elaboration of pattern matching to {deftech}[auxiliary match functions].
 :::
 

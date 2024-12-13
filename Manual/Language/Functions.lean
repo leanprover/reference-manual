@@ -177,19 +177,19 @@ Implicit parameters come in three varieties:
 
   : Ordinary implicit parameters
 
-    Ordinary implicit parameters are function parameters that Lean should determine values for via unification.
+    Ordinary {deftech}[implicit] parameters are function parameters that Lean should determine values for via unification.
     In other words, each call site should have exactly one potential argument value that would cause the function call as a whole to be well-typed.
     The Lean elaborator attempts to find values for all implicit arguments at each occurrence of a function.
     Ordinary implicit parameters are written in curly braces (`{` and `}`).
 
   : Strict implicit parameters
 
-    Strict implicit parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
+    {deftech}_Strict implicit_ parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
     Strict implicit parameters are written in double curly braces (`⦃` and `⦄`, or `{{` and `}}`).
 
   : Instance implicit parameters
 
-    Arguments for instance implicit parameters are found via {ref "instance-synth"}[type class synthesis].
+    Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
     Instance implicit parameters are written in square brackets (`[` and `]`), and in most cases omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.
 
 ::::keepEnv

@@ -360,7 +360,7 @@ Terms that begin with a question mark are _metavariables_ that correspond to an 
 They may stand for either {tech}[universe] levels or for terms.
 Some metavariables arise as part of Lean's elaboration process, when not enough information is yet available to determine a value.
 These metavariables' names have a numeric component at the end, such as `?m.392` or `?u.498`.
-Other metavariables come into existence as a result of tactics or {tech}[named holes].
+Other metavariables come into existence as a result of tactics or {tech}[synthetic holes].
 These metavariables' names do not have a numeric component.
 Metavariables that result from tactics frequently appear as goals whose {tech}[case labels] match the name of the metavariable.
 

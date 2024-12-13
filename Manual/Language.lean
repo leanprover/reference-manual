@@ -181,6 +181,7 @@ $_
 
 Describe signatures, including the following topics:
  * Explicit, implicit, instance-implicit, and strict implicit parameter binders
+ * {deftech key := "optional parameter"}[Optional] and {deftech}[automatic parameters]
  * {deftech}_Automatic implicit_ parameters
  * Argument names and by-name syntax
  * Which parts can be omitted where? Why?
@@ -194,6 +195,18 @@ The {deftech}[_header_] of a definition or declaration specifies the signature o
 ::: TODO
 * Precision and examples; list all of them here
 * Mention interaction with autoimplicits
+:::
+
+## Namespaces
+%%%
+tag := "namespaces"
+%%%
+
+:::planned 210
+
+Describe {deftech}[namespaces], aliases, and the semantics of `export` and `open`.
+Which language features are controlled by the currently open namespaces?
+
 :::
 
 ## Section Scopes
@@ -210,7 +223,7 @@ Section scopes track the following:
  * The {deftech}_current namespace_
  * The {deftech key:="open namespace"}_open namespaces_
  * The values of all {deftech}_options_
- * Variable and universe declarations
+ * {deftech}[Section variable] and universe declarations
 
 This section will describe this mechanism.
 
@@ -257,7 +270,7 @@ There are four main kinds of recursive functions that can be defined:
 
 : Structurally recursive functions
 
-  Structurally recursive functions take an argument such that the function makes recursive calls only on strict subcomponents of said argument.{margin}[Strictly speaking, arguments whose types are {tech}[indexed families] are grouped together with their indices, with the whole collection considered as a unit.]
+  Structurally recursive functions take an argument such that the function makes recursive calls only on strict sub-components of said argument.{margin}[Strictly speaking, arguments whose types are {tech}[indexed families] are grouped together with their indices, with the whole collection considered as a unit.]
   The elaborator translates the recursion into uses of the argument's {tech}[recursor].
   Because every type-correct use of a recursor is guaranteed to avoid infinite regress, this translation is evidence that the function terminates.
   Applications of functions defined via recursors are definitionally equal to the result of the recursion, and are typically relatively efficient inside the kernel.
@@ -290,7 +303,7 @@ There are four main kinds of recursive functions that can be defined:
   Use this feature with care: logical soundness is not at risk, but the behavior of programs written in Lean may diverge from their verified logical models if the unsafe implementation is incorrect.
 
 
-As described in the {ref "elaboration-results"}[the overview of the elaborator's output], elaboration of recursive functions proceeds in two phases:
+As described in the {ref "elaboration-results"}[overview of the elaborator's output], elaboration of recursive functions proceeds in two phases:
  1. The definition is elaborated as if Lean's core type theory had recursive definitions.
     Aside from using recursion, this provisional definition is fully elaborated.
     The compiler generates code from these provisional definitions.
@@ -356,7 +369,7 @@ def half' (n : Nat) : Nat := helper n false
 [0, 0, 1, 1, 2, 2, 3, 3, 4]
 ```
 
-Instead of creativity, a general technique called {tech}[course-of-values recursion] can be used.
+Instead of creativity, a general technique called {deftech}[course-of-values recursion] can be used.
 Course-of-values recursion uses helpers that can be systematically derived for every inductive type, defined in terms of the recursor; Lean derives them automatically.
 For every {lean}`Nat` {lean}`n`, the type {lean}`n.below (motive := mot)` provides a value of type {lean}`mot k` for all {lean}`k < n`, represented as an iterated {TODO}[xref sigma] dependent pair type.
 The course-of-values recursor {name}`Nat.brecOn` allows a function to use the result for any smaller {lean}`Nat`.
@@ -591,7 +604,7 @@ section
 :::example "Elaboration Walkthrough"
 The first step in walking through the elaboration of {name}`half` is to manually desugar it to a simpler form.
 This doesn't match the way Lean works, but its output is much easier to read when there are fewer {name}`OfNat` instances present.
-This readable definiton:
+This readable definition:
 ```lean (keep := false)
 def half : Nat → Nat
   | 0 | 1 => 0
@@ -743,7 +756,7 @@ table : Nat.below n
 ⊢ (n : Nat) → (fun k => Nat.below k → Nat) n.succ.succ
 ```
 
-The first two cases in the predefinition are constant functions, with no recursion to check:
+The first two cases in the pre-definition are constant functions, with no recursion to check:
 
 ```lean (error := true) (keep := false) (name := oneMore)
 noncomputable
@@ -833,7 +846,7 @@ variable (n : Nat)
 
 :::example "Failing Elaboration"
 This definition of {lean}`half` terminates, but this can't be checked by either structural or well-founded recursion.
-This is because the gratuitous tuple in the {tech}[discriminant] breaks the connection between {lean}`n` and the patterns that match it.
+This is because the gratuitous tuple in the {tech}[match discriminant] breaks the connection between {lean}`n` and the patterns that match it.
 ```lean (error := true) (name := badhalfmatch) (keep := false)
 def half (n : Nat) : Nat :=
   match (n, ()) with
