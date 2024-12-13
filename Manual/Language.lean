@@ -21,7 +21,7 @@ open Verso.Genre.Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option pp.rawOnError true
-set_option maxRecDepth 2000
+set_option maxRecDepth 3000
 
 set_option linter.unusedVariables false
 
@@ -878,10 +878,66 @@ def half (n : Nat) : Nat :=
 end
 ```
 
-An important consequence is that *simultaneous matching of two discriminants is not equivalent to matching a pair*.
-:::TODO
-Reiterate in simpler terms, include classic example and ensure permalink for Leo
+### Matching Pairs vs Simultaneous Matching
+
+An important consequence of the strategies that are used to prove termination is that *simultaneous matching of two discriminants is not equivalent to matching a pair*.
+Simultaneous matching maintains the connection between the discriminants and the patterns, allowing the pattern matching to refine the types of the assumptions in the local context as well as the expected type of the {keywordOf Lean.Parser.Term.match}`match`.
+Essentially, the elaboration rules for {keywordOf Lean.Parser.Term.match}`match` treat the discriminants specially, and changing discriminants in a way that preserves the run-time meaning of a program does not necessarily preserve the compile-time meaning.
+
+:::example "Simultaneous Matching vs Matching Pairs for Structural Recursion"
+This function that finds the minimum of two natural numbers is defined by structural recursion on its first parameter:
+```lean
+def min (n k : Nat) : Nat :=
+  match n, k with
+  | 0, _ => 0
+  | _, 0 => 0
+  | n' + 1, k' + 1 => min n' k' + 1
+termination_by structural n
+```
+
+Replacing the simultaneous pattern match on both parameters with a match on a pair causes termination analysis to fail:
+```lean (error := true) (name := noMin)
+def min' (n k : Nat) : Nat :=
+  match (n, k) with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min' n' k' + 1
+termination_by structural n
+```
+```leanOutput noMin
+failed to infer structural recursion:
+Cannot use parameter n:
+  failed to eliminate recursive application
+    min' n' k'
+```
+
+This is because the analysis only considers direct pattern matching on parameters when matching recursive calls to strictly-smaller argument values.
+Wrapping the discriminants in a pair breaks the connection.
 :::
+
+:::example "No Structural Recursion Over Pair Components"
+This function that finds the minimum of the two components of a pair can't be elaborated via structural recursion.
+```lean
+def min (nk : Nat × Nat) : Nat :=
+  match nk with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min (n', k') + 1
+termination_by structural nk
+```
+This is because the parameter's type's course-of-values recursor is used to justify the recursive definition, but the product type {name}`Prod` is not recursive and thus does not have a course-of-values recursor.
+This definition is accepted using {tech}[well-founded recursion], however:
+```lean
+def min (nk : Nat × Nat) : Nat :=
+  match nk with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min (n', k') + 1
+termination_by mk
+```
+:::
+
+
 
 
 ### Mutual Structural Recursion
