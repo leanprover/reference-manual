@@ -25,10 +25,11 @@ structure ExampleConfig where
   description : FileMap × Array Syntax
   /-- Name for refs -/
   name : Option String := none
+  keep : Bool := false
 
 
 def ExampleConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m ExampleConfig :=
-  ExampleConfig.mk <$> .positional `description .inlinesString <*> .named `name .string true
+  ExampleConfig.mk <$> .positional `description .inlinesString <*> .named `name .string true <*> (.named `keep .bool true <&> (·.getD false))
 
 def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) (xs : Array α) : m (Array β) := do
   let mut out := #[]
@@ -63,7 +64,11 @@ def «example» : DirectiveExpander
       (kind := Lsp.SymbolKind.interface)
       (detail? := some "Example")
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
-    let blocks ← prioritizedElab (isLeanBlock ·) elabBlock contents
+    let blocks ←
+      if cfg.keep then
+        prioritizedElab (isLeanBlock ·) elabBlock contents
+      else
+        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
     pure #[← ``(Block.other (Block.example $(quote cfg.name)) #[Block.para #[$description,*], $blocks,*])]
@@ -131,6 +136,7 @@ r#".example {
 def Block.keepEnv : Block where
   name := `Manual.example
 
+-- TODO rename to `withoutModifyingEnv` or something more clear
 @[directive_expander keepEnv]
 def keepEnv : DirectiveExpander
   | args, contents => do

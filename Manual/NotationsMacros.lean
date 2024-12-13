@@ -84,8 +84,10 @@ It expands to its argument in all other cases.
 syntax &"notFive" term:arg : term
 open Lean in
 macro_rules
-  | `(term|notFive 5) => Macro.throwError "'5' is not allowed here"
-  | `(term|notFive $e) => pure e
+  | `(term|notFive 5) =>
+    Macro.throwError "'5' is not allowed here"
+  | `(term|notFive $e) =>
+    pure e
 ```
 
 When applied to terms that are not syntactically the numeral five, elaboration succeeds:

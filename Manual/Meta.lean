@@ -121,10 +121,10 @@ span.TODO {
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
 structure PlannedConfig where
-  issue : Nat
+  issue : Option Nat
 
 def PlannedConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m PlannedConfig :=
-  PlannedConfig.mk <$> .positional `issue .nat
+  PlannedConfig.mk <$> ((some <$> .positional `issue .nat) <|> pure none)
 
 def Block.planned : Block where
   name := `Manual.planned
@@ -134,12 +134,27 @@ def planned : DirectiveExpander
   | args, blocks => do
     let {issue} ← PlannedConfig.parse.run args
     PointOfInterest.save (← getRef) s!"Planned content ({issue})" (kind := .event)
+    let fileMap ← getFileMap
+    let fileName ← getFileName
+    let loc : Option (Nat × String) :=
+      ((·.line, System.FilePath.normalize fileName |>.toString) ∘ fileMap.utf8PosToLspPos) <$> (← getRef).getPos?
     let content ← blocks.mapM elabBlock
-    pure #[← `(Doc.Block.other {Block.planned with data := $(quote issue)} #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.planned with data := ToJson.toJson (α := Option Nat × Option (Nat × String)) ($(quote issue), $(quote loc))} #[$content,*])]
 
 @[block_extension planned]
 def planned.descr : BlockDescr where
-  traverse _ _ _ := do
+  traverse _ data _ := do
+    match FromJson.fromJson? (α := Option Nat × Option (Nat × String)) data with
+    | .ok (none, loc?) | .ok (some 0, loc?) =>
+       -- TODO add source locations to Verso ASTs upstream, then report here
+      if let some (line, file) := loc? then
+        logError s!"Missing issue number for planned content indicator at {file} line {line}"
+      else
+        logError s!"Missing issue number for planned content indicator"
+    | .ok (some _, _) => pure ()
+
+    | .error e =>
+      logError s!"Failed to deserialize issue number from {data} during traversal: {e}"
     pure none
   toTeX := none
   extraCss := [r#"
@@ -155,23 +170,26 @@ div.planned .label {
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ goB _ data content => do
-      let issue : Nat ←
-        match FromJson.fromJson? (α := Nat) data with
-        | .ok v => pure v
+      let issue : Option Nat ←
+        match FromJson.fromJson? (α := Option Nat × Option (Nat × String)) data with
+        | .ok v => pure v.1
         | .error e =>
           HtmlT.logError s!"Failed to deserialize issue number from {data}: {e}"
-          pure 0
+          pure none
       pure {{
         <div class="planned">
           <div class="label">"Planned Content"</div>
           {{← content.mapM goB}}
-          <p>
-            "Tracked at issue "
-            <a href=s!"https://github.com/leanprover/reference-manual/issues/{issue}">
-              s!"#{issue}"
-            </a>
-          </p>
-          </div>
+          {{if let some issue := issue then {{
+            <p>
+              "Tracked at issue "
+                <a href=s!"https://github.com/leanprover/reference-manual/issues/{issue}">
+                  s!"#{issue}"
+                </a>
+            </p>
+            }} else .empty
+          }}
+        </div>
       }}
 
 

@@ -113,3 +113,111 @@ where
       let pos := ctx.fileMap.toPosition pos
       errs := (pos, toString err) :: errs
     errs.reverse
+
+
+/--
+Consistently rewrite all substrings that look like automatic metavariables (e.g "?m.123") so
+that they're ?m.1, ?m.2, etc.
+-/
+def normalizeMetavars (str : String) : String := Id.run do
+  let mut out := ""
+  let mut iter := str.iter
+  let mut gensymCounter := 1
+  let mut nums : Std.HashMap String Nat := {}
+  -- States are:
+  -- * none - Not looking at a metavar
+  -- * 0 - Saw the ?
+  -- * 1 - Saw the m
+  -- * 2 - Saw the .
+  -- * 3 - Saw one or more digits
+  let mut state : Option (Fin 4 × String.Iterator) := none
+  while h : iter.hasNext do
+    let c := iter.curr' h
+
+    match state with
+    | none =>
+      if c == '?' then
+        state := some (0, iter)
+      else
+        out := out.push c
+    | some (0, i) =>
+      state := if c == 'm' then some (1, i) else none
+    | some (1, i) =>
+      state := if c == '.' then some (2, i) else none
+    | some (2, i) =>
+      state := if c.isDigit then some (3, i) else none
+    | some (3, i) =>
+      unless c.isDigit do
+        state := none
+        let mvarStr := i.extract iter
+        match nums[mvarStr]? with
+        | none =>
+          nums := nums.insert mvarStr gensymCounter
+          out := out ++ s!"?m.{gensymCounter}"
+          gensymCounter := gensymCounter + 1
+        | some s => out := out ++ s!"?m.{s}"
+        out := out.push c
+
+    iter := iter.next
+  match state with
+  | some (3, i) =>
+    let mvarStr := i.extract iter
+    match nums[mvarStr]? with
+    | none =>
+      nums := nums.insert mvarStr gensymCounter
+      out := out ++ s!"?m.{gensymCounter}"
+      gensymCounter := gensymCounter + 1
+    | some s => out := out ++ s!"?m.{s}"
+  | some (_, i) =>
+    out := out ++ i.extract iter
+  | _ => pure ()
+
+  out
+
+/-- info: "List ?m.1" -/
+#guard_msgs in
+#eval normalizeMetavars "List ?m.9783"
+
+/-- info: "List ?m.1 " -/
+#guard_msgs in
+#eval normalizeMetavars "List ?m.9783 "
+
+/-- info: "x : ?m.1\nxs : List ?m.1\nelem : x ∈ xs\n⊢ xs.length > 0\n" -/
+#guard_msgs in
+#eval normalizeMetavars
+  r##"x : ?m.1034
+xs : List ?m.1034
+elem : x ∈ xs
+⊢ xs.length > 0
+"##
+
+/-- info: "x : ?m.1\nxs : List ?m.1\nelem : x ∈ xs\n⊢ xs.length > 0" -/
+#guard_msgs in
+#eval normalizeMetavars
+  r##"x : ?m.1034
+xs : List ?m.1034
+elem : x ∈ xs
+⊢ xs.length > 0"##
+
+/-- info: "x : ?m.1\nxs : List ?m.2\nelem : x ∈ xs\n⊢ xs.length > 0" -/
+#guard_msgs in
+#eval normalizeMetavars
+  r##"x : ?m.1034
+xs : List ?m.10345
+elem : x ∈ xs
+⊢ xs.length > 0"##
+
+/-- info: "x : ?m.1\nxs : List ?m.2\nelem : x ∈ xs\n⊢ xs.length > 0" -/
+#guard_msgs in
+#eval normalizeMetavars
+  r##"x : ?m.1035
+xs : List ?m.1034
+elem : x ∈ xs
+⊢ xs.length > 0"##
+
+#eval normalizeMetavars
+  r##"x : ?m.1035
+α : Type ?u.1234
+xs : List ?m.1034
+elem : x ∈ xs
+⊢ xs.length > 0"##

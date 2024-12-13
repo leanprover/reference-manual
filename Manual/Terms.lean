@@ -1198,6 +1198,9 @@ fun n p =>
 ::::
 
 ### Generalization
+%%%
+tag := "match-generalization"
+%%%
 
 The pattern match elaborator automatically determines the motive by finding occurrences of the discriminants in the expected type, generalizing them in the types of subsequent discriminants so that the appropriate pattern can be substituted.
 Additionally, occurrences of the discriminants in the types of variables in the context are generalized and substituted by default.
@@ -1370,6 +1373,15 @@ example : x = "Hello" → x = "world" → False := nofun
 ```
 :::
 ::::
+
+## Elaborating Pattern Matching
+%%%
+tag := "pattern-match-elaboration"
+%%%
+
+:::planned
+Specify the elaboration of pattern matching to {deftech}[auxiliary match functions].
+:::
 
 # Holes
 

@@ -389,11 +389,12 @@ The metavariable is repeated because the unknown type must be the same in both p
 ∀ (x : _) (xs : List _), x ∈ xs → xs.length > 0 := by
   intros x xs elem
 /--
-x : ?m.1025
-xs : List ?m.1025
+x : ?m.1035
+xs : List ?m.1035
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
+
 
 
 ```

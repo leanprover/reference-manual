@@ -201,10 +201,13 @@ In practice, apparent non-termination is indistinguishable from sufficiently slo
 These metatheoretic properties are a result of having impredicativity, quotient types that compute, definitional proof irrelevance, and propositional extensionality; these features are immensely valuable both to support ordinary mathematical practice and to enable automation.
 
 # Elaboration Results
+%%%
+tag := "elaboration-results"
+%%%
 
 Lean's core type theory does not include pattern matching or recursive definitions.
 Instead, it provides low-level {tech}[recursors] that can be used to implement both case distinction and primitive recursion.
-Thus, the elaborator must translate definitions that use pattern matching and recursion into definitions that use recursors.
+Thus, the elaborator must translate definitions that use pattern matching and recursion into definitions that use recursors.{margin}[More details on the elaboration of recursive definitions is available in the {ref "recursive-definitions"}[dedicated section] on the topic.]
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
 The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.

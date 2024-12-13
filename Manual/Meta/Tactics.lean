@@ -524,7 +524,7 @@ def proofState : CodeBlockExpander
       --logInfoAt proofPrefix st1
       let stStr ← (← addMessageContext st).toString
       if let some s := desired then
-        if stStr.trim != s.getDocString.trim then
+        if normalizeMetavars stStr.trim != normalizeMetavars s.getDocString.trim then
           logErrorAt s m!"Expected: {indentD stStr}\n\nGot: {indentD s.getDocString}"
           Verso.Doc.Suggestion.saveSuggestion s (stStr.take 30 ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
       pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Doc.Block.code $(quote stStr)])]

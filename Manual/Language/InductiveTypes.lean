@@ -125,7 +125,7 @@ theorem no_is_false : No = False := by
 ```
 :::
 
-:::example "A unit type"
+:::example "A unit type" (keep := true)
 {lean}`One` is equivalent to Lean's {lean}`Unit` type:
 ```lean
 inductive One where
@@ -179,7 +179,7 @@ theorem yes_is_true : Yes = True := by
 ```
 :::
 
-::::example "A type with parameter and index"
+::::example "A type with parameter and index" (keep := true)
 
 :::keepEnv
 ```lean (show:=false)

@@ -29,6 +29,30 @@ open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
 
+/--
+The largest number of characters expected on a line
+-/
+-- TODO make this into an option instead
+def Meta.maxCodeColumns : Nat := 60
+
+def Meta.warnLongLines [Monad m] [MonadFileMap m] [MonadLog m] [AddMessageContext m] [MonadOptions m] (indent? : Option Nat) (str : StrLit) : m (Array (Nat × StrLit × MessageData)) := do
+  let fileMap ← getFileMap
+  let maxCol := maxCodeColumns + indent?.getD 0
+  let mut warnings := #[]
+  if let some startPos := str.raw.getPos? then
+    if let some stopPos := str.raw.getTailPos? then
+      let ⟨startLine, _⟩ := fileMap.utf8PosToLspPos startPos
+      let ⟨stopLine, _⟩ := fileMap.utf8PosToLspPos stopPos
+      for l in [startLine:stopLine] do
+        let nextStart := fileMap.lineStart (l + 1)
+        let ⟨_, endCol⟩ := fileMap.utf8PosToLspPos (nextStart - ⟨2⟩)
+        if endCol > maxCol then
+          let thisStart := fileMap.lineStart l
+          let fakeLiteral := Syntax.mkStrLit (fileMap.source.extract thisStart nextStart) (.synthetic thisStart nextStart)
+          let msg := m!"Line {l} is too long ({endCol} columns exceeds {maxCol})"
+          warnings := warnings.push (l, fakeLiteral, msg)
+  pure warnings
+
 
 initialize leanOutputs : EnvExtension (NameMap (List (MessageSeverity × String))) ←
   registerEnvExtension (pure {})
@@ -149,6 +173,10 @@ def lean : CodeBlockExpander
           logMessage msg
         if cmdState.messages.hasErrors then
           throwErrorAt str "No error expected in code block, one occurred"
+
+      if config.show.getD true then
+        for (_line, lit, msg) in (← Meta.warnLongLines col? str) do
+          logWarningAt lit msg
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
 
