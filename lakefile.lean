@@ -18,7 +18,6 @@ package "verso-manual" where
     if System.Platform.isOSX then
       #["-Wl,-ignore_optimization_hints"]
     else #[]
-  precompileModules := true
 
 lean_lib Manual where
 
