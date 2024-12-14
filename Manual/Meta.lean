@@ -29,6 +29,7 @@ import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
 import Manual.Meta.Table
 import Manual.Meta.Tactics
+import Manual.Meta.SpliceContents
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets

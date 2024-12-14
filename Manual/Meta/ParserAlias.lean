@@ -29,7 +29,17 @@ def parserAliasDomain := `Manual.parserAlias
 
 def Block.parserAlias (name : Name) (declName : Name) («show» : Option String) (stackSz? : Option Nat) (autoGroupArgs : Bool) (docs? : Option String) (argCount : Nat) : Block where
   name := `Manual.Block.parserAlias
-  data := ToJson.toJson (name, declName, «show», stackSz?, autoGroupArgs, docs?, argCount)
+  -- These are represented as an array, rather than using the ToJson instance for a tuple, because
+  -- the traversal pass only needs two fields and it's wasteful to deserialize the whole thing.
+  data := Json.arr #[
+    ToJson.toJson name,
+    ToJson.toJson declName,
+    ToJson.toJson «show»,
+    ToJson.toJson stackSz?,
+    ToJson.toJson autoGroupArgs,
+    ToJson.toJson docs?,
+    ToJson.toJson argCount
+  ]
 
 structure ParserAliasOptions where
   name : Name
@@ -60,6 +70,14 @@ def parserAlias : DirectiveExpander
 
     pure #[← ``(Verso.Doc.Block.other (Block.parserAlias $(quote opts.name) $(quote declName) $(quote opts.show) $(quote stackSz?) $(quote autoGroupArgs) $(quote docs?) $(quote argCount)) #[$(contents ++ userContents),*])]
 
+@[inline]
+private def getFromJson {α} [Inhabited α] [FromJson α] (v : Json) : HtmlT Genre.Manual (ReaderT ExtensionImpls IO) α:=
+  match FromJson.fromJson? (α := α) v with
+  | .error e => do
+    Verso.Doc.Html.HtmlT.logError
+      s!"Failed to deserialize parser alias data while generating HTML for a parser alias docstring.\nError: {e}\nJSON: {v}\n\n"
+    pure default
+  | .ok v => pure v
 
 open Verso.Genre.Manual.Markdown in
 open Lean Elab Term Parser Tactic Doc in
@@ -70,20 +88,29 @@ def parserAlias.descr : BlockDescr where
     |>.setDomainDescription parserAliasDomain "Detailed descriptions of parser aliases"
 
   traverse id info _ := do
-    let .ok (name, _declName, «show», _stackSz?, _autoGroupArgs, _docs?, _) := FromJson.fromJson? (α := Name × Name × Option String × Option Nat × Bool × Option String × Nat) info
+    let Json.arr #[ name, _, «show», _, _, _, _] := info
+      | do logError s!"Failed to deserialize docstring data while traversing a parser alias, expected array but got {info}"; pure none
+    let .ok (name, «show») := do return (← FromJson.fromJson? (α := Name) name, ← FromJson.fromJson? (α := Option String) «show»)
       | do logError "Failed to deserialize docstring data while traversing a parser alias"; pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path <| show.getD name.toString
     Index.addEntry id {term := Doc.Inline.code <| show.getD name.toString}
-
     modify fun st => st.saveDomainObject parserAliasDomain name.toString id
-
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
     open Verso.Output Html in do
-      let .ok (name, declName, «show», stackSz?, autoGroupArgs, docs?, argCount) := FromJson.fromJson? (α := Name × Name × Option String × Option Nat × Bool × Option String × Nat) info
-        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize parser alias data while generating HTML for a parser alias docstring"; pure .empty
+      let Json.arr #[ name, declName, «show», stackSz?, autoGroupArgs, docs?, argCount] := info
+        | do Verso.Doc.Html.HtmlT.logError s!"Failed to deserialize docstring data while making HTML for parser alias, expected array but got {info}"; pure .empty
+
+      let name ← getFromJson (α := Name) name
+      let declName ← getFromJson (α := Name) declName
+      let «show» ← getFromJson (α := Option String) «show»
+      let stackSz? ← getFromJson (α := Option Nat) stackSz?
+      let autoGroupArgs ← getFromJson (α := Bool) autoGroupArgs
+      let docs? ← getFromJson (α := Option String) docs?
+      let argCount ← getFromJson (α := Nat) argCount
+
       let x : Highlighted := .token ⟨.keyword declName none docs?, show.getD name.toString⟩
       let args : Highlighted :=
         match argCount with
@@ -96,10 +123,10 @@ def parserAlias.descr : BlockDescr where
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
-      let arity :=
+      let arity : Html :=
         match stackSz? with
-        | some n => s!"Arity: {n}"
-        | none => "Arity is sum of arguments' arities"
+        | some n => {{s!"Arity: {n}"}}
+        | none => {{"Arity is sum of arguments' arities"}}
       let grp :=
         if autoGroupArgs then
           some {{"Automatically wraps arguments in a " <code>"null"</code> " node unless there's exactly one"}}

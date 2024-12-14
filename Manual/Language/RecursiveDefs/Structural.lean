@@ -5,14 +5,14 @@ Author: David Thrane Christiansen
 -/
 
 import VersoManual
+import Manual.Language.RecursiveDefs.Structural.RecursorExample
+import Manual.Language.RecursiveDefs.Structural.CourseOfValuesExample
 
 import Manual.Meta
 
 
 open Verso.Genre Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
-
-set_option maxRecDepth 1500
 
 #doc (Manual) "Structural Recursion" =>
 %%%
@@ -23,264 +23,18 @@ Structurally recursive functions are those in which each recursive call is on a 
 Structural recursion is stronger than the primitive recursion that recursors provide, because the recursive call can use an _arbitrary_ sub-term of the argument, rather than only an immediate sub-term.
 The constructions used to implement structural recursion are, however, implemented using the recursor; these helper constructions are described in the {ref "recursor-elaboration-helpers"}[section on inductive types].
 
-```lean (show := false)
-section
-variable (n k : Nat) (mot : Nat → Sort u)
-```
-:::example "Recursion vs Recursors"
-Addition of natural numbers can be defined via recursion on the second argument.
-This function is straightforwardly structurally recursive.
-```lean
-def add (n : Nat) : Nat → Nat
-  | .zero => n
-  | .succ k => .succ (add n k)
-```
-
-Defined using {name}`Nat.rec`, it is much further from the notations that most people are used to.
-```lean
-def add' (n : Nat) :=
-  Nat.rec (motive := fun _ => Nat)
-    n
-    (fun k soFar => .succ soFar)
-```
-
-Structural recursive calls made on data that isn't the immediate child of the function parameter requires either creativity or a complex yet systematic encoding.
-```lean
-def half : Nat → Nat
-  | 0 | 1 => 0
-  | n + 2 => half n + 1
-```
-One way to think about this function is as a structural recursion that flips a bit at each call, only incrementing the result when the bit is set.
-```lean
-def helper : Nat → Bool → Nat :=
-  Nat.rec (motive := fun _ => Bool → Nat)
-    (fun _ => 0)
-    (fun _ soFar =>
-      fun b =>
-        (if b then Nat.succ else id) (soFar !b))
-
-def half' (n : Nat) : Nat := helper n false
-```
-```lean (name := halfTest)
-#eval [0, 1, 2, 3, 4, 5, 6, 7, 8].map half'
-```
-```leanOutput halfTest
-[0, 0, 1, 1, 2, 2, 3, 3, 4]
-```
-
-Instead of creativity, a general technique called {deftech}[course-of-values recursion] can be used.
-Course-of-values recursion uses helpers that can be systematically derived for every inductive type, defined in terms of the recursor; Lean derives them automatically.
-For every {lean}`Nat` {lean}`n`, the type {lean}`n.below (motive := mot)` provides a value of type {lean}`mot k` for all {lean}`k < n`, represented as an iterated {TODO}[xref sigma] dependent pair type.
-The course-of-values recursor {name}`Nat.brecOn` allows a function to use the result for any smaller {lean}`Nat`.
-Using it to define the function is inconvenient:
-```lean
-noncomputable def half'' (n : Nat) : Nat :=
-  Nat.brecOn n (motive := fun _ => Nat)
-    fun k soFar =>
-      match k, soFar with
-      | 0, _ | 1, _ => 0
-      | _ + 2, ⟨_, ⟨h, _⟩⟩ => h + 1
-```
-The function is marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` because the compiler doesn't support generating code for course-of-values recursion, which is intended for reasoning rather that efficient code.
-The kernel can still be used to test the function, however:
-```lean (name := halfTest2)
-#reduce [0,1,2,3,4,5,6,7,8].map half''
-```
-```leanOutput halfTest2
-[0, 0, 1, 1, 2, 2, 3, 3, 4]
-```
-
-The dependent pattern matching in the body of {lean}`half''` can also be encoded using recursors (specifically, {name}`Nat.casesOn`), if necessary:
-```lean
-noncomputable def half''' (n : Nat) : Nat :=
-  n.brecOn (motive := fun _ => Nat)
-    fun k =>
-      k.casesOn
-        (motive :=
-          fun k' =>
-            (k'.below (motive := fun _ => Nat)) →
-            Nat)
-        (fun _ => 0)
-        (fun k' =>
-          k'.casesOn
-            (motive :=
-              fun k'' =>
-                (k''.succ.below (motive := fun _ => Nat)) →
-                Nat)
-            (fun _ => 0)
-            (fun _ soFar => soFar.2.1.succ))
-```
-
-This definition still works.
-```lean (name := halfTest3)
-#reduce [0,1,2,3,4,5,6,7,8].map half''
-```
-```leanOutput halfTest3
-[0, 0, 1, 1, 2, 2, 3, 3, 4]
-```
-
-However, it is now far from the original definition and it has become difficult for most people to understand.
-Recursors are an excellent logical foundation, but not an easy way to write programs or proofs.
-:::
-```lean (show := false)
-end
-```
+{spliceContents Manual.Language.RecursiveDefs.Structural.RecursorExample}
 
 Recognizing structural recursion involves the following steps:
  1. The function's parameters are divided into a _fixed prefix_ of parameters that do not vary in any recursive calls, and ordinary parameters that do.
  2. The ordinary parameters are split into groups of parameters that, together, may constitute a structurally decreasing parameter. In this step, indices are grouped with the arguments whose types depend on them.
 
+
 The structural recursion analysis attempts to translate the recursive pre-definition into a use of the appropriate structural recursion constructions.
 At this step, pattern matching has already been translated into the use of matcher functions; these are treated specially by the termination checker.
 Next, for each group of parameters, a translation using `brecOn` is attempted.
 
-
-:::example "Course-of-Values Tables"
-This definition is equivalent to {name}`List.below`:
-```lean
-def List.below' {α : Type u} {motive : List α → Sort u} : List α → Sort (max 1 u)
-  | [] => PUnit
-  | _ :: xs => motive xs ×' xs.below' (motive := motive)
-```
-
-```lean (show := false)
-theorem List.below_eq_below' : @List.below = @List.below' := by
-  funext α motive xs
-  induction xs <;> simp [List.below, below']
-  congr
-```
-
-In other words, for a given {tech}[motive], {lean}`List.below'` is a type that contains a realization of the motive for all suffixes of the list.
-
-More recursive arguments require further nested iterations of the product type.
-For instance, binary trees have two recursive occurrences.
-```lean
-inductive Tree (α : Type u) : Type u where
-  | leaf
-  | branch (left : Tree α) (val : α) (right : Tree α)
-```
-
-It's corresponding course-of-values table contains the realizations of the motive for all subtrees:
-```lean
-def Tree.below' {α : Type u} {motive : Tree α → Sort u} : Tree α → Sort (max 1 u)
-  | .leaf => PUnit
-  | .branch left _val right =>
-    motive left ×' motive right ×'
-    left.below' (motive := motive) ×'
-    right.below' (motive := motive)
-```
-
-```lean (show := false)
-theorem Tree.below_eq_below' : @Tree.below = @Tree.below' := by
-  funext α motive t
-  induction t <;> simp [Tree.below, below']
-  congr
-```
-
-For both lists and trees, the `brecOn` operator expects just a single case, rather than one per constructor.
-This case accepts a list or tree along with a table of results for all smaller values; from this, it should satisfy the motive for the provided value.
-Dependent case analysis of the provided value automatically refines the type of the memo table, providing everything needed.
-
-The following definitions are equivalent to {name}`List.brecOn` and {name}`Tree.brecOn`, respectively.
-The primitive recursive helpers {name}`List.brecOnTable`  and {name}`Tree.brecOnTable` compute the course-of-values tables along with the final results, and the actual definitions of the `brecOn` operators simply project out the result.
-```lean
-def List.brecOnTable {α : Type u}
-    {motive : List α → Sort u}
-    (xs : List α)
-    (step :
-      (ys : List α) →
-      ys.below' (motive := motive) →
-      motive ys) :
-    motive xs ×' xs.below' (motive := motive) :=
-  match xs with
-  | [] => ⟨step [] PUnit.unit, PUnit.unit⟩
-  | x :: xs =>
-    let res := xs.brecOnTable (motive := motive) step
-    let val := step (x :: xs) res
-    ⟨val, res⟩
-
-def Tree.brecOnTable {α : Type u}
-    {motive : Tree α → Sort u}
-    (t : Tree α)
-    (step :
-      (ys : Tree α) →
-      ys.below' (motive := motive) →
-      motive ys) :
-    motive t ×' t.below' (motive := motive) :=
-  match t with
-  | .leaf => ⟨step .leaf PUnit.unit, PUnit.unit⟩
-  | .branch left val right =>
-    let resLeft := left.brecOnTable (motive := motive) step
-    let resRight := right.brecOnTable (motive := motive) step
-    let branchRes := ⟨resLeft.1, resRight.1, resLeft.2, resRight.2⟩
-    let val := step (.branch left val right) branchRes
-    ⟨val, branchRes⟩
-
-def List.brecOn' {α : Type u}
-    {motive : List α → Sort u}
-    (xs : List α)
-    (step :
-      (ys : List α) →
-      ys.below' (motive := motive) →
-      motive ys) :
-    motive xs :=
-  (xs.brecOnTable (motive := motive) step).1
-
-def Tree.brecOn' {α : Type u}
-    {motive : Tree α → Sort u}
-    (t : Tree α)
-    (step :
-      (ys : Tree α) →
-      ys.below' (motive := motive) →
-      motive ys) :
-    motive t :=
-  (t.brecOnTable (motive := motive) step).1
-```
-
-```lean (show := false)
--- Proving the above-claimed equivalence is too time consuming, but evaluating a few examples will at least catch silly mistakes!
-
-/--
-info: fun motive x y z step =>
-  step [x, y, z]
-    ⟨step [y, z] ⟨step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩,
-      step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩
--/
-#guard_msgs in
-#reduce fun motive x y z step => List.brecOn' (motive := motive) [x, y, z] step
-
-/--
-info: fun motive x y z step =>
-  step [x, y, z]
-    ⟨step [y, z] ⟨step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩,
-      step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩
--/
-#guard_msgs in
-#reduce fun motive x y z step => List.brecOn (motive := motive) [x, y, z] step
-
-/--
-info: fun motive x z step =>
-  step ((Tree.leaf.branch x Tree.leaf).branch z Tree.leaf)
-    ⟨step (Tree.leaf.branch x Tree.leaf) ⟨step Tree.leaf PUnit.unit, step Tree.leaf PUnit.unit, PUnit.unit, PUnit.unit⟩,
-      step Tree.leaf PUnit.unit, ⟨step Tree.leaf PUnit.unit, step Tree.leaf PUnit.unit, PUnit.unit, PUnit.unit⟩,
-      PUnit.unit⟩
--/
-#guard_msgs in
-#reduce fun motive x z step => Tree.brecOn' (motive := motive) (.branch (.branch .leaf x .leaf) z .leaf) step
-
-/--
-info: fun motive x z step =>
-  step ((Tree.leaf.branch x Tree.leaf).branch z Tree.leaf)
-    ⟨⟨step (Tree.leaf.branch x Tree.leaf)
-          ⟨⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
-        ⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
-      step Tree.leaf PUnit.unit, PUnit.unit⟩
--/
-#guard_msgs in
-#reduce fun motive x z step => Tree.brecOn (motive := motive) (.branch (.branch .leaf x .leaf) z .leaf) step
-```
-
-:::
+{spliceContents Manual.Language.RecursiveDefs.Structural.CourseOfValuesExample}
 
 The `below` construction is a mapping from each value of a type to the results of some function call on _all_ smaller values; it can be understood as a memoization table that already contains the results for all smaller values.
 Recursors expect an argument for each of the inductive type's constructors; these arguments are called with the constructor's arguments (and the result of recursion on recursive parameters) during {tech}[ι-reduction].

@@ -41,7 +41,7 @@ def Meta.warnLongLines [Monad m] [MonadFileMap m] [MonadLog m] [AddMessageContex
   let mut warnings := #[]
   if let some startPos := str.raw.getPos? then
     if let some stopPos := str.raw.getTailPos? then
-      let ⟨startLine, _⟩ := fileMap.utf8PosToLspPos (startPos + fileMap.source.get! startPos)
+      let ⟨startLine, _⟩ := fileMap.utf8PosToLspPos startPos
       let ⟨stopLine, _⟩ := fileMap.utf8PosToLspPos stopPos
       for l in [startLine:stopLine] do
         let nextStart := fileMap.lineStart (l + 1)
