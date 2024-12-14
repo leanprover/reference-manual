@@ -57,7 +57,13 @@ The nested use of {tactic}`conv` causes control to return to the current positio
 Because the goal is a reflexive equation after rewriting, {tactic}`conv` automatically closes it.
 
 ```lean
-example : (fun (x y z : Nat) => x + (y + z)) = (fun x y z => (z + x) + y) := by
+example :
+    (fun (x y z : Nat) =>
+      x + (y + z))
+    =
+    (fun x y z =>
+      (z + x) + y)
+  := by
   conv =>
     lhs
     intro x y z

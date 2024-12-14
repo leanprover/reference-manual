@@ -45,7 +45,7 @@ def Meta.warnLongLines [Monad m] [MonadFileMap m] [MonadLog m] [AddMessageContex
       let ⟨stopLine, _⟩ := fileMap.utf8PosToLspPos stopPos
       for l in [startLine:stopLine] do
         let nextStart := fileMap.lineStart (l + 1)
-        let ⟨_, endCol⟩ := fileMap.utf8PosToLspPos (nextStart - ⟨2⟩)
+        let ⟨_, endCol⟩ := fileMap.utf8PosToLspPos (nextStart - ⟨1⟩)
         if endCol > maxCol then
           let thisStart := fileMap.lineStart l
           let fakeLiteral := Syntax.mkStrLit (fileMap.source.extract thisStart nextStart) (.synthetic thisStart nextStart)
