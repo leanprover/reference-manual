@@ -42,10 +42,11 @@ $x:ident
 ```
 :::
 
-As terms, an identifier is a reference to a name.
+An identifier term is a reference to a name.{margin}[The specific lexical syntax of identifiers is described {ref "keywords-and-identifiers"}[in the section on Lean's concrete syntax].]
+Identifiers also occur in contexts where they bind names, such as {keywordOf Lean.Parser.Term.let}`let` and {keywordOf Lean.Parser.Term.fun}`fun`; however, these binding occurrences are not complete terms in and of them selves.
 The mapping from identifiers to names is not trivial: at any point in a {tech}[module], some number of {tech}[namespaces] will be open, there may be {tech}[section variables], and there may be local bindings.
 Furthermore, identifiers may contain multiple dot-separated atomic identifiers; the dot both separates namespaces from their contents and variables from fields or functions that use {tech}[field notation].
-An identifier `A.B.C.D.e.f` could refer to any of the following:
+This creates ambiguity, because an identifier `A.B.C.D.e.f` could refer to any of the following:
 
  * A name `f` in the namespace `A.B.C.D.e` (for instance, a function defined in `e`'s {keywordOf Lean.Parser.Command.declaration}`where` block).
  * An application of `T.f` to `A.B.C.D.e` if `A.B.C.D.e` has type `T`
@@ -56,7 +57,8 @@ An identifier `A.B.C.D.e.f` could refer to any of the following:
 This list is not exhaustive.
 Given an identifier, the elaborator must discover which name or names an identifier refers to, and whether any of the trailing components are fields or functions applied via field notation.
 This is called {deftech key:="resolve"}_resolving_ the name.
-In addition, some declarations in the global environment are lazily created the first time they are referenced.
+
+Some declarations in the global environment are lazily created the first time they are referenced.
 Resolving an identifier in a way that both creates one of these declarations and results in a reference to it is called {deftech}_realizing_ the name.
 The rules for resolving and realizing a name are the same, so even though this section refers only to resolving names, it applies to both.
 
@@ -70,7 +72,7 @@ Name resolution is affected by the following:
 
 Any prefix of an identifier can resolve to a set of names.
 The suffix that was not included in the resolution process is then treated as field projections or field notation.
-Resolutions of longer prefixes take precedence over resolutions of shorter prefixes.
+Resolutions of longer prefixes take precedence over resolutions of shorter prefixes; in other words, as few components as of the identifier as possible are treated as field notation.
 An identifier prefix may refer to any of the following, with earlier items taking precedence over later ones:
  1. A locally-bound variable whose name is identical to the identifier prefix, including macro scopes, with closer local bindings taking precedence over outer local bindings.
  2. A local auxiliary definition whose name is identical to the identifier prefix
@@ -228,8 +230,8 @@ open D
 
 ## Leading `.`
 
-{deftech}[Generalized field notation], often referred to simply as {deftech}[field notation], is used when an identifier is attached to a term by a dot.
-A similar notation uses the type that's expected for the present term, rather than the type of some other term, to discover which namespace to {tech}[resolve] the identifier in.
+When an identifier beings with a dot (`.`), the type that the elaborator expects for the expression is used to resolve it, rather than the current namespace and set of open namespaces.
+{tech}[Generalized field notation] is related: leading dot notation uses the expect type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
 If the type expected for a term is a constant applied to zero or more arguments, then its namespace is the constant's name.
@@ -266,16 +268,267 @@ def MyList α := List α
 
 # Function Types
 
-::: TODO
-move content
+Lean's function types describe more than just the function's domain and range.
+They also provide instructions for elaborating application sites by indicating that some parameters are to be discovered automatically via unification or {ref "instance-synth"}[type class synthesis], that others are optional with default values, and that yet others should be synthesized using a custom tactic script.
+Furthermore, their syntax contains support for abbreviating {tech key:="currying"}[curried] functions.
+
+:::syntax term title:="Function types"
+Dependent function types include an explicit name:
+```grammar
+($x:ident : $t) → $t2
+```
+
+Non-dependent function types do not:
+```grammar
+$t1:term → $t2
+```
+:::
+
+:::syntax term title:="Curried Function Types"
+Dependent function types may include multiple parameters that have the same type in a single set of parentheses:
+```grammar
+($x:ident* : $t) → $t
+```
+This is equivalent to repeating the type annotation for each parameter name in a nested function type.
+:::
+
+:::syntax term title:="Implicit, Optional, and Auto Parameters"
+Function types can describe functions that take implicit, instance implicit, optional, and automatic parameters.
+All but instance implicit parameters require one or more names.
+```grammar
+($x:ident* : $t := $e) → $t
+```
+```grammar
+($x:ident* : $t := by $tacs) → $t
+```
+```grammar
+{$x:ident* : $t} → $t
+```
+```grammar
+[$t] → $t
+```
+```grammar
+[$x:ident : $t] → $t
+```
+```grammar
+⦃$x:ident* : $t⦄ → $t
+```
+
+:::
+
+:::example "Multiple Parameters, Same Type"
+The type of {name}`Nat.add` can be written in the following ways:
+
+ * {lean}`Nat → Nat → Nat`
+
+ * {lean}`(a : Nat) → (b : Nat) → Nat`
+
+ * {lean}`(a b : Nat) → Nat`
+
+The last two types allow the function to be used with {tech}[named arguments]; aside from this, all three are equivalent.
 :::
 
 # Functions
 
-::: TODO
-move content
+%%%
+tag := "function-terms"
+%%%
+
+
+Terms with function types can be created via abstractions, introduced with the {keywordOf Lean.Parser.Term.fun}`fun` keyword.{margin}[In various communities, function abstractions are also known as _lambdas_, due to Alonzo Church's notation for them, or _anonymous functions_ because they don't need to be defined with a name in the global environment.]
+While abstractions in the core type theory only allow a single variable to be bound, function terms are quite flexible in the high-level Lean syntax.
+
+:::syntax term title:="Function Abstraction"
+The most basic function abstraction introduces a variable to stand for the function's parameter:
+
+```grammar
+fun $x:ident => $t
+```
+
+At elaboration time, Lean must be able to determine the function's domain.
+A type ascription is one way to provide this information:
+
+```grammar
+fun $x:ident : term => $t
+```
 :::
 
+Function definitions defined with keywords such as {keywordOf Lean.Parser.Command.declaration parser:=Lean.Parser.Command.definition}`def` desugar to {keywordOf Lean.Parser.Term.fun}`fun`.
+Inductive type declarations, on the other hand, introduce new values with function types (constructors and type constructors) that cannot themselves be implemented using just {keywordOf Lean.Parser.Term.fun}`fun`.
+
+:::syntax term title:="Curried Functions"
+
+
+Multiple parameter names are accepted after after {keywordOf Lean.Parser.Term.fun}`fun`:
+```grammar
+fun $x:ident $x:ident* => $t
+```
+
+```grammar
+fun $x:ident $x:ident* : $t:term => $t
+```
+
+Different type annotations for multiple parameters requires parentheses:
+
+```grammar
+free{"fun " "(" (ident)* ": " term")" " =>" term}
+```
+
+These are equivalent to writing nested {keywordOf Lean.Parser.Term.fun}`fun` terms.
+:::
+
+The {keywordOf Lean.Parser.Term.fun}`=>` may be replaced by {keywordOf Lean.Parser.Term.fun}`↦` in all of the syntax described in this section.
+
+Function abstractions may also use pattern matching syntax as part of their parameter specification, avoiding the need to introduce a local variable that is immediately destructured.
+This syntax is described in the {ref "pattern-fun"}[section on pattern matching].
+
+## Implicit Functions
+%%%
+tag := "implicit-functions"
+%%%
+
+
+Lean supports implicit parameters to functions.
+This means that Lean itself can supply arguments to functions, rather than requiring users to supply all needed arguments.
+Implicit parameters come in three varieties:
+
+  : Ordinary implicit parameters
+
+    Ordinary {deftech}[implicit] parameters are function parameters that Lean should determine values for via unification.
+    In other words, each call site should have exactly one potential argument value that would cause the function call as a whole to be well-typed.
+    The Lean elaborator attempts to find values for all implicit arguments at each occurrence of a function.
+    Ordinary implicit parameters are written in curly braces (`{` and `}`).
+
+  : Strict implicit parameters
+
+    {deftech}_Strict implicit_ parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
+    Strict implicit parameters are written in double curly braces (`⦃` and `⦄`, or `{{` and `}}`).
+
+  : Instance implicit parameters
+
+    Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
+    Instance implicit parameters are written in square brackets (`[` and `]`), and in most cases omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.
+
+::::keepEnv
+:::example "Ordinary vs Strict Implicit Parameters"
+The difference between the functions {lean}`f` and {lean}`g` is that `α` is strictly implicit in {lean}`f`:
+```lean
+def f ⦃α : Type⦄ : α → α := fun x => x
+def g {α : Type} : α → α := fun x => x
+```
+
+These functions are elaborated identically when applied to concrete arguments:
+```lean
+example : f 2 = g 2 := rfl
+```
+
+However, when the explicit argument is not provided, uses of {lean}`f` do not require the implicit `α` to be solved:
+```lean
+example := f
+```
+However, uses of `g` do require it to be solved, and fail to elaborate if there is insufficient information available:
+```lean (error := true) (name := noAlpha)
+example := g
+```
+```leanOutput noAlpha
+don't know how to synthesize implicit argument 'α'
+  @g ?m.6
+context:
+⊢ Type
+```
+:::
+::::
+
+
+:::syntax term title := "Functions with Varying Binders"
+The most general syntax for {keywordOf Lean.Parser.Term.fun}`fun` accepts a sequence of binders:
+```grammar
+fun $p:funBinder $p:funBinder* => $t
+```
+:::
+
+
+:::syntax Lean.Parser.Term.funBinder title:="Function Binders"
+Function binders may be identifiers:
+```grammar
+$x:ident
+```
+sequences of identifiers with a type ascription:
+```grammar
+($x:ident $y:ident* : $t)
+```
+implicit parameters, with or without a type ascription:
+```grammar
+{$x:ident*}
+```
+```grammar
+{$x:ident* : $t}
+```
+instance implicits, anonymous or named:
+```grammar
+[$t]
+```
+```grammar
+[$x:ident : $t]
+```
+or strict implicit parameters, with or without a type ascription:
+```grammar
+⦃$t⦄
+```
+```grammar
+⦃$x:ident* : $t⦄
+```
+:::
+
+
+Lean's core language does not distinguish between implicit, instance, and explicit parameters: the various kinds of function and function type are definitionally equal.
+The differences can be observed only during elaboration.
+
+```lean (show := false)
+-- Evidence of claims in prior paragraph
+example : ({x : Nat} → Nat) = (Nat → Nat) := rfl
+example : (fun {x} => 2 : {x : Nat} → Nat) = (fun x => 2 : Nat → Nat) := rfl
+example : ([x : Repr Nat] → Nat) = (Repr Nat → Nat) := rfl
+example : (⦃x : Nat⦄ → Nat) = (Nat → Nat) := rfl
+```
+
+
+If the expected type of a function includes implicit parameters, but its binders do not, then the resulting function may end up with more parameters than the binders indicated in the code.
+This is because the implicit parameters are added automatically.
+
+:::example "Implicit Parameters from Types"
+The identity function can be written with a single explicit parameter.
+As long as its type is known, the implicit type parameter is added automatically.
+```lean (name := funImplAdd)
+#check (fun x => x : {α : Type} → α → α)
+```
+```leanOutput funImplAdd
+fun {α} x => x : {α : Type} → α → α
+```
+
+The following are all equivalent:
+```lean (name := funImplThere)
+#check (fun {α} x => x : {α : Type} → α → α)
+```
+```leanOutput funImplThere
+fun {α} x => x : {α : Type} → α → α
+```
+
+```lean (name := funImplAnn)
+#check (fun {α} (x : α) => x : {α : Type} → α → α)
+```
+```leanOutput funImplAnn
+fun {α} x => x : {α : Type} → α → α
+```
+
+```lean (name := funImplAnn2)
+#check (fun {α : Type} (x : α) => x : {α : Type} → α → α)
+```
+```leanOutput funImplAnn2
+fun {α} x => x : {α : Type} → α → α
+```
+
+:::
 
 # Function Application
 
@@ -298,7 +551,7 @@ $e:term $e:argument* ".."
 
 {TODO}[Annotate with syntax kinds for incoming hyperlinks during traversal pass]
 :::freeSyntax Lean.Parser.Term.argument (title := "Arguments")
-Function arguments are either terms, named arguments, or ellipses.
+Function arguments are either terms or {deftech}[named arguments].
 ```grammar
 $e:term
 ***********
@@ -435,7 +688,7 @@ $e:term.$f:ident
 ```
 :::
 
-If a term's type is a constant applied to zero or more arguments, then field notation can be used to apply a function to it, regardless of whether the term is a structure or type class instance that has fields.
+If a term's type is a constant applied to zero or more arguments, then {deftech}[field notation] can be used to apply a function to it, regardless of whether the term is a structure or type class instance that has fields.
 The use of field notation to apply other functions is called {deftech}_generalized field notation_.
 
 The identifier after the dot is looked up in the namespace of the term's type, which is the constant's name.
@@ -447,7 +700,10 @@ Specifically, it becomes the first explicit argument that would not be a type er
 Aside from that, the application is elaborated as usual.
 
 ::::keepEnv
-
+```lean (show := false)
+section
+variable (name : Username)
+```
 :::example "Generalized Field Notation"
 The type {lean}`Username` is a constant, so functions in the {name}`Username` namespace can be applied to terms with type {lean}`Username` with generalized field notation.
 ```lean
@@ -473,11 +729,6 @@ where
     !c ∈ ['_', ' ']
 
 def root : Username := "root"
-```
-
-```lean (show := false)
-section
-variable (name : Username)
 ```
 
 However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
@@ -583,7 +834,10 @@ They tend to emphasize the functions over the data.
 :::syntax term (title := "Pipeline Fields")
 There is a version of pipeline notation that's used for {tech}[generalized field notation].
 ```grammar
-$e |>.$ident
+$e |>.$_:ident
+```
+```grammar
+$e |>.$_:fieldIdx
 ```
 :::
 
@@ -592,11 +846,11 @@ $e |>.$ident
 section
 universe u
 axiom T : Nat → Type u
-variable {e : T 3}
+variable {e : T 3} {arg : Char}
 axiom T.f : {n : Nat} → Char → T n → String
 ```
 
-{lean}`e |>.f ' '` is an alternative syntax for {lean}`(e).f ' '`.
+{lean}`e |>.f arg` is an alternative syntax for {lean}`(e).f arg`.
 
 
 :::example "Pipeline Fields"
@@ -640,10 +894,73 @@ end
 
 # Literals
 
- * Strings (xref)
- * Numbers (Nat, negative, scientific, floats)
- * Lists
- * Arrays
+There are two kinds of numeric literal: natural number literals and {deftech}[scientific literals].
+Both are overloaded via {tech key:="type class"}[type classes].
+
+## Natural Numbers
+
+```lean (show := false)
+section
+variable {n : Nat}
+```
+
+When Lean encounters a natural number literal {lean}`n`, it interprets it via the overloaded method {lean}`OfNat.ofNat n`.
+A {tech}[default instance] of {lean}`OfNat Nat n` ensures that the type {lean}`Nat` can be inferred when no other type information is present.
+
+{docstring OfNat}
+
+```lean (show := false)
+end
+```
+
+:::example "Custom Natural Number Literals"
+The structure {lean}`NatInterval` represents an interval of natural numbers.
+```lean
+structure NatInterval where
+  low : Nat
+  high : Nat
+  low_le_high : low ≤ high
+
+instance : Add NatInterval where
+  add
+    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ => ⟨lo1 + lo2, hi1 + hi2, by omega⟩
+```
+
+An {name}`OfNat` instance allows natural number literals to be used to represent intervals:
+```lean
+instance : OfNat NatInterval n where
+  ofNat := ⟨n, n, by omega⟩
+```
+```lean (name := eval8Interval)
+#eval (8 : NatInterval)
+```
+```leanOutput eval8Interval
+{ low := 8, high := 8, low_le_high := _ }
+```
+:::
+
+There are no separate integer literals.
+Terms such as {lean}`-5` consist of a prefix negation (overloadable via the {name}`Neg` type class) applied to a natural number literal.
+
+## Scientific Numbers
+
+Scientific number literals consist of a sequence of digits followed by an optional period and decimal part and an optional exponent.
+If no period or exponent is present, then the term is instead a natural number literal.
+Scientific numbers are overloaded via the {name}`OfScientific` type class.
+
+{docstring OfScientific}
+
+There is an {lean}`OfScientific` instance for {name}`Float`, but no separate floating-point literals.
+
+## Strings
+
+String literals are described in the {ref "string-syntax"}[chapter on strings.]
+
+## Lists and Arrays
+
+List and array literals contain comma-separated sequences of elements inside of brackets, with arrays prefixed by a hash mark (`#`).
+Array literals are interpreted as list literals wrapped in a call to a conversion.
+For performance reasons, very large list and array literals are converted to sequences of local definitions, rather than just iterated applications of the list constructor.
 
 :::syntax term (title := "List Literals")
 ```grammar
@@ -657,7 +974,44 @@ end
 ```
 :::
 
+:::example "Long List Literals"
+This list contains 32 elements.
+The generated code is an iterated application of {name}`List.cons`:
+```lean (name := almostLong)
+#check
+  [1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1]
+```
+```leanOutput almostLong
+[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1] : List Nat
+```
 
+With 33 elements, the list literal becomes a sequence of local definitions:
+```lean (name := indeedLong)
+#check
+  [1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1,
+   1,1,1,1,1,1,1,1,
+   1]
+```
+```leanOutput indeedLong
+let y :=
+  let y :=
+    let y := [1, 1, 1, 1, 1];
+    1 :: 1 :: 1 :: 1 :: y;
+  let y := 1 :: 1 :: 1 :: 1 :: y;
+  1 :: 1 :: 1 :: 1 :: y;
+let y :=
+  let y := 1 :: 1 :: 1 :: 1 :: y;
+  1 :: 1 :: 1 :: 1 :: y;
+let y := 1 :: 1 :: 1 :: 1 :: y;
+1 :: 1 :: 1 :: 1 :: y : List Nat
+```
+
+:::
 
 # Structures and Constructors
 
@@ -667,9 +1021,6 @@ end
 %%%
 tag := "if-then-else"
 %%%
-
-* xref to `if` in `do` and as a tactic
-* `if let`
 
 The conditional expression is used to check whether a proposition is true or false.{margin}[Despite their syntactic similarity, the {keywordOf Lean.Parser.Tactic.tacIfThenElse}`if` used {ref "tactic-language-branching"}[in the tactic language] and the {keywordOf Lean.Parser.Term.doIf}`if` used {ref "tactic-language-branching"}[in `do`-notation] are separate syntactic forms, documented in their own sections.]
 This requires that the proposition has a {name}`Decidable` instance, because it's not possible to check whether _arbitrary_ propositions are true or false.
@@ -748,7 +1099,7 @@ There is also a pattern-matching version of {keywordOf termIfLet}`if`.
 If the pattern matches, then it takes the first branch, binding the pattern variables.
 If the pattern does not match, then it takes the second branch.
 
-:::syntax term (title := "Pattern Matching Conditionals")
+:::syntax term (title := "Pattern-Matching Conditionals")
 ```grammar
 if let $p := $e then
   $e
@@ -758,26 +1109,22 @@ else
 :::
 
 
-:::TODO
-
-Should we document bif?
-
+If a {name}`Bool`-only conditional statement is ever needed, the {keywordOf boolIfThenElse}`bif` variant can be used.
+:::syntax term (title := "Boolean-Only Conditional")
+```grammar
+bif $e then
+  $e
+else
+  $e
+```
 :::
+
 
 # Pattern Matching
 %%%
 tag := "pattern-matching"
 %%%
 
-::: TODO
-Compare with Manual.Language.Functions section that has same header
-:::
-
-* `match`, with and without name
-* Simultaneous matching vs tuple matching
-* Dependent matching and inaccessible patterns
-* Specialization of terms from context
-* xref `if let`, `fun`
 
 {deftech}_Pattern matching_ is a way to recognize and destructure values using a syntax of {deftech}_patterns_ that are a subset of the terms.
 A pattern that recognizes and destructures a value is similar to the syntax that would be used to construct the value.
@@ -839,7 +1186,7 @@ They consist of the following:
   {ref "char-syntax"}[Character literals] and {ref "string-syntax"}[string literals] are patterns that match the corresponding character or string.
   {ref "raw-string-literals"}[Raw string literals] are allowed as patterns, but {ref "string-interpolation"}[interpolated strings] are not.
   {ref "nat-syntax"}[Natural number literals] in patterns are interpreted by synthesizing the corresponding {name}`OfNat` instance and reducing the resulting term to {tech}[normal form], which must be a pattern.
-  Similarly, {TODO}[xref] scientific literals are interpreted via the corresponding {name}`OfScientific` instance.
+  Similarly, {tech}[scientific literals] are interpreted via the corresponding {name}`OfScientific` instance.
   While {lean}`Float` has such an instance, {lean}`Float`s cannot be used as patterns because the instance relies on an opaque function that can't be reduced to a valid pattern.
 
 : Structure Instances
@@ -866,6 +1213,35 @@ They consist of the following:
 ```grammar
 .($e)
 ```
+:::
+
+:::example "Inacessible Patterns"
+A number's _parity_ is whether it's even or odd:
+```lean
+inductive Parity : Nat → Type where
+  | even (h : Nat) : Parity (h + h)
+  | odd (h : Nat) : Parity ((h + h) + 1)
+
+def Nat.parity (n : Nat) : Parity n :=
+  match n with
+  | 0 => .even 0
+  | n' + 1 =>
+    match n'.parity with
+    | .even h => .odd h
+    | .odd h =>
+      have eq : (h + 1) + (h + 1) = (h + h + 1 + 1) :=
+        by omega
+      eq ▸ .even (h + 1)
+```
+
+Because a value of type {lean}`Parity` contains half of a number (rounded down) as part of its representation of evenness or oddness, division by two can be implemented (in an unconventional manner) by finding a parity and then extracting the number.
+```lean
+def half (n : Nat) : Nat :=
+  match n, n.parity with
+  | .(h + h),     .even h => h
+  | .(h + h + 1), .odd h  => h
+```
+Because the index structure of {name}`Parity.even` and {name}`Parity.odd` force the number to have a certain form that is not otherwise a valid pattern, patterns that match on it must use inaccessible patterns for the number being divided.
 :::
 
 Patterns may additionally be named.
@@ -1315,6 +1691,67 @@ end
 ```lean (show := false)
 end
 ```
+
+
+## Pattern Matching Functions
+%%%
+tag := "pattern-fun"
+%%%
+
+:::syntax term
+Functions may be specified via pattern matching by writing a sequence of patterns after {keywordOf Lean.Parser.Term.fun}`fun`, each preceded by a vertical bar (`|`).
+```grammar
+fun
+  $[| $pat,* => $term]*
+```
+This desugars to a function that immediately pattern-matches on its arguments.
+:::
+
+::::keepEnv
+:::example "Pattern-Matching Functions"
+{lean}`isZero` is defined using a pattern-matching function abstraction, while {lean}`isZero'` is defined using a pattern match expression:
+```lean
+def isZero : Nat → Bool :=
+  fun
+    | 0 => true
+    | _ => false
+
+def isZero' : Nat → Bool :=
+  fun n =>
+    match n with
+    | 0 => true
+    | _ => false
+```
+Because the former is syntactic sugar for the latter, they are definitionally equal:
+```lean
+example : isZero = isZero' := rfl
+```
+The desugaring is visible in the output of {keywordOf Lean.Parser.Command.print}`#print`:
+```lean (name := isZero)
+#print isZero
+```
+outputs
+```leanOutput isZero
+def isZero : Nat → Bool :=
+fun x =>
+  match x with
+  | 0 => true
+  | x => false
+```
+while
+```lean (name := isZero')
+#print isZero'
+```
+outputs
+```leanOutput isZero'
+def isZero' : Nat → Bool :=
+fun n =>
+  match n with
+  | 0 => true
+  | x => false
+```
+:::
+::::
 
 ## Other Pattern Matching Operators
 

@@ -30,17 +30,6 @@ There are two kinds of function type:
 
    Non-dependent function types do not include a name for the parameter, and the range does not vary based on the specific argument provided.
 
-:::syntax term title:="Function types"
-Dependent function types include an explicit name:
-```grammar
-($x:ident : $t) → $t2
-```
-
-Non-dependent function types do not:
-```grammar
-$t1:term → $t2
-```
-:::
 
 ::::keepEnv
 :::example "Dependent Function Types"
@@ -63,7 +52,7 @@ In Lean's core language, all function types are dependent: non-dependent functio
 Additionally, two dependent function types that have different parameter names may be definitionally equal if renaming the parameter makes them equal.
 However, the Lean elaborator does not introduce a local binding for non-dependent functions' parameters.
 
-:::example "Equivalence of Dependent and Non-Dependent Functions"
+:::example "Definitional Equality of Dependent and Non-Dependent Functions"
 The types {lean}`(x : Nat) → String` and {lean}`Nat → String` are definitionally equal:
 ```lean
 example : ((x : Nat) → String) = (Nat → String) := rfl
@@ -106,31 +95,33 @@ i : Nat
 ::::
 :::::
 
-# Functions
-%%%
-tag := "function-terms"
-%%%
+While the core type theory does not feature {tech}[implicit] parameters, function types do include an indication of whether the parameter is implicit.
+This information is used by the Lean elaborator, but it does not affect type checking or definitional equality in the core theory and can be ignored when thinking only about the core type theory.
 
-
-Terms with function types can be created via abstractions, introduced with the {keywordOf Lean.Parser.Term.fun}`fun` keyword.
-
-:::syntax term title:="Function Abstraction"
-The most basic function abstraction introduces a variable to stand for the function's parameter:
-
-```grammar
-fun $x:ident => $t
+:::example "Definitional Equality of Implicit and Explicit Function Types"
+The types {lean}`{α : Type} → (x : α) → α` and {lean}`(α : Type) → (x : α) → α` are definitionally equal, even though the first parameter is implicit in one and explicit in the other.
+```lean
+example :
+    ({α : Type} → (x : α) → α)
+    =
+    ((α : Type) → (x : α) → α)
+  := rfl
 ```
 
-At elaboration time, Lean must be able to determine the function's domain.
-A type ascription is one way to provide this information:
-
-```grammar
-fun $x:ident : term => $t
-```
 :::
 
-Function definitions defined with keywords such as {keywordOf Lean.Parser.Command.declaration parser:=Lean.Parser.Command.definition}`def` desugar to {keywordOf Lean.Parser.Term.fun}`fun`.
-However, not all functions originate from abstractions: {tech}[type constructors], {tech}[constructors], and {tech}[recursors] may have function types, but they cannot be defined using function abstractions alone.
+# Function Abstractions
+
+In Lean's type theory, functions are created using {deftech}_function abstractions_ that bind a variable.
+{margin}[In various communities, function abstractions are also known as _lambdas_, due to Alonzo Church's notation for them, or _anonymous functions_ because they don't need to be defined with a name in the global environment.]
+When the function is applied, the result is found by {tech key:="β"}[β-reduction]: substituting the argument for the bound variable.
+In compiled code, this happens strictly: the argument must already be a value.
+When type checking, there are no such restrictions; the equational theory of definitional equality allows β-reduction with any term.
+
+In Lean's {ref "function-terms"}[term language], function abstractions may take multiple parameters or use pattern matching.
+These features are translated to simpler operations in the core language, where all functions abstractions take exactly one parameter.
+Not all functions originate from abstractions: {tech}[type constructors], {tech}[constructors], and {tech}[recursors] may have function types, but they cannot be defined using function abstractions alone.
+
 
 # Currying
 %%%
@@ -144,193 +135,7 @@ Multiple-parameter functions are implemented by defining higher-order functions 
 This encoding is called {deftech}_currying_, popularized by and named after Haskell B. Curry.
 Lean's syntax for defining functions, specifying their types, and applying them creates the illusion of multiple-parameter functions, but the result of elaboration contains only single-parameter functions.
 
-:::syntax term title:="Curried Functions"
 
-Dependent Function types may include multiple parameters that have the same type in a single set of parentheses:
-```grammar
-($x:ident* : $t) → $t
-```
-This is equivalent to repeating the type annotation for each parameter name in a nested function type.
-
-Multiple parameter names are accepted after after {keywordOf Lean.Parser.Term.fun}`fun`:
-```grammar
-fun $x:ident* => $t
-```
-
-```grammar
-fun $x:ident* : $t:term => $t
-```
-
-These are equivalent to writing nested {keywordOf Lean.Parser.Term.fun}`fun` terms.
-:::
-
-
-# Implicit Functions
-%%%
-tag := "implicit-functions"
-%%%
-
-
-Lean supports implicit parameters to functions.
-This means that Lean itself can supply arguments to functions, rather than requiring users to supply all needed arguments.
-Implicit parameters come in three varieties:
-
-  : Ordinary implicit parameters
-
-    Ordinary {deftech}[implicit] parameters are function parameters that Lean should determine values for via unification.
-    In other words, each call site should have exactly one potential argument value that would cause the function call as a whole to be well-typed.
-    The Lean elaborator attempts to find values for all implicit arguments at each occurrence of a function.
-    Ordinary implicit parameters are written in curly braces (`{` and `}`).
-
-  : Strict implicit parameters
-
-    {deftech}_Strict implicit_ parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
-    Strict implicit parameters are written in double curly braces (`⦃` and `⦄`, or `{{` and `}}`).
-
-  : Instance implicit parameters
-
-    Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
-    Instance implicit parameters are written in square brackets (`[` and `]`), and in most cases omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.
-
-::::keepEnv
-:::example "Ordinary vs Strict Implicit Parameters"
-The difference between the functions {lean}`f` and {lean}`g` is that `α` is strictly implicit in {lean}`f`:
-```lean
-def f ⦃α : Type⦄ : α → α := fun x => x
-def g {α : Type} : α → α := fun x => x
-```
-
-These functions are elaborated identically when applied to concrete arguments:
-```lean
-example : f 2 = g 2 := rfl
-```
-
-However, when the explicit argument is not provided, uses of {lean}`f` do not require the implicit `α` to be solved:
-```lean
-example := f
-```
-However, uses of `g` do require it to be solved, and fail to elaborate if there is insufficient information available:
-```lean (error := true) (name := noAlpha)
-example := g
-```
-```leanOutput noAlpha
-don't know how to synthesize implicit argument 'α'
-  @g ?m.6
-context:
-⊢ Type
-```
-:::
-::::
-
-
-:::syntax term title := "Functions with Varying Binders"
-The most general syntax for {keywordOf Lean.Parser.Term.fun}`fun` accepts a sequence of binders:
-```grammar
-fun $p:funBinder* => $t
-```
-:::
-
-
-:::syntax Lean.Parser.Term.funBinder title:="Function Binders"
-Function binders may be identifiers:
-```grammar
-$x:ident
-```
-sequences of identifiers with a type ascription:
-```grammar
-($x:ident $y:ident* : $t)
-```
-implicit parameters, with or without a type ascription:
-```grammar
-{$x:ident*}
-```
-```grammar
-{$x:ident* : $t}
-```
-instance implicits, anonymous or named:
-```grammar
-[$t]
-```
-```grammar
-[$x:ident : $t]
-```
-or strict implicit parameters, with or without a type ascription:
-```grammar
-⦃$t⦄
-```
-```grammar
-⦃$x:ident* : $t⦄
-```
-:::
-
-
-Lean's core language does not distinguish between implicit, instance, and explicit parameters: the various kinds of function and function type are definitionally equal.
-The differences can be observed only during elaboration.
-
-```lean (show := false)
--- Evidence of claims in next paragraph
-example : ({x : Nat} → Nat) = (Nat → Nat) := rfl
-example : (fun {x} => 2 : {x : Nat} → Nat) = (fun x => 2 : Nat → Nat) := rfl
-example : ([x : Repr Nat] → Nat) = (Repr Nat → Nat) := rfl
-example : (⦃x : Nat⦄ → Nat) = (Nat → Nat) := rfl
-```
-
-# Pattern Matching
-
-:::syntax term
-Functions may be specified via pattern matching by writing a sequence of patterns after {keywordOf Lean.Parser.Term.fun}`fun`, each preceded by a vertical bar (`|`).
-```grammar
-fun
-  $[| $pat,* => $term]*
-```
-This desugars to a function that immediately pattern-matches on its arguments.
-:::
-
-::::keepEnv
-:::example "Pattern-Matching Functions"
-{lean}`isZero` is defined using a pattern-matching function abstraction, while {lean}`isZero'` is defined using a pattern match expression:
-```lean
-def isZero : Nat → Bool :=
-  fun
-    | 0 => true
-    | _ => false
-
-def isZero' : Nat → Bool :=
-  fun n =>
-    match n with
-    | 0 => true
-    | _ => false
-```
-Because the former is syntactic sugar for the latter, they are definitionally equal:
-```lean
-example : isZero = isZero' := rfl
-```
-The desugaring is visible in the output of {keywordOf Lean.Parser.Command.print}`#print`:
-```lean (name := isZero)
-#print isZero
-```
-outputs
-```leanOutput isZero
-def isZero : Nat → Bool :=
-fun x =>
-  match x with
-  | 0 => true
-  | x => false
-```
-while
-```lean (name := isZero')
-#print isZero'
-```
-outputs
-```leanOutput isZero'
-def isZero' : Nat → Bool :=
-fun n =>
-  match n with
-  | 0 => true
-  | x => false
-```
-:::
-::::
 
 # Extensionality
 %%%
