@@ -940,7 +940,7 @@ instance : OfNat NatInterval n where
 :::
 
 There are no separate integer literals.
-Terms such as {lean}`-5` consist of a prefix negation (overloadable via the {name}`Neg` type class) applied to a natural number literal.
+Terms such as {lean}`-5` consist of a prefix negation (which can be overloaded via the {name}`Neg` type class) applied to a natural number literal.
 
 ## Scientific Numbers
 
@@ -1215,7 +1215,7 @@ They consist of the following:
 ```
 :::
 
-:::example "Inacessible Patterns"
+:::example "Inaccessible Patterns"
 A number's _parity_ is whether it's even or odd:
 ```lean
 inductive Parity : Nat → Type where
