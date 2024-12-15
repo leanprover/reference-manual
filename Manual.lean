@@ -37,8 +37,14 @@ This snapshot covers Lean version {versionString}[].
 
 Our prioritization of content is based on our best understanding of our users' needs.
 Please use the [issue tracker](https://github.com/leanprover/reference-manual/issues) to help us better understand what you need to know.
+In particular, please create or upvote issues for topics that are important to you.
 Your feedback is much appreciated!
 Once sufficient content is available, we will begin saving snapshots for each release of Lean and making them conveniently available.
+
+API reference documentation is included from the Lean standard library source code.
+Due to technical limitations at the moment, the Lean terms and examples embedded in it do not render as nicely as we would like.
+In the near future, we will be working on removing these limitations.
+Additionally, we will be adding missing API reference documentation and revising and improving the existing API reference documentation.
 
 **Release History**
 
