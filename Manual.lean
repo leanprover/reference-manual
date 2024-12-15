@@ -27,8 +27,24 @@ tag := "lean-language-reference"
 
 
 This is the _Lean Language Reference_, an in-progress reference work on Lean.
-It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
+It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial intended for new users.
 For other documentation, please refer to the [Lean documentation site](https://lean-lang.org/documentation/).
+
+This reference manual is not yet complete, but there's enough information to provide value to users.
+The top priority is to add the missing information as quickly as possible while staying up to date with Lean development.
+As the rest of the text is written, regular snapshots will be released, tracking upstream changes.
+This snapshot covers Lean version {versionString}[].
+
+Our prioritization of content is based on our best understanding of our users' needs.
+Please use the [issue tracker](https://github.com/leanprover/reference-manual/issues) to help us better understand what you need to know.
+Your feedback is much appreciated!
+Once sufficient content is available, we will begin saving snapshots for each release of Lean and making them conveniently available.
+
+**Release History**
+
+: 2024-12-16
+
+  This is the initial release of the reference manual.
 
 {include Manual.Intro}
 
