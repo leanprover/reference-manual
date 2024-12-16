@@ -7,6 +7,7 @@ import VersoManual
 
 import Manual.Intro
 import Manual.Elaboration
+import Manual.Types
 import Manual.Language
 import Manual.Terms
 import Manual.Tactics
@@ -55,6 +56,8 @@ Additionally, we will be adding missing API reference documentation and revising
 {include Manual.Intro}
 
 {include Manual.Elaboration}
+
+{include Manual.Types}
 
 {include Manual.Language}
 

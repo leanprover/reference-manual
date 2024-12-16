@@ -16,6 +16,9 @@ open Verso.Genre Manual
 set_option maxRecDepth 800
 
 #doc (Manual) "The Type System" =>
+%%%
+tag := "type-system"
+%%%
 
 {deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean's core language.
 They are produced from user-written syntax by the {tech}[elaborator].

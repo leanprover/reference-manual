@@ -9,7 +9,6 @@ import VersoManual
 import Manual.Meta
 import Manual.Language.Classes
 import Manual.Language.Files
-import Manual.Language.Types
 import Manual.Language.RecursiveDefs
 
 import Lean.Parser.Command
@@ -30,7 +29,6 @@ set_option linter.unusedVariables false
 
 {include 0 Manual.Language.Files}
 
-{include 0 Manual.Language.Types}
 
 # Module Contents
 
