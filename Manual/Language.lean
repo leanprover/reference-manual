@@ -237,7 +237,8 @@ The following data are tracked in section scopes:
 
 : Section Variables
 
-  {tech}[Section variables] are names (or {tech}[instance implicit] parameters) that are automatically added as parameters to definitions or as universally-quantified assumptions to theorems when they occur in a signature.
+  {tech}[Section variables] are names (or {tech}[instance implicit] parameters) that are automatically added as parameters to definitions.
+  They are also added as universally-quantified assumptions to theorems when they occur in the theorem's statement.
 
 
 ### Controlling Section Scopes
@@ -252,7 +253,7 @@ If section names have multiple components (that is, if they contain `.`-separate
 Section names have no other effect, and are a readability aid.
 
 :::syntax command
-The `section` command creates a section scope that lasts either until an `end` command or the end of the file.
+The {keywordOf Lean.Parser.Command.section}`section` command creates a section scope that lasts either until an `end` command or the end of the file.
 ```grammar
 section $[$id:ident]?
 ```
