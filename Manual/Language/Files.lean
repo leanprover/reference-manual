@@ -152,7 +152,12 @@ info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemai
 ````
 
 Identifiers components may also be surrounded by double guillemets (`'«'` and `'»'`).
-Such identifier components may contain any character at all, aside from `'»'`, even `'«'` and newlines.
+Such identifier components may contain any character at all aside from `'»'`, even `'«'`, `'.'`, and newlines.
+The guillemets are not part of the resulting identifier component, so `«x»` and `x` denote the same identifier.
+`«Nat.add»`, on the other hand, is an identifier with a single component, while `Nat.add` has two.
+
+
+
 
 ```lean (show := false)
 /-- info: "Success! Final stack:\n  `«\n  »\nAll input consumed." -/
@@ -162,6 +167,14 @@ Such identifier components may contain any character at all, aside from `'»'`, 
 /-- info: "Success! Final stack:\n  `««one line\n  and another»\nAll input consumed." -/
 #guard_msgs in
 #eval validIdentifier "««one line\nand another»"
+
+/-- info: "Success! Final stack:\n  `«one line\x00and another»\nAll input consumed." -/
+#guard_msgs in
+#eval validIdentifier "«one line\x00and another»"
+
+/-- info: "Success! Final stack:\n  `«one line\x0band another»\nAll input consumed." -/
+#guard_msgs in
+#eval validIdentifier "«one line\x0Band another»"
 ```
 
 Some potential identifier components may be reserved keywords.
