@@ -462,6 +462,9 @@ This is used to avoid turning the name of every {ref "tactics"}[tactic] into a r
 {docstring Lean.Parser.LeadingIdentBehavior}
 
 # Syntax Rules
+%%%
+tag := "syntax-rules"
+%%%
 
 Each {tech}[syntax category] is associated with a set of {deftech}_syntax rules_, which correspond to productions in a context-free grammar.
 Syntax rules can be defined using the {keywordOf Lean.Parser.Command.syntax}`syntax` command.

@@ -215,20 +215,285 @@ Which language features are controlled by the currently open namespaces?
 tag := "scopes"
 %%%
 
-::: planned 54
-
 Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called "scope" when clear).
-A section scope ends when a namespace ends, a section ends, or a file ends.
-They can also be anonymously and locally created via `in`.
-Section scopes track the following:
- * The {deftech}_current namespace_
- * The {deftech key:="open namespace"}_open namespaces_
- * The values of all {deftech}_options_
- * {deftech}[Section variable] and universe declarations
+Every Lean module has a section scope.
+Nested scopes are created via the `namespace` and `section` commands, as well as the `in` command combinator.
 
-This section will describe this mechanism.
+The following data are tracked in section scopes:
+
+: The Current Namespace
+
+  The {deftech}_current namespace_ is the namespace into which new declarations will be defined.
+  Additionally, {tech (key:="resolve")}[name resolution] includes all prefixes of the current namespace in the scope for global names.
+
+: Opened Namespaces
+
+  When a namespace is {deftech}_opened_, its names become available without an explicit prefix in the current scope.
+  Additionally, scoped attributes and {ref "syntax-rules"}[scoped syntax extensions] in namespaces that have been opened are active in the current section scope.
+
+: Options
+
+  Compiler options are reverted to their original values at the end of the scope in which they were modified.
+
+: Section Variables
+
+  {tech}[Section variables] are names (or {tech}[instance implicit] parameters) that are automatically added as parameters to definitions or as universally-quantified assumptions to theorems when they occur in a signature.
+
+
+### Controlling Section Scopes
+%%%
+tag := "scope-commands"
+%%%
+
+The `section` command creates a new section scope, but does not modify the current namespace, opened namespaces, or section variables.
+Changes made to the section scope are reverted when the section ends.
+Sections may optionally be named; the `end` command that closes a named section must use the same name.
+If section names have multiple components (that is, if they contain `.`-separated names), then multiple nested sections are introduced.
+Section names have no other effect, and are a readability aid.
+
+:::syntax command
+The `section` command creates a section scope that lasts either until an `end` command or the end of the file.
+```grammar
+section $[$id:ident]?
+```
+:::
+
+:::example "Named Section"
+
+The name {name Greetings.english}`english` is defined in the `Greetings` namespace.
+
+```lean
+def Greetings.english := "Hello"
+```
+
+Outside its namespace, it cannot be evaluated.
+
+```lean (error := true) (name := english1)
+#eval english
+```
+```leanOutput english1
+unknown identifier 'english'
+```
+
+Opening a section allows modifications to the global scope to be contained.
+This section is named `Greetings`.
+```lean
+section Greetings
+```
+
+Even though the section name matches the definition's namespace, the name is not in scope because section names are purely for readability and ease of refactoring.
+
+```lean (error := true)  (name := english2)
+#eval english
+```
+```leanOutput english2
+unknown identifier 'english'
+```
+
+Opening the namespace `Greetings` brings {name}`Greetings.english` as {name Greetings.english}`english`:
+
+
+```lean  (name := english3)
+open Greetings
+
+#eval english
+```
+```leanOutput english3
+"Hello"
+```
+
+The section's name must be used to close it.
+
+```lean (error := true) (name := english4)
+end
+```
+```leanOutput english4
+invalid 'end', name is missing (expected Greetings)
+```
+
+```lean
+end Greetings
+```
+
+When the section is closed, the effects of the {keywordOf Lean.Parser.Command.open}`open` command are reverted.
+```lean (error := true)  (name := english5)
+#eval english
+```
+```leanOutput english5
+unknown identifier 'english'
+```
+:::
+
+The {keywordOf Lean.Parser.Command.namespace}`namespace` command creates a new section scope.
+Within this section scope, the current namespace is the name provided in the command, interpreted relative to the current namespace in the surrounding section scope.
+Like sections, changes made to the section scope are reverted when the namespace's scope ends.
+
+To close a namespace, the {keywordOf Lean.Parser.Command.end}`end` command requires a suffix of the current namespace, which is removed.
+All section scopes introduced by the {keywordOf Lean.Parser.Command.namespace}`namespace` command that introduced part of that suffix are closed.
+
+:::syntax command
+The `namespace` command modifies the current namespace by appending the provided identifier.
+
+creates a section scope that lasts either until an `end` command or the end of the file.
+```grammar
+namespace $id:ident
+```
+:::
+
+
+:::syntax command
+Without an identifier, `end` closes the most recently opened section, which must be anonymous.
+```grammar
+end
+```
+
+With an identifier, it closes the most recently opened section section or namespace.
+If it is a section, the identifier be a suffix of the concatenated names of the sections opened since the most recent `namespace` command.
+If it is a namespace, then the identifier must be a suffix of the current namespace's extensions since the most recent `section` that is still open; afterwards, the current namespace will have had this suffix removed.
+```grammar
+end $id:ident
+```
+:::
+
+The `end` that closes a `mutual` block is part of the syntax of `mutual`, rather than the `end` command.
+
+:::example "Nesting Namespaces and Sections"
+Namespaces and sections may be nested.
+A single `end` command may close one or more namespaces or one or more sections, but not a mix of the two.
+
+After setting the current namespace to `A.B.C` with two separate commands, `B.C` may be removed with a single {keywordOf Lean.Parser.Command.end}`end`:
+```lean
+namespace A.B
+namespace C
+end B.C
+```
+At this point, the current namespace is `A`.
+
+Next, an anonymous section and the namespace `D.E` are opened:
+```lean
+section
+namespace D.E
+```
+At this point, the current namespace is `A.D.E`.
+An {keywordOf Lean.Parser.Command.end}`end` command cannot close all three due to the intervening section:
+```lean (error := true) (name := endADE) (keep := false)
+end A.D.E
+```
+```leanOutput endADE
+invalid 'end', name mismatch (expected «».D.E)
+```
+Instead, namespaces and sections must be ended separately.
+```lean
+end D.E
+end
+end A
+```
+:::
+
+Rather than opening a section for a single command, the {keywordOf Lean.Parser.Command.in}`in` combinator can be used to create single-command section scope.
+The {keywordOf Lean.Parser.Command.in}`in` combinator is right-associative, allowing multiple scope modifications to be stacked.
+
+:::syntax command
+The `in` command combinator introduces a section scope for a single command.
+```grammar
+$c:command in
+$c:command
+```
+:::
+
+:::example "Using {keywordOf Lean.Parser.Command.in}`in` for Local Scopes"
+The contents of a namespace can be made available for a single command using {keywordOf Lean.Parser.Command.in}`in`.
+```lean
+def Dessert.cupcake := "delicious"
+
+open Dessert in
+#eval cupcake
+```
+
+After the single command, the effects of {keywordOf Lean.Parser.Command.open}`open` are reverted.
+
+```lean (error := true) (name := noCake)
+#eval cupcake
+```
+```leanOutput noCake
+unknown identifier 'cupcake'
+```
+:::
+
+### Section Variables
+
+{deftech}_Section variables_ are parameters that are automatically added to declarations that mention them.
+This occurs whether or not the option {option}`autoImplicit` is {lean}`true`.
+Section variables may be implicit, strict implicit, or explicit; instance implicit section variables are treated specially.
+
+When the name of a section variable is encountered in a non-theorem declaration, it is added as a parameter.
+Any instance implicit section variables that mention the variable are also added.
+If any of the variables that were added depend on other variables, then those variables are added as well; this process is iterated until no more dependencies remain.
+All section variables are added in the order in which they are declared, before all other parameters.
+Section variables are added only when they occur in the _statement_ of a theorem.
+Otherwise, modifying the proof of a theorem could change its statement if the proof term made use of a section variable.
+
+Variables are declared using the {keywordOf Lean.Parser.Command.variable}`variable` command.
+
+
+:::syntax command
+```grammar
+variable $b:bracketedBinder $b:bracketedBinder*
+```
+:::
+
+:::syntax bracketedBinder (open := false)
+The bracketed binders allowed after `variable` match the syntax used in definition headers.
+```grammar
+($x $x* : $t $[:= $e]?)
+```
+```grammar
+{$x $x* : $t}
+```
+```grammar
+⦃$x $x* : $t⦄
+```
+```grammar
+[$[$x :]? $t]
+```
+:::
+
+
+
+
+:::example "Section Variables"
+In this section, automatic implicit parameters are disabled, but a number of section variables are defined.
+
+```lean
+section
+set_option autoImplicit false
+universe u
+variable {α : Type u} (xs : List α) [Zero α] [Add α]
+```
+
+Because automatic implicit parameters are disabled, the following definition fails:
+```lean (error := true) (name := secvars) (keep := false)
+def addAll (lst : List β) : β :=
+  lst.foldr (init := 0) (· + ·)
+```
+```leanOutput secvars
+unknown identifier 'β'
+```
+
+On the other hand, not even {lean}`xs` needs to be written directly in the definition:
+
+```lean
+def addAll : α :=
+  xs.foldr (init := 0) (· + ·)
+```
 
 :::
+
+### Scoped Attributes
+
+Many attributes can be applied in a particular scope.
+This determines whether the attribute's effect is visible only in the current section scope, in namespaces that open the current namespace, or everywhere.
+These scope indications are also used to control {ref "syntax-rules"}[syntax extensions] and {ref "instance-attribute"}[type class instances].
 
 :::syntax attrKind (open := false)
 Globally-scoped declarations (the default) are in effect whenever the {tech}[module] in which they're established is transitively imported.
@@ -241,7 +506,7 @@ Locally-scoped declarations are in effect only for the extent of the {tech}[sect
 local
 ```
 
-Scoped declarations are in effect whenever the {tech key:="open namespace"}[namespace] in which they are established is opened.
+Scoped declarations are in effect whenever the {tech key:="current namespace"}[namespace] in which they are established is opened.
 ```grammar
 scoped
 ```
@@ -254,9 +519,6 @@ Describe {deftech}_axioms_ in detail
 :::
 
 {include 0 Manual.Language.RecursiveDefs}
-
-
-
 
 
 # Attributes
