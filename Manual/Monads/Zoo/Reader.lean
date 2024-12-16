@@ -20,7 +20,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Reader" =>
-
+%%%
+tag := "reader-monad"
+%%%
 
 {docstring MonadReader}
 

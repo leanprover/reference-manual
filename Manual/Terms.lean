@@ -531,6 +531,9 @@ fun {α} x => x : {α : Type} → α → α
 :::
 
 # Function Application
+%%%
+tag := "function-application"
+%%%
 
 Ordinarily, function application is written using juxtaposition: the argument is placed after the function, with at least one space between them.
 In Lean's type theory, all functions take exactly one argument and produce exactly one value.

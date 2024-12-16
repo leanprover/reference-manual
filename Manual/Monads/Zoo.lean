@@ -289,6 +289,9 @@ set "Four" : M PUnit
 
 
 # Monad Transformers
+%%%
+tag := "monad-transformers"
+%%%
 
 A {deftech}_monad transformer_ is a function that, when provided with a monad, gives back a new monad.
 Typically, this new monad has all the effects of the original monad along with some additional ones.
