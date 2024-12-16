@@ -453,32 +453,39 @@ Function binders may be identifiers:
 ```grammar
 $x:ident
 ```
+parenthesized sequences of identifiers:
+```grammar
+($x:ident $y:ident*)
+```
 sequences of identifiers with a type ascription:
 ```grammar
 ($x:ident $y:ident* : $t)
 ```
 implicit parameters, with or without a type ascription:
 ```grammar
-{$x:ident*}
+{$x:ident $x:ident*}
 ```
 ```grammar
-{$x:ident* : $t}
+{$x:ident $x:ident* : $t}
 ```
 instance implicits, anonymous or named:
 ```grammar
-[$t]
+[$t:term]
 ```
 ```grammar
 [$x:ident : $t]
 ```
 or strict implicit parameters, with or without a type ascription:
 ```grammar
-⦃$t⦄
+⦃$x:ident $x:ident*⦄
 ```
 ```grammar
 ⦃$x:ident* : $t⦄
 ```
+
+As usual, an `_` may be used instead of an identifier to create an anonymous parameter, and `⦃` and `⦄` may alternatively be written using `{{` and `}}`, respectively.
 :::
+
 
 
 Lean's core language does not distinguish between implicit, instance, and explicit parameters: the various kinds of function and function type are definitionally equal.
