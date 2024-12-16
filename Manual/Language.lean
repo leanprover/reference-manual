@@ -483,11 +483,75 @@ unknown identifier 'β'
 On the other hand, not even {lean}`xs` needs to be written directly in the definition:
 
 ```lean
-def addAll : α :=
+def addAll :=
   xs.foldr (init := 0) (· + ·)
 ```
 
 :::
+
+To add a section variable to a theorem even if it is not explicitly mentioned in the statement, mark the variable with the {keywordOf Lean.Parser.Command.include}`include` command.
+All variables marked for inclusion are added to all theorems.
+The {keywordOf Lean.Parser.Command.omit}`omit` command removes the inclusion mark from a variable; it's typically a good idea to use it with {keywordOf Lean.Parser.Command.in}`in`.
+
+
+```lean (show := false)
+section
+variable {p : Nat → Prop}
+variable (pFifteen : p 15)
+```
+:::::example "Included and Omitted Section Variables"
+
+This section's variables include a predicate as well as everything needed to prove that it holds universally, along with a useless extra assumption.
+
+```lean
+section
+variable {p : Nat → Prop}
+variable (pZero : p 0) (pStep : ∀ n, p n → p (n + 1))
+variable (pFifteen : p 15)
+```
+
+However, only {lean}`p` is added to this theorem's assumptions, so it cannot be proved.
+```lean (error := true) (keep := false)
+theorem p_all : ∀ n, p n := by
+  intro n
+  induction n
+```
+
+The {keywordOf Lean.Parser.Command.include}`include` command causes the additional assumptions to be added unconditionally:
+```lean (keep := false) (name := lint)
+include pZero pStep pFifteen
+
+theorem p_all : ∀ n, p n := by
+  intro n
+  induction n <;> simp [*]
+```
+Because the spurious assumption {lean}`pFifteen` was inserted, Lean issues a warning:
+```leanOutput lint
+automatically included section variable(s) unused in theorem 'p_all':
+  pFifteen
+consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
+  omit pFifteen in theorem ...
+note: this linter can be disabled with `set_option linter.unusedSectionVars false`
+```
+
+This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:
+```lean (keep := false)
+include pZero pStep pFifteen
+
+omit pFifteen in
+theorem p_all : ∀ n, p n := by
+  intro n
+  induction n <;> simp [*]
+```
+
+```lean
+end
+```
+
+:::::
+```lean (show := false)
+end
+```
 
 ### Scoped Attributes
 
