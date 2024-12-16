@@ -79,7 +79,14 @@ Lean has two syntaxes for comments:
 
 : Block comments
 
-  A `/-` that does not occur as part of a token and is not immediately followed by a `-` character begins a _block comment_.{index (subterm := "block")}[comment] `/--` begins a documentation string {TODO}[xref] rather than a comment.
+  A `/-` that does not occur as part of a token and is not immediately followed by a `-` character begins a _block comment_.{index (subterm := "block")}[comment]
+  The block comment continues until a terminating `-/` is found.
+  Block comments may be nested; a `-/` only terminates the comment if prior nested block comment openers `/-` have been terminated by a matching `-/`.
+
+`/--` and `/-!` begin {deftech}_documentation_ {TODO}[xref] rather than comments, which are also terminated with `-/` and may contain nested block comments.
+Even though documentation resembles comments, they are their own syntactic category; their valid placement is determined by Lean's grammar.
+
+
 
 ### Keywords and Identifiers
 %%%
