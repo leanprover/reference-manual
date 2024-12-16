@@ -382,7 +382,7 @@ The {keywordOf Lean.Parser.Term.fun}`=>` may be replaced by {keywordOf Lean.Pars
 Function abstractions may also use pattern matching syntax as part of their parameter specification, avoiding the need to introduce a local variable that is immediately destructured.
 This syntax is described in the {ref "pattern-fun"}[section on pattern matching].
 
-## Implicit Functions
+## Implicit Parameters
 %%%
 tag := "implicit-functions"
 %%%
@@ -407,7 +407,10 @@ Implicit parameters come in three varieties:
   : Instance implicit parameters
 
     Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
-    Instance implicit parameters are written in square brackets (`[` and `]`), and in most cases omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.
+    Instance implicit parameters are written in square brackets (`[` and `]`).
+    Unlike the other kinds of implicit parameter, instance implicit parameters that are written without a `:` specify the parameter's type rather than providing a name.
+    Furthermore, only a single name is allowed.
+    Most instance implicit parameters omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.
 
 ::::keepEnv
 :::example "Ordinary vs Strict Implicit Parameters"
