@@ -21,7 +21,7 @@ tag := "recursive-definitions"
 %%%
 
 Allowing arbitrary recursive function definitions would make Lean's logic inconsistent.
-General recursion makes it possible to write circular proofs: "{tech}[proposition] $P$ is true because proposition $P$ is true".
+General recursion makes it possible to write circular proofs: "{tech}[proposition] $`P` is true because proposition $`P` is true".
 Outside of proofs, an infinite loop could be assigned the type {name}`Empty`, which can be used with {keywordOf Lean.Parser.Term.nomatch}`nomatch` or {name Empty.rec}`Empty.rec` to prove any theorem.
 
 Banning recursive function definitions outright would render Lean far less useful: {tech}[inductive types] are key to defining both predicates and data, and they have a recursive structure.
