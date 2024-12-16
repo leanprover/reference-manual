@@ -217,7 +217,7 @@ tag := "scopes"
 
 Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called "scope" when clear).
 Every Lean module has a section scope.
-Nested scopes are created via the `namespace` and `section` commands, as well as the `in` command combinator.
+Nested scopes are created via the {keywordOf Lean.Parser.Command.namespace}`namespace` and {keywordOf Lean.Parser.Command.section}`section` commands, as well as the {keywordOf Lean.Parser.Command.in}`in` command combinator.
 
 The following data are tracked in section scopes:
 
@@ -245,9 +245,9 @@ The following data are tracked in section scopes:
 tag := "scope-commands"
 %%%
 
-The `section` command creates a new section scope, but does not modify the current namespace, opened namespaces, or section variables.
+The {keywordOf Lean.Parser.Command.section}`section` command creates a new section scope, but does not modify the current namespace, opened namespaces, or section variables.
 Changes made to the section scope are reverted when the section ends.
-Sections may optionally be named; the `end` command that closes a named section must use the same name.
+Sections may optionally be named; the {keywordOf Lean.Parser.Command.end}`end` command that closes a named section must use the same name.
 If section names have multiple components (that is, if they contain `.`-separated names), then multiple nested sections are introduced.
 Section names have no other effect, and are a readability aid.
 
@@ -334,7 +334,7 @@ All section scopes introduced by the {keywordOf Lean.Parser.Command.namespace}`n
 :::syntax command
 The `namespace` command modifies the current namespace by appending the provided identifier.
 
-creates a section scope that lasts either until an `end` command or the end of the file.
+creates a section scope that lasts either until an {keywordOf Lean.Parser.Command.end}`end` command or the end of the file.
 ```grammar
 namespace $id:ident
 ```
@@ -342,24 +342,24 @@ namespace $id:ident
 
 
 :::syntax command
-Without an identifier, `end` closes the most recently opened section, which must be anonymous.
+Without an identifier, {keywordOf Lean.Parser.Command.end}`end` closes the most recently opened section, which must be anonymous.
 ```grammar
 end
 ```
 
 With an identifier, it closes the most recently opened section section or namespace.
-If it is a section, the identifier be a suffix of the concatenated names of the sections opened since the most recent `namespace` command.
-If it is a namespace, then the identifier must be a suffix of the current namespace's extensions since the most recent `section` that is still open; afterwards, the current namespace will have had this suffix removed.
+If it is a section, the identifier be a suffix of the concatenated names of the sections opened since the most recent {keywordOf Lean.Parser.Command.namespace}`namespace` command.
+If it is a namespace, then the identifier must be a suffix of the current namespace's extensions since the most recent {keywordOf Lean.Parser.Command.section}`section` that is still open; afterwards, the current namespace will have had this suffix removed.
 ```grammar
 end $id:ident
 ```
 :::
 
-The `end` that closes a `mutual` block is part of the syntax of `mutual`, rather than the `end` command.
+The {keywordOf Lean.Parser.Command.mutual}`end` that closes a {keywordOf Lean.Parser.Command.mutual}`mutual` block is part of the syntax of {keywordOf Lean.Parser.Command.mutual}`mutual`, rather than the {keywordOf Lean.Parser.Command.end}`end` command.
 
 :::example "Nesting Namespaces and Sections"
 Namespaces and sections may be nested.
-A single `end` command may close one or more namespaces or one or more sections, but not a mix of the two.
+A single {keywordOf Lean.Parser.Command.end}`end` command may close one or more namespaces or one or more sections, but not a mix of the two.
 
 After setting the current namespace to `A.B.C` with two separate commands, `B.C` may be removed with a single {keywordOf Lean.Parser.Command.end}`end`:
 ```lean
