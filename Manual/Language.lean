@@ -7,7 +7,6 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
-import Manual.Language.Classes
 import Manual.Language.Files
 import Manual.Language.RecursiveDefs
 
@@ -25,7 +24,7 @@ set_option maxRecDepth 3000
 
 set_option linter.unusedVariables false
 
-#doc (Manual) "The Lean Language" =>
+#doc (Manual) "Source Files" =>
 
 {include 0 Manual.Language.Files}
 
@@ -595,8 +594,6 @@ tag := "attributes"
  * Scope
  * When can they be added?
 :::
-
-{include 0 Manual.Language.Classes}
 
 # Dynamic Typing
 

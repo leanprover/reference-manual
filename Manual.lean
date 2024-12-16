@@ -9,6 +9,7 @@ import Manual.Intro
 import Manual.Elaboration
 import Manual.Types
 import Manual.Language
+import Manual.Classes
 import Manual.Terms
 import Manual.Tactics
 import Manual.Simp
@@ -53,17 +54,19 @@ Additionally, we will be adding missing API reference documentation and revising
 
   This is the initial release of the reference manual.
 
-{include Manual.Intro}
+{include 0 Manual.Intro}
 
-{include Manual.Elaboration}
+{include 0 Manual.Elaboration}
 
-{include Manual.Types}
+{include 0 Manual.Types}
 
-{include Manual.Language}
+{include 0 Manual.Language}
 
-{include Manual.Terms}
+{include 0 Manual.Terms}
 
-{include Manual.Monads}
+{include 0 Manual.Classes}
+
+{include 0 Manual.Monads}
 
 {include 0 Manual.IO}
 

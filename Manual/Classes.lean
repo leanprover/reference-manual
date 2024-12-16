@@ -10,10 +10,10 @@ import Manual.Meta
 import Manual.Language.Functions
 import Manual.Language.Files
 import Manual.Language.InductiveTypes
-import Manual.Language.Classes.InstanceDecls
-import Manual.Language.Classes.InstanceSynth
-import Manual.Language.Classes.DerivingHandlers
-import Manual.Language.Classes.BasicClasses
+import Manual.Classes.InstanceDecls
+import Manual.Classes.InstanceSynth
+import Manual.Classes.DerivingHandlers
+import Manual.Classes.BasicClasses
 
 import Lean.Parser.Command
 
@@ -386,9 +386,9 @@ instance [Add α] [Mul α] : AddMul' α where
 :::
 ::::
 
-{include 0 Manual.Language.Classes.InstanceDecls}
+{include 0 Manual.Classes.InstanceDecls}
 
-{include 0 Manual.Language.Classes.InstanceSynth}
+{include 0 Manual.Classes.InstanceSynth}
 
 # Deriving Instances
 %%%
@@ -432,6 +432,6 @@ all the instances exist for all the types, so all four {keywordOf Lean.Parser.Co
 :::
 ::::
 
-{include 2 Manual.Language.Classes.DerivingHandlers}
+{include 2 Manual.Classes.DerivingHandlers}
 
-{include 0 Manual.Language.Classes.BasicClasses}
+{include 0 Manual.Classes.BasicClasses}
