@@ -191,7 +191,7 @@ tag := "tactic-ref-casts"
 The tactics in this section make it easier avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
 They are described in more detail by {citet castPaper}[].
 
-:::tactic Lean.Parser.Tactic.tacticNorm_cast_
+:::tactic Lean.Parser.Tactic.tacticNorm_cast__
 :::
 
 :::tactic Lean.Parser.Tactic.pushCast
@@ -206,7 +206,7 @@ They are described in more detail by {citet castPaper}[].
 :::tactic Lean.Parser.Tactic.tacticRw_mod_cast___
 :::
 
-:::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast
+:::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast_
 :::
 
 # Extensionality
