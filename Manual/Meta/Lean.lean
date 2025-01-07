@@ -270,7 +270,7 @@ def leanInline : RoleExpander
     let config ← LeanBlockConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $term:str }) := arg
+    let `(inline|code( $term:str )) := arg
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
 
@@ -392,7 +392,7 @@ def option : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $optName:str }) := arg
+    let `(inline|code( $optName:str )) := arg
       | throwErrorAt arg "Expected code literal with the option name"
     let optName := optName.getString.toName
     let optDecl ← getOptionDecl optName
@@ -802,7 +802,7 @@ def constTok [Monad m] [MonadEnv m] [MonadLiftT MetaM m] [MonadLiftT IO m]
 def name : RoleExpander
   | args, #[arg] => do
     let cfg ← NameConfig.parse.run args
-    let `(inline|code{ $name:str }) := arg
+    let `(inline|code( $name:str )) := arg
       | throwErrorAt arg "Expected code literal with the example name"
     let exampleName := name.getString.toName
     let identStx := mkIdentFrom arg (cfg.full.getD exampleName) (canonical := true)

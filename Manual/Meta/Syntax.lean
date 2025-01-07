@@ -36,7 +36,7 @@ def evalPrio : RoleExpander
     ArgParse.done.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code{ $s:str }) := inl
+    let `(inline|code( $s:str )) := inl
       | throwErrorAt inl "Expected code literal with the priority"
     let altStr ← parserInputString s
     match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ priorityParser) altStr (← getFileName) with
@@ -54,7 +54,7 @@ def evalPrec : RoleExpander
     ArgParse.done.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code{ $s:str }) := inl
+    let `(inline|code( $s:str )) := inl
       | throwErrorAt inl "Expected code literal with the precedence"
     let altStr ← parserInputString s
     match runParser (← getEnv) (← getOptions) (andthen ⟨{}, whitespace⟩ (categoryParser `prec 1024)) altStr (← getFileName) with
@@ -97,7 +97,7 @@ def keywordOf : RoleExpander
     let ⟨kind, parser⟩ ← KeywordOfConfig.parse.run args
     let #[inl] := inlines
       | throwError "Expected a single code argument"
-    let `(inline|code{ $kw:str }) := inl
+    let `(inline|code( $kw:str )) := inl
       | throwErrorAt inl "Expected code literal with the keyword"
     let kindName := kind.getId
     let parserName ← parser.mapM (realizeGlobalConstNoOverloadWithInfo ·)
@@ -368,7 +368,7 @@ def removeTrailing? : Syntax → Option Syntax
   | .node .none k children => do
     for h : i in [0:children.size] do
       have : children.size > 0 := by
-        cases h; simp_all; omega
+        let ⟨_, _, _⟩ := h; simp_all +zetaDelta; omega
       if let some child' := removeTrailing? children[children.size - i - 1] then
         return .node .none k (children.set (children.size - i - 1) child')
     failure
@@ -640,8 +640,8 @@ def «syntax» : DirectiveExpander
     let mut firstGrammar := true
     for b in blocks do
       match isGrammar? b with
-      | some (nameStx, argsStx, contents, info, _, _, _, _) =>
-        let grm ← elabGrammar nameStx config firstGrammar argsStx (Syntax.mkStrLit contents info)
+      | some (nameStx, argsStx, contents) =>
+        let grm ← elabGrammar nameStx config firstGrammar argsStx contents
         content := content.push grm
         firstGrammar := false
       | _ =>
@@ -652,9 +652,9 @@ def «syntax» : DirectiveExpander
 
     pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
 where
-  isGrammar? : Syntax → Option (Syntax × Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
-  | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
-    if nameStx.getId == `grammar then some (nameStx, argsStx, contents, info, col, «open», i, close) else none
+  isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
+  | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
+    if nameStx.getId == `grammar then some (nameStx, argsStx, contents) else none
   | _ => none
 
   elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
@@ -703,17 +703,17 @@ def freeSyntax : DirectiveExpander
     let mut firstGrammar := true
     for b in blocks do
       match isGrammar? b with
-      | some (nameStx, argsStx, contents, info, _, _, _, _) =>
-        let grm ← elabGrammar nameStx config firstGrammar argsStx (Syntax.mkStrLit contents info)
+      | some (nameStx, argsStx, contents) =>
+        let grm ← elabGrammar nameStx config firstGrammar argsStx contents
         content := content.push grm
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
     pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, #[])} #[$content,*])]
 where
-  isGrammar? : Syntax → Option (Syntax × Array Syntax × String × SourceInfo × Syntax × Syntax × SourceInfo × Syntax)
-  | `<low|(Verso.Syntax.codeblock (column ~col@(.atom _ _col)) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str@(.atom info contents) ~close )> =>
-    if nameStx.getId == `grammar then some (nameStx, argsStx, contents, info, col, «open», i, close) else none
+  isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
+  | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
+    if nameStx.getId == `grammar then some (nameStx, argsStx, contents) else none
   | _ => none
 
   elabGrammar nameStx config isFirst (argsStx : Array Syntax) (str : TSyntax `str) := do
@@ -1015,10 +1015,10 @@ def Inline.syntaxKind : Inline where
 @[role_expander syntaxKind]
 def syntaxKind : RoleExpander
   | args, inlines => do
-    let config ← ArgParse.done.run args
+    let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $syntaxKindName:str }) := arg
+    let `(inline|code( $syntaxKindName:str )) := arg
       | throwErrorAt arg "Expected code literal with the syntax kind name"
     let kName := syntaxKindName.getString.toName
     let id : Ident := mkIdentFrom syntaxKindName kName

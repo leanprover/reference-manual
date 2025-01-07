@@ -336,7 +336,7 @@ def goal : RoleExpander
     let config ← TacticGoalConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $term:str }) := arg
+    let `(inline|code( $term:str )) := arg
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
 
@@ -444,7 +444,7 @@ def tacticStepInline : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $tacStr:str }) := arg
+    let `(inline|code( $tacStr:str )) := arg
       | throwErrorAt arg "Expected code literal with the example name"
 
     let altStr ← parserInputString tacStr

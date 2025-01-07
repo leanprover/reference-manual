@@ -246,10 +246,10 @@ def ffi : DirectiveExpander
     else
       let firstBlock := blocks[0]
       let moreBlocks := blocks.extract 1 blocks.size
-      let `<low|(Verso.Syntax.codeblock (column ~_col) ~_open ~_args ~(.atom _info contents) ~_close )> := firstBlock
+      let `(block|``` | $contents ```) := firstBlock
         | throwErrorAt firstBlock "Expected code block"
       let body ← moreBlocks.mapM elabBlock
-      pure #[← `(Block.other {Block.ffi with data := ToJson.toJson ($(quote config.name), $(quote config.kind), $(quote contents))} #[$body,*])]
+      pure #[← `(Block.other {Block.ffi with data := ToJson.toJson ($(quote config.name), $(quote config.kind), $(quote contents.getString))} #[$body,*])]
 
 @[block_extension ffi]
 def ffi.descr : BlockDescr where

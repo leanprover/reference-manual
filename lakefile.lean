@@ -21,8 +21,6 @@ package "verso-manual" where
 
 lean_lib Manual where
 
-def inputTextFile' (path : FilePath) : SpawnM (BuildJob FilePath) :=
-  Job.async do (path, ·) <$> computeTrace (TextFilePath.mk path)
 
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
@@ -49,7 +47,7 @@ target figures : Array FilePath := do
     | some "tex" => some f.path
     | _ => none
   let files := files.qsort (toString · < toString ·)
-  let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile')
+  let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile)
   let traceFile := figureDir.join "lake.trace"
   liftM <| srcs.bindSync fun srcInfo depTrace => do
     buildUnlessUpToDate traceFile depTrace traceFile do

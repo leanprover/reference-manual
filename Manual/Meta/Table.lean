@@ -37,31 +37,33 @@ def table : DirectiveExpander
   | args, contents => do
     let cfg ← TableConfig.parse.run args
     -- The table should be a list of lists. Extract them!
-    let #[contentStx@`<low|(Verso.Syntax.ul ~(.node _ `null items) )>] := contents
+    let #[oneBlock] := contents
       | throwError "Expected a single unordered list"
+    let `(block|ul{$items*}) := oneBlock
+      | throwErrorAt oneBlock "Expected a single unordered list"
     let preRows ← items.mapM getLi
     let rows ← preRows.mapM fun blks => do
-      let #[`<low|(Verso.Syntax.ul ~(.node _ `null cellItems) )>] := blks.filter (·.isOfKind ``Verso.Syntax.ul)
+      let #[oneInRow] := blks.filter (·.raw.isOfKind ``Verso.Syntax.ul)
         | throwError "Each row should have exactly one list in it"
+      let `(block|ul{ $cellItems*}) := oneInRow
+        | throwErrorAt oneInRow "Each row should have exactly one list in it"
       cellItems.mapM getLi
     if h : rows.size = 0 then
-      throwErrorAt contentStx "Expected at least one row"
+      throwErrorAt oneBlock "Expected at least one row"
     else
       let columns := rows[0].size
       if columns = 0 then
-        throwErrorAt contentStx "Expected at least one column"
+        throwErrorAt oneBlock "Expected at least one column"
       if rows.any (·.size != columns) then
-        throwErrorAt contentStx s!"Expected all rows to have same number of columns, but got {rows.map (·.size)}"
+        throwErrorAt oneBlock s!"Expected all rows to have same number of columns, but got {rows.map (·.size)}"
 
       let flattened := rows.flatten
       let blocks : Array (Syntax.TSepArray `term ",") ← flattened.mapM (·.mapM elabBlock)
-      -- Figures are represented using the first block to hold the caption. Storing it in the JSON
-      -- entails repeated (de)serialization.
-      pure #[← ``(Block.other (Block.table $(quote columns) $(quote cfg.header) $(quote cfg.name)) #[Block.ul #[$[Verso.Doc.ListItem.mk 0 #[$blocks,*]],*]])]
+      pure #[← ``(Block.other (Block.table $(quote columns) $(quote cfg.header) $(quote cfg.name)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])]
 
 where
   getLi
-    | `<low|(Verso.Syntax.li ~_ ~(.node _ `null content) )> => pure content
+    | `(list_item| * $content* ) => pure content
     | other => throwErrorAt other "Expected list item"
 
 

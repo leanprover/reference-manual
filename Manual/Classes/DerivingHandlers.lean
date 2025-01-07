@@ -37,7 +37,7 @@ def derivableClassList : DirectiveExpander
     let itemStx ← classNames.filter (!(`Lean).isPrefixOf ·) |>.mapM fun n => do
       let hl : Highlighted ← constTok n n.toString
       `(Inline.other {_root_.Manual.Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote n.toString)])
-    let theList ← `(Verso.Doc.Block.ul #[$[⟨0, #[Verso.Doc.Block.para #[$itemStx]]⟩],*])
+    let theList ← `(Verso.Doc.Block.ul #[$[⟨#[Verso.Doc.Block.para #[$itemStx]]⟩],*])
     return #[theList]
 
 #doc (Manual) "Deriving Handlers" =>

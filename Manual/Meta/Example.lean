@@ -45,7 +45,7 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
   return out.map (·.2)
 
 def isLeanBlock : Syntax → CoreM Bool
-  | `<low|(Verso.Syntax.codeblock (column ~col) ~«open» ~(.node i `null #[nameStx, .node _ `null argsStx]) ~str ~close )> => do
+  | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
     let name ← realizeGlobalConstNoOverloadWithInfo nameStx
     return name == ``lean
   | _ => pure false

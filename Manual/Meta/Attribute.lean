@@ -34,7 +34,7 @@ def attr : RoleExpander
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
-    let `(inline|code{ $a:str }) := arg
+    let `(inline|code( $a:str )) := arg
       | throwErrorAt arg "Expected code literal with the attribute"
     let altStr ← parserInputString a
 
