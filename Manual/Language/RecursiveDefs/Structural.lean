@@ -45,7 +45,13 @@ where the identifiers before the optional `=>` can bring function parameters int
 already bound in the declaration header, and the `$term` must elaborate to one of the functions parameters.
 :::
 
-The type of the selected decreasing parameter must be an {tech}[inductive type]. If it is an indexed family, then all indices must be parameters of the function.
+The decreasing parameter must satisfy the following conditions:
+
+* The type of the selected decreasing parameter must be an {tech}[inductive type].
+
+* If it is an indexed family, then all indices must be parameters of the function.
+
+* If the inductive or indexed family of the decreasing parameter has data type parameters, then these data type parameters may only depend on function parameters that are part of the **fixed prefix**. A fixed parameter is a function parameter that is passed unmodified in recursive calls, and is not an index of the recursive parameter's type.
 
 :::example "Ineligible decreasing parameters"
 
@@ -61,6 +67,7 @@ cannot use specified parameter for structural recursion:
 ```
 
 If the decreasing parameter is an indexed family, all the indices must be variables:
+
 ```lean (error := true) (name := badidx) (keep := false)
 inductive Fin' : Nat → Type where
   | zero : Fin' (n+1)
@@ -73,6 +80,27 @@ termination_by structural x
 cannot use specified parameter for structural recursion:
   its type Fin' is an inductive family and indices are not variables
     Fin' 100
+```
+
+The parameters of the decreasing's parameter's types must not depend on function parameters that come after varying parameters or indices:
+
+```lean (error := true) (name := badparam) (keep := false)
+inductive WithParam' (p : Nat) : Nat → Type where
+  | zero : WithParam' p (n+1)
+  | succ : WithParam' p n → WithParam' p (n+1)
+
+def bad (n : Nat) (p : Nat) (x : WithParam' p n) : Nat := bad (n+1) p .zero
+termination_by structural x
+```
+```leanOutput badparam
+cannot use specified parameter for structural recursion:
+  its type is an inductive datatype
+    WithParam' p n
+  and the datatype parameter
+    p
+  depends on the function parameter
+    p
+  which does not come before the varying parameters and before the indices of the recursion parameter.
 ```
 :::
 
