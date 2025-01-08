@@ -76,7 +76,7 @@ cannot use specified parameter for structural recursion:
 ```
 :::
 
-Futhermore, every recursive call of the functions must be on a *strict* sub-term of the decreasing
+Furthermore, every recursive call of the functions must be on a *strict* sub-term of the decreasing
 parameter. The rules are as follows:
 
 * The decreasing parameter itself is a (non-strict) sub-term.
@@ -127,7 +127,7 @@ termination_by n
 decreasing_by simp_all; omega
 ```
 
-Similarly, the following example fails: Alhough `tail xs` would reduce to a strict sub-term of `xs`, this is not visible to lean according to the rules above.
+Similarly, the following example fails: Although `tail xs` would reduce to a strict sub-term of `xs`, this is not visible to lean according to the rules above.
 
 ```lean (error := true) (keep := false)
 def listLen : List α → Nat
