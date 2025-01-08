@@ -100,7 +100,7 @@ termination_by structural n => n
 
 NB: For clarity, this example uses `.succ n` and `.succ (.succ n)` instead of the equivalent `n+1` and `n+2`. This syntax is a special feature for `Nat`.
 
-:::example "Matching on complex expressions can prevent elaboration"
+:::example "Matching on Complex Expressions Can Prevent Elaboration"
 
 In the following example, the decreasing parameter `n` is not directly the target of the `match` statement. Therefore, `n'` is not considered a subterm and the elaboration fails.
 
