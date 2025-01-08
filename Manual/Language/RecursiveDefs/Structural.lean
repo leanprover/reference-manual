@@ -26,7 +26,7 @@ The constructions used to implement structural recursion are, however, implement
 
 # Explicit structural recursion
 
-To explicitly use structural recursion, a function definition can be annotated with a `termination_by structural` clause specifying the *decreasing parameter*:
+To explicitly use structural recursion, a function or theorem definition can be annotated with a `termination_by structural` clause specifying the *decreasing parameter*:
 
 ```lean (keep := false)
 def half : Nat → Nat
@@ -82,7 +82,7 @@ cannot use specified parameter for structural recursion:
     Fin' 100
 ```
 
-The parameters of the decreasing's parameter's types must not depend on function parameters that come after varying parameters or indices:
+The parameters of the decreasing parameter's type must not depend on function parameters that come after varying parameters or indices:
 
 ```lean (error := true) (name := badparam) (keep := false)
 inductive WithParam' (p : Nat) : Nat → Type where
@@ -155,7 +155,7 @@ termination_by n
 decreasing_by simp_all; omega
 ```
 
-Similarly, the following example fails: Although `tail xs` would reduce to a strict sub-term of `xs`, this is not visible to lean according to the rules above.
+Similarly, the following example fails: Although `tail xs` would reduce to a strict sub-term of `xs`, this is not visible to Lean according to the rules above.
 
 ```lean (error := true) (keep := false)
 def listLen : List α → Nat
@@ -232,11 +232,94 @@ termination_by nk
 
 # Mutual structural recursion
 
-TODO
+Lean supports the definition of mutually recursive functions, introduced using `mutual`, `letrec` or `where`, using structural recursion. In the following we consider a group of actually mutually recursive, lifted definitions, as the result of the {ref "mutual-syntax"}[processing described above].
+
+If every function in the mutual group has a `termination_by structural` annotation indicating that function’s decreasing argument, then structural recursion is used to translate the definitions.
+
+The requirements on the decreasing argument above are extended:
+
+* All the types of all the decreasing arguments must be from the same inductive type, or more generally from the same mutual group of inductive types.
+
+* The parameters of the decreasing parameter's types must be the same for all functions, and may depend only on the **common** fixed prefix of function arguments.
+
+The functions do not have to be in a one-to-one correspondence to the mutual inductive types: Multiple functions can have a decreasing argument of the same type, and not all types that are mutually recursive with the decerasing argument must have a function of that type.
+
+:::example "Mutual recursion"
+
+The following example demonstrates mutual recursion over a non-mutual inductive data type:
+
+```lean (keep := false)
+mutual
+def even : Nat → Prop
+  | 0 => True
+  | n+1 => odd n
+termination_by structural n => n
+
+def odd : Nat → Prop
+  | 0 => False
+  | n+1 => even n
+termination_by structural n => n
+end
+```
+
+The following example demonstrates recursion over a mutual inductive data type. The `Exp.size` and `App.size` functions are mutually recursive. The `App.numArgs` function demonstrates that not all types in the recursive group need to be handled.
+
+```lean (keep := false)
+mutual
+inductive Exp where
+  | var : String → Exp
+  | app : App → Exp
+inductive App where
+  | fn : String → App
+  | app : App → Exp → App
+end
+
+mutual
+def Exp.size : Exp → Nat
+  | .var _ => 1
+  | .app a => a.size
+termination_by structural e => e
+
+def App.size : App → Nat
+  | .fn _ => 1
+  | .app a e => a.size + e.size + 1
+termination_by structural a => a
+end
+
+def App.numArgs : App → Nat
+  | .fn _ => 0
+  | .app a _ => a.numArgs + 1
+termination_by structural a => a
+```
+
+:::
+
+:::planned 235
+
+TODO: Explain mutual structural recursion over {ref "nested-inductives"}[nested inductives].
+
+:::
+
 
 # Inferring structural recursion
 
-TODO
+If no `termination_by` clauses are present in a recursive or mutually recursive function definition, then Lean attempts to infer a suitable structurally decreasing argument, effectively trying all suitable parameters in sequence, before trying to infer {tech}[well-founded recursion].
+
+For mutually recursive functions, all combinations (up to a limit to avoid combinatoric explosion) of parameters are tried.
+
+If only some of the mutually recursive functions have `termination_by structural` clauses, then only those parameters are considered, while for the other functions all parameters are considered for structural recursion.
+
+With `termination_by?` the inferred termination annotation can be shown, and made explicit using the offered suggestion or code action:
+
+```lean (keep := false) (name := inferStruct)
+def half : Nat → Nat
+  | 0 | 1 => 0
+  | n + 2 => half n + 1
+termination_by?
+```
+```leanOutput inferStruct
+Try this: termination_by structural x => x
+```
 
 # Elaboration using course-of-value recursion
 

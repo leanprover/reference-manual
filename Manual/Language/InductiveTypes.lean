@@ -817,3 +817,12 @@ tag := "mutual-inductive-types-run-time"
 
 Mutual inductive types are represented identically to {ref "run-time-inductives"}[non-mutual inductive types] in compiled code and in the runtime.
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.
+
+## Nested inductive types
+%%%
+tag := "nested-inductives"
+%%%
+
+:::planned 235
+TODO
+:::

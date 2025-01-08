@@ -78,6 +78,27 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
 
 This section describes the four techniques in detail.
 
+# Mutual recursion syntax
+%%%
+tag := "mutual-syntax"
+%%%
+
+:::syntax command
+The general syntax for mutual recursion is
+
+```grammar
+mutual
+  $[$declaration]*
+end
+```
+where the declarations must be definitions or theorems.
+:::
+
+After elaboration to (still recursive) definitions, and before translating recurion using the techniques above, Lean identifies the actually (mutually) recursive cliques among the definitions, and processs them separately and in dependency order.
+
+Local definitions introduced via {keywordOf Lean.Parser.Term.letrec}`let rec` and
+ `where` are lifted out of their context, introducing parameters for captured free variables as necessary, and treated as if they were separate definitions within the `mutal` block as well. {TODO}[Explain this mechanism in more detail, here or in the term section.]
+
 {include 0 Manual.Language.RecursiveDefs.Structural}
 
 # Well-Founded Recursion
