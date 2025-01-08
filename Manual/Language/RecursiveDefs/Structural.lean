@@ -309,7 +309,7 @@ For mutually recursive functions, all combinations (up to a limit to avoid combi
 
 If only some of the mutually recursive functions have `termination_by structural` clauses, then only those parameters are considered, while for the other functions all parameters are considered for structural recursion.
 
-With `termination_by?` the inferred termination annotation can be shown, and made explicit using the offered suggestion or code action:
+With `termination_by?` the inferred termination annotation can be shown, and be made explicit using the offered suggestion or code action:
 
 ```lean (keep := false) (name := inferStruct)
 def half : Nat → Nat
