@@ -305,7 +305,7 @@ TODO: Explain mutual structural recursion over {ref "nested-inductive-types"}[ne
 
 If no `termination_by` clauses are present in a recursive or mutually recursive function definition, then Lean attempts to infer a suitable structurally decreasing argument, effectively trying all suitable parameters in sequence, before trying to infer {tech}[well-founded recursion].
 
-For mutually recursive functions, all combinations (up to a limit to avoid combinatoric explosion) of parameters are tried.
+For mutually recursive functions, all combinations (up to a limit to avoid combinatorial explosion) of parameters are tried.
 
 If only some of the mutually recursive functions have `termination_by structural` clauses, then only those parameters are considered, while for the other functions all parameters are considered for structural recursion.
 
