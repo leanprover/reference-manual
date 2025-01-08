@@ -39,16 +39,11 @@ termination_by structural n => n
 The grammar of the `termination_by structural` clause is
 
 ```grammar
-termination_by structural $[$_:ident* =>]? $ident
+termination_by structural $[$_:ident* =>]? $term
 ```
 where the identifiers before the optional `=>` can bring function parameters into scope that are not
-already bound in the declaration header.
+already bound in the declaration header, and the `$term` must elaborate to one of the functions parameters.
 :::
-
-/-
-Possible bug in grammar: Here we write `$ident`, but verso pretty-prints it as `$term`, probably because
-the actual grammar is more flexible than we want to show here
--/
 
 The type of the selected decreasing parameter must be an {tech}[inductive type]. If it is an indexed family, then all indices must be parameters of the function.
 
@@ -97,7 +92,11 @@ def fib : Nat → Nat
 termination_by structural n => n
 ```
 
-NB: For clarity, this example uses `.succ n` and `.succ (.succ n)` instead of the equivalent `n+1` and `n+2`. This syntax is a special feature for `Nat`.
+Note that for clarity, this example uses `.succ n` and `.succ (.succ n)` instead of the equivalent `Nat`-specific `n+1` and `n+2`.
+
+:::TODO
+Link to where this special syntax is documented.
+:::
 
 :::example "Matching on Complex Expressions Can Prevent Elaboration"
 
@@ -117,7 +116,7 @@ Cannot use parameter n:
     half n'
 ```
 
-NB: Using {tech}[well-founded recursion], and explicitly connecting the target to the pattern of the match, this definition can be accepted.
+Using {tech}[well-founded recursion], and explicitly connecting the target to the pattern of the match, this definition can be accepted.
 
 ```lean (keep := false)
 def half (n : Nat) : Nat :=
