@@ -242,7 +242,7 @@ The requirements on the decreasing argument above are extended:
 
 * The parameters of the decreasing parameter's types must be the same for all functions, and may depend only on the **common** fixed prefix of function arguments.
 
-The functions do not have to be in a one-to-one correspondence to the mutual inductive types: Multiple functions can have a decreasing argument of the same type, and not all types that are mutually recursive with the decerasing argument must have a function of that type.
+The functions do not have to be in a one-to-one correspondence to the mutual inductive types: Multiple functions can have a decreasing argument of the same type, and not all types that are mutually recursive with the decreasing argument must have a function of that type.
 
 :::example "Mutual recursion"
 
@@ -296,7 +296,7 @@ termination_by structural a => a
 
 :::planned 235
 
-TODO: Explain mutual structural recursion over {ref "nested-inductives"}[nested inductives].
+TODO: Explain mutual structural recursion over {ref "nested-inductive-types"}[nested inductive types].
 
 :::
 

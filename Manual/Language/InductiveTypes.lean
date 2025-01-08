@@ -820,7 +820,7 @@ The restrictions on mutual inductive types exist to ensure Lean's consistency as
 
 ## Nested inductive types
 %%%
-tag := "nested-inductives"
+tag := "nested-inductive-types"
 %%%
 
 :::planned 235
