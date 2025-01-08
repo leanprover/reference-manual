@@ -17,7 +17,7 @@ open Verso.Genre Manual
 tag := "Nat"
 %%%
 
-The natural numbers are nonnegative integers.
+The {deftech}[natural numbers] are nonnegative integers.
 Logically, they are the numbers 0, 1, 2, 3, …, generated from the constructors {lean}`Nat.zero` and {lean}`Nat.succ`.
 Lean imposes no upper bound on the representation of natural numbers other than physical constraints imposed by the available memory of the computer.
 

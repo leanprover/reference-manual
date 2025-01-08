@@ -10,6 +10,7 @@ import Manual.Meta
 import Manual.BasicTypes.Nat
 import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
+import Manual.BasicTypes.Fin
 
 open Manual.FFIDocType
 
@@ -42,14 +43,7 @@ tag := "Int"
 
 {docstring Int}
 
-# Finite Natural Numbers
-
-:::planned 169
- * {lean}`Fin`
- * Comparison to {lean}`UInt8` through {lean}`UInt32`
-:::
-
-{docstring Fin}
+{include 0 Manual.BasicTypes.Fin}
 
 # Fixed-Precision Integer Types
 %%%

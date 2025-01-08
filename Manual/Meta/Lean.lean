@@ -348,6 +348,90 @@ where
 
 
 
+@[role_expander inst]
+def inst : RoleExpander
+  | args, inlines => do
+    let config ← LeanBlockConfig.parse.run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code( $term:str )) := arg
+      | throwErrorAt arg "Expected code literal with the example name"
+    let altStr ← parserInputString term
+
+    match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
+    | .error e => throwErrorAt term e
+    | .ok stx =>
+      let (newMsgs, tree) ← do
+        let initMsgs ← Core.getMessageLog
+        try
+          Core.resetMessageLog
+          let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            Term.synthesizeSyntheticMVarsNoPostponing
+            let _ ← Term.levelMVarToParam (← instantiateMVars e)
+            Term.synthesizeSyntheticMVarsNoPostponing
+            -- TODO this is the only difference from the normal inline Lean. Abstract the commonalities out!
+            discard <| Meta.synthInstance e
+            let ctx := PartialContextInfo.commandCtx {
+              env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
+              openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
+            }
+            pure <| InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees)
+          pure (← Core.getMessageLog, tree')
+        finally
+          Core.setMessageLog initMsgs
+
+      if let some name := config.name then
+        let msgs ← newMsgs.toList.mapM fun msg => do
+
+          let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+          let txt := withNewline <| head ++ (← msg.data.toString)
+
+          pure (msg.severity, txt)
+        modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
+
+      pushInfoTree tree
+
+      match config.error with
+      | none =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+      | some true =>
+        if newMsgs.hasErrors then
+          for msg in newMsgs.errorsToWarnings.toArray do
+            logMessage msg
+        else
+          throwErrorAt term "Error expected in code, but none occurred"
+      | some false =>
+        for msg in newMsgs.toArray do
+          logMessage msg
+        if newMsgs.hasErrors then
+          throwErrorAt term "No error expected in code, one occurred"
+
+      let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
+
+
+      if config.show.getD true then
+        pure #[← `(Inline.other (Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
+      else
+        pure #[]
+where
+  withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+
+
+  modifyInfoTrees {m} [Monad m] [MonadInfoTree m] (f : PersistentArray InfoTree → PersistentArray InfoTree) : m Unit :=
+    modifyInfoState fun s => { s with trees := f s.trees }
+
+  -- TODO - consider how to upstream this
+  withInfoTreeContext {m α} [Monad m] [MonadInfoTree m] [MonadFinally m] (x : m α) (mkInfoTree : PersistentArray InfoTree → m InfoTree) : m (α × InfoTree) := do
+    let treesSaved ← getResetInfoTrees
+    MonadFinally.tryFinally' x fun _ => do
+      let st    ← getInfoState
+      let tree  ← mkInfoTree st.trees
+      modifyInfoTrees fun _ => treesSaved.push tree
+      pure tree
+
+
 @[inline_extension lean]
 def lean.inlinedescr : InlineDescr where
   traverse id data _ := do

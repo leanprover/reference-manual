@@ -186,6 +186,7 @@ PLift ULift Subtype Option List
 USize
 UInt8 UInt16 UInt32 UInt64
 Int8 Int16 Int32 Int64
+Fin
 ```
 
 ```exceptions
@@ -622,6 +623,14 @@ IO.Process.Stdio.toCtorIdx
 
 ```exceptions
 BaseIO.mapTasks.go
+```
+
+```exceptions
+Fin.foldrM.loop
+Fin.induction.go
+Fin.foldr.loop
+Fin.foldlM.loop
+Fin.foldl.loop
 ```
 :::
 
