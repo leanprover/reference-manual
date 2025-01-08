@@ -130,7 +130,7 @@ Additional diagnostic information may be available using the `set_option diagnos
 ## Arithmetic
 
 Typically, arithmetic operations on {name}`Fin` should be accessed using Lean's overloaded arithmetic notation, particularly via the instances {inst}`Add (Fin n)`, {inst}`Sub (Fin n)`, {inst}`Mul (Fin n)`, {inst}`Div (Fin n)`,  and {inst}`Mod (Fin n)`.
-Heterogenous operators such as {lean}`Fin.natAdd` do not have corresponding hetergeneous instances (e.g. {name}`HAdd`) to avoid confusing type inference behavior.
+Heterogeneous operators such as {lean}`Fin.natAdd` do not have corresponding heterogeneous instances (e.g. {name}`HAdd`) to avoid confusing type inference behavior.
 
 {docstring Fin.add}
 
