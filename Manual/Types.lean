@@ -172,7 +172,7 @@ If the level of a universe is smaller than that of another, the universe itself 
 With the exception of propositions (described later in this chapter), types in a given universe may only quantify over types in smaller universes.
 {lean}`Sort 0` is the type of propositions, while each `Sort (u + 1)` is a type that describes data.
 
-Every universe is an element of every strictly larger universe, so {lean}`Sort 5` includes {lean}`Sort 4`.
+Every universe is an element of the next larger universe, so {lean}`Sort 5` includes {lean}`Sort 4`.
 This means that the following examples are accepted:
 ```lean
 example : Sort 5 := Sort 4

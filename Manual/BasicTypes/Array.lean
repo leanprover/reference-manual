@@ -28,7 +28,7 @@ The {lean}`Array` type represents sequences of elements, addressable by their po
 Arrays are specially supported by Lean:
  * They have a _logical model_ that specifies their behavior in terms of lists of elements, which specifies the meaning of each operation on arrays.
  * They have an optimized run-time representation in compiled code as {tech}[dynamic arrays], and the Lean runtime specially optimizes array operations.
- * There is {ref "array-syntax"}[array literal syntax] for writing strings.
+ * There is {ref "array-syntax"}[array literal syntax] for writing arrays.
 
 Arrays can be vastly more efficient than lists or other sequences in compiled code.
 In part, this is because they offer good locality: because all the elements of the sequence are next to each other in memory, the processor's caches can be used efficiently.

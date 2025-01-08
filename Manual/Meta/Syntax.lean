@@ -368,7 +368,9 @@ def removeTrailing? : Syntax → Option Syntax
   | .node .none k children => do
     for h : i in [0:children.size] do
       have : children.size > 0 := by
-        let ⟨_, _, _⟩ := h; simp_all +zetaDelta; omega
+        let ⟨_, _, _⟩ := h
+        simp_all +zetaDelta
+        omega
       if let some child' := removeTrailing? children[children.size - i - 1] then
         return .node .none k (children.set (children.size - i - 1) child')
     failure
