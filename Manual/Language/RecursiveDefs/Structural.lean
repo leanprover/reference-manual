@@ -10,8 +10,9 @@ import Manual.Language.RecursiveDefs.Structural.CourseOfValuesExample
 
 import Manual.Meta
 
-
-open Verso.Genre Manual
+open Manual
+open Verso.Genre
+open Verso.Genre.Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 #doc (Manual) "Structural Recursion" =>
@@ -20,15 +21,202 @@ tag := "structural-recursion"
 %%%
 
 Structurally recursive functions are those in which each recursive call is on a structurally smaller term than the argument.
-Structural recursion is stronger than the primitive recursion that recursors provide, because the recursive call can use an _arbitrary_ sub-term of the argument, rather than only an immediate sub-term.
+Structural recursion is stronger than the primitive recursion that recursors provide, because the recursive call can use more deeply nested sub-terms of the argument, rather than only an immediate sub-term.
 The constructions used to implement structural recursion are, however, implemented using the recursor; these helper constructions are described in the {ref "recursor-elaboration-helpers"}[section on inductive types].
 
+# Explicit structural recursion
+
+To explicitly use structural recursion, a function definition can be annotated with a `termination_by structural` clause specifying the *decreasing parameter*:
+
+```lean (keep := false)
+def half : Nat → Nat
+  | 0 | 1 => 0
+  | n + 2 => half n + 1
+termination_by structural n => n
+```
+:::syntax Lean.Parser.Termination.terminationBy
+
+The grammar of the `termination_by structural` clause is
+
+```grammar
+termination_by structural $[$_:ident* =>]? $ident
+```
+where the identifiers before the optional `=>` can bring function parameters into scope that are not
+already bound in the declaration header.
+:::
+
+/-
+Possible bug in grammar: Here we write `$ident`, but verso pretty-prints it as `$term`, probably because
+the actual grammar is more flexible than we want to show here
+-/
+
+The type of the selected decreasing parameter must be an {tech}[inductive type]. If it is an indexed family, then all indices must be parameters of the function.
+
+:::example "Ineligible decreasing parameters"
+
+The decreasing parameter must have inductive type:
+
+```lean (error := true) (name := badnoindct) (keep := false)
+def bad (x : Nat → Nat) : Nat := bad (fun n => x (n+1))
+termination_by structural x
+```
+```leanOutput badnoindct
+cannot use specified parameter for structural recursion:
+  its type is not an inductive
+```
+
+If the decreasing parameter is an indexed family, all the indices must be variables:
+```lean (error := true) (name := badidx) (keep := false)
+inductive Fin' : Nat → Type where
+  | zero : Fin' (n+1)
+  | succ : Fin' n → Fin' (n+1)
+
+def bad (x : Fin' 100) : Nat := bad .zero
+termination_by structural x
+```
+```leanOutput badidx
+cannot use specified parameter for structural recursion:
+  its type Fin' is an inductive family and indices are not variables
+    Fin' 100
+```
+:::
+
+Futhermore, every recursive call of the functions must be on a *strict* sub-term of the decreasing
+parameter. The rules are as follows:
+
+* The decreasing parameter itself is a sub-term.
+* If the sub-term is the target of a `match` statement, then the pattern matched against that target is a sub-term.
+* If a constructor application is a sub-term, then its recursive arguments are strict sub-terms.
+* A strict sub-term is also a sub-term.
+
+In the following example, the decreasing parameter `n` is matched against the nested pattern `.succ (.succ n)`. Therefore `.succ (.succ n)` is a (non-strict) sub-term of `n`, and consequently  both `n` and `.succ n` are strict sub-terms, and the definition is accepted.
+
+```lean (keep := false)
+def fib : Nat → Nat
+  | 0 | 1 => 1
+  | .succ (.succ n) =>  fib n + fib (.succ n)
+termination_by structural n => n
+```
+
+NB: For clarity, this example uses `.succ n` and `.succ (.succ n)` instead of the equivalent `n+1` and `n+2`. This syntax is a special feature for `Nat`.
+
+:::example "Matching on complex expressions can prevent elaboration"
+
+In the following example, the decreasing parameter `n` is not directly the target of the `match` statement. Therefore, `n'` is not considered a subterm and the elaboration fails.
+
+```lean (error := true) (name := badtarget) (keep := false)
+def half (n : Nat) : Nat :=
+  match Option.some n with
+  | .some (n' + 2) => half n' + 1
+  | _ => 0
+termination_by structural n
+```
+```leanOutput badtarget
+failed to infer structural recursion:
+Cannot use parameter n:
+  failed to eliminate recursive application
+    half n'
+```
+
+NB: Using {tech}[well-founded recursion], and explicitly connecting the target to the pattern of the match, this definition can be accepted.
+
+```lean (keep := false)
+def half (n : Nat) : Nat :=
+  match h : Option.some n with
+  | .some (n' + 2) => half n' + 1
+  | _ => 0
+termination_by n
+decreasing_by simp_all; omega
+```
+
+Similarly, the following example fails: Alhough `tail xs` would reduce to a strict sub-term of `xs`, this is not visible to lean according to the rules above.
+
+```lean (error := true) (keep := false)
+def listLen : List α → Nat
+  | [] => 0
+  | xs => listLen xs.tail + 1
+termination_by structural xs => xs
+```
+
+:::
+
+
+:::example "Simultaneous Matching vs Matching Pairs for Structural Recursion"
+
+An important consequence of the strategies that are used to prove termination is that *simultaneous matching of two discriminants is not equivalent to matching a pair*.
+Simultaneous matching maintains the connection between the discriminants and the patterns, allowing the pattern matching to refine the types of the assumptions in the local context as well as the expected type of the {keywordOf Lean.Parser.Term.match}`match`.
+Essentially, the elaboration rules for {keywordOf Lean.Parser.Term.match}`match` treat the discriminants specially, and changing discriminants in a way that preserves the run-time meaning of a program does not necessarily preserve the compile-time meaning.
+
+This function that finds the minimum of two natural numbers is defined by structural recursion on its first parameter:
+```lean (keep := false)
+def min' (n k : Nat) : Nat :=
+  match n, k with
+  | 0, _ => 0
+  | _, 0 => 0
+  | n' + 1, k' + 1 => min' n' k' + 1
+termination_by structural n
+```
+
+Replacing the simultaneous pattern match on both parameters with a match on a pair causes termination analysis to fail:
+```lean (error := true) (name := noMin) (keep := false)
+def min' (n k : Nat) : Nat :=
+  match (n, k) with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min' n' k' + 1
+termination_by structural n
+```
+```leanOutput noMin
+failed to infer structural recursion:
+Cannot use parameter n:
+  failed to eliminate recursive application
+    min' n' k'
+```
+
+This is because the analysis only considers direct pattern matching on parameters when matching recursive calls to strictly-smaller argument values.
+Wrapping the discriminants in a pair breaks the connection.
+
+This function that finds the minimum of the two components of a pair can't be elaborated via structural recursion.
+```lean (keep := false) (error := true) (name := minpair)
+def min' (nk : Nat × Nat) : Nat :=
+  match nk with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min' (n', k') + 1
+termination_by structural nk
+```
+```leanOutput minpair
+failed to infer structural recursion:
+Cannot use parameter nk:
+  the type Nat × Nat does not have a `.brecOn` recursor
+```
+
+This is because the parameter's type, {name}`Prod`, is not recursive and thus its constructor has no recursive parameters that can be exposed by pattern-matching.
+
+This definition is accepted using {tech}[well-founded recursion], however:
+```lean (keep := false)
+def min' (nk : Nat × Nat) : Nat :=
+  match nk with
+  | (0, _) => 0
+  | (_, 0) => 0
+  | (n' + 1, k' + 1) => min' (n', k') + 1
+termination_by nk
+```
+:::
+
+# Mutual structural recursion
+
+TODO
+
+# Inferring structural recursion
+
+TODO
+
+# Elaboration using course-of-value recursion
+
+In this section, the construction used to elaborate structurally recursive functions is explained in more detail.
+
 {spliceContents Manual.Language.RecursiveDefs.Structural.RecursorExample}
-
-Recognizing structural recursion involves the following steps:
- 1. The function's parameters are divided into a _fixed prefix_ of parameters that do not vary in any recursive calls, and ordinary parameters that do.
- 2. The ordinary parameters are split into groups of parameters that, together, may constitute a structurally decreasing parameter. In this step, indices are grouped with the arguments whose types depend on them.
-
 
 The structural recursion analysis attempts to translate the recursive pre-definition into a use of the appropriate structural recursion constructions.
 At this step, pattern matching has already been translated into the use of matcher functions; these are treated specially by the termination checker.
@@ -286,128 +474,6 @@ The actual elaborator keeps track of the relationship between the parameter bein
 end
 ```
 
-For structural recursion to be detected, a parameter to the function must syntactically be a discriminant of a {keywordOf Lean.Parser.Term.match}`match`.
-This maintains the connection between the discriminant and the function parameter, allowing the course-of-values table to line up with the subterms of the original argument.
-This connection is checked syntactically: even simple transformations such as wrapping a discriminant and every pattern that matches it with {lean}`(·, ())` can cause elaboration to fail.
-The generalization step that constructs a suitable motive for the auxiliary matchers searches for *exact occurrences of the discriminant* in the context.
-
-
-```lean (show := false)
-section
-variable (n : Nat)
-```
-
-:::example "Failing Elaboration"
-This definition of {lean}`half` terminates, but this can't be checked by either structural or well-founded recursion.
-This is because the gratuitous tuple in the {tech}[match discriminant] breaks the connection between {lean}`n` and the patterns that match it.
-```lean (error := true) (name := badhalfmatch) (keep := false)
-def half (n : Nat) : Nat :=
-  match (n, ()) with
-  | (0, ()) | (1, ()) => 0
-  | (n' + 2, ()) => half n' + 1
-```
-```leanOutput badhalfmatch
-fail to show termination for
-  half
-with errors
-failed to infer structural recursion:
-Cannot use parameter n:
-  failed to eliminate recursive application
-    half n'
-
-
-failed to prove termination, possible solutions:
-  - Use `have`-expressions to prove the remaining goals
-  - Use `termination_by` to specify a different well-founded relation
-  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-n n' : Nat
-⊢ n' < n
-```
-
-The generalization step that constructs the motive for the auxiliary match functions doesn't connect {lean}`n` to its patterns, so the course-of-values table doesn't contain a suitable result of recursion.
-Similarly, well-founded recursion lacks the connection between the function's parameter and the pattern, though this can be fixed by adding a proposition to the context that states their equality.
-This extra information allows the proof automation for well-founded recursion to succeed.
-
-```lean
-def half (n : Nat) : Nat :=
-  match h : (n, ()) with
-  | (0, ()) | (1, ()) => 0
-  | (n' + 2, ()) =>
-    -- Here, h : (n, ()) = (n' + 2, ())
-    have : n = n' + 2 := by simp_all
-    half n' + 1
-```
-:::
-
-
-```lean (show := false)
-end
-```
-
-# Matching Pairs vs Simultaneous Matching
-
-An important consequence of the strategies that are used to prove termination is that *simultaneous matching of two discriminants is not equivalent to matching a pair*.
-Simultaneous matching maintains the connection between the discriminants and the patterns, allowing the pattern matching to refine the types of the assumptions in the local context as well as the expected type of the {keywordOf Lean.Parser.Term.match}`match`.
-Essentially, the elaboration rules for {keywordOf Lean.Parser.Term.match}`match` treat the discriminants specially, and changing discriminants in a way that preserves the run-time meaning of a program does not necessarily preserve the compile-time meaning.
-
-:::example "Simultaneous Matching vs Matching Pairs for Structural Recursion"
-This function that finds the minimum of two natural numbers is defined by structural recursion on its first parameter:
-```lean
-def min (n k : Nat) : Nat :=
-  match n, k with
-  | 0, _ => 0
-  | _, 0 => 0
-  | n' + 1, k' + 1 => min n' k' + 1
-termination_by structural n
-```
-
-Replacing the simultaneous pattern match on both parameters with a match on a pair causes termination analysis to fail:
-```lean (error := true) (name := noMin)
-def min' (n k : Nat) : Nat :=
-  match (n, k) with
-  | (0, _) => 0
-  | (_, 0) => 0
-  | (n' + 1, k' + 1) => min' n' k' + 1
-termination_by structural n
-```
-```leanOutput noMin
-failed to infer structural recursion:
-Cannot use parameter n:
-  failed to eliminate recursive application
-    min' n' k'
-```
-
-This is because the analysis only considers direct pattern matching on parameters when matching recursive calls to strictly-smaller argument values.
-Wrapping the discriminants in a pair breaks the connection.
-:::
-
-:::example "No Structural Recursion Over Pair Components"
-This function that finds the minimum of the two components of a pair can't be elaborated via structural recursion.
-```lean
-def min (nk : Nat × Nat) : Nat :=
-  match nk with
-  | (0, _) => 0
-  | (_, 0) => 0
-  | (n' + 1, k' + 1) => min (n', k') + 1
-termination_by structural nk
-```
-This is because the parameter's type's course-of-values recursor is used to justify the recursive definition, but the product type {name}`Prod` is not recursive and thus does not have a course-of-values recursor.
-This definition is accepted using {tech}[well-founded recursion], however:
-```lean
-def min (nk : Nat × Nat) : Nat :=
-  match nk with
-  | (0, _) => 0
-  | (_, 0) => 0
-  | (n' + 1, k' + 1) => min (n', k') + 1
-termination_by mk
-```
-:::
-
-
-
-
-# Mutual Structural Recursion
-
 ::: planned 56
-This section will describe the specification of the translation to recursors.
+The construction for mutually recursive functions ought to be explained here.
 :::
