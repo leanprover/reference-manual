@@ -84,10 +84,9 @@ cannot use specified parameter for structural recursion:
 Futhermore, every recursive call of the functions must be on a *strict* sub-term of the decreasing
 parameter. The rules are as follows:
 
-* The decreasing parameter itself is a sub-term.
-* If the sub-term is the target of a `match` statement, then the pattern matched against that target is a sub-term.
-* If a constructor application is a sub-term, then its recursive arguments are strict sub-terms.
-* A strict sub-term is also a sub-term.
+* The decreasing parameter itself is a (non-strict) sub-term.
+* If a sub-term is the target of a `match` statement, then the pattern matched against that target is a sub-term.
+* If a sub-term is a constructor applied to arguments, then its recursive arguments are strict sub-terms.
 
 In the following example, the decreasing parameter `n` is matched against the nested pattern `.succ (.succ n)`. Therefore `.succ (.succ n)` is a (non-strict) sub-term of `n`, and consequently  both `n` and `.succ n` are strict sub-terms, and the definition is accepted.
 
