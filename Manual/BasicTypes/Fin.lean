@@ -152,9 +152,9 @@ Heterogeneous operators such as {lean}`Fin.natAdd` do not have corresponding het
 
 {docstring Fin.log2}
 
-## Bitwise and Logical Operations
+## Bitwise Operations
 
-Typically, bitwise and logical operations on {name}`Fin` should be accessed using Lean's overloaded arithmetic notation, particularly via the instances {inst}`ShiftLeft (Fin n)`, {inst}`ShiftRight (Fin n)`, {inst}`AndOp (Fin n)`, {inst}`OrOp (Fin n)`, {inst}`Xor (Fin n)`
+Typically, bitwise operations on {name}`Fin` should be accessed using Lean's overloaded bitwise operators, particularly via the instances {inst}`ShiftLeft (Fin n)`, {inst}`ShiftRight (Fin n)`, {inst}`AndOp (Fin n)`, {inst}`OrOp (Fin n)`, {inst}`Xor (Fin n)`
 
 {docstring Fin.shiftLeft}
 

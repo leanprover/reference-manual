@@ -11,6 +11,7 @@ import Manual.BasicTypes.Nat
 import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
+import Manual.BasicTypes.UInt
 
 open Manual.FFIDocType
 
@@ -45,35 +46,7 @@ tag := "Int"
 
 {include 0 Manual.BasicTypes.Fin}
 
-# Fixed-Precision Integer Types
-%%%
-tag := "fixed-ints"
-%%%
-
-::: planned 105
- * Compile-time and run-time characteristics for {lean}`UInt8`, {lean}`UInt16`, {lean}`UInt32`, {lean}`UInt64`
- * Compile-time and run-time characteristics for {lean}`USize`
- * Compile-time and run-time characteristics for {lean}`Int8`, {lean}`Int16`, {lean}`Int32`, {lean}`Int64`
- * API reference
-:::
-
-{docstring USize}
-
-{docstring UInt8}
-
-{docstring Int8}
-
-{docstring UInt16}
-
-{docstring Int16}
-
-{docstring UInt32}
-
-{docstring Int32}
-
-{docstring UInt64}
-
-{docstring Int64}
+{include 0 Manual.BasicTypes.UInt}
 
 
 # Bitvectors

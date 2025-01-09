@@ -185,6 +185,7 @@ System.Platform
 PLift ULift Subtype Option List
 USize
 UInt8 UInt16 UInt32 UInt64
+ISize
 Int8 Int16 Int32 Int64
 Fin
 ```
