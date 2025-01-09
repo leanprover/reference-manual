@@ -76,28 +76,80 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` clause is present, then the indicated technique is the only one attempted.
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
-This section describes the four techniques in detail.
+This section describes the rules that govern recursive functions.
+After a description of mutual recursion, each of the four kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
 
-# Mutual recursion syntax
+# Mutual Recursion Syntax
 %%%
 tag := "mutual-syntax"
 %%%
 
-:::syntax command
-The general syntax for mutual recursion is
+Just as a recursive definition is one that mentions the name being defined in the body of the definition, mutually recursive definitions are definitions that may be recursive or mention one another.
+To use mutual recursion between multiple declarations, they must be placed in a {deftech}[mutual block].
+
+:::syntax command (title := "Mutual Declaration Blocks")
+The general syntax for mutual recursion is:
 
 ```grammar
 mutual
-  $[$declaration]*
+  $[$declaration:declaration]*
 end
 ```
 where the declarations must be definitions or theorems.
 :::
 
-After elaboration to (still recursive) definitions, and before translating recursion using the techniques above, Lean identifies the actually (mutually) recursive cliques among the definitions, and processes them separately and in dependency order.
+The declarations in a mutual block are not in scope in each others' signatures, but they are in scope in each others' bodies.
+Even though the names are not in scope in signatures, they will not be inserted as auto-bound implicit parameters.
 
+:::example "Mutual Block Scope"
+Names defined in a mutual block are not in scope in each others' signatures.
+
+```lean (error := true) (name := mutScope) (keep := false)
+mutual
+  abbrev NaturalNum : Type := Nat
+  def n : NaturalNum := 5
+end
+```
+```leanOutput mutScope
+unknown identifier 'NaturalNum'
+```
+
+Without the mutual block, the definition succeeds:
+```lean
+abbrev NaturalNum : Type := Nat
+def n : NaturalNum := 5
+```
+:::
+
+:::example "Mutual Block Scope and Automatic Implicits"
+Names defined in a mutual block are not in scope in each others' signatures.
+Nonetheless, they cannot be used as automatic implicit parameters:
+
+```lean (error := true) (name := mutScopeTwo) (keep := false)
+mutual
+  abbrev α : Type := Nat
+  def identity (x : α) : α := x
+end
+```
+```leanOutput mutScopeTwo
+unknown identifier 'α'
+```
+
+With a different name, the implicit parameter is automatically added:
+```lean
+mutual
+  abbrev α : Type := Nat
+  def identity (x : β) : β := x
+end
+```
+:::
+
+Elaborating recursive definitions always occurs at the granularity of mutual blocks, as if there were a singleton mutual block around every declaration that is not itself part of such a block.
 Local definitions introduced via {keywordOf Lean.Parser.Term.letrec}`let rec` and
- `where` are lifted out of their context, introducing parameters for captured free variables as necessary, and treated as if they were separate definitions within the `mutal` block as well. {TODO}[Explain this mechanism in more detail, here or in the term section.]
+ {keywordOf Lean.Parser.Command.declaration}`where` are lifted out of their context, introducing parameters for captured free variables as necessary, and treated as if they were separate definitions within the {keywordOf Lean.Parser.Command.mutual}`mutual` block as well. {TODO}[Explain this mechanism in more detail, here or in the term section.]
+Thus, helpers defined in a {keywordOf Lean.Parser.Command.declaration}`where` block may use mutual recursion both with one another and with the definition in which they occur, but they may not mention each other in their type signatures.
+
+After the first step of elaboration, in which definitions are still recursive, and before translating recursion using the techniques above, Lean identifies the actually (mutually) recursive cliques{TODO}[define this term, it's useful]  among the definitions in the mutual block and processes them separately and in dependency order.
 
 {include 0 Manual.Language.RecursiveDefs.Structural}
 
@@ -108,12 +160,6 @@ tag := "well-founded-recursion"
 
 ::: planned 57
 This section will describe the translation of {deftech}[well-founded recursion].
-:::
-
-# Controlling Reduction
-
-:::planned 58
-This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semi-reducible], and {deftech}[irreducible] definitions.
 :::
 
 # Partial and Unsafe Recursive Definitions
@@ -129,4 +175,10 @@ This section will describe `partial` and `unsafe` definitions:
  * What guarantees are there, and what aren't there?
  * How to bridge from unsafe to safe code?
 
+:::
+
+# Controlling Reduction
+
+:::planned 58
+This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semi-reducible], and {deftech}[irreducible] definitions.
 :::
