@@ -75,7 +75,7 @@ simp $_:optConfig $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
 :::
 
 In other words, an invocation of a simplification tactic takes the following modifiers, in order, all of which are optional:
- * A {ref "tactic-config"}[configuration options], which should the fields of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
+ * A {ref "tactic-config"}[configuration options], which should include the fields of {name}`Lean.Meta.Simp.Config` or {name}`Lean.Meta.DSimp.Config`, depending on whether the simplifier being invoked is a version of {tactic}`simp` or a version of {tactic}`dsimp`.
  * The {keywordOf Lean.Parser.Tactic.simp}`only` modifier excludes the default simp set, instead beginning with an empty{margin}[Technically, the simp set always includes {name}`eq_self` and {name}`iff_self` in order to discharge reflexive cases.] simp set.
  * The lemma list adds or removes lemmas from the simp set. There are three ways to specify lemmas in the lemma list:
    * `*`, which adds all assumptions in the proof state to the simp set
@@ -412,7 +412,7 @@ This is because additions to the default simp set may make {tactic}`simp` more p
 When {keywordOf Lean.Parser.Tactic.simp}`only` is specified, additional lemmas will not affect that invocation of the tactic.
 In practice, terminal uses of {tactic}`simp` are not nearly as likely to be broken by the addition of new simp lemmas, and when they are, it's easier to understand the issue and fix it.
 
-When working in non-terminal positions, {tactic}`simp?` (or one of the other simplification tactics with `?` in their names) can be used to generate an appropriate invocation with{keywordOf Lean.Parser.Tactic.simp}`only`.
+When working in non-terminal positions, {tactic}`simp?` (or one of the other simplification tactics with `?` in their names) can be used to generate an appropriate invocation with {keywordOf Lean.Parser.Tactic.simp}`only`.
 Just as {tactic}`apply?` or {tactic}`rw?` suggest the use of relevant lemmas, {tactic}`simp?` suggests an invocation of {tactic}`simp` with a minimal simp set that was used to reach the normal form.
 
 :::example "Using {tactic}`simp?`"
