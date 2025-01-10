@@ -75,6 +75,9 @@ def Block.grammar : Block where
 def Inline.keywordOf : Inline where
   name := `Manual.keywordOf
 
+def Inline.keyword : Inline where
+  name := `Manual.keyword
+
 structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
@@ -203,6 +206,37 @@ window.addEventListener("load", () => {
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
 
+@[role_expander keyword]
+def keyword : RoleExpander
+  | args, inlines => do
+    let () ← ArgParse.done.run args
+    let #[inl] := inlines
+      | throwError "Expected a single code argument"
+    let `(inline|code( $kw:str )) := inl
+      | throwErrorAt inl "Expected code literal with the keyword"
+
+    return #[← `(Doc.Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Doc.Inline.code $kw])]
+
+@[inline_extension keyword]
+def keyword.descr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+  toTeX := none
+  toHtml :=
+    open Verso.Output Html in
+    some <| fun goI _ info content => do
+      let .str kw := info
+        | Html.HtmlT.logError s!"Expected a JSON string for a plain keyword, got {info}"; content.mapM goI
+      pure {{<code class="plain-keyword">{{kw}}</code>}}
+
+  extraCss := [
+r#".plain-keyword {
+  font-weight: 500;
+}
+"#
+  ]
+
+
 partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : f α) : f (List α) :=
   ((· :: ·) <$> x <*> many x) <|> pure []
 
@@ -230,7 +264,7 @@ open Lean.Syntax in
 open GrammarTag in
 instance : Quote GrammarTag where
   quote
-    | keyword => mkCApp ``keyword #[]
+    | .keyword => mkCApp ``GrammarTag.keyword #[]
     | nonterminal x d => mkCApp ``nonterminal #[quote x, quote d]
     | fromNonterminal x d => mkCApp ``fromNonterminal #[quote x, quote d]
     | GrammarTag.error => mkCApp ``GrammarTag.error #[]

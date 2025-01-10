@@ -18,7 +18,8 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 :::example "Course-of-Values Tables"
 This definition is equivalent to {name}`List.below`:
 ```lean
-def List.below' {α : Type u} {motive : List α → Sort u} : List α → Sort (max 1 u)
+def List.below' {α : Type u} {motive : List α → Sort u} :
+    List α → Sort (max 1 u)
   | [] => PUnit
   | _ :: xs => motive xs ×' xs.below' (motive := motive)
 ```
@@ -42,7 +43,8 @@ inductive Tree (α : Type u) : Type u where
 
 It's corresponding course-of-values table contains the realizations of the motive for all subtrees:
 ```lean
-def Tree.below' {α : Type u} {motive : Tree α → Sort u} : Tree α → Sort (max 1 u)
+def Tree.below' {α : Type u} {motive : Tree α → Sort u} :
+    Tree α → Sort (max 1 u)
   | .leaf => PUnit
   | .branch left _val right =>
     motive left ×' motive right ×'

@@ -79,12 +79,12 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
 This section describes the rules that govern recursive functions.
 After a description of mutual recursion, each of the four kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
 
-# Mutual Recursion Syntax
+# Mutual Recursion
 %%%
 tag := "mutual-syntax"
 %%%
 
-Just as a recursive definition is one that mentions the name being defined in the body of the definition, mutually recursive definitions are definitions that may be recursive or mention one another.
+Just as a recursive definition is one that mentions the name being defined in the body of the definition, {deftech}_mutually recursive_ definitions are definitions that may be recursive or mention one another.
 To use mutual recursion between multiple declarations, they must be placed in a {deftech}[mutual block].
 
 :::syntax command (title := "Mutual Declaration Blocks")

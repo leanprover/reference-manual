@@ -72,6 +72,21 @@ structure LeanBlockConfig where
 def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanBlockConfig :=
   LeanBlockConfig.mk <$> .named `show .bool true <*> .named `keep .bool true <*> .named `name .name true <*> .named `error .bool true
 
+structure LeanInlineConfig extends LeanBlockConfig where
+  /-- The expected type of the term -/
+  type : Option StrLit
+
+def LeanInlineConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanInlineConfig :=
+  LeanInlineConfig.mk <$> LeanBlockConfig.parse <*> .named `type strLit true
+where
+  strLit : ValDesc m StrLit := {
+    description := "string literal containing an expected type",
+    get
+      | .str s => pure s
+      | other => throwError "Expected string, got {repr other}"
+  }
+
+
 open Manual.Meta.Lean.Scopes (getScopes setScopes runWithOpenDecls runWithVariables)
 
 private def abbrevFirstLine (width : Nat) (str : String) : String :=
@@ -267,12 +282,23 @@ where
 @[role_expander lean]
 def leanInline : RoleExpander
   | args, inlines => do
-    let config ← LeanBlockConfig.parse.run args
+    let config ← LeanInlineConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
     let `(inline|code( $term:str )) := arg
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
+
+    let expectedType ← config.type.mapM fun (s : StrLit) => do
+      match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
+      | .error e => throwErrorAt term e
+      | .ok stx => withEnableInfoTree false do
+        let t ← Elab.Term.elabType stx
+        Term.synthesizeSyntheticMVarsNoPostponing
+        let t ← instantiateMVars t
+        if t.hasExprMVar || t.hasLevelMVar then
+          throwErrorAt s "Type contains metavariables: {t}"
+        pure t
 
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
@@ -282,7 +308,7 @@ def leanInline : RoleExpander
         try
           Core.resetMessageLog
           let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
-            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
             Term.synthesizeSyntheticMVarsNoPostponing
             let _ ← Term.levelMVarToParam (← instantiateMVars e)
 
