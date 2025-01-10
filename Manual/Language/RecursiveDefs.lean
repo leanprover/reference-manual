@@ -121,7 +121,7 @@ def n : NaturalNum := 5
 ```
 :::
 
-:::example "Mutual Block Scope and Automatic Implicits"
+:::example "Mutual Block Scope and Automatic Implicit Parameters"
 Names defined in a mutual block are not in scope in each others' signatures.
 Nonetheless, they cannot be used as automatic implicit parameters:
 
