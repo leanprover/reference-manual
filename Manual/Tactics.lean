@@ -371,13 +371,12 @@ In this proof state, the universe level of `α` is unknown:
 ∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
   intros α x xs elem
 /--
-α : Type ?u.902
+α : Type ?u.891
 x : α
 xs : List α
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
-
 
 ```
 ::::
@@ -633,6 +632,7 @@ If the tactic fails on any of the {tech}[subgoals], then the whole {tactic}`<;>`
 ```setup
   intro x h
 ```
+
 
 {goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
 

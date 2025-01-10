@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.BasicTypes.Nat
+import Manual.BasicTypes.Int
 import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
@@ -32,17 +33,7 @@ Other types don't have special compiler support _per se_, but rely in important 
 
 {include 0 Manual.BasicTypes.Nat}
 
-# Integers
-%%%
-tag := "Int"
-%%%
-
-::: planned 104
- * Compile-time and run-time characteristics, and how they're inherited from {lean}`Nat`
- * API reference
-:::
-
-{docstring Int}
+{include 0 Manual.BasicTypes.Int}
 
 {include 0 Manual.BasicTypes.Fin}
 

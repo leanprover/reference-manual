@@ -911,6 +911,9 @@ There are two kinds of numeric literal: natural number literals and {deftech}[sc
 Both are overloaded via {tech key:="type class"}[type classes].
 
 ## Natural Numbers
+%%%
+tag := "nat-literals"
+%%%
 
 ```lean (show := false)
 section
