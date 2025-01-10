@@ -39,7 +39,7 @@ const dataToSearchableMap = (json, domainMappers) =>
         return acc;
       }
 
-      if (!acc[cur.searchKey]) {
+      if (!acc.hasOwnProperty(cur.searchKey)) {
         acc[cur.searchKey] = [];
       }
       acc[cur.searchKey].push(cur);

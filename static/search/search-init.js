@@ -12,7 +12,7 @@ const searchHTML = `<div id="search-wrapper">
         class="cb_edit"
         type="search"
         role="searchbox"
-        placeholder="Search"
+        placeholder="Index"
         aria-autocomplete="list"
         aria-expanded="false"
         aria-controls="cb1-listbox"
