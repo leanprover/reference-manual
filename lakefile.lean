@@ -7,7 +7,7 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"custom-head"
 require subverso from git "https://github.com/leanprover/subverso.git"@"main"
 
 package "verso-manual" where
