@@ -695,11 +695,6 @@ class SearchBox {
 
       case "Tab":
         this.close(true);
-        if (this.listboxHasVisualFocus) {
-          if (this.currentOption) {
-            this.setValue(resultToText(this.currentOption));
-          }
-        }
         break;
 
       case "Home":
