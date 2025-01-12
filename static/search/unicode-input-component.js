@@ -237,6 +237,7 @@ export class InputAbbreviationRewriter {
         await this.rewriter.replaceAllTrackedAbbreviations();
         this.updateState();
         ev.preventDefault();
+        ev.stopImmediatePropagation();
       }
     });
   }

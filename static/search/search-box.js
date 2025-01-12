@@ -713,7 +713,7 @@ class SearchBox {
     }
 
     if (eventHandled) {
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       event.preventDefault();
     }
   }
