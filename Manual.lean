@@ -408,6 +408,10 @@ Array.qpartition
 ```
 
 ```exceptions
+Option.toLOption
+```
+
+```exceptions
 Subarray.forInUnsafe.loop
 Subarray.as
 Subarray.casesOn

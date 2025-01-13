@@ -12,6 +12,7 @@ import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
+import Manual.BasicTypes.Option
 
 open Manual.FFIDocType
 
@@ -359,16 +360,7 @@ end ShortCircuit
 {docstring Bool.toNat}
 
 
-# Optional Values
-%%%
-tag := "option"
-%%%
-
-:::planned 110
-Describe {name}`Option`, including the default coercions and its API.
-:::
-
-{docstring Option}
+{include 0 Manual.BasicTypes.Option}
 
 # Tuples
 %%%
