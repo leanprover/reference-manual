@@ -26,7 +26,7 @@ tag := "empty"
 The empty type {name}`Empty` represents impossible values.
 It is an inductive type with no constructors whatsoever.
 
-While the trivial type {name}`Unit`, which has a single parameterless constructor, can be used to model computations where a result is unwanted or uninteresting, {name}`Empty` can be used in situations where no computation should be possible at all.
+While the trivial type {name}`Unit`, which has a single constructor that takes no parameters, can be used to model computations where a result is unwanted or uninteresting, {name}`Empty` can be used in situations where no computation should be possible at all.
 Instantiating a polymorphic type with {name}`Empty` can mark some of its constructors—those with a parameter of the corresponding type—as impossible; this can rule out certain code paths that are not desired.
 
 The presence of a term with type {name}`Empty` indicates that an impossible code path has been reached.
