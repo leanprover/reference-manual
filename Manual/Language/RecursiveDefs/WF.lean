@@ -20,7 +20,7 @@ tag := "well-founded-recursion"
 
 Functions defined by {deftech}_well-founded recursion_ are those in which each recursive call has arguments that are _smaller_ (in a suitable sense) than the functions' parameters.
 
-In contrast to {ref "structural-recursion"}[stuctural recursion], which applies syntactic requirements, for well-founded recursion the requirements are _semantic_. This allows a larger class of recursive definitions.
+In contrast to {ref "structural-recursion"}[structural recursion], which applies syntactic requirements, for well-founded recursion the requirements are _semantic_. This allows a larger class of recursive definitions.
 
 
 To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_termination argument_.
