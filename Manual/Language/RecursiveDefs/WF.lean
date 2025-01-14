@@ -207,7 +207,7 @@ This tactic is intended to be extended by further heuristics using {keywordOf Le
 
 :::example "No Backtracking of Lexicographic Order"
 
-A classic example of a recursive function that needs a more complex termination argument is the “Ackermann function”:
+A classic example of a recursive function that needs a more complex termination argument is the Ackermann function:
 
 ```lean (keep := false)
 def ack : Nat → Nat → Nat
