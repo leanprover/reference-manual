@@ -9,8 +9,6 @@ open System (FilePath)
 
 require verso from git "https://github.com/leanprover/verso.git"@"main"
 require subverso from git "https://github.com/leanprover/subverso.git"@"main"
-require MD4Lean from git "https://github.com/nomeata/md4lean"@"parser"
-
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
