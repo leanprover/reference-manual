@@ -207,7 +207,7 @@ This tactic is intended to be extended by further heuristics using {keywordOf Le
 
 :::example "No Backtracking of Lexicographic Order"
 
-A classic example of a recursive function that needs a more complex termination argument is the Ackermann function:
+A classic example of a recursive function that needs a more complex termination argument is the “Ackermann function”:
 
 ```lean (keep := false)
 def ack : Nat → Nat → Nat
@@ -219,7 +219,7 @@ termination_by m n => (m, n)
 
 The termination argument is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameter. The default {tactic}`decreasing_tactic` can handle this.
 
-In particular, note that the third recursive call has a second argument that is smaller than the second paramter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
+In particular, note that the third recursive call has a second argument that is smaller than the second parameter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
 
 ```signature
 Prod.Lex.right {α β} {ra : α → α → Prop} {rb : β → β → Prop}
@@ -294,7 +294,7 @@ Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
 
 If using any of the measures, or a tuple thereof, cause all proof obligations to be discharged by {tactic}`decreasing_trivial` or the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, that is used as the termination argument.
 
-To avoid the combinatoric explosion of trying all tuples of measures, Lean investigates for each measure and each recursive call whether that measure is decreasing or strictly decreasing, tabulates these results and picks a suitable tuple based on that table. This implementation strategy shows up in the error message when no termination argument could be found.
+To avoid the combinatorial explosion of trying all tuples of measures, Lean investigates for each measure and each recursive call whether that measure is decreasing or strictly decreasing, tabulates these results and picks a suitable tuple based on that table. This implementation strategy shows up in the error message when no termination argument could be found.
 {TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
 by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
 
@@ -324,7 +324,7 @@ Please use `termination_by` to specify a decreasing measure.
 
 This message conveys the following facts:
 
-* In the first recusive call, all arguments are (provably) equal to the parameters
+* In the first recursive call, all arguments are (provably) equal to the parameters
 * In the second recursive call, the first argument is equal and the second argument is provably smaller than the second parameter. The third parameter was not investigated for this recursive call, because it was not necessary to determine that no suitable termination argument exists.
 * In the third recursive cal, the first argument decreases strictly.
 
@@ -340,13 +340,13 @@ TODO: Explain the purpose of the complex measure, example of a typical array ind
 
 :::example "Inference and decreasing tactic"
 
-TODO: Point out that infernce applies the tactic on each goal individually, but then the actual construction on all goals, including lexicographic ordering.
+TODO: Point out that inference applies the tactic on each goal individually, but then the actual construction on all goals, including lexicographic ordering.
 
 :::
 
 :::example "Inference too powerful"
 
-Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument hat would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharing the failing tactic:
+Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument hat would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
 
 ```lean (keep := false) (error := true) (name := badInfer)
 def synack : Nat → Nat → Nat
