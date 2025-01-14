@@ -280,4 +280,93 @@ The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex
 
 # Inferring well-founded recursion
 
+If a recursive function definition does not indicate a termination argument, Lean will attempt to infer one.
+
+If neither {keywordOf Lean.Parser.Command.declaration}`termination_by` nor {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is provided, Lean will try to {ref "inferring-structural-recursion"}[infer structural recursion], before attempting well-founded recursion. If a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is present, only well-founded recursion is attempted.
+
+To infer a suitable termination argument, Lean considers a number of {deftech}_termination measures_, which are termination arguments of type {name}`Nat`, and then considers all tuples of these measures.
+
+The termination measures considered are
+
+* all parameters whose type have a with a non-trivial {name}`SizeOf` instance
+* the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
+Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
+
+If using any of the measures, or a tuple thereof, cause all proof obligations to be discharged by {tactic}`decreasing_trivial` or the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, that is used as the termination argument.
+
+To avoid the combinatoric explosion of trying all tuples of measures, Lean investigates for each measure and each recursive call whether that measure is decreasing or strictly decreasing, tabulates these results and picks a suitable tuple based on that table. This implementation strategy shows up in the error message when no termination argument could be found.
+{TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
+by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
+
+:::example "Termination failure"
+
+If we omit the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause, Lean attempts to infer termination, and if it fails prints the table mentioned above. We include a  {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause simply to prevent Lean from also attempting structural recursion, to keep the error message to the point.
+
+```lean (error := true) (keep := false) (name := badwf)
+def f : (n m l : Nat) → Nat
+  | n+1, m+1, l+1 => [
+      f (n+1) (m+1) (l+1),
+      f (n+1) (m-1) (l),
+      f (n)   (m+1) (l) ].sum
+  | _, _, _ => 0
+decreasing_by all_goals decreasing_tactic
+```
+```leanOutput badwf (whitespace := lax)
+Could not find a decreasing measure.
+The arguments relate at each recursive call as follows:
+(<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
+            n m l
+1) 308:6-25 = = =
+2) 309:6-23 = < _
+3) 310:6-23 < _ _
+Please use `termination_by` to specify a decreasing measure.
+```
+
+This message conveys the following facts:
+
+* In the first recusive call, all arguments are (provably) equal to the parameters
+* In the second recursive call, the first argument is equal and the second argument is provably smaller than the second parameter. The third parameter was not investigated for this recursive call, because it was not necessary to determine that no suitable termination argument exists.
+* In the third recursive cal, the first argument decreases strictly.
+
+To investigate why these termination proofs failed it is recommended to write the expected termination argument using {keywordOf Lean.Parser.Command.declaration}`termination_by`. This will surface the messages from the failing tactic.
+
+:::
+
+:::example "Array index idiom"
+
+TODO: Explain the purpose of the complex measure, example of a typical array index iterating function.
+
+:::
+
+:::example "Inference and decreasing tactic"
+
+TODO: Point out that infernce applies the tactic on each goal individually, but then the actual construction on all goals, including lexicographic ordering.
+
+:::
+
+:::example "Inference too powerful"
+
+Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument hat would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharing the failing tactic:
+
+```lean (keep := false) (error := true) (name := badInfer)
+def synack : Nat → Nat → Nat
+  | 0, n => n + 1
+  | m + 1, 0 => synack m 1
+  | m + 1, n + 1 => synack m (synack (m / 2 + 1) n)
+decreasing_by all_goals decreasing_tactic
+```
+```leanOutput badInfer
+failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+case h
+m n : Nat
+⊢ m / 2 + 1 < m + 1
+```
+
+:::
+
+
+
 # Mutual recursion
