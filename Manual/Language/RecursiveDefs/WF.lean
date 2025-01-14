@@ -207,7 +207,74 @@ This tactic is intended to be extended by further heuristics using {keywordOf Le
 
 :::example "No Backtracking of Lexicographic Order"
 
-TODO
+A classic example of a recursive function that needs a more complex termination argument is the Ackermann function:
+
+```lean (keep := false)
+def ack : Nat → Nat → Nat
+  | 0, n => n + 1
+  | m + 1, 0 => ack m 1
+  | m + 1, n + 1 => ack m (ack (m + 1) n)
+termination_by m n => (m, n)
+```
+
+The termination argument is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameter. The default {tactic}`decreasing_tactic` can handle this.
+
+In particular, note that the third recursive call has a second argument that is smaller than the second paramter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
+
+```signature
+Prod.Lex.right {α β} {ra : α → α → Prop} {rb : β → β → Prop}
+  (a : α) {b₁ b₂ : β}
+  (h : rb b₁ b₂) :
+  Prod.Lex ra rb (a, b₁) (a, b₂)
+```
+
+It fails, however, with the following modified function definition, where the third recursive call's first argument is smaller or equal to the first parameter:
+
+```lean (keep := false) (error := true) (name := synack)
+def synack : Nat → Nat → Nat
+  | 0, n => n + 1
+  | m + 1, 0 => synack m 1
+  | m + 1, n + 1 => synack m (synack (m / 2 + 1) n)
+termination_by m n => (m, n)
+```
+```leanOutput synack (whitespace := lax)
+failed to prove termination, possible solutions:
+     - Use `have`-expressions to prove the remaining goals
+     - Use `termination_by` to specify a different well-founded relation
+     - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+case h
+m n : Nat
+⊢ m / 2 + 1 < m + 1
+```
+
+Because {name}`Prod.Lex.right` as not applicable, the tactic used {name}`Prod.Lex.left`, which resulted in the unprovable goal above.
+
+This function definition may require a manual proof that uses the more general theorem {name}`Prod.Lex.right'`, which allows the first component of the tuple (which has to be a {name}`Nat`) to be less or equal:
+```signature
+Prod.Lex.right' {β} (rb : β → β → Prop)
+  {a₂ : Nat} {b₂ : β} {a₁ : Nat} {b₁ : β}
+  (h₁ : a₁ ≤ a₂) (h₂ : rb b₁ b₂) :
+  Prod.Lex Nat.lt rb (a₁, b₁) (a₂, b₂)
+```
+
+```lean (keep := false)
+def synack : Nat → Nat → Nat
+  | 0, n => n + 1
+  | m + 1, 0 => synack m 1
+  | m + 1, n + 1 => synack m (synack (m / 2 + 1) n)
+termination_by m n => (m, n)
+decreasing_by
+  · apply Prod.Lex.left
+    decreasing_trivial
+  -- the next goal corresponds to the third recursive call
+  · apply Prod.Lex.right'
+    · omega
+    · omega
+  · apply Prod.Lex.left
+    omega
+```
+
+The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex.right'` because it would require backtracking if it fails.
 
 :::
 
