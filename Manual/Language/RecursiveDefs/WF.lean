@@ -79,9 +79,9 @@ Once a {tech}[termination argument] is specified and its {tech}[well-founded rel
 
 The proof obligation is of the form `g a₁ a₂ … ≺ g p₁ p₂ …`, where
  * `g` is the termination argument,
- *  `≺` the inferred well-founded relation,
- * `a₁ a₂ …` the arguments of the recursive call and
- * `p₁ p₂ …` the parameters of the function.
+ *  `≺` is the inferred well-founded relation,
+ * `a₁ a₂ …` are the arguments of the recursive call and
+ * `p₁ p₂ …` are the parameters of the function definition.
 
 The context of the proof obligation is the context of the recursive call. In particular, local assumptions (such as introduced by `if h : _`, `match h : _ with ` or `have`) are available. If a function parameter is the {tech key:="match discriminant"}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression, then in the proof obligation this parameter is refined to the matched pattern.
 
@@ -182,6 +182,52 @@ unsolved goals
 ```
 :::
 
+:::example "Nested Recursion in Higher-order Functions"
+
+When recursive calls are nested in higher-order functions, sometimes the function definition has to be adjusted so that the termination proof obligations can be discharged. This often happens when defining functions recursively over {ref "nested-inductive-types"}[nested inductive types], such as the following tree structure:
+
+```lean
+structure Tree where
+  children : List Tree
+```
+
+A naive attempt to define a recursive function over this data structure will fail:
+```lean (keep := false) (name := nestedBad) (error := true)
+def Tree.depth (t : Tree) : Nat :=
+  let depths := t.children.map (fun c => Tree.depth c)
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+```
+```leanOutput nestedBad
+failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+t c : Tree
+⊢ sizeOf c < sizeOf t
+```
+
+The shown proof obligation is not provable, as nothing ties `c` to `t`. Lean does not see that the {name}`List.map` function applies its function arguments only to elements of the given list.
+
+Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that `c` is indeed an element of the list `t.children`. This can be achieved by annotating the elements of that list with a proof that they are in the list, using the function {name}`List.attach`, and bringing this proof into scope in the function passed to `List.map`:
+
+```lean (keep := false)
+def Tree.depth (t : Tree) : Nat :=
+  let depths := t.children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+decreasing_by
+  decreasing_tactic
+```
+
+Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption `c ∈ t.children`, which suffices for {tactic}`decreasing_tactic` to go through.
+
+:::
+
 ::::TODO
 
 :::example "Nested recursive calls and subtypes"
@@ -197,7 +243,7 @@ I wanted to include a good example where recursive calls are nested inside each 
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
 
 ::::TODO
-Below docstring and manual prose is appended. Can I use `:::tactic` and only show my text, ignoring the docstring? (If only until this text can migrate to the docstring?)
+Below the manual prose I included is appended to the docstring. Can I use `:::tactic` and only show my text, ignoring the docstring? (If only until the docstring is massaged to work both here and on its own?)
 ::::
 
 :::tactic "decreasing_tactic"
