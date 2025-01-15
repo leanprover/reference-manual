@@ -64,8 +64,6 @@ Additionally, we will be adding missing API reference documentation and revising
 
 {include 0 Manual.Terms}
 
-{include 0 Manual.Language.RecursiveDefs}
-
 {include 0 Manual.Classes}
 
 {include 0 Manual.Monads}

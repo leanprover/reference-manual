@@ -580,6 +580,9 @@ scoped
 Describe {deftech}_axioms_ in detail
 :::
 
+{include 0 Manual.Language.RecursiveDefs}
+
+
 # Attributes
 %%%
 tag := "attributes"
