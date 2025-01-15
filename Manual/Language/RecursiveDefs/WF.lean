@@ -437,7 +437,7 @@ end
 
 # Theory and construction
 
-This section gives a very brief glimpse into the construction well-founded recursion, which may surface ocassionally.
+This section gives a very brief glimpse into the construction well-founded recursion, which may surface occasionally.
 
 The elaboration of functions defined by well-founded recursion is based on the {name}`WellFounded.fix` operator.
 

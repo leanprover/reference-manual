@@ -48,6 +48,6 @@ This message conveys the following facts:
 * In the second recursive call, the first argument is equal and the second argument is provably smaller than the second parameter. The third parameter was not investigated for this recursive call, because it was not necessary to determine that no suitable termination argument exists.
 * In the third recursive call, the first argument decreases strictly, and the other arguments were not looked at.
 
-To investigate why these termination proofs failed it is recommended to explicity indicate the expected termination argument using {keywordOf Lean.Parser.Command.declaration}`termination_by`. This will surface the messages from the failing tactic.
+To investigate why these termination proofs failed it is recommended to explicitly indicate the expected termination argument using {keywordOf Lean.Parser.Command.declaration}`termination_by`. This will surface the messages from the failing tactic.
 
 :::
