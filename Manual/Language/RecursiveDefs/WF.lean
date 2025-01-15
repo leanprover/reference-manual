@@ -7,6 +7,7 @@ Author: Joachim Breitner
 import VersoManual
 
 import Manual.Meta
+import Manual.Language.RecursiveDefs.WF.GuessLexExample
 
 open Manual
 open Verso.Genre
@@ -177,6 +178,12 @@ unsolved goals
 ```
 :::
 
+:::example "Nested recursive calls and subtypes"
+
+TODO: I wanted to include a good example where recursive calls are nested inside each other, and one likely needs to introduce a subtype in the result to make it go through. But can't think of something nice right now.
+
+:::
+
 # Default termination proof tactic
 
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used, and applied to each proof obligation separately.
@@ -265,7 +272,7 @@ def synack : Nat → Nat → Nat
 termination_by m n => (m, n)
 decreasing_by
   · apply Prod.Lex.left
-    decreasing_trivial
+    omega
   -- the next goal corresponds to the third recursive call
   · apply Prod.Lex.right'
     · omega
@@ -279,6 +286,9 @@ The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex
 :::
 
 # Inferring well-founded recursion
+%%%
+tag := "inferring-well-founded-recursion"
+%%%
 
 If a recursive function definition does not indicate a termination argument, Lean will attempt to infer one.
 
@@ -298,49 +308,58 @@ To avoid the combinatorial explosion of trying all tuples of measures, Lean inve
 {TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
 by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
 
-:::example "Termination failure"
+{spliceContents Manual.Language.RecursiveDefs.WF.GuessLexExample}
 
-If we omit the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause, Lean attempts to infer termination, and if it fails prints the table mentioned above. We include a  {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause simply to prevent Lean from also attempting structural recursion, to keep the error message to the point.
-
-```lean (error := true) (keep := false) (name := badwf)
-def f : (n m l : Nat) → Nat
-  | n+1, m+1, l+1 => [
-      f (n+1) (m+1) (l+1),
-      f (n+1) (m-1) (l),
-      f (n)   (m+1) (l) ].sum
-  | _, _, _ => 0
-decreasing_by all_goals decreasing_tactic
-```
-```leanOutput badwf (whitespace := lax)
-Could not find a decreasing measure.
-The arguments relate at each recursive call as follows:
-(<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
-            n m l
-1) 308:6-25 = = =
-2) 309:6-23 = < _
-3) 310:6-23 < _ _
-Please use `termination_by` to specify a decreasing measure.
-```
-
-This message conveys the following facts:
-
-* In the first recursive call, all arguments are (provably) equal to the parameters
-* In the second recursive call, the first argument is equal and the second argument is provably smaller than the second parameter. The third parameter was not investigated for this recursive call, because it was not necessary to determine that no suitable termination argument exists.
-* In the third recursive call, the first argument decreases strictly, and the other arguments were not looked at.
-
-To investigate why these termination proofs failed it is recommended to write the expected termination argument using {keywordOf Lean.Parser.Command.declaration}`termination_by`. This will surface the messages from the failing tactic.
-
-:::
 
 :::example "Array index idiom"
 
-TODO: Explain the purpose of the complex measure, example of a typical array index iterating function.
+The purpose of considering expressions of the form `e₂ - e₁` as measures is to support the common idiom of counting up to some upper bound, in particular when traversing arrays in possibly interesting ways. In the following function, which performs binary search on a sorted array, this heuristic helps Lean to find the `j - i` measure.
+
+```lean (keep := false)
+def binarySearch (x : Int) (xs : Array Int) : Option Nat :=
+  go 0 xs.size
+where
+  go (i j : Nat) (hj : j ≤ xs.size := by omega) :=
+    if h : i < j then
+      let mid := (i + j) / 2
+      let y := xs[mid]
+      if x = y then
+        some mid
+      else if x < y then
+        go i mid
+      else
+        go (mid + 1) j
+    else
+      none
+  termination_by?
+```
 
 :::
 
 :::example "Inference and decreasing tactic"
 
-TODO: Point out that inference applies the tactic on each goal individually, but then the actual construction on all goals, including lexicographic ordering.
+The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is used slightly differently when inferring the termination argument, and in the actual termination proof.
+
+* During inference, it is applied to a _single_ goal attempting to prove `<` or `≤` on {name}`Nat`.
+* During the termination proof, it is applied to possibly goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
+
+A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and would work successfully with an explicit termination argument will cause inference of the termination argument to fail:
+
+```lean (keep := false) (error := true)
+def ack : Nat → Nat → Nat
+  | 0, n => n + 1
+  | m + 1, 0 => ack m 1
+  | m + 1, n + 1 => ack m (ack (m + 1) n)
+decreasing_by
+  · apply Prod.Lex.left
+    omega
+  · apply Prod.Lex.right
+    omega
+  · apply Prod.Lex.left
+    omega
+```
+
+It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause whenever an explicit {keywordOf Lean.Parser.Command.declaration}`decreasing_by` proof is given, and there is more than one possible termination measure.
 
 :::
 
@@ -367,6 +386,57 @@ m n : Nat
 
 :::
 
+# Mutual well-founded recursion
+%%%
+tag := "mutual-well-founded-recursion"
+%%%
 
+Lean supports the definition of {tech}[mutually recursive] functions using well-founded recursion.
+Mutual recursion may be introduced using a {tech}[mutual block], but it also results from {keywordOf Lean.Parser.Term.letrec}`let rec` expressions and {keywordOf Lean.Parser.Command.declaration}`where` blocks.
+The rules for mutual well-founded recursion are applied to a group of actually mutually recursive, lifted definitions, that results from the {ref "mutual-syntax"}[elaboration steps] for mutual groups.
 
-# Mutual recursion
+If any function in the mutual group has {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, well-founded recursion is attempted.
+
+If a termination argument is specified using {keywordOf Lean.Parser.Command.declaration}`termination_by` for any function, then all functions must specify a termination argument, and they have to have the same type.
+
+If no termination argument is specified, the termination argument is {ref "inferring-well-founded-recursion"}[inferred, as described above]. In the case of mutual recursion, a third class of measures is considered during inference, namely for each function in the mutual group the measure that is `1` for that function and `0` for the others. This allows Lean to order the functions so that some calls from one function to another are allowed even if the parameters do not decrease.
+
+:::example "Mutual recursion without parameter decrease"
+
+In the following mutual function definitions, the parameter does not decrease in the call from `f` to `g`. Still, the definition is accepted by ordering the functions themselves:
+
+```lean (keep := false)
+mutual
+def f : (n : Nat) → Nat
+  | 0 => 0
+  | n+1 => g n
+termination_by?
+
+def g (n : Nat) : Nat := (f n) + 1
+termination_by?
+end
+```
+
+:::
+
+# Theory and construction
+
+This section gives a very brief glimpse into the construction well-founded recursion, which may surface ocassionally.
+
+The elaboration of functions defined by well-founded recursion is based on the {name}`WellFounded.fix` operator.
+
+{docstring WellFounded.fix}
+
+The type `α` is instantiated with the function's (varying) parameters, packed together using {name}`PSigma`. The {name}`WellFounded` relation is constructed from the {tech}[termination argument] via {name}`invImage`.
+
+The function's body is passed to {name}`WellFounded.fix`, with parameters suitable packed and upacked, and recursive calls are replaced with a call to the value provided by {name}`WellFounded.fix`. The termination proofs generated by the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` are inserted in the right place.
+
+Finally, the equational and unfolding theorems for the recursive function are proved from {name}`WellFounded.fix_eq` and undoing the argument mangling.
+
+In the case of mutual recursion, an equivalent non-mutual function is constructed by combinding the function's arguments using {name}`PSum`, and pattern-matching on that sum type in the result type and the body.
+
+The definition of {name}`WellFounded` builds on the notion of _accessible elements_ of the relation:
+
+{docstring WellFounded}
+
+{docstring Acc}
