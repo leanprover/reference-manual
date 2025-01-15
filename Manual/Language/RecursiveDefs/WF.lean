@@ -21,14 +21,13 @@ tag := "well-founded-recursion"
 
 Functions defined by {deftech}_well-founded recursion_ are those in which each recursive call has arguments that are _smaller_ (in a suitable sense) than the functions' parameters.
 
-In contrast to {ref "structural-recursion"}[structural recursion], which applies syntactic requirements, for well-founded recursion the requirements are _semantic_. This allows a larger class of recursive definitions.
-
+In contrast to {ref "structural-recursion"}[structural recursion], which has syntactic requirements, for well-founded recursion the requirements are _semantic_. This allows a larger class of recursive definitions to be accepted.
 
 To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_termination argument_.
 
 :::syntax Lean.Parser.Termination.terminationBy (title := "Explicit Well-Founded Recursion")
 
-The `termination_by` clause introduces the termination argument.
+The {keywordOf Lean.Parser.Command.declaration}`termination_by` clause introduces the termination argument.
 
 ```grammar
 termination_by $[$_:ident* =>]? $term
@@ -38,7 +37,7 @@ The identifiers before the optional `=>` can bring function parameters into scop
 already bound in the declaration header, and the mandatory term must indicate one of the function's parameters, whether introduced in the header or locally in the clause.
 :::
 
-The termination argument's type must be equipped with a {tech}_well-founded relation_, which determines when function arguments are to be considered _smaller_.
+The termination argument's type must be equipped with a {tech}_well-founded relation_, which determines when function arguments are considered _smaller_.
 
 # Well-founded relations
 
@@ -50,14 +49,14 @@ In Lean, types that are equipped with a canonical well-founded relation are inst
 
 The most important instances are
 
-* {name}[`Nat`], ordered by `<`
+* {name}[`Nat`], ordered by `<`.
 
-* {name}[`Prod`], ordered lexicographically: `(a₁, b₁) ≺ (a₂,b₂)` if and only if `a₁ ≺ a₂` or `a₁ = a₂` and `b₁ ≺ b₂`.
+* {name}[`Prod`], ordered lexicographically: `(a₁, b₁) ≺ (a₂, b₂)` if and only if `a₁ ≺ a₂` or `a₁ = a₂` and `b₁ ≺ b₂`.
 
 * Every type that is an instance of the {name}`SizeOf` type class, which provides a method {name}`SizeOf.sizeOf`, has a well-founded order defined by `x₁ ≺ x₂` if and only if `sizeOf x₁ < sizeOf x₂`. For {tech}[inductive types], a `SizeOf` instance is automatically derived by lean.
 
 
-  Note that there exists a low-priority instance {name}`instSizeOfDefault` that provides a `sizeOf` instance for any type, and always returning `0`. If this instance is picked up for well-founded recursion, a termination proof will not be possible.
+  Note that there exists a low-priority instance {name}`instSizeOfDefault` that provides a `sizeOf` instance for any type, and always returns `0`. If this instance is picked up for well-founded recursion, a termination proof will not be possible.
 
   :::example "Default Size Instance"
 
@@ -76,10 +75,15 @@ The most important instances are
 
 # Termination proofs
 
-Once a {tech}[termination argument] is specified and it's {tech}[well-founded relation] is inferred, Lean determines the termination proof obligation for every recursive call.
+Once a {tech}[termination argument] is specified and its {tech}[well-founded relation] is inferred, Lean determines the termination proof obligation for every recursive call.
 
-The proof obligation is of the form `h a₁ a₂ … ≺ h p₁ p₂ …`, where `h` is the termination argument, `≺` the inferred well-founded relation , `a₁ a₂ …` the arguments of the recursive call and `p₁ p₂ …` the parameters of the function. The context of the proof obligation is the context of the recursive call. In particular, local assumptions (such as introduced by `if h : _`, `match h : _ with ` or `have`) are available. If a function parameter is the {tech key:="match discriminant"}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression, then this parameter is refined to the matched pattern in the proof obligation.
+The proof obligation is of the form `g a₁ a₂ … ≺ g p₁ p₂ …`, where
+ * `g` is the termination argument,
+ *  `≺` the inferred well-founded relation,
+ * `a₁ a₂ …` the arguments of the recursive call and
+ * `p₁ p₂ …` the parameters of the function.
 
+The context of the proof obligation is the context of the recursive call. In particular, local assumptions (such as introduced by `if h : _`, `match h : _ with ` or `have`) are available. If a function parameter is the {tech key:="match discriminant"}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression, then in the proof obligation this parameter is refined to the matched pattern.
 
 All proof obligations are passed as separate goals to the tactic proof specified in the in the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, which comes after the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause..
 
@@ -109,7 +113,7 @@ unsolved goals
    ⊢ n - 2 < n
 ```
 
-Here, the termination argument is simply the parameter itself, and the well-founded order is the less-then relation on Natural numbers. The first proof goal requires the user to prove that the argument of the first recursive call, namely `n - 1`, is strictly smaller than the functions' parameter, `n`.
+Here, the termination argument is simply the parameter itself, and the well-founded order is the less-than relation on natural numbers. The first proof goal requires the user to prove that the argument of the first recursive call, namely `n - 1`, is strictly smaller than the function's parameter, `n`.
 
 These termination proofs can be easily discharged using the {tactic}`omega` tactic.
 
@@ -178,15 +182,23 @@ unsolved goals
 ```
 :::
 
+::::TODO
+
 :::example "Nested recursive calls and subtypes"
 
-TODO: I wanted to include a good example where recursive calls are nested inside each other, and one likely needs to introduce a subtype in the result to make it go through. But can't think of something nice right now.
+I wanted to include a good example where recursive calls are nested inside each other, and one likely needs to introduce a subtype in the result to make it go through. But can't think of something nice and natural right now.
 
 :::
 
+::::
+
 # Default termination proof tactic
 
-If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used, and applied to each proof obligation separately.
+If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
+
+::::TODO
+Below docstring and manual prose is appended. Can I use `:::tactic` and only show my text, ignoring the docstring? (If only until this text can migrate to the docstring?)
+::::
 
 :::tactic "decreasing_tactic"
 
@@ -224,7 +236,7 @@ def ack : Nat → Nat → Nat
 termination_by m n => (m, n)
 ```
 
-The termination argument is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameter. The default {tactic}`decreasing_tactic` can handle this.
+The termination argument is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameters. The default {tactic}`decreasing_tactic` can handle this.
 
 In particular, note that the third recursive call has a second argument that is smaller than the second parameter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
 
@@ -235,7 +247,7 @@ Prod.Lex.right {α β} {ra : α → α → Prop} {rb : β → β → Prop}
   Prod.Lex ra rb (a, b₁) (a, b₂)
 ```
 
-It fails, however, with the following modified function definition, where the third recursive call's first argument is smaller or equal to the first parameter:
+It fails, however, with the following modified function definition, where the third recursive call's first argument is provably smaller or equal to the first parameter, but not syntactically equal:
 
 ```lean (keep := false) (error := true) (name := synack)
 def synack : Nat → Nat → Nat
@@ -256,7 +268,7 @@ m n : Nat
 
 Because {name}`Prod.Lex.right` as not applicable, the tactic used {name}`Prod.Lex.left`, which resulted in the unprovable goal above.
 
-This function definition may require a manual proof that uses the more general theorem {name}`Prod.Lex.right'`, which allows the first component of the tuple (which has to be a {name}`Nat`) to be less or equal:
+This function definition may require a manual proof that uses the more general theorem {name}`Prod.Lex.right'`, which allows the first component of the tuple (which has to be of type {name}`Nat`) to be less or equal:
 ```signature
 Prod.Lex.right' {β} (rb : β → β → Prop)
   {a₂ : Nat} {b₂ : β} {a₁ : Nat} {b₁ : β}
@@ -294,22 +306,24 @@ If a recursive function definition does not indicate a termination argument, Lea
 
 If neither {keywordOf Lean.Parser.Command.declaration}`termination_by` nor {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is provided, Lean will try to {ref "inferring-structural-recursion"}[infer structural recursion], before attempting well-founded recursion. If a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is present, only well-founded recursion is attempted.
 
-To infer a suitable termination argument, Lean considers a number of {deftech}_termination measures_, which are termination arguments of type {name}`Nat`, and then considers all tuples of these measures.
+To infer a suitable termination argument, Lean considers multiple {deftech}_termination measures_, which are termination arguments of type {name}`Nat`, and then tries all tuples of these measures.
 
 The termination measures considered are
 
-* all parameters whose type have a with a non-trivial {name}`SizeOf` instance
-* the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
+* all parameters whose type have a non-trivial {name}`SizeOf` instance
+* the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
 Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
 
-If using any of the measures, or a tuple thereof, cause all proof obligations to be discharged by {tactic}`decreasing_trivial` or the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, that is used as the termination argument.
+If using any of the measures, or a tuple thereof, allows all proof obligations to be discharged by {tactic}`decreasing_trivial` or the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, that is used as the termination argument.
+
+A {keyword}`termination_by?` clause causes the inferred termination annotation to be shown.
+It can be automatically added to the source file using the offered suggestion or code action.
 
 To avoid the combinatorial explosion of trying all tuples of measures, Lean investigates for each measure and each recursive call whether that measure is decreasing or strictly decreasing, tabulates these results and picks a suitable tuple based on that table. This implementation strategy shows up in the error message when no termination argument could be found.
 {TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
 by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
 
 {spliceContents Manual.Language.RecursiveDefs.WF.GuessLexExample}
-
 
 :::example "Array index idiom"
 
@@ -343,7 +357,7 @@ The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_b
 * During inference, it is applied to a _single_ goal attempting to prove `<` or `≤` on {name}`Nat`.
 * During the termination proof, it is applied to possibly goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
 
-A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and would work successfully with an explicit termination argument will cause inference of the termination argument to fail:
+A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and which works successfully with an explicit termination argument will cause inference of the termination argument to fail:
 
 ```lean (keep := false) (error := true)
 def ack : Nat → Nat → Nat
@@ -359,7 +373,7 @@ decreasing_by
     omega
 ```
 
-It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause whenever an explicit {keywordOf Lean.Parser.Command.declaration}`decreasing_by` proof is given, and there is more than one possible termination measure.
+It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause whenever an explicit {keywordOf Lean.Parser.Command.declaration}`decreasing_by` proof is given.
 
 :::
 
@@ -384,6 +398,8 @@ m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
 
+In this case, explicitly stating the termination argument helps.
+
 :::
 
 # Mutual well-founded recursion
@@ -403,7 +419,7 @@ If no termination argument is specified, the termination argument is {ref "infer
 
 :::example "Mutual recursion without parameter decrease"
 
-In the following mutual function definitions, the parameter does not decrease in the call from `f` to `g`. Still, the definition is accepted by ordering the functions themselves:
+In the following mutual function definitions, the parameter does not decrease in the call from `g` to `f`. Still, the definition is accepted by ordering the functions themselves:
 
 ```lean (keep := false)
 mutual
@@ -427,13 +443,13 @@ The elaboration of functions defined by well-founded recursion is based on the {
 
 {docstring WellFounded.fix}
 
-The type `α` is instantiated with the function's (varying) parameters, packed together using {name}`PSigma`. The {name}`WellFounded` relation is constructed from the {tech}[termination argument] via {name}`invImage`.
+The type `α` is instantiated with the function's (varying) parameters, packed into one type using {name}`PSigma`. The {name}`WellFounded` relation is constructed from the {tech}[termination argument] via {name}`invImage`.
 
-The function's body is passed to {name}`WellFounded.fix`, with parameters suitable packed and upacked, and recursive calls are replaced with a call to the value provided by {name}`WellFounded.fix`. The termination proofs generated by the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` are inserted in the right place.
+The function's body is passed to {name}`WellFounded.fix`, with parameters suitable packed and unpacked, and recursive calls are replaced with a call to the value provided by {name}`WellFounded.fix`. The termination proofs generated by the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` are inserted in the right place.
 
-Finally, the equational and unfolding theorems for the recursive function are proved from {name}`WellFounded.fix_eq` and undoing the argument mangling.
+Finally, the equational and unfolding theorems for the recursive function are proved from {name}`WellFounded.fix_eq`, undoing the argument mangling.
 
-In the case of mutual recursion, an equivalent non-mutual function is constructed by combinding the function's arguments using {name}`PSum`, and pattern-matching on that sum type in the result type and the body.
+In the case of mutual recursion, an equivalent non-mutual function is constructed by combining the function's arguments using {name}`PSum`, and pattern-matching on that sum type in the result type and the body.
 
 The definition of {name}`WellFounded` builds on the notion of _accessible elements_ of the relation:
 
