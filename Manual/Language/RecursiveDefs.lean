@@ -9,6 +9,7 @@ import VersoManual
 import Manual.Meta
 
 import Manual.Language.RecursiveDefs.Structural
+import Manual.Language.RecursiveDefs.WF
 
 open Verso.Genre Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
@@ -153,14 +154,7 @@ After the first step of elaboration, in which definitions are still recursive, a
 
 {include 0 Manual.Language.RecursiveDefs.Structural}
 
-# Well-Founded Recursion
-%%%
-tag := "well-founded-recursion"
-%%%
-
-::: planned 57
-This section will describe the translation of {deftech}[well-founded recursion].
-:::
+{include 0 Manual.Language.RecursiveDefs.WF}
 
 # Partial and Unsafe Recursive Definitions
 %%%

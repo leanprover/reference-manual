@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: David Thrane Christiansen
+Author: David Thrane Christiansen, Joachim Breitner
 -/
 
 import VersoManual
@@ -481,6 +481,10 @@ Describe mutual structural recursion over {ref "nested-inductive-types"}[nested 
 
 
 # Inferring Structural Recursion
+%%%
+tag := "inferring-structural-recursion"
+%%%
+
 
 If no {keyword}`termination_by` clauses are present in a recursive or mutually recursive function definition, then Lean attempts to infer a suitable structurally decreasing argument, effectively by trying all suitable parameters in sequence.
 If this search fails, Lean then attempts to infer {tech}[well-founded recursion].
