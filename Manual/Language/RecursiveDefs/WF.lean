@@ -50,12 +50,12 @@ already bound in the declaration header, and the mandatory term must indicate on
 
 
 
-# Well-founded relations
+# Well-Founded Relations
 %%%
 tag := "wf-rel"
 %%%
 
-A relation ≺ is a {deftech}_well-founded relation_ if there exists no infinitely descending chain
+A relation `≺` is a {deftech}_well-founded relation_ if there exists no infinitely descending chain
 
 $$`` x_0 ≻ x_1 ≻ \cdots``
 
@@ -102,36 +102,62 @@ example {α} (x : α) : sizeOf x = 0 := by rfl
 
 Function types in general do not have a well-founded relation that's useful for termination proofs.
 {tech}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
-If the measure is a function, the default {name}`SizeOf` instance is picked up and the proof cannot succeed.
+If the measure is a function, the default {name}`SizeOf` instance is selected and the proof cannot succeed.
 
-  ```lean (keep := false)
-  def fooInst (b : Bool → Bool) : Unit := fooInst (b ∘ b)
-  termination_by b
-  decreasing_by
-    guard_target = @sizeOf (Bool → Bool) (instSizeOfDefault _) (b ∘ b) < sizeOf b
-    simp
-    guard_target = False
-    sorry
-  ```
+```lean (keep := false)
+def fooInst (b : Bool → Bool) : Unit := fooInst (b ∘ b)
+termination_by b
+decreasing_by
+  guard_target =
+    @sizeOf (Bool → Bool) (instSizeOfDefault _) (b ∘ b) < sizeOf b
+  simp only [sizeOf, default.sizeOf]
+  guard_target = 0 < 0
+  simp
+  guard_target = False
+  sorry
+```
 :::
 
 # Termination proofs
 
-Once a {tech}[measure] is specified and its {tech}[well-founded relation] is inferred, Lean determines the termination proof obligation for every recursive call.
+Once a {tech}[measure] is specified and its {tech}[well-founded relation] is determined, Lean determines the termination proof obligation for every recursive call.
 
-The proof obligation is of the form `g a₁ a₂ … ≺ g p₁ p₂ …`, where
- * `g` is the measure,
- *  `≺` is the inferred well-founded relation,
- * `a₁ a₂ …` are the arguments of the recursive call and
- * `p₁ p₂ …` are the parameters of the function definition.
+```lean (show := false)
+section
+variable {α : Type u} {β : α → Type v} {β' : Type v} (more : β') (g : (x : α) → (y : β x) → β' → γ) [WellFoundedRelation γ] (a₁ p₁ : α) (a₂ : β a₁) (p₂ : β p₁)
 
-The context of the proof obligation is the context of the recursive call. In particular, local assumptions (such as introduced by `if h : _`, `match h : _ with ` or `have`) are available. If a function parameter is the {tech key:="match discriminant"}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression, then in the proof obligation this parameter is refined to the matched pattern.
+local notation (name := decRelStx) x " ≺ " y => WellFoundedRelation.rel x y
+local notation "…" => more
 
-All proof obligations are passed as separate goals to the tactic proof specified in the in the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, which comes after the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause..
+```
 
-:::example "Termination proof obligations"
+The proof obligation for each recursive call is of the form {lean}`g a₁ a₂ … ≺ g p₁ p₂ …`, where:
+ * {lean}`g` is the measure as a function of the parameters,
+ * {name WellFoundedRelation.rel}`≺` is the inferred well-founded relation,
+ * {lean}`a₁` {lean}`a₂` {lean}`…` are the arguments of the recursive call and
+ * {lean}`p₁` {lean}`p₂` {lean}`…` are the parameters of the function definition.
 
-The following recursive definition of the Fibonacci numbers has two recursive calls, which translates into two goals:
+The context of the proof obligation is the local context of the recursive call.
+In particular, local assumptions (such as those introduced by `if h : _`, `match h : _ with ` or `have`) are available.
+If a function parameter is the {tech key:="match discriminant"}[discriminant] of a pattern match (e.g. by a {keywordOf Lean.Parser.Term.match}`match` expression), then this parameter is refined to the matched pattern in the proof obligation.
+
+```lean (show := false)
+end
+```
+
+The overall termination proof obligation consists of one goal for each recursive call.
+By default, the tactic {tactic}`decreasing_trivial` is used to prove each proof obligation.
+A custom tactic script can be provided using the optional {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, which comes after the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause.
+This tactic script is run once, with one goal for each proof obligation, rather than separately on each proof obligation.
+
+```lean (show := false)
+section
+variable {n : Nat}
+```
+
+::::example "Termination Proof Obligations"
+
+The following recursive definition of the Fibonacci numbers has two recursive calls, which results in two goals in the termination proof.
 
 ```lean (error := true) (keep := false) (name := fibGoals)
 def fib (n : Nat) :=
@@ -144,7 +170,7 @@ decreasing_by
   skip
 ```
 
-```leanOutput fibGoals (whitespace := lax)
+```leanOutput fibGoals (whitespace := lax) (show := false)
 unsolved goals
    n : Nat
    h : ¬n ≤ 1
@@ -155,10 +181,28 @@ unsolved goals
    ⊢ n - 2 < n
 ```
 
-Here, the {tech}[measure] is simply the parameter itself, and the well-founded order is the less-than relation on natural numbers.
-The first proof goal requires the user to prove that the argument of the first recursive call, namely `n - 1`, is strictly smaller than the function's parameter, `n`.
+```proofState
+∀ (n : Nat), (h : ¬ n ≤ 1) → n - 1 < n ∧ n - 2 < n := by
+  intro n h
+  apply And.intro ?_ ?_
+/--
+n : Nat
+h : ¬n ≤ 1
+⊢ n - 1 < n
 
-These termination proofs can be easily discharged using the {tactic}`omega` tactic.
+n : Nat
+h : ¬n ≤ 1
+⊢ n - 2 < n
+-/
+
+```
+
+
+
+Here, the {tech}[measure] is simply the parameter itself, and the well-founded order is the less-than relation on natural numbers.
+The first proof goal requires the user to prove that the argument of the first recursive call, namely {lean}`n - 1`, is strictly smaller than the function's parameter, {lean}`n`.
+
+Both termination proofs can be easily discharged using the {tactic}`omega` tactic.
 
 ```lean (keep := false)
 def fib (n : Nat) :=
@@ -171,11 +215,14 @@ decreasing_by
   · omega
   · omega
 ```
-:::
+::::
+```lean (show := false)
+end
+```
 
-:::example "Refined parameter"
+:::example "Refined Parameters"
 
-If a parameter of the function is pattern-matched, then the proof obligations mention the refined parameter:
+If a parameter of the function is the {tech key:="match discriminant"}[discriminant] of a pattern match, then the proof obligations mention the refined parameter.
 
 ```lean (error := true) (keep := false) (name := fibGoals2)
 def fib : Nat → Nat
@@ -185,7 +232,7 @@ termination_by n => n
 decreasing_by
   skip
 ```
-```leanOutput fibGoals2 (whitespace := lax)
+```leanOutput fibGoals2 (whitespace := lax) (show := false)
 unsolved goals
 n : Nat
 ⊢ n + 1 < n.succ.succ
@@ -193,14 +240,29 @@ n : Nat
 n : Nat
 ⊢ n < n.succ.succ
 ```
+
+```proofState
+∀ (n : Nat), n + 1 < n.succ.succ ∧ n < n.succ.succ := by
+  intro n
+  apply And.intro ?_ ?_
+/--
+n : Nat
+⊢ n + 1 < n.succ.succ
+
+n : Nat
+⊢ n < n.succ.succ
+-/
+
+```
+
 :::
 
-Additionally, in the branches of {ref "if-then-else"}[if-then-else] expressions a hypothesis  asserting the current branch's condition is brought into scope, much as if the dependent if-then-else syntax was used.
+Additionally, in the branches of {ref "if-then-else"}[if-then-else] expressions, a hypothesis asserting the current branch's condition is brought into scope, much as if the dependent if-then-else syntax had been used.
 
 
-:::example "If-then-else"
+:::example "Local Assumptions and Conditionals"
 
-Here, the {keywordOf termIfThenElse}`if` does not bring a local assumption about the condition into scope. Nevertheless, it is available in the context of the termination proof:
+Here, the {keywordOf termIfThenElse}`if` does not bring a local assumption about the condition into scope. Nevertheless, it is available in the context of the termination proof.
 
 ```lean (error := true) (keep := false) (name := fibGoals3)
 def fib (n : Nat) :=
@@ -213,7 +275,7 @@ decreasing_by
   skip
 ```
 
-```leanOutput fibGoals3 (whitespace := lax)
+```leanOutput fibGoals3 (whitespace := lax) (show := false)
 unsolved goals
    n : Nat
    h✝ : ¬n ≤ 1
@@ -223,18 +285,42 @@ unsolved goals
    h✝ : ¬n ≤ 1
    ⊢ n - 2 < n
 ```
+
+```proofState
+∀ (n : Nat), («h✝» : ¬ n ≤ 1) → n - 1 < n ∧ n - 2 < n := by
+  intro n «h✝»
+  apply And.intro ?_ ?_
+/--
+n : Nat
+h✝ : ¬n ≤ 1
+⊢ n - 1 < n
+
+n : Nat
+h✝ : ¬n ≤ 1
+⊢ n - 2 < n
+-/
+
+```
+
+
+
 :::
+
+```lean (show := false)
+section
+```
 
 :::example "Nested Recursion in Higher-order Functions"
 
-When recursive calls are nested in higher-order functions, sometimes the function definition has to be adjusted so that the termination proof obligations can be discharged. This often happens when defining functions recursively over {ref "nested-inductive-types"}[nested inductive types], such as the following tree structure:
+When recursive calls are nested in higher-order functions, sometimes the function definition has to be adjusted so that the termination proof obligations can be discharged.
+This often happens when defining functions recursively over {ref "nested-inductive-types"}[nested inductive types], such as the following tree structure:
 
 ```lean
 structure Tree where
   children : List Tree
 ```
 
-A naive attempt to define a recursive function over this data structure will fail:
+A naïve attempt to define a recursive function over this data structure will fail:
 ```lean (keep := false) (name := nestedBad) (error := true)
 def Tree.depth (t : Tree) : Nat :=
   let depths := t.children.map (fun c => Tree.depth c)
@@ -252,9 +338,16 @@ t c : Tree
 ⊢ sizeOf c < sizeOf t
 ```
 
-The shown proof obligation is not provable, as nothing ties `c` to `t`. Lean does not see that the {name}`List.map` function applies its function arguments only to elements of the given list.
+```lean (show := false)
+variable (t : Tree) (c : Tree)
+```
 
-Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that `c` is indeed an element of the list `t.children`. This can be achieved by annotating the elements of that list with a proof that they are in the list, using the function {name}`List.attach`, and bringing this proof into scope in the function passed to `List.map`:
+
+The termination proof obligation is not provable, because there is no connection between the local variable {lean}`c` and the parameter {lean}`t`.
+However, {name}`List.map` applies its function argument only to elements of the given list; thus, {lean}`c` is always an element of {lean}`t.children`.
+
+Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that {lean}`c` is indeed an element of the list {lean}`t.children`.
+This can be achieved by “attaching” a proof of membership in {lean}`t.children` to each of its elements using the function {name}`List.attach` and then bringing this proof into scope in the function passed to {name}`List.map`:
 
 ```lean (keep := false)
 def Tree.depth (t : Tree) : Nat :=
@@ -267,21 +360,26 @@ decreasing_by
   decreasing_tactic
 ```
 
-Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption `c ∈ t.children`, which suffices for {tactic}`decreasing_tactic` to go through.
+Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ t.children`, which suffices for {tactic}`decreasing_tactic` to succeed.
 
 :::
+
+```lean (show := false)
+end
+```
+
 
 ::::TODO
 
 :::example "Nested recursive calls and subtypes"
 
-I wanted to include a good example where recursive calls are nested inside each other, and one likely needs to introduce a subtype in the result to make it go through. But can't think of something nice and natural right now.
+I (Joachim) wanted to include a good example where recursive calls are nested inside each other, and one likely needs to introduce a subtype in the result to make it go through. But can't think of something nice and natural right now.
 
 :::
 
 ::::
 
-# Default termination proof tactic
+# Default Termination Proof Tactic
 
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
 
@@ -291,24 +389,26 @@ Below the manual prose I included is appended to the docstring. Can I use `:::ta
 
 :::tactic "decreasing_tactic"
 
-The {tactic}`decreasing_tactic` mainly deals with lexicographic ordering of tuples, applying {name}`Prod.Lex.right` if the left components of the product are {tech (key := "definitional equality")}`definitionally equal`, and {name}`Prod.Lex.left` otherwise. After handling tuples this way, it calls the {tactic}`decreasing_tactic` tactic.
+The tactic {tactic}`decreasing_tactic` mainly deals with lexicographic ordering of tuples, applying {name}`Prod.Lex.right` if the left components of the product are {tech (key := "definitional equality")}[definitionally equal], and {name}`Prod.Lex.left` otherwise.
+After preprocessing tuples this way, it calls the {tactic}`decreasing_trivial` tactic.
 
 :::
 
 
 :::tactic "decreasing_trivial"
 
-The {tactic}`decreasing_trivial` is an extensible tactic that applies a few common heuristics to solve a termination goal. In particular, it tries the following tactics and theorems:
+The tactic {tactic}`decreasing_trivial` is an extensible tactic that applies a few common heuristics to solve a termination goal.
+In particular, it tries the following tactics and theorems:
 
-* {tactic}`simp_arith`.
-* {tactic}`assumption`.
-* theorems {name}`Nat.sub_succ_lt_self`, {name}`Nat.pred_lt'`, {name}`Nat.pred_lt`, which handle common arithmetic goals.
-* {tactic}`omega`.
-* {tactic}`array_get_dec` and {tactic}`array_mem_dec`, which prove that the size of array elements is less than the size of the array.
-* {tactic}`sizeOf_list_dec` that the size of list elements is less than the size of the list.
-* {name}`String.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`.
+* {tactic}`simp_arith`
+* {tactic}`assumption`
+* theorems {name}`Nat.sub_succ_lt_self`, {name}`Nat.pred_lt'`, {name}`Nat.pred_lt`, which handle common arithmetic goals
+* {tactic}`omega`
+* {tactic}`array_get_dec` and {tactic}`array_mem_dec`, which prove that the size of array elements is less than the size of the array
+* {tactic}`sizeOf_list_dec` that the size of list elements is less than the size of the list
+* {name}`String.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`
 
-This tactic is intended to be extended by further heuristics using {keywordOf Lean.Parser.Command.macro_rules}`macro_rules`.
+This tactic is intended to be extended with further heuristics using {keywordOf Lean.Parser.Command.macro_rules}`macro_rules`.
 
 :::
 
@@ -319,15 +419,17 @@ A classic example of a recursive function that needs a more complex {tech}[measu
 
 ```lean (keep := false)
 def ack : Nat → Nat → Nat
-  | 0, n => n + 1
-  | m + 1, 0 => ack m 1
+  | 0,     n     => n + 1
+  | m + 1, 0     => ack m 1
   | m + 1, n + 1 => ack m (ack (m + 1) n)
 termination_by m n => (m, n)
 ```
 
-The measure is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameters. The default {tactic}`decreasing_tactic` can handle this.
+The measure is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameters.
+The default {tactic}`decreasing_tactic` can handle this.
 
-In particular, note that the third recursive call has a second argument that is smaller than the second parameter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
+In particular, note that the third recursive call has a second argument that is smaller than the second parameter and a first argument that is definitionally equal to the first parameter.
+This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
 
 ```signature
 Prod.Lex.right {α β} {ra : α → α → Prop} {rb : β → β → Prop}
@@ -340,8 +442,8 @@ It fails, however, with the following modified function definition, where the th
 
 ```lean (keep := false) (error := true) (name := synack)
 def synack : Nat → Nat → Nat
-  | 0, n => n + 1
-  | m + 1, 0 => synack m 1
+  | 0,     n     => n + 1
+  | m + 1, 0     => synack m 1
   | m + 1, n + 1 => synack m (synack (m / 2 + 1) n)
 termination_by m n => (m, n)
 ```
@@ -355,9 +457,9 @@ m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
 
-Because {name}`Prod.Lex.right` as not applicable, the tactic used {name}`Prod.Lex.left`, which resulted in the unprovable goal above.
+Because {name}`Prod.Lex.right` is not applicable, the tactic used {name}`Prod.Lex.left`, which resulted in the unprovable goal above.
 
-This function definition may require a manual proof that uses the more general theorem {name}`Prod.Lex.right'`, which allows the first component of the tuple (which has to be of type {name}`Nat`) to be less or equal:
+This function definition may require a manual proof that uses the more general theorem {name}`Prod.Lex.right'`, which allows the first component of the tuple (which must be of type {name}`Nat`) to be less or equal instead of strictly equal:
 ```signature
 Prod.Lex.right' {β} (rb : β → β → Prop)
   {a₂ : Nat} {b₂ : β} {a₁ : Nat} {b₁ : β}
@@ -382,17 +484,16 @@ decreasing_by
     omega
 ```
 
-The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex.right'` because it would require backtracking if it fails.
+The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex.right'` because it would require backtracking on failure.
 
 :::
 
-# Inferring well-founded recursion
+# Inferring Well-Founded Recursion
 %%%
 tag := "inferring-well-founded-recursion"
 %%%
 
 If a recursive function definition does not indicate a termination {tech}[measure], Lean will attempt to discover one automatically.
-
 If neither {keywordOf Lean.Parser.Command.declaration}`termination_by` nor {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is provided, Lean will try to {ref "inferring-structural-recursion"}[infer structural recursion] before attempting well-founded recursion.
 If a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is present, only well-founded recursion is attempted.
 
@@ -403,6 +504,7 @@ The basic termination measures considered are:
 * all parameters whose type have a non-trivial {name}`SizeOf` instance
 * the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
 Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
+* {TODO}[Nested function 1/0 here]
 
 {deftech}_Candidate measures_ are basic measures or tuples of basic measures.
 If any of the candidate measures allow all proof obligations to be discharged by the termination proof tactic (that is, the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, or {tactic}`decreasing_trivial` if there is no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause), then an arbitrary such candidate measure is selected as the automatic termination measure.
@@ -420,11 +522,16 @@ by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-
 
 {spliceContents Manual.Language.RecursiveDefs.WF.GuessLexExample}
 
-:::example "Array index idiom"
+```lean (show := false)
+section
+variable {e₁ e₂ i j : Nat}
+```
+:::example "Array Indexing"
 
-The purpose of considering expressions of the form `e₂ - e₁` as measures is to support the common idiom of counting up to some upper bound, in particular when traversing arrays in possibly interesting ways. In the following function, which performs binary search on a sorted array, this heuristic helps Lean to find the `j - i` measure.
+The purpose of considering expressions of the form {lean}`e₂ - e₁` as measures is to support the common idiom of counting up to some upper bound, in particular when traversing arrays in possibly interesting ways.
+In the following function, which performs binary search on a sorted array, this heuristic helps Lean to find the {lean}`j - i` measure.
 
-```lean (keep := false)
+```lean (name := binarySearch)
 def binarySearch (x : Int) (xs : Array Int) : Option Nat :=
   go 0 xs.size
 where
@@ -443,14 +550,23 @@ where
   termination_by?
 ```
 
+The fact that the inferred termination argument uses some arbitrary measure, rather than an optimal or minimal one, is visible in the inferred measure, which contains a redundant `j`:
+```leanOutput binarySearch
+Try this: termination_by (j, j - i)
+```
+
 :::
 
-:::example "Inference and decreasing tactic"
+```lean (show := false)
+end
+```
 
-The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is used slightly differently when inferring the termination {tech}[measure] and in the actual termination proof.
+:::example "Termination Proof Tactics During Inference"
 
-* During inference, it is applied to a _single_ goal attempting to prove {name LT.lt}`<` or {name LE.le}`≤` on {name}`Nat`.
-* During the termination proof, it is applied to many goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
+The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is used slightly differently when inferring the termination {tech}[measure] than it is in the actual termination proof.
+
+* During inference, it is applied to a _single_ goal, attempting to prove {name LT.lt}`<` or {name LE.le}`≤` on {name}`Nat`.
+* During the termination proof, it is applied to many simultaneous goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
 
 A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and which works successfully with an explicit termination argument can cause inference of the termination measure to fail:
 
@@ -474,13 +590,13 @@ It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`
 
 :::example "Inference too powerful"
 
-Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument that would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
+Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument that would work if the tactic would do backtracking, but then the tactic fails.{TODO}[shorten/simplify sentence] In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
 
 ```lean (keep := false) (error := true) (name := badInfer)
-def synack : Nat → Nat → Nat
+def notAck : Nat → Nat → Nat
   | 0, n => n + 1
-  | m + 1, 0 => synack m 1
-  | m + 1, n + 1 => synack m (synack (m / 2 + 1) n)
+  | m + 1, 0 => notAck m 1
+  | m + 1, n + 1 => notAck m (notAck (m / 2 + 1) n)
 decreasing_by all_goals decreasing_tactic
 ```
 ```leanOutput badInfer
