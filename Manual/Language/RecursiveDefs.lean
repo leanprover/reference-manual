@@ -87,7 +87,7 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.
-After a description of mutual recursion, each of the four kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
+After a description of mutual recursion, each of the five kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
 
 # Mutual Recursion
 %%%
