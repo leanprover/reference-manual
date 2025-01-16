@@ -14,14 +14,23 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
-#doc (Manual) "Well-Founded recursion" =>
+#doc (Manual) "Well-Founded Recursion" =>
 %%%
 tag := "well-founded-recursion"
 %%%
 
-Functions defined by {deftech}_well-founded recursion_ are those in which each recursive call has arguments that are _smaller_ (in a suitable sense) than the functions' parameters.
+Functions defined by {deftech}_well-founded recursion_ are those in which each recursive call has arguments that are _smaller_ (in a {ref "wf-rel"}[suitable sense]) than the functions' parameters.
+In contrast to {ref "structural-recursion"}[structural recursion], in which recursive definitions must satisfy particular _syntactic_ requirements, definitions that use well-founded recursion employ _semantic_ arguments.
+This allows a larger class of recursive definitions to be accepted.
+Furthermore, when Lean's automation fails to construct a termination proof, it is possible to specify one manually.
 
-In contrast to {ref "structural-recursion"}[structural recursion], which has syntactic requirements, for well-founded recursion the requirements are _semantic_. This allows a larger class of recursive definitions to be accepted.
+All definitions are treated identically by the Lean compiler.
+In Lean's logic, definitions that use well-founded recursion do not necessarily reduce {tech key:="definitional equality"}[definitionally].
+The reductions do hold as propositional equalities, however, and Lean automatically proves them.
+This does not typically make it more difficult to prove properties of definitions that use well-founded recursion, because the propositional reductions can be used to reason about the behavior of the function.
+It does mean, however, that using these functions in types typically does not work well.
+When the reduction behavior does hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination argument along with the definition.
+When possible, recursive function that are intended for use in types or in other situations where definitional equality is important should be defined with structural recursion.
 
 To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_termination argument_.
 
@@ -37,9 +46,12 @@ The identifiers before the optional `=>` can bring function parameters into scop
 already bound in the declaration header, and the mandatory term must indicate one of the function's parameters, whether introduced in the header or locally in the clause.
 :::
 
-The termination argument's type must be equipped with a {tech}_well-founded relation_, which determines when function arguments are considered _smaller_.
+The termination argument's type must be equipped with a {tech}[well-founded relation], which determines when function arguments are considered _smaller_.
 
 # Well-founded relations
+%%%
+tag := "wf-rel"
+%%%
 
 A relation ≺ is a {deftech}_well-founded relation_ if there exists no infinitely descending chain
 
