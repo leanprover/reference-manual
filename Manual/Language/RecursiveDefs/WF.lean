@@ -395,11 +395,8 @@ I (Joachim) wanted to include a good example where recursive calls are nested in
 
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
 
-::::TODO
-Below the manual prose I included is appended to the docstring. Can I use `:::tactic` and only show my text, ignoring the docstring? (If only until the docstring is massaged to work both here and on its own?)
-::::
 
-:::tactic "decreasing_tactic"
+:::tactic "decreasing_tactic" (replace := true)
 
 The tactic {tactic}`decreasing_tactic` mainly deals with lexicographic ordering of tuples, applying {name}`Prod.Lex.right` if the left components of the product are {tech (key := "definitional equality")}[definitionally equal], and {name}`Prod.Lex.left` otherwise.
 After preprocessing tuples this way, it calls the {tactic}`decreasing_trivial` tactic.
