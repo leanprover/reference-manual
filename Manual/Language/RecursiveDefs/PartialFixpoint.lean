@@ -68,7 +68,7 @@ Definition by partial fixpoint will succeed if the following two conditions hold
 
 A {deftech}_tail position_ of the function body is
 
-* the funcion body itself,
+* the function body itself,
 * the branches of a {keywordOf Lean.Parser.Term.match}`match` expression in tail position,
 * the branches of an {keywordOf termIfThenElse}`if` expression in tail position, and
 * the body of a {keywordOf Lean.Parser.Term.let}`let` expression in tail position.
