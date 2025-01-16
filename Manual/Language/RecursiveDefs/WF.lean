@@ -597,9 +597,11 @@ It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`
 
 :::example "Inference too powerful"
 
-Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument that would work if the tactic would do backtracking, but then the tactic fails.{TODO}[shorten/simplify sentence] In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
+Because {tactic}`decreasing_tactic` avoids the need to backtrack by being incomplete with regard to lexicographic ordering, Lean may infer a termination {tech}[measure] that leads to goals that the tactic cannot prove.
+In this case, the error message is the one that results from the failing tactic rather than the one that results from being unable to find a measure.
+This is what happens in {lean}`notAck`:
 
-```lean (keep := false) (error := true) (name := badInfer)
+```lean (error := true) (name := badInfer)
 def notAck : Nat → Nat → Nat
   | 0, n => n + 1
   | m + 1, 0 => notAck m 1
@@ -633,7 +635,6 @@ If any function in the mutual group has a {keywordOf Lean.Parser.Command.declara
 If a termination {tech}[measure] is specified using {keywordOf Lean.Parser.Command.declaration}`termination_by` for _any_ function in the mutual group, then _all_ functions in the group must specify a termination measure, and they have to have the same type.
 
 If no termination argument is specified, the termination argument is {ref "inferring-well-founded-recursion"}[inferred, as described above]. In the case of mutual recursion, a third class of basic measures is considered during inference, namely for each function in the mutual group the measure that is `1` for that function and `0` for the others. This allows Lean to order the functions so that some calls from one function to another are allowed even if the parameters do not decrease.
-{TODO}[Add forward reference to the earlier description]
 
 :::example "Mutual recursion without parameter decrease"
 
@@ -694,3 +695,65 @@ The definition of {name}`WellFounded` builds on the notion of _accessible elemen
 {docstring WellFounded}
 
 {docstring Acc}
+
+::: example "Division by Iterated Subtraction: Termination Proof"
+
+The definition of division by iterated subtraction can be written explicitly using well-founded recursion.
+```lean
+noncomputable def div (n k : Nat) : Nat :=
+  (inferInstanceAs (WellFoundedRelation Nat)).wf.fix
+    (fun n r =>
+      if h : k = 0 then 0
+      else if h : k > n then 0
+      else 1 + (r (n - k) <| by
+        show (n - k) < n
+        omega))
+    n
+```
+The definition must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` because well-founded recursion is not supported by the compiler.
+Like {tech}[recursors], it is part of Lean's logic.
+
+The definition of division should satisfy the following equations:
+ * {lean}`∀{n k : Nat}, (k = 0) → div n k = 0`
+ * {lean}`∀{n k : Nat}, (k > n) → div n k = 0`
+ * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = div (n - k) k`
+
+This reduction behavior does not hold {tech key:="definitional equality"}[definitionally]:
+```lean (error := true) (name := nonDef) (keep := false)
+theorem div.eq0 : div n 0 = 0 := by rfl
+```
+```leanOutput nonDef
+tactic 'rfl' failed, the left-hand side
+  div n 0
+is not definitionally equal to the right-hand side
+  0
+n : Nat
+⊢ div n 0 = 0
+```
+However, using `WellFounded.fix_eq` to unfold the well-founded recursion, the three equations can be proved to hold:
+```lean
+theorem div.eq0 : div n 0 = 0 := by
+  unfold div
+  apply WellFounded.fix_eq
+
+theorem div.eq1 : k > n → div n k = 0 := by
+  intro h
+  unfold div
+  rw [WellFounded.fix_eq]
+  simp only [gt_iff_lt, dite_eq_ite, ite_eq_left_iff, Nat.not_lt]
+  intros; omega
+
+theorem div.eq2 :
+    ¬ k = 0 → ¬ (k > n) →
+    div n k = 1 + div (n - k) k := by
+  intros
+  unfold div
+  rw [WellFounded.fix_eq]
+  simp_all only [
+    gt_iff_lt, Nat.not_lt,
+    dite_false, dite_eq_ite,
+    ite_false, ite_eq_right_iff
+  ]
+  omega
+```
+:::
