@@ -7,6 +7,7 @@ Author: Joachim Breitner
 import VersoManual
 
 import Manual.Meta
+import Manual.Papers
 import Manual.Language.RecursiveDefs.WF.GuessLexExample
 
 open Manual
@@ -511,8 +512,7 @@ To infer a suitable termination {tech}[measure], Lean considers multiple {deftec
 The basic termination measures considered are:
 
 * all parameters whose type have a non-trivial {name}`SizeOf` instance
-* the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
-Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
+* the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {margin}[This approach is based on work by {citehere manolios2006}[].]
 * in a {tech}[mutual group], an additional basic measure is used to distinguish between recursive calls to other functions in the group and recursive calls to the function being defined (for details, see {ref "mutual-well-founded-recursion"}[the section on mutual well-founded recursion])
 
 {deftech}_Candidate measures_ are basic measures or tuples of basic measures.
@@ -524,10 +524,8 @@ It can be automatically added to the source file using the offered suggestion or
 To avoid the combinatorial explosion of trying all tuples of measures, Lean first tabulates all {tech}[basic termination measures], determining whether the basic measure is decreasing, strictly decreasing, or non-decreasing.
 A decreasing measure is smaller for at least one recursive call and never increases at any recursive call, while a strictly decreasing measure is smaller at all recursive calls.
 A non-decreasing measure is one that the termination tactic could not show to be decreasing or strictly decreasing.
-A suitable tuple is chosen based on the table.
+A suitable tuple is chosen based on the table.{margin}[This approach is based on {citehere bulwahn2007}[].]
 This table shows up in the error message when no automatic measure could be found.
-{TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
-by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
 
 {spliceContents Manual.Language.RecursiveDefs.WF.GuessLexExample}
 
