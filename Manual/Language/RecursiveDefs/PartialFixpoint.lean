@@ -19,7 +19,7 @@ tag := "partial-fixpoint"
 %%%
 
 A function definition can be understood as a request to Lean to construct a function of the given type that satisfies the given equation.
-One purpose of the termination proof in {ref "structural-recursion"}[structural recursion] or {tech}[well-founded recursion] is to guarantee the existence and uniqueness the constructued functions.
+One purpose of the termination proof in {ref "structural-recursion"}[structural recursion] or {tech}[well-founded recursion] is to guarantee the existence and uniqueness the constructed functions.
 
 In some cases, the equation may not uniquely determine the function's (extensional) behavior, because it
 does not terminate for all arguments in the above sense, but there still exist functions for which the defining equation holds.
@@ -61,7 +61,7 @@ The elaborator can prove that functions satisfying the equation exist, and defin
 tag := "partial-fixpoint-tailrec"
 %%%
 
-Definition by partial fixpoint will succeed if the following two conditoins hold:
+Definition by partial fixpoint will succeed if the following two conditions hold:
 
 1. The function's type is inhabited (as with {ref "partial-unsafe"}[functions marked {keywordOf Lean.Parser.Command.declaration}`partial`]).
 2. All recursive calls are in {tech}[tail position] of the function.
@@ -202,13 +202,13 @@ partial_fixpoint
 ```
 :::
 
-# Partial Correctnes Theorem
+# Partial Correctness Theorem
 %%%
 tag := "partial-correctness-theorem"
 %%%
 
 In general, for functions defined by partial fixpoint we only obtain the equational theorems that prove that the function indeed satisfies the given equation, and enables proofs by rewriting.
-But these do not allow reasoning about the behavior of the function on the underspecified arguments.
+But these do not allow reasoning about the behavior of the function on arguments for which the function specification does not terminate.
 
 If the monad happens to be the {name}`Option` monad, then by construction the function equals {name}`Option.none` on all function inputs for which the defining equation is not terminating.
 From this fact, Lean proves a {deftech}_partial correctness theorem_ for the function which allows concluding facts from the function's result being {name}`Option.some`.
