@@ -108,14 +108,14 @@ def List.findIndex (xs : List α) (p : α → Bool) : Int := match xs with
     if p x then
       0
     else
-      let r := List.findIndex ys p
+      have r := List.findIndex ys p
       if r = -1 then -1 else r + 1
 partial_fixpoint
 ```
 ```leanOutput nonTailPos
 Could not prove 'List.findIndex' to be monotone in its recursive calls:
   Cannot eliminate recursive call `List.findIndex ys p` enclosed in
-    let r := ys✝.findIndex p;
+    let_fun r := ys✝.findIndex p;
     if r = -1 then -1 else r + 1
 ```
 
@@ -228,7 +228,9 @@ partial_fixpoint
 
 For this function definition, Lean proves the following partial correctness theorem:
 
-```signature
+{TODO}[using `signature` causes max recursion error]
+
+```
 List.findIndex.partial_correctness {α : Type _} (motive : List α → (α → Bool) → Nat → Prop)
   (h :
     ∀ (findIndex : List α → (α → Bool) → Option Nat),
@@ -239,7 +241,7 @@ List.findIndex.partial_correctness {α : Type _} (motive : List α → (α → B
               | x :: ys => if p x = true then some 0 else (fun x => x + 1) <$> findIndex ys p) =
               some r →
             motive xs p r)
-  (xs : List α) (p : α → Bool) (r✝ : Nat) : xs.findIndex p = some r✝ → motive xs p r✝
+  (xs : List α) (p : α → Bool) (r : Nat) : xs.findIndex p = some r → motive xs p r
 ```
 
 We can use this theorem to prove that the resulting number is a valid index in the list and that the predicate holds for that index:
