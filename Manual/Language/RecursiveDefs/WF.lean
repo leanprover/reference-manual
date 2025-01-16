@@ -49,7 +49,7 @@ already bound in the declaration header, and the mandatory term must indicate on
 :::
 
 :::example "Division by Iterated Subtraction"
-Division can be specified as the number of times the dividend can be subtracted from the divisor.
+Division can be specified as the number of times the divisor can be subtracted from the dividend.
 This operation cannot be elaborated using structural recursion because subtraction is not pattern matching.
 The value of `n` does decrease with each recursive call, so well-founded recursion can be used to justify the definition of division by iterated subtraction.
 
