@@ -250,6 +250,10 @@ Quot
 Setoid
 Squash
 Subsingleton
+Lake
+Lake.RecBuildM
+Lake.FetchM
+Lake.ScriptM
 ```
 
 ```exceptions

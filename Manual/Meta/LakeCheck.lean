@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
@@ -29,14 +29,31 @@ open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
 
+private partial def parseOpts [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m (List String) :=
+  (many (.positional `subcommand stringOrIdent))
+where
+  many {α} (p : ArgParse m α) : ArgParse m (List α) :=
+    (· :: ·) <$> p <*> many p <|> pure []
+
+  stringOrIdent : ValDesc m String := {
+    get
+      | .name x => pure <| x.getId.toString (escape := false)
+      | .str x => pure x.getString
+      | .num n => throwErrorAt n "Expected string or identifier"
+
+    description := "string or identifier"
+  }
+
+
 /--
 Check that the output of `lake --help` has not changed unexpectedly
 -/
 @[code_block_expander lakeHelp]
 def lakeHelp : CodeBlockExpander
   | args, str => do
-    let () ← ArgParse.done.run args
-    let out ← IO.Process.output {cmd := "lake", args := #["--help"]}
+    let sub ← parseOpts.run args
+    let args := #["--help"] ++ sub.toArray
+    let out ← IO.Process.output {cmd := "lake", args}
     if out.exitCode != 0 then
       throwError
         m!"When running 'lake --help', the exit code was {out.exitCode}\n" ++
@@ -45,11 +62,9 @@ def lakeHelp : CodeBlockExpander
     let expectedLines := str.getString.splitOn "\n" |>.filter useLine |>.toArray
     let actualLines := lakeOutput.splitOn "\n" |>.filter useLine |>.toArray
 
-
     unless expectedLines == actualLines do
       let diff := Diff.diff expectedLines actualLines
       logErrorAt str m!"Mismatching 'lake --help' output:\n{Diff.linesToString diff}"
-      let lakeOutput := lakeOutput.dropWhile (· ≠ '\n') |>.dropWhile (· == '\n')
       Suggestion.saveSuggestion str ((lakeOutput.take 30) ++ "…") lakeOutput
 
     return #[]
