@@ -128,7 +128,7 @@ tag := "partial-fixpoint-monadic"
 %%%
 
 
-Definition by partial fixpoint is more powerful if the function's type is monadic, the monad is an instance of {name}`Lean.Order.MonoBind` (such as {name}`Option`).
+Definition by partial fixpoint is more powerful if the function's type is monadic and the monad is an instance of {name}`Lean.Order.MonoBind`, such as {name}`Option`.
 In this case, recursive call are not restricted to tail-positions, but can also be inside higher-order monadic functions such as {name}`bind` and {name}`List.mapM`.
 
 The set of higher-order functions for which this works is extensible (see TODO below), so no exhaustive list is given here.
@@ -207,7 +207,7 @@ partial_fixpoint
 tag := "partial-correctness-theorem"
 %%%
 
-In general, for funcitons defined by partial fixpoint we know obtain the equational theorems that prove that the function indeed satisfies the given equation, and enables proofs by rewriting.
+In general, for functions defined by partial fixpoint we only obtain the equational theorems that prove that the function indeed satisfies the given equation, and enables proofs by rewriting.
 But these do not allow reasoning about the behavior of the function on the underspecified arguments.
 
 If the monad happens to be the {name}`Option` monad, then by construction the function equals {name}`Option.none` on all function inputs for which the defining equation is not terminating.
@@ -230,7 +230,7 @@ def List.findIndex (xs : List α) (p : α → Bool) : Option Nat :=
 partial_fixpoint
 ```
 
-For this function definition, Lean proves the following partial correctness theorem:
+With this function definition, Lean proves the following partial correctness theorem:
 
 {TODO}[using `signature` causes max recursion error]
 
