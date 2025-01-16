@@ -114,7 +114,7 @@ example {α} (x : α) : sizeOf x = 0 := by rfl
 :::example "Default Size Instance"
 
 Function types in general do not have a well-founded relation that's useful for termination proofs.
-{tech}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
+{ref "instance-synth"}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
 If the measure is a function, the default {name}`SizeOf` instance is selected and the proof cannot succeed.
 
 ```lean (keep := false)
@@ -513,7 +513,7 @@ The basic termination measures considered are:
 
 * all parameters whose type have a non-trivial {name}`SizeOf` instance
 * the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {margin}[This approach is based on work by {citehere manolios2006}[].]
-* in a {tech}[mutual group], an additional basic measure is used to distinguish between recursive calls to other functions in the group and recursive calls to the function being defined (for details, see {ref "mutual-well-founded-recursion"}[the section on mutual well-founded recursion])
+* in a mutual group, an additional basic measure is used to distinguish between recursive calls to other functions in the group and recursive calls to the function being defined (for details, see {ref "mutual-well-founded-recursion"}[the section on mutual well-founded recursion])
 
 {deftech}_Candidate measures_ are basic measures or tuples of basic measures.
 If any of the candidate measures allow all proof obligations to be discharged by the termination proof tactic (that is, the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, or {tactic}`decreasing_trivial` if there is no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause), then an arbitrary such candidate measure is selected as the automatic termination measure.
