@@ -102,7 +102,8 @@ partial_fixpoint
 If the result of the recursive call is not just returned, but passed to another function, it is not in tail position and this definition fails.
 
 ```lean (keep := false) (error := true) (name := nonTailPos)
-def List.findIndex (xs : List α) (p : α → Bool) : Int := match xs with
+def List.findIndex (xs : List α) (p : α → Bool) : Int :=
+  match xs with
   | [] => -1
   | x::ys =>
     if p x then
@@ -166,7 +167,8 @@ partial_fixpoint
 Pattern matching on the result of the recursive call will prevent the definition by partial fixpoint to go through:
 
 ```lean (keep := false) (error := true) (name := monoMatch)
-def List.findIndex (xs : List α) (p : α → Bool) : Option Nat := match xs with
+def List.findIndex (xs : List α) (p : α → Bool) : Option Nat :=
+  match xs with
   | [] => none
   | x::ys =>
     if p x then
@@ -188,7 +190,8 @@ Could not prove 'List.findIndex' to be monotone in its recursive calls:
 In this particular case, using the {name}`Functor.map` function instead of explicit pattern matching helps:
 
 ```lean
-def List.findIndex (xs : List α) (p : α → Bool) : Option Nat := match xs with
+def List.findIndex (xs : List α) (p : α → Bool) : Option Nat :=
+  match xs with
   | [] => none
   | x::ys =>
     if p x then
@@ -216,7 +219,8 @@ From this fact, Lean proves a {deftech}_partial correctness theorem_ for the fun
 Recall this function from an earlier example:
 
 ```lean
-def List.findIndex (xs : List α) (p : α → Bool) : Option Nat := match xs with
+def List.findIndex (xs : List α) (p : α → Bool) : Option Nat :=
+  match xs with
   | [] => none
   | x::ys =>
     if p x then
