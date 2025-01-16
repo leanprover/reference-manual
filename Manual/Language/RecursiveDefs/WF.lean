@@ -29,10 +29,12 @@ In Lean's logic, definitions that use well-founded recursion do not necessarily 
 The reductions do hold as propositional equalities, however, and Lean automatically proves them.
 This does not typically make it more difficult to prove properties of definitions that use well-founded recursion, because the propositional reductions can be used to reason about the behavior of the function.
 It does mean, however, that using these functions in types typically does not work well.
-When the reduction behavior does hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination argument along with the definition.
+When the reduction behavior does hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination proof along with the definition.
 When possible, recursive function that are intended for use in types or in other situations where definitional equality is important should be defined with structural recursion.
 
-To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_termination argument_.
+To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_measure_ by which the function terminates.
+The measure should be a term that decreases at each recursive call; it may be one of the function's parameters or a product of the parameters, but it may also be any other term.
+The measure's type must be equipped with a {tech}[well-founded relation], which determines what it means for the measure to decrease.
 
 :::syntax Lean.Parser.Termination.terminationBy (title := "Explicit Well-Founded Recursion")
 
@@ -46,7 +48,7 @@ The identifiers before the optional `=>` can bring function parameters into scop
 already bound in the declaration header, and the mandatory term must indicate one of the function's parameters, whether introduced in the header or locally in the clause.
 :::
 
-The termination argument's type must be equipped with a {tech}[well-founded relation], which determines when function arguments are considered _smaller_.
+
 
 # Well-founded relations
 %%%
@@ -100,7 +102,7 @@ example {α} (x : α) : sizeOf x = 0 := by rfl
 
 Function types in general do not have a well-founded relation that's useful for termination proofs.
 {tech}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
-If the parameter selected termination argument has function type, the default {name}`SizeOf` instance is picked up, and the proof cannot succeed.
+If the measure is a function, the default {name}`SizeOf` instance is picked up and the proof cannot succeed.
 
   ```lean (keep := false)
   def fooInst (b : Bool → Bool) : Unit := fooInst (b ∘ b)
@@ -115,10 +117,10 @@ If the parameter selected termination argument has function type, the default {n
 
 # Termination proofs
 
-Once a {tech}[termination argument] is specified and its {tech}[well-founded relation] is inferred, Lean determines the termination proof obligation for every recursive call.
+Once a {tech}[measure] is specified and its {tech}[well-founded relation] is inferred, Lean determines the termination proof obligation for every recursive call.
 
 The proof obligation is of the form `g a₁ a₂ … ≺ g p₁ p₂ …`, where
- * `g` is the termination argument,
+ * `g` is the measure,
  *  `≺` is the inferred well-founded relation,
  * `a₁ a₂ …` are the arguments of the recursive call and
  * `p₁ p₂ …` are the parameters of the function definition.
@@ -153,7 +155,8 @@ unsolved goals
    ⊢ n - 2 < n
 ```
 
-Here, the termination argument is simply the parameter itself, and the well-founded order is the less-than relation on natural numbers. The first proof goal requires the user to prove that the argument of the first recursive call, namely `n - 1`, is strictly smaller than the function's parameter, `n`.
+Here, the {tech}[measure] is simply the parameter itself, and the well-founded order is the less-than relation on natural numbers.
+The first proof goal requires the user to prove that the argument of the first recursive call, namely `n - 1`, is strictly smaller than the function's parameter, `n`.
 
 These termination proofs can be easily discharged using the {tactic}`omega` tactic.
 
@@ -312,7 +315,7 @@ This tactic is intended to be extended by further heuristics using {keywordOf Le
 
 :::example "No Backtracking of Lexicographic Order"
 
-A classic example of a recursive function that needs a more complex termination argument is the Ackermann function:
+A classic example of a recursive function that needs a more complex {tech}[measure] is the Ackermann function:
 
 ```lean (keep := false)
 def ack : Nat → Nat → Nat
@@ -322,7 +325,7 @@ def ack : Nat → Nat → Nat
 termination_by m n => (m, n)
 ```
 
-The termination argument is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameters. The default {tactic}`decreasing_tactic` can handle this.
+The measure is a tuple, so every recursive call has to be on arguments that are lexicographically smaller than the parameters. The default {tactic}`decreasing_tactic` can handle this.
 
 In particular, note that the third recursive call has a second argument that is smaller than the second parameter and a first argument that is syntactically equal to the first parameter. This allowed  {tactic}`decreasing_tactic` to apply {name}`Prod.Lex.right`.
 
@@ -388,24 +391,30 @@ The {tactic}`decreasing_tactic` tactic does not use the stronger {name}`Prod.Lex
 tag := "inferring-well-founded-recursion"
 %%%
 
-If a recursive function definition does not indicate a termination argument, Lean will attempt to infer one.
+If a recursive function definition does not indicate a termination {tech}[measure], Lean will attempt to discover one automatically.
 
-If neither {keywordOf Lean.Parser.Command.declaration}`termination_by` nor {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is provided, Lean will try to {ref "inferring-structural-recursion"}[infer structural recursion], before attempting well-founded recursion. If a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is present, only well-founded recursion is attempted.
+If neither {keywordOf Lean.Parser.Command.declaration}`termination_by` nor {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is provided, Lean will try to {ref "inferring-structural-recursion"}[infer structural recursion] before attempting well-founded recursion.
+If a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is present, only well-founded recursion is attempted.
 
-To infer a suitable termination argument, Lean considers multiple {deftech}_termination measures_, which are termination arguments of type {name}`Nat`, and then tries all tuples of these measures.
+To infer a suitable termination {tech}[measure], Lean considers multiple {deftech}_basic termination measures_, which are termination measures of type {name}`Nat`, and then tries all tuples of these measures.
 
-The termination measures considered are
+The basic termination measures considered are:
 
 * all parameters whose type have a non-trivial {name}`SizeOf` instance
 * the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
 Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
 
-If using any of the measures, or a tuple thereof, allows all proof obligations to be discharged by {tactic}`decreasing_trivial` or the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, that is used as the termination argument.
+{deftech}_Candidate measures_ are basic measures or tuples of basic measures.
+If any of the candidate measures allow all proof obligations to be discharged by the termination proof tactic (that is, the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, or {tactic}`decreasing_trivial` if there is no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause), then an arbitrary such candidate measure is selected as the automatic termination measure.
 
 A {keyword}`termination_by?` clause causes the inferred termination annotation to be shown.
 It can be automatically added to the source file using the offered suggestion or code action.
 
-To avoid the combinatorial explosion of trying all tuples of measures, Lean investigates for each measure and each recursive call whether that measure is decreasing or strictly decreasing, tabulates these results and picks a suitable tuple based on that table. This implementation strategy shows up in the error message when no termination argument could be found.
+To avoid the combinatorial explosion of trying all tuples of measures, Lean first tabulates all {tech}[basic termination measures], determining whether the basic measure is decreasing, strictly decreasing, or non-decreasing.
+A decreasing measure is smaller for at least one recursive call and never increases at any recursive call, while a strictly decreasing measure is smaller at all recursive calls.
+A non-decreasing measure is one that the termination tactic could not show to be decreasing or strictly decreasing.
+A suitable tuple is chosen based on the table.
+This table shows up in the error message when no automatic measure could be found.
 {TODO}[Cite  “Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL”
 by Lukas Bulwahn, Alexander Krauss, and Tobias Nipkow, `10.1007/978-3-540-74591-4_5`, `https://www21.in.tum.de/~nipkow/pubs/tphols07.pdf`].
 
@@ -438,12 +447,12 @@ where
 
 :::example "Inference and decreasing tactic"
 
-The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is used slightly differently when inferring the termination argument, and in the actual termination proof.
+The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_by` is used slightly differently when inferring the termination {tech}[measure] and in the actual termination proof.
 
-* During inference, it is applied to a _single_ goal attempting to prove `<` or `≤` on {name}`Nat`.
-* During the termination proof, it is applied to possibly goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
+* During inference, it is applied to a _single_ goal attempting to prove {name LT.lt}`<` or {name LE.le}`≤` on {name}`Nat`.
+* During the termination proof, it is applied to many goals (one per recursive call), and the goals may involve the lexicographic ordering of pairs.
 
-A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and which works successfully with an explicit termination argument will cause inference of the termination argument to fail:
+A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and which works successfully with an explicit termination argument can cause inference of the termination measure to fail:
 
 ```lean (keep := false) (error := true)
 def ack : Nat → Nat → Nat
@@ -465,7 +474,7 @@ It is advisable to always include a {keywordOf Lean.Parser.Command.declaration}`
 
 :::example "Inference too powerful"
 
-Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument hat would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
+Due to the issue described above, where {tactic}`decreasing_tactic` is incomplete with regard to lexicographic ordering, it can happen that Lean infers a termination argument that would work if the tactic would do backtracking, but then the tactic fails. In this case one does not see an error about no termination measure found, but rather sees the error from discharging the failing tactic:
 
 ```lean (keep := false) (error := true) (name := badInfer)
 def synack : Nat → Nat → Nat
@@ -484,16 +493,16 @@ m n : Nat
 ⊢ m / 2 + 1 < m + 1
 ```
 
-In this case, explicitly stating the termination argument helps.
+In this case, explicitly stating the termination {tech}[measure] helps.
 
 :::
 
-# Mutual well-founded recursion
+# Mutual Well-Founded Recursion
 %%%
 tag := "mutual-well-founded-recursion"
 %%%
 
-Lean supports the definition of {tech}[mutually recursive] functions using well-founded recursion.
+Lean supports the definition of {tech}[mutually recursive] functions using {tech}[well-founded recursion].
 Mutual recursion may be introduced using a {tech}[mutual block], but it also results from {keywordOf Lean.Parser.Term.letrec}`let rec` expressions and {keywordOf Lean.Parser.Command.declaration}`where` blocks.
 The rules for mutual well-founded recursion are applied to a group of actually mutually recursive, lifted definitions, that results from the {ref "mutual-syntax"}[elaboration steps] for mutual groups.
 
@@ -501,7 +510,8 @@ If any function in the mutual group has {keywordOf Lean.Parser.Command.declarati
 
 If a termination argument is specified using {keywordOf Lean.Parser.Command.declaration}`termination_by` for any function, then all functions must specify a termination argument, and they have to have the same type.
 
-If no termination argument is specified, the termination argument is {ref "inferring-well-founded-recursion"}[inferred, as described above]. In the case of mutual recursion, a third class of measures is considered during inference, namely for each function in the mutual group the measure that is `1` for that function and `0` for the others. This allows Lean to order the functions so that some calls from one function to another are allowed even if the parameters do not decrease.
+If no termination argument is specified, the termination argument is {ref "inferring-well-founded-recursion"}[inferred, as described above]. In the case of mutual recursion, a third class of basic measures is considered during inference, namely for each function in the mutual group the measure that is `1` for that function and `0` for the others. This allows Lean to order the functions so that some calls from one function to another are allowed even if the parameters do not decrease.
+{TODO}[Add forward reference to the earlier description]
 
 :::example "Mutual recursion without parameter decrease"
 
