@@ -341,7 +341,8 @@ deriving Repr
 
 When the new structure extends existing structures, the new structure's constructor takes the existing structure's information as additional arguments.
 Typically, this is in the form of a constructor parameter for each parent structure type.
-If the parents' fields overlap, however, then the subset of non-overlapping fields from one or more of the parents is included instead to prevent duplicating field information.
+This parent value contains all of the parent's fields.
+If the parents' fields overlap, however, then the subset of non-overlapping fields from one or more of the parents is included instead of an entire value of the parent structure to prevent duplicating field information.
 
 
 There is no subtyping relation between a parent structure type and its children.
