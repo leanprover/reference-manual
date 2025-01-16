@@ -26,15 +26,15 @@ This allows a larger class of recursive definitions to be accepted.
 Furthermore, when Lean's automation fails to construct a termination proof, it is possible to specify one manually.
 
 All definitions are treated identically by the Lean compiler.
-In Lean's logic, definitions that use well-founded recursion do not necessarily reduce {tech key:="definitional equality"}[definitionally].
+In Lean's logic, definitions that use well-founded recursion typically do not reduce {tech key:="definitional equality"}[definitionally].
 The reductions do hold as propositional equalities, however, and Lean automatically proves them.
 This does not typically make it more difficult to prove properties of definitions that use well-founded recursion, because the propositional reductions can be used to reason about the behavior of the function.
 It does mean, however, that using these functions in types typically does not work well.
-When the reduction behavior does hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination proof along with the definition.
+Even when the reduction behavior happens to hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination proof along with the definition.
 When possible, recursive function that are intended for use in types or in other situations where definitional equality is important should be defined with structural recursion.
 
 To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_measure_ by which the function terminates.
-The measure should be a term that decreases at each recursive call; it may be one of the function's parameters or a product of the parameters, but it may also be any other term.
+The measure should be a term that decreases at each recursive call; it may be one of the function's parameters or a tuple of the parameters, but it may also be any other term.
 The measure's type must be equipped with a {tech}[well-founded relation], which determines what it means for the measure to decrease.
 
 :::syntax Lean.Parser.Termination.terminationBy (title := "Explicit Well-Founded Recursion")
