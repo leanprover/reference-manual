@@ -48,7 +48,19 @@ The identifiers before the optional `=>` can bring function parameters into scop
 already bound in the declaration header, and the mandatory term must indicate one of the function's parameters, whether introduced in the header or locally in the clause.
 :::
 
+:::example "Division by Iterated Subtraction"
+Division can be specified as the number of times the dividend can be subtracted from the divisor.
+This operation cannot be elaborated using structural recursion because subtraction is not pattern matching.
+The value of `n` does decrease with each recursive call, so well-founded recursion can be used to justify the definition of division by iterated subtraction.
 
+```lean
+def div (n k : Nat) : Nat :=
+  if k = 0 then 0
+  else if k > n then 0
+  else 1 + div (n - k) k
+termination_by n
+```
+:::
 
 # Well-Founded Relations
 %%%
