@@ -275,6 +275,7 @@ Quot
 Setoid
 Squash
 Subsingleton
+WellFoundedRelation
 ```
 
 ```exceptions

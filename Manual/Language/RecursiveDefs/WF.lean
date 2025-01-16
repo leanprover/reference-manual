@@ -59,20 +59,48 @@ $$`` x_0 ≻ x_1 ≻ \cdots``
 
 In Lean, types that are equipped with a canonical well-founded relation are instances of the {name}`WellFoundedRelation` type class.
 
-The most important instances are
+{docstring WellFoundedRelation}
 
-* {name}[`Nat`], ordered by `<`.
+```lean (show := false)
+section
+variable {α : Type u} {β : Type v} (a₁ a₂ : α) (b₁ b₂ : β) [WellFoundedRelation α] [WellFoundedRelation β]
+variable {γ : Type u} (x₁ x₂ : γ) [SizeOf γ]
+local notation x " ≺ " y => WellFoundedRelation.rel x y
+```
 
-* {name}[`Prod`], ordered lexicographically: `(a₁, b₁) ≺ (a₂, b₂)` if and only if `a₁ ≺ a₂` or `a₁ = a₂` and `b₁ ≺ b₂`.
+The most important instances are:
 
-* Every type that is an instance of the {name}`SizeOf` type class, which provides a method {name}`SizeOf.sizeOf`, has a well-founded order defined by `x₁ ≺ x₂` if and only if `sizeOf x₁ < sizeOf x₂`. For {tech}[inductive types], a `SizeOf` instance is automatically derived by lean.
+* {name}[`Nat`], ordered by {lean type:="Nat → Nat → Prop"}`(· < ·)`.
 
+* {name}[`Prod`], ordered lexicographically: {lean}`(a₁, b₁) ≺ (a₂, b₂)` if and only if {lean}`a₁ ≺ a₂` or {lean}`a₁ = a₂` and {lean}`b₁ ≺ b₂`.
 
-  Note that there exists a low-priority instance {name}`instSizeOfDefault` that provides a `sizeOf` instance for any type, and always returns `0`. If this instance is picked up for well-founded recursion, a termination proof will not be possible.
+* Every type that is an instance of the {name}`SizeOf` type class, which provides a method {name}`SizeOf.sizeOf`, has a well-founded relation.
+  For these types, {lean}`x₁ ≺ x₂` if and only if {lean}`sizeOf x₁ < sizeOf x₂`. For {tech}[inductive types], a {lean}`SizeOf` instance is automatically derived by Lean.
 
-  :::example "Default Size Instance"
+```lean (show := false)
+end
+```
 
-  Function types in general do not have a useful well-founded order instance, so if the termination argument has function type, the default {name}`SizeOf` instance is picked up:
+Note that there exists a low-priority instance {name}`instSizeOfDefault` that provides a {lean}`SizeOf` instance for any type, and always returns {lean}`0`.
+This instance cannot be used to prove that a function terminates using well-founded recursion because {lean}`0 < 0` is false.
+
+```lean (show := false)
+
+-- Check claims about instSizeOfDefault
+
+example {α} (x : α) : sizeOf x = 0 := by rfl
+
+/-- info: instSizeOfDefault.{u} (α : Sort u) : SizeOf α -/
+#guard_msgs in
+#check instSizeOfDefault
+
+```
+
+:::example "Default Size Instance"
+
+Function types in general do not have a well-founded relation that's useful for termination proofs.
+{tech}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
+If the parameter selected termination argument has function type, the default {name}`SizeOf` instance is picked up, and the proof cannot succeed.
 
   ```lean (keep := false)
   def fooInst (b : Bool → Bool) : Unit := fooInst (b ∘ b)
@@ -83,7 +111,7 @@ The most important instances are
     guard_target = False
     sorry
   ```
-  :::
+:::
 
 # Termination proofs
 
