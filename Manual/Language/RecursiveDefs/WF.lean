@@ -504,7 +504,7 @@ The basic termination measures considered are:
 * all parameters whose type have a non-trivial {name}`SizeOf` instance
 * the expression `e₂ - e₁` whenever the local context of a recursive call has an assumption of type `e₁ < e₂` or `e₁ ≤ e₂`, where `e₁` and `e₂` are of type {name}`Nat` and depend only on the function's parameters. {TODO}[Cite “Termination Analysis with Calling Context Graphs” by Panagiotis Manolios &
 Daron Vroon, `https://doi.org/10.1007/11817963_36`.]
-* {TODO}[Nested function 1/0 here]
+* in a {tech}[mutual group], an additional basic measure is used to distinguish between recursive calls to other functions in the group and recursive calls to the function being defined (for details, see {ref "mutual-well-founded-recursion"}[the section on mutual well-founded recursion])
 
 {deftech}_Candidate measures_ are basic measures or tuples of basic measures.
 If any of the candidate measures allow all proof obligations to be discharged by the termination proof tactic (that is, the tactic specified by {keywordOf Lean.Parser.Command.declaration}`decreasing_by`, or {tactic}`decreasing_trivial` if there is no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause), then an arbitrary such candidate measure is selected as the automatic termination measure.
@@ -622,44 +622,63 @@ Lean supports the definition of {tech}[mutually recursive] functions using {tech
 Mutual recursion may be introduced using a {tech}[mutual block], but it also results from {keywordOf Lean.Parser.Term.letrec}`let rec` expressions and {keywordOf Lean.Parser.Command.declaration}`where` blocks.
 The rules for mutual well-founded recursion are applied to a group of actually mutually recursive, lifted definitions, that results from the {ref "mutual-syntax"}[elaboration steps] for mutual groups.
 
-If any function in the mutual group has {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, well-founded recursion is attempted.
-
-If a termination argument is specified using {keywordOf Lean.Parser.Command.declaration}`termination_by` for any function, then all functions must specify a termination argument, and they have to have the same type.
+If any function in the mutual group has a {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, well-founded recursion is attempted.
+If a termination {tech}[measure] is specified using {keywordOf Lean.Parser.Command.declaration}`termination_by` for _any_ function in the mutual group, then _all_ functions in the group must specify a termination measure, and they have to have the same type.
 
 If no termination argument is specified, the termination argument is {ref "inferring-well-founded-recursion"}[inferred, as described above]. In the case of mutual recursion, a third class of basic measures is considered during inference, namely for each function in the mutual group the measure that is `1` for that function and `0` for the others. This allows Lean to order the functions so that some calls from one function to another are allowed even if the parameters do not decrease.
 {TODO}[Add forward reference to the earlier description]
 
 :::example "Mutual recursion without parameter decrease"
 
-In the following mutual function definitions, the parameter does not decrease in the call from `g` to `f`. Still, the definition is accepted by ordering the functions themselves:
+In the following mutual function definitions, the parameter does not decrease in the call from {lean}`g` to {lean}`f`.
+Nonetheless, the definition is accepted due to the ordering imposed on the functions themselves by the additional basic measure.
 
-```lean (keep := false)
+```lean (name := fg)
 mutual
-def f : (n : Nat) → Nat
-  | 0 => 0
-  | n+1 => g n
-termination_by?
+  def f : (n : Nat) → Nat
+    | 0 => 0
+    | n+1 => g n
+  termination_by?
 
-def g (n : Nat) : Nat := (f n) + 1
-termination_by?
+  def g (n : Nat) : Nat := (f n) + 1
+  termination_by?
 end
+```
+
+The inferred termination argument for {lean}`f` is:
+```leanOutput fg
+Try this: termination_by n => (n, 0)
+```
+
+The inferred termination argument for {lean}`g` is:
+```leanOutput fg
+Try this: termination_by (n, 1)
 ```
 
 :::
 
-# Theory and construction
+# Theory and Construction
 
-This section gives a very brief glimpse into the construction well-founded recursion, which may surface occasionally.
+```lean (show := false)
+section
+variable {α : Type u}
+```
 
+This section gives a very brief glimpse into the mathematical constructions that underlie termination proofs via {tech}[well-founded recursion], which may surface occasionally.
 The elaboration of functions defined by well-founded recursion is based on the {name}`WellFounded.fix` operator.
 
 {docstring WellFounded.fix}
 
-The type `α` is instantiated with the function's (varying) parameters, packed into one type using {name}`PSigma`. The {name}`WellFounded` relation is constructed from the {tech}[termination argument] via {name}`invImage`.
+The type {lean}`α` is instantiated with the function's (varying) parameters, packed into one type using {name}`PSigma`.
+The {name}`WellFounded` relation is constructed from the termination {tech}[measure] via {name}`invImage`.
 
-The function's body is passed to {name}`WellFounded.fix`, with parameters suitable packed and unpacked, and recursive calls are replaced with a call to the value provided by {name}`WellFounded.fix`. The termination proofs generated by the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` are inserted in the right place.
+{docstring invImage}
 
-Finally, the equational and unfolding theorems for the recursive function are proved from {name}`WellFounded.fix_eq`, undoing the argument mangling.
+The function's body is passed to {name}`WellFounded.fix`, with parameters suitably packed and unpacked, and recursive calls are replaced with a call to the value provided by {name}`WellFounded.fix`.
+The termination proofs generated by the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` tactics are inserted in the right place.
+
+Finally, the equational and unfolding theorems for the recursive function are proved from {name}`WellFounded.fix_eq`.
+These theorems hide the details of packing and unpacking arguments and describe the function's behavior in terms of the original definition.
 
 In the case of mutual recursion, an equivalent non-mutual function is constructed by combining the function's arguments using {name}`PSum`, and pattern-matching on that sum type in the result type and the body.
 
