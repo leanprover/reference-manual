@@ -55,12 +55,11 @@ def monotonicityLemmas : BlockRoleExpander
           let f := concl.appArg!
           unless f.isLambda do
             throwError "Unexpecte conclusion of {name}"
-          lambdaBoundedTelescope f 1 fun _ _call => do
-            -- Could not get this to work:
-            -- let _stx ← Lean.PrettyPrinter.delab call
-            -- `(Inline.code $(quote stx))
-            `(Inline.text "TODO")
-            -- pure (some stx)
+          lambdaBoundedTelescope f 1 fun _ call => do
+            let stx ← Lean.PrettyPrinter.delab call
+            let format := Syntax.prettyPrint stx
+            let str := format.pretty'
+            `(Inline.code $(quote str))
 
       let hl : Highlighted ← constTok name name.toString
       let nameStx ← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString!)])

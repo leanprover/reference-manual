@@ -327,14 +327,6 @@ The tactic solves goals of the form `monotone (fun x => …)` using the followin
 * Zeta-reducing a {keywordOf Lean.Parser.Term.let}`let` expression when value and type do depend on `x`.
 * Applying lemmas annotated with {attr}`partial_fixpoint_monotone`
 
-:::example "List of Monotonicity Lemmas"
-
-::::TODO
-Not really an example, but probably better to have this collapsible?
-::::
-
-The following monotonicity lemmas are registered, and should allow recursive calls in the indicated argument of the higher-order function:
-
 ::::TODO
 
 What I’d like to see here is
@@ -344,6 +336,13 @@ What I’d like to see here is
 where I use `·` and `_` to distinguish the monotone arguments from others.
 
 ::::
+
+:::example "List of Monotonicity Lemmas"
+
+{TODO}[Not really an example, but probably better to have this collapsible?]
+
+The following monotonicity lemmas are registered, and should allow recursive calls in the indicated argument of the higher-order function:
+
 
 {monotonicityLemmas}
 
