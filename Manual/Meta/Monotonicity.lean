@@ -4,38 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joachim Breitner
 -/
 
-import Lean.Elab.Command
-import Lean.Elab.InfoTree
-
 import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
-import VersoManual
-import Verso.Code
-
-import SubVerso.Highlighting
-import SubVerso.Examples
 
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
-import Manual.Meta.Bibliography
-import Manual.Meta.CustomStyle
-import Manual.Meta.Example
-import Manual.Meta.Figure
 import Manual.Meta.Lean
-import Manual.Meta.Lean.IO
-import Manual.Meta.Marginalia
-import Manual.Meta.ParserAlias
-import Manual.Meta.Syntax
 import Manual.Meta.Table
-import Manual.Meta.Tactics
-import Manual.Meta.SpliceContents
 
 open Lean Meta Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso Doc Elab
 open SubVerso.Highlighting Highlighted
 
-open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
 
