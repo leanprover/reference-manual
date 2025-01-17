@@ -12,24 +12,11 @@ import Manual.Meta.Lean
 import Manual.Meta.Table
 
 open Lean Meta Elab
-open Verso Doc Elab Manual
+open Verso Doc Elab
 open SubVerso.Highlighting Highlighted
 
 
 namespace Manual
-
-def mkTable (rows : Array (Array Syntax)) (header : String) (name : String) : TermElabM Term := do
-  if h : rows.size = 0 then
-    throwError "Expected at least one row"
-  else
-    let columns := rows[0].size
-    if columns = 0 then
-      throwError "Expected at least one column"
-    if rows.any (·.size != columns) then
-      throwError s!"Expected all rows to have same number of columns, but got {rows.map (·.size)}"
-
-    let blocks : Array (Syntax.TSepArray `term ",") := rows.map (Syntax.TSepArray.mk)
-    ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])
 
 @[block_role_expander monotonicityLemmas]
 def monotonicityLemmas : BlockRoleExpander
@@ -37,7 +24,7 @@ def monotonicityLemmas : BlockRoleExpander
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
-    let rows : Array (Array Syntax) ← names.mapM fun name => do
+    let itemStx : TSyntaxArray `term ← names.mapM fun name => do
       -- Extract the target pattern
       let ci ← getConstInfo name
       let targetStx : TSyntax `term ←
@@ -55,10 +42,10 @@ def monotonicityLemmas : BlockRoleExpander
 
       let hl : Highlighted ← constTok name name.toString
       let nameStx ← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString!)])
-      pure #[nameStx, targetStx]
+      `(Verso.Doc.Block.para #[$nameStx, Inline.text ": applies to ", $targetStx])
 
-    let tableStx ← mkTable rows "foo" "bar"
-    return #[tableStx]
+    let theList ← `(Verso.Doc.Block.ul #[$[⟨#[$itemStx]⟩],*])
+    return #[theList]
   | _, _ => throwError "Unexpected arguments"
 
 -- #eval do
