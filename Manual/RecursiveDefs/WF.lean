@@ -8,7 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Papers
-import Manual.Language.RecursiveDefs.WF.GuessLexExample
+import Manual.RecursiveDefs.WF.GuessLexExample
 
 open Manual
 open Verso.Genre
@@ -527,7 +527,7 @@ A non-decreasing measure is one that the termination tactic could not show to be
 A suitable tuple is chosen based on the table.{margin}[This approach is based on {citehere bulwahn2007}[].]
 This table shows up in the error message when no automatic measure could be found.
 
-{spliceContents Manual.Language.RecursiveDefs.WF.GuessLexExample}
+{spliceContents Manual.RecursiveDefs.WF.GuessLexExample}
 
 ```lean (show := false)
 section
