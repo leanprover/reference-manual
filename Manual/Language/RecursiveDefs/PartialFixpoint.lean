@@ -7,11 +7,14 @@ Author: Joachim Breitner
 import VersoManual
 
 import Manual.Meta
+import Manual.Meta.Monotonicity
 
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
+
+open Lean.Order
 
 #doc (Manual) "Partial Fixpoint Recursion" =>
 %%%
@@ -29,7 +32,7 @@ Even in cases where the defining equation fully describes the function's behavio
 
 Definition by partial fixpoint is only used when explicitly requested by the user, by annotating the definition with {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`.
 
-There are two classes of functions for which a definition by partial fixpoint work:
+There are two classes of functions for which a definition by partial fixpoint works:
 
 * tail-recursive functions of inhabited type, and
 * monadic functions in a suitable monad, such as the {name}`Option` monad.
@@ -272,5 +275,76 @@ theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
 :::
 
 # Theory and Construction
+%%%
+tag := "partial-fixpoint-theory"
+%%%
 
-TODO
+The construction builds on a variant of the Knaster–Tarski theorem: In a chain-complete partial order, every monotone function has a least fixed point.
+
+The necessary theory is found in the `Lean.Order` namespace.
+This is not meant to be a general purpose library of order theoretic results.
+Instead, the definitions and theorems therein are only intended to back the
+{keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` feature.
+
+The notion of a partial order, and that of a chain-complete partial order, are represented as type classes:
+
+{docstring Lean.Order.PartialOrder}
+
+{docstring Lean.Order.CCPO}
+
+The fixpoint of a monotone function can be taken using {name}`fix`, which indeed constructs a fixpoint, as shown by {name}`fix_eq`,
+
+{docstring Lean.Order.fix}
+
+{docstring Lean.Order.fix_eq}
+
+So to construct the function, Lean first infers a suitable {name}`CCPO` instance.
+
+```lean (show := false)
+section
+universe u v
+variable (α : Type u)
+variable (β : α → Sort v) [∀ x, CCPO (β x)]
+variable (w : α)
+```
+
+* If the function's result type has a dedicated instance, like {name}`Option` has with {inst}`CCPO (Option α)`, this is used together with the instance for the function type, {inst}`CCPO (∀ x, β x)`, to construct an instance for the whole function's type.
+
+* Else, if the function's type can be shown to be inhabited by a witness {lean}`w`, then the instance {inst}`CCPO (FlatOrder w)` is used, `w` is a least element and all other elements are incomparable.
+
+```lean (show := false)
+end
+```
+
+Next, the recursive calls in the right-hand side of the function definitions are abstracted; this turns into the argument `f` of {name}`fix`. The monotonicity requirement is solved by the {tactic}`monotonicity` tactic, which applies compositional monotonicity lemmas in a syntax-driven way
+
+The tactic solves goals of the form `monotone (fun x => …)` using the following steps:
+
+* Applying {name}`monotone_const` when there is no dependency on `x` left.
+* Splitting on {keywordOf Lean.Parser.Term.match}`match` expressions.
+* Splitting on {keywordOf termIfThenElse}`if` expressions.
+* Moving {keywordOf Lean.Parser.Term.let}`let` expression to the context, if the value and type do not depend on `x`.
+* Zeta-reducing a {keywordOf Lean.Parser.Term.let}`let` expression when value and type do depend on `x`.
+* Applying lemmas annotated with {attr}`partial_fixpoint_monotone`
+
+:::example "List of Monotonicity Lemmas"
+
+::::TODO
+Not really an example, but probably better to have this collapsible?
+::::
+
+The following monotonicity lemmas are registered, and should allow recursive calls in the indicated argument of the higher-order function:
+
+::::TODO
+
+What I’d like to see here is
+
+* {name}`Lean.Order.monotone_array_allM`: applies to `List.mapM ⬝ _`
+
+where I use `·` and `_` to distinguish the monotone arguments from others.
+
+::::
+
+{monotonicityLemmas}
+
+:::
