@@ -10,6 +10,7 @@ import Verso.Code.Highlighted
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
+import Manual.Meta.Lean.Scopes
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -702,8 +703,10 @@ where
       else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
+    let scope := (← Manual.Meta.Lean.Scopes.getScopes).head!
+
     withOpenedNamespace `Manual.FreeSyntax do
-      match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
+      match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) (openDecls := scope.openDecls) with
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
