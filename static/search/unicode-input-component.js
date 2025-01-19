@@ -238,7 +238,7 @@ export class InputAbbreviationRewriter {
     });
 
     textInput.addEventListener("keydown", async (ev) => {
-      if (ev.key === "Tab") {
+      if (ev.key === "Tab" && this.rewriter.getTrackedAbbreviations().size > 0) {
         await this.rewriter.replaceAllTrackedAbbreviations();
         this.updateState();
         ev.preventDefault();
