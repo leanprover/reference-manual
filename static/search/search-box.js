@@ -1,3 +1,12 @@
+/**
+ * Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+ * Released under Apache 2.0 license as described in the file LICENSE.
+ * Author: Jakob Ambeck Vase
+ * 
+ * This software or document includes material copied from or derived from https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/.
+ * Copyright © 2024 World Wide Web Consortium. https://www.w3.org/copyright/software-license-2023/
+ */
+
 // Enable typescript
 // @ts-check
 
