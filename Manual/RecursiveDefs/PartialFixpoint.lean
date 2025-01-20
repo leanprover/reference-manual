@@ -22,13 +22,13 @@ tag := "partial-fixpoint"
 %%%
 
 A function definition can be understood as a request to Lean to construct a function of the given type that satisfies the given equation.
-One purpose of the termination proof in {ref "structural-recursion"}[structural recursion] or {tech}[well-founded recursion] is to guarantee the existence and uniqueness the constructed functions.
+One purpose of the termination proof in {ref "structural-recursion"}[structural recursion] or {ref "well-founded-recursion"}[well-founded recursion] is to guarantee the existence and uniqueness the constructed functions.
 
 In some cases, the equation may not uniquely determine the function's (extensional) behavior, because it
 does not terminate for all arguments in the above sense, but there still exist functions for which the defining equation holds.
 In these cases, a definition by {deftech}_partial fixpoint_ may be possible.
 
-Even in cases where the defining equation fully describes the function's behavior and a termination proof using {tech}[well-founded recursion] would be possible it may simply be more convenient to define the function using partial fixpoint, to avoid a possible tedious termination proof.
+Even in cases where the defining equation fully describes the function's behavior and a termination proof using {ref "well-founded-recursion"}[well-founded recursion] would be possible it may simply be more convenient to define the function using partial fixpoint, to avoid a possible tedious termination proof.
 
 Definition by partial fixpoint is only used when explicitly requested by the user, by annotating the definition with {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`.
 
@@ -88,7 +88,7 @@ partial_fixpoint
 ```
 
 More useful function definitions tend to have some branching.
-The following example can also be constructed using well-founded recursion with a termination proof, but may be more convenient to define using  {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`.
+The following example could also be constructed using well-founded recursion with a termination proof, but may be more convenient to define using  {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`, where no termination proof is needed.
 
 ```lean (keep := false)
 def Array.find (xs : Array α) (p : α → Bool) (i : Nat := 0) : Option α :=
@@ -308,7 +308,7 @@ variable (β : α → Sort v) [∀ x, CCPO (β x)]
 variable (w : α)
 ```
 
-* If the function's result type has a dedicated instance, like {name}`Option` has with {inst}`CCPO (Option α)`, this is used together with the instance for the function type, {inst}`CCPO (∀ x, β x)`, to construct an instance for the whole function's type.
+* If the function's result type has a dedicated instance, like {name}`Option` has with {name}`instCCPOOption`, this is used together with the instance for the function type, {name}`instCCPOPi`, to construct an instance for the whole function's type.
 
 * Else, if the function's type can be shown to be inhabited by a witness {lean}`w`, then the instance {inst}`CCPO (FlatOrder w)` is used, `w` is a least element and all other elements are incomparable.
 
