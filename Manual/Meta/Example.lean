@@ -113,7 +113,12 @@ r#".example {
   border-radius: 0.5em;
   margin-bottom: 0.75em;
   margin-top: 0.75em;
-  clear: both; /* Don't overlap margin notes with examples */
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
 }
 .example p:last-child {margin-bottom:0;}
 .example .description::before {

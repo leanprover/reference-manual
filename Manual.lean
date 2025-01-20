@@ -9,6 +9,7 @@ import Manual.Intro
 import Manual.Elaboration
 import Manual.Types
 import Manual.Language
+import Manual.RecursiveDefs
 import Manual.Classes
 import Manual.Terms
 import Manual.Tactics
@@ -61,6 +62,8 @@ Additionally, we will be adding missing API reference documentation and revising
 {include 0 Manual.Types}
 
 {include 0 Manual.Language}
+
+{include 0 Manual.RecursiveDefs}
 
 {include 0 Manual.Terms}
 
@@ -275,6 +278,7 @@ Quot
 Setoid
 Squash
 Subsingleton
+WellFoundedRelation
 ```
 
 ```exceptions

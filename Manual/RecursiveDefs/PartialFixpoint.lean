@@ -333,6 +333,6 @@ The tactic solves goals of the form `monotone (fun x => …)` using the followin
 
 {TODO}[How can we I pretty-print these pattern expressions so that hovers work?]
 
-The following monotonicity lemmas are registered, and should allow recursive calls under the given higher-order functions in the arguments indicated by `.` (but not the other arguments, shown as `_`).
+The following monotonicity lemmas are registered, and should allow recursive calls under the given higher-order functions in the arguments indicated by `·` (but not the other arguments, shown as `_`).
 
 {monotonicityLemmas}
