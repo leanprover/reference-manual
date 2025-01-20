@@ -327,23 +327,12 @@ The tactic solves goals of the form `monotone (fun x => …)` using the followin
 * Zeta-reducing a {keywordOf Lean.Parser.Term.let}`let` expression when value and type do depend on `x`.
 * Applying lemmas annotated with {attr}`partial_fixpoint_monotone`
 
-::::TODO
+{TODO}[I wonder if this needs to be collapsible. I at some point I had it in an example, but it's not really an example. Should be this collapsible? Is there a better way than to use example?]
 
-What I’d like to see here is
+{TODO}[This table probably needs some styling?]
 
-* {name}`Lean.Order.monotone_array_allM`: applies to `List.mapM ⬝ _`
+{TODO}[How can we I pretty-print these pattern expressions so that hovers work?]
 
-where I use `·` and `_` to distinguish the monotone arguments from others.
-
-::::
-
-:::example "List of Monotonicity Lemmas"
-
-{TODO}[Not really an example, but probably better to have this collapsible?]
-
-The following monotonicity lemmas are registered, and should allow recursive calls in the indicated argument of the higher-order function:
-
+The following monotonicity lemmas are registered, and should allow recursive calls under the given higher-order functions in the arguments indicated by `.` (but not the other arguments, shown as `_`).
 
 {monotonicityLemmas}
-
-:::
