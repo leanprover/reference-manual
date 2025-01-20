@@ -54,3 +54,19 @@ def launchbury94 : InProceedings where
   authors := #[.concat (inlines! "John Launchbury"), .concat (inlines!"Simon L Peyton Jones")]
   year := 1994
   booktitle := .concat (inlines!"Proceedings of the ACM SIGPLAN 1994 Conference on Programming Language Design and Implementation")
+
+def manolios2006 : InProceedings where
+  title := .concat (inlines!"Termination Analysis with Calling Context Graphs")
+  authors := #[.concat (inlines!"Panagiotis Manolios"), .concat (inlines!"Daron Vroon")]
+  year := 2006
+  booktitle := .concat (inlines!"Proceedings of the International Conference on Computer Aided Verification (CAV 2006)")
+  series := some <| .concat (inlines!"LNCS 4144")
+  url := "https://doi.org/10.1007/11817963_36"
+
+def bulwahn2007 : InProceedings where
+  title := .concat (inlines!"Finding Lexicographic Orders for Termination Proofs in Isabelle/HOL")
+  authors := #[.concat (inlines!"Lukas Bulwahn"), .concat (inlines!"Alexander Krauss"), .concat (inlines!"Tobias Nipkow")]
+  year := 2007
+  booktitle := .concat (inlines!"Proceedings of the International Conference on Theorem Proving in Higher Order Logics (TPHOLS 2007)")
+  series := some <| .concat (inlines!"LNTCS 4732")
+  url := "https://doi.org/10.1007/978-3-540-74591-4_5"

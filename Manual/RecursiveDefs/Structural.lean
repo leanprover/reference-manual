@@ -1,12 +1,12 @@
 /-
 Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: David Thrane Christiansen
+Author: David Thrane Christiansen, Joachim Breitner
 -/
 
 import VersoManual
-import Manual.Language.RecursiveDefs.Structural.RecursorExample
-import Manual.Language.RecursiveDefs.Structural.CourseOfValuesExample
+import Manual.RecursiveDefs.Structural.RecursorExample
+import Manual.RecursiveDefs.Structural.CourseOfValuesExample
 
 import Manual.Meta
 
@@ -481,6 +481,10 @@ Describe mutual structural recursion over {ref "nested-inductive-types"}[nested 
 
 
 # Inferring Structural Recursion
+%%%
+tag := "inferring-structural-recursion"
+%%%
+
 
 If no {keyword}`termination_by` clauses are present in a recursive or mutually recursive function definition, then Lean attempts to infer a suitable structurally decreasing argument, effectively by trying all suitable parameters in sequence.
 If this search fails, Lean then attempts to infer {tech}[well-founded recursion].
@@ -511,13 +515,13 @@ Try this: termination_by structural x => x
 In this section, the construction used to elaborate structurally recursive functions is explained in more detail.
 This elaboration uses the {ref "recursor-elaboration-helpers"}[`below` and `brecOn` constructions] that are automatically generated from inductive types' recursors.
 
-{spliceContents Manual.Language.RecursiveDefs.Structural.RecursorExample}
+{spliceContents Manual.RecursiveDefs.Structural.RecursorExample}
 
 The structural recursion analysis attempts to translate the recursive pre-definition into a use of the appropriate structural recursion constructions.
 At this step, pattern matching has already been translated into the use of matcher functions; these are treated specially by the termination checker.
 Next, for each group of parameters, a translation using `brecOn` is attempted.
 
-{spliceContents Manual.Language.RecursiveDefs.Structural.CourseOfValuesExample}
+{spliceContents Manual.RecursiveDefs.Structural.CourseOfValuesExample}
 
 The `below` construction is a mapping from each value of a type to the results of some function call on _all_ smaller values; it can be understood as a memoization table that already contains the results for all smaller values.
 The notion of “smaller value” that is expressed in the `below` construction corresponds directly to the definition of {tech}[strict sub-terms].

@@ -8,7 +8,6 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Language.Files
-import Manual.Language.RecursiveDefs
 
 import Lean.Parser.Command
 
@@ -579,9 +578,6 @@ scoped
 :::planned 78
 Describe {deftech}_axioms_ in detail
 :::
-
-{include 0 Manual.Language.RecursiveDefs}
-
 
 # Attributes
 %%%

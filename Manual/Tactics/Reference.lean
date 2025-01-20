@@ -457,15 +457,6 @@ tag := "tactic-ref-term-helpers"
 
 These tactics are used during elaboration of terms to satisfy obligations that arise.
 
-:::tactic "decreasing_tactic"
-:::
-
-:::tactic "decreasing_trivial"
-:::
-
-:::tactic "array_get_dec"
-:::
-
 :::tactic tacticDecreasing_with_
 :::
 
