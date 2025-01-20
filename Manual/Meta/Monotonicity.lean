@@ -96,10 +96,8 @@ def monotonicityLemmas : BlockRoleExpander
               else
                 pure .continue)
 
-            let stx ← Lean.PrettyPrinter.delab call'
-            let fmt ← Lean.PrettyPrinter.formatTerm stx
-            let str : String := fmt.pretty
-            `(Inline.code $(quote str))
+            let fmt ← ppExpr call'
+            `(Inline.code $(quote fmt.pretty))
 
       pure #[nameStx, patternStx]
 
