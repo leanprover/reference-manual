@@ -277,7 +277,7 @@ theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
 
 # Mutual Well-Founded Recursion
 %%%
-tag := "mutual-well-founded-recursion"
+tag := "mutual-partial-fixpoint"
 %%%
 
 Lean supports the definition of {tech}[mutually recursive] functions using {tech}[partial fixpoint].
