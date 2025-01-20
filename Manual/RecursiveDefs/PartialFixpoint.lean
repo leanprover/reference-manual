@@ -310,7 +310,7 @@ variable (w : α)
 
 * If the function's result type has a dedicated instance, like {name}`Option` has with {name}`instCCPOOption`, this is used together with the instance for the function type, {name}`instCCPOPi`, to construct an instance for the whole function's type.
 
-* Else, if the function's type can be shown to be inhabited by a witness {lean}`w`, then the instance {inst}`CCPO (FlatOrder w)` is used, `w` is a least element and all other elements are incomparable.
+* Else, if the function's type can be shown to be inhabited by a witness {lean}`w`, then the instance {name}`FlatOrder.instCCPO` for the wrapper type {lean}`FlatOrder w` is used. In this order, {lean}`w` is a least element and all other elements are incomparable.
 
 ```lean (show := false)
 end
@@ -318,18 +318,31 @@ end
 
 Next, the recursive calls in the right-hand side of the function definitions are abstracted; this turns into the argument `f` of {name}`fix`. The monotonicity requirement is solved by the {tactic}`monotonicity` tactic, which applies compositional monotonicity lemmas in a syntax-driven way
 
-The tactic solves goals of the form `monotone (fun x => …)` using the following steps:
+```lean (show := false)
+section
+set_option linter.unusedVariables false
+variable {α : Sort u} {β : Sort v} [PartialOrder α] [PartialOrder β] (more : (x : α) → β) (x : α)
 
-* Applying {name}`monotone_const` when there is no dependency on `x` left.
+local macro "…" x:term:arg "…" : term => `(more $x)
+```
+
+The tactic solves goals of the form {lean}`monotone (fun x => … x …)` using the following steps:
+
+* Applying {name}`monotone_const` when there is no dependency on {lean}`x` left.
 * Splitting on {keywordOf Lean.Parser.Term.match}`match` expressions.
 * Splitting on {keywordOf termIfThenElse}`if` expressions.
-* Moving {keywordOf Lean.Parser.Term.let}`let` expression to the context, if the value and type do not depend on `x`.
-* Zeta-reducing a {keywordOf Lean.Parser.Term.let}`let` expression when value and type do depend on `x`.
+* Moving {keywordOf Lean.Parser.Term.let}`let` expression to the context, if the value and type do not depend on {lean}`x`.
+* Zeta-reducing a {keywordOf Lean.Parser.Term.let}`let` expression when value and type do depend on {lean}`x`.
 * Applying lemmas annotated with {attr}`partial_fixpoint_monotone`
+
+```lean (show := false)
+end
+```
+
 
 {TODO}[I wonder if this needs to be collapsible. I at some point I had it in an example, but it's not really an example. Should be this collapsible? Is there a better way than to use example?]
 
-{TODO}[This table probably needs some styling?]
+{TODO}[This table probably needs some styling? Less vertical space maybe?]
 
 {TODO}[How can we I pretty-print these pattern expressions so that hovers work?]
 
