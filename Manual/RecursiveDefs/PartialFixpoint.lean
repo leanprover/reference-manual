@@ -140,7 +140,7 @@ In particular, using {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation] should
 
 :::example "Monadic functions"
 
-The following function implements the Ackermann function in the {name}`Option` monad, and is accepted without a (explicit or implicit) termination proof:
+The following function implements the Ackermann function in the {name}`Option` monad, and is accepted without an (explicit or implicit) termination proof:
 
 ```lean (keep := false)
 def ack : (n m : Nat) → Option Nat
@@ -150,7 +150,7 @@ def ack : (n m : Nat) → Option Nat
 partial_fixpoint
 ```
 
-Recursion can also happen within higher-order library functions such as {name}`List.mapM`, if they are set up appropriately, and {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation]:
+Recursive calls may also occur Escurisve within higher-order functions such as {name}`List.mapM`, if they are set up appropriately, and {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation]:
 
 ```lean (keep := false)
 structure Tree where cs : List Tree
@@ -256,7 +256,8 @@ We can use this theorem to prove that the resulting number is a valid index in t
 ```lean
 theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
     xs.findIndex p = some i → xs[i]?.any p := by
-  apply List.findIndex.partial_correctness (motive := fun xs p i => xs[i]?.any p)
+  apply List.findIndex.partial_correctness
+          (motive := fun xs p i => xs[i]?.any p)
   intro findIndex ih xs p r hsome
   split at hsome
   next => contradiction
