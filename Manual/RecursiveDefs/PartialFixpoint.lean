@@ -150,7 +150,7 @@ def ack : (n m : Nat) → Option Nat
 partial_fixpoint
 ```
 
-Recursive calls may also occur Escurisve within higher-order functions such as {name}`List.mapM`, if they are set up appropriately, and {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation]:
+Recursive calls may also occur within higher-order functions such as {name}`List.mapM`, if they are set up appropriately, and {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation]:
 
 ```lean (keep := false)
 structure Tree where cs : List Tree
