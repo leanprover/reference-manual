@@ -18,7 +18,7 @@ open SubVerso.Highlighting Highlighted
 
 namespace Manual
 
-def mkTable (rows : Array (Array Syntax)) (header : String) (name : String) : TermElabM Term := do
+def mkInlineTabe (rows : Array (Array Term)) : TermElabM Term := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -28,8 +28,10 @@ def mkTable (rows : Array (Array Syntax)) (header : String) (name : String) : Te
     if rows.any (·.size != columns) then
       throwError s!"Expected all rows to have same number of columns, but got {rows.map (·.size)}"
 
-    let blocks : Array (Syntax.TSepArray `term ",") := rows.map (Syntax.TSepArray.mk)
-    ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])
+    -- let blocks : Array (Syntax.TSepArray `term ",") := rows.map (Syntax.TSepArray.ofElems)
+    let blocks : Array Term := rows.flatten
+    ``(Block.other (Block.table $(quote columns) False Option.none)
+        #[Block.ul #[$[Verso.Doc.ListItem.mk #[Block.para #[$blocks]]],*]])
 
 @[block_role_expander monotonicityLemmas]
 def monotonicityLemmas : BlockRoleExpander
@@ -37,7 +39,7 @@ def monotonicityLemmas : BlockRoleExpander
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
-    let rows : Array (Array Syntax) ← names.mapM fun name => do
+    let rows : Array (Array Term) ← names.mapM fun name => do
       -- Extract the target pattern
       let ci ← getConstInfo name
       let targetStx : TSyntax `term ←
@@ -54,10 +56,11 @@ def monotonicityLemmas : BlockRoleExpander
             `(Inline.code $(quote str))
 
       let hl : Highlighted ← constTok name name.toString
-      let nameStx ← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString!)])
+      let nameStx ← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)}
+        #[Inline.code $(quote name.getString!)])
       pure #[nameStx, targetStx]
 
-    let tableStx ← mkTable rows "foo" "bar"
+    let tableStx ← mkInlineTabe rows
     return #[tableStx]
   | _, _ => throwError "Unexpected arguments"
 
