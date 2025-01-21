@@ -50,12 +50,12 @@ tag := "lake-vocab"
 %%%
 
 A {deftech}_package_ is the basic unit of Lean code distribution.
-Packages contain {tech}[targets], which are the basic unit of code to be built.
-They consist of a directory that contains a {tech}[package configuration] file together with source code.
+Packages contain {tech}[targets], such as libraries or executable programs, which are the basic unit of code to be built.
+A package consist of a directory that contains a {tech}[package configuration] file together with source code.
 Packages may {deftech}_require_ other packages, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
 The {deftech}_direct dependencies_ of a package are those that it requires, and the {deftech}_transitive dependencies_ are the direct dependencies of a package together with their transitive dependencies.
 
-A {deftech}_workspace_ is a directory on disk that contains a package's source code and the source code of its {tech}[transitive dependencies].
+A {deftech}_workspace_ is a directory on disk that contains a working copy of a {tech}[package]'s source code and the source code of its {tech}[transitive dependencies].
 The workspace also contains any built {tech}[artifacts] for the package, enabling incremental builds.{TODO}[xref and def]
 Dependencies and artifacts do not need to be present for a directory to be considered a workspace; commands such as `lake update` and `lake build` produce them.
 With the exception of commands such as `lake init`, Lake is typically used in a workspace.

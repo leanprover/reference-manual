@@ -16,6 +16,7 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 
+set_option pp.rawOnError true
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
@@ -36,23 +37,196 @@ This configuration consists of both scalar fields that describe the entire packa
  * `require`
  * `lean_lib`
  * `lean_exe`
- * `defaultTargets`
 
 
 ## Package Configuration
 
-{tomlTableDocs "Package Configuration" Lake.PackageConfig skip:=backend}
+Package configurations provide many options.
+The only mandatory field is `name`, which declares the package's name.
 
-:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" String
+::::tomlTableDocs "Package Configuration" Lake.PackageConfig skip:=backend
 
-{includeDocstring Lake.Package.defaultTargets}
+:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" String (sort := 2)
+
+{includeDocstring Lake.Package.defaultTargets (elab:=false)}
 
 :::
 
+::::
+
+:::::example "Minimal TOML Package Configuration"
+The minimal TOML configuration for a Lean {tech}[package] sets only the package's name, using the default values for all other fields.
+This package contains no {tech}[targets], so there is no code to be built.
+
+::::lakeToml Lake.PackageConfig _root_
+```toml
+name = "example-package"
+```
+```expected
+{dir := FilePath.mk "./.",
+  relDir := FilePath.mk ".",
+  config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+    toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `«example-package»,
+    manifestFile := none,
+    extraDepTargets := #[],
+    precompileModules := false,
+    moreServerArgs := #[],
+    moreGlobalServerArgs := #[],
+    srcDir := FilePath.mk ".",
+    buildDir := FilePath.mk ".lake/build",
+    leanLibDir := FilePath.mk "lib",
+    nativeLibDir := FilePath.mk "lib",
+    binDir := FilePath.mk "bin",
+    irDir := FilePath.mk "ir",
+    releaseRepo? := none,
+    releaseRepo := none,
+    buildArchive? := none,
+    buildArchive := ELIDED,
+    preferReleaseBuild := false,
+    testDriver := "",
+    testDriverArgs := #[],
+    lintDriver := "",
+    lintDriverArgs := #[],
+    version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+    versionTags := .satisfies #<fun> default,
+    description := "",
+    keywords := #[],
+    homepage := "",
+    license := "",
+    licenseFiles := #[FilePath.mk "LICENSE"],
+    readmeFile := FilePath.mk "README.md",
+    reservoir := true},
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  leanLibConfigs := {},
+  leanExeConfigs := {},
+  externLibConfigs := {},
+  opaqueTargetConfigs := {},
+  defaultTargets := #[],
+  scripts := {},
+  defaultScripts := #[],
+  postUpdateHooks := #[],
+  testDriver := "",
+  lintDriver := ""}
+```
+::::
+:::::
+
+:::::example "Library TOML Package Configuration"
+The minimal TOML configuration for a Lean {tech}[package] sets the package's name and defines a library target.
+This library is named `Sorting`, and its modules are expected under the `Sorting.*` hierarchy.
+::::lakeToml Lake.PackageConfig _root_
+```toml
+name = "example-package"
+defaultTargets = ["Sorting"]
+
+[[lean_lib]]
+name = "Sorting"
+```
+```expected
+{dir := FilePath.mk "./.",
+  relDir := FilePath.mk ".",
+  config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+    toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `«example-package»,
+    manifestFile := none,
+    extraDepTargets := #[],
+    precompileModules := false,
+    moreServerArgs := #[],
+    moreGlobalServerArgs := #[],
+    srcDir := FilePath.mk ".",
+    buildDir := FilePath.mk ".lake/build",
+    leanLibDir := FilePath.mk "lib",
+    nativeLibDir := FilePath.mk "lib",
+    binDir := FilePath.mk "bin",
+    irDir := FilePath.mk "ir",
+    releaseRepo? := none,
+    releaseRepo := none,
+    buildArchive? := none,
+    buildArchive := ELIDED,
+    preferReleaseBuild := false,
+    testDriver := "",
+    testDriverArgs := #[],
+    lintDriver := "",
+    lintDriverArgs := #[],
+    version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+    versionTags := .satisfies #<fun> default,
+    description := "",
+    keywords := #[],
+    homepage := "",
+    license := "",
+    licenseFiles := #[FilePath.mk "LICENSE"],
+    readmeFile := FilePath.mk "README.md",
+    reservoir := true},
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  leanLibConfigs := {`Sorting ↦
+      {toLeanConfig := { buildType := Lake.BuildType.release,
+          leanOptions := #[],
+          moreLeanArgs := #[],
+          weakLeanArgs := #[],
+          moreLeancArgs := #[],
+          moreServerOptions := #[],
+          weakLeancArgs := #[],
+          moreLinkArgs := #[],
+          weakLinkArgs := #[],
+          backend := Lake.Backend.default,
+          platformIndependent := none },
+        name := `Sorting,
+        srcDir := FilePath.mk ".",
+        roots := #[`Sorting],
+        globs := #[Lake.Glob.one `Sorting],
+        libName := "Sorting",
+        extraDepTargets := #[],
+        precompileModules := false,
+        defaultFacets := #[`leanArts],
+        nativeFacets := #<fun>},
+    },
+  leanExeConfigs := {},
+  externLibConfigs := {},
+  opaqueTargetConfigs := {},
+  defaultTargets := #[`Sorting],
+  scripts := {},
+  defaultScripts := #[],
+  postUpdateHooks := #[],
+  testDriver := "",
+  lintDriver := ""}
+```
+::::
+:::::
 
 ## Dependencies
 
-{tomlTableDocs "Dependencies" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version? }
+Dependencies are specified in the `require` field array of a package configuration.
+
+::::tomlTableDocs "Requiring Packages" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version?
 
 :::tomlField Lake.Dependency path "Path" System.FilePath
 A dependency on the local filesystem, specified by its path.
@@ -62,6 +236,10 @@ A dependency on the local filesystem, specified by its path.
 A dependency in a Git repository, specified either by its URL as a string or by a table with the keys:
  * `url`: the repository URL
  * `subDir`: the subdirectory of the Git repository that contains the package's source code
+:::
+
+:::tomlField Lake.Dependency rev "Git revision" String
+For Git dependencies, this field specifies the Git revision, which may be a branch name, a tag name, or a specific hash.
 :::
 
 :::tomlField Lake.Dependency source "Package Source" Lake.DependencySrc
@@ -80,17 +258,253 @@ If the type is `"git"`, then the following keys should be present:
 
 :::
 
+::::
+
+:::::example "Requiring Packages from Git"
+The package `example` can be required from a Git repository using this TOML configuration:
+::::lakeToml Lake.Dependency require
+```toml
+[[require]]
+name = "example"
+git = "https://git.example.com/example.git"
+rev = "main"
+version = "2.12"
+```
+```expected
+#[{name := `example,
+    scope := "",
+    version := (some 2.12),
+    src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "main") none),
+    opts := {}
+  }]
+```
+::::
+
+In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech key:="package configuration"}[configuration] should match `2.12`.
+:::::
+
+:::::example "Requiring Packages from a Git tag"
+The package `example` can be required from the tag `v2.12` in a Git repository using this TOML configuration:
+::::lakeToml Lake.Dependency require
+```toml
+[[require]]
+name = "example"
+git = "https://git.example.com/example.git"
+rev = "v2.12"
+```
+```expected
+#[{name := `example,
+    scope := "",
+    version := none,
+    src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "v2.12") none),
+    opts := {}
+  }]
+```
+::::
+The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
+:::::
+
+:::::example "Requiring Packages from Paths"
+The package `example` can be required from the local path `../example` using this TOML configuration:
+::::lakeToml Lake.Dependency require
+```toml
+[[require]]
+name = "example"
+path = "../example"
+```
+```expected
+#[{name := `example,
+    scope := "",
+    version := none,
+    src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
+    opts := {}
+  }]
+```
+::::
+Dependencies on local paths are useful when developing multiple packages in a single repository, or when testing whether a change to a dependency fixes a bug in a downstream package.
+:::::
+
+:::::example "Sources as Tables"
+The information about the package source can be written in an explicit table:
+::::lakeToml Lake.Dependency require
+```toml
+[[require]]
+name = "example"
+source = {type = "git", url = "https://git.example.com/example.git"}
+```
+```expected
+#[{name := `example,
+    scope := "",
+    version := none,
+    src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" none none),
+    opts := {}
+  }]
+```
+::::
+:::::
+
 ## Library Targets
 
-{tomlTableDocs "Library Targets" Lake.LeanLibConfig skip := backend skip:=globs skip:=nativeFacets}
+Library targets are expected in the `lean_lib` array of tables.
+
+::::tomlTableDocs "Library Targets" Lake.LeanLibConfig skip := backend skip:=globs skip:=nativeFacets
+::::
+
+:::::example "Minimal Library Target"
+This library declaration supplies only a name:
+::::lakeToml Lake.LeanLibConfig lean_lib
+```toml
+[[lean_lib]]
+name = "TacticTools"
+```
+```expected
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `TacticTools,
+    srcDir := FilePath.mk ".",
+    roots := #[`TacticTools],
+    globs := #[Lake.Glob.one `TacticTools],
+    libName := "TacticTools",
+    extraDepTargets := #[],
+    precompileModules := false,
+    defaultFacets := #[`leanArts],
+    nativeFacets := #<fun>}]
+```
+::::
+The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
+:::::
+
+:::::example "Library Target"
+This library declaration supplies more options:
+::::lakeToml Lake.LeanLibConfig lean_lib
+```toml
+[[lean_lib]]
+name = "TacticTools"
+precompileModules = true
+srcDir = "src"
+```
+```expected
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `TacticTools,
+    srcDir := FilePath.mk "src",
+    roots := #[`TacticTools],
+    globs := #[Lake.Glob.one `TacticTools],
+    libName := "TacticTools",
+    extraDepTargets := #[],
+    precompileModules := true,
+    defaultFacets := #[`leanArts],
+    nativeFacets := #<fun>}]
+```
+::::
+The library's source is located in the directory `src`, in the module hierarchy rooted at `TacticTools`.
+If its modules are accessed at elaboration time, they will be compiled to native code and linked in, rather than run in the interpreter.
+:::::
 
 ## Executable Targets
 
-{tomlTableDocs "Executable Targets" Lake.LeanExeConfig skip := backend skip:=globs skip:=nativeFacets}
+:::: tomlTableDocs "Executable Targets" Lake.LeanExeConfig skip := backend skip:=globs skip:=nativeFacets
 
+::::
 
+:::::example "A Minimal Executable Target"
+This executable declaration supplies only a name:
+::::lakeToml Lake.LeanExeConfig lean_exe
+```toml
+[[lean_exe]]
+name = "trustworthytool"
+```
+```expected
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `trustworthytool,
+    srcDir := FilePath.mk ".",
+    root := `trustworthytool,
+    exeName := "trustworthytool",
+    extraDepTargets := #[],
+    supportInterpreter := false,
+    nativeFacets := #<fun>}]
+```
+::::
+
+```lean (show := false)
+def main : List String → IO UInt32 := fun _ => pure 0
+```
+
+The executable's {lean}`main` function is expected in a module named `trustworthytool.lean` in the package's default source file path.
+The resulting executable is named `trustworthytool`.
+:::::
+
+:::::example "An Executable Target"
+The name `trustworthy-tool` is not a valid Lean name due to the dash (`-`).
+To use this name for an executable target, an explicit module root must be supplied.
+Even though `trustworthy-tool` is a perfectly acceptable name for an executable, the target also specifies that the result of compilation and linking should be named `tt`.
+
+::::lakeToml Lake.LeanExeConfig lean_exe
+```toml
+[[lean_exe]]
+name = "trustworthy-tool"
+root = "TrustworthyTool"
+exeName = "tt"
+```
+```expected
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `«trustworthy-tool»,
+    srcDir := FilePath.mk ".",
+    root := `TrustworthyTool,
+    exeName := "tt",
+    extraDepTargets := #[],
+    supportInterpreter := false,
+    nativeFacets := #<fun>}]
+```
+::::
+
+```lean (show := false)
+def main : List String → IO UInt32 := fun _ => pure 0
+```
+
+The executable's {lean}`main` function is expected in a module named `TrustworthyTool.lean` in the package's default source file path.
+:::::
 
 # Lean Format
+
 ```lean (show := false)
 section
 open Lake.DSL
