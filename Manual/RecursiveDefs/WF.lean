@@ -412,7 +412,7 @@ In particular, it tries the following tactics and theorems:
 
 * {tactic}`simp_arith`
 * {tactic}`assumption`
-* theorems {name}`Nat.sub_succ_lt_self`, {name}`Nat.pred_lt'`, {name}`Nat.pred_lt`, which handle common arithmetic goals
+* theorems {name}`Nat.sub_succ_lt_self`, {name}`Nat.pred_lt_of_lt`, {name}`Nat.pred_lt`, which handle common arithmetic goals
 * {tactic}`omega`
 * {tactic}`array_get_dec` and {tactic}`array_mem_dec`, which prove that the size of array elements is less than the size of the array
 * {tactic}`sizeOf_list_dec` that the size of list elements is less than the size of the list
