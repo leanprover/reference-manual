@@ -17,6 +17,7 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.ExpectString
 import Manual.Meta.Lean.Scopes
 import Manual.Meta.Lean.Block
 
@@ -109,6 +110,10 @@ instance [Quote α] : Quote (Table α) where
 
 end Toml
 
+def Block.tomlFieldCategory (title : String) (fields : List Name) : Block where
+  name := `Manual.Block.tomlFieldCategory
+  data := .arr #[.str title, toJson fields]
+
 def Block.tomlField (sort : Option Nat) (inTable : Name) (field : Toml.Field Empty) : Block where
   name := `Manual.Block.tomlField
   data := ToJson.toJson (sort, inTable, field)
@@ -126,6 +131,14 @@ structure TomlFieldOpts where
   typeDesc : String
   type : Name
   sort : Option Nat
+
+instance [Inhabited α] [Applicative f] : Inhabited (f α) where
+  default := pure default
+
+@[specialize]
+private partial def many [Applicative f] [Alternative f] (p : f α) : f (List α) :=
+  ((· :: ·) <$> p <*> many p) <|> pure []
+
 
 def TomlFieldOpts.parse  [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlFieldOpts :=
   TomlFieldOpts.mk <$> .positional `inTable .name <*> .positional `field .name <*> .positional `typeDesc .string <*> .positional `type .resolvedName <*> .named `sort .nat true
@@ -190,10 +203,50 @@ def Block.tomlField.descr : BlockDescr where
         </dd>
       }}
 
-instance : Repr Json where
-  reprPrec x _p := toString x
+structure TomlFieldCategoryOpts where
+  title : String
+  fields : List Name
+
+def TomlFieldCategoryOpts.parse [Monad m] [MonadError m] : ArgParse m TomlFieldCategoryOpts :=
+  TomlFieldCategoryOpts.mk <$> .positional `title .string <*> many (.positional `field .name)
+
+@[directive_expander tomlFieldCategory]
+def tomlFieldCategory : DirectiveExpander
+  | args, contents => do
+    let {title, fields} ← TomlFieldCategoryOpts.parse.run args
+    let contents ← contents.mapM elabBlock
+    return #[← ``(Block.other (Block.tomlFieldCategory $(quote title) $(quote fields)) #[$contents,*])]
 
 
+@[block_extension Block.tomlFieldCategory]
+def Block.tomlFieldCategory.descr : BlockDescr where
+  traverse _id _info _ := pure none
+
+  toTeX := none
+
+  extraCss := [r#"
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+"#
+
+]
+
+  toHtml := some <| fun _goI goB id info contents =>
+    open Verso.Doc.Html in
+    open Verso.Output Html in do
+      let .arr #[.str title, _fields] := info
+        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize field category doc data"; pure .empty
+
+      return {{
+        <div class="field-category">
+          <p><strong>{{title}}":"</strong></p>
+          {{← contents.mapM goB}}
+        </div>
+      }}
 
 private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
   blocks.flatMap fun
@@ -231,22 +284,79 @@ dl.toml-table-field-spec {
       let xref ← HtmlT.state
       let idAttr := xref.htmlId id
 
+      let (categories, contents) := flattenBlocks contents |>.partition (· matches Block.other {name := `Manual.Block.tomlFieldCategory, ..} _)
+      let categories := categories.map fun
+        | blk@(Block.other {name := `Manual.Block.tomlFieldCategory, data := .arr #[.str title, fields], ..} _) =>
+          if let .ok fields := FromJson.fromJson? fields (α := List Name) then
+            (fields, some title, blk)
+          else ([], none, blk)
+        | blk => ([], none, blk)
 
+      let category? (f : Name) : Option String := Id.run do
+        for (fs, title, _) in categories do
+          if f ∈ fs then return title
+        return none
+
+      -- First partition the inner blocks into unsorted fields, sorted fields, and other blocks
       let mut fields := #[]
       let mut sorted := #[]
       let mut notFields := #[]
       for f in flattenBlocks contents do
         if let Block.other {name:=`Manual.Block.tomlField, data, .. : Genre.Manual.Block} .. := f then
-          if let .ok (some sort, _, _) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) data then
-            sorted := sorted.push (sort, f)
-          else
-            fields := fields.push f
+          if let .ok (sort?, _, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) data then
+            if let some sort := sort? then
+              sorted := sorted.push (sort, f, field.name)
+            else
+              fields := fields.push (f, field.name)
         else notFields := notFields.push f
-      for (n, f) in sorted.qsort (lt := (·.1 < ·.1)) do
-        if h : n < fields.size then
-          fields := fields.insertIdx n f
+
+      -- Next, find all the categories and the names that they expect
+      let mut categorized : Std.HashMap String (Array (Doc.Block Genre.Manual)) := {}
+      let mut uncategorized := #[]
+      for (f, fieldName) in fields do
+        if let some title := category? fieldName then
+          categorized := categorized.insert title <| (categorized.getD title #[]).push f
         else
-          fields := fields.push f
+          uncategorized := uncategorized.push f
+
+      -- Finally, distribute fields into categories, respecting the requested sort orders
+      for (n, f, fieldName) in sorted.qsort (lt := (·.1 < ·.1)) do
+        if let some title := category? fieldName then
+          let inCat := categorized.getD title #[]
+          if h : n < inCat.size then
+            categorized := categorized.insert title <| inCat.insertIdx n f
+          else
+            categorized := categorized.insert title <| inCat.push f
+        else
+          if h : n < uncategorized.size then
+            uncategorized := uncategorized.insertIdx n f
+          else
+            uncategorized := uncategorized.push f
+
+      -- Add the contents of each category to its corresponding block
+      let categories := categories.map fun
+        | (_, some title, Doc.Block.other which contents) =>
+          let inCategory := categorized.getD title #[]
+          Doc.Block.other which (contents ++ inCategory)
+        | (_, _, blk) => blk
+
+
+      let uncatHtml ← uncategorized.mapM goB
+      let catHtml ← categories.mapM goB
+
+      let fieldHtml :=
+        if categories.isEmpty then {{
+            <p><strong>"Fields:"</strong></p>
+            <dl class="toml-table-field-spec">
+              {{uncatHtml}}
+            </dl>
+        }} else {{
+          {{catHtml}}
+          <p><strong>"Other Fields:"</strong></p>
+          <dl class="toml-table-field-spec">
+            {{uncatHtml}}
+          </dl>
+        }}
 
       return {{
         <div class="namedocs" {{idAttr}}>
@@ -255,10 +365,7 @@ dl.toml-table-field-spec {
           <div class="text">
             {{← notFields.mapM goB}}
 
-            <p><strong>"Fields:"</strong></p>
-            <dl class="toml-table-field-spec">
-              {{← fields.mapM goB}}
-            </dl>
+            {{fieldHtml}}
           </div>
         </div>
       }}
@@ -350,13 +457,6 @@ def Table.toBlock (docs : Array (Block Genre.Manual)) (t : Table (Array (Block G
 end
 
 end Toml
-
-instance [Inhabited α] [Applicative f] : Inhabited (f α) where
-  default := pure default
-
-@[specialize]
-private partial def many [Applicative f] [Alternative f] (p : f α) : f (List α) :=
-  ((· :: ·) <$> p <*> many p) <|> pure []
 
 structure TomlTableOpts where
   description : String
@@ -1091,8 +1191,6 @@ def lakeToml : DirectiveExpander
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        if v.trim ≠ expectedStr.getString.trim then
-          Suggestion.saveSuggestion expectedStr s!"{v.take 30}…" v
-          throwErrorAt expectedStr "Expected:\n{expectedStr.getString}\nGot:\n{v}"
-        else
-          contents.mapM elabBlock
+        discard <| expectString "elaborated configuration" expectedStr v (useLine := (·.any (!·.isWhitespace)))
+
+        contents.mapM elabBlock

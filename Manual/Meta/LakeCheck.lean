@@ -17,6 +17,7 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.ExpectString
 import Manual.Meta.Lean.Scopes
 import Manual.Meta.Lean.Block
 
@@ -59,16 +60,10 @@ def lakeHelp : CodeBlockExpander
         m!"When running 'lake --help', the exit code was {out.exitCode}\n" ++
         m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
     let lakeOutput := out.stdout
-    let expectedLines := str.getString.splitOn "\n" |>.filter useLine |>.toArray
-    let actualLines := lakeOutput.splitOn "\n" |>.filter useLine |>.toArray
 
-    unless expectedLines == actualLines do
-      let diff := Diff.diff expectedLines actualLines
-      logErrorAt str m!"Mismatching 'lake --help' output:\n{Diff.linesToString diff}"
-      Suggestion.saveSuggestion str ((lakeOutput.take 30) ++ "…") lakeOutput
+    discard <| expectString "'lake --help' output" str lakeOutput (useLine := useLine)
 
     return #[]
-
 where
   -- Ignore the version spec or empty lines to reduce false positives
   useLine (l : String) : Bool :=

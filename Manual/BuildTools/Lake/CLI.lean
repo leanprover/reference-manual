@@ -83,7 +83,20 @@ OUTPUT OPTIONS:
 See `lake help <command>` for more information on a specific command.
 ```
 
-Lake's command-line interface provides ... {TODO}[finish]
+Lake's command-line interface is structured into a series of subcommands.
+All of the subcommands share a the ability to be configured by certain environment variables and global command-line options.
+Each subcommand should be understood as a utility in its own right, with its own required argument syntax and documentation.
+
+:::paragraph
+Some of Lake's commands delegate to other command-line utilities that are not included in a Lean distribution.
+These utilities must be available on the `PATH` in order to use the corresponding features:
+
+ * `git` is required in order to access Git dependencies.
+ * `tar` is required to create or extract cloud build archives, and `curl` is required to fetch them.
+ * `gh` is required to upload build artifacts to GitHub releases.
+
+Lean distributions include a C compiler toolchain.
+:::
 
 # Environment Variables
 %%%
@@ -190,7 +203,7 @@ Lake itself can be configured with the following environment variables:
 
 * row
   * {envVar def:=true}`LAKE_NO_CACHE`
-  * If true, Lake does not use cached builds. {TODO}[xref]
+  * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub]. {TODO}[Harmonize terminology for cloud/cached build]
     This environment variable can be overridden using the `--try-cache` command-line option.
 
 :::
@@ -231,11 +244,11 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
 : `--file FILE` or `-f=FILE`
 
-  Use the specified {tech}[package configuration file] instead of the default.
+  Use the specified {tech}[package configuration] file instead of the default.
 
 : `--old`
 
-  Only rebuild modified modules, ignoring transitive dependencies.{TODO}[Clarify]
+  Only rebuild modified modules, ignoring transitive dependencies.{TODO}[Clarify with Mac]
 
 : `--rehash` or `-H`
 
@@ -244,7 +257,7 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 : `--update` or `-U`
 
   Update dependencies after the {tech}[package configuration] is loaded but prior to performing other tasks, such as a build.
-  This is equivalent to running `lake update` before the selected command.{TODO}[is it?]
+  This is equivalent to running `lake update` before the selected command.{TODO}[Mac: is it?]
 
 : `--packages=FILE`
 
@@ -253,7 +266,7 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
 :  `--reconfigure` or `-R`
 
-  Normally, the {tech}[package configuration] file is {tech}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
+  Normally, the {tech}[package configuration] file is {tech key:="elaborator"}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
   Providing this flag causes the configuration file to be re-elaborated.
 
 : `--keep-toolchain`
@@ -320,6 +333,12 @@ In addition to showing or hiding messages, a build can be made to fail when warn
 tag := "automatic-toolchain-updates"
 %%%
 
+By default, {lake}`update` attempts to update the {tech}[root package]'s {tech}[toolchain file] when a new version of a dependency specifies an updated toolchain.
+This behavior can be disabled with the `--keep-toolchain` flag.
+
+If multiple dependencies specify newer toolchains, Lake selects the most recent one as the update target.
+However, not all toolchain versions are considered to be comparable.
+
 :::TODO
 
 To determine "newest compatible" toolchain, Lake parses the toolchain listed in the packages' lean-toolchain files into four categories: release , nightly, PR, and other. For newness, release toolchains are compared by semantic version (e.g., "v4.4.0" < "v4.8.0" and "v4.6.0-rc1" < "v4.6.0") and nightlies are compared by date (e.g., "nightly-2024-01-10" < "nightly-2014-10-01"). All other toolchain types and mixtures are incompatible. If there is not a single newest toolchain, Lake will print a warning and continue updating without changing the toolchain.
@@ -381,7 +400,7 @@ The {lakeMeta}`template` may be:
 
   Creates a package that contains a library that depends on [Mathlib](https://github.com/leanprover-community/mathlib4).
 
-The {lakeMeta}`language` selects the file format used for the {tech}[package configuration file] and may be `lean` (the default) or `toml`.
+The {lakeMeta}`language` selects the file format used for the {tech}[package configuration] file and may be `lean` (the default) or `toml`.
 :::
 
 :::TODO
@@ -599,9 +618,9 @@ built and then run like a script. A library test driver will just be built.
 :::lake test " [\"--\" args...]"
 Test the workspace's root package using its configured {tech}[test driver].
 
-A script test driver will be run with the package configuration's `testDriverArgs` plus the CLI {lakeMeta}`args`.
-An executable test driver will be built and then run like a script.
-A library test driver will just be built.
+A test driver that is an executable will be built and then run with the package configuration's `testDriverArgs` plus the CLI {lakeMeta}`args`.
+A test driver that is a {tech}[Lake script] is run with the same arguments as an executable test driver.
+A library test driver will just be built; it is expected that tests are implemented such that failures cause the build to fail via elaboration-time errors.
 :::
 
 ```lakeHelp lint
@@ -654,6 +673,7 @@ configured lint driver. Errors (with code 1) otherwise.
 Does NOT verify that the configured test driver actually exists in the
 package or its dependencies. It merely verifies that one is specified.
 
+This is useful for distinguishing between failing tests and incorrectly configured packages.
 :::
 
 ```lakeHelp "check-lint"
@@ -678,6 +698,8 @@ configured lint driver. Errors (with code 1) otherwise.
 
 Does NOT verify that the configured lint driver actually exists in the
 package or its dependencies. It merely verifies that one is specified.
+
+This is useful for distinguishing between failing lints and incorrectly configured packages.
 :::
 
 
@@ -792,6 +814,66 @@ If there are dependencies on multiple versions of the same package, an arbitrary
 
 A bare {lake}`update` will upgrade all dependencies.
 :::
+
+# Packaging and Distribution
+
+```lakeHelp "upload"
+Upload build artifacts to a GitHub release
+
+USAGE:
+  lake upload <tag>
+
+Packs the root package's `buildDir` into a `tar.gz` archive using `tar` and
+then uploads the asset to the pre-existing GitHub release `tag` using `gh`.
+```
+
+:::lake upload "tag"
+Packs the root package's `buildDir` into a `tar.gz` archive using `tar` and then uploads the asset to the pre-existing [GitHub](https://github.com) release {lakeMeta}`tag` using [`gh`](https://cli.github.com/).
+Other hosts are not yet supported.
+:::
+
+## Cloud Build Archives
+**These commands are are still experimental.**
+They are likely change in future versions of Lake based on user feedback.{TODO}[Ask Mac about the platform-independent option he mentioned in our call]
+
+```lakeHelp "pack"
+Pack build artifacts into a archive for distribution
+
+USAGE:
+  lake pack [<file.tgz>]
+
+Packs the root package's `buildDir` into a gzip tar archive using `tar`.
+If a path for the archive is not specified, creates a archive in the package's
+Lake directory (`.lake`) named according to its `buildArchive` setting.
+
+Does NOT build any artifacts. It just packs the existing ones.
+```
+
+:::lake pack "[archive.tar.gz]"
+Packs the root package's {tech}[build directory] into a gzipped tar archive using `tar`.
+If a path for the archive is not specified, the archive in the package's Lake directory (`.lake`) and named according to its `buildArchive` setting.
+This command does not build any artifacts: it only archives what is present.
+Users should ensure that the desired artifacts are present before running this command.
+:::
+
+```lakeHelp "unpack"
+Unpack build artifacts from a distributed archive
+
+USAGE:
+  lake unpack [<file.tgz>]
+
+Unpack build artifacts from the gzip tar archive `file.tgz` into the root
+package's `buildDir`. If a path for the archive is not specified, uses the
+the package's `buildArchive` in its Lake directory (`.lake`).
+```
+
+:::lake unpack "[archive.tar.gz]"
+Unpacks the contents of the gzipped tar archive {lakeMeta}`archive.tgz` into the root package's {tech}[build directory].
+If {lakeMeta}`archive.tgz` is not specified, the package's `buildArchive` setting is used to determine a filename, and the file is expected in package's Lake directory (`.lake`).
+:::
+
+
+
 
 # Configuration Files
 
