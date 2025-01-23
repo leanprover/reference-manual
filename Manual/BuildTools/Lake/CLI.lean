@@ -325,12 +325,12 @@ In addition to showing or hiding messages, a build can be made to fail when warn
 : {lakeOptDef flag}`--iofail`
 
   Causes builds to fail if any I/O or other info is logged.
-  This is equivalent to `--fail-level=info`
+  This is equivalent to {lakeOpt}`--fail-level=info`.
 
 : {lakeOptDef flag}`--wfail`
 
   Causes builds to fail if any warnings are logged.
-  This is equivalent to `--fail-level=warning`.
+  This is equivalent to {lakeOpt}`--fail-level=warning`.
 
 # Automatic Toolchain Updates
 %%%

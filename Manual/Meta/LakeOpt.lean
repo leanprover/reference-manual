@@ -40,9 +40,9 @@ def Inline.lakeOptDef (name : String) (kind : LakeOptKind) : Inline where
   name := `Manual.lakeOptDef
   data := .arr #[.str name, toJson kind]
 
-def Inline.lakeOpt (name : String) : Inline where
+def Inline.lakeOpt (name : String) (original : String) : Inline where
   name := `Manual.lakeOpt
-  data := .str name
+  data := .arr #[.str name, .str original]
 
 def lakeOptDomain := `Manual.lakeOpt
 
@@ -121,9 +121,9 @@ def lakeOpt : RoleExpander
       | throwError "Expected exactly one argument"
     let `(inline|code( $name:str )) := arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let name := name.getString
+    let optName := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote name)) #[Inline.code $(quote name)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getString)) #[Inline.code $(quote name.getString)])]
 
 @[inline_extension lakeOpt]
 def lakeOpt.descr : InlineDescr where
@@ -137,13 +137,13 @@ def lakeOpt.descr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun goB id data content => do
-      let .str name := data
+      let .arr #[.str name, .str original] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
 
       if let some obj := (← read).traverseState.getDomainObject? lakeOptDomain name then
         for id in obj.ids do
           if let some (path, slug) := (← read).traverseState.externalTags[id]? then
             let url := path.link (some slug.toString)
-            return {{<code class="lake-opt"><a href={{url}} class="lake-command">{{name}}</a></code>}}
+            return {{<code class="lake-opt"><a href={{url}} class="lake-command">{{name}}</a>{{original.drop name.length}}</code>}}
 
-      pure {{<code class="lake-opt">{{name}}</code>}}
+      pure {{<code class="lake-opt">{{original}}</code>}}
