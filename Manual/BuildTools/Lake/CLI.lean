@@ -137,47 +137,52 @@ These values are system-dependent.
 Invoking {lake}`env` without any arguments displays the environment variables and their values.
 Otherwise, {lakeMeta}`cmd` is invoked in Lake's environment with arguments {lakeMeta}`args`.
 
+::::paragraph
 The following variables are set, overriding previous values:
-:::table
+:::table align:=left
 * row
-  * `LAKE`
+  * {envVar def:=true}`LAKE`
   * The detected Lake executable
 * row
-  * `LAKE_HOME`
+  * {envVar}`LAKE_HOME`
   * The detected {tech}[Lake home]
 * row
-  * `LEAN_SYSROOT`
+  * {envVar}`LEAN_SYSROOT`
   * The detected Lean {tech}[toolchain] directory
 * row
- * `LEAN_AR`
+ * {envVar}`LEAN_AR`
  * The detected Lean `ar` binary
 * row
-  * `LEAN_CC`
+  * {envVar}`LEAN_CC`
   * The detected C compiler (if not using the bundled one)
 :::
+::::
 
+::::paragraph
 The following variables are augmented with additional information:
-:::table
+:::table align:=left
 * row
-  * `LEAN_PATH`
+  * {envVar}`LEAN_PATH`
   * Lake's and the {tech}[workspace]'s Lean {tech}[library directories] are added.
 * row
-  * `LEAN_SRC_PATH`
+  * {envVar}`LEAN_SRC_PATH`
   * Lake's and the {tech}[workspace]'s {tech}[source directories] are added.
 * row
-  * `PATH`
+  * {envVar}`PATH`
   * Lean's, Lake's, and the {tech}[workspace]'s {tech}[binary directories] are added.
     On Windows, Lean's and the {tech}[workspace]'s {tech}[library directories] are also added.
 * row
-  * `DYLD_LIBRARY_PATH`
+  * {envVar}`DYLD_LIBRARY_PATH`
   * On macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
 * row
-  * `LD_LIBRARY_PATH`
+  * {envVar}`LD_LIBRARY_PATH`
   * On platforms other than Windows and macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
 :::
+::::
 
+::::paragraph
 Lake itself can be configured with the following environment variables:
-:::table
+:::table align:=left
 * row
   * {envVar def:=true}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
@@ -199,14 +204,13 @@ Lake itself can be configured with the following environment variables:
   * If {envVar}`LEAN_CC` and/or {envVar}`LEAN_AR` is set, its value is used as the C compiler or `ar` command when building libraries.
     If not, Lake will fall back to the bundled tool in the Lean installation.
     If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
-
-
 * row
   * {envVar def:=true}`LAKE_NO_CACHE`
   * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub]. {TODO}[Harmonize terminology for cloud/cached build]
-    This environment variable can be overridden using the `--try-cache` command-line option.
+    This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
 
 :::
+::::
 
 Lake considers an environment variable to be true when its value is `y`, `yes`, `t`, `true`, `on`, or `1`, compared case-insensitively.
 It considers a variable to be false when its value is `n`, `no`, `f`, `false`, `off`, or `0`, compared case-insensitively.
@@ -229,61 +233,61 @@ fun o =>
 Lake's command-line interface provides a number of global options as well as subcommands that perform important tasks.
 Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
-: `--version`
+: {lakeOptDef flag}`--version`
 
   Lake outputs its version and exits without doing anything else.
 
-: `--help` or `-h`
+: {lakeOptDef flag}`--help` or {lakeOptDef flag}`-h`
 
   Lake outputs its version and exits without doing anything else.
 
-: `--dir DIR` or `-d=DIR`
+: {lakeOptDef option}`--dir DIR` or {lakeOptDef option}`-d=DIR`
 
   Use the provided directory as location of the package instead of the current working directory.
   This is not always equivalent to changing to the directory first, because the version of `lake` indicated by the current directory's {tech}[toolchain file] will be used, rather than that of `DIR`.
 
-: `--file FILE` or `-f=FILE`
+: {lakeOptDef option}`--file FILE` or {lakeOptDef option}`-f=FILE`
 
   Use the specified {tech}[package configuration] file instead of the default.
 
-: `--old`
+: {lakeOptDef flag}`--old`
 
   Only rebuild modified modules, ignoring transitive dependencies.{TODO}[Clarify with Mac]
 
-: `--rehash` or `-H`
+: {lakeOptDef flag}`--rehash` or {lakeOptDef flag}`-H`
 
   Ignored cached file hashes, recomputing them. {TODO}[Q for Mac: does this use modification times by default?]
 
-: `--update` or `-U`
+: {lakeOptDef flag}`--update` or {lakeOptDef flag}`-U`
 
   Update dependencies after the {tech}[package configuration] is loaded but prior to performing other tasks, such as a build.
   This is equivalent to running `lake update` before the selected command.{TODO}[Mac: is it?]
 
-: `--packages=FILE`
+: {lakeOptDef option}`--packages=FILE`
 
   Use the contents of `FILE` to specify the versions of each dependency instead of the manifest.
   `FILE` should be a valid manifest.
 
-:  `--reconfigure` or `-R`
+:  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
   Normally, the {tech}[package configuration] file is {tech key:="elaborator"}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
   Providing this flag causes the configuration file to be re-elaborated.
 
-: `--keep-toolchain`
+: {lakeOptDef flag}`--keep-toolchain`
 
   By default, Lake attempts to update the local {tech}[workspace]'s {tech}[toolchain file].
   Providing this flag disables {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
-: `--no-build`
+: {lakeOptDef flag}`--no-build`
 
   Lake exits immediately if a build target is not up-to-date, returning a non-zero exit code.
 
-: `--no-cache`
+: {lakeOptDef flag}`--no-cache`
 
   Instead of using available cloud build caches, build all packages locally.
   Build caches are not downloaded.
 
-: `--try-cache`
+: {lakeOptDef flag}`--try-cache`
 
   attempt to download build caches for supported packages
 
@@ -292,38 +296,38 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 These options provide allow control over the {tech}[log] that is produced while building.
 In addition to showing or hiding messages, a build can be made to fail when warnings or even information is emitted; this can be used to enforce a style guide that disallows output during builds.
 
-: `--quiet`, `-q`
+: {lakeOptDef flag}`--quiet`, {lakeOptDef flag}`-q`
 
   Hides informational logs and the progress indicator.
 
-: `--verbose`, `-v`
+: {lakeOptDef flag}`--verbose`, {lakeOptDef flag}`-v`
 
   Shows trace logs (typically command invocations) and built {tech}[targets].
 
-:  `--ansi`, `--no-ansi`
+:  {lakeOptDef flag}`--ansi`, {lakeOptDef flag}`--no-ansi`
 
   Enables or disables the use of [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) that add colors and animations to Lake's output.
 
-:  `--log-level=LV`
+:  {lakeOptDef option}`--log-level=LV`
 
   Sets the minimum level of {tech}[logs] to be shown when builds succeed.
   `LV` may be `trace`, `info`, `warning`, or `error`, compared case-insensitively.
   When a build fails, all levels are shown.
   The default log level is `info`.
 
-:  `--fail-level=LV`
+:  {lakeOptDef option}`--fail-level=LV`
 
   Sets the threshold at which a message in the {tech}[log] causes a build to be considered a failure.
   If a message is emitted to the log with a level that is greater than or equal to the threshold, the build fails.
   `LV` may be `trace`, `info`, `warning`, or `error`, compared case-insensitively; it is `error` by default.
 
 
-: `--iofail`
+: {lakeOptDef flag}`--iofail`
 
   Causes builds to fail if any I/O or other info is logged.
   This is equivalent to `--fail-level=info`
 
-: `--wfail`
+: {lakeOptDef flag}`--wfail`
 
   Causes builds to fail if any warnings are logged.
   This is equivalent to `--fail-level=warning`.
@@ -334,22 +338,26 @@ tag := "automatic-toolchain-updates"
 %%%
 
 By default, {lake}`update` attempts to update the {tech}[root package]'s {tech}[toolchain file] when a new version of a dependency specifies an updated toolchain.
-This behavior can be disabled with the `--keep-toolchain` flag.
+This behavior can be disabled with the {lakeOpt}`--keep-toolchain` flag.
 
-If multiple dependencies specify newer toolchains, Lake selects the most recent one as the update target.
-However, not all toolchain versions are considered to be comparable.
+:::paragraph
+If multiple dependencies specify newer toolchains, Lake selects the newest compatible toolchain, if it exists.
+To determine the newest compatible toolchain, Lake parses the toolchain listed in the packages' `lean-toolchain` files into four categories:
 
-:::TODO
+ * Releases, which are compared by semantic version (e.g., `v4.4.0` < `v4.8.0` and `v4.6.0-rc1` < `v4.6.0`)
+ * Nightly builds, which are compared by date (e.g., `nightly-2024-01-10` < `nightly-2024-10-01`)
+ * Builds from Lean pull requests, which are incomparable
+ * Other versions, which are also incomparable
 
-To determine "newest compatible" toolchain, Lake parses the toolchain listed in the packages' lean-toolchain files into four categories: release , nightly, PR, and other. For newness, release toolchains are compared by semantic version (e.g., "v4.4.0" < "v4.8.0" and "v4.6.0-rc1" < "v4.6.0") and nightlies are compared by date (e.g., "nightly-2024-01-10" < "nightly-2014-10-01"). All other toolchain types and mixtures are incompatible. If there is not a single newest toolchain, Lake will print a warning and continue updating without changing the toolchain.
-
-If Lake does find a new toolchain, Lake updates the workspace's lean-toolchain file accordingly and restarts the update process on the new Lake. If Elan is detected, it will spawn the new Lake process via elan run with the same arguments Lake was initially run with. If Elan is missing, it will prompt the user to restart Lake manually and exit with a special error code (4).
-
-The Elan executable used by Lake is now configurable by the ELAN environment variable.
-
-Also `LEAN` env var for Lean.
-
+Toolchain versions from multiple categories are incomparable.
+If there is not a single newest toolchain, Lake will print a warning and continue updating without changing the toolchain.
 :::
+
+If Lake does find a new toolchain, then it updates the {tech}[workspace]'s `lean-toolchain` file accordingly and restarts the {lake}`update` using the new toolchain's Lake.
+If Elan is detected, it will spawn the new Lake process via `elan run` with the same arguments Lake was initially run with.
+If Elan is missing, it will prompt the user to restart Lake manually and exit with a special error code (`4`).
+The Elan executable used by Lake can be configured using the {envVar}`ELAN` environment variable.
+
 
 # Creating Packages
 

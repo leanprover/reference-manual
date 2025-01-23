@@ -118,6 +118,10 @@ def Block.tomlField (sort : Option Nat) (inTable : Name) (field : Toml.Field Emp
   name := `Manual.Block.tomlField
   data := ToJson.toJson (sort, inTable, field)
 
+def Inline.tomlField (inTable : Name) (field : Name) : Inline where
+  name := `Manual.Inline.tomlField
+  data := ToJson.toJson (inTable, field)
+
 def Block.tomlTable (name : String) (typeName : Name) : Block where
   name := `Manual.Block.tomlTable
   data := ToJson.toJson (name, typeName)
@@ -1194,3 +1198,50 @@ def lakeToml : DirectiveExpander
         discard <| expectString "elaborated configuration" expectedStr v (useLine := (·.any (!·.isWhitespace)))
 
         contents.mapM elabBlock
+
+@[role_expander tomlField]
+def tomlFieldInline : RoleExpander
+  | args, inlines => do
+    let table ← (ArgParse.positional `table .resolvedName).run args
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code( $name:str )) := arg
+      | throwErrorAt arg "Expected code literal with the field name"
+    let name := name.getString
+
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.tomlField $(quote table) $(quote name.toName)) #[Inline.code $(quote name)])]
+
+@[inline_extension Manual.Inline.tomlField]
+def tomlFieldInline.descr : InlineDescr where
+  traverse _ _ _ := do
+    pure none
+
+  toTeX := none
+
+  extraCss := [
+r#"
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+"#]
+
+
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun goB _id data content => do
+      let .ok (tableName, fieldName) := fromJson? (α := Name × Name) data
+        | HtmlT.logError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
+
+      if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
+        for id in obj.ids do
+          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
+            let url := path.link (some slug.toString)
+            return {{<code class="toml-field"><a href={{url}}>{{fieldName.toString}}</a></code>}}
+      else
+        HtmlT.logError s!"No link destination for TOML field {tableName}:{fieldName}"
+
+      pure {{<code class="toml-field">{{fieldName.toString}}</code>}}

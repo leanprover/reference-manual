@@ -34,10 +34,11 @@ It is responsible for:
 
 Lake is extensible.
 It provides a rich API that can be used to define incremental build tasks for software artifacts that are not written in Lean, to automate administrative tasks, and to integrate with external workflows.
-For build configurations that do not need these features, Lake provides a declarative configuration language that can be written either in TOML or directly in a Lean file.
+For build configurations that do not need these features, Lake provides a declarative configuration language that can be written either in TOML or as a Lean file.
 
 This section describes Lake's {ref "lake-cli"}[command-line interface], {ref "lake-config"}[configuration files], and {ref "lake-api"}[internal API].
-All three share a set of concepts and terminology, which is described in {ref "lake-vocab"}[a dedicated subsection].
+All three share a set of concepts and terminology.
+
 
 # Concepts and Terminology
 %%%
@@ -71,6 +72,10 @@ Workspaces typically have the following layout:
      * `.lake/build/ir` - The package's intermediate result directory, which contains generated intermediate artifacts, primarily C code.
 :::
 
+:::figure "Workspace Layout"
+![Lake Workspaces](/static/figures/lake-workspace.svg)
+:::
+
 :::paragraph
 A {deftech}_package configuration_ file specifies the dependencies, settings, and targets of a package.
 Packages can specify configuration options that apply to all their contained targets.
@@ -90,9 +95,12 @@ A {deftech}_target_ represents a build product that can be requested by a user:
 
  * {deftech}_Libraries_ are collections of Lean {tech}[module]s, organized hierarchically under one or more {deftech}_module roots_.
  * {deftech}_Executables_ consist of a _single_ module that defines `main`
- * {deftech}_External libraries_ {TODO}[add as a TODO due to upcoming refactor]
- * {deftech}_Static libraries_ {TODO}[add as a TODO due to upcoming refactor]
+ * {deftech}_External libraries_ are non-Lean *static* libraries that will be linked to the binaries of the package and its dependents, including both their shared libraries and executables.
  * {deftech}_Custom targets_ contain arbitrary code to run a build, written using {name Lake.FetchM}`FetchM` in {TODO}[xref]Lake's API.
+:::
+
+:::TODO
+Add static library targets after upcoming refactor
 :::
 
 An {deftech}_artifact_ is the persistent result of a build, such as object code, an executable binary, or an {tech}[`.olean` file].
@@ -120,8 +128,8 @@ A build consists of the following steps:
 : Configuring the package
 
   If {tech}[package configuration] file is newer than the cached configuration file `lakefile.olean`, then the package configuration is re-elaborated.
-  This also occurs when the cached file is missing or when the `--reconfigure` or `-R` flag is provided.
-  Changes to options using `-K` do not trigger re-elaboration of the configuration file; `-R` is necessary in these cases.
+  This also occurs when the cached file is missing or when the {lakeOpt}`--reconfigure` or {lakeOpt}`-R` flag is provided.
+  Changes to options using {lakeOpt}`-K` do not trigger re-elaboration of the configuration file; {lakeOpt}`-R` is necessary in these cases.
 
 : Computing dependencies
 
@@ -129,14 +137,14 @@ A build consists of the following steps:
   This process is recursive, and the result is a _graph_ of dependencies.
   The dependencies in this graph are distinct from those declared for a package: packages depend on other packages, while build targets depend on other build targets, which may be in the same package or in a different one.
   One facet of a given target may depend on other facets of the same target.
-  Lake automatically analyzes the imports of Lean modules to discover their dependencies, and the `extraDepTargets` {TODO}[link] field can be used to add additional dependencies to a target.
+  Lake automatically analyzes the imports of Lean modules to discover their dependencies, and the {tomlField Lake.LeanLibConfig}`extraDepTargets` field can be used to add additional dependencies to a target.
 
 : Replaying traces
 
   Rather than rebuilding everything in the dependency graph from scratch, Lake uses saved {deftech}_trace files_ to determine which artifacts require building.
   During a build, Lake records which source files or other artifacts were used to produce each artifact, saving a hash of each input; these {deftech}_traces_ are saved in the {tech}[build directory].
   If the inputs are all unmodified, then the corresponding artifact is not rebuilt.
-  Trace files additionally record the output of each build tool; these outputs are replayed as if the artifact had been built anew.
+  Trace files additionally record the {tech}[log] from each build task; these outputs are replayed as if the artifact had been built anew.
   Re-using prior build products when possible is called an {deftech}_incremental build_.
 
 : Building artifacts
@@ -215,6 +223,9 @@ A bare `lake build` command will build the default facet of the root package.
 Package dependencies are not updated during a build.
 ```
 
+
+::::paragraph
+
 The facets available for packages are:
 
 ::: TODO
@@ -223,38 +234,112 @@ Confirm these with Mac
 
 :::
 
- * `optCache` A package's optional cached build archive (e.g., from Reservoir or GitHub). Will NOT cause the whole build to fail if the archive cannot be fetched.
+: `optCache`
 
- * `cache` A package's optional cached build archive (e.g., from Reservoir or GitHub). Will NOT cause the whole build to fail if the archive cannot be fetched.
+  A package's optional cached build archive (e.g., from Reservoir or GitHub).
+  Will *not* cause the whole build to fail if the archive cannot be fetched.
 
- * `optBarrel` A package's optional cached build archive (e.g., from Reservoir or GitHub). Will NOT cause the whole build to fail if the archive cannot be fetched.
+: `cache`
 
- * `barrel` A package's optional cached build archive (e.g., from Reservoir or GitHub). Will NOT cause the whole build to fail if the archive cannot be fetched.
+  A package's cached build archive (e.g., from Reservoir or GitHub).
+  Will cause the whole build to fail if the archive cannot be fetched.
 
- * `optRelease` A package's _optional_ build archive from a GitHub release. Will *not* cause the whole build to fail if the release cannot be fetched.
+: `optBarrel`
 
- * `release` A package's _optional_ build archive from a GitHub release. Will cause the whole build to fail if the archive cannot be fetched.
+  A package's optional cached build archive (e.g., from Reservoir or GitHub).
+  Will *not* cause the whole build to fail if the archive cannot be fetched.
+
+: `barrel`
+
+  A package's cached build archive (e.g., from Reservoir or GitHub).
+  Will cause the whole build to fail if the archive cannot be fetched.
+
+: `optRelease`
+
+  A package's optional build archive from a GitHub release.
+  Will *not* cause the whole build to fail if the release cannot be fetched.
+
+: `release`
+
+  A package's build archive from a GitHub release.
+  Will cause the whole build to fail if the archive cannot be fetched.
+::::
+
+:::paragraph
 
 The facets available for targets (including libraries and executables) are:
 
- * `leanArts` contains the artifacts that the Lean compiler produces for the library ({tech key:=".olean files"}`*.olean`, `*.ilean`, and `*.c` files).
- * `static` contains the static library produced by the C compiler from the `leanArts` (that is, a `*.a` file).
- * `static.export` contains the static library produced by the C compiler from the `leanArts` (that is, a `*.a` file), with exported symbols.
- * `shared` contains the shared library (that is, a `*.so`, `*.dll`, or `*.dylib` file, depending on the platform).
- * `extraDep` contains a Lean library's `extraDepTargets` {TODO}[xref] and those of its package.
- * `leanExe` contains the executable binary produced from a Lean executable target.
+: `leanArts`
 
+  The artifacts that the Lean compiler produces for the library or executable ({tech key:=".olean files"}`*.olean`, `*.ilean`, and `*.c` files).
+
+: `static`
+
+  The static library produced by the C compiler from the `leanArts` (that is, a `*.a` file).
+
+: `static.export`
+
+  The static library produced by the C compiler from the `leanArts` (that is, a `*.a` file), with exported symbols.
+
+: `shared`
+
+  The shared library produced by the C compiler from the `leanArts` (that is, a `*.so`, `*.dll`, or `*.dylib` file, depending on the platform).
+
+: `extraDep`
+
+  A Lean library's {tomlField Lake.LeanLibConfig}`extraDepTargets` {TODO}[xref] and those of its package.
+
+: `leanExe`
+
+  The executable binary produced from a Lean executable target.
+:::
+
+:::paragraph
 The facets available for modules are:
- * `deps`                  dependencies (e.g., imports, shared libraries, etc.)
- * `leanArts` (default)    Lean artifacts (`*.olean`, `*.ilean`, `*.c` files)
- * `olean`                 OLean (binary blob of Lean data for importers)
- * `ilean`                 ILean (binary blob of metadata for the Lean LSP server)
- * `c`                     compiled C file
- * `bc`                    compiled LLVM bitcode file
- * `c.o`                   compiled object file (of its C file)
- * `bc.o`                  compiled object file (of its LLVM bitcode file)
- * `o`                     compiled object file (of its configured backend)
- * `dynlib`                shared library (e.g., for `--load-dynlib`)
+
+: `deps`
+
+
+  The module's dependencies (e.g., imports or shared libraries).
+
+: `leanArts` (default)
+
+ The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files)
+
+: `olean`
+
+ The module's {tech}[`.olean` file]
+
+: `ilean`
+
+ The module's `.ilean` file, which is metadata used by the Lean language server
+
+: `c`
+
+ The C file produced by the Lean compiler
+
+: `bc`
+
+ The compiled LLVM bitcode file produced from the Lean compiler's C file
+
+: `c.o`
+
+ The compiled object file, produced from the C file
+
+: `bc.o`
+
+ The compiled object file, produced from the LLVM bitcode file
+
+: `o`
+
+ The compiled object file for the configured backend
+
+: `dynlib`
+
+  A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[document and xref Lean command line options]
+
+:::
+
 
 ## Scripts
 %%%
@@ -265,6 +350,11 @@ Lake {tech}[package configuration] files may include {deftech}_Lake scripts_, wh
 Scripts are intended to be used for project-specific tasks that are not already well-served by Lake's other features.
 While ordinary executable programs are run in the {name}`IO` {tech}[monad], scripts are run in {name Lake.ScriptM}`ScriptM`, which extends {name}`IO` with information about the workspace.
 
+Because they are Lean definitions, Lake scripts can only be defined in the Lean configuration format.
+
+:::TODO
+Example script, e.g. to enumerate and print all dependencies' licenses
+:::
 
 ## Test and Lint Drivers
 %%%
