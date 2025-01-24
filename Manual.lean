@@ -22,5 +22,7 @@ The automatically generated
 [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/index.html)
 contains a systematic list of all declarations from Mathlib.
 
+The [Lean Language Reference](https://lean-lang.org/doc/reference/latest/) contains
+detailed information about Lean Code.
 
 {include 0 Manual.Tactics}
