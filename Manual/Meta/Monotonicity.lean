@@ -22,7 +22,7 @@ namespace Manual
 A table for monotonicity lemmas. Likely some of this logic can be extracted to a helper
 in `Manual/Meta/Table.lean`.
 -/
-private def mkInlineTabe (rows : Array (Array Term)) : TermElabM Term := do
+private def mkInlineTable (rows : Array (Array Term)) : TermElabM Term := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -96,12 +96,15 @@ def monotonicityLemmas : BlockRoleExpander
               else
                 pure .continue)
 
+            let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
+              let fmt ← Lean.Widget.ppExprTagged call'
+              renderTagged none fmt ⟨{}, false⟩
             let fmt ← ppExpr call'
-            `(Inline.code $(quote fmt.pretty))
+            ``(Inline.other (Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
       pure #[nameStx, patternStx]
 
-    let tableStx ← mkInlineTabe rows
+    let tableStx ← mkInlineTable rows
     return #[tableStx]
   | _, _ => throwError "Unexpected arguments"
 
