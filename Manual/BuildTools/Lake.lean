@@ -370,7 +370,7 @@ Test drivers may be executable targets or {tech}[Lake scripts], in which case th
 Similarly, a {deftech}_lint driver_ is responsible for checking the code for stylistic issues.
 Lint drivers may be executables or scripts, which are run by {lake}`lint`.
 
-A test or lint driver can be configured by either setting the 'testDriver' or 'lintDriver' package configuration options or by tagging a script, executable, or library with the `@[test_driver]` or `@[lint_driver]` attribute in a Lean-format configuration file.
+A test or lint driver can be configured by either setting the `testDriver` or 'lintDriver' package configuration options or by tagging a script, executable, or library with the `@[test_driver]` or `@[lint_driver]` attribute in a Lean-format configuration file.
 A definition in a dependency can be used as a test or lint driver by using the `<pkg>/<name>` syntax for the appropriate configuration option.
 
 ## GitHub Release Builds

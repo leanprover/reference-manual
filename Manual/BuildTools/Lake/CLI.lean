@@ -845,7 +845,7 @@ Other hosts are not yet supported.
 :::
 
 ## Cloud Build Archives
-**These commands are are still experimental.**
+**These commands are still experimental.**
 They are likely change in future versions of Lake based on user feedback.{TODO}[Ask Mac about the platform-independent option he mentioned in our call]
 
 ```lakeHelp "pack"
