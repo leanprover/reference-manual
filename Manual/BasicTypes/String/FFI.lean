@@ -20,7 +20,7 @@ tag := "string-ffi"
 %%%
 
 
-{docstring String.csize}
+{docstring Char.utf8Size}
 
 :::ffi "lean_string_object" kind := type
 ```

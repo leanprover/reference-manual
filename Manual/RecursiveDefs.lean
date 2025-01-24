@@ -10,6 +10,7 @@ import Manual.Meta
 
 import Manual.RecursiveDefs.Structural
 import Manual.RecursiveDefs.WF
+import Manual.RecursiveDefs.PartialFixpoint
 
 open Verso.Genre Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
@@ -30,7 +31,7 @@ Furthermore, most useful recursive functions do not threaten soundness, and infi
 Instead of banning recursive functions, Lean requires that each recursive function is defined safely.
 While elaborating recursive definitions, the Lean elaborator also produces a justification that the function being defined is safe.{margin}[The section on {ref "elaboration-results"}[the elaborator's output] in the overview of elaboration contextualizes the elaboration of recursive definitions in the overall context of the elaborator.]
 
-There are four main kinds of recursive functions that can be defined:
+There are five main kinds of recursive functions that can be defined:
 
 : Structurally recursive functions
 
@@ -47,6 +48,17 @@ There are four main kinds of recursive functions that can be defined:
   Well-founded recursion is a technique for systematically transforming recursive functions with a decreasing measure into recursive functions over proofs that every sequence of reductions to the measure eventually terminates at a minimum.
   Applications of functions defined via well-founded recursion are not necessarily definitionally equal to their return values, but this equality can be proved as a proposition.
   Even when definitional equalities exist, these functions are frequently slow to compute with because they require reducing proof terms that are often very large.
+
+: Recursive functions as partial fixpoints
+
+  The definition of a function can be understood as an equation that specifies its behavior.
+  In certain cases, the existence of a function that satisfies this specification can be proven even when the recursive function does not necessarily terminate for all inputs.
+  This strategy is even applicable in some cases where the function definition does not necessarily terminate for all inputs.
+  These partial functions emerge as fixed points of these equations are called {tech}_partial fixpoints_.
+
+  In particular, any function whose return type is in certain monads (e.g. {name}`Option`) can be defined using this strategy.
+  Lean generates additional partial correctness theorems for these monadic functions.
+  As with well-founded recursion, applications of functions defined as partial fixpoints are not definitionally equal to their return values, but Lean generates theorems that propositionally equate the function to its unfolding and to the reduction behavior specified in its definition.
 
 : Partial functions with nonempty ranges
 
@@ -66,6 +78,11 @@ There are four main kinds of recursive functions that can be defined:
   The replaced function may be opaque, which results in the function name having a trivial equational theory in the logic, or it may be an ordinary function, in which case the function is used in the logic.
   Use this feature with care: logical soundness is not at risk, but the behavior of programs written in Lean may diverge from their verified logical models if the unsafe implementation is incorrect.
 
+:::TODO
+
+Table providing an overview of all strategies and their properties
+
+:::
 
 As described in the {ref "elaboration-results"}[overview of the elaborator's output], elaboration of recursive functions proceeds in two phases:
  1. The definition is elaborated as if Lean's core type theory had recursive definitions.
@@ -78,7 +95,7 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.
-After a description of mutual recursion, each of the four kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
+After a description of mutual recursion, each of the five kinds of recursive definitions is specified, along with the tradeoffs between reasoning power and flexibility that go along with each.
 
 # Mutual Recursion
 %%%
@@ -155,6 +172,8 @@ After the first step of elaboration, in which definitions are still recursive, a
 {include 0 Manual.RecursiveDefs.Structural}
 
 {include 0 Manual.RecursiveDefs.WF}
+
+{include 0 Manual.RecursiveDefs.PartialFixpoint}
 
 # Partial and Unsafe Recursive Definitions
 %%%
