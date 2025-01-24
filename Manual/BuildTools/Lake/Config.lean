@@ -25,6 +25,28 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 tag := "lake-config"
 %%%
 
+:::paragraph
+Lake offers two formats for {tech}[package configuration] files:
+
+: TOML
+
+  The TOML configuration format is fully declarative.
+  Projects that don't include custom targets, facets, or scripts can use the TOML format.
+  Because TOML parsers are available for a wide variety of languages, using this format facilitates integration with tools that are not written in Lean.
+
+: Lean
+
+  The Lean configuration format is more flexible and allows for custom targets, facets, and scripts.
+  It features an embedded domain-specific language for describing the declarative subset of configuration options that is available from the TOML format.
+  Additionally, the Lake API can be used to express build configurations that are outside of the possibilities of the declarative options.
+
+The command {lake}`translate-config` can be used to automatically convert between the two formats.
+:::
+
+Both formats are processed similarly by Lake, which extracts the {tech}[package configuration] from the configuration file in the form of internal structure types.
+When the package is {tech key:="configure package"}[configured], the resulting data structures are written to `lakefile.olean` in the {tech}[build directory].
+
+
 # Declarative TOML Format
 %%%
 tag := "lake-config-toml"
@@ -45,10 +67,10 @@ This configuration consists of both scalar fields that describe the entire packa
 
 ## Package Configuration
 
-Package configurations provide many options.
+The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
 The only mandatory field is `name`, which declares the package's name.
 
-::::tomlTableDocs "Package Configuration" Lake.PackageConfig skip:=backend
+::::tomlTableDocs "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs
 
 :::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
@@ -61,7 +83,7 @@ These options control the top-level directory layout of the package and its buil
 Further paths specified by libraries, executables, and targets within the package are relative to these directories.
 :::
 
-:::tomlFieldCategory "Building and Running" platformIndependent precompileModules moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
+:::tomlFieldCategory "Building and Running" defaultTargets leanLibDir platformIndependent precompileModules moreServerOptions moreGlobalServerArgs buildType leanOptions moreLeanArgs weakLeanArgs moreLeancArgs weakLeancArgs moreLinkArgs weakLinkArgs extraDepTargets
 
 These options configure how code is built and run in the package.
 Libraries, executables, and other {tech}[targets] within a package can further add to parts of this configuration.
@@ -262,7 +284,7 @@ name = "Sorting"
 
 ## Dependencies
 
-Dependencies are specified in the `require` field array of a package configuration, which specifies both the name and the source of each package.
+Dependencies are specified in the {toml}`[[require]]` field array of a package configuration, which specifies both the name and the source of each package.
 There are three kinds of sources:
  * {ref "reservoir"}[Reservoir], or an alternative package registry
  * Git repositories, which may be local paths or URLs
@@ -400,18 +422,18 @@ Dependencies on local paths are useful when developing multiple packages in a si
 :::::
 
 :::::example "Sources as Tables"
-The information about the package source can be written in an explicit table:
+The information about the package source can be written in an explicit table.
 ::::lakeToml Lake.Dependency require
 ```toml
 [[require]]
 name = "example"
-source = {type = "git", url = "https://git.example.com/example.git"}
+source = {type = "git", url = "https://example.com/example.git"}
 ```
 ```expected
 #[{name := `example,
     scope := "",
     version := none,
-    src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" none none),
+    src? := some (Lake.DependencySrc.git "https://example.com/example.git" none none),
     opts := {}
   }]
 ```
@@ -458,14 +480,14 @@ name = "TacticTools"
 The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
 :::::
 
-:::::example "Library Target"
+:::::example "Configured Library Target"
 This library declaration supplies more options:
 ::::lakeToml Lake.LeanLibConfig lean_lib
 ```toml
 [[lean_lib]]
 name = "TacticTools"
-precompileModules = true
 srcDir = "src"
+precompileModules = true
 ```
 ```expected
 #[{toLeanConfig := { buildType := Lake.BuildType.release,
@@ -500,7 +522,7 @@ If its modules are accessed at elaboration time, they will be compiled to native
 
 ::::
 
-:::::example "A Minimal Executable Target"
+:::::example "Minimal Executable Target"
 This executable declaration supplies only a name:
 ::::lakeToml Lake.LeanExeConfig lean_exe
 ```toml
@@ -537,7 +559,7 @@ The executable's {lean}`main` function is expected in a module named `trustworth
 The resulting executable is named `trustworthytool`.
 :::::
 
-:::::example "An Executable Target"
+:::::example "Configured Executable Target"
 The name `trustworthy-tool` is not a valid Lean name due to the dash (`-`).
 To use this name for an executable target, an explicit module root must be supplied.
 Even though `trustworthy-tool` is a perfectly acceptable name for an executable, the target also specifies that the result of compilation and linking should be named `tt`.
@@ -584,52 +606,34 @@ tag := "lake-config-lean"
 %%%
 
 
+The Lean format for Lake {tech}[package configuration] files provides a domain-specific language for the declarative features that are supported in the TOML format.
+Additionally, it provides the ability to write Lean code to implement any necessary build logic that is not expressible declaratively.
+
+Because the Lean format is a Lean source file, it can be edited using all the features of the Lean language server.
+Additionally, Lean's metaprogramming framework allows elaboration-time side effects to be used to implement features such as configuration steps that are conditional on the current platform.
+However, a consequence of the Lean configuration format being a Lean file is that it is not feasible to process such files using tools that are not themselves written in Lean.
+
 ```lean (show := false)
 section
-open Lake.DSL
+open Lake DSL
+open Lean (NameMap)
 ```
 
-:::TODO
+## Declarative Fields
 
-Concepts
+The declarative subset of the Lean configuration format uses sequences of declaration fields to specify configuration options.
 
-When elaborated
+:::syntax Lake.DSL.declField (title := "Declarative Fields") (open := false)
 
-Which features need this?
-
-:::
-
-## Dependencies
-
-:::syntax command
-```grammar
-$[$doc?:docComment]?
-require $spec
-```
-:::
-
-:::syntax depSpec
-```grammar
-$name:depName $[@ $[git]? $_:term]? $[$_:fromClause]? $[with $_:term]?
-```
-:::
-
-:::syntax fromClause (open := false) (title := "Package Sources")
-
-{includeDocstring Lake.DSL.fromClause}
+{includeDocstring Lake.DSL.declField}
 
 ```grammar
-from $t:term
+$_ := $_
 ```
-
-```grammar
-from git $t $[@ $t]? $[/ $t]?
-```
-
 :::
 
 ## Packages
-::::syntax command
+::::syntax command title:="Package Configuration"
 ```grammar
 $[$_:docComment]?
 $[@[ $_,* ]]?
@@ -667,33 +671,80 @@ post_update $[$name]? $v
 
 ::::
 
+
+## Dependencies
+
+Dependencies are specified using the {keywordOf Lake.DSL.requireDecl}`require` declaration.
+
+:::syntax command (title := "Requiring Packages")
+```grammar
+$doc:docComment
+require $name:depName $[@ $[git]? $_:term]? $[$_:fromClause]? $[with $_:term]?
+```
+
+The `@` clause specifies a package version, which is used when requiring a package from {ref "reservoir"}[Reservoir].
+The version may either be a string that specifies the version declared in the package's {name Lake.PackageConfig.version}`version` field, or a specific Git revision.
+Git revisions may be branch name, tag names, or hashes.
+
+The optional {syntaxKind}`fromClause` specifies a package source other than Reservoir, which may be either a Git repository or a local path.
+
+The {keywordOf Lake.DSL.requireDecl}`with` clause specifies a {lean}`NameMap String` of Lake options that will be used to configure the dependency.
+This is equivalent to passing {lakeOpt}`-K` options to {lake}`build` when building the dependency on the command line.
+:::
+
+:::syntax fromClause (open := false) (title := "Package Sources")
+
+{includeDocstring Lake.DSL.fromClause}
+
+```grammar
+from $t:term
+```
+
+```grammar
+from git $t $[@ $t]? $[/ $t]?
+```
+
+:::
+
+
 ## Targets
 
-:::syntax attr
+{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+
+:::syntax attr (title := "Specifying Default Targets") (label := "attribute")
+
 ```grammar
 default_target
 ```
-Marks a target as a default.
+Marks a target as a default, to be built when no other target is specified.
 :::
 
 ### Libraries
-:::syntax command
+
+
+:::syntax command (title := "Library Targets")
+
+To define a library in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanLibDecl}`lean_lib` with no further fields.
 
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[$_:attributes]?
 lean_lib $_:identOrStr
 ```
 
+The default configuration can be modified by providing the new values.
 
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[$_:attributes]?
 lean_lib $_:identOrStr where
   $field*
 ```
 
 
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[$_:attributes]?
 lean_lib $_:identOrStr {
   $[$_:declField $[,]?]*
 }
@@ -702,24 +753,28 @@ $[where
 ```
 :::
 
+The fields of {keywordOf Lake.DSL.leanLibDecl}`lean_lib` are those of the {name Lake.LeanLibConfig}`LeanLibConfig` structure.
+
 {docstring Lake.LeanLibConfig}
 
 ### Executables
 
 :::syntax command
 
+To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeDecl}`lean_exe` with no further fields.
+
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
 lean_exe $_:identOrStr
 ```
 
+The default configuration can be modified by providing the new values.
 
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
 lean_exe $_:identOrStr where
   $field*
 ```
-
 
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
@@ -731,16 +786,22 @@ $[where
 ```
 :::
 
+The fields of {keywordOf Lake.DSL.leanExeDecl}`lean_exe` are those of the {name Lake.LeanExeConfig}`LeanExeConfig` structure.
+
 {docstring Lake.LeanExeConfig}
 
 ### External Libraries
 
-Important: For the external library to link properly when precompileModules is on, the static library produced by an `extern_lib` target must following the platform's naming conventions for libraries (i.e., be named foo.a on Windows and libfoo.a on Unix). To make this easy, there is the Lake.nameToStaticLib utility function to convert a library name into its proper file name for the platform.
+Because external libraries may be written in any language and require arbitrary build steps, they are defined as programs written in the {name Lake.FetchM}`FetchM` monad that produce a {name Lake.Job}`Job`.
+External library targets should produce a build job that carries out the build and then returns the location of the resulting static library.
+For the external library to link properly when {name Lake.PackageConfig.precompileModules}`precompileModules` is on, the static library produced by an {keyword}`extern_lib` target must follow the platform's naming conventions for libraries (i.e., be named foo.a on Windows or libfoo.a on Unix-like systems).
+The utility function {name}`Lake.nameToStaticLib` converts a library name into its proper file name for current platform.
 
 :::syntax command
 
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[$_:attributes]?
 extern_lib $_:identOrStr $_? := $_:term
 $[where $_*]?
 ```
@@ -751,10 +812,13 @@ $[where $_*]?
 
 ### Custom Targets
 
+Custom targets may be used to define any incrementally-built artifact whatsoever, using the Lake API.
+
 :::syntax command
 
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[$_:attributes]?
 target $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
@@ -765,9 +829,17 @@ $[where $_*]?
 
 ### Custom Facets
 
-:::syntax command
+Custom facets allow additional artifacts to be incrementally built from a module, library, or package.
+
+
+:::syntax command (title := "Custom Package Facets")
+
+Package facets allow the production of an artifact or set of artifacts from a whole package.
+The Lake API makes it possible to query a package for its libraries; thus, one common use for a package facet is to build a given facet of each library.
+
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[@[$_,*]]?
 package_facet $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
@@ -776,9 +848,14 @@ $[where $_*]?
 
 :::
 
-:::syntax command
+:::syntax command (title := "Custom Library Facets")
+
+Package facets allow the production of an artifact or set of artifacts from a library.
+The Lake API makes it possible to query a library for its modules; thus, one common use for a library facet is to build a given facet of each module.
+
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[@[$_,*]]?
 library_facet $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
@@ -787,9 +864,13 @@ $[where $_*]?
 
 :::
 
-:::syntax command
+:::syntax command (title := "Custom Module Facets")
+
+Package facets allow the production of an artifact or set of artifacts from a module, typically by invoking a command-line tool.
+
 ```grammar
-$[$_:docComment]? $[$_:attributes]?
+$[$_:docComment]?
+$[@[$_,*]]?
 module_facet $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
@@ -798,7 +879,70 @@ $[where $_*]?
 
 :::
 
+## Configuration Value Types
+
+{docstring Lake.BuildType}
+
+In Lake's DSL, {deftech}_globs_ are patterns that match sets of module names.
+There is a coercion from names to globs that match the name in question, and there are two postfix operators for constructing further globs.
+
+```lean (show := false)
+section
+example : Lake.Glob := `n
+
+/-- info: instCoeNameGlob -/
+#guard_msgs in
+#synth Coe Lean.Name Lake.Glob
+
+open Lake DSL
+
+/-- info: Lake.Glob.andSubmodules `n -/
+#guard_msgs in
+#eval show Lake.Glob from `n.*
+
+/-- info: Lake.Glob.submodules `n -/
+#guard_msgs in
+#eval show Lake.Glob from `n.+
+
+end
+```
+:::freeSyntax term (title := "Glob Syntax")
+
+The glob pattern `N.*` matches `N` or any submodule for which `N` is a prefix.
+
+```grammar
+$_:name".*"
+```
+
+The glob pattern `N.*` matches any submodule for which `N` is a strict prefix, but not `N` itself.
+
+```grammar
+$_:name".+"
+```
+
+Whitespace is not permitted between the name and `.*` or `.+`.
+
+:::
+
+{docstring Lake.Glob}
+
+
+
+{docstring Lake.LeanOption}
+
+{docstring Lake.Backend}
+
 ## Scripts
+
+Lake scripts are used to automate tasks that require access to a package configuration but do not participate in incremental builds of artifacts from code.
+Scripts run in the {name Lake.ScriptM}`ScriptM` monad, which is {name}`IO` with an additional {tech}[reader monad] {tech key:="monad transformer"}[transformer] that provides access to the package configuration.
+In particular, a script should have the type {lean}`List String → ScriptM UInt32`.
+Workspace information in scripts is primarily accessed via the {inst}`MonadWorkspace ScriptM` instance.
+
+
+```lean (show := false)
+example : ScriptFn = (List String → ScriptM UInt32) := rfl
+```
 
 :::syntax command
 ```grammar
@@ -814,6 +958,9 @@ $[where
 
 :::
 
+{docstring Lake.ScriptM}
+
+
 :::syntax attr
 ```grammar
 default_script
@@ -822,6 +969,8 @@ default_script
 Marks a {tech}[Lake script] as the {tech}[package]'s default.
 
 :::
+
+
 
 ## Utilities
 

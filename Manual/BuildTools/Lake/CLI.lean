@@ -337,16 +337,17 @@ In addition to showing or hiding messages, a build can be made to fail when warn
 tag := "automatic-toolchain-updates"
 %%%
 
-By default, {lake}`update` attempts to update the {tech}[root package]'s {tech}[toolchain file] when a new version of a dependency specifies an updated toolchain.
+The {lake}`update` command checks for changes to dependencies, fetching their sources and updating the {tech}[manifest] accordingly.
+By default, {lake}`update` also attempts to update the {tech}[root package]'s {tech}[toolchain file] when a new version of a dependency specifies an updated toolchain.
 This behavior can be disabled with the {lakeOpt}`--keep-toolchain` flag.
 
 :::paragraph
 If multiple dependencies specify newer toolchains, Lake selects the newest compatible toolchain, if it exists.
 To determine the newest compatible toolchain, Lake parses the toolchain listed in the packages' `lean-toolchain` files into four categories:
 
- * Releases, which are compared by semantic version (e.g., `v4.4.0` < `v4.8.0` and `v4.6.0-rc1` < `v4.6.0`)
+ * Releases, which are compared by version number (e.g., `v4.4.0` < `v4.8.0` and `v4.6.0-rc1` < `v4.6.0`)
  * Nightly builds, which are compared by date (e.g., `nightly-2024-01-10` < `nightly-2024-10-01`)
- * Builds from Lean pull requests, which are incomparable
+ * Builds from pull reqeusts to the Lean compiler, which are incomparable
  * Other versions, which are also incomparable
 
 Toolchain versions from multiple categories are incomparable.
@@ -354,8 +355,8 @@ If there is not a single newest toolchain, Lake will print a warning and continu
 :::
 
 If Lake does find a new toolchain, then it updates the {tech}[workspace]'s `lean-toolchain` file accordingly and restarts the {lake}`update` using the new toolchain's Lake.
-If Elan is detected, it will spawn the new Lake process via `elan run` with the same arguments Lake was initially run with.
-If Elan is missing, it will prompt the user to restart Lake manually and exit with a special error code (`4`).
+If {ref "elan"}[Elan] is detected, it will spawn the new Lake process via `elan run` with the same arguments Lake was initially run with.
+If Elan is missing, it will prompt the user to restart Lake manually and exit with a special error code (namely, `4`).
 The Elan executable used by Lake can be configured using the {envVar}`ELAN` environment variable.
 
 
@@ -461,7 +462,7 @@ Package dependencies are not updated during a build.
 
 :::lake build "[targets...]"
 
-Builds the specified targets.
+Builds the specified facts of the specified targets.
 
 Each of the {lakeMeta}`targets` is specified by a string of the form:
 
@@ -483,27 +484,27 @@ Talk to Mac about alternative terminology for picking a fact of something - "tar
 
 :::
 
-::::example "Example target specifications"
+::::example "Target and Facet Specifications"
 
 :::table
 * ignored
   - `a`
-  - default facet of target `a`
+  - The {tech}[default facet] of target `a`
 * ignored
   - `@a`
-  - default target(s) of package `a`
+  - The {tech}[default targets] of {tech}[package] `a`
 * ignored
   - `+A`
-  -  Lean artifacts of module `A`
+  -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
 * ignored
   - `a/b`
-  - default facet of target `b` of package `a`
+  - The default facet of target `b` of package `a`
 * ignored
   - `a/+A:c`
-  - C file of module `A` of package `a`
+  - The C file compiled from module `A` of package `a`
 * ignored
   - `:foo`
-  - facet `foo` of the root package
+  - The {tech}[root package]'s facet `foo`
 :::
 ::::
 
@@ -603,6 +604,9 @@ The `lean` process is executed in {ref "lake-environment"}[Lake's environment].
 
 
 # Development Tools
+
+Lake includes support for specifying standard development tools and workflows.
+On the command line, these tools can be invoked using the appropriate `lake` subcommands.
 
 ## Tests and Linters
 
@@ -908,5 +912,5 @@ The produced file is written to `out-file` or, if not provided, the path of the 
 If the output file already exists, Lake will error.
 
 Translation is lossy.
-It does not preserve comments or formatting and non-declarative configuration is be discarded.
+It does not preserve comments or formatting and non-declarative configuration is discarded.
 :::

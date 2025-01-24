@@ -207,6 +207,12 @@ def Block.tomlField.descr : BlockDescr where
         </dd>
       }}
 
+private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
+  blocks.flatMap fun
+    | .concat bs =>
+      flattenBlocks bs
+    | other => #[other]
+
 structure TomlFieldCategoryOpts where
   title : String
   fields : List Name
@@ -245,18 +251,20 @@ def Block.tomlFieldCategory.descr : BlockDescr where
       let .arr #[.str title, _fields] := info
         | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize field category doc data"; pure .empty
 
+      let (nonField, field) :=
+        flattenBlocks contents |>.partition fun
+          | .other {name := `Manual.Block.tomlField, ..} _ => false
+          | _ => true
+
       return {{
         <div class="field-category">
           <p><strong>{{title}}":"</strong></p>
-          {{← contents.mapM goB}}
+          {{← nonField.mapM goB}}
+          <dl>
+            {{← field.mapM goB}}
+          </dl>
         </div>
       }}
-
-private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
-  blocks.flatMap fun
-    | .concat bs =>
-      flattenBlocks bs
-    | other => #[other]
 
 @[block_extension Block.tomlTable]
 def Block.tomlTable.descr : BlockDescr where
@@ -348,19 +356,27 @@ dl.toml-table-field-spec {
       let uncatHtml ← uncategorized.mapM goB
       let catHtml ← categories.mapM goB
 
-      let fieldHtml :=
-        if categories.isEmpty then {{
-            <p><strong>"Fields:"</strong></p>
-            <dl class="toml-table-field-spec">
-              {{uncatHtml}}
-            </dl>
-        }} else {{
-          {{catHtml}}
-          <p><strong>"Other Fields:"</strong></p>
-          <dl class="toml-table-field-spec">
-            {{uncatHtml}}
-          </dl>
+      let fieldHeader := {{
+        <p>
+          <strong>
+            {{if categories.isEmpty then "Fields:" else "Other Fields:"}}
+          </strong>
+        </p>
+      }}
+
+      let fieldHtml := {{
+        {{if categories.isEmpty then .empty else catHtml}}
+        {{if uncategorized.isEmpty then .empty
+          else {{
+            <div class="field-category">
+              {{fieldHeader}}
+              <dl class="toml-table-field-spec">
+                {{uncatHtml}}
+              </dl>
+            </div>
+          }}
         }}
+      }}
 
       return {{
         <div class="namedocs" {{idAttr}}>
@@ -820,6 +836,11 @@ def Block.toml (highlighted : Toml.Highlighted) : Block where
   name := `Manual.Block.toml
   data := toJson highlighted
 
+def Inline.toml (highlighted : Toml.Highlighted) : Inline where
+  name := `Manual.Inline.toml
+  data := toJson highlighted
+
+
 open Verso.Output Html in
 def htmlLink (state : TraverseState) (id : InternalId) (html : Html) : Html :=
   if let some (path, htmlId) := state.externalTags[id]? then
@@ -850,41 +871,32 @@ def tableLink (xref : Genre.Manual.TraverseState) (table : Name) : Option String
   let (path, htmlId) ← xref.externalTags[← obj.getId]?
   return path.link htmlId.toString
 
-
 open Lean.Parser in
-@[code_block_expander toml]
-def toml : CodeBlockExpander
-  | args, str => do
-    ArgParse.done.run args
-    let scope : Command.Scope := {header := ""}
-    let inputCtx := Parser.mkInputContext (← parserInputString str) (← getFileName)
-    let pmctx : Parser.ParserModuleContext :=
-      { env := ← getEnv, options := scope.opts, currNamespace := scope.currNamespace, openDecls := scope.openDecls }
-    let pos := str.raw.getPos? |>.getD 0
+def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do
+  let scope : Command.Scope := {header := ""}
+  let inputCtx := Parser.mkInputContext (← parserInputString str) (← getFileName)
+  let pmctx : Parser.ParserModuleContext :=
+    { env := ← getEnv, options := scope.opts, currNamespace := scope.currNamespace, openDecls := scope.openDecls }
+  let pos := str.raw.getPos? |>.getD 0
 
-    let p := andthenFn whitespace Lake.Toml.toml.fn
-    let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.input, pos }
-    match s.errorMsg with
-    | some err =>
-      throwErrorAt str "Couldn't parse TOML: {err}"
-    | none =>
-      let #[stx] := s.stxStack.toSubarray.toArray
-        | throwErrorAt str s!"Internal error parsing TOML - expected one result, got {s.stxStack.toSubarray.toArray}"
-      let hl : Toml.Highlighted := Toml.highlightToml stx |>.run' none |>.normalize
-      pure #[← ``(Block.other (Block.toml $(quote hl)) #[Block.code $(quote str.getString)])]
+  let p := andthenFn whitespace Lake.Toml.toml.fn
+  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.input, pos }
+  match s.errorMsg with
+  | some err =>
+    throwErrorAt str "Couldn't parse TOML: {err}"
+  | none =>
+    let #[stx] := s.stxStack.toSubarray.toArray
+      | throwErrorAt str s!"Internal error parsing TOML - expected one result, got {s.stxStack.toSubarray.toArray}"
+    return Toml.highlightToml stx |>.run' none |>.normalize
 
-@[block_extension Block.toml]
-def Block.toml.descr : BlockDescr where
-  traverse _ _ _ := pure none
-
-  toTeX := none
-
-  extraCss := [
-r#"
-pre.toml {
+def tomlCSS : String := r#"
+.toml {
   font-family: var(--verso-code-font-family);
-  margin: 0.5em .75em;
-  padding: 0 0;
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
 }
 
 .toml .bool, .toml .table-header {
@@ -913,7 +925,38 @@ pre.toml {
     border-bottom-style: solid;
 }
 "#
-]
+
+open Lean.Parser in
+@[code_block_expander toml]
+def toml : CodeBlockExpander
+  | args, str => do
+    ArgParse.done.run args
+    let hl ← tomlContent str
+    pure #[← ``(Block.other (Block.toml $(quote hl)) #[Block.code $(quote str.getString)])]
+
+open Lean.Parser in
+@[role_expander toml]
+def tomlInline : RoleExpander
+  | args, inlines => do
+    ArgParse.done.run args
+
+    let #[arg] := inlines
+      | throwError "Expected exactly one argument"
+    let `(inline|code( $str:str )) := arg
+      | throwErrorAt arg "Expected code literal with TOML code"
+
+    let hl ← tomlContent str
+
+    pure #[← ``(Inline.other (Inline.toml $(quote hl)) #[Inline.code $(quote str.getString)])]
+
+
+@[block_extension Block.toml]
+def Block.toml.descr : BlockDescr where
+  traverse _ _ _ := pure none
+
+  toTeX := none
+
+  extraCss := [tomlCSS]
 
   toHtml := some <| fun _goI _ _ info _ =>
     open Verso.Doc.Html in
@@ -927,6 +970,28 @@ pre.toml {
         <pre class="toml">
           {{hl.toHtml (tableLink xref) (fieldLink xref)}}
         </pre>
+      }}
+
+@[inline_extension Inline.toml]
+def Inline.toml.descr : InlineDescr where
+  traverse _ _ _ := pure none
+
+  toTeX := none
+
+  extraCss := [tomlCSS]
+
+  toHtml := some <| fun _ _ info _ =>
+    open Verso.Doc.Html in
+    open Verso.Output Html in do
+      let .ok hl := FromJson.fromJson? (α := Toml.Highlighted) info
+        | do Verso.Doc.Html.HtmlT.logError "Failed to deserialize highlighted TOML data"; pure .empty
+
+      let xref := (← read).traverseState
+
+      return {{
+        <code class="toml">
+          {{hl.toHtml (tableLink xref) (fieldLink xref)}}
+        </code>
       }}
 
 

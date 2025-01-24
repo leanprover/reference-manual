@@ -97,6 +97,9 @@ A {deftech}_target_ represents a build product that can be requested by a user:
  * {deftech}_Executables_ consist of a _single_ module that defines `main`
  * {deftech}_External libraries_ are non-Lean *static* libraries that will be linked to the binaries of the package and its dependents, including both their shared libraries and executables.
  * {deftech}_Custom targets_ contain arbitrary code to run a build, written using {name Lake.FetchM}`FetchM` in {TODO}[xref]Lake's API.
+
+Packages may specify a set of {deftech}_default targets_.
+These targets are built in contexts where a package is specified but targets are not.
 :::
 
 :::TODO
@@ -125,7 +128,7 @@ Producing a desired {tech}[artifact], such as a {tech}[`.olean` file] or an exec
 Builds are triggered by the {lake}`build` command or by other commands that require an artifact to be present, such as {lake}`exe`.
 A build consists of the following steps:
 
-: Configuring the package
+: {deftech key:="configure package"}[Configuring] the package
 
   If {tech}[package configuration] file is newer than the cached configuration file `lakefile.olean`, then the package configuration is re-elaborated.
   This also occurs when the cached file is missing or when the {lakeOpt}`--reconfigure` or {lakeOpt}`-R` flag is provided.
@@ -176,7 +179,7 @@ tag := "lake-facets"
 %%%
 
 A {deftech}_facet_ describes the production of an artifact from a module, target, or package.
-Each kind of target has a default facet (e.g. producing an executable binary from an executable target); other facets may be specified explicitly in the {tech}[package configuration] or via Lake's {ref "lake-cli"}[command-line interface].
+Each kind of target has a {deftech}_default facet_ (e.g. producing an executable binary from an executable target); other facets may be specified explicitly in the {tech}[package configuration] or via Lake's {ref "lake-cli"}[command-line interface].
 Lake's API may be used to write custom facets. {TODO}[xref]
 
 
@@ -406,252 +409,29 @@ Thus, in order to use it, the package uploader (but not the downloader) needs to
 
 {include 0 Manual.BuildTools.Lake.Config}
 
-# API Reference
+# Script API Reference
 %%%
 tag := "lake-api"
 %%%
 
-{docstring Lake.FetchM}
+In addition to ordinary {lean}`IO` effects, Lake scripts have access to the Lake environment (which provides information about the current toolchain, such as the location of the Lean compiler) and the current workspace.
 
-{docstring Lake.FetchM.run}
+## Accessing the Environment
 
-{docstring Lake.RecBuildM}
+Monads that provide access to information about the current Lake environment (such as the locations of Lean, Lake, and other tools) have {name Lake.MonadLakeEnv}`MonadLakeEnv` instances.
+This is true for all of the monads in the Lake API, including {name Lake.ScriptM}`ScriptM`.
 
-{docstring Lake.RecBuildM.runJobM}
+{docstring Lake.getLakeEnv}
 
-{docstring Lake.RecBuildM.run}
+{docstring Lake.getNoCache}
 
-{docstring Lake.RecBuildM.run'}
+{docstring Lake.getTryCache}
 
-{docstring Lake.ScriptM}
-
-{docstring Lake.buildCycleError}
-
-{docstring Lake.addLeanTrace}
-
-{docstring Lake.addPlatformTrace}
-
-{docstring Lake.addPureTrace}
-
-{docstring Lake.addTrace}
-
-{docstring Lake.binder}
-
-{docstring Lake.binder.formatter}
-
-{docstring Lake.binder.parenthesizer}
-
-{docstring Lake.buildFileAfterDep}
-
-{docstring Lake.buildFileUnlessUpToDate'}
-
-{docstring Lake.buildImportsAndDeps}
-
-{docstring Lake.buildLeanExe}
-
-{docstring Lake.buildLeanO}
-
-{docstring Lake.buildLeanSharedLib}
-
-{docstring Lake.buildLeanSharedLibOfStatic}
-
-{docstring Lake.buildO}
-
-{docstring Lake.buildSpecs}
-
-{docstring Lake.buildStaticLib}
-
-{docstring Lake.buildUnlessUpToDate}
-
-{docstring Lake.buildUnlessUpToDate?}
-
-{docstring Lake.buildUnlessUpToDate?.go}
-
-{docstring Lake.busyAcquireLockFile}
-
-{docstring Lake.busyAcquireLockFile.busyLoop}
-
-{docstring Lake.cacheFileHash}
-
-{docstring Lake.captureProc}
-
-{docstring Lake.captureProc?}
-
-{docstring Lake.checkHashUpToDate}
-
-{docstring Lake.clearFileHash}
-
-{docstring Lake.collectImportsAux}
-
-{docstring Lake.compileExe}
-
-{docstring Lake.compileLeanModule}
-
-{docstring Lake.compileO}
-
-{docstring Lake.compileSharedLib}
-
-{docstring Lake.compileStaticLib}
-
-{docstring Lake.computeArrayHash}
-
-{docstring Lake.computeArrayTrace}
-
-{docstring Lake.computeBinFileHash}
-
-{docstring Lake.computeDynlibOfShared}
-
-{docstring Lake.computeFileHash}
-
-{docstring Lake.computeHash}
-
-{docstring Lake.computeListTrace}
-
-{docstring Lake.computePrecompileImportsAux}
-
-{docstring Lake.computeTextFileHash}
-
-{docstring Lake.computeTrace}
-
-{docstring Lake.createParentDirs}
-
-{docstring Lake.customDataDecl}
-
-{docstring Lake.declareOpaqueType}
-
-{docstring Lake.defaultBinDir}
-
-{docstring Lake.defaultBuildArchive}
-
-{docstring Lake.defaultBuildDir}
-
-{docstring Lake.defaultConfigFile}
-
-{docstring Lake.defaultIrDir}
-
-{docstring Lake.defaultLakeDir}
-
-{docstring Lake.defaultLeanConfigFile}
-
-{docstring Lake.defaultLeanLibDir}
-
-{docstring Lake.defaultManifestFile}
-
-{docstring Lake.defaultNativeLibDir}
-
-{docstring Lake.defaultPackagesDir}
-
-{docstring Lake.defaultScriptAttr}
-
-{docstring Lake.defaultTargetAttr}
-
-{docstring Lake.defaultTomlConfigFile}
-
-{docstring Lake.defaultVersionTags}
-
-{docstring Lake.dirExt}
-
-{docstring Lake.doElemTry_Else_}
-
-{docstring Lake.download}
-
-{docstring Lake.drbmapOf}
-
-{docstring Lake.dropLogFrom}
-
-{docstring Lake.elabVerLit}
-
-{docstring Lake.elabVerLit.unsafe_1}
-
-{docstring Lake.elabVerLit.unsafe_impl_1}
-
-{docstring Lake.ensureJob}
-
-{docstring Lake.env}
-
-{docstring Lake.envToBool?}
-
-{docstring Lake.errorWithLog}
-
-{docstring Lake.exe}
-
-{docstring Lake.exitIfErrorCode}
-
-{docstring Lake.expandBinderIdent}
-
-{docstring Lake.expandBinderModifier}
-
-{docstring Lake.expandBinderType}
-
-{docstring Lake.expandBinders}
-
-{docstring Lake.expandOptIdent}
-
-{docstring Lake.expandOptType}
-
-{docstring Lake.externLibAttr}
-
-{docstring Lake.extractLog}
-
-{docstring Lake.familyDef}
-
-{docstring Lake.fetchFileHash}
-
-{docstring Lake.fetchFileTrace}
-
-{docstring Lake.fetchOrCreate}
-
-{docstring Lake.findElanInstall?}
-
-{docstring Lake.findExternLib?}
-
-{docstring Lake.findInstall?}
-
-{docstring Lake.findLakeInstall?}
-
-{docstring Lake.findLakeLeanJointHome?}
-
-{docstring Lake.findLeanCmdInstall?}
-
-{docstring Lake.findLeanExe?}
-
-{docstring Lake.findLeanInstall?}
-
-{docstring Lake.findLeanLib?}
-
-{docstring Lake.findLeanSysroot?}
-
-{docstring Lake.findModule?}
-
-{docstring Lake.findPackage?}
-
-{docstring Lake.flush}
-
-{docstring Lake.foldlUtf8}
-
-{docstring Lake.foldlUtf8M}
-
-{docstring Lake.getAugmentedEnv}
-
-{docstring Lake.getAugmentedLeanPath}
-
-{docstring Lake.getAugmentedLeanSrcPath}
-
-{docstring Lake.getAugmentedSharedLibPath}
-
-{docstring Lake.getBinderIds}
-
-{docstring Lake.getBuildConfig}
-
-{docstring Lake.getBuildContext}
-
-{docstring Lake.getElan?}
-
-{docstring Lake.getElanHome?}
-
-{docstring Lake.getElanInstall?}
+{docstring Lake.getPkgUrlMap}
 
 {docstring Lake.getElanToolchain}
+
+### Search Path Helpers
 
 {docstring Lake.getEnvLeanPath}
 
@@ -659,29 +439,33 @@ tag := "lake-api"
 
 {docstring Lake.getEnvSharedLibPath}
 
-{docstring Lake.getFileMTime}
+### Elan Install Helpers
 
-{docstring Lake.getIsOldMode}
+{docstring Lake.getElanInstall?}
 
-{docstring Lake.getIsQuiet}
+{docstring Lake.getElanHome?}
 
-{docstring Lake.getIsVerbose}
+{docstring Lake.getElan?}
 
-{docstring Lake.getLake}
+### Lean Install Helpers
 
-{docstring Lake.getLakeEnv}
+{docstring Lake.getLeanInstall}
 
-{docstring Lake.getLakeHome}
+{docstring Lake.getLeanSysroot}
 
-{docstring Lake.getLakeInstall}
+{docstring Lake.getLeanSrcDir}
 
-{docstring Lake.getLakeInstall?}
+{docstring Lake.getLeanLibDir}
 
-{docstring Lake.getLakeLibDir}
+{docstring Lake.getLeanIncludeDir}
 
-{docstring Lake.getLakeSrcDir}
+{docstring Lake.getLeanSystemLibDir}
 
 {docstring Lake.getLean}
+
+{docstring Lake.getLeanc}
+
+{docstring Lake.getLeanSharedLib}
 
 {docstring Lake.getLeanAr}
 
@@ -689,336 +473,55 @@ tag := "lake-api"
 
 {docstring Lake.getLeanCc?}
 
-{docstring Lake.getLeanIncludeDir}
+### Lake Install Helpers
 
-{docstring Lake.getLeanInstall}
+{docstring Lake.getLakeInstall}
 
-{docstring Lake.getLeanLibDir}
+{docstring Lake.getLakeHome}
 
-{docstring Lake.getLeanPath}
+{docstring Lake.getLakeSrcDir}
 
-{docstring Lake.getLeanSharedLib}
+{docstring Lake.getLakeLibDir}
 
-{docstring Lake.getLeanSrcDir}
+{docstring Lake.getLake}
 
-{docstring Lake.getLeanSrcPath}
+## Accessing the Workspace
 
-{docstring Lake.getLeanSysroot}
+Monads that provide access to information about the current Lake workspace have {name Lake.MonadWorkspace}`MonadWorkspace` instances.
+In particular, there are instances for {name Lake.ScriptM}`ScriptM` and {name Lake.LakeM}`LakeM`.
 
-{docstring Lake.getLeanSystemLibDir}
+```lean (show := false)
+section
+open Lake
+#synth MonadWorkspace ScriptM
 
-{docstring Lake.getLeanTrace}
+end
+```
 
-{docstring Lake.getLeanc}
-
-{docstring Lake.getLog}
-
-{docstring Lake.getLogPos}
-
-{docstring Lake.getNoBuild}
-
-{docstring Lake.getNoCache}
-
-{docstring Lake.getPkgUrlMap}
+{docstring Lake.MonadWorkspace}
 
 {docstring Lake.getRootPackage}
 
-{docstring Lake.getSearchPath}
+{docstring Lake.findPackage?}
+
+{docstring Lake.findModule?}
+
+{docstring Lake.findLeanExe?}
+
+{docstring Lake.findLeanLib?}
+
+{docstring Lake.findExternLib?}
+
+{docstring Lake.getLeanPath}
+
+{docstring Lake.getLeanSrcPath}
 
 {docstring Lake.getSharedLibPath}
 
-{docstring Lake.getTrace}
+{docstring Lake.getAugmentedLeanPath}
 
-{docstring Lake.getTrustHash}
+{docstring Lake.getAugmentedLeanSrcPath }
 
-{docstring Lake.getTryCache}
+{docstring Lake.getAugmentedSharedLibPath}
 
-{docstring Lake.getUrl}
-
-{docstring Lake.getVerbosity}
-
-{docstring Lake.guardCycle}
-
-{docstring Lake.hexEncodeByte}
-
-{docstring Lake.hydrateOpaqueType}
-
-{docstring Lake.initLibraryFacetConfigs}
-
-{docstring Lake.initModuleFacetConfigs}
-
-{docstring Lake.initPackageFacetConfigs}
-
-{docstring Lake.initSharedLib}
-
-{docstring Lake.inputBinFile}
-
-{docstring Lake.inputFile}
-
-{docstring Lake.inputTextFile}
-
-{docstring Lake.instToJsonFilePath_lake}
-
-{docstring Lake.isUriUnreservedMark}
-
-{docstring Lake.isVerLike}
-
-{docstring Lake.lakeBuildHome?}
-
-{docstring Lake.lakeExe}
-
-{docstring Lake.leanArExe}
-
-{docstring Lake.leanCcExe}
-
-{docstring Lake.leanExe}
-
-{docstring Lake.leanExeAttr}
-
-{docstring Lake.leanLibAttr}
-
-{docstring Lake.leanSharedLib}
-
-{docstring Lake.leanSharedLibDir}
-
-{docstring Lake.leancExe}
-
-{docstring Lake.libraryDataDecl}
-
-{docstring Lake.libraryFacetAttr}
-
-{docstring Lake.lintDriverAttr}
-
-{docstring Lake.logError}
-
-{docstring Lake.logInfo}
-
-{docstring Lake.logOutput}
-
-{docstring Lake.logSerialMessage}
-
-{docstring Lake.logToStream}
-
-{docstring Lake.logVerbose}
-
-{docstring Lake.logWarning}
-
-{docstring Lake.lpad}
-
-{docstring Lake.matchBinder}
-
-{docstring Lake.maybeRegisterJob}
-
-{docstring Lake.mixTraceArray}
-
-{docstring Lake.mixTraceList}
-
-{docstring Lake.mkBuildContext}
-
-{docstring Lake.mkBuildSpec}
-
-{docstring Lake.mkCmdLog}
-
-{docstring Lake.mkConfigBuildSpec}
-
-{docstring Lake.mkDRBMap}
-
-{docstring Lake.mkExceptionMessage}
-
-{docstring Lake.mkFacetConfig}
-
-{docstring Lake.mkFacetJobConfig}
-
-{docstring Lake.mkHoleFrom}
-
-{docstring Lake.mkLakeContext}
-
-{docstring Lake.mkMessageLogString}
-
-{docstring Lake.mkMessageNoPos}
-
-{docstring Lake.mkMessageString}
-
-{docstring Lake.mkMessageStringCore}
-
-{docstring Lake.mkOrdNameMap}
-
-{docstring Lake.mkParserErrorMessage}
-
-{docstring Lake.mkRBArray}
-
-{docstring Lake.mkRelPathString}
-
-{docstring Lake.mkTargetFacetBuild}
-
-{docstring Lake.mkTargetJobConfig}
-
-{docstring Lake.moduleDataDecl}
-
-{docstring Lake.moduleFacetAttr}
-
-{docstring Lake.monitorJobs}
-
-{docstring Lake.nameToSharedLib}
-
-{docstring Lake.nameToStaticLib}
-
-{docstring Lake.noBuildCode}
-
-{docstring Lake.ofFamily}
-
-{docstring Lake.optsExt}
-
-{docstring Lake.packageAttr}
-
-{docstring Lake.packageDataDecl}
-
-{docstring Lake.packageDepAttr}
-
-{docstring Lake.packageFacetAttr}
-
-{docstring Lake.parseExeTargetSpec}
-
-{docstring Lake.parsePackageSpec}
-
-{docstring Lake.parseTargetSpec}
-
-{docstring Lake.parseTargetSpecs}
-
-{docstring Lake.platformTrace}
-
-{docstring Lake.postUpdateAttr}
-
-{docstring Lake.print!}
-
-{docstring Lake.proc}
-
-{docstring Lake.pureHash}
-
-{docstring Lake.pushLogEntry}
-
-{docstring Lake.rawProc}
-
-{docstring Lake.readTraceFile?}
-
-{docstring Lake.recBuildExternDynlibs}
-
-{docstring Lake.recBuildWithIndex}
-
-{docstring Lake.recFetch}
-
-{docstring Lake.recFetchAcyclic}
-
-{docstring Lake.recFetchMemoize}
-
-{docstring Lake.registerJob}
-
-{docstring Lake.registerOrderedTagAttribute}
-
-{docstring Lake.resolveCustomTarget}
-
-{docstring Lake.resolveDefaultPackageTarget}
-
-{docstring Lake.resolveExeTarget}
-
-{docstring Lake.resolveExternLibTarget}
-
-{docstring Lake.resolveLibTarget}
-
-{docstring Lake.resolveLibTarget.resolveFacet}
-
-{docstring Lake.resolveModuleTarget}
-
-{docstring Lake.resolvePackageTarget}
-
-{docstring Lake.resolveTargetBaseSpec}
-
-{docstring Lake.resolveTargetInPackage}
-
-{docstring Lake.resolveTargetInWorkspace}
-
-{docstring Lake.rpad}
-
-{docstring Lake.runBuild}
-
-{docstring Lake.scriptAttr}
-
-{docstring Lake.setTrace}
-
-{docstring Lake.sharedLibExt}
-
-{docstring Lake.sharedLibPathEnvVar}
-
-{docstring Lake.stringToLegalOrSimpleName}
-
-{docstring Lake.takeLog}
-
-{docstring Lake.takeLogFrom}
-
-{docstring Lake.takeTrace}
-
-{docstring Lake.tar}
-
-{docstring Lake.targetAttr}
-
-{docstring Lake.targetDataDecl}
-
-{docstring Lake.termTry_Else_}
-
-{docstring Lake.testDriverAttr}
-
-{docstring Lake.testProc}
-
-{docstring Lake.toFamily}
-
-{docstring Lake.toUpperCamelCase}
-
-{docstring Lake.toUpperCamelCaseString}
-
-{docstring Lake.toolchainFileName}
-
-{docstring Lake.uiVersionString}
-
-{docstring Lake.untar}
-
-{docstring Lake.updateAction}
-
-{docstring Lake.uriEncode}
-
-{docstring Lake.uriEncodeChar}
-
-{docstring Lake.uriEscapeByte}
-
-{docstring Lake.uriEscapeChar}
-
-{docstring Lake.verLit}
-
-{docstring Lake.version.isRelease}
-
-{docstring Lake.version.major}
-
-{docstring Lake.version.minor}
-
-{docstring Lake.version.patch}
-
-{docstring Lake.version.specialDesc}
-
-{docstring Lake.versionString}
-
-{docstring Lake.versionStringCore}
-
-{docstring Lake.versionTagPresets}
-
-{docstring Lake.withExtractLog}
-
-{docstring Lake.withLockFile}
-
-{docstring Lake.withLogErrorPos}
-
-{docstring Lake.withLoggedIO}
-
-{docstring Lake.withRegisterJob}
-
-{docstring Lake.writeTraceFile}
-
-{docstring Lake.zpad}
+{docstring Lake.getAugmentedEnv}
