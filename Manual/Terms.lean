@@ -1087,7 +1087,7 @@ Relaxing the return type to {name}`Option` and adding a bounds check results the
 This is because the proof that the index is in bounds was not added to the local context.
 ```lean (error := true) (keep := false) (name := getThird2)
 def getThird (xs : Array α) : Option α :=
-  if xs.size ≥ 3 then none
+  if xs.size ≤ 2 then none
   else xs[2]
 ```
 ```leanOutput getThird2
@@ -1104,7 +1104,7 @@ xs : Array α
 Naming the proof `h` is sufficient to enable the tactics that perform bounds checking to succeed, even though it does not occur explicitly in the text of the program.
 ```lean
 def getThird (xs : Array α) : Option α :=
-  if h : xs.size ≥ 3 then none
+  if h : xs.size ≤ 2 then none
   else xs[2]
 ```
 
