@@ -15,6 +15,28 @@ For developers:
 
 ## Building the Reference Manual Locally
 
+This reference manual contains figures that are built from LaTeX sources. To build them, you'll need the following:
+ * A LaTeX installation, including LuaLaTeX and the following packages from TeXLive:
+   + `scheme-minimal`
+   + `latex-bin`
+   + `fontspec`
+   + `standalone`
+   + `pgf`
+   + `pdftexcmds`
+   + `luatex85`
+   + `infwarerr`
+   + `ltxcmds`
+   + `xcolor`
+   + `fontawesome`
+   + `spath3`
+   + `inter`
+   + `epstopdf-pkg`
+   + `tex-gyre`
+   + `sourcecodepro`
+ * `pdftocairo`, which can be found in the `poppler-utils` package on Debian-derived systems and the `poppler` package in Homebrew
+ 
+Additionally, to run the style checker locally, you'll need [Vale](https://vale.sh/). It runs in CI, so this is not a necessary step to contribute.
+
 To build the manual, run the following command:
 
 ```
