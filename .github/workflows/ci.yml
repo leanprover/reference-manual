@@ -79,15 +79,30 @@ jobs:
 
       - name: Generate HTML
         run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --site-base-url "/doc/reference/latest/"
+          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --output "_out" --site-base-url "/"
 
       - name: Save generated HTML to artifact storage
         uses: actions/upload-artifact@v4
         with:
           name: 'github-pages'
+          path: '_out/'
           retention-days: 5
           overwrite: true
 
+      - name: Report word count
+        run: |
+          echo "Word Counts"
+          echo "-----------"
+          cat words.txt
+
+      - name: Save word count
+        run: |
+          echo "# Word Counts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat words.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+  
   # Deploy job
   deploy:
     # Add a dependency to the build job
