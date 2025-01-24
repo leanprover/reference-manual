@@ -16,7 +16,6 @@ jobs:
   build:
     name: Build site and generate HTML
     runs-on: ubuntu-latest
-
     steps:
       - name: Install deps for figures (OS packages)
         run: |
@@ -78,168 +77,30 @@ jobs:
           path: .lake
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
 
-      - name: Generate HTML (non-release)
-        if: github.event_name != 'release'
-        run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
-
-      - name: Generate HTML (release)
-        if: github.event_name == 'release'
-        # Include the base to fix trailing slash issue on Netlify
+      - name: Generate HTML
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --site-base-url "/doc/reference/latest/"
-
-      - name: Generate proofreading HTML
-        if: github.event_name == 'pull_request'
-        run: |
-          lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
 
       - name: Save generated HTML to artifact storage
         uses: actions/upload-artifact@v4
         with:
-          name: 'html'
-          path: '_out/'
+          name: 'github-pages'
           retention-days: 5
           overwrite: true
-
-      - name: Report word count
-        run: |
-          echo "Word Counts"
-          echo "-----------"
-          cat words.txt
-
-      - name: Save word count
-        run: |
-          echo "# Word Counts" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat words.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-      - name: Offline link checker (non-release)
-        uses: lycheeverse/lychee-action@v1.9.0
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
-        with:
-          fail: true
-          args: --base './_out/html-multi/' --no-progress --offline './_out/html-multi/**/*.html'
-
-      # This saved number is used by a workflow_run trigger. It
-      # manages labels that indicate the status of the built HTML.
-      - name: Save PR number
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir -p ./pr
-          echo ${{ github.event.number }} > ./pr/NR
-      - uses: actions/upload-artifact@v4
-        if: github.event_name == 'pull_request'
-        with:
-          name: pr
-          path: pr/
-
+  # Deploy job
   deploy:
-    name: Deploy release
-    runs-on: ubuntu-latest
-    needs: [build]
-    if: github.event_name == 'release'
-    outputs:
-      ref-url: ${{ steps.deploy-release.outputs.deploy-url }}
-    steps:
-      - name: Get generated HTML from artifact storage
-        uses: actions/download-artifact@v4
-        with:
-          name: 'html'
-          path: '_out/'
+    # Add a dependency to the build job
+    needs: build
 
-      # deploy-alias computes a URL component for the PR preview. This
-      # is so we can have a stable name to use for feedback on draft
-      # material.
-      - id: deploy-alias
-        uses: actions/github-script@v7
-        name: Compute Alias
-        with:
-          script: |
-            if (process.env.PR) {
-                return `pr-${process.env.PR}`
-            } else {
-                return 'deploy-preview-main';
-            }
-        env:
-          PR: ${{ github.event.number }}
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
 
-        # deploy-info computes metadata that's shown in the Netlify interface
-        # about the deployment (for non-PR deploys)
-      - id: deploy-info
-        name: Compute Deployment Metadata
-        if: github.event_name != 'pull_request'
-        run: |
-          set -e
-          echo "message=$(git log -1 --pretty=format:"%s")" >> "$GITHUB_OUTPUT"
-
-      # When a release is created in GH, push to the main site without proofreading info
-      - name: Deploy releases when tags are pushed
-        id: deploy-release
-        uses: nwtgck/actions-netlify@v2.0
-        if: github.event_name == 'release'
-        with:
-          publish-dir: _out/html-multi
-          production-branch: main
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: |
-            Release from tag ${{ github.ref }}
-          enable-commit-comment: false
-          enable-pull-request-comment: false
-          fails-without-credentials: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
-
-
-  check-links:
-    name: Check links
-    runs-on: ubuntu-latest
-    needs: [deploy]
-    if: github.event_name == 'release'
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .skip-link-check
-
-      - name: Online link checker
-        uses: filiph/linkcheck@2.0.23
-        continue-on-error: true
-        with:
-          arguments: --skip-file .skip-link-check -e ${{ needs.deploy.outputs.ref-url }}
-
-  prose-lint:
-    name: Check prose
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get generated HTML from artifact storage
-        uses: actions/download-artifact@v4
-        with:
-          name: 'html'
-          path: '_out/'
-
-      - name: Install prose linter
-        run: |
-          sudo snap install vale
-
-      - name: Preprocess HTML for prose linter
-        run: |
-          # First the HTML needs preprocessing to work well with Vale
-          pushd _out
-          python3 -m venv venv
-          . venv/bin/activate
-          pip install beautifulsoup4
-          python ../.vale/scripts/rewrite_html.py html-multi html-vale
-          popd
-
-      - name: Prose linter
-        run: |
-          set -o pipefail
-          vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

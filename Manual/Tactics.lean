@@ -29,7 +29,7 @@ This lists of tactics if far from complete
 *Contribute*: Most information about tactics is directly from the docstring of the tactic In
 mathlib. In order to improve this text, PR to the docstring of the tactic.
 
-If a tactic is missing from this file, PR to this repo.
+If a tactic is missing from this file, PR to this repository.
 
 
 
