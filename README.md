@@ -5,19 +5,14 @@
 
 WIP: Jon Eugster 24/01/2025. Wait and see :)
 
-The latest release of this reference manual can be read [here]().
+The latest release of this reference manual can be read [here](nowhere).
 
-For developers:
- * The output of building the current state of the `main` branch can be read [here](https://lean-reference-manual-review.netlify.app/).
- * Each pull request in this repository causes two separate previews to be generated, one with extra information that's only useful to those actively working on the text, such as TODO notes and symbol coverage progress bars. These are posted by a bot to the PR after the first successful build.
+## Code origin / Installation
 
-## Installation
+This is all adapted code from the [Lean Language Reference](https://github.com/leanprover/reference-manual) which has been repurposed to
+display mathlib text. **You should check there for installation instructions.**
 
-### MacOS
-
-```
-brew install poppler
-```
+Any problems not directly related to the content itself are probably carried over from there, too...
 
 ## Building the Reference Manual Locally
 
@@ -36,5 +31,5 @@ Then open <http://localhost:8880> in your browser.
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
+We happily accept content around Mathlib to this guide.
 
