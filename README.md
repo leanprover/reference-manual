@@ -1,9 +1,8 @@
 # Mathlib Documentation
 
+**WIP: Jon Eugster 24/01/2025. Wait and see :)**
 
 ## Reading the Manual
-
-WIP: Jon Eugster 24/01/2025. Wait and see :)
 
 The latest release of this reference manual can be read [here](nowhere).
 
