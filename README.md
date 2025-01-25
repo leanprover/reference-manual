@@ -28,6 +28,16 @@ python3 -m http.server 8880 --directory _out/html-multi &
 
 Then open <http://localhost:8880> in your browser.
 
+## Development
+
+In theory, one should be able to update this by calling a simple
+
+```
+lake update
+```
+
+However, this requires Verso to be compatible with the Lean version Mathlib uses.
+
 ## Contributing
 
 We happily accept content around Mathlib to this guide.
