@@ -513,7 +513,4 @@ These are particularly helpful for writing tests to the `MathlibTest` suite.
 :::tactic Lean.Parser.Tactic.failIfSuccess
 :::
 
-Finally, this is a command and not a tactic, but it is also essential for test files.
-
-:::tactic Lean.guardMsgsCmd
-:::
+Finally, `#guard_msgs` is a command and not a tactic, but it is also essential for test files.
