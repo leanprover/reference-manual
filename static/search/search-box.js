@@ -393,7 +393,7 @@ class SearchBox {
     const filter = this.filter;
 
     // Empty the listbox
-    this.listboxNode.innerHTML = "";
+    this.listboxNode.textContent = "";
 
     this.listboxNode.append(...this.domainFilters);
 
@@ -752,7 +752,7 @@ class SearchBox {
     }
 
     if (eventHandled) {
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       event.preventDefault();
     }
   }
@@ -777,8 +777,8 @@ class SearchBox {
     this.removeVisualFocusAll();
     // Remove empty space created by browser after user deletes entered text.
     // Makes the placeholder appear again.
-    if (this.comboboxNode.innerHTML.trim().length === 0) {
-      this.comboboxNode.innerHTML = "";
+    if (this.comboboxNode.textContent.trim().length === 0) {
+      this.comboboxNode.textContent = "";
     }
   }
 
