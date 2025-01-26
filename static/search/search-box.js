@@ -774,6 +774,11 @@ class SearchBox {
 
   onComboboxBlur() {
     this.removeVisualFocusAll();
+    // Remove empty space created by browser after user deletes entered text.
+    // Makes the placeholder appear again.
+    if (this.comboboxNode.innerHTML.trim().length === 0) {
+      this.comboboxNode.innerHTML = "";
+    }
   }
 
   /**
