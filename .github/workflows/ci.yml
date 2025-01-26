@@ -81,13 +81,10 @@ jobs:
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --output "_out" --site-base-url "/"
 
-      - name: Save generated HTML to artifact storage
-        uses: actions/upload-artifact@v4
+      - name: Upload static files as artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: 'github-pages'
           path: '_out/'
-          retention-days: 5
-          overwrite: true
 
       - name: Report word count
         run: |
