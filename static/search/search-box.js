@@ -10,6 +10,7 @@
 // Enable typescript
 // @ts-check
 
+import { Range } from "./unicode-input.min.js";
 import { InputAbbreviationRewriter } from "./unicode-input-component.min.js";
 
 // Hacky way to import the fuzzysort library and get the types working. It's just `window.fuzzysort`.
@@ -345,7 +346,7 @@ class SearchBox {
   setValue(value) {
     this.filter = value;
     this.comboboxNode.textContent = this.filter;
-    this.imeRewriter.setSelections([{ offset: this.filter.length }]);
+    this.imeRewriter.setSelections([new Range(this.filter.length, 0)]);
     this.filterOptions();
   }
 
@@ -654,13 +655,13 @@ class SearchBox {
         break;
 
       case "Home":
-        this.imeRewriter.setSelections([{ offset: 0 }]);
+        this.imeRewriter.setSelections([new Range(0, 0)]);
         eventHandled = true;
         break;
 
       case "End":
         var length = this.comboboxNode.textContent.length;
-        this.imeRewriter.setSelections([{ offset: length }]);
+        this.imeRewriter.setSelections([new Range(this.filter.length, 0)]);
         eventHandled = true;
         break;
 
