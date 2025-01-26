@@ -18,10 +18,21 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Interactive" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+These tactics help the user discover tactics or statements.
+
+:::tactic Mathlib.Tactic.LibrarySearch.observe
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic "exact?"
+:::
+
+:::tactic "apply?"
+:::
+
+:::tactic "rw?"
+:::
+
+:::tactic Mathlib.Tactic.Hint.hintStx
+:::

@@ -18,10 +18,16 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Definitional equality" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+These tactics modify the goal or assumptions in a way that remains
+definitionally equal.
+
+:::tactic Lean.Parser.Tactic.dsimp
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic "change"
+:::
+
+:::tactic "unfold"
+:::

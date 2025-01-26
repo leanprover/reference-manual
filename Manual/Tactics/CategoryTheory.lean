@@ -18,10 +18,8 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Category Theory" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
-:::
+These tactics are explicitely written for category theory.
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+TODO

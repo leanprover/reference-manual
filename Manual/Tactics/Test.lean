@@ -18,10 +18,20 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "For Tests" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+These are particularly helpful for writing tests to the `MathlibTest` suite.
+
+:::tactic Lean.Parser.Tactic.guardHyp
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic Lean.Parser.Tactic.guardTarget
+:::
+
+:::tactic Lean.Parser.Tactic.guardExpr
+:::
+
+:::tactic Lean.Parser.Tactic.failIfSuccess
+:::
+
+Finally, `#guard_msgs` is a command and not a tactic, but it is also essential for test files.

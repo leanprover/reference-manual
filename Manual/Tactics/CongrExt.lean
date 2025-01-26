@@ -18,10 +18,21 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Congr / ext" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+These tactics have not made it into any other category yet, please move them.
+
+:::tactic Mathlib.Tactic.subsingletonStx
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic "congr"
+:::
+
+:::tactic Mathlib.Tactic.GCongr.tacticGcongr__With__
+:::
+
+:::tactic "ext"
+:::
+
+:::tactic "funext"
+:::

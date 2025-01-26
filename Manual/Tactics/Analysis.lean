@@ -18,10 +18,25 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Function Properties / Analysis / Measure Theory" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+These tactics proof certain properties about functions.
+
+:::tactic Mathlib.Meta.FunProp.funPropTacStx
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic tacticContinuity
+:::
+
+:::tactic tacticMeasurability
+:::
+
+:::tactic Mathlib.Tactic.Borelize.tacticBorelize___
+:::
+
+:::example "bound"
+TODO
+:::
+
+:::tactic ArithmeticFunction.arith_mult
+:::

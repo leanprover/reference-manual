@@ -18,10 +18,28 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Induction / case distinction" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+:::tactic "induction"
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic "cases"
+:::
+
+:::tactic "rcases"
+:::
+
+:::tactic "by_cases"
+:::
+
+:::tactic Lean.Elab.Tactic.finCases
+:::
+
+:::tactic Mathlib.Tactic.intervalCases
+:::
+
+:::tactic "split"
+:::
+
+:::tactic Mathlib.Tactic.splitIfs
+:::
