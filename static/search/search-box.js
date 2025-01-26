@@ -121,7 +121,7 @@ const opt = (v, fn) => (v != null ? fn(v) : undefined);
 /**
  * This is a modified version of the combobox at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/
  *
- * More documentation to come!
+ * The license for the combobox is in `licenses.md`.
  */
 class SearchBox {
   /**
