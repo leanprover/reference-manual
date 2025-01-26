@@ -155,21 +155,6 @@ class SearchBox {
   hasHover;
 
   /**
-   * @type {boolean}
-   */
-  isNone;
-
-  /**
-   * @type {boolean}
-   */
-  isList;
-
-  /**
-   * @type {boolean}
-   */
-  isBoth;
-
-  /**
    * @type {SearchResult | null}
    */
   currentOption;
@@ -253,29 +238,12 @@ class SearchBox {
 
     this.hasHover = false;
 
-    this.isNone = false;
-    this.isList = false;
-    this.isBoth = false;
-
     this.currentOption = null;
     this.firstOption = null;
     this.lastOption = null;
 
     this.filteredOptions = [];
     this.filter = "";
-
-    const autocomplete = this.comboboxNode
-      .getAttribute("aria-autocomplete")
-      ?.toLowerCase();
-
-    if (typeof autocomplete === "string") {
-      this.isNone = autocomplete === "none";
-      this.isList = autocomplete === "list";
-      this.isBoth = autocomplete === "both";
-    } else {
-      // default value of autocomplete
-      this.isNone = true;
-    }
 
     this.comboboxNode.addEventListener(
       "keydown",
@@ -380,28 +348,12 @@ class SearchBox {
 
   /**
    * @param {SearchResult} option
-   * @param {boolean} [setSelection]
    */
-  setOption(option, setSelection) {
+  setOption(option) {
     if (option) {
       this.currentOption = option;
       this.setCurrentOptionStyle(this.currentOption);
       this.setActiveDescendant(this.currentOption.htmlItem);
-
-      if (this.isBoth) {
-        this.comboboxNode.value = resultToText(this.currentOption);
-        if (setSelection) {
-          this.comboboxNode.setSelectionRange(
-            resultToText(this.currentOption).length,
-            resultToText(this.currentOption).length
-          );
-        } else {
-          this.comboboxNode.setSelectionRange(
-            this.filter.length,
-            resultToText(this.currentOption).length
-          );
-        }
-      }
     }
   }
 
@@ -433,11 +385,6 @@ class SearchBox {
   // ComboboxAutocomplete Events
 
   filterOptions() {
-    // do not filter any options if autocomplete is none
-    if (this.isNone) {
-      this.filter = "";
-    }
-
     const currentOptionText = opt(this.currentOption, resultToText);
     const filter = this.filter;
 
@@ -647,16 +594,14 @@ class SearchBox {
           } else {
             this.open();
             if (
-              this.listboxHasVisualFocus ||
-              (this.isBoth && this.filteredOptions.length > 1)
+              this.listboxHasVisualFocus
             ) {
               this.setOption(
-                this.getNextOption(this.currentOption, this.firstOption),
-                true
+                this.getNextOption(this.currentOption, this.firstOption)
               );
               this.setVisualFocusListbox();
             } else {
-              this.setOption(this.firstOption, true);
+              this.setOption(this.firstOption);
               this.setVisualFocusListbox();
             }
           }
@@ -673,13 +618,12 @@ class SearchBox {
         ) {
           if (this.listboxHasVisualFocus) {
             this.setOption(
-              this.getPreviousOption(this.currentOption, this.lastOption),
-              true
+              this.getPreviousOption(this.currentOption, this.lastOption)
             );
           } else {
             this.open();
             if (!altKey) {
-              this.setOption(this.lastOption, true);
+              this.setOption(this.lastOption);
               this.setVisualFocusListbox();
             }
           }
@@ -773,12 +717,8 @@ class SearchBox {
       case "ArrowRight":
       case "Home":
       case "End":
-        if (this.isBoth) {
-          this.filter = this.comboboxNode.value;
-        } else {
-          this.option = null;
-          this.setCurrentOptionStyle(null);
-        }
+        this.option = null;
+        this.setCurrentOptionStyle(null);
         this.setVisualFocusCombobox();
         eventHandled = true;
         break;
@@ -788,28 +728,19 @@ class SearchBox {
           this.setVisualFocusCombobox();
           this.setCurrentOptionStyle(null);
           eventHandled = true;
-
-          if (this.isList || this.isBoth) {
-            const option = this.filterOptions();
-            if (option) {
-              if (this.isClosed() && this.comboboxNode.value.length) {
-                this.open();
-              }
-
-              this.option = option;
-              if (this.isBoth || this.isList || this.listboxHasVisualFocus) {
-                this.setCurrentOptionStyle(option);
-                if (this.isBoth || this.isList) {
-                  this.setOption(option);
-                }
-              }
-            } else {
-              this.close();
-              this.option = null;
-              this.setActiveDescendant(null);
+          const option = this.filterOptions();
+          if (option) {
+            if (this.isClosed() && this.comboboxNode.value.length) {
+              this.open();
             }
-          } else if (this.comboboxNode.value.length) {
-            this.open();
+
+            this.option = option;
+            this.setCurrentOptionStyle(option);
+            this.setOption(option);
+          } else {
+            this.close();
+            this.option = null;
+            this.setActiveDescendant(null);
           }
         }
 
