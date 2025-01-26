@@ -25,11 +25,11 @@
 }
 
 #search-wrapper .combobox .group {
-  display: inline-flex;
+  display: flex;
   cursor: pointer;
 }
 
-#search-wrapper .combobox input {
+#search-wrapper .combobox .cb_edit {
   background-color: white;
   color: black;
   box-sizing: border-box;
@@ -40,19 +40,27 @@
   border-bottom: 1px solid gray;
   position: relative;
   cursor: pointer;
-}
-
-#search-wrapper .combobox input {
   width: var(--search-bar-width);
   outline: none;
   font-size: .9rem;
   padding: .3rem .5rem;
+  font-family: sans-serif;
 }
 
-#search-wrapper .combobox .group.focus input,
-#search-wrapper .combobox .group input:hover {
+#search-wrapper .combobox .group.focus .cb_edit,
+#search-wrapper .combobox .group .cb_edit:hover {
   background-color: var(--selected-color);
   outline: auto;
+}
+
+/* Make the `placeholder` attribute visible even though the search
+   box is a div. */
+#search-wrapper .cb_edit:empty:before {
+  content: attr(placeholder);
+  pointer-events: none;
+  color: #888;
+  font-family: sans-serif;
+  display: block;
 }
 
 #search-wrapper ul[role="listbox"] {

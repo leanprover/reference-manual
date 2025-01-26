@@ -13,16 +13,16 @@ let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "";
 const searchHTML = `<div id="search-wrapper">
   <div class="combobox combobox-list">
     <div class="group">
-      <input
+      <div
         id="cb1-input"
         class="cb_edit"
-        type="search"
+        contenteditable="true"
         role="searchbox"
         placeholder="Index"
         aria-autocomplete="list"
         aria-expanded="false"
         aria-controls="cb1-listbox"
-      />
+      ></div>
     </div>
     <ul id="cb1-listbox" role="listbox" aria-label="Results"></ul>
   </div>

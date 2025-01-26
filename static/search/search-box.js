@@ -10,7 +10,7 @@
 // Enable typescript
 // @ts-check
 
-import { InputAbbreviationRewriter } from "./unicode-input-component.js";
+import { InputAbbreviationRewriter } from "./unicode-input-component.min.js";
 
 // Hacky way to import the fuzzysort library and get the types working. It's just `window.fuzzysort`.
 const fuzzysort = /** @type {{fuzzysort: Fuzzysort.Fuzzysort}} */ (
@@ -125,7 +125,7 @@ const opt = (v, fn) => (v != null ? fn(v) : undefined);
  */
 class SearchBox {
   /**
-   * @type {HTMLInputElement}
+   * @type {HTMLDivElement}
    */
   comboboxNode;
 
@@ -200,8 +200,11 @@ class SearchBox {
   /** @type {DomainMappers} */
   domainMappers;
 
+  /** @type {InputAbbreviationRewriter} */
+  imeRewriter;
+
   /**
-   * @param {HTMLInputElement} comboboxNode
+   * @param {HTMLDivElement} comboboxNode
    * @param {HTMLButtonElement | null} buttonNode
    * @param {HTMLElement} listboxNode
    * @param {DomainMappers} domainMappers
@@ -224,7 +227,7 @@ class SearchBox {
     );
 
     // Add IME
-    new InputAbbreviationRewriter(
+    this.imeRewriter = new InputAbbreviationRewriter(
       {
         abbreviationCharacter: "\\",
         customTranslations: [],
@@ -341,8 +344,8 @@ class SearchBox {
    */
   setValue(value) {
     this.filter = value;
-    this.comboboxNode.value = this.filter;
-    this.comboboxNode.setSelectionRange(this.filter.length, this.filter.length);
+    this.comboboxNode.textContent = this.filter;
+    this.imeRewriter.setSelections([{ offset: this.filter.length }]);
     this.filterOptions();
   }
 
@@ -635,12 +638,12 @@ class SearchBox {
       case "Escape":
         if (this.isOpen()) {
           this.close(true);
-          this.filter = this.comboboxNode.value;
+          this.filter = this.comboboxNode.textContent;
           this.filterOptions();
           this.setVisualFocusCombobox();
         } else {
           this.setValue("");
-          this.comboboxNode.value = "";
+          this.comboboxNode.textContent = "";
         }
         this.option = null;
         eventHandled = true;
@@ -651,13 +654,13 @@ class SearchBox {
         break;
 
       case "Home":
-        this.comboboxNode.setSelectionRange(0, 0);
+        this.imeRewriter.setSelections([{ offset: 0 }]);
         eventHandled = true;
         break;
 
       case "End":
-        var length = this.comboboxNode.value.length;
-        this.comboboxNode.setSelectionRange(length, length);
+        var length = this.comboboxNode.textContent.length;
+        this.imeRewriter.setSelections([{ offset: length }]);
         eventHandled = true;
         break;
 
@@ -691,8 +694,8 @@ class SearchBox {
     }
 
     // this is for the case when a selection in the textbox has been deleted
-    if (this.comboboxNode.value.length < this.filter.length) {
-      this.filter = this.comboboxNode.value;
+    if (this.comboboxNode.textContent.length < this.filter.length) {
+      this.filter = this.comboboxNode.textContent;
       this.option = null;
       this.filterOptions();
     }
@@ -705,7 +708,7 @@ class SearchBox {
       case "Backspace":
         this.setVisualFocusCombobox();
         this.setCurrentOptionStyle(null);
-        this.filter = this.comboboxNode.value;
+        this.filter = this.comboboxNode.textContent;
         this.option = null;
         this.filterOptions();
         eventHandled = true;
@@ -730,7 +733,7 @@ class SearchBox {
           eventHandled = true;
           const option = this.filterOptions();
           if (option) {
-            if (this.isClosed() && this.comboboxNode.value.length) {
+            if (this.isClosed() && this.comboboxNode.textContent.length) {
               this.open();
             }
 
@@ -762,7 +765,7 @@ class SearchBox {
   }
 
   onComboboxFocus() {
-    this.filter = this.comboboxNode.value;
+    this.filter = this.comboboxNode.textContent;
     this.filterOptions();
     this.setVisualFocusCombobox();
     this.option = null;
@@ -823,7 +826,7 @@ class SearchBox {
      * @returns void
      */
     return () => {
-      this.comboboxNode.value = resultToText(result);
+      this.comboboxNode.textContent = resultToText(result);
       this.confirmResult(result);
       this.close(true);
     };
@@ -849,7 +852,9 @@ class SearchBox {
  * @param {RegisterSearchArgs} args
  */
 export const registerSearch = ({ searchWrapper, data, domainMappers }) => {
-  const comboboxNode = searchWrapper.querySelector("input");
+  const comboboxNode = /** @type {HTMLDivElement} */ (
+    searchWrapper.querySelector("div[contenteditable]")
+  );
 
   const buttonNode = searchWrapper.querySelector("button");
   const listboxNode = /** @type {HTMLElement | null} */ (
