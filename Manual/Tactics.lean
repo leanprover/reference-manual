@@ -55,8 +55,9 @@ extracted from the Lean code, so
 if the information is wrong, you should directly create a PR to the repo
 containing the tactic and change things there.
 
-If a tactic is missing from any of the sections,
-please PR to the [repository of this manual](https://github.com/leanprover-community/mathlib-manual).
+The section prior to the {ref "all_tactics"}[last section] are not final in any way.
+Feel free to add/delete/rename/restructure any of these section and modify their content
+freely to make them more useful! PR go to the [repository of this manual](https://github.com/leanprover-community/mathlib-manual).
 
 {include 0 Manual.Tactics.Interactive}
 
