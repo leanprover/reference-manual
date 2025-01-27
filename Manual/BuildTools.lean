@@ -42,7 +42,6 @@ The contain the following tools:
 : `leanc`
 
   The C compiler that ships with Lean, which is a version of [Clang](https://clang.llvm.org/).
-  During compilation, `lean` emits C code which is then built using `leanc` by default.
 
 : `leanmake`
 
