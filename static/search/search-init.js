@@ -10,6 +10,7 @@ import {registerSearch} from './search-box.js';
 let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "";
 
 // The search box itself. TODO: add to template
+// autocorrect is a safari-only attribute. It is required to prevent autocorrect on iOS.
 const searchHTML = `<div id="search-wrapper">
   <div class="combobox combobox-list">
     <div class="group">
@@ -22,6 +23,10 @@ const searchHTML = `<div id="search-wrapper">
         aria-autocomplete="list"
         aria-expanded="false"
         aria-controls="cb1-listbox"
+        spellcheck="false"
+        autocorrect="false"
+        autocapitalize="none"
+        inputmode="search"
       ></div>
     </div>
     <ul id="cb1-listbox" role="listbox" aria-label="Results"></ul>
