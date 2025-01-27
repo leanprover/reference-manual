@@ -80,20 +80,26 @@
   overflow: scroll;
   overflow-x: hidden;
   font-size: .9rem;
-  cursor: pointer;
   z-index: 100;
 }
 
-#search-wrapper .search-result {
-  margin: 0;
+/* Applies to all `li` in the box, including "no results" and "showing x/y" */
+#search-wrapper ul[role="listbox"] li {
+  font-family: sans-serif;
   padding: .2rem;
+  margin: 0;
+}
 
+#search-wrapper .search-result {
   display: flex;
   flex-direction: column;
   gap: .2rem;
 
-  font-family: sans-serif;
   font-weight: 400;
+  cursor: pointer;
+
+  /* Make the 'Showing 1/2 results' visible when navigating with keyboard. */
+  scroll-margin-bottom: 1.2rem;
 }
 
 #search-wrapper .search-result.doc-domain, #search-wrapper .search-result.option-domain {
@@ -110,7 +116,7 @@
 }
 
 #search-wrapper [role="listbox"].focus li[aria-selected="true"],
-#search-wrapper [role="listbox"] li:hover {
+#search-wrapper .search-result:hover {
   background-color: var(--selected-color);
   padding-bottom: calc(.2rem - 1px);
   padding-top: calc(.2rem - 1px);
@@ -136,6 +142,12 @@
   font-style: italic;
   font-family: var(--verso-structure-font-family);
   font-weight: normal;
+  font-size: .7rem;
+}
+
+#search-wrapper .more-results {
+  text-align: center;
+  color: #777;
   font-size: .7rem;
 }
 

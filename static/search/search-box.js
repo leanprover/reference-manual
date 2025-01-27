@@ -305,29 +305,12 @@ class SearchBox {
   }
 
   /**
-   * @param {Element} element
-   */
-  isElementInView(element) {
-    const bounding = element.getBoundingClientRect();
-    return (
-      bounding.top >= 0 &&
-      bounding.left >= 0 &&
-      bounding.bottom <=
-        (window.innerHeight || document.documentElement.clientHeight) &&
-      bounding.right <=
-        (window.innerWidth || document.documentElement.clientWidth)
-    );
-  }
-
-  /**
    * @param {HTMLLIElement | null | undefined} option
    */
   setActiveDescendant(option) {
     if (option && this.listboxHasVisualFocus) {
       this.comboboxNode.setAttribute("aria-activedescendant", option.id);
-      if (!this.isElementInView(option)) {
-        option.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      }
+      option.scrollIntoView({ behavior: "instant", block: "nearest" });
     } else {
       this.comboboxNode.setAttribute("aria-activedescendant", "");
     }
@@ -470,6 +453,11 @@ class SearchBox {
         }
       }
     }
+
+    const moreResults = document.createElement("li");
+    moreResults.textContent = `Showing ${results.length}/${results.total} results`;
+    moreResults.className = `more-results`;
+    this.listboxNode.appendChild(moreResults);
 
     if (newCurrentOption) {
       this.currentOption = newCurrentOption;
