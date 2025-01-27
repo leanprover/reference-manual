@@ -61,16 +61,21 @@ where
     errs.reverse
 
 open Lean.Parser in
-def runParser (env : Environment) (opts : Lean.Options) (p : Parser) (input : String) (fileName : String := "<example>") (prec : Nat := 0) : Except (List (Position × String)) Syntax :=
-    let ictx := mkInputContext input fileName
-    let p' := adaptCacheableContext ({· with prec}) p
-    let s := p'.fn.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
-    if !s.allErrors.isEmpty then
-      Except.error (toErrorMsg ictx s)
-    else if ictx.input.atEnd s.pos then
-      Except.ok s.stxStack.back
-    else
-      Except.error (toErrorMsg ictx (s.mkError "end of input"))
+def runParser
+    (env : Environment) (opts : Lean.Options)
+    (p : Parser) (input : String) (fileName : String := "<example>")
+    (currNamespace : Name := .anonymous) (openDecls : List OpenDecl := [])
+    (prec : Nat := 0) :
+    Except (List (Position × String)) Syntax :=
+  let ictx := mkInputContext input fileName
+  let p' := adaptCacheableContext ({· with prec}) p
+  let s := p'.fn.run ictx { env, currNamespace, openDecls, options := opts } (getTokenTable env) (mkParserState input)
+  if !s.allErrors.isEmpty then
+    Except.error (toErrorMsg ictx s)
+  else if ictx.input.atEnd s.pos then
+    Except.ok s.stxStack.back
+  else
+    Except.error (toErrorMsg ictx (s.mkError "end of input"))
 where
   toErrorMsg (ctx : InputContext) (s : ParserState) : List (Position × String) := Id.run do
     let mut errs := []

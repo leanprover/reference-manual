@@ -366,7 +366,7 @@ Because the patterns do not overlap, no assumptions about prior patterns not hav
 :::
 ::::
 
-After elaborating a module, having checked each addition to the environment with the kernel, the changes that the module made to the global environment (including extensions) are serialized to a `.olean` file.
+After elaborating a module, having checked each addition to the environment with the kernel, the changes that the module made to the global environment (including extensions) are serialized to a {deftech}[`.olean` file].
 In these files, Lean terms and values are represented just as they are in memory; thus the file can be directly memory-mapped.
 All code paths that lead to Lean adding to the environment involve the new type or definition first being checked by the kernel.
 However, Lean is a very open, flexible system.

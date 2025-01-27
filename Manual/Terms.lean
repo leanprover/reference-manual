@@ -1958,7 +1958,7 @@ example := do
 ```
 ```leanOutput doBusted
 typeclass instance problem is stuck, it is often due to metavariables
-  Pure ?m.75
+  Pure ?m.64
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
