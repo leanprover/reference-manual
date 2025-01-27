@@ -406,7 +406,7 @@ class SearchBox {
     }
 
     const results = fuzzysort.go(filter, this.preparedData, {
-      limit: 20,
+      limit: 30,
       threshold: 0.25,
     });
 
