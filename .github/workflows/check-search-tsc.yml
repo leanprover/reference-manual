@@ -1,0 +1,19 @@
+name: Check for copyright headers
+
+on: [pull_request]
+
+jobs:
+  check-lean-files:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install TypeScript
+      run: |
+        sudo apt update && sudo apt install node-typescript
+
+    - uses: actions/checkout@v4
+
+    - name: Type check the search bar code
+      run: |
+        cd static/search
+        tsc --noEmit -p jsconfig.json
+
