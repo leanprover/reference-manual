@@ -96,14 +96,10 @@ A {deftech}_target_ represents a build product that can be requested by a user:
  * {deftech}_Libraries_ are collections of Lean {tech}[module]s, organized hierarchically under one or more {deftech}_module roots_.
  * {deftech}_Executables_ consist of a _single_ module that defines `main`
  * {deftech}_External libraries_ are non-Lean *static* libraries that will be linked to the binaries of the package and its dependents, including both their shared libraries and executables.
- * {deftech}_Custom targets_ contain arbitrary code to run a build, written using {name Lake.FetchM}`FetchM` in {TODO}[xref]Lake's API.
+ * {deftech}_Custom targets_ contain arbitrary code to run a build, written using Lake's internal API.
 
 Packages may specify a set of {deftech}_default targets_.
 These targets are built in contexts where a package is specified but targets are not.
-:::
-
-:::TODO
-Add static library targets after upcoming refactor
 :::
 
 An {deftech}_artifact_ is the persistent result of a build, such as object code, an executable binary, or an {tech}[`.olean` file].
@@ -180,8 +176,7 @@ tag := "lake-facets"
 
 A {deftech}_facet_ describes the production of an artifact from a module, target, or package.
 Each kind of target has a {deftech}_default facet_ (e.g. producing an executable binary from an executable target); other facets may be specified explicitly in the {tech}[package configuration] or via Lake's {ref "lake-cli"}[command-line interface].
-Lake's API may be used to write custom facets. {TODO}[xref]
-
+Lake's internal API may be used to write custom facets.
 
 
 ```lakeHelp "build"
@@ -231,11 +226,19 @@ Package dependencies are not updated during a build.
 
 The facets available for packages are:
 
-::: TODO
+```lean (show := false)
+-- Always keep this in sync with the description below. It ensures that the list is complete.
+/-- info: [`deps, `release, `cache, `optRelease, `optCache, `barrel, `extraDep, `optBarrel] -/
+#guard_msgs in
+#eval Lake.initPackageFacetConfigs.toList.map (·.1)
+```
+: `extraDeps`
 
-Confirm these with Mac
+  The default facets of the package's extra dependency targets, specified in the {tomlField Lake.PackageConfig}`extraDepTargets` field.
 
-:::
+: `deps`
+
+  The default facets of the package's {tech}[transitive dependencies], topologically sorted.
 
 : `optCache`
 
@@ -266,7 +269,16 @@ Confirm these with Mac
 
   A package's build archive from a GitHub release.
   Will cause the whole build to fail if the archive cannot be fetched.
+
+
 ::::
+
+```lean (show := false)
+-- Always keep this in sync with the description below. It ensures that the list is complete.
+/-- info: [`modules, `static, `leanArts, `shared, `extraDep, `static.export] -/
+#guard_msgs in
+#eval Lake.initLibraryFacetConfigs.toList.map (·.1)
+```
 
 :::paragraph
 
@@ -290,24 +302,33 @@ The facets available for targets (including libraries and executables) are:
 
 : `extraDep`
 
-  A Lean library's {tomlField Lake.LeanLibConfig}`extraDepTargets` {TODO}[xref] and those of its package.
+  A Lean library's {tomlField Lake.LeanLibConfig}`extraDepTargets` and those of its package.
 
 : `leanExe`
 
   The executable binary produced from a Lean executable target.
 :::
 
+```lean (show := false)
+-- Always keep this in sync with the description below. It ensures that the list is complete.
+/--
+info: #[`bc, `bc.o, `c, `c.o, `c.o.export, `c.o.noexport, `deps, `dynlib, `ilean, `lean.imports, `lean.precompileImports,
+  `lean.transImports, `leanArts, `o, `o.export, `o.noexport, `olean]
+-/
+#guard_msgs in
+#eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
+```
+
 :::paragraph
 The facets available for modules are:
-
-: `deps`
-
-
-  The module's dependencies (e.g., imports or shared libraries).
 
 : `leanArts` (default)
 
  The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files)
+
+: `deps`
+
+  The module's dependencies (e.g., imports or shared libraries).
 
 : `olean`
 
@@ -316,6 +337,18 @@ The facets available for modules are:
 : `ilean`
 
  The module's `.ilean` file, which is metadata used by the Lean language server
+
+: `lean.imports`
+
+  The immediate imports of the Lean module, but not the full set of transitive imports.
+
+: `lean.precompileImports`
+
+  The transitive imports of the Lean module, compiled to object code.
+
+: `lean.transImports`
+
+  The transitive imports of the Lean module, as {tech}[`.olean` files].
 
 : `c`
 
@@ -327,7 +360,15 @@ The facets available for modules are:
 
 : `c.o`
 
- The compiled object file, produced from the C file
+ The compiled object file, produced from the C file. On Windows, this is equivalent to `.c.o.noexport`, while it is equivalent to `.c.o.export` on other platforms.
+
+: `c.o.export`
+
+ The compiled object file, produced from the C file, with Lean symbols exported.
+
+: `c.o.noexport`
+
+ The compiled object file, produced from the C file, with Lean symbols exported.
 
 : `bc.o`
 
@@ -339,7 +380,7 @@ The facets available for modules are:
 
 : `dynlib`
 
-  A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[document and xref Lean command line options]
+  A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here]
 
 :::
 
@@ -355,9 +396,34 @@ While ordinary executable programs are run in the {name}`IO` {tech}[monad], scri
 
 Because they are Lean definitions, Lake scripts can only be defined in the Lean configuration format.
 
-:::TODO
-Example script, e.g. to enumerate and print all dependencies' licenses
+```lean (show := false)
+section
+open Lake DSL
+```
+
+:::example "Listing Dependencies"
+
+This Lake script lists all the transitive dependencies of the root package, along with their Git URLs, in alphabetical order.
+Similar scripts could be used to check declared licenses, discover which dependencies have test drivers configured, or compute metrics about the transitive dependency set over time.
+
+```lean
+script «list-deps» := do
+  let mut results := #[]
+  for p in (← getWorkspace).packages do
+    if p.name ≠ (← getWorkspace).root.name then
+      results := results.push (p.name.toString, p.remoteUrl)
+  results := results.qsort (·.1 < ·.1)
+  IO.println "Dependencies:"
+  for (name, url) in results do
+    IO.println s!"{name}:\t{url}"
+  return 0
+```
 :::
+
+```lean (show := false)
+end
+```
+
 
 ## Test and Lint Drivers
 %%%
@@ -378,14 +444,9 @@ A definition in a dependency can be used as a test or lint driver by using the `
 tag := "lake-github"
 %%%
 
-:::TODO
-
-Confirm with Mac: this is the same as a cached build from the perspective of `LAKE_NO_CACHE`, right?
-
-:::
-
 Lake supports uploading and downloading build artifacts (i.e., the archived build directory) to/from the GitHub releases of packages.
 This enables end users to fetch pre-built artifacts from the cloud without needed to rebuild the package from source themselves.
+The {envVar}`LAKE_NO_CACHE` environment variable can be used to disable this feature.
 
 ### Downloading
 

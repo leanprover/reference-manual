@@ -64,6 +64,11 @@ This configuration consists of both scalar fields that describe the entire packa
  * `lean_lib`
  * `lean_exe`
 
+:::TODO
+
+Extra fields are not currently warning/error, but may become so. Warn about typos.
+
+:::
 
 ## Package Configuration
 

@@ -206,7 +206,7 @@ Lake itself can be configured with the following environment variables:
     If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
 * row
   * {envVar def:=true}`LAKE_NO_CACHE`
-  * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub]. {TODO}[Harmonize terminology for cloud/cached build]
+  * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub].
     This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
 
 :::
@@ -252,7 +252,9 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
 : {lakeOptDef flag}`--old`
 
-  Only rebuild modified modules, ignoring transitive dependencies.{TODO}[Clarify with Mac]
+  Only rebuild modified modules, ignoring transitive dependencies.
+  Modules that import the modified module will not be rebuilt.
+  In order to accomplish this, file modification times are used instead of hashes to determine whether a module has changed.
 
 : {lakeOptDef flag}`--rehash` or {lakeOptDef flag}`-H`
 
@@ -261,7 +263,7 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 : {lakeOptDef flag}`--update` or {lakeOptDef flag}`-U`
 
   Update dependencies after the {tech}[package configuration] is loaded but prior to performing other tasks, such as a build.
-  This is equivalent to running `lake update` before the selected command.{TODO}[Mac: is it?]
+  This is equivalent to running `lake update` before the selected command, but it may be faster due to not having to load the configuration twice.
 
 : {lakeOptDef option}`--packages=FILE`
 
@@ -470,17 +472,10 @@ Each of the {lakeMeta}`targets` is specified by a string of the form:
 
 The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from executables and libraries.
 If not provided, {lakeMeta}`package` defaults to the {tech}[workspace]'s {tech}[root package].
+If the same target name exists in multiple packages in the workspace, then the first occurrence of the target name found in a topological sort of the package dependency graph is selected.
 
 The available {tech}[facets] depend on whether a package, target, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
-
-:::
-
-:::TODO
-
-Rules for picking a target (current package first, then dependencies in some order?)
-
-Talk to Mac about alternative terminology for picking a fact of something - "target" seems overloaded here
 
 :::
 
@@ -844,9 +839,11 @@ Packs the root package's `buildDir` into a `tar.gz` archive using `tar` and then
 Other hosts are not yet supported.
 :::
 
-## Cloud Build Archives
+## Cached Cloud Builds
+
 **These commands are still experimental.**
-They are likely change in future versions of Lake based on user feedback.{TODO}[Ask Mac about the platform-independent option he mentioned in our call]
+They are likely change in future versions of Lake based on user feedback.
+Packages that use cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
 
 ```lakeHelp "pack"
 Pack build artifacts into a archive for distribution
