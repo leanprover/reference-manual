@@ -279,6 +279,8 @@ Setoid
 Squash
 Subsingleton
 WellFoundedRelation
+Equivalence
+HasEquiv
 ```
 
 ```exceptions

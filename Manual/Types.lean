@@ -10,6 +10,7 @@ import Manual.Meta
 
 import Manual.Language.Functions
 import Manual.Language.InductiveTypes
+import Manual.Quotients
 
 open Verso.Genre Manual
 
@@ -528,13 +529,4 @@ def L := List (Type 0)
 
 {include 0 Language.InductiveTypes}
 
-
-# Quotients
-%%%
-tag := "quotients"
-%%%
-
-:::planned 51
- * Define {deftech}[quotient] type
- * Show the computation rule
-:::
+{include 0 Manual.Quotients}
