@@ -258,7 +258,9 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
 : {lakeOptDef flag}`--rehash` or {lakeOptDef flag}`-H`
 
-  Ignored cached file hashes, recomputing them. {TODO}[Q for Mac: does this use modification times by default?]
+  Ignored cached file hashes, recomputing them.
+  Ordinarily, Lake caches the hash of the content of each file that it builds in a hash file.
+  If this hash file's modification time is more recent than the file's modification time, then the contents of the hash file are used rather than recomputing the hash unless {lakeOpt}`--rehash` is specified.
 
 : {lakeOptDef flag}`--update` or {lakeOptDef flag}`-U`
 
