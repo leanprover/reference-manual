@@ -9,6 +9,7 @@ import Manual.Intro
 import Manual.Elaboration
 import Manual.Types
 import Manual.Language
+import Manual.RecursiveDefs
 import Manual.Classes
 import Manual.Terms
 import Manual.Tactics
@@ -61,6 +62,8 @@ Additionally, we will be adding missing API reference documentation and revising
 {include 0 Manual.Types}
 
 {include 0 Manual.Language}
+
+{include 0 Manual.RecursiveDefs}
 
 {include 0 Manual.Terms}
 
@@ -156,14 +159,39 @@ file := some "the-index"
 :::progress
 ```namespace
 List
+Int
+IntCast
+Empty
+PEmpty
 Function
-Functor Applicative Monad Pure Bind Seq SeqLeft SeqRight
-MonadState MonadStateOf StateT StateM
-MonadReader MonadReaderOf ReaderT ReaderM
-MonadExcept MonadExceptOf ExceptT Except
-MonadFunctor MonadFunctorT
-MonadControl MonadControlT
-MonadLift MonadLiftT
+Ord
+Ordering
+Functor
+Applicative
+Monad
+Pure
+Bind
+Seq
+SeqLeft
+SeqRight
+MonadState
+MonadStateOf
+StateT
+StateM
+MonadReader
+MonadReaderOf
+ReaderT
+ReaderM
+MonadExcept
+MonadExceptOf
+ExceptT
+Except
+MonadFunctor
+MonadFunctorT
+MonadControl
+MonadControlT
+MonadLift
+MonadLiftT
 OptionT
 StateRefT'
 StateCpsT
@@ -176,18 +204,81 @@ ForM
 ForIn
 ForInStep
 ForIn'
-EStateM EStateM.Result EStateM.Backtrackable
-String Char Nat Lean.Elab.Tactic Array Subarray IO IO.FS System System.FilePath IO.Process IO.FS.Stream ST IO.Error IO.FS.Stream.Buffer IO.FS.Handle
-IO.Process.SpawnArgs IO.Process.Output IO.Process.Child IO.Process.StdioConfig IO.Process.Stdio IO.Ref ST.Ref IO.FS.Metadata IO.FS.DirEntry EIO BaseIO
-IO.FileRight IO.FS.Stream Task Task.Priority Unit PUnit
-Bool Decidable
+EStateM
+EStateM.Result
+EStateM.Backtrackable
+String
+Char
+Nat
+Lean.Elab.Tactic
+Array
+Subarray
+IO
+IO.FS
+System
+System.FilePath
+IO.Process
+IO.FS.Stream
+ST
+IO.Error
+IO.FS.Stream.Buffer
+IO.FS.Handle
+IO.Process.SpawnArgs
+IO.Process.Output
+IO.Process.Child
+IO.Process.StdioConfig
+IO.Process.Stdio
+IO.Ref
+ST.Ref
+IO.FS.Metadata
+IO.FS.DirEntry
+EIO
+BaseIO
+IO.FileRight
+IO.FS.Stream
+Task
+Task.Priority
+Unit
+PUnit
+Bool
+Decidable
 System.Platform
-PLift ULift Subtype Option List
+PLift
+ULift
+Subtype
+Option
+List
 USize
-UInt8 UInt16 UInt32 UInt64
+UInt8
+UInt16
+UInt32
+UInt64
 ISize
-Int8 Int16 Int32 Int64
+Int8
+Int16
+Int32
+Int64
 Fin
+Option
+List
+Prod
+PProd
+MProd
+Sum
+PSum
+Sigma
+Subtype
+Thunk
+_root_
+BitVec
+Float
+Empty
+Quotient
+Quot
+Setoid
+Squash
+Subsingleton
+WellFoundedRelation
 ```
 
 ```exceptions
@@ -405,6 +496,10 @@ Array.getLit
 
 ```exceptions
 Array.qpartition
+```
+
+```exceptions
+Option.toLOption
 ```
 
 ```exceptions

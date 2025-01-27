@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
@@ -8,10 +8,13 @@ import VersoManual
 
 import Manual.Meta
 import Manual.BasicTypes.Nat
+import Manual.BasicTypes.Int
 import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
+import Manual.BasicTypes.Option
+import Manual.BasicTypes.Empty
 
 open Manual.FFIDocType
 
@@ -32,17 +35,7 @@ Other types don't have special compiler support _per se_, but rely in important 
 
 {include 0 Manual.BasicTypes.Nat}
 
-# Integers
-%%%
-tag := "Int"
-%%%
-
-::: planned 104
- * Compile-time and run-time characteristics, and how they're inherited from {lean}`Nat`
- * API reference
-:::
-
-{docstring Int}
+{include 0 Manual.BasicTypes.Int}
 
 {include 0 Manual.BasicTypes.Fin}
 
@@ -213,17 +206,8 @@ example (e1 e2 : ProofUnitLike) : e1 = e2 := rfl
 :::
 ::::
 
-# The Empty Type
+{include 0 Manual.BasicTypes.Empty}
 
-:::planned 170
- * What is {lean}`Empty`?
- * Contrast with {lean}`Unit` and {lean}`False`
- * Definitional equality
-:::
-
-{docstring Empty}
-
-{docstring PEmpty}
 
 # Booleans
 
@@ -359,16 +343,7 @@ end ShortCircuit
 {docstring Bool.toNat}
 
 
-# Optional Values
-%%%
-tag := "option"
-%%%
-
-:::planned 110
-Describe {name}`Option`, including the default coercions and its API.
-:::
-
-{docstring Option}
+{include 0 Manual.BasicTypes.Option}
 
 # Tuples
 %%%

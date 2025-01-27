@@ -32,6 +32,8 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 {docstring Ord}
 
+{docstring Ordering}
+
 {docstring LT}
 
 {docstring LE}

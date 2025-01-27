@@ -146,7 +146,7 @@ def Citable.bibHtml (go : Doc.Inline Genre.Manual → HtmlT Manual (ReaderT Exte
   match c with
   |  .inProceedings p =>
     let authors ← andList <$> p.authors.mapM go
-    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{"(" {{·}} ")" }}) |>.getD .empty}} }}
+    return {{ {{authors}} s!", {p.year}. " {{ link {{"“" {{← go p.title}} "”"}} }} ". In " <em>{{← go p.booktitle}}"."</em>{{(← p.series.mapM go).map ({{" (" {{·}} ")" }}) |>.getD .empty}} }}
   | .thesis p =>
     return {{ {{← go p.author}} s!", {p.year}. " <em>{{link (← go p.title)}}</em> ". " {{← go p.degree}} ", " {{← go p.university}} }}
   | .arXiv p =>

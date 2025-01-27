@@ -65,11 +65,10 @@ tag := "nat-runtime"
 %%%
 
 
-:::TODO
-
-Look up and document
-
-:::
+In compiled code, sufficiently-small natural numbers are represented as unboxed values: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer, and the remaining bits are used to store the number.
+31 bits are available on 32-bits architectures for unboxed {lean}`Nat`s, while 63 bits are available on 64-bit architectures.
+In other words, natural numbers smaller than $`2^31 = 2,147,483,648` or $`2^63 = 9,223,372,036,854,775,808` do not require allocations.
+If an natural number is too large for the unboxed representation, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer value.
 
 ## Performance Notes
 %%%
@@ -88,11 +87,7 @@ tag := "nat-syntax"
 %%%
 
 
-Natural number literals are overridden using the {lean}`OfNat` type class.
-
-:::TODO
-Document this elsewhere, insert a cross-reference here
-:::
+Natural number literals are overridden using the {lean}`OfNat` type class, which is described in the {ref "nat-literals"}[section on literal syntax].
 
 
 # API Reference

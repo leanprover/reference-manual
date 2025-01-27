@@ -8,7 +8,8 @@ import VersoManual
 
 import Manual.Meta
 
-import Manual.Language.RecursiveDefs.Structural
+import Manual.RecursiveDefs.Structural
+import Manual.RecursiveDefs.WF
 
 open Verso.Genre Manual
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
@@ -151,16 +152,9 @@ Thus, helpers defined in a {keywordOf Lean.Parser.Command.declaration}`where` bl
 
 After the first step of elaboration, in which definitions are still recursive, and before translating recursion using the techniques above, Lean identifies the actually (mutually) recursive cliques{TODO}[define this term, it's useful]  among the definitions in the mutual block and processes them separately and in dependency order.
 
-{include 0 Manual.Language.RecursiveDefs.Structural}
+{include 0 Manual.RecursiveDefs.Structural}
 
-# Well-Founded Recursion
-%%%
-tag := "well-founded-recursion"
-%%%
-
-::: planned 57
-This section will describe the translation of {deftech}[well-founded recursion].
-:::
+{include 0 Manual.RecursiveDefs.WF}
 
 # Partial and Unsafe Recursive Definitions
 %%%
