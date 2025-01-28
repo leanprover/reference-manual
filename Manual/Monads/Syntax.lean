@@ -20,6 +20,8 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 -- set_option trace.SubVerso.Highlighting.Code true
 
+set_option guard_msgs.diff true
+
 #doc (Manual) "Syntax" =>
 
 Lean supports programming with functors, applicative functors, and monads via special syntax:
@@ -281,7 +283,7 @@ This syntax is also translated to a use of {name}`bind`.
 This indicates a pure, rather than monadic, definition:
 :::syntax Lean.Parser.Term.doSeqItem
 ```grammar
-let v := $e:term
+let $v := $e:term
 ```
 :::
 {lean}`do let x := e; es` is translated to {lean}`let x := e; do es`.
@@ -589,7 +591,7 @@ p : α → Prop
 inst✝ : DecidablePred p
 xs : Array α
 out✝ : Array Nat := #[]
-col✝ : Std.Range := { start := 0, stop := xs.size, step := 1 }
+col✝ : Std.Range := { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
 i : Nat
 r✝ : Array Nat
 out : Array Nat := r✝

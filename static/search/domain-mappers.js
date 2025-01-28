@@ -98,6 +98,24 @@ const techTermMapper = {
   displayName: "Terminology",
 };
 
+/**
+ * @type {DomainMapper}
+ */
+const syntaxMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      // TODO find a way to not include the "meta" parts of the string
+      // in the search key here, but still display them
+      searchKey: value[0].data.forms.map(v => v.string).join(''),
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Verso.Genre.Manual.doc.syntaxKind",
+      ref: value,
+    })),
+  className: "syntax-domain",
+  displayName: "Syntax",
+};
+
+
 export const domainMappers = {
   "Verso.Genre.Manual.doc": docDomainMapper,
   "Verso.Genre.Manual.doc.option": docOptionDomainMapper,
@@ -105,4 +123,5 @@ export const domainMappers = {
   "Verso.Genre.Manual.doc.tactic.conv": docConvTacticDomainMapper,
   "Verso.Genre.Manual.section": sectionMapper,
   "Verso.Genre.Manual.doc.tech": techTermMapper,
+  "Verso.Genre.Manual.doc.syntaxKind": syntaxMapper,
 };
