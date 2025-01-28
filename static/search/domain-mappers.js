@@ -108,7 +108,7 @@ const syntaxMapper = {
       // in the search key here, but still display them
       searchKey: value[0].data.forms.map(v => v.string).join(''),
       address: `${value[0].address}#${value[0].id}`,
-      domainId: "Verso.Genre.Manual.doc.syntaxKind",
+      domainId: "Manual.Syntax.production",
       ref: value,
     })),
   className: "syntax-domain",
@@ -123,5 +123,5 @@ export const domainMappers = {
   "Verso.Genre.Manual.doc.tactic.conv": docConvTacticDomainMapper,
   "Verso.Genre.Manual.section": sectionMapper,
   "Verso.Genre.Manual.doc.tech": techTermMapper,
-  "Verso.Genre.Manual.doc.syntaxKind": syntaxMapper,
+  "Manual.Syntax.production": syntaxMapper,
 };

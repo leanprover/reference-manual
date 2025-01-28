@@ -888,9 +888,11 @@ where
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
-        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}\n````````"
-
         let searchTarget := searchable config.name bnf
+
+        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}````````"
+
+
         let blockStx ← `(Block.other {Block.grammar with data := ToJson.toJson (($(quote stx.getKind), $(quote bnf), searchableJson $(quote searchTarget)) : Name × TaggedText GrammarTag × Json)} #[])
         pure (blockStx)
       | .error es =>
@@ -1145,6 +1147,8 @@ private def lookingAt (k : Name) : GrammarHtmlM α → GrammarHtmlM α := withRe
 
 private def notLooking : GrammarHtmlM α → GrammarHtmlM α := withReader (·.noLook)
 
+def productionDomain : Name := `Manual.Syntax.production
+
 open Verso.Output Html in
 @[block_extension grammar]
 partial def grammar.descr : BlockDescr where
@@ -1153,7 +1157,10 @@ partial def grammar.descr : BlockDescr where
       let path ← (·.path) <$> read
       let _ ← Verso.Genre.Manual.externalTag id path k.toString
       modify fun st => st.saveDomainObject syntaxKindDomain k.toString id
-      modify fun st => st.saveDomainObjectData syntaxKindDomain k.toString (json%{"category": null, "forms": $searchable})
+
+      let prodName := s!"{k} {searchable}"
+      modify fun st => st.saveDomainObject productionDomain prodName id
+      modify fun st => st.saveDomainObjectData productionDomain prodName (json%{"category": null, "kind": $k.toString, "forms": $searchable})
     else
       logError "Couldn't deserialize grammar info during traversal"
     pure none
