@@ -93,8 +93,8 @@ It is an error if the package names listed in the manifest do not match those us
 Manifests should be considered part of the package's code and should normally be checked into source control.
 
 :::paragraph
-A {deftech}_target_ represents a build product that can be requested by a user.
-A persistent build products, such as object code, an executable binary, or an {tech}[`.olean` file], is called an {deftech}_artifact_.
+A {deftech}_target_ represents an output that can be requested by a user.
+A persistent build output, such as object code, an executable binary, or an {tech}[`.olean` file], is called an {deftech}_artifact_.
 In the process of producing an artifact, Lake may need to produce further artifacts; for example, compiling a Lean program into an executable requires that it and its dependencies be compiled to object files, which are themselves produced from C source files, which result from elaborating Lean sourcefiles and producing {tech}[`.olean` files].
 Each link in this chain is a target, and Lake arranges for each to be built in turn.
 At the start of the chain are the {deftech}_initial targets_:
@@ -228,7 +228,7 @@ TARGET EXAMPLES:        build the ...
   a/+A:c                C file of module `A` of package `a`
   :foo                  facet `foo` of the root package
 
-A bare `lake build` command will build the default facet of the root package.
+A bare `lake build` command will build the default target(s) of the root package.
 Package dependencies are not updated during a build.
 ```
 
@@ -239,17 +239,24 @@ The facets available for packages are:
 
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
-/-- info: [`deps, `release, `cache, `optRelease, `optCache, `barrel, `extraDep, `optBarrel] -/
+/--
+info: #[`barrel, `cache, `deps, `extraDep, `optBarrel, `optCache, `optRelease, `release, `transDeps]
+-/
 #guard_msgs in
-#eval Lake.initPackageFacetConfigs.toList.map (·.1)
+#eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
 ```
-: `extraDeps`
+: `extraDep`
 
   The default facets of the package's extra dependency targets, specified in the {tomlField Lake.PackageConfig}`extraDepTargets` field.
 
 : `deps`
 
+  The package's {tech}[direct dependencies].
+
+: `transDeps`
+
   The package's {tech}[transitive dependencies], topologically sorted.
+
 
 : `optCache`
 
@@ -319,15 +326,15 @@ The facets available for libraries are:
 
 :::paragraph
 
-Executables have a single `leanExe` facet that consists of the executable binary.
+Executables have a single `exe` facet that consists of the executable binary.
 
 :::
 
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`bc, `bc.o, `c, `c.o, `c.o.export, `c.o.noexport, `deps, `dynlib, `ilean, `lean.imports, `lean.precompileImports,
-  `lean.transImports, `leanArts, `o, `o.export, `o.noexport, `olean]
+info: #[`bc, `bc.o, `c, `c.o, `c.o.export, `c.o.noexport, `deps, `dynlib, `ilean, `imports, `leanArts, `o, `o.export,
+  `o.noexport, `olean, `precompileImports, `transImports]
 -/
 #guard_msgs in
 #eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
@@ -352,15 +359,15 @@ The facets available for modules are:
 
  The module's `.ilean` file, which is metadata used by the Lean language server
 
-: `lean.imports`
+: `imports`
 
   The immediate imports of the Lean module, but not the full set of transitive imports.
 
-: `lean.precompileImports`
+: `precompileImports`
 
   The transitive imports of the Lean module, compiled to object code.
 
-: `lean.transImports`
+: `transImports`
 
   The transitive imports of the Lean module, as {tech}[`.olean` files].
 
