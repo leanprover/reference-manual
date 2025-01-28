@@ -84,7 +84,7 @@ See `lake help <command>` for more information on a specific command.
 ```
 
 Lake's command-line interface is structured into a series of subcommands.
-All of the subcommands share a the ability to be configured by certain environment variables and global command-line options.
+All of the subcommands share the ability to be configured by certain environment variables and global command-line options.
 Each subcommand should be understood as a utility in its own right, with its own required argument syntax and documentation.
 
 :::paragraph
@@ -135,7 +135,7 @@ using the form NAME=VALUE like the POSIX `env` command.
 When invoking the Lean compiler or other tools, Lake sets or modifies a number of environment variables.{index}[environment variables]
 These values are system-dependent.
 Invoking {lake}`env` without any arguments displays the environment variables and their values.
-Otherwise, {lakeMeta}`cmd` is invoked in Lake's environment with arguments {lakeMeta}`args`.
+Otherwise, the provided command is invoked in Lake's environment.
 
 ::::paragraph
 The following variables are set, overriding previous values:
@@ -186,7 +186,12 @@ Lake itself can be configured with the following environment variables:
 * row
   * {envVar def:=true}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
-    The {envVar def:=true}`ELAN` variable, pointing at the `elan` binary, is used as a fallback, followed by an occurrence of `elan` found on the {envVar}`PATH`.
+
+* row
+  * {envVar def:=true}`ELAN`
+  * The location of the `elan` binary, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
+    If it is not set, an occurrence of `elan` must exist on the {envVar}`PATH`.
+
 * row
   * {envVar def:=true}`LAKE_HOME`
   * The location of the Lake installation.
@@ -231,7 +236,7 @@ fun o =>
 # Options
 
 Lake's command-line interface provides a number of global options as well as subcommands that perform important tasks.
-Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
+Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 : {lakeOptDef flag}`--version`
 
@@ -239,7 +244,8 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
 
 : {lakeOptDef flag}`--help` or {lakeOptDef flag}`-h`
 
-  Lake outputs its version and exits without doing anything else.
+  Lake outputs its version along with usage information and exits without doing anything else.
+  Subcommands may be used with {lakeOpt}`--help`, in which case usage information for the subcommand is output.
 
 : {lakeOptDef option}`--dir DIR` or {lakeOptDef option}`-d=DIR`
 
@@ -264,15 +270,15 @@ Single-character flags cannot be combined; `-HU` is not equivalent to `-H -U`.
   To save time during builds, these cached hashes are used instead of recomputing each hash unless {lakeOpt}`--rehash` is specified.
 
 
-: {lakeOptDef flag}`--update` or {lakeOptDef flag}`-U`
+: {lakeOptDef flag}`--update`
 
   Update dependencies after the {tech}[package configuration] is loaded but prior to performing other tasks, such as a build.
   This is equivalent to running `lake update` before the selected command, but it may be faster due to not having to load the configuration twice.
 
 : {lakeOptDef option}`--packages=FILE`
 
-  Use the contents of `FILE` to specify the versions of each dependency instead of the manifest.
-  `FILE` should be a valid manifest.
+  Use the contents of `FILE` to specify the versions of some or all dependencies instead of the manifest.
+  `FILE` should be a syntactically valid manifest, but it does not need to be complete.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
@@ -353,7 +359,7 @@ To determine the newest compatible toolchain, Lake parses the toolchain listed i
 
  * Releases, which are compared by version number (e.g., `v4.4.0` < `v4.8.0` and `v4.6.0-rc1` < `v4.6.0`)
  * Nightly builds, which are compared by date (e.g., `nightly-2024-01-10` < `nightly-2024-10-01`)
- * Builds from pull reqeusts to the Lean compiler, which are incomparable
+ * Builds from pull requests to the Lean compiler, which are incomparable
  * Other versions, which are also incomparable
 
 Toolchain versions from multiple categories are incomparable.
@@ -472,13 +478,13 @@ Builds the specified facts of the specified targets.
 
 Each of the {lakeMeta}`targets` is specified by a string of the form:
 
-{lakeArgs}`[["@"]package"/"][target|["+"]module][":"facet]`
+{lakeArgs}`[["@"]package["/"]][target|["+"]module][":"facet]`
 
-The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from executables and libraries.
+The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from executables and libraries, which are specified by name as {lakeMeta}`target`.
 If not provided, {lakeMeta}`package` defaults to the {tech}[workspace]'s {tech}[root package].
 If the same target name exists in multiple packages in the workspace, then the first occurrence of the target name found in a topological sort of the package dependency graph is selected.
 
-The available {tech}[facets] depend on whether a package, target, or module is to be built.
+The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
 
 :::
@@ -506,6 +512,28 @@ They are listed in {ref "lake-facets"}[the section on facets].
   - The {tech}[root package]'s facet `foo`
 :::
 ::::
+
+```lakeHelp "check-build"
+Check if any default build targets are configured
+
+USAGE:
+  lake check-build
+
+Exits with code 0 if the workspace's root package has any
+default targets configured. Errors (with code 1) otherwise.
+
+Does NOT verify that the configured default targets are valid.
+It merely verifies that some are specified.
+
+```
+
+:::lake «check-build»
+Exits with code 0 if the {tech}[workspace]'s {tech}[root package] has any {tech}[default targets] configured.
+Errors (with exit code 1) otherwise.
+
+{lake}`check-build` does *not* verify that the configured default targets are valid.
+It merely verifies that at least one is specified.
+:::
 
 ```lakeHelp "exe"
 Build an executable target and run it in Lake's environment
@@ -847,7 +875,7 @@ Other hosts are not yet supported.
 
 **These commands are still experimental.**
 They are likely change in future versions of Lake based on user feedback.
-Packages that use cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
+Packages that use Reservoir cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
 
 ```lakeHelp "pack"
 Pack build artifacts into a archive for distribution

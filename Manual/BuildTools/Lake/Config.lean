@@ -64,11 +64,10 @@ This configuration consists of both scalar fields that describe the entire packa
  * `lean_lib`
  * `lean_exe`
 
-:::TODO
+Fields that are not part of the configuration tables described here are presently ignored.
+To reduce the risk of typos, this is likely to change in the future.
+Field names not used by Lake should not be used to store metadata to be processed by other tools.
 
-Extra fields are not currently warning/error, but may become so. Warn about typos.
-
-:::
 
 ## Package Configuration
 
@@ -79,7 +78,7 @@ The only mandatory field is `name`, which declares the package's name.
 
 :::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
-They are used by {ref "reservoir"}[Reservoir], to index and display packages.
+They are used by {ref "reservoir"}[Reservoir] to index and display packages.
 If a field is left out, Reservoir may use information from the package's GitHub repository to fill in details.
 :::
 
@@ -689,7 +688,7 @@ require $name:depName $[@ $[git]? $_:term]? $[$_:fromClause]? $[with $_:term]?
 
 The `@` clause specifies a package version, which is used when requiring a package from {ref "reservoir"}[Reservoir].
 The version may either be a string that specifies the version declared in the package's {name Lake.PackageConfig.version}`version` field, or a specific Git revision.
-Git revisions may be branch name, tag names, or hashes.
+Git revisions may be branch names, tag names, or commit hashes.
 
 The optional {syntaxKind}`fromClause` specifies a package source other than Reservoir, which may be either a Git repository or a local path.
 

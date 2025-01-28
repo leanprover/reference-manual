@@ -36,9 +36,9 @@ instance : Quote LakeOptKind where
     | .flag => Syntax.mkCApp ``flag #[]
     | .option => Syntax.mkCApp ``option #[]
 
-def Inline.lakeOptDef (name : String) (kind : LakeOptKind) : Inline where
+def Inline.lakeOptDef (name : String) (kind : LakeOptKind) (argMeta : Option String) : Inline where
   name := `Manual.lakeOptDef
-  data := .arr #[.str name, toJson kind]
+  data := .arr #[.str name, toJson kind, toJson argMeta]
 
 def Inline.lakeOpt (name : String) (original : String) : Inline where
   name := `Manual.lakeOpt
@@ -82,14 +82,16 @@ def lakeOptDef : RoleExpander
       | throwError "Expected exactly one argument"
     let `(inline|code( $name:str )) := arg
       | throwErrorAt arg "Expected code literal with the option or flag"
-    let name := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
+    let origName := name.getString
+    let name := origName.takeWhile fun c => c == '-' || c.isAlphanum
+    let valMeta := origName.drop name.length |>.dropWhile fun c => !c.isAlphanum
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOptDef $(quote name) $(quote kind)) #[Inline.code $(quote name)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOptDef $(quote name) $(quote kind) $(quote (if valMeta.isEmpty then none else some valMeta : Option String))) #[Inline.code $(quote name)])]
 
 @[inline_extension lakeOptDef]
 def lakeOptDef.descr : InlineDescr where
   traverse id data _ := do
-    let .arr #[.str name, jsonKind] := data
+    let .arr #[.str name, jsonKind, _] := data
       | logError s!"Failed to deserialize metadata for Lake option def: {data}"; return none
     let .ok kind := fromJson? (α := LakeOptKind) jsonKind
       | logError s!"Failed to deserialize metadata for Lake option def '{name}' kind: {jsonKind}"; return none
@@ -105,13 +107,18 @@ def lakeOptDef.descr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun goB id data content => do
-      let .arr #[.str name, _jsonKind] := data
+      let .arr #[.str name, _jsonKind, meta] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Lake option def: {data}"; content.mapM goB
 
       let idAttr := (← read).traverseState.htmlId id
 
-      pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
+      let .ok meta := FromJson.fromJson? (α := Option String) meta
+        | HtmlT.logError s!"Failed to deserialize argument metadata for Lake option def: {meta}"; content.mapM goB
 
+      if let some mv := meta then
+        pure {{<code {{idAttr}} class="lake-opt">{{name}}"="{{mv}}</code>}}
+      else
+        pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
 
 @[role_expander lakeOpt]
 def lakeOpt : RoleExpander
