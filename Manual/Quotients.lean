@@ -55,7 +55,7 @@ However, they occur regularly in mathematics:
 
 One alternative to quotient types would be to reason directly about the equivalence classes introduced by the relation.
 The downside of this approach is that it does not allow _computation_: in addition to knowing _that_ there is an integer that is the sum of 5 and 8, it is useful for $`5 + 8 = 13` to not be a theorem that requires proof.
-Defining functions out of sets of equivalence classes relies on noncomputational classical reasoning principles.
+Defining functions out of sets of equivalence classes relies on non-computational classical reasoning principles, while functions from quotient types are ordinary computational functions that additionally respect an equivalence relation.
 
 # Alternatives to Quotient Types
 %%%
@@ -137,7 +137,7 @@ instance : Add Z where
 17
 ```
 
-Because each equivalence class is uniquely represented, there's no need to write a proof that these functions from {lean}`Z` respect the equvialence relation.
+Because each equivalence class is uniquely represented, there's no need to write a proof that these functions from {lean}`Z` respect the equivalence relation.
 
 :::
 
