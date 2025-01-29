@@ -87,6 +87,9 @@ Without using one of a few clearly-marked unsafe operators, programs have no way
 This ensures that the correct ordering of side effects is preserved, and it ensures that programs that have side effects are clearly marked as such.
 
 ## The `IO`, `EIO` and `BaseIO` Monads
+%%%
+tag := "io-monad"
+%%%
 
 There are two monads that are typically used for programs that interact with the real world:
 
@@ -126,7 +129,10 @@ example : BaseIO = EIO Empty := rfl
 
 {docstring IO.toEIO}
 
-## Errors and Error Handling
+## Errors and Error Handling in `IO`
+%%%
+tag := "io-monad-errors"
+%%%
 
 Error handling in the {lean}`IO` monad uses the same facilities as any other {tech}[exception monad].
 In particular, throwing and catching exceptions uses the methods of the {name}`MonadExceptOf` {tech}[type class].
@@ -193,6 +199,9 @@ Access granted!
 ::::
 
 ### Constructing IO Errors
+%%%
+tag := "io-error-construction"
+%%%
 
 {docstring IO.Error.mkUnsupportedOperation}
 
@@ -248,6 +257,9 @@ Access granted!
 {docstring IO.Error.mkInappropriateTypeFile}
 
 # Control Structures
+%%%
+tag := "io-monad-control"
+%%%
 
 Normally, programs written in {lean}`IO` use {ref "monads-and-do"}[the same control structures as those written in other monads].
 There is one specific {lean}`IO` helper.
@@ -261,10 +273,16 @@ There is one specific {lean}`IO` helper.
 {include 0 Manual.IO.Files}
 
 # Environment Variables
+%%%
+tag := "io-monad-getenv"
+%%%
 
 {docstring IO.getEnv}
 
 # Timing
+%%%
+tag := "io-timing"
+%%%
 
 {docstring IO.sleep}
 
@@ -277,6 +295,9 @@ There is one specific {lean}`IO` helper.
 {docstring IO.addHeartbeats}
 
 # Processes
+%%%
+tag := "io-processes"
+%%%
 
 ## Current Process
 
