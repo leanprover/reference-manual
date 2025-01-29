@@ -19,18 +19,53 @@ set_option pp.rawOnError true
 
 namespace Manual
 
-def Block.table (columns : Nat) (header : Bool) (name : Option String) : Block where
+inductive TableConfig.Alignment where
+  | left | right | center
+deriving ToJson, FromJson, DecidableEq, Repr, Ord
+
+open Syntax in
+open TableConfig.Alignment in
+instance : Quote TableConfig.Alignment where
+  quote
+    | .left => mkCApp ``left #[]
+    | .center => mkCApp ``center #[]
+    | .right => mkCApp ``right #[]
+
+namespace TableConfig
+/-- HTML class name for alignment -/
+def Alignment.htmlClass : Alignment → String
+  | .left => "left-align"
+  | .right => "right-align"
+  | .center => "center-align"
+end TableConfig
+
+def Block.table (columns : Nat) (header : Bool) (name : Option String) (alignment : Option TableConfig.Alignment) (tag : Option Tag := none): Block where
   name := `Manual.table
-  data := ToJson.toJson (columns, header, name, (none : Option Tag))
+  data := ToJson.toJson (columns, header, name, tag, alignment)
 
 structure TableConfig where
   /-- Name for refs -/
   name : Option String := none
   header : Bool := false
+  /-- Alignment in the text (`none` means defer to stylesheet default) -/
+  alignment : Option TableConfig.Alignment := none
 
 
 def TableConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m TableConfig :=
-  TableConfig.mk <$> .named `tag .string true <*> ((·.getD false) <$> .named `header .bool true)
+  TableConfig.mk <$> .named `tag .string true <*> ((·.getD false) <$> .named `header .bool true) <*> .named `align alignment true
+where
+  alignment := {
+    description := "Alignment of the table ('left', 'right', or 'center')"
+    get
+      | .name x =>
+        match x.getId with
+        | `left => pure .left
+        | `right => pure .right
+        | `center => pure .center
+        | _ => throwErrorAt x "Expected 'left', 'right', or 'center'"
+      | .num x | .str x => throwErrorAt x "Expected 'left', 'right', or 'center'"
+
+  }
 
 @[directive_expander table]
 def table : DirectiveExpander
@@ -59,7 +94,7 @@ def table : DirectiveExpander
 
       let flattened := rows.flatten
       let blocks : Array (Syntax.TSepArray `term ",") ← flattened.mapM (·.mapM elabBlock)
-      pure #[← ``(Block.other (Block.table $(quote columns) $(quote cfg.header) $(quote cfg.name)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])]
+      pure #[← ``(Block.other (Block.table $(quote columns) $(quote cfg.header) $(quote cfg.name) $(quote cfg.alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])]
 
 where
   getLi
@@ -70,27 +105,28 @@ where
 @[block_extension table]
 def table.descr : BlockDescr where
   traverse id data contents := do
-    match FromJson.fromJson? data (α := Nat × Bool × Option String × Option Tag) with
+    match FromJson.fromJson? data (α := Nat × Bool × Option String × Option Tag × Option TableConfig.Alignment) with
     | .error e => logError s!"Error deserializing table data: {e}"; pure none
     | .ok (_, _, none, _) => pure none
-    | .ok (c, hdr, some x, none) =>
+    | .ok (c, hdr, some x, none, align) =>
       let path ← (·.path) <$> read
       let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.table c hdr none with id := some id, data := toJson (c, some x, some tag)} contents
-    | .ok (_, _, some _, some _) => pure none
+      pure <| some <| Block.other {Block.table c hdr (some x) (tag := some tag) align with id := some id} contents
+    | .ok (_, _, some _, some _, _) => pure none
   toTeX := none
   toHtml :=
     open Verso.Doc.Html in
     open Verso.Output.Html in
     some <| fun goI goB id data blocks => do
-      match FromJson.fromJson? data (α := Nat × Bool × Option String × Option Tag) with
+      match FromJson.fromJson? data (α := Nat × Bool × Option String × Option Tag × Option TableConfig.Alignment) with
       | .error e =>
         HtmlT.logError s!"Error deserializing table data: {e}"
         return .empty
-      | .ok (columns, header, _, _) =>
+      | .ok (columns, header, _, _, align) =>
       if let #[.ul items] := blocks then
         let xref ← HtmlT.state
         let attrs := xref.htmlId id
+        let «class» := "tabular" ++ (align.map (" " ++ ·.htmlClass)).getD ""
         let mut items := items
         let mut rows := #[]
         while items.size > 0 do
@@ -98,7 +134,7 @@ def table.descr : BlockDescr where
           items := items.extract columns items.size
 
         return {{
-          <table class="tabular" {{attrs}}>
+          <table class={{«class»}} {{attrs}}>
             {{← rows.mapIdxM fun i r => do
               let cols ← Output.Html.seq <$> r.mapM fun c => do
                 let cell : Output.Html ← c.mapM goB
@@ -119,6 +155,17 @@ r##"
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
 }
 table.tabular td, table.tabular th {
   text-align: left;

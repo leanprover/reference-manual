@@ -35,7 +35,7 @@ decreasing_by all_goals decreasing_tactic
 ```
 ```leanOutput badwf (whitespace := lax)
 Could not find a decreasing measure.
-The arguments relate at each recursive call as follows:
+The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
            n m l
 1) 30:6-25 = = =
