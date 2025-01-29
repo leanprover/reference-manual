@@ -634,7 +634,6 @@ class SearchBox {
           this.setValue("");
           this.comboboxNode.textContent = "";
         }
-        this.option = null;
         eventHandled = true;
         break;
 
@@ -649,7 +648,7 @@ class SearchBox {
 
       case "End":
         var length = this.comboboxNode.textContent.length;
-        this.imeRewriter.setSelections([new Range(this.filter.length, 0)]);
+        this.imeRewriter.setSelections([new Range(length, 0)]);
         eventHandled = true;
         break;
 
@@ -664,59 +663,32 @@ class SearchBox {
   }
 
   /**
-   * @param {string} str
-   */
-  isPrintableCharacter(str) {
-    return str.length === 1 && str.match(/\S| /);
-  }
-
-  /**
    * @param {KeyboardEvent} event
    * @returns void
    */
   onComboboxKeyUp(event) {
     let eventHandled = false;
-    const char = event.key;
-
-    if (this.isPrintableCharacter(char)) {
-      this.filter += char;
-    }
-
-    // this is for the case when a selection in the textbox has been deleted
-    if (this.comboboxNode.textContent.length < this.filter.length) {
-      this.filter = this.comboboxNode.textContent;
-      this.option = null;
-      this.filterOptions();
-    }
 
     if (event.key === "Escape" || event.key === "Esc") {
       return;
     }
 
     switch (event.key) {
-      case "Backspace":
-        this.setVisualFocusCombobox();
-        this.setCurrentOptionStyle(null);
-        this.filter = this.comboboxNode.textContent;
-        this.option = null;
-        this.filterOptions();
-        eventHandled = true;
-        break;
-
       case "Left":
       case "ArrowLeft":
       case "Right":
       case "ArrowRight":
       case "Home":
       case "End":
-        this.option = null;
         this.setCurrentOptionStyle(null);
         this.setVisualFocusCombobox();
         eventHandled = true;
         break;
 
       default:
-        if (this.isPrintableCharacter(char)) {
+        // If characters have been added or removed
+        if (this.comboboxNode.textContent.length !== this.filter.length) {
+          this.filter = this.comboboxNode.textContent;
           this.setVisualFocusCombobox();
           this.setCurrentOptionStyle(null);
           eventHandled = true;
@@ -726,12 +698,10 @@ class SearchBox {
               this.open();
             }
 
-            this.option = option;
             this.setCurrentOptionStyle(option);
             this.setOption(option);
           } else {
             this.close();
-            this.option = null;
             this.setActiveDescendant(null);
           }
         }
@@ -757,7 +727,6 @@ class SearchBox {
     this.filter = this.comboboxNode.textContent;
     this.filterOptions();
     this.setVisualFocusCombobox();
-    this.option = null;
     this.setCurrentOptionStyle(null);
   }
 
