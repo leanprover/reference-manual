@@ -10,6 +10,7 @@ import Verso.Code.Highlighted
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
+import Manual.Meta.Lean.Scopes
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -475,6 +476,8 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
       infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleeneLike star)
     | `choice, _, opts => do
       return (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")")
+    | ``Attr.simple, _, #[.ident kinfo _ name _, other] => do
+      return infoWrap info (infoWrap kinfo (← lift <| tag .keyword name.toString) ++ (← production which other))
     | ``FreeSyntax.docCommentItem, _, _ =>
       match stx[0][1] with
       | .atom _ val => do
@@ -883,8 +886,10 @@ where
       else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
+    let scope := (← Manual.Meta.Lean.Scopes.getScopes).head!
+
     withOpenedNamespace `Manual.FreeSyntax do
-      match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) with
+      match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) (openDecls := scope.openDecls) with
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]

@@ -18,6 +18,7 @@ import Manual.BasicTypes
 import Manual.NotationsMacros
 import Manual.IO
 import Manual.Monads
+import Manual.BuildTools
 
 open Verso.Genre Manual
 
@@ -116,33 +117,7 @@ This section will describe Elan and how to use it:
  * Using a local development build of Lean with Elan
 :::
 
-# Lake and Reservoir
-%%%
-tag := "build-tools-and-distribution"
-%%%
-
-## Lake
-%%%
-tag := "lake"
-%%%
-
-
-::: planned 75
- * Port and organize the information in the Lake README
- * Describe the underlying Lake-specific concepts of traces, artifacts, workspaces, and facets
-:::
-
-## Reservoir
-%%%
-tag := "reservoir"
-%%%
-
-
-::: planned 76
- * Concepts
- * Package and toolchain versions
- * Tags and builds
-:::
+{include 0 Manual.BuildTools}
 
 # Index
 %%%
@@ -279,6 +254,10 @@ Setoid
 Squash
 Subsingleton
 WellFoundedRelation
+Lake
+Lake.RecBuildM
+Lake.FetchM
+Lake.ScriptM
 ```
 
 ```exceptions
