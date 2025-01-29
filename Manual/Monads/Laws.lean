@@ -54,7 +54,7 @@ For a functor, the {name Functor.map}`map` operation must preserve identity and 
 Instances that violate these assumptions can be very surprising!
 Additionally, because {lean}`Functor` includes {name Functor.mapConst}`mapConst` to enable instances to provide a more efficient implementation, a lawful functor's {name Functor.mapConst}`mapConst` should be equivalent to its default implementation.
 
-The Lean standard library does not require profs of these properties in every instance of {name}`Functor`.
+The Lean standard library does not require proofs of these properties in every instance of {name}`Functor`.
 Nonetheless, if an instance violates them, then it should be considered a bug.
 When proofs of these properties are necessary, an instance implicit parameter of type {lean}`LawfulFunctor f` can be used.
 The {name}`LawfulFunctor` class includes the necessary proofs.
