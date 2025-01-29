@@ -115,6 +115,86 @@ const syntaxMapper = {
   displayName: "Syntax",
 };
 
+/**
+ * @type {DomainMapper}
+ */
+const lakeCommandMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: `lake ${key}`,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Manual.lakeCommand",
+      ref: value,
+    })),
+  className: "lake-command-domain",
+  displayName: "Lake Command",
+};
+
+/**
+ * @type {DomainMapper}
+ */
+const lakeOptMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: key,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Manual.lakeOpt",
+      ref: value,
+    })),
+  className: "lake-option-domain",
+  displayName: "Lake Command-Line Option",
+};
+
+/**
+ * @type {DomainMapper}
+ */
+const envVarMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: key,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Manual.envVar",
+      ref: value,
+    })),
+  className: "env-var-domain",
+  displayName: "Environment Variable",
+};
+
+/**
+ * @type {DomainMapper}
+ */
+const lakeTomlFieldMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => {
+      let tableArrayKey = value[0].data.tableArrayKey;
+      let arr = tableArrayKey ? `[[${tableArrayKey}]]` : "package configuration";
+      return {
+        searchKey: `${value[0].data.field} in ${arr}`,
+        address: `${value[0].address}#${value[0].id}`,
+        domainId: "Manual.lakeTomlField",
+        ref: value,
+      }}),
+  className: "lake-toml-field-domain",
+  displayName: "Lake TOML Field",
+};
+
+/**
+ * @type {DomainMapper}
+ */
+const lakeTomlTableMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => {
+      let arrayKey = value[0].data.arrayKey;
+      let arr = arrayKey ? `[[${arrayKey}]] — ` : "";
+      return {
+        searchKey: arr + value[0].data.description,
+        address: `${value[0].address}#${value[0].id}`,
+        domainId: "Manual.lakeTomlTable",
+        ref: value,
+      }}),
+  className: "lake-toml-table-domain",
+  displayName: "Lake TOML Table",
+};
 
 export const domainMappers = {
   "Verso.Genre.Manual.doc": docDomainMapper,
@@ -124,4 +204,9 @@ export const domainMappers = {
   "Verso.Genre.Manual.section": sectionMapper,
   "Verso.Genre.Manual.doc.tech": techTermMapper,
   "Manual.Syntax.production": syntaxMapper,
+  "Manual.lakeCommand": lakeCommandMapper,
+  "Manual.lakeOpt": lakeOptMapper,
+  "Manual.envVar": envVarMapper,
+  "Manual.lakeTomlTable" : lakeTomlTableMapper,
+  "Manual.lakeTomlField" : lakeTomlFieldMapper,
 };
