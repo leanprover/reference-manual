@@ -57,7 +57,11 @@ One alternative to quotient types would be to reason directly about the equivale
 The downside of this approach is that it does not allow _computation_: in addition to knowing _that_ there is an integer that is the sum of 5 and 8, it is useful for $`5 + 8 = 13` to not be a theorem that requires proof.
 Defining functions out of sets of equivalence classes relies on noncomputational classical reasoning principles.
 
-# Alternatives
+# Alternatives to Quotient Types
+%%%
+tag := "quotient-alternatives"
+%%%
+
 
 Quotient types are not the only way to implement quotients.
 An alternative is to select a canonical representative for each equivalence class induced by the equivalence relation, and then pair an element of the underlying type with a proof that it is such a canonical representative.
@@ -151,6 +155,9 @@ Setoids are useful on their own, in addition to being a building block for quoti
 {docstring Setoid}
 
 # Equivalence Relations
+%%%
+tag := "equivalence-relations"
+%%%
 
 An {deftech}_equivalence relation_ is a relation that is reflexive, symmetric, and transitive.
 
@@ -189,10 +196,17 @@ end
 ```
 
 # Quotient API
+%%%
+tag := "quotient-api"
+%%%
 
 The quotient API relies on a pre-existing {name}`Setoid` instance.
 
 ## Introducing Quotients
+%%%
+tag := "quotient-intro"
+%%%
+
 
 The type {lean}`Quotient` expects an instance of {lean}`Setoid` as an ordinary parameter, rather than as an {tech}[instance implicit] parameter.
 This helps ensure that the quotient uses the intended equivalence relation.
@@ -263,6 +277,10 @@ instance : OfNat Z n where
 
 
 ## Eliminating Quotients
+%%%
+tag := "quotient-elim"
+%%%
+
 
 Functions from quotients can be defined by proving that a function from the underlying type respects the quotient's equivalence relation.
 This is accomplished using {lean}`Quotient.lift`.
@@ -340,6 +358,10 @@ instance : Add Z where
 :::
 
 ## Proofs About Quotients
+%%%
+tag := "quotient-proofs"
+%%%
+
 
 The fundamental tools for proving properties of elements of quotient types are the soundness axiom and the induction principle.
 The soundness axiom states that if two elements of the underlying type are related by the quotient's equivalence relation, then they are equal in the quotient type.
@@ -422,6 +444,10 @@ theorem Z.add_neg_inverse (n : Z) : n  + (-n) = 0 := by
 :::
 
 # Logical Model
+%%%
+tag := "quotient-model"
+%%%
+
 
 Like functions and universes, quotient types are a built-in feature of Lean's type system.
 However, the underlying primitives are based on the somewhat simpler {name}`Quot` type rather than on {name}`Quotient`, and {name}`Quotient` is defined in terms of {name}`Quot`.
@@ -504,6 +530,9 @@ inductive SetTree (α : Type u) where
 
 
 # Quotients and Function Extensionality
+%%%
+tag := "quotient-funext"
+%%%
 
 :::::keepEnv
 
