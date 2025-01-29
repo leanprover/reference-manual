@@ -23,6 +23,8 @@ const searchHTML = `<div id="search-wrapper">
         aria-autocomplete="list"
         aria-expanded="false"
         aria-controls="cb1-listbox"
+        aria-haspopup="listbox"
+        aria-label="Search"
         spellcheck="false"
         autocorrect="false"
         autocapitalize="none"
