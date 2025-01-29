@@ -49,7 +49,7 @@ const docTacticDomainMapper = {
       domainId: "Verso.Genre.Manual.doc.tactic",
       ref: value,
     })),
-  className: "doc-tactic-domain",
+  className: "tactic-domain",
   displayName: "Tactic",
 };
 
@@ -64,7 +64,7 @@ const docConvTacticDomainMapper = {
       domainId: "Verso.Genre.Manual.doc.tactic.conv",
       ref: value,
     })),
-  className: "doc-tactic-domain",
+  className: "conv-tactic-domain",
   displayName: "Conv Tactic",
 };
 
