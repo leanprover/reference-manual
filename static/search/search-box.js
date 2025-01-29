@@ -686,8 +686,7 @@ class SearchBox {
         break;
 
       default:
-        // If characters have been added or removed
-        if (this.comboboxNode.textContent.length !== this.filter.length) {
+        if (this.comboboxNode.textContent !== this.filter) {
           this.filter = this.comboboxNode.textContent;
           this.setVisualFocusCombobox();
           this.setCurrentOptionStyle(null);
