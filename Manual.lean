@@ -285,6 +285,11 @@ String.one_le_csize
 ```
 
 ```exceptions
+Quot.indep
+Quot.lcInv
+```
+
+```exceptions
 String.sluggify
 ```
 

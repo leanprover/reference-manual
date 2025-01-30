@@ -363,6 +363,13 @@ instance : Add Z where
 ```
 :::
 
+When the function's result type is a {tech}[subsingleton], {name}`Quotient.recOnSubsingleton` or {name}`Quotient.recOnSubsingleton₂` can be used to define the function.
+Because all elements of a subsingleton are equal, such a function automatically respects the equivalence relation, so there is no proof obligation.
+
+{docstring Quotient.recOnSubsingleton}
+
+{docstring Quotient.recOnSubsingleton₂}
+
 ## Proofs About Quotients
 %%%
 tag := "quotient-proofs"
@@ -451,6 +458,16 @@ theorem Z.add_neg_inverse (n : Z) : n  + (-n) = 0 := by
 
 :::
 
+For more specialized use cases, {name}`Quotient.rec`, {name}`Quotient.recOn`, and {name}`Quotient.hrecOn` can be used to define dependent functions from a quotient type to a type in any other universe.
+Stating that a dependent function respects the quotient's equivalence relation requires a means of dealing with the fact that the dependent result type is instantiated with different values from the quotient on each side of the equality.
+{name}`Quotient.rec` and {name}`Quotient.recOn` use the {name}`Quotient.sound` to equate the related elements, inserting the appropriate cast into the statement of equality, while {name}`Quotient.hrecOn` uses heterogeneous equality.
+
+{docstring Quotient.rec}
+
+{docstring Quotient.recOn}
+
+{docstring Quotient.hrecOn}
+
 # Logical Model
 %%%
 tag := "quotient-model"
@@ -510,6 +527,10 @@ example : Quot.lift f ok (Quot.mk r x) = f x := rfl
 end
 ```
 
+{name}`Quot.liftOn` is an version of {name}`Quot.lift` that takes the quotient type's value first, by analogy to {name}`Quotient.liftOn`.
+
+{docstring Quot.liftOn}
+
 Because {name}`Quot` is not an inductive type, types implemented as quotients may not occur around {ref "nested-inductive-types"}[nested occurrences] in inductive type declarations.
 These types declarations must be rewritten to remove the nested quotient, which can often be done by defining a quotient-free version and then separately defining an equivalence relation that implements the desired equality relation.
 
@@ -535,6 +556,16 @@ inductive SetTree (α : Type u) where
 ```
 
 :::
+
+Lean also provides convenient elimination from {name}`Quot` into any subsingleton without further proof obligations, along with dependent elimination principles that correspond to those used for {name}`Quotient`.
+
+{docstring Quot.recOnSubsingleton}
+
+{docstring Quot.rec}
+
+{docstring Quot.recOn}
+
+{docstring Quot.hrecOn}
 
 
 # Quotients and Function Extensionality
