@@ -283,9 +283,16 @@ tag := "quotient-elim"
 
 
 Functions from quotients can be defined by proving that a function from the underlying type respects the quotient's equivalence relation.
-This is accomplished using {lean}`Quotient.lift`.
+This is accomplished using {lean}`Quotient.lift` or its binary counterpart {lean}`Quotient.lift₂`.
+The variants {lean}`Quotient.liftOn` and {lean}`Quotient.liftOn₂` place the quotient parameter first rather than last in the parameter list.
 
 {docstring Quotient.lift}
+
+{docstring Quotient.liftOn}
+
+{docstring Quotient.lift₂}
+
+{docstring Quotient.liftOn₂}
 
 :::example "Integer Negation and Addition"
 
@@ -350,9 +357,8 @@ instance : Add Z where
       intro n k n' k'
       intro heq heq'
       apply Quotient.sound
-      simp only [· ≈ ·, Setoid.r, Z.eq] at *
       cases n; cases k; cases n'; cases k'
-      simp_all
+      simp_all only [· ≈ ·, Setoid.r, Z.eq]
       omega
 ```
 :::
@@ -422,10 +428,12 @@ instance : Add Z where
       intro n k n' k'
       intro heq heq'
       apply Quotient.sound
-      simp only [· ≈ ·, Setoid.r, Z.eq] at *
       cases n; cases k; cases n'; cases k'
-      simp_all
+      simp_all only [· ≈ ·, Setoid.r, Z.eq]
       omega
+
+instance : OfNat Z n where
+  ofNat := Z.mk (n, 0)
 ```
 
 Given the definition of integers as a quotient type from the prior examples, {name}`Quotient.ind` and {name}`Quotient.sound` can be used to prove that negation is an additive inverse.
