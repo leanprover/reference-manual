@@ -159,7 +159,7 @@ def notInductive (x : Nat → Nat) : Nat := notInductive (fun n => x (n+1))
 termination_by structural x
 ```
 ```leanOutput badnoindct
-cannot use specified parameter for structural recursion:
+cannot use specified measure for structural recursion:
   its type is not an inductive
 ```
 
@@ -175,7 +175,7 @@ def constantIndex (x : Fin' 100) : Nat := constantIndex .zero
 termination_by structural x
 ```
 ```leanOutput badidx
-cannot use specified parameter for structural recursion:
+cannot use specified measure for structural recursion:
   its type Fin' is an inductive family and indices are not variables
     Fin' 100
 ```
@@ -193,7 +193,7 @@ def afterVarying (n : Nat) (p : Nat) (x : WithParam' p n) : Nat :=
 termination_by structural x
 ```
 ```leanOutput badparam
-cannot use specified parameter for structural recursion:
+cannot use specified measure for structural recursion:
   its type is an inductive datatype
     WithParam' p n
   and the datatype parameter

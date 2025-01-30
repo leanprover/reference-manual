@@ -35,7 +35,7 @@ private def mkInlineTable (rows : Array (Array Term)) : TermElabM Term := do
     let blocks : Array Term :=
       #[ ← ``(Inline.text "Theorem"), ← ``(Inline.text "Pattern") ] ++
       rows.flatten
-    ``(Block.other (Block.table $(quote columns) (header := true) Option.none)
+    ``(Block.other (Block.table $(quote columns) (header := true) Option.none Option.none)
         #[Block.ul #[$[Verso.Doc.ListItem.mk #[Block.para #[$blocks]]],*]])
 
 

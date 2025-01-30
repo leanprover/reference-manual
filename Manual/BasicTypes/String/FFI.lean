@@ -20,8 +20,6 @@ tag := "string-ffi"
 %%%
 
 
-{docstring Char.utf8Size}
-
 :::ffi "lean_string_object" kind := type
 ```
 typedef struct {

@@ -418,6 +418,9 @@ unknown identifier 'cupcake'
 :::
 
 ### Section Variables
+%%%
+tag := "section-variables"
+%%%
 
 {deftech}_Section variables_ are parameters that are automatically added to declarations that mention them.
 This occurs whether or not the option {option}`autoImplicit` is {lean}`true`.
