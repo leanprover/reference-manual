@@ -34,7 +34,7 @@ In these cases, a definition as a {deftech}_partial fixpoint_ may still be possi
 Any function that satisfies the defining equation can be used to demonstrate that the equation does not create a logical contradiction, and the equation can then be proven as a theorem about this function.
 As with the other strategies for defining recursive functions, compiled code uses the function as it was originally written; like definitions in terms of eliminators or recursion over accessibility proofs, the function used to define the partial fixpoint is used only to justify the function's equations in Lean's logic for purposes of mathematical reasoning.
 
-While partial fixpoints do allow more funtions to be defined in Lean, the are also useful for functions that can be defined without them.
+While partial fixpoints do allow more functions to be defined in Lean, the are also useful for functions that can be defined without them.
 Even in cases where the defining equation fully describes the function's behavior and a termination proof using {ref "well-founded-recursion"}[well-founded recursion] would be possible, it may simply be more convenient to define the function as a partial fixpoint to avoid a having to write a termination proof.
 
 Defining recursive functions as partial fixpoints only occurs when explicitly requested by annotating the definition with {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`.
@@ -258,7 +258,7 @@ tag := "partial-correctness-theorem"
 %%%
 
 
-For every function defined as a partial fixpoint, Lean proves that that the defining equation is satisfied.
+For every function defined as a partial fixpoint, Lean proves that the defining equation is satisfied.
 This enables proofs by rewriting.
 However, these equational theorems are not sufficient for reasoning about the behavior of the function on arguments for which the function specification does not terminate.
 Code paths that lead to infinite recursion at runtime would end up as infinite chains of rewrites in a potential proof.
