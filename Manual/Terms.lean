@@ -19,6 +19,8 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 set_option linter.constructorNameAsVariable false
 set_option guard_msgs.diff true
 
+set_option guard_msgs.diff true
+
 #doc (Manual) "Terms" =>
 %%%
 tag := "terms"
@@ -810,11 +812,11 @@ Repeated pipelines use parsing precedence instead of nested parentheses to nest 
 :::syntax term (title := "Pipelines")
 Right pipe notation applies the term to the right of the pipe to the one on its left.
 ```grammar
-e |> e
+$e |> $e
 ```
 Left pipe notation applies the term on the left of the pipe to the one on its right.
 ```grammar
-e <| e
+$e <| $e
 ```
 :::
 
@@ -1055,7 +1057,7 @@ else
 
 With the name annotation, the branches of the {keywordOf termDepIfThenElse}`if` have access to a local assumption that the proposition is respectively true or false.
 ```grammar
-if h : $e then
+if $h : $e then
   $e
 else
   $e

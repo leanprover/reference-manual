@@ -577,6 +577,9 @@ scoped
 :::
 
 # Axioms
+%%%
+tag := "axioms"
+%%%
 
 :::planned 78
 Describe {deftech}_axioms_ in detail
