@@ -613,6 +613,7 @@ is definitionally equal to
 fun x => (Quot.mk extEq f).lift (· x) (fun _ _ h => h x)
 ```
 which is definitionally equal to {lean}`fun x => f x`, which is definitionally equal (by {tech}[η-equivalence]) to {lean}`f`.
+A propositional version of the computation rule for {name}`Quot.lift` would not suffice, because the reducible expression occurs in the body of a function and rewriting by an equality in a function would already require function extensionality.
 
 ```lean (show := false)
 end
