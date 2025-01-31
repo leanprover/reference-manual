@@ -64,7 +64,6 @@ The {name}`Alternative` type class describes applicative functors that additiona
 ```lean (show := false)
 section
 variable {α : Type u} {β : Type u}
-variable {n : Nat}
 ```
 
 ::::example "Lists with Lengths as Applicative Functors"
@@ -113,7 +112,7 @@ instance : Applicative (LenList n) where
     list := List.replicate n x
     lengthOk := List.length_replicate _ _
   }
-  seq fs xs := fs.zipWith (· ·) (xs ())
+  seq {α β} fs xs := fs.zipWith (· ·) (xs ())
 ```
 
 The well-behaved {name}`Monad` instance takes the diagonal of the results of applying the function:
@@ -128,7 +127,8 @@ def LenList.diagonal (square : LenList n (LenList n α)) : LenList n α :=
   match n with
   | 0 => ⟨[], rfl⟩
   | n' + 1 => {
-    list := square.head.head :: (square.tail.map (·.tail)).diagonal.list,
+    list :=
+      square.head.head :: (square.tail.map (·.tail)).diagonal.list
     lengthOk := by simp
   }
 ```

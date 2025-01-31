@@ -43,6 +43,11 @@ Users should not define new instances of {name}`MonadLiftT`, but it is useful as
 
 {docstring MonadLiftT}
 
+```lean (show := false)
+section
+variable {m : Type → Type u}
+```
+
 :::example "Monad Lifts in Function Signatures"
 The function {name}`IO.withStdin` has the following signature:
 ```signature
@@ -54,6 +59,10 @@ IO.withStdin.{u} {m : Type → Type u} {α : Type}
 Because it doesn't require its parameter to precisely be in {name}`IO`, it can be used in many monads, and the body does not need to restrict itself to {name}`IO`.
 The instance implicit parameter {lean}`MonadLiftT BaseIO m` allows the reflexive transitive closure of {name}`MonadLift` to be used to assemble the lift.
 :::
+
+```lean (show := false)
+end
+```
 
 
 When a term of type {lean}`n β` is expected, but the provided term has type {lean}`m α`, and the two types are not definitionally equal, Lean attempts to insert lifts and coercions before reporting an error.
@@ -113,23 +122,31 @@ fun {α} act => liftM act : {α : Type} → BaseIO α → EIO IO.Error α
 There are also instances of {name}`MonadLift` for most of the standard library's {tech}[monad transformers], so base monad actions can be used in transformed monads without additional work.
 For example, state monad actions can be lifted across reader and exception transformers, allowing compatible monads to be intermixed freely:
 ````lean (keep := false)
-def incrBy (n : Nat) : StateM Nat Unit := modify (+ n)
+def incrBy (n : Nat) : StateM Nat Unit := modify (· + n)
 
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
 ````
 
-Disabling lifting causes the code to fail to work:
-````lean (name := noLift)
+Disabling lifting causes an error:
+````lean (name := noLift) (error := true)
 set_option autoLift false
 
-def incrBy (n : Nat) : StateM Nat Unit := modify (+ n)
+def incrBy (n : Nat) : StateM Nat Unit := modify (. + n)
 
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
 ````
+```leanOutput noLift
+type mismatch
+  incrBy __do_lift✝
+has type
+  StateM Nat Unit : Type
+but is expected to have type
+  ReaderT Nat (ExceptT String (StateM Nat)) Unit : Type
+```
 
 ::::
 :::::

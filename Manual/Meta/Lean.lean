@@ -292,7 +292,7 @@ def leanInline : RoleExpander
     let expectedType ← config.type.mapM fun (s : StrLit) => do
       match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
       | .error e => throwErrorAt term e
-      | .ok stx => withEnableInfoTree false do
+      | .ok stx => withEnableInfoTree false <| runWithOpenDecls <| runWithVariables fun _ => do
         let t ← Elab.Term.elabType stx
         Term.synthesizeSyntheticMVarsNoPostponing
         let t ← instantiateMVars t
@@ -917,14 +917,18 @@ def name : RoleExpander
     let exampleName := name.getString.toName
     let identStx := mkIdentFrom arg (cfg.full.getD exampleName) (canonical := true)
 
-    let resolvedName ←
-      runWithOpenDecls <| runWithVariables fun _ =>
-        withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.name, stx := identStx})) do
-          realizeGlobalConstNoOverloadWithInfo identStx
+    try
+      let resolvedName ←
+        runWithOpenDecls <| runWithVariables fun _ =>
+          withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.name, stx := identStx})) do
+            realizeGlobalConstNoOverloadWithInfo identStx
 
-    let hl : Highlighted ← constTok resolvedName name.getString
+      let hl : Highlighted ← constTok resolvedName name.getString
 
-    pure #[← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString)])]
+      pure #[← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote name.getString)])]
+    catch e =>
+      logErrorAt identStx e.toMessageData
+      pure #[← `(Inline.code $(quote name.getString))]
   | _, more =>
     if h : more.size > 0 then
       throwErrorAt more[0] "Unexpected contents"

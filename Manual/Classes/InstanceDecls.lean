@@ -268,8 +268,10 @@ However, because it is an ordinary Lean function, it can recursively refer to it
 instance instDecidableEqStringList : DecidableEq StringList
   | .nil, .nil => .isTrue rfl
   | .cons h1 t1, .cons h2 t2 =>
+    let _ : Decidable (t1 = t2) :=
+      instDecidableEqStringList t1 t2
     if h : h1 = h2 then
-      if h' : instDecidableEqStringList t1 t2 then
+      if h' : t1 = t2 then
         .isTrue (by simp [*])
       else
         .isFalse (by intro hEq; cases hEq; trivial)

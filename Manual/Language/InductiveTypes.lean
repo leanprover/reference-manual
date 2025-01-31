@@ -362,17 +362,24 @@ Not every inductive type is represented as indicated here—some inductive types
 axiom α : Prop
 ````
 
- * The fixed-width integer types {lean}`UInt8`, ..., {lean}`UInt64`, and {lean}`USize` are represented by the C types `uint8_t`, ..., `uint64_t`, and `size_t`, respectively.
+ * The representation of the fixed-width integer types {lean}`UInt8`, ..., {lean}`UInt64`, {lean}`Int8`, ..., {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
+   Fixed-width integer types that are strictly smaller than the architecture's pointer type are stored unboxed by setting the lowest bit of a pointer to `1`.
+   Integer types that are at least as large as the architecture's pointer type may be boxed or unboxed, depending on whether a concrete value fits in one fewer bits than the pointer type.
+   If so, it is encoded by setting the lowest bit of the value to `1` (checked by `lean_is_scalar`).
+   Otherwise, the value is represented is a pointer to a fixed-size Lean object on the heap.
+   In the C FFI, these values are marshalled into the appropriate C types `uint8_t`, ..., `uint64_t`, and `size_t`, respectively.{margin}[Fixed-width signed integer types are also represented as unsigned C integers in the FFI.]
 
- * {lean}`Char` is represented by `uint32_t`
+ * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
 
- * {lean}`Float` is represented by `double`
+ * {lean}`Float` is represented by a pointer to a Lean object that contains a `double`.
 
  * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of `uint8_t`, `uint16_t`, `uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by `uint8_t`, with values `0` for {lean}`false` and `1` for {lean}`true`. {TODO}[Find out whether this should say "no relevant parameters"]
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
- * {lean}`Nat` is represented by `lean_object *`. Its run-time value is either a pointer to an opaque arbitrary-precision integer object or, if the lowest bit of the “pointer” is `1` (checked by `lean_is_scalar`), an encoded unboxed natural number (`lean_box`/`lean_unbox`). {TODO}[Move these to FFI section or Nat chapter]
+ * {lean}`Nat` and {lean}`Int` are represented by `lean_object *`.
+   A run-time {lean}`Nat` or {lean}`Int` value is either a pointer to an opaque arbitrary-precision integer object or, if the lowest bit of the “pointer” is `1` (checked by `lean_is_scalar`), an encoded unboxed natural number or integer (`lean_box`/`lean_unbox`). {TODO}[Move these to FFI section or Nat chapter]
+
 :::
 
 ## Relevance

@@ -328,7 +328,7 @@ Wrapping the discriminants in a pair breaks the connection.
 :::example "Structural Recursion Under Pairs"
 
 This function that finds the minimum of the two components of a pair can't be elaborated via structural recursion.
-```lean (error := true) (name := minpair)
+```lean (error := true) (name := minpair) (keep := false)
 def min' (nk : Nat × Nat) : Nat :=
   match nk with
   | (0, _) => 0
@@ -346,7 +346,7 @@ This is because the parameter's type, {name}`Prod`, is not recursive.
 Thus, its constructor has no recursive parameters that can be exposed by pattern matching.
 
 This definition is accepted using {tech}[well-founded recursion], however:
-```lean (keep := false)
+```lean
 def min' (nk : Nat × Nat) : Nat :=
   match nk with
   | (0, _) => 0

@@ -41,22 +41,25 @@ inductive Tree (α : Type u) : Type u where
   | branch (left : Tree α) (val : α) (right : Tree α)
 ```
 
-It's corresponding course-of-values table contains the realizations of the motive for all subtrees:
+Its corresponding course-of-values table contains the realizations of the motive for all subtrees:
 ```lean
 def Tree.below' {α : Type u} {motive : Tree α → Sort u} :
     Tree α → Sort (max 1 u)
   | .leaf => PUnit
   | .branch left _val right =>
-    motive left ×' motive right ×'
-    left.below' (motive := motive) ×'
-    right.below' (motive := motive)
+    (motive left ×' left.below' (motive := motive)) ×'
+    (motive right ×' right.below' (motive := motive))
 ```
 
 ```lean (show := false)
 theorem Tree.below_eq_below' : @Tree.below = @Tree.below' := by
   funext α motive t
-  induction t <;> simp [Tree.below, below']
-  congr
+  induction t
+  next =>
+    simp [Tree.below, Tree.below']
+  next ihl ihr =>
+    simp [Tree.below, Tree.below', ihl, ihr]
+
 ```
 
 For both lists and trees, the `brecOn` operator expects just a single case, rather than one per constructor.
@@ -96,7 +99,7 @@ def Tree.brecOnTable {α : Type u}
   | .branch left val right =>
     let resLeft := left.brecOnTable (motive := motive) step
     let resRight := right.brecOnTable (motive := motive) step
-    let branchRes := ⟨resLeft.1, resRight.1, resLeft.2, resRight.2⟩
+    let branchRes := ⟨resLeft, resRight⟩
     let val := step (.branch left val right) branchRes
     ⟨val, branchRes⟩
 ```
@@ -149,9 +152,10 @@ info: fun motive x y z step =>
 /--
 info: fun motive x z step =>
   step ((Tree.leaf.branch x Tree.leaf).branch z Tree.leaf)
-    ⟨step (Tree.leaf.branch x Tree.leaf) ⟨step Tree.leaf PUnit.unit, step Tree.leaf PUnit.unit, PUnit.unit, PUnit.unit⟩,
-      step Tree.leaf PUnit.unit, ⟨step Tree.leaf PUnit.unit, step Tree.leaf PUnit.unit, PUnit.unit, PUnit.unit⟩,
-      PUnit.unit⟩
+    ⟨⟨step (Tree.leaf.branch x Tree.leaf)
+          ⟨⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
+        ⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
+      step Tree.leaf PUnit.unit, PUnit.unit⟩
 -/
 #guard_msgs in
 #reduce fun motive x z step => Tree.brecOn' (motive := motive) (.branch (.branch .leaf x .leaf) z .leaf) step
