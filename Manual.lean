@@ -254,6 +254,8 @@ Setoid
 Squash
 Subsingleton
 WellFoundedRelation
+Equivalence
+HasEquiv
 Lake
 Lake.RecBuildM
 Lake.FetchM
@@ -280,6 +282,11 @@ String.utf8ByteSize.go String.validateUTF8.loop
 String.crlfToLf.go
 String.fromUTF8.loop
 String.one_le_csize
+```
+
+```exceptions
+Quot.indep
+Quot.lcInv
 ```
 
 ```exceptions

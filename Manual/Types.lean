@@ -10,6 +10,7 @@ import Manual.Meta
 
 import Manual.Language.Functions
 import Manual.Language.InductiveTypes
+import Manual.Quotients
 
 open Verso.Genre Manual
 
@@ -80,7 +81,7 @@ export S (f1 f2)
 
 Definitional equality includes η-equivalence of functions and single-constructor inductive types.
 That is, {lean}`fun x => f x` is definitionally equal to {lean}`f`, and {lean}`S.mk x.f1 x.f2` is definitionally equal to {lean}`x`, if {lean}`S` is a structure with fields {lean}`f1` and {lean}`f2`.
-It also features proof irrelevance, so any two proofs of the same proposition are definitionally equal.
+It also features {deftech}_proof irrelevance_: any two proofs of the same proposition are definitionally equal.
 It is reflexive, symmetric, and a congruence.
 ::::
 
@@ -528,13 +529,4 @@ def L := List (Type 0)
 
 {include 0 Language.InductiveTypes}
 
-
-# Quotients
-%%%
-tag := "quotients"
-%%%
-
-:::planned 51
- * Define {deftech}[quotient] type
- * Show the computation rule
-:::
+{include 0 Manual.Quotients}
