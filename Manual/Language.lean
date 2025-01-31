@@ -301,7 +301,7 @@ open Greetings
 
 The section's name must be used to close it.
 
-```lean (error := true) (name := english4)
+```lean (error := true) (name := english4) (keep := false)
 end
 ```
 ```leanOutput english4

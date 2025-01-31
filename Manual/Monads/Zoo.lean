@@ -225,7 +225,7 @@ The standard library exports a mix of operations from the `-Of` and undecorated 
 ```lean (show := false)
 example : @get = @MonadState.get := by rfl
 example : @set = @MonadStateOf.set := by rfl
-example (f : σ → σ) : @modify σ m inst f = @MonadState.modifyGet σ m inst PUnit fun (s : σ) => (PUnit.unit, f s) := by rfl
+example {inst} (f : σ → σ) : @modify σ m inst f = @MonadState.modifyGet σ m inst PUnit fun (s : σ) => (PUnit.unit, f s) := by rfl
 example : @modifyGet = @MonadState.modifyGet := by rfl
 example : @read = @MonadReader.read := by rfl
 example : @readThe = @MonadReaderOf.read := by rfl

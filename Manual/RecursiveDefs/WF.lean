@@ -370,10 +370,33 @@ def Tree.depth (t : Tree) : Nat :=
   | none => 0
 termination_by t
 decreasing_by
+  cases t
   decreasing_tactic
 ```
 
-Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ t.children`, which suffices for {tactic}`decreasing_tactic` to succeed.
+Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ t.children`.
+The initial goal, that {lean}`sizeOf c < sizeOf t.children`, can be simplified with the {tactic}`cases` tactic into one for which  {tactic}`decreasing_tactic` succeeds.
+
+```lean (keep := false) (show := false)
+/--
+error: failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+t c : Tree
+hc : c ∈ t.children
+⊢ sizeOf c < sizeOf t
+-/
+#guard_msgs in
+def Tree.depth (t : Tree) : Nat :=
+  let depths := t.children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+decreasing_by
+  decreasing_tactic
+```
 
 :::
 
