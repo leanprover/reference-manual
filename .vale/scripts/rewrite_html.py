@@ -51,6 +51,10 @@ def process_html_file(filepath, output_filepath):
         for inner in element.contents:
             inner.replace_with(inner.get_text())
 
+    # Delete software license info
+    for element in soup.find_all("section", class_="license-info"):
+        element.decompose()
+
     # Ensure the output directory exists
     os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
 

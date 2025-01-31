@@ -283,7 +283,7 @@ This syntax is also translated to a use of {name}`bind`.
 This indicates a pure, rather than monadic, definition:
 :::syntax Lean.Parser.Term.doSeqItem
 ```grammar
-let v := $e:term
+let $v := $e:term
 ```
 :::
 {lean}`do let x := e; es` is translated to {lean}`let x := e; do es`.

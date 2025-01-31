@@ -218,3 +218,11 @@ inductive Even : Nat → Prop where
 {docstring Even}
 
 ::::
+
+# Open-Source Licenses
+%%%
+tag := "dependency-licenses"
+number := false
+%%%
+
+{licenseInfo}

@@ -288,6 +288,13 @@ Instead of writing the constructor's name applied to its arguments, the explicit
 This works in both pattern and expression contexts.
 Providing arguments by name or converting all implicit parameters to explicit parameters with `@` requires using the ordinary constructor syntax.
 
+:::syntax term (title := "Anonymous Constructors")
+Constructors can be invoked anonymously by enclosing their explicit arguments in angle brackets, separated by commas.
+```grammar
+⟨ $_,* ⟩
+```
+:::
+
 ::::example "Anonymous constructors"
 
 :::keepEnv
