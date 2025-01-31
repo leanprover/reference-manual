@@ -520,8 +520,8 @@ def ex2 (e) := show m _ from `(2 + $e :num)
 end
 ```
 
-::::keepEnv
-:::example "Expanding Quasiquotation"
+:::::keepEnv
+::::example "Expanding Quasiquotation"
 Printing the definition of {name}`f` demonstrates the expansion of a quasiquotation.
 ```lean (name := expansion)
 open Lean in
@@ -548,8 +548,11 @@ fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
                   (Syntax.ident info "k".toSubstring' (Lean.addMacroScope mainModule `k scp) []))) }.raw
 ```
 
+:::paragraph
 ```lean (show := false)
 section
+open Lean (Term)
+open Lean.Quote
 variable {x : Term} {n : Nat}
 ```
 
@@ -558,13 +561,15 @@ It begins by constructing the source information for the resulting syntax, obtai
 It then obtains the current macro scope and the name of the module being processed, because macro scopes are added with respect to a module to enable independent compilation and avoid the need for a global counter.
 It then constructs a node using helpers such as {name}`Syntax.node1` and {name}`Syntax.node2`, which create a {name}`Syntax.node` with the indicated number of children.
 The macro scope is added to each identifier, and {name Lean.TSyntax.raw}`TSyntax.raw` is used to extract the contents of typed syntax wrappers.
-The antiquotations of {lean}`x` and {lean}`quote (n + 2)` occur directly in the expansion, as parameters to {name}`Syntax.node3`.
+The antiquotations of {lean}`x` and {lean type:="Term"}`quote (n + 2)` occur directly in the expansion, as parameters to {name}`Syntax.node3`.
 
 ```lean (show := false)
 end
 ```
 :::
+
 ::::
+:::::
 
 
 ### Splices
@@ -696,14 +701,14 @@ syntax "⟨| " (term)? " |⟩": term
 
 The `?` splice suffix for a term expects an {lean}`Option Term`:
 ```lean
-def mkStx [Monad m] [MonadQuotation m] (e) : m Term :=
+def mkStx [Monad m] [MonadQuotation m] (e : Option Term) : m Term :=
   `(⟨| $(e)? |⟩)
 ```
 ```lean (name := checkMkStx)
 #check mkStx
 ```
 ```leanOutput checkMkStx
-mkStx {m : Type → Type} [Monad m] [MonadQuotation m] (e : Option (TSyntax `term)) : m Term
+mkStx {m : Type → Type} [Monad m] [MonadQuotation m] (e : Option Term) : m Term
 ```
 
 Supplying {name}`some` results in the optional term being present.
@@ -716,7 +721,7 @@ Supplying {name}`some` results in the optional term being present.
 
 Supplying {name}`none` results in the optional term being absent.
 ```lean (name := noneMkStx)
-#eval do logInfo (← mkStx none))
+#eval do logInfo (← mkStx none)
 ```
 ```leanOutput noneMkStx
 ⟨| |⟩
@@ -970,7 +975,7 @@ open Lean.Macro
 The `arbitrary!` macro is intended to expand to some arbitrarily-determined value of a given type.
 
 ```lean
-syntax (name := arbitrary!) "arbitrary!" term:arg : term
+syntax (name := arbitrary!) "arbitrary! " term:arg : term
 ```
 
 :::keepEnv
@@ -1024,30 +1029,30 @@ macro_rules
 Additionally, if any rule throws the {name Lean.Macro.Exception.unsupportedSyntax}`unsupportedSyntax` exception, no further rules in that command are checked.
 ```lean
 macro_rules
-  | `(arbitrary! Nat) => throwUnsupported
-  | `(arbitrary! Nat) => `(42)
+  | `(arbitrary! (List Nat)) => throwUnsupported
+  | `(arbitrary! (List $_)) => `([])
 
 macro_rules
-  | `(arbitrary! Int) => `(42)
+  | `(arbitrary! (Array Nat)) => `(#[42])
 macro_rules
-  | `(arbitrary! Int) => throwUnsupported
+  | `(arbitrary! (Array $_)) => throwUnsupported
 ```
 
-The case for {lean}`Nat` fails to elaborate, because macro expansion did not translate the {keywordOf arbitrary!}`arbitrary!` syntax into something supported by the elaborator.
+The case for {lean}`List Nat` fails to elaborate, because macro expansion did not translate the {keywordOf arbitrary!}`arbitrary!` syntax into something supported by the elaborator.
 ```lean (name := arb3) (error := true)
-#eval arbitrary! Nat
+#eval arbitrary! (List Nat)
 ```
 ```leanOutput arb3
 elaboration function for 'arbitrary!' has not been implemented
-  arbitrary! Nat
+  arbitrary! (List Nat)
 ```
 
-The case for {lean}`Int` succeeds, because the first set of macro rules are attempted after the second throws the exception.
+The case for {lean}`Array Nat` succeeds, because the first set of macro rules are attempted after the second throws the exception.
 ```lean (name := arb4)
-#eval arbitrary! Int
+#eval arbitrary! (Array Nat)
 ```
 ```leanOutput arb4
-42
+#[42]
 ```
 ::::
 
