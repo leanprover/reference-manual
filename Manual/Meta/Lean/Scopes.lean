@@ -46,7 +46,8 @@ context to provide access to variables.
 -/
 def runWithVariables (elabFn : Array Expr → TermElabM α) : TermElabM α := do
   let scope := (← getScopes).head!
-  Term.withAutoBoundImplicit <|
+  Term.withAutoBoundImplicit do
+    let msgLog ← Core.getMessageLog
     Term.elabBinders scope.varDecls fun xs => do
       -- We need to synthesize postponed terms because this is a checkpoint for the auto-bound implicit feature
       -- If we don't use this checkpoint here, then auto-bound implicits in the postponed terms will not be handled correctly.
@@ -57,7 +58,7 @@ def runWithVariables (elabFn : Array Expr → TermElabM α) : TermElabM α := do
       withReader ({ · with sectionFVars := sectionFVars }) do
         -- We don't want to store messages produced when elaborating `(getVarDecls s)` because they have already been saved when we elaborated the `variable`(s) command.
         -- So, we use `Core.resetMessageLog`.
-        Core.resetMessageLog
+        Core.setMessageLog msgLog
         let someType := mkSort levelZero
         Term.addAutoBoundImplicits' xs someType fun xs _ =>
           Term.withoutAutoBoundImplicit <| elabFn xs

@@ -33,7 +33,7 @@ It does mean, however, that using these functions in types typically does not wo
 Even when the reduction behavior happens to hold definitionally, it is often much slower than structurally recursive definitions in the kernel, which must unfold the termination proof along with the definition.
 When possible, recursive function that are intended for use in types or in other situations where definitional equality is important should be defined with structural recursion.
 
-To explicitly use well-founded recursion recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_measure_ by which the function terminates.
+To explicitly use well-founded recursion, a function or theorem definition can be annotated with a {keywordOf Lean.Parser.Command.declaration}`termination_by` clause that specifies the {deftech}_measure_ by which the function terminates.
 The measure should be a term that decreases at each recursive call; it may be one of the function's parameters or a tuple of the parameters, but it may also be any other term.
 The measure's type must be equipped with a {tech}[well-founded relation], which determines what it means for the measure to decrease.
 
@@ -336,7 +336,8 @@ structure Tree where
 A naïve attempt to define a recursive function over this data structure will fail:
 ```lean (keep := false) (name := nestedBad) (error := true)
 def Tree.depth (t : Tree) : Nat :=
-  let depths := t.children.map (fun c => Tree.depth c)
+  let {children} := t
+  let depths := children.map (fun c => Tree.depth c)
   match depths.max? with
   | some d => d+1
   | none => 0
@@ -347,12 +348,13 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-t c : Tree
-⊢ sizeOf c < sizeOf t
+children : List Tree
+c : Tree
+⊢ sizeOf c < 1 + sizeOf children
 ```
 
 ```lean (show := false)
-variable (t : Tree) (c : Tree)
+variable (t : Tree) (c : Tree) (children : List Tree)
 ```
 
 
@@ -364,7 +366,8 @@ This can be achieved by “attaching” a proof of membership in {lean}`t.childr
 
 ```lean (keep := false)
 def Tree.depth (t : Tree) : Nat :=
-  let depths := t.children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
+  let {children} := t
+  let depths := children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
   match depths.max? with
   | some d => d+1
   | none => 0
@@ -373,7 +376,29 @@ decreasing_by
   decreasing_tactic
 ```
 
-Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ t.children`, which suffices for {tactic}`decreasing_tactic` to succeed.
+Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ children`.
+The initial goal, that {lean}`sizeOf c < sizeOf t.children`, can be simplified with the {tactic}`cases` tactic into one for which  {tactic}`decreasing_tactic` succeeds.
+
+```lean (keep := false) (show := false)
+/--
+error: failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+t c : Tree
+hc : c ∈ t.children
+⊢ sizeOf c < sizeOf t
+-/
+#guard_msgs in
+def Tree.depth (t : Tree) : Nat :=
+  let depths := t.children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+decreasing_by
+  decreasing_tactic
+```
 
 :::
 
