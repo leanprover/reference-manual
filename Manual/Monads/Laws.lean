@@ -24,6 +24,8 @@ set_option linter.unusedVariables false
 tag := "monad-laws"
 %%%
 
+:::keepEnv
+
 ```lean (show := false)
 section Laws
 universe u u' v
@@ -38,7 +40,7 @@ axiom γ : Type u'
 axiom x : f α
 ```
 
-:::keepEnv
+
 ```lean (show := false)
 section F
 variable {f : Type u → Type v} [Functor f] {α β : Type u} {g : α → β} {h : β → γ} {x : f α}
@@ -64,7 +66,7 @@ The {name}`LawfulFunctor` class includes the necessary proofs.
 ```lean (show := false)
 end F
 ```
-:::
+
 
 In addition to proving that the potentially-optimized {name}`SeqLeft.seqLeft` and {name}`SeqRight.seqRight` operations are equivalent to their default implementations, Applicative functors {lean}`f` must satisfy four laws.
 
@@ -75,3 +77,5 @@ The {deftech}[monad laws] specify that {name}`pure` followed by {name}`bind` sho
 {docstring LawfulMonad}
 
 {docstring LawfulMonad.mk'}
+
+:::

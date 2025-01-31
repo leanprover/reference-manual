@@ -17,6 +17,7 @@ set_option linter.unusedVariables false
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option linter.constructorNameAsVariable false
+set_option guard_msgs.diff true
 
 #doc (Manual) "Terms" =>
 %%%
@@ -190,11 +191,11 @@ Even though `A` was opened more recently than the declaration of {name}`B.x`, th
 :::
 ::::
 
-::::keepEnv
+
 :::example "Ambiguous Identifiers"
 In this example, `x` could refer either to {name}`A.x` or {name}`B.x`, and neither takes precedence.
 Because both have the same type, it is an error.
-```lean (name := ambi)
+```lean (name := ambi) (error := true)
 def A.x := "A.x"
 def B.x := "B.x"
 open A
@@ -207,13 +208,11 @@ ambiguous, possible interpretations
 
   A.x : String
 ```
-```lean (show := false)
-```
 :::
-::::
-::::keepEnv
+
+
 :::example "Disambiguation via Typing"
-When they have different types, the types are used to disambiguate:
+When otherwise-ambiguous names have different types, the types are used to disambiguate:
 ```lean (name := ambiNo)
 def C.x := "C.x"
 def D.x := 3
@@ -225,7 +224,7 @@ open D
 "C.x"
 ```
 :::
-::::
+
 
 
 ## Leading `.`
@@ -870,7 +869,7 @@ axiom T.f : {n : Nat} → Char → T n → String
 
 Some functions are inconvenient to use with pipelines because their argument order is not conducive.
 For example, {name}`Array.push` takes an array as its first argument, not a {lean}`Nat`, leading to this error:
-```lean (name := arrPush)
+```lean (name := arrPush) (error := true)
 #eval #[1, 2, 3] |> Array.push 4
 ```
 ```leanOutput arrPush
@@ -1212,7 +1211,7 @@ They consist of the following:
 
 : Quoted names
 
-  Quoted names, such as {lean}`` `x `` and {lean}``` ``plus ```, match the corresponding {name}`Lean.Name` value.
+  Quoted names, such as {lean}`` `x `` and {lean}``` ``none ```, match the corresponding {name}`Lean.Name` value.
 
 : Macros
 
@@ -1385,7 +1384,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1487, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1542, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..

@@ -273,7 +273,7 @@ def Heap.bubbleUp [Ord α] (i : Nat) (xs : Heap α) : Heap α :=
   else
     let j := i / 2
     if Ord.compare xs.contents[i] xs.contents[j] == .lt then
-      Heap.bubbleUp j {xs with contents := xs.contents.swap ⟨i, by omega⟩ ⟨j, by omega⟩}
+      Heap.bubbleUp j {xs with contents := xs.contents.swap i j}
     else xs
 
 def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=
@@ -294,13 +294,12 @@ def Heap'.bubbleUp [inst : Ord α] (i : Nat) (xs : @Heap' α inst) : @Heap' α i
   else
     let j := i / 2
     if inst.compare xs.contents[i] xs.contents[j] == .lt then
-      Heap'.bubbleUp j {xs with contents := xs.contents.swap ⟨i, by omega⟩ ⟨j, by omega⟩}
+      Heap'.bubbleUp j {xs with contents := xs.contents.swap i j}
     else xs
 
 def Heap'.insert [Ord α] (x : α) (xs : Heap' α) : Heap' α :=
   let i := xs.contents.size
   {xs with contents := xs.contents.push x}.bubbleUp i
-end A
 ```
 
 In the improved definitions, {name}`Heap'.bubbleUp` is needlessly explicit; the instance does not need to be explicitly named here because Lean would select the indicated instances nonetheless, but it does bring the correctness invariant front and center for readers.
