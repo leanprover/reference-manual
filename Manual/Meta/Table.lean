@@ -39,9 +39,9 @@ def Alignment.htmlClass : Alignment → String
   | .center => "center-align"
 end TableConfig
 
-def Block.table (columns : Nat) (header : Bool) (name : Option String) (alignment : Option TableConfig.Alignment) (tag : Option Tag := none): Block where
+def Block.table (columns : Nat) (header : Bool) (tag : Option String) (alignment : Option TableConfig.Alignment) (assignedTag : Option Tag := none) : Block where
   name := `Manual.table
-  data := ToJson.toJson (columns, header, name, tag, alignment)
+  data := ToJson.toJson (columns, header, tag, assignedTag, alignment)
 
 structure TableConfig where
   /-- Name for refs -/
@@ -111,7 +111,7 @@ def table.descr : BlockDescr where
     | .ok (c, hdr, some x, none, align) =>
       let path ← (·.path) <$> read
       let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.table c hdr (some x) (tag := some tag) align with id := some id} contents
+      pure <| some <| Block.other {Block.table c hdr (some x) (assignedTag := some tag) align with id := some id} contents
     | .ok (_, _, some _, some _, _) => pure none
   toTeX := none
   toHtml :=
