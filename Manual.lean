@@ -52,6 +52,13 @@ Additionally, we will be adding missing API reference documentation and revising
 
 **Release History**
 
+: 2025-02-03
+
+  This release updates the contents for Lean version 4.17.0-rc1.
+  It adds descriptions of {ref "well-founded-recursion"}[well-founded recursion], the new {ref "partial-fixpoint"}[partial fixpoint] feature, {ref "quotients"}[quotient types], and {ref "lake"}[Lake], and {ref "structural-recursion"}[the description of structural recursion] has been greatly improved.
+  Descriptions and API references for all fixed-width integer types, {name}`Int`, {name}`Fin`, {name}`Empty`, {name}`Option` were also added
+  This release also includes a quick-jump box that can be used to quickly navigate to any documented topic.
+
 : 2024-12-16
 
   This is the initial release of the reference manual.
