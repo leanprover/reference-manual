@@ -296,8 +296,9 @@ There are three kinds of sources:
 
 ::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version?
 
-The `path` and `git` fields specify an explicit source for a dependency.
+The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
 If neither are provided, then the dependency is fetched from {ref "reservoir"}[Reservoir], or an alternative registry if one has been configured.
+The {tomlField Lake.Dependency}`scope` field is required when fetching a package from Reservoir.
 
 :::tomlField Lake.Dependency path "Path" System.FilePath
 A dependency on the local filesystem, specified by its path.
@@ -339,9 +340,10 @@ The package `example` can be required from Reservoir using this TOML configurati
 [[require]]
 name = "example"
 version = "2.12"
+scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "", version := (some 2.12), src? := none, opts := {} }]
+#[{name := `example, scope := "exampleDev", version := (some 2.12), src? := none, opts := {} }]
 ```
 ::::
 :::::
@@ -397,9 +399,10 @@ The package `example`, found using Reservoir, can be required from the tag `v2.1
 [[require]]
 name = "example"
 rev = "v2.12"
+scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "", version := (some git#v2.12), src? := none, opts := {} }]
+#[{name := `example, scope := "exampleDev", version := (some git#v2.12), src? := none, opts := {} }]
 ```
 ::::
 The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
