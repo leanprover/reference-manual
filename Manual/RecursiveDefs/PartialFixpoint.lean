@@ -37,9 +37,9 @@ As with the other strategies for defining recursive functions, compiled code use
 The term {tech}_partial fixpoint_ is specific to Lean.
 Functions declared {keywordOf Lean.Parser.Command.declaration}`partial` do not require termination proofs, so long as the type of their return values is inhabited, but they are completely opaque from the perspective of Lean's logic.
 Partial fixpoints, on the other hand, can be rewritten using their defining equations while writing proofs.
-They are _partial_ in the sense that they _can_ be used to define partial functions, but total functions may also be defined as partial fixpoints.
 Logically speaking, partial fixpoints are total functions that don't reduce {tech key:="definitional equality"}[definitionally] when applied, but for which equational rewrite rule are provided.
-They are _partial_ in the sense that the equational rewrite rules do not necessarily specify a value for all possible arguments.
+They are _partial_ in the sense that the defining equation does not necessarily specify a value for all possible arguments.
+
 
 While partial fixpoints do allow functions to be defined that cannot be expressed using structural or well-founded recursion, the technique is also useful in other cases.
 Even in cases where the defining equation fully describes the function's behavior and a termination proof using {ref "well-founded-recursion"}[well-founded recursion] would be possible, it may simply be more convenient to define the function as a partial fixpoint to avoid a having to write a termination proof.
@@ -434,11 +434,6 @@ The tactic solves goals of the form {lean}`monotone (fun x => … x …)` using 
 ```lean (show := false)
 end
 ```
-
-
-{TODO}[I wonder if this needs to be collapsible. I at some point I had it in an example, but it's not really an example. Should be this collapsible? Is there a better way than to use example?]
-
-{TODO}[This table probably needs some styling? Less vertical space maybe?]
 
 The following monotonicity lemmas are registered, and should allow recursive calls under the given higher-order functions in the arguments indicated by `·` (but not the other arguments, shown as `_`).
 

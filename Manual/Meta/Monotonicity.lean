@@ -8,11 +8,13 @@ import Verso
 
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
+import Manual.Meta.CustomStyle
 import Manual.Meta.Lean
 import Manual.Meta.Table
 
 open Lean Meta Elab
 open Verso Doc Elab Manual
+open Verso.Genre.Manual
 open SubVerso.Highlighting Highlighted
 
 
@@ -22,7 +24,7 @@ namespace Manual
 A table for monotonicity lemmas. Likely some of this logic can be extracted to a helper
 in `Manual/Meta/Table.lean`.
 -/
-private def mkInlineTable (rows : Array (Array Term)) : TermElabM Term := do
+private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Term := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -35,7 +37,8 @@ private def mkInlineTable (rows : Array (Array Term)) : TermElabM Term := do
     let blocks : Array Term :=
       #[ ← ``(Inline.text "Theorem"), ← ``(Inline.text "Pattern") ] ++
       rows.flatten
-    ``(Block.other (Block.table $(quote columns) (header := true) Option.none Option.none)
+    -- The tag down here is relying on the coercion from `String` to `Tag`
+    ``(Block.other (Block.table $(quote columns) (header := true) Option.none Option.none (tag := $(quote tag)))
         #[Block.ul #[$[Verso.Doc.ListItem.mk #[Block.para #[$blocks]]],*]])
 
 
@@ -104,9 +107,28 @@ def monotonicityLemmas : BlockRoleExpander
 
       pure #[nameStx, patternStx]
 
-    let tableStx ← mkInlineTable rows
-    return #[tableStx]
+    let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
+    let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
+    return #[extraCss, tableStx]
   | _, _ => throwError "Unexpected arguments"
+where
+  css := r#"
+table#--monotonicity-lemma-table {
+  border-collapse: collapse;
+}
+table#--monotonicity-lemma-table th {
+  text-align: center;
+}
+table#--monotonicity-lemma-table th, table#--monotonicity-lemma-table th p {
+  font-family: var(--verso-structure-font-family);
+}
+table#--monotonicity-lemma-table td:first-child {
+  padding-bottom: 0.25em;
+  padding-top: 0.25em;
+  padding-left: 0;
+  padding-right: 1.5em;
+}
+  "#
 
 -- #eval do
 --   let (ss, _) ← (monotonicityLemmas #[] #[]).run {} (.init .missing)
