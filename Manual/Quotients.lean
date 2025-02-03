@@ -28,7 +28,7 @@ In particular, all functions from a quotient type must prove that they respect t
 {docstring Quotient}
 
 A proof that two elements of the underlying type are related by the equivalence relation is sufficient to prove that they are equal in the {name}`Quotient`.
-However, {tech}[definitional equality] is unaffected by the use of {lean}`Quotient`: two elements in the quotient are definitionally equal if and only if they are equal in the underlying type.
+However, {tech}[definitional equality] is unaffected by the use of {lean}`Quotient`: two elements in the quotient are definitionally equal if and only if they are definitionally equal in the underlying type.
 
 :::paragraph
 Quotient types are not widely used in programming.
