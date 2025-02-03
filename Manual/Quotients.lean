@@ -27,6 +27,9 @@ In particular, all functions from a quotient type must prove that they respect t
 
 {docstring Quotient}
 
+A proof that two elements of the underlying type are related by the equivalence relation is sufficient to prove that they are equal in the {name}`Quotient`.
+However, {tech}[definitional equality] is unaffected by the use of {lean}`Quotient`: two elements in the quotient are definitionally equal if and only if they are equal in the underlying type.
+
 :::paragraph
 Quotient types are not widely used in programming.
 However, they occur regularly in mathematics:
@@ -53,6 +56,7 @@ However, they occur regularly in mathematics:
 
 :::
 
+
 One alternative to quotient types would be to reason directly about the equivalence classes introduced by the relation.
 The downside of this approach is that it does not allow _computation_: in addition to knowing _that_ there is an integer that is the sum of 5 and 8, it is useful for $`5 + 8 = 13` to not be a theorem that requires proof.
 Defining functions out of sets of equivalence classes relies on non-computational classical reasoning principles, while functions from quotient types are ordinary computational functions that additionally respect an equivalence relation.
@@ -62,10 +66,23 @@ Defining functions out of sets of equivalence classes relies on non-computationa
 tag := "quotient-alternatives"
 %%%
 
+While {name}`Quotient` is a convenient way to form quotients with reasonable computational properties, it is often possible to define quotients in other ways.
 
-Quotient types are not the only way to implement quotients.
-An alternative is to select a canonical representative for each equivalence class induced by the equivalence relation, and then pair an element of the underlying type with a proof that it is such a canonical representative.
-These manually constructed quotients are often much easier to work with than full quotient types, but not all quotients can be implemented this way.
+In general, a type $`Q` is said to be the quotient of $`A` by an equivalence relation $`\sim` if it respects the universal property of quotients: there is a function $`q:A\to Q` with the property that $`q(a)=q(b)` if and only if $`a\sim b` for all $`a` and $`b` in $`A`.
+
+Quotients formed with {name}`Quotient` have this property up to propositional equality: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
+But members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
+
+Quotients may also be implemented by designating a single representative of each equivalence class in $`A` itself, and then defining $`Q` as pair of elements in $`A` with proofs that they are such a canonical representative.
+Together with a function that maps each $`a` in $`A` to its canonical representative, $`Q` is a quotient of $`A`.
+Due to {tech}[proof irrelevance], representatives in $`Q` of the same equivalence class are {tech key:="definitional equality"}[definitionally equal].
+
+Such a manually implemented quotient $`Q` can be easier to work with than {name}`Quotient`.
+In particular, because each equivalence class is represented by its single canonical representative, there's no need to prove that functions from the quotient respect the equivalence relation.
+It can also have better computational properties due to the fact that the computations give normalized values (in contrast, elements of {name}`Quotient` can be represented in multiple ways).
+Finally, because the manually implemented quotient is an {tech}[inductive type], it can be used in contexts where other kinds of types cannot, such as when defining a {ref "nested-inductive-types"}[nested inductive type].
+However, not all quotients can be manually implemented.
+
 
 :::example "Manually Quotiented Integers"
 When implemented as pairs of {lean}`Nat`s, each equivalence class according to the desired equality for integers has a canonical representative in which at least one of the {lean}`Nat`s is zero.
@@ -138,9 +155,31 @@ instance : Add Z where
 ```
 
 Because each equivalence class is uniquely represented, there's no need to write a proof that these functions from {lean}`Z` respect the equivalence relation.
+However, in practice, the {ref "quotient-api"}[API for quotients] should be implemented for manually-constructed quotients and proved to respect the universal property.
 
 :::
 
+:::example "Built-In Integers as Quotients"
+
+Lean's built-in integer type {lean}`Int` satisfies the universal property of quotients, and can thus be thought of as a quotient of pairs of {lean}`Nat`s.
+The canonical representative of each equivalence class can be computed via comparison and subtraction:{margin}[This {lean}`toInt` function is called {name}`Int.subNatNat` in the standard library.]
+```lean
+def toInt (n k : Nat) : Int :=
+  if n < k then - (k - n : Nat)
+  else if n = k then 0
+  else (n - k : Nat)
+```
+
+It satisfies the universal property.
+Two pairs of {lean}`Nat`s are represent the same integer if and only if {lean}`toInt` computes the same {lean}`Int` for both pairs:
+```lean
+theorem toInt_sound :
+    n + k' = k + n' ↔
+    toInt n k = toInt n' k' := by
+  simp only [toInt]
+  split <;> split <;> omega
+```
+:::
 
 # Setoids
 %%%
@@ -467,6 +506,13 @@ Stating that a dependent function respects the quotient's equivalence relation r
 {docstring Quotient.recOn}
 
 {docstring Quotient.hrecOn}
+
+If two elements of a type are equal in a quotient, then they are related by the setoid's equivalence relation.
+This property is called {name}`Quotient.exact`.
+
+{docstring Quotient.exact}
+
+
 
 # Logical Model
 %%%
