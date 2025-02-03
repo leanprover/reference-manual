@@ -17,6 +17,7 @@ import Manual.Simp
 import Manual.BasicTypes
 import Manual.NotationsMacros
 import Manual.IO
+import Manual.Interaction
 import Manual.Monads
 import Manual.BuildTools
 
@@ -68,6 +69,8 @@ Additionally, we will be adding missing API reference documentation and revising
 {include 0 Manual.Elaboration}
 
 {include 0 Manual.Types}
+
+{include 0 Manual.Interaction}
 
 {include 0 Manual.Language}
 
@@ -267,6 +270,7 @@ Lake
 Lake.RecBuildM
 Lake.FetchM
 Lake.ScriptM
+MonadEval
 ```
 
 ```exceptions

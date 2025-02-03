@@ -68,9 +68,10 @@ structure LeanBlockConfig where
   keep : Option Bool := none
   name : Option Name := none
   error : Option Bool := none
+  fresh : Bool := false
 
 def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanBlockConfig :=
-  LeanBlockConfig.mk <$> .named `show .bool true <*> .named `keep .bool true <*> .named `name .name true <*> .named `error .bool true
+  LeanBlockConfig.mk <$> .named `show .bool true <*> .named `keep .bool true <*> .named `name .name true <*> .named `error .bool true <*> .namedD `fresh .bool false
 
 structure LeanInlineConfig extends LeanBlockConfig where
   /-- The expected type of the term -/
@@ -113,7 +114,7 @@ def lean : CodeBlockExpander
 
     let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
 
-    let origScopes ← getScopes
+    let origScopes ← if config.fresh then pure [{header := ""}] else getScopes
 
     let altStr ← parserInputString str
 

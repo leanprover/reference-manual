@@ -511,6 +511,9 @@ Try this: termination_by structural x => x
 :::
 
 # Elaboration Using Course-of-Values Recursion
+%%%
+tag := "elab-as-course-of-values"
+%%%
 
 In this section, the construction used to elaborate structurally recursive functions is explained in more detail.
 This elaboration uses the {ref "recursor-elaboration-helpers"}[`below` and `brecOn` constructions] that are automatically generated from inductive types' recursors.
