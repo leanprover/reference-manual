@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Language.Files
+import Manual.Coercions
 
 import Lean.Parser.Command
 
@@ -607,14 +608,4 @@ tag := "attributes"
 
 {docstring Dynamic.get?}
 
-# Coercions
-%%%
-tag := "coercions"
-%%%
-
-:::planned 146
- * {deftech}[Coercions]
- * When they are inserted
- * Varieties of coercions
- * When should each be used?
-:::
+{include 0 Manual.Coercions}
