@@ -32,14 +32,6 @@ This search procedure is efficient in the presence of diamonds and does not loop
 Diamonds occur regularly in practice when encoding mathematical concepts using type classes, and Lean's coercion feature {TODO}[link] naturally leads to cycles, e.g. between finite sets and finite multisets.
 
 Instance synthesis can be tested using the {keywordOf Lean.Parser.Command.synth}`#synth` command.
-:::syntax command
-The {keywordOf Lean.Parser.Command.synth}`#synth` command attempts to synthesize an instance for the provided class.
-If it succeeds, then the resulting term is output.
-```grammar
-#synth $t
-```
-:::
-
 Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to synthesize an instance in a position where the instance itself is needed.
 
 {docstring inferInstance}

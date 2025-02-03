@@ -26,13 +26,10 @@ Lean's interactive features are based on a different paradigm.
 Rather than a separate command prompt outside of the program, Lean provides {tech}[commands] for accomplishing the same tasks in the context of a source file.
 By convention, commands that are intended for interactive use rather than as part of a durable code artifact are prefixed with {keyword}`#`.
 
-:::TODO
-
-How is the output displayed?
-
-info, warning, error
-
-:::
+Information from Lean commands is available in the {deftech}_message log_, which accumulates output from the {tech}[elaborator].
+Each entry in the message log is associated with a specific source range and has a {deftech}_severity_.
+There are three severities: {lean type:="Lean.MessageSeverity"}`information` is used for messages that do not indicate a problem, {lean type:="Lean.MessageSeverity"}`warning` indicates a potential problem, and {lean type:="Lean.MessageSeverity"}`error` indicates a definite problem.
+For interactive commands, results are typically returned as informational messages that are associated with the command's leading keyword.
 
 # Evaluating Terms
 %%%
@@ -57,7 +54,7 @@ Use {keywordOf Lean.reduceCmd}`#reduce` to instead reduce terms using the reduct
 
 :::
 
-{keywordOf Lean.Parser.Command.eval}`#eval` always {tech}[elaborates] and compiles the provided term.
+{keywordOf Lean.Parser.Command.eval}`#eval` always {tech key:="elaborator"}[elaborates] and compiles the provided term.
 It then checks whether the term transitively depends on any uses of {lean}`sorry`, in which case evaluation is terminated unless the command was invoked as {keywordOf Lean.Parser.Command.eval}`#eval!`.
 This is because compiled code may rely on compile-time invariants (such as array lookups being in-bounds) that are ensured by proofs of suitable statements, and running code that contains incomplete proofs (or uses of {lean}`sorry` that “prove” incorrect statements) can cause Lean itself to crash.
 
@@ -76,6 +73,7 @@ The way the code is run depends on its type:
  * If the type is in one of the internal Lean metaprogramming monads ({name Lean.Elab.Command.CommandElabM}`CommandElabM`, {name Lean.Elab.Term.TermElabM}`TermElabM`, {name Lean.MetaM}`MetaM`, or {name Lean.CoreM}`CoreM`), then it is run in the current context.
     For example, the environment will contain the definitions that are in scope where {keywordOf Lean.Parser.Command.eval}`#eval` is invoked.
     As with {name}`IO`, the resulting value is displayed as if it were the result of a non-monadic expression.
+    When Lean is running under {ref "lake"}[Lake], its working directory (and thus the working directory for {name}`IO` actions) is the current {tech}`workspace`.
  * If the type is in some other monad {lean}`m`, and there is a {lean}`MonadLiftT m CommandElabM` or {lean}`MonadEvalT m CommandElabM` instance, then {name}`MonadLiftT.monadLift` or {name}`MonadEvalT.monadEval` is used to transform the monad into one that may be run with {keywordOf Lean.Parser.Command.eval}`#eval`, after which it is run as usual.
  * If the term's type is not in any of the supported monads, then it is treated as a pure value.
   The compiled code is run, and the result is displayed.
@@ -234,6 +232,18 @@ Additional diagnostic information may be available using the `set_option diagnos
 ```
 :::
 
+# Synthesizing Instances
+%%%
+tag := "hash-synth"
+%%%
+
+:::syntax command
+The {keywordOf Lean.Parser.Command.synth}`#synth` command attempts to synthesize an instance for the provided class.
+If it succeeds, then the resulting term is output.
+```grammar
+#synth $t
+```
+:::
 
 # Querying the Context
 %%%
@@ -246,12 +256,19 @@ The {keyword}`#print` family of commands are used to query Lean for information 
 ```grammar
 #print $t:ident
 ```
+
+Prints the definition of a constant.
 :::
+
+Printing a definition with {keywordOf Lean.Parser.Command.print}`#print` prints the definition as a term.
+Theorems that were proved using {ref "tactics"}[tactics] may be very large when printed as terms.
 
 :::syntax command (title := "Printing Strings")
 ```grammar
 #print $s:str
 ```
+
+Adds the string literal to Lean's {tech}[message log].
 :::
 
 
@@ -259,9 +276,44 @@ The {keyword}`#print` family of commands are used to query Lean for information 
 ```grammar
 #print axioms $t
 ```
+
+Lists all axioms that the constant transitively relies on.
+:::
+
+:::example "Printing Axioms"
+
+These two functions each swap the elements in a pair of bitvectors:
+
+```lean
+def swap (x y : BitVec 32) : BitVec 32 × BitVec 32 :=
+  (y, x)
+
+def swap' (x y : BitVec 32) : BitVec 32 × BitVec 32 :=
+  let x := x ^^^ y
+  let y := x ^^^ y
+  let x := x ^^^ y
+  (x, y)
+```
+
+They can be proven equal using {ref "function-extensionality"}[function extensionality], the {ref "the-simplifier"}[simplifier], and {tactic}`bv_decide`:
+```lean
+theorem swap_eq_swap' : swap = swap' := by
+  funext x y
+  simp only [swap, swap', Prod.mk.injEq]
+  bv_decide
+```
+
+The resulting proof makes use of a number of axioms:
+```lean (name := axioms)
+#print axioms swap_eq_swap'
+```
+```leanOutput axioms
+'swap_eq_swap'' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Quot.sound]
+```
 :::
 
 :::syntax command (title := "Printing Equations")
+The command {keywordOf Lean.Parser.Command.printEqns}`#print equations`, which can be abbreviated {keywordOf Lean.Parser.Command.printEqns}`#print eqns`, displays the {tech}[equational lemmas] for a function.
 ```grammar
 #print equations $t
 ```
@@ -322,6 +374,7 @@ intersperse.eq_unfold.{u_1} :
 :::
 
 :::example "Scope Information"
+The {keywordOf Lean.Parser.Command.where}`#where` command displays all the modifications made to the current {tech}[section scope], both in the current scope and in the scopes in which it is nested.
 
 ```lean (fresh := true) (name := scopeInfo)
 section
@@ -361,10 +414,13 @@ set_option pp.funBinderTypes true
 :::
 
 
-# Tests
+# Testing Output with {keyword}`#guard_msgs`
 %%%
 tag := "hash-guard_msgs"
 %%%
+
+The {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command can be used to ensure that the messages output by a command are as expected.
+Together with the interaction commands in this section, it can be used to construct a file that will only elaborate if the output is as expected; such a file can be used as a {tech}[test driver] in {ref "lake"}[Lake].
 
 :::syntax command (title := "Documenting Expected Output")
 ```grammar
@@ -372,9 +428,38 @@ $[$_:docComment]?
 #guard_msgs $[($_,*)]? in
 $c:command
 ```
+
+{includeDocstring Lean.guardMsgsCmd}
+
 :::
 
-:::syntax Lean.guardMsgsSpecElt (title := "Specifying `#guard_msgs Behavior`") (open := false)
+:::example "Testing Return Values"
+
+The {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command can ensure that a set of test cases pass:
+
+````lean
+def reverse : List α → List α := helper []
+where
+  helper acc
+    | [] => acc
+    | x :: xs => helper (x :: acc) xs
+
+/-- info: [] -/
+#guard_msgs in
+#eval reverse ([] : List Nat)
+
+/-- info: ['c', 'b', 'a'] -/
+#guard_msgs in
+#eval reverse "abc".toList
+````
+
+:::
+
+:::TODO
+Elaborate Verso markup in `title` here
+:::
+
+:::syntax Lean.guardMsgsSpecElt (title := "Specifying `#guard_msgs` Behavior") (open := false)
 ```grammar
 $_:guardMsgsFilter
 ```
@@ -401,6 +486,8 @@ $[drop]? warning
 $[drop]? error
 ```
 
+{includeDocstring Lean.guardMsgsFilter}
+
 :::
 
 
@@ -415,8 +502,91 @@ lax
 normalized
 ```
 
+
+
 :::
 
 
 
 {optionDocs guard_msgs.diff}
+
+:::example "Displaying Differences"
+The {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command can be used to test definition of a rose tree {lean}`Tree` and a function {lean}`Tree.big` that creates them:
+
+```lean
+inductive Tree (α : Type u) : Type u where
+  | val : α → Tree α
+  | branches : List (Tree α) → Tree α
+
+def Tree.big (n : Nat) : Tree Nat :=
+  if n = 0 then .val 0
+  else if n = 1 then .branches [.big 0]
+  else .branches [.big (n / 2), .big (n / 3)]
+```
+
+However, it can be difficult to spot where test failures come from when the output is large:
+```lean (error := true) (name := bigMsg)
+/--
+info: Tree.branches
+  [Tree.branches
+     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+   Tree.branches
+     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+-/
+#guard_msgs in
+#eval Tree.big 20
+```
+The evaluation produces:
+```leanOutput bigMsg (severity := information)
+Tree.branches
+  [Tree.branches
+     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+   Tree.branches
+     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+```
+
+while the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command reports this error:
+```leanOutput bigMsg (severity := error)
+❌️ Docstring on `#guard_msgs` does not match generated message:
+
+info: Tree.branches
+  [Tree.branches
+     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+   Tree.branches
+     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+```
+
+Enabling {option}`guard_msgs.diff` highlights the differences instead, making the error more apparent:
+```lean (error := true) (name := bigMsg')
+set_option guard_msgs.diff true in
+/--
+info: Tree.branches
+  [Tree.branches
+     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+   Tree.branches
+     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
+      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+-/
+#guard_msgs in
+#eval Tree.big 20
+```
+```leanOutput bigMsg'  (severity := error)
+❌️ Docstring on `#guard_msgs` does not match generated message:
+
+  info: Tree.branches
+    [Tree.branches
+       [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
+-       Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
++       Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+     Tree.branches
+       [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
+        Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+```
+:::

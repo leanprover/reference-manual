@@ -262,7 +262,7 @@ These functions tend to be relatively efficient when run in the kernel, their de
 Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call.
 Lean can automatically derive many of these cases, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
-To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves equational lemmas that relate the function to its original definition.
+To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves {deftech}[equational lemmas] that relate the function to its original definition.
 In the function's namespace, `eq_unfold` relates the function directly to its definition, `eq_def` relates it to the definition after instantiating implicit parameters, and $`N` lemmas `eq_N` relate each case of its pattern-matching to the corresponding right-hand side, including sufficient assumptions to indicate that earlier branches were not taken.
 
 ::::keepEnv
