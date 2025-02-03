@@ -320,7 +320,12 @@ class SearchBox {
    * @param {SearchResult} result
    */
   confirmResult(result) {
-    window.location.assign(result.item.address);
+    const base = document.querySelector('base');
+    if (base) {
+      window.location.assign(base.href + result.item.address);
+    } else {
+      window.location.assign(result.item.address);
+    }
   }
 
   /**
