@@ -46,6 +46,10 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="toml-field"):
         element.decompose()
 
+    # Delete ignored elements
+    for element in soup.find_all(class_="no-vale"):
+        element.decompose()
+
     # Replace citations with their text
     for element in soup.find_all(class_="citation"):
         for inner in element.contents:

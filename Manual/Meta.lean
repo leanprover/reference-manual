@@ -126,6 +126,33 @@ span.TODO {
     some <| fun go _ _ content => do
       pure {{<span class="TODO">{{← content.mapM go}}</span>}}
 
+def Inline.noVale : Inline where
+  name := `Manual.noVale
+
+structure NoValeConfig where
+  why : String
+
+def NoValeConfig.parse [Monad m] [MonadError m] : ArgParse m NoValeConfig :=
+  NoValeConfig.mk <$> .positional `why .string
+
+/--
+Skip the grammar and style check of this text.
+
+The string parameter should contain an explanation of why the text should be skipped.
+-/
+@[role_expander noVale]
+def noVale : RoleExpander
+  | args, contents => do
+    let {why := _} ← NoValeConfig.parse.run args
+    return #[← ``(Inline.other Inline.noVale #[$(← contents.mapM elabInline),*])]
+
+@[inline_extension noVale]
+def noVale.descr : InlineDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  toHtml := some <| fun go _ _ content => open Verso.Output.Html in do
+    pure {{<span class="no-vale">{{← content.mapM go}}</span>}}
+
 structure PlannedConfig where
   issue : Option Nat
 

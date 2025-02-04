@@ -20,6 +20,9 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 #doc (Manual) "Lifting Monads" =>
+%%%
+tag := "lifting-monads"
+%%%
 
 ::::keepEnv
 

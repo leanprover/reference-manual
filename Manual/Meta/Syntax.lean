@@ -79,7 +79,7 @@ structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
   label : String := "syntax"
-  title : Option String := none
+  title : Option (FileMap × Array Syntax) := none
 
 structure SyntaxConfig extends FreeSyntaxConfig where
   aliases : List Name := []
@@ -237,14 +237,14 @@ r#".plain-keyword {
 partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : f α) : f (List α) :=
   ((· :: ·) <$> x <*> many x) <|> pure []
 
-def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m FreeSyntaxConfig :=
+def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FreeSyntaxConfig :=
   FreeSyntaxConfig.mk <$>
     .positional `name .name <*>
     ((·.getD true) <$> (.named `open .bool true)) <*>
     ((·.getD "syntax") <$> .named `label .string true) <*>
-    .named `title .string true
+    .named `title .inlinesString true
 
-def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SyntaxConfig :=
+def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m SyntaxConfig :=
   SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `alias .resolvedName false) <* .done)
 
 inductive GrammarTag where
@@ -581,7 +581,7 @@ def getBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : D
         | [p] => pure [(← renderProd config isFirst 0 p)]
         | p::ps =>
           let hd := indentIfNotOpen config.open (← renderProd config isFirst 0 p)
-          let tl ← ps.enum.mapM fun (i, s) => renderProd config false i s
+          let tl ← ps.mapIdxM fun i s => renderProd config false i s
           pure <| hd :: tl
       pure <| lhs ++ (← tag .rhs (Format.nest 4 (.join (prods.map (.line ++ ·)))))
     return bnf.render (w := 5)
@@ -856,6 +856,12 @@ def «syntax» : DirectiveExpander
   | args, blocks => do
     let config ← SyntaxConfig.parse.run args
 
+    let title ← config.title.mapM fun (fm, t) =>
+      DocElabM.withFileMap fm <| t.mapM elabInline
+
+    let env ← getEnv
+    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+
     let mut content := #[]
     let mut firstGrammar := true
     for b in blocks do
@@ -867,10 +873,10 @@ def «syntax» : DirectiveExpander
       | _ =>
         content := content.push <| ← elabBlock b
 
-    Doc.PointOfInterest.save (← getRef) (config.title.getD config.name.toString)
+    Doc.PointOfInterest.save (← getRef) (titleString.getD config.name.toString)
       (selectionRange := (← getRef)[0])
 
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[Block.para #[$(title.getD #[]),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
@@ -895,7 +901,7 @@ where
         let bnf ← getBnf config.toFreeSyntaxConfig isFirst [FreeSyntax.decode stx]
         let searchTarget := searchable config.name bnf
 
-        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}````````"
+        Hover.addCustomHover nameStx s!"Kind: {stx.getKind}\n\n````````\n{bnf.stripTags}\n````````"
 
 
         let blockStx ← `(Block.other {Block.grammar with data := ToJson.toJson (($(quote stx.getKind), $(quote bnf), searchableJson $(quote searchTarget)) : Name × TaggedText GrammarTag × Json)} #[])
@@ -925,6 +931,12 @@ They can be separated by a row of `**************`
 def freeSyntax : DirectiveExpander
   | args, blocks => do
     let config ← FreeSyntaxConfig.parse.run args
+
+    let title ← config.title.mapM fun (fm, t) =>
+      DocElabM.withFileMap fm <| t.mapM elabInline
+    let env ← getEnv
+    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+
     let mut content := #[]
     let mut firstGrammar := true
     for b in blocks do
@@ -935,7 +947,7 @@ def freeSyntax : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote config.title), $(quote config.name), $(quote config.label), none, #[])} #[$content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, #[])} #[Doc.Block.para #[$(title.getD #[]),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
@@ -976,19 +988,29 @@ def syntax.descr : BlockDescr where
   toTeX := none
   toHtml :=
     open Verso.Output.Html Verso.Doc.Html in
-    some <| fun _ goB id data content => do
-      let (title, label) ←
+    some <| fun goI goB id data content => do
+      let (titleString, label) ←
         match FromJson.fromJson? (α := Option String × Name × String × Option Tag × Array Name) data with
-        | .ok (title, _, label, _, _) => pure (title, label)
+        | .ok (titleString, _, label, _, _) => pure (titleString, label)
         | .error e =>
           HtmlT.logError s!"Failed to deserialize syntax docs: {e} from {data}"
           pure (none, "syntax")
       let xref ← HtmlT.state
       let attrs := xref.htmlId id
+      let (descr, content) ←
+        if let some (Block.para titleInlines) := content[0]? then
+          pure (titleInlines, content.drop 1)
+        else
+          HtmlT.logError s!"Didn't get a paragraph for the title inlines in syntax description {titleString}"
+          pure (#[], content)
+
+      let titleHtml ←  descr.mapM goI
+      let titleHtml := if titleHtml.isEmpty then .empty else {{<span class="title">{{titleHtml}}</span>}}
+
       pure {{
         <div class="namedocs" {{attrs}}>
           <span class="label">{{label}}</span>
-          {{if let some t := title then {{<span class="title">{{t}}</span>}} else .empty}}
+          {{titleHtml}}
           <div class="text">
             {{← content.mapM goB}}
           </div>
