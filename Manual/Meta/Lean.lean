@@ -17,6 +17,7 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
+import Manual.Meta.ExpectString
 import Manual.Meta.Lean.Scopes
 import Manual.Meta.Lean.Block
 
@@ -766,6 +767,7 @@ structure LeanOutputConfig where
   severity : Option MessageSeverity
   summarize : Bool
   whitespace : WhitespaceMode
+  normalizeMetas : Bool
 
 def LeanOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanOutputConfig :=
   LeanOutputConfig.mk <$>
@@ -773,7 +775,8 @@ def LeanOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [Mo
     ((·.getD true) <$> .named `show .bool true) <*>
     .named `severity sev true <*>
     ((·.getD false) <$> .named `summarize .bool true) <*>
-    ((·.getD .exact) <$> .named `whitespace ws true)
+    ((·.getD .exact) <$> .named `whitespace ws true) <*>
+    .namedD `normalizeMetas .bool true
 where
   output : ValDesc m Ident := {
     description := "output name",
@@ -821,6 +824,7 @@ defmethod Lean.NameMap.getOrSuggest [Monad m] [MonadInfoTree m] [MonadError m]
 def leanOutput : CodeBlockExpander
  | args, str => do
     let config ← LeanOutputConfig.parser.run args
+
     PointOfInterest.save (← getRef) (config.name.getId.toString)
       (kind := Lsp.SymbolKind.file)
       (selectionRange := config.name)
@@ -828,8 +832,17 @@ def leanOutput : CodeBlockExpander
 
     let msgs : List (MessageSeverity × String) ← leanOutputs.getState (← getEnv) |>.getOrSuggest config.name
 
+    let expected :=
+      if config.normalizeMetas then
+        normalizeMetavars str.getString
+      else str.getString
+
     for (sev, txt) in msgs do
-      if mostlyEqual config.whitespace str.getString txt then
+      let actual :=
+        if config.normalizeMetas then
+          normalizeMetavars txt
+        else txt
+      if mostlyEqual config.whitespace expected actual then
         if let some s := config.severity then
           if s != sev then
             throwErrorAt str s!"Expected severity {sevStr s}, but got {sevStr sev}"
@@ -839,7 +852,7 @@ def leanOutput : CodeBlockExpander
         else return #[]
 
     for (_, m) in msgs do
-      Verso.Doc.Suggestion.saveSuggestion str (m.take 30 ++ "…") m
+      Verso.Doc.Suggestion.saveSuggestion str (abbreviateString m) m
     throwErrorAt str "Didn't match - expected one of: {indentD (toMessageData <| msgs.map (·.2))}\nbut got:{indentD (toMessageData str.getString)}"
 where
   sevStr : MessageSeverity → String

@@ -17,6 +17,12 @@ namespace Manual
 variable {m : Type → Type} [Monad m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
 variable [MonadInfoTree m]
 
+def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
+  if what.length > maxLength then
+    what.take maxLength ++ "…"
+  else
+    what
+
 /--
 Expects that a string matches some expected form from the document.
 
@@ -35,7 +41,7 @@ def expectString (what : String) (expected : StrLit) (actual : String)
   unless expectedLines == actualLines do
     let diff := Diff.diff expectedLines actualLines
     logErrorAt expected m!"Mismatched {what} output:\n{Diff.linesToString diff}"
-    Suggestion.saveSuggestion expected ((actual.take 30) ++ "…") actual
+    Suggestion.saveSuggestion expected (abbreviateString actual) actual
     return false
 
   return true
