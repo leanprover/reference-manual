@@ -21,7 +21,7 @@ tag := "interaction"
 %%%
 
 Lean is designed for interactive use, rather than as a batch-mode system in which whole files are fed in and then translated to either object code or error messages.
-Many programming languages designed for interactive use provide a {deftech}[REPL],{margin}[Short for “*R*ead-*E*val-*P*rint *L*oop”, because code is parsed (“read”), evaluated, and the result displayed, with this process repeated as many times as desired.] at which code can be input and tested, along with commands for loading source files, type checking terms, or querying the environment.
+Many programming languages designed for interactive use provide a {deftech}[REPL],{margin}[Short for {noVale "Vale can't handle partly-bolded words"}[“*R*ead-*E*val-*P*rint *L*oop”], because code is parsed (“read”), evaluated, and the result displayed, with this process repeated as many times as desired.] at which code can be input and tested, along with commands for loading source files, type checking terms, or querying the environment.
 Lean's interactive features are based on a different paradigm.
 Rather than a separate command prompt outside of the program, Lean provides {tech}[commands] for accomplishing the same tasks in the context of a source file.
 By convention, commands that are intended for interactive use rather than as part of a durable code artifact are prefixed with {keyword}`#`.
