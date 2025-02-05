@@ -30,12 +30,11 @@ variable {c1 c2 : Name} {α : Type u}
 
 When the Lean elaborator is expecting one type but produces a term with a different type, it attempts to automatically insert a {deftech}_coercion_, which is a specially designated function from the term's type to the expected type.
 Coercions make it possible to use specific types to represent data while interacting with APIs that expect less-informative types.
-They also allow mathematical developments to follow the usual practice of “punning”, where the same symbol is used to stand for an algebraic structure and its carrier set, with the precise meaning determined by context.
-
+They also allow mathematical developments to follow the usual practice of “punning”, where the same symbol is used to stand for both an algebraic structure and its carrier set, with the precise meaning determined by context.
 
 
 :::paragraph
-Coercions are used pervasively in the Lean standard library.
+Lean's standard library and metaprogramming APIs define many coercions.
 Some examples include:
 
  * A {name}`Nat` may be used where an {name}`Int` is expected.
@@ -132,7 +131,9 @@ The process of searching for a coercion from one type to another is called {deft
 Coercion insertion is attempted in the following situations where an error would otherwise occur:
 
  * When the expected type for a term is not equal to the type found for the term
- * When a {tech}[sort] is expected, but the term's type is not a sort
+
+ * When a type or proposition is expected, but the term's type is not a {tech}[universe]
+
  * When a term is applied as though it were a function, but its type is not a function type
 
 Coercions are also inserted when they are explicitly requested.
@@ -190,14 +191,166 @@ def tomorrow : Later String :=
 ```
 :::
 
+```lean (show := false)
+section
+variable {α : Type u}
+```
+:::example "Duplicate Evaluation in Coercions"
+Because the contents of {lean}`Coe` instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
+This can be done by using a helper function that is not part of the instance, or by using {keywordOf Lean.Parser.Term.let}`let` to evaluate the coerced term and then re-use its resulting value.
+
+The structure {name}`Twice` requires that both fields have the same value:
+```lean
+structure Twice (α : Type u) where
+  first : α
+  second : α
+  first_eq_second : first = second
+```
+
+One way to define a coercion from {lean}`α` to {lean}`Twice α` is with a helper function {name}`twice`.
+The {attr}`coe` attribute marks it as a coercion so it can be shown correctly in proof goals and error messages.
+```lean
+@[coe]
+def twice (x : α) : Twice α where
+  first := x
+  second := x
+  first_eq_second := rfl
+
+instance : Coe α (Twice α) := ⟨twice⟩
+```
+When the {name}`Coe` instance is unfolded, the call to {name}`twice` remains, which causes its argument to be evaluated before the body of the function is executed.
+As a result, the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace` executes just once:
+```lean (name := eval1)
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+```
+```leanOutput eval1
+hello
+```
+```leanOutput eval1
+{ first := 5, second := 5, first_eq_second := _ }
+```
+
+Inlining the helper into the {name}`Coe` instance results in a term that duplicates the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace`:
+```lean (name := eval2)
+instance : Coe α (Twice α) where
+  coe x := ⟨x, x, rfl⟩
+
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+```
+```leanOutput eval2
+hello
+hello
+```
+```leanOutput eval2
+{ first := 5, second := 5, first_eq_second := _ }
+```
+
+Introducing an intermediate name for the result of the evaluation prevents the duplicated work:
+```lean (name := eval3)
+instance : Coe α (Twice α) where
+  coe x := let y := x; ⟨y, y, rfl⟩
+
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+```
+```leanOutput eval3
+hello
+```
+```leanOutput eval3
+{ first := 5, second := 5, first_eq_second := _ }
+```
+
+:::
+```lean (show := false)
+end
+```
+
+
 # Coercing Between Types
 %%%
 tag := "ordinary-coercion"
 %%%
 
-Coercions between types may be either dependent or non-dependent.
-{deftech}[Dependent coercions] are needed when the specific term being coerced is needed in order to resolve the coercion: for example, only decidable propositions can be coerced to {name}`Bool`, so the proposition in question must occur as part of the instance's type so that it can require the {name}`Decidable` instance.
-Non-dependent coercions are used in all other cases.
+:::paragraph
+Coercions between types are inserted when the Lean elaborator successfully constructs a term, inferring its type, in a context where a term of some other type was expected.
+Before signaling an error, the elaborator attempts to insert a coercion from the inferred type to the expected type by synthesizing an instance of {lean}`CoeT`.
+There are two ways that this might succeed:
+ 1. There could be a chain of coercions from the inferred type to the expected type through a number of intermediate types.
+    These chained coercions are selected based on the inferred type and the expected type, but not the term being coerced.
+ 2. There could be a single dependent coercion from the inferred type to the expected type.
+    Dependent coercions take the term being coerced into account as well as the inferred and expected types, but they cannot be chained.
+:::
+
+The simplest way to define a non-dependent coercion is by implementing a {name}`Coe` instance, which is enough to synthesize a {name}`CoeT` instance.
+This instance participates in chaining, and may be applied any number of times.
+The expected type of the expression is used to drive synthesis of {name}`Coe` instances, rather than the inferred type.
+For instances that can be used at most once, or instances in which the inferred type should drive synthesis, one of the other coercion classes may be needed.
+
+:::example "Defining Coercions"
+The type {lean}`Even` represents the even natural numbers.
+
+```lean
+structure Even where
+  number : Nat
+  isEven : number % 2 = 0
+```
+
+A coercion allows even numbers to be used where natural numbers are expected.
+The {attr}`coe` attribute marks the projection as a coercion so that it can be shown accordingly in proof states and error messages, as described in the {ref "coercion-impl"}[section on implementing coercions].
+```lean
+attribute [coe] Even.number
+
+instance : Coe Even Nat where
+  coe := Even.number
+```
+With this coercion in place, even numbers can be used where natural numbers are expected.
+```lean (name := four)
+def four : Even := ⟨4, by omega⟩
+
+#eval (four : Nat) + 1
+```
+```leanOutput four
+5
+```
+
+Due to coercion chaining, there is also a coercion from {name}`Even` to {name}`Int` formed by chaining the {inst}`Coe Even Nat` instance with the existing coercion from {name}`Nat` to {name}`Int`:
+```lean name := four'
+#eval (four : Int) - 5
+```
+```leanOutput four'
+-1
+```
+:::
+
+{deftech}[Dependent coercions] are needed when the specific term being coerced is required in order to determine whether or how to coerce the term: for example, only decidable propositions can be coerced to {name}`Bool`, so the proposition in question must occur as part of the instance's type so that it can require the {name}`Decidable` instance.
+Non-dependent coercions are used whenever all values of the inferred type can be coerced to the target type.
+
+:::example "Defining Dependent Coercions"
+The string "four" can be coerced into the natural number {lean type:="Nat"}`4` with this instance declaration:
+````lean (name := fourCoe)
+instance : CoeDep String "four" Nat where
+  coe := 4
+
+#eval ("four" : Nat)
+````
+```leanOutput fourCoe
+4
+```
+
+Ordinary type errors are produced for other strings:
+```lean (error := true) (name := threeCoe)
+#eval ("three" : Nat)
+```
+```leanOutput threeCoe
+type mismatch
+  "three"
+has type
+  String : Type
+but is expected to have type
+  Nat : Type
+```
+
+:::
+
 
 ```lean (show := false)
 section
@@ -205,7 +358,7 @@ variable {α α' α'' β β' «…» γ: Sort _}
 
 macro "…":term => Lean.mkIdentFromRef `«…»
 
-variable [CoeHead α α'] [CoeOut α' …] [CoeOut … α''] [Coe α'' β] [Coe … β'] [CoeTail β' γ]
+variable [CoeHead α α'] [CoeOut α' …] [CoeOut … α''] [Coe α'' …] [Coe … β'] [CoeTail β' γ]
 
 
 ```
@@ -217,7 +370,7 @@ The chain should be in the form {name}`CoeHead`$`?`{name}`CoeOut`$`*`{name}`Coe`
 
  * An optional instance of {inst}`CoeHead α α'`, followed by
  * Zero or more instances of {inst}`CoeOut α' …`, …, {inst}`CoeOut … α''`, followed by
- * Zero or more instances of {inst}`Coe α'' β` … {inst}`Coe … β'`, followed by
+ * Zero or more instances of {inst}`Coe α'' …`, …, {inst}`Coe … β'`, followed by
  * An optional instance of {inst}`CoeTail β' γ`
 
 Most coercions can be implemented as instances of {name}`Coe`.
@@ -227,17 +380,70 @@ Most coercions can be implemented as instances of {name}`Coe`.
 
 
 
-{name}`CoeHead` and {name}`CoeOut` instances are chained from left to right.
+{name}`CoeHead` and {name}`CoeOut` instances are chained from the inferred type towards the expected type.
 In other words, information in the type found for the term is used to resolve a chain of instances.
-{name}`Coe` and {name}`CoeTail` instances are chained from right to left, so information in the expected type is used to resolve a chain of instances.
+{name}`Coe` and {name}`CoeTail` instances are chained from the expected type towards the inferred type, so information in the expected type is used to resolve a chain of instances.
 If these chains meet in the middle, a coercion has been found.
-This is reflected in their type signatures: {name}`CoeHead` and {name}`CoeOut` use {tech}[semi-output parameters] for the coercions' outputs, while {name}`Coe` and {name}`CoeTail` use {tech}[semi-output parameters] for the coercions' inputs.
+This is reflected in their type signatures: {name}`CoeHead` and {name}`CoeOut` use {tech}[semi-output parameters] for the coercion's target, while {name}`Coe` and {name}`CoeTail` use {tech}[semi-output parameters] for the coercions' source.
 
 When an instance provides a value for a {tech}[semi-output parameter], the value is used during instance synthesis.
-However, if no value is provided, then a value may be assigned by synthesis.
+However, if no value is provided, then a value may be assigned by the synthesis algorithm.
 Consequently, every semi-output parameter should be assigned a type when an instance is selected.
 This means that {name}`CoeOut` should be used when the variables that occur in the coercion's output are a subset of those in its input, and {name}`Coe` should be used when the variables in the input are a subset of those in the output.
 
+:::example "`CoeOut` vs `Coe` instances"
+A {name}`Truthy` value is a value paired with an indication of whether it should be considered to be true or false.
+A {name}`Decision` is either {name Decision.yes}`yes`, {name Decision.no}`no`, or {name Decision.maybe}`maybe`, with the latter containing further data for consideration.
+
+```lean
+structure Truthy (α : Type) where
+  val : α
+  isTrue : Bool
+
+inductive Decision (α : Type) where
+  | yes
+  | maybe (val : α)
+  | no
+```
+
+Truthy values can be converted to {name}`Bool`s by forgetting the contained value.
+{name}`Bool`s can be converted to {name}`Decision`s by discounting the {name Decision.maybe}`maybe` case.
+```lean
+@[coe]
+def Truthy.toBool : Truthy α → Bool :=
+  Truthy.isTrue
+
+@[coe]
+def Decision.ofBool : Bool → Decision α
+  | true => .yes
+  | false => .no
+```
+
+{name}`Truthy.toBool` must be a {name}`CoeOut` instance, because the target of the coercion contains fewer unknown type variables than the source, while {name}`Decision.ofBool` must be a {name}`Coe` instance, because the source of the coercion contains fewer variables than the target:
+```lean
+instance : CoeOut (Truthy α) Bool := ⟨Truthy.isTrue⟩
+
+instance : Coe Bool (Decision α) := ⟨Decision.ofBool⟩
+```
+
+With these instances, coercion chaining works:
+```lean name := chainTruthiness
+#eval ({ val := 1, isTrue := true : Truthy Nat } : Decision String)
+```
+```leanOutput chainTruthiness
+Decision.yes
+```
+
+Attempting to use the wrong class leads to an error:
+```lean name:=coeOutErr error:=true
+instance : Coe (Truthy α) Bool := ⟨Truthy.isTrue⟩
+```
+```leanOutput coeOutErr
+instance does not provide concrete values for (semi-)out-params
+  Coe (Truthy ?α) Bool
+```
+
+:::
 
 
 ```lean (show := false)
@@ -265,7 +471,7 @@ variable {α β : Sort _} {e : α} [CoeDep α e β]
 Dependent coercions may not be chained.
 As an alternative to a chain of coercions, a term {lean}`e` of type {lean}`α` can be coerced to {lean}`β` using an instance of {inst}`CoeDep α e β`.
 Dependent coercions are useful in situations where only some of the values can be coerced; this mechanism is used to coerce only decidable propositions to {lean}`Bool`.
-They are also useful when the value itself occurs in the result of the coercion.
+They are also useful when the value itself occurs in the coercion's target type.
 
 ```lean (show := false)
 end
@@ -491,7 +697,7 @@ def friday : Weekday :=
 
 :::
 
-## Special-Purpose Coercions
+## Coercions from Natural Numbers
 %%%
 tag := "nat-api-cast"
 %%%
