@@ -296,15 +296,6 @@ tag := "nat-api-meta"
 
 {docstring Nat.toLevel}
 
-## Casts
-%%%
-tag := "nat-api-cast"
-%%%
-
-
-{docstring NatCast}
-
-{docstring Nat.cast}
 
 ## Elimination
 %%%

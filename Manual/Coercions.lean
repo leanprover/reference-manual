@@ -21,18 +21,106 @@ open Lean (Syntax SourceInfo)
 tag := "coercions"
 %%%
 
+```lean (show := false)
+section
+open Lean (TSyntax Name)
+variable {c1 c2 : Name} {α : Type u}
+```
+
+
 When the Lean elaborator is expecting one type but produces a term with a different type, it attempts to automatically insert a {deftech}_coercion_, which is a specially designated function from the term's type to the expected type.
-{TODO}[A sentence about why they're great]
-Coercions are used pervasively in the Lean standard library:
- * A {name}`Nat` to be used where an {name}`Int` is expected.
- * `TSyntax` TODO
- * TODO more good examples
+Coercions make it possible to use specific types to represent data while interacting with APIs that expect less-informative types.
+They also allow mathematical developments to follow the usual practice of “punning”, where the same symbol is used to stand for an algebraic structure and its carrier set, with the precise meaning determined by context.
 
-Coercions are found using type class {tech}[instance synthesis].
+
+
+:::paragraph
+Coercions are used pervasively in the Lean standard library.
+Some examples include:
+
+ * A {name}`Nat` may be used where an {name}`Int` is expected.
+ * A {name}`Fin` may be used where a {name}`Nat` is expected.
+ * An {lean}`α` may be used where an {lean}`Option α` is expected. The coercion wraps the value in {name}`some`.
+ * An {lean}`α` may be used where a {lean}`Thunk α` is expected. The coercion wraps the term in a function to delay its evaluation.
+ * When one syntax category {lean}`c1` embeds into another category {lean}`c2`, a coercion from {lean}`TSyntax c1` to {lean}`TSyntax c2` performs any necessary wrapping to construct a valid syntax tree.
+
+Coercions are found using type class {tech}[synthesis].
 The set of coercions can be extended by adding further instances of the appropriate type classes.
+:::
 
-Coercions are not used to resolve {tech}[generalized field notation]. {TODO}[expand]
+```lean (show := false)
+end
+```
 
+
+```lean (show := false) (keep := false)
+-- Test the coercions in the list
+example (n : Nat) : Int := n
+example (n : Lean.TSyntax `ident) : Lean.TSyntax `term := n
+example (n : Fin k) : Nat := n
+example (x : α) : Option α := x
+def th (x : α) : Thunk α := x
+
+/--
+info: def th.{u_1} : {α : Type u_1} → α → Thunk α :=
+fun {α} x => { fn := fun x_1 => x }
+-/
+#guard_msgs in
+#print th
+/-- info: instCoeTOfCoeHTCT -/
+#guard_msgs in
+#synth CoeT Lean.Name `ident Lean.SyntaxNodeKinds
+```
+
+
+Coercions are not used to resolve {tech}[generalized field notation]: only the inferred type of the term is considered.
+However, a {tech}[type ascription] can be used to trigger a coercion to the type that has the desired generalized field.
+
+
+```lean (show := false)
+-- Test comment about field notation
+/-- error: unknown constant 'Nat.bdiv' -/
+#guard_msgs in
+#check Nat.bdiv
+
+/-- info: Int.bdiv (x : Int) (m : Nat) : Int -/
+#guard_msgs in
+#check Int.bdiv
+
+/--
+error: invalid field 'bdiv', the environment does not contain 'Nat.bdiv'
+  n
+has type
+  Nat
+-/
+#guard_msgs in
+example (n : Nat) := n.bdiv 2
+
+#guard_msgs in
+example (n : Nat) := (n : Int).bdiv 2
+```
+
+:::example "Coercions and Generalized Field Notation"
+
+The name {lean (error := true)}`Nat.bdiv` is not defined, but {lean}`Int.bdiv` exists.
+The coercion from {lean}`Nat` to {lean}`Int` is not considered when looking up the field `bdiv`:
+
+```lean (error := true) (name := natBdiv)
+example (n : Nat) := n.bdiv 2
+```
+```leanOutput natBdiv
+invalid field 'bdiv', the environment does not contain 'Nat.bdiv'
+  n
+has type
+  Nat
+```
+
+This is because coercions are only inserted when there is an expected type that differs from an inferred type, and generalized fields are resolved based on the inferred type of the term before the dot.
+Coercions can be triggered by adding a type ascription, which additionally causes the inferred type of the entire ascription term to be {lean}`Int`, allowing the function {name}`Int.bdiv` to be found.
+```lean
+example (n : Nat) := (n : Int).bdiv 2
+```
+:::
 
 # Coercion Insertion
 %%%
@@ -41,31 +129,83 @@ tag := "coercion-insertion"
 
 :::paragraph
 The process of searching for a coercion from one type to another is called {deftech}_coercion insertion_.
-Coercion insertion occurs in the following situations where an error would otherwise occur:
+Coercion insertion is attempted in the following situations where an error would otherwise occur:
 
  * When the expected type for a term is not equal to the type found for the term
  * When a {tech}[sort] is expected, but the term's type is not a sort
  * When a term is applied as though it were a function, but its type is not a function type
 
-Coercion are also inserted when they are explicitly requested.
+Coercions are also inserted when they are explicitly requested.
 Each situation in which coercions may be inserted has a corresponding prefix operator that triggers the appropriate insertion.
 :::
 
+```lean (show := false)
+section
+variable {α : Type u} {α' : Type u'} {β : Type u} [Coe α α'] [Coe α' β] (e : α)
+```
 
+Because coercions are inserted automatically, nested {tech}[type ascriptions] provide a way to precisely control the types involved in a coercion.
+If {lean}`α` and {lean}`β` are not the same type, {lean}`((e : α) : β)` arranges for {lean}`e` to have type {lean}`α` and then inserts a coercion from {lean}`α` to {lean}`β`.
 
-## Coercing Between Types
+```lean (show := false)
+end
+```
+
+When a coercion is discovered, the instances used to find it are unfolded and removed from the resulting term.
+To the extent possible, calls to {name}`Coe.coe` and related functions do not occur in the final term.
+This process of unfolding makes terms more readable.
+Even more importantly, it means that coercions can control the evaluation of the coerced terms by wrapping them in functions.
+
+:::example "Controlling Evaluation with Coercions"
+
+The structure {name}`Later` represents a term that can be evaluated in the future, by calling the contained function.
+
+```lean
+structure Later (α : Type u) where
+  get : Unit → α
+```
+
+A coercion from any value to a later value is performed by creating a function that wraps it.
+```lean
+instance : CoeTail α (Later α) where
+  coe x := { get := fun () => x }
+```
+
+However, if coercion insertion resulted in an application of {name}`CoeTail.coe`, then this coercion would not have the desired effect at runtime, because the coerced value would be evaluated and then saved in the function's closure.
+Because coercion implementations are unfolded, this instance is nonetheless useful.
+
+```lean
+def tomorrow : Later String :=
+  (Nat.fold 10000
+    (init := "")
+    (fun _ _ s => s ++ "tomorrow") : String)
+```
+Printing the resulting definition shows that the computation is inside the function's body:
+```lean (name := tomorrow)
+#print tomorrow
+```
+```leanOutput tomorrow
+def tomorrow : Later String :=
+{ get := fun x => Nat.fold 10000 (fun x x s => s ++ "tomorrow") "" }
+```
+:::
+
+# Coercing Between Types
+%%%
+tag := "ordinary-coercion"
+%%%
 
 Coercions between types may be either dependent or non-dependent.
-Dependent coercions are needed when the specific term being coerced is needed in order to resolve the coercion: for example, only decidable propositions can be coerced to {name}`Bool`, so the proposition in question must occur as part of the instance's type so that it can require the {name}`Decidable` instance.
+{deftech}[Dependent coercions] are needed when the specific term being coerced is needed in order to resolve the coercion: for example, only decidable propositions can be coerced to {name}`Bool`, so the proposition in question must occur as part of the instance's type so that it can require the {name}`Decidable` instance.
 Non-dependent coercions are used in all other cases.
 
 ```lean (show := false)
 section
-variable {α : Sort u} {β β'' βₙ: Sort v} {γ : Sort v'} {α' : Sort u'} {α'' : Sort u''}
+variable {α α' α'' β β' «…» γ: Sort _}
 
-macro "…":term => Lean.mkIdentFromRef `β''
+macro "…":term => Lean.mkIdentFromRef `«…»
 
-variable [CoeHead α α'] [CoeOut α' β] [Coe β β'] [Coe … βₙ] [CoeTail β' γ]
+variable [CoeHead α α'] [CoeOut α' …] [CoeOut … α''] [Coe α'' β] [Coe … β'] [CoeTail β' γ]
 
 
 ```
@@ -73,21 +213,32 @@ variable [CoeHead α α'] [CoeOut α' β] [Coe β β'] [Coe … βₙ] [CoeTail 
 :::paragraph
 Non-dependent coercions may be chained: if there is a coercion from {lean}`α` to {lean}`β` and from {lean}`β` to {lean}`γ`, then there is also a coercion from {lean}`α` to {lean}`γ`.
 {index subterm:="of coercions"}[chain]
-The chain may consist of:
+The chain should be in the form {name}`CoeHead`$`?`{name}`CoeOut`$`*`{name}`Coe`$`*`{name}`CoeTail`$`?`, which is to say it may consist of:
 
- * Zero or one instances of {inst}`CoeHead α α'`, followed by
- * Zero or more instances of {inst}`CoeOut α' β`, followed by
- * Zero or more instances of {inst}`Coe β β'` … {inst}`Coe … βₙ`, followed by
- * Zero or one {inst}`CoeTail β' γ`
+ * An optional instance of {inst}`CoeHead α α'`, followed by
+ * Zero or more instances of {inst}`CoeOut α' …`, …, {inst}`CoeOut … α''`, followed by
+ * Zero or more instances of {inst}`Coe α'' β` … {inst}`Coe … β'`, followed by
+ * An optional instance of {inst}`CoeTail β' γ`
 
 Most coercions can be implemented as instances of {name}`Coe`.
 {name}`CoeHead`, {name}`CoeOut`, and {name}`CoeTail` are needed in certain special situations.
 
-{name}`CoeHead` and {name}`CoeOut` instances are chained from left to right (that is, from the type found for the term towards the type expected for it).
-{name}`Coe` and {name}`CoeTail` instances are chained from right to left (that is, from the expected type towards the type found for the term).
-This is reflected in their type signatures: {name}`CoeHead` and {name}`CoeOut` use {tech}[semi-output parameters] for the coercions' outputs, while {name}`Coe` and {name}`CoeTail` use {tech}[semi-out parameters] for the coercions' inputs.
-Practically, {name}`CoeOut` should be used when the variables that occur in the coercion's output are a subset of those in its input, while {name}`Coe` should be used when the variables in the input are a subset of those in the output.
 :::
+
+
+
+{name}`CoeHead` and {name}`CoeOut` instances are chained from left to right.
+In other words, information in the type found for the term is used to resolve a chain of instances.
+{name}`Coe` and {name}`CoeTail` instances are chained from right to left, so information in the expected type is used to resolve a chain of instances.
+If these chains meet in the middle, a coercion has been found.
+This is reflected in their type signatures: {name}`CoeHead` and {name}`CoeOut` use {tech}[semi-output parameters] for the coercions' outputs, while {name}`Coe` and {name}`CoeTail` use {tech}[semi-output parameters] for the coercions' inputs.
+
+When an instance provides a value for a {tech}[semi-output parameter], the value is used during instance synthesis.
+However, if no value is provided, then a value may be assigned by synthesis.
+Consequently, every semi-output parameter should be assigned a type when an instance is selected.
+This means that {name}`CoeOut` should be used when the variables that occur in the coercion's output are a subset of those in its input, and {name}`Coe` should be used when the variables in the input are a subset of those in the output.
+
+
 
 ```lean (show := false)
 end
@@ -101,19 +252,270 @@ end
 
 {docstring CoeTail}
 
+Instances of {name}`CoeT` can be synthesized when an appropriate chain of instances exists, or when there is a single applicable {name}`CoeDep` instance.
+If both exist, then the {name}`CoeDep` instance takes priority.
 
+{docstring CoeT}
 
-:::syntax term (title := "Coercions")
+```lean (show := false)
+section
+variable {α β : Sort _} {e : α} [CoeDep α e β]
+```
 
-TODO describe
+Dependent coercions may not be chained.
+As an alternative to a chain of coercions, a term {lean}`e` of type {lean}`α` can be coerced to {lean}`β` using an instance of {inst}`CoeDep α e β`.
+Dependent coercions are useful in situations where only some of the values can be coerced; this mechanism is used to coerce only decidable propositions to {lean}`Bool`.
+They are also useful when the value itself occurs in the result of the coercion.
 
-```grammar
-↑$_:term
+```lean (show := false)
+end
+```
+
+{docstring CoeDep}
+
+:::example "Dependent Coercion"
+
+A type of non-empty lists can be defined as a pair of a list and a proof that it is not empty.
+This type can be coerced to ordinary lists by applying the projection:
+
+```lean
+structure NonEmptyList (α : Type u) : Type u where
+  contents : List α
+  non_empty : contents ≠ []
+
+instance : Coe (NonEmptyList α) (List α) where
+  coe xs := xs.contents
+```
+
+The coercion works as expected:
+```lean
+def oneTwoThree : NonEmptyList Nat := ⟨[1, 2, 3], by simp⟩
+
+#eval (oneTwoThree : List Nat) ++ [4]
+```
+
+Arbitrary lists cannot, however, be coerced to non-empty lists, because some arbitrarily-chosen lists may indeed be empty:
+
+```lean (error := true) (name := coeFail) (keep := false)
+instance : Coe (List α) (NonEmptyList α) where
+  coe xs := ⟨xs, _⟩
+```
+```leanOutput coeFail
+don't know how to synthesize placeholder for argument 'non_empty'
+context:
+α : Type u_1
+xs : List α
+⊢ xs ≠ []
+```
+
+A dependent coercion can restrict the domain of the coercion to only lists that are not empty:
+```lean (name := coeOk)
+instance : CoeDep (List α) (x :: xs) (NonEmptyList α) where
+  coe := ⟨x :: xs, by simp⟩
+
+#eval ([1, 2, 3] : NonEmptyList Nat)
+```
+```leanOutput coeOk
+{ contents := [1, 2, 3], non_empty := _ }
+```
+
+Coercion insertion requires that the term to be coerced matches the one in the instance header.
+Lists that are known to be non-empty, but which are not syntactically instances of {lean type:= "{α : Type u} → α  → List α → List α"}`(· :: ·)`, cannot be coerced with this instance.
+```lean (error := true) (name := coeFailDep)
+#check
+  fun (xs : List Nat) =>
+    let ys : List Nat := xs ++ [4]
+    (ys : NonEmptyList Nat)
+```
+When coercion insertion fails, the original type error is reported:
+```leanOutput coeFailDep
+type mismatch
+  ys
+has type
+  List Nat : Type
+but is expected to have type
+  NonEmptyList Nat : Type
 ```
 
 :::
 
-## Coercing to Sorts
+:::syntax term (title := "Coercions")
+```grammar
+↑$_:term
+```
+
+Coercions can be explicitly placed using the prefix operator {keywordOf coeNotation}`↑`.
+:::
+
+Unlike using nested {tech}[type ascriptions], the {keywordOf coeNotation}`↑` syntax for placing coercions does not require the involved types to be written explicitly.
+
+:::example "Controlling Coercion Insertion"
+
+Instance synthesis and coercion insertion interact with one another.
+Synthesizing an instance may make type information known that later triggers coercion insertion.
+The specific placement of coercions may matter.
+
+In this definition of {lean}`sub`, the {inst}`Sub Int` instance is synthesized based on the function's return type.
+This instance requires that the two parameters also be {lean}`Int`s, but they are {lean}`Nat`s.
+Coercions are inserted around each argument to the subtraction operator.
+This can be seen in the output of {keywordOf Lean.Parser.Command.print}`#print`.
+
+```lean (name := subThenCoe)
+def sub (n k : Nat) : Int := n - k
+
+#print sub
+```
+```leanOutput subThenCoe
+def sub : Nat → Nat → Int :=
+fun n k => ↑n - ↑k
+```
+
+Placing the coercion operator outside the subtraction causes the elaborator to attempt to infer a type for the subtraction and then insert a coercion.
+Because the arguments are both {lean}`Nat`s, the {inst}`Sub Nat` instance is selected, leading to the difference being a {lean}`Nat`.
+The difference is then coerced to an {lean}`Int`.
+```lean (name:=coeThenSub)
+def sub' (n k : Nat) : Int := ↑ (n - k)
+
+#print sub'
+```
+
+These two functions are not equivalent because subtraction of natural numbers truncates at zero:
+```lean (name := subRes)
+#eval sub 4 8
+```
+```leanOutput subRes
+-4
+```
+```lean (name := subMark)
+#eval sub' 4 8
+```
+```leanOutput subMark
+0
+```
+
+:::
+
+
+## Implementing Coercions
+%%%
+tag := "coercion-impl"
+%%%
+
+The appropriate {name}`CoeHead`, {name}`CoeOut`, {name}`Coe`, or {name}`CoeTail` instance is sufficient to cause a desired coercion to be inserted.
+However, the implementation of the coercion should be registered as a coercion using the {attr}`coe` attribute.
+This causes Lean to display uses of the coercion with the {keywordOf coeNotation}`↑` operator.
+It also causes the {tactic}`norm_cast` tactic to treat the coercion as a cast, rather than as an ordinary function.
+
+:::syntax attr (title := "Coercion Declarations")
+```grammar
+coe
+```
+
+{includeDocstring Lean.Attr.coe}
+
+:::
+
+:::example "Implementing Coercions"
+The {tech}[enum inductive] type {lean}`Weekday` represents the days of the week:
+```lean
+inductive Weekday where
+  | mo | tu | we | th | fr | sa | su
+```
+
+As a seven-element type, it contains the same information as {lean}`Fin 7`.
+There is a bijection:
+```lean
+def Weekday.toFin : Weekday → Fin 7
+  | mo => 0
+  | tu => 1
+  | we => 2
+  | th => 3
+  | fr => 4
+  | sa => 5
+  | su => 6
+
+def Weekday.fromFin : Fin 7 → Weekday
+  | 0 => mo
+  | 1 => tu
+  | 2 => we
+  | 3 => th
+  | 4 => fr
+  | 5 => sa
+  | 6 => su
+```
+
+```lean (show := false)
+theorem Weekday.toFin_fromFin_id : Weekday.toFin (Weekday.fromFin n) = n := by
+  repeat (cases ‹Fin (_ + 1)› using Fin.cases; case zero => rfl)
+  apply Fin.elim0; assumption
+
+theorem Weekday.fromFin_toFin_id : Weekday.fromFin (Weekday.toFin w) = w := by
+  cases w <;> rfl
+```
+
+Each type can be coerced to the other:
+```lean
+instance : Coe Weekday (Fin 7) where
+  coe := Weekday.toFin
+
+instance : Coe (Fin 7) Weekday where
+  coe := Weekday.fromFin
+```
+
+While this works, instances of the coercions that occur in Lean's output are not presented using the coercion operator, which is what Lean users expect.
+Instead, the name {lean}`Weekday.fromFin` is used explicitly:
+```lean (name := wednesday)
+def wednesday : Weekday := (2 : Fin 7)
+
+#print wednesday
+```
+```leanOutput wednesday
+def wednesday : Weekday :=
+Weekday.fromFin 2
+```
+
+
+Adding the {attr}`coe` attribute to the definition of a coercion causes it to be displayed using the coercion operator:
+```lean (name := friday)
+attribute [coe] Weekday.fromFin
+attribute [coe] Weekday.toFin
+
+def friday : Weekday := (5 : Fin 7)
+
+#print friday
+```
+```leanOutput friday
+def friday : Weekday :=
+↑5
+```
+
+:::
+
+## Special-Purpose Coercions
+%%%
+tag := "nat-api-cast"
+%%%
+
+The type class {name}`NatCast` is a special case of {name}`Coe` that's used to define a coercion from {lean}`Nat` to some other type that is in some sense canonical.
+It exists to enable better integration with large libraries of mathematics, such as [Mathlib](https://github.com/leanprover-community/mathlib4), that make heavy use of coercions to map from the natural numbers to other structures.
+Ideally, the coercion of a natural number into these structures is a {tech}[simp normal form], because it is a convenient way to denote them.
+
+A built-in coercion from {lean}`Nat` to {lean}`Int` can interact badly with the existence of coercions from both {lean}`Nat` and {lean}`Int` to another structure, because there may be two separate paths by which the coercion might occur.
+The {tech}[simp normal form] would need to choose a single coercion path, but lemmas could easily be stated using the other path, which would lead to them not being used.
+{lean}`NatCast` instances, on the other hand, are typically {tech key:="definitional equality"}[definitionally equal], avoiding the problem.
+The Lean standard library's instances are arranged such that {name}`NatCast` instances are chosen preferentially over {name}`Coe` instances during coercion insertion.
+
+{docstring NatCast}
+
+{docstring Nat.cast}
+
+
+
+# Coercing to Sorts
+%%%
+tag := "sort-coercion"
+%%%
+
 
 :::TODO
 
@@ -130,8 +532,47 @@ It's also CoeOut
 ```
 :::
 
+::: example "Sort Coercions"
 
-## Coercing to Function Types
+A monoid is a type equipped with an associative binary operation and an identity element.
+While monoid structure can be defined as a type class, it can also be defined as a structure that “bundles up” the structure with the type:
+```lean
+structure Monoid where
+  Carrier : Type u
+  op : Carrier → Carrier → Carrier
+  id : Carrier
+  op_assoc :
+    ∀ (x y z : Carrier), op x (op y z) = op (op x y) z
+  id_op_identity : ∀ (x : Carrier), op id x = x
+  op_id_identity : ∀ (x : Carrier), op x id = x
+```
+
+The type {lean type := "Type 1"}`Monoid` does not indicate the carrier:
+```lean
+def StringMonoid : Monoid where
+  Carrier := String
+  op := (· ++ ·)
+  id := ""
+  op_assoc := by intros; simp [String.append_assoc]
+  id_op_identity := by intros; simp
+  op_id_identity := by intros; simp
+```
+
+However, a {name}`CoeSort` instance can be implemented that applies the {name}`Monoid.Carrier` projection when a monoid is used in a position where Lean would expect a type:
+```lean
+instance : CoeSort Monoid (Type u) where
+  coe m := m.Carrier
+
+example : StringMonoid := "hello"
+```
+:::
+
+
+# Coercing to Function Types
+%%%
+tag := "fun-coercion"
+%%%
+
 
 :::syntax term (title := "Explicit Coercion to Functions")
 ```grammar
@@ -139,18 +580,211 @@ It's also CoeOut
 ```
 :::
 
+```lean (show := false)
+section
+variable {α : Type u} {β : Type v}
+```
+:::example "Coercing Decorated Functions to Function Types"
+The structure {lean}`NamedFun α β` pairs a function from {lean}`α` to {lean}`β` with a name.
+
+```lean
+structure NamedFun (α : Type u) (β : Type v) where
+  function : α → β
+  name : String
+```
+
+Existing functions can be named:
+```lean
+def succ : NamedFun Nat Nat where
+  function n := n + 1
+  name := "succ"
+
+def asString [ToString α] : NamedFun α String where
+  function := ToString.toString
+  name := "asString"
+
+def append : NamedFun (List α) (List α → List α) where
+  function := (· ++ ·)
+  name := "append"
+```
+
+Named functions can also be composed:
+```lean
+def NamedFun.comp
+    (f : NamedFun β γ)
+    (g : NamedFun α β) :
+    NamedFun α γ where
+  function := f.function ∘ g.function
+  name := f.name ++ " ∘ " ++ g.name
+```
 
 
-:::syntax attr (title := "Marking Coercions")
+Unlike ordinary functions, named functions have a reasonable representation as a string:
+```lean
+instance : ToString (NamedFun α α'') where
+  toString f := s!"#<{f.name}>"
+```
+```lean (name := compDemo)
+#eval asString.comp succ
+```
+```leanOutput compDemo
+#<asString ∘ succ>
+```
+
+A {name}`CoeFun` instance allows them to be applied just like ordinary functions:
+```lean
+instance : CoeFun (NamedFun α α'') (fun _ => α → α'') where
+  coe | ⟨f, _⟩ => f
+```
+```lean (name := appendDemo)
+#eval append [1, 2, 3] [4, 5, 6]
+```
+```leanOutput appendDemo
+[1, 2, 3, 4, 5, 6]
+```
+:::
+```lean (show := false)
+end
+```
+
+:::example "Dependent Coercion to Functions"
+Sometimes, the type of the resulting function depends on the specific value that is being coerced.
+A {lean}`Writer` represents a means of appending a representation of some value to a string:
+```lean
+structure Writer where
+  Writes : Type u
+  write : Writes → String → String
+
+def natWriter : Writer where
+  Writes := Nat
+  write n out := out ++ toString n
+
+def stringWriter : Writer where
+  Writes := String
+  write s out := out ++ s
+```
+
+Because the type of the parameter expected by the inner function depend on the {lean}`Writer.Writes` field, the {name}`CoeFun` instance extracts the field:
+```lean
+instance :
+    CoeFun Writer (·.Writes → String → String) where
+  coe w := w.write
+```
+
+With this instance, concrete {name}`Writer`s can be used as functions:
+```lean (name := writeTwice)
+#eval "" |> natWriter (5 : Nat) |> stringWriter " hello"
+```
+```leanOutput writeTwice
+"5 hello"
+```
+:::
+
+:::example "Coercing to Function Types"
+
+A well-typed interpreter is an interpreter for a programming language that uses indexed families to rule out run-time type errors.
+Functions written in the interpreted language can be interpreted as Lean functions, but their underlying source code can also be inspected.
+
+The first step in the well-typed interpreter is to select the subset of Lean types that can be used.
+These types are represented by an {tech}[inductive type] of codes {name}`Ty` and a function that maps these codes to actual types.
+```lean
+inductive Ty where
+  | nat
+  | arr (dom cod : Ty)
+
+abbrev Ty.interp : Ty → Type
+  | .nat => Nat
+  | .arr t t' => t.interp → t'.interp
+```
+
+The language itself is represented by an {tech}[indexed family] over variable contexts and result types.
+Variables are represented by [de Bruijn indices](https://en.wikipedia.org/wiki/De_Bruijn_index).
+```lean
+inductive Tm : List Ty → Ty → Type where
+  | zero : Tm Γ .nat
+  | succ (n : Tm Γ .nat) : Tm Γ .nat
+  | rep (n : Tm Γ .nat)
+    (start : Tm Γ t)
+    (f : Tm Γ (.arr .nat (.arr t t))) :
+    Tm Γ t
+  | lam (body : Tm (t :: Γ) t') : Tm Γ (.arr t t')
+  | app (f : Tm Γ (.arr t t')) (arg : Tm Γ t) : Tm Γ t'
+  | var (i : Fin Γ.length) : Tm Γ Γ[i]
+deriving Repr
+```
+
+
+Because the {name}`OfNat` instance for {name}`Fin` requires that the upper bound be non-zero, {name}`Tm.var` can be inconvenient to use with numeric literals.
+The helper {name}`Tm.v` can be used to avoid the need for type annotations in these cases.
+```lean
+def Tm.v
+    (i : Fin (Γ.length + 1)) :
+    Tm (t :: Γ) (t :: Γ)[i] :=
+  .var (Γ := t :: Γ) i
+```
+
+A function that adds two natural numbers uses the {name Tm.rep}`rep` operation to apply the successor {name}`Tm.succ` repeatedly.
+```lean
+def plus : Tm [] (.arr .nat (.arr .nat .nat)) :=
+  .lam <| .lam <| .rep (.v 1) (.v 0) (.lam (.lam (.succ (.v 0))))
+```
+
+
+Each typing context can be interpreted as a type of run-time environments that provide a value for each variable in the context:
+```lean
+def Env : List Ty → Type
+  | [] => Unit
+  | t :: Γ => t.interp × Env Γ
+
+def Env.empty : Env [] := ()
+
+def Env.extend (ρ : Env Γ) (v : t.interp) : Env (t :: Γ) :=
+  (v, ρ)
+
+def Env.get (i : Fin Γ.length) (ρ : Env Γ) : Γ[i].interp :=
+  match Γ, ρ, i with
+  | _::_, (v, _), ⟨0, _⟩ => v
+  | _::_, (_, ρ'), ⟨i+1, _⟩ => ρ'.get ⟨i, by simp_all⟩
+```
+
+Finally, the interpreter is a recursive function over the term:
+```lean
+def Tm.interp (ρ : Env α'') : Tm α'' t → t.interp
+  | .zero => 0
+  | .succ n => n.interp ρ + 1
+  | .rep n start f =>
+    let f' := f.interp ρ
+    (n.interp ρ).fold (fun n _ x => f' n x) (start.interp ρ)
+  | .lam body => fun x => body.interp (ρ.extend x)
+  | .app f arg => f.interp ρ (arg.interp ρ)
+  | .var i => ρ.get i
+```
+
+Coercing a {name}`Tm` to a function consists of calling the interpreter.
+
+```lean
+instance : CoeFun (Tm [] α'') (fun _ => α''.interp) where
+  coe f := f.interp .empty
+```
+
+Because functions are represented by a first-order inductive type, their code can be inspected:
+```lean (name := evalPlus)
+#eval plus
+```
+```leanOutput evalPlus
+Tm.lam (Tm.lam (Tm.rep (Tm.var 1) (Tm.var 0) (Tm.lam (Tm.lam (Tm.succ (Tm.var 0))))))
+```
+
+At the same time, due to the coercion, they can be applied just like native Lean functions:
+```lean (name := eight)
+#eval plus 3 5
+```
+```leanOutput eight
+8
+```
 
 :::
 
-
-:::TODO
-
-Situations in which a coercion might be inserted
-
-:::
 
 :::planned 146
  * {deftech}[Coercions]
@@ -158,3 +792,43 @@ Situations in which a coercion might be inserted
  * Varieties of coercions
  * When should each be used?
 :::
+
+# Implementation Details
+%%%
+tag := "coercion-chain-impl"
+%%%
+
+
+Only ordinary coercion insertion uses chaining.
+Inserting coercions to a {ref "sort-coercion"}[sort] or a {ref "fun-coercion"}[function] uses ordinary instance synthesis.
+Similarly, {tech}[dependent coercions] are not chained.
+
+:::paragraph
+
+Coercion chaining is implemented through a collection of auxiliary type classes.
+Users should not write instances of these classes directly, but knowledge of their structure can be useful when diagnosing the reason why a coercion was not inserted as expected.
+The specific rules governing the ordering of instances in the chain (namely, that it should match {name}`CoeHead`﻿`?`{name}`CoeOut`﻿`*`{name}`Coe`﻿`*`{name}`CoeTail`﻿`?`) are implemented by the following type classes:
+
+ * {name}`CoeTC` is the transitive closure of {name}`Coe` instances.
+
+ * {name}`CoeOTC` is the middle of the chain, consisting of the transitive closure of {name}`CoeOut` instances followed by {name}`CoeTC`.
+
+ * {name}`CoeHTC` is the start of the chain, consisting of at most one {name}`CoeHead` instance followed by {name}`CoeOTC`.
+
+ * {name}`CoeHTCT` is the whole chain, consisting of `CoeHTC` followed by at most one {name}`CoeTail` instance. Alternatively, it might be a {name}`NatCast` instance.
+
+ * {name}`CoeT` represents the entire chain: it is either a {name}`CoeHTCT` chain or a single {name}`CoeDep` instance.
+
+:::
+
+:::figure "Auxiliary Classes for Coercions" (name := "coe-aux-classes")
+![A graphical representation of the relationships between the coercion transitive closure auxiliary classes](/static/figures/coe-chain.svg)
+:::
+
+{docstring CoeHTCT}
+
+{docstring CoeHTC}
+
+{docstring CoeOTC}
+
+{docstring CoeTC}

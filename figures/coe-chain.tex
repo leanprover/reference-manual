@@ -1,0 +1,56 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\usepackage{sourcecodepro}
+\usepackage{tikz}
+\usepackage{unicode-math}
+
+\setmainfont{TeX Gyre Heros}
+\setmonofont{Source Code Pro}
+\setmathfont{TeX Gyre Schola Math}
+
+
+\usetikzlibrary{matrix, positioning, decorations.pathreplacing, calligraphy, calc}
+
+\tikzset{
+  layout/.style={
+    matrix of nodes,
+    row sep=-\pgflinewidth,
+    %column sep=-\pgflinewidth,
+    column sep=2pt,
+    nodes={rectangle, align=center, font=\ttfamily},
+    minimum height=1.5em,
+    text depth=0.5ex,
+    text height=2ex,
+    nodes in empty cells,
+  },
+  arr/.style={
+    text width=10em
+  },
+  slegend/.style={
+    decorate, decoration={calligraphic brace, amplitude=7pt, mirror}, line width=0.5pt,
+    % node options
+    align=center, midway, below, font=\ttfamily
+  },
+  legend/.style={
+    decorate, decoration={calligraphic brace, amplitude=10pt, mirror}, line width=0.5pt,
+    % node options
+    align=center, midway, below, font=\ttfamily
+  }
+}
+
+\begin{document}
+\begin{tikzpicture}
+  \matrix (string) [layout] { %
+    \node[](string-1-1){CoeHead$?$}; & \node[](string-1-2){CoeOut$^*$}; & \node[](string-1-3){Coe$^*$}; & \node[](string-1-4){CoeTail$?$};& \node[](string-1-5){$\mid$}; & \node[](string-1-6){CoeDep};&\\%
+  };
+  \draw[slegend] ([yshift=-2pt]string-1-3.south west) -- ([yshift=-2pt]string-1-3.south east) node (coetc) [midway, below, yshift=-0.5em] {CoeTC};
+  \draw[legend] ([yshift=-2.2em]string-1-2.south west) -- ([yshift=-2.2em, xshift=3pt]string-1-3.south east) node (coeotc) [midway, below, yshift=-0.8em] {CoeOTC};
+  \draw[legend] ([yshift=-4.4em]string-1-1.south west) -- ([yshift=-4.4em, xshift=6pt]string-1-3.south east) node (coehtc) [midway, below, yshift=-0.8em] {CoeHTC};
+  \draw[legend] ([xshift=-3pt, yshift=-6.6em]string-1-1.south west) -- ([yshift=-6.6em]string-1-4.south east) node (coehtct) [midway, below, yshift=-0.8em] {CoeHTCT};
+  \draw[legend] ([xshift=-6pt, yshift=-8.8em]string-1-1.south west) -- ([yshift=-8.8em]string-1-6.south east) node (coehtct) [midway, below, yshift=-0.8em] {CoeT};
+\end{tikzpicture}
+\end{document}
+
+% Local Variables:
+% TeX-engine: luatex
+% End:
