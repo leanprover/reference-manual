@@ -24,6 +24,7 @@ This reference manual contains figures that are built from LaTeX sources. To bui
    + `pgf`
    + `pdftexcmds`
    + `luatex85`
+   + `lualatex-math`
    + `infwarerr`
    + `ltxcmds`
    + `xcolor`
@@ -32,6 +33,9 @@ This reference manual contains figures that are built from LaTeX sources. To bui
    + `inter`
    + `epstopdf-pkg`
    + `tex-gyre`
+   + `tex-gyre-math`
+   + `unicode-math`
+   + `amsmath`
    + `sourcecodepro`
  * `pdftocairo`, which can be found in the `poppler-utils` package on Debian-derived systems and the `poppler` package in Homebrew
  
