@@ -519,7 +519,7 @@ inductive Decision (α : Type) where
   | no
 ```
 
-Truthy values can be converted to {name}`Bool`s by forgetting the contained value.
+{noVale "Made-up word for example purposes"}[“Truthy”] values can be converted to {name}`Bool`s by forgetting the contained value.
 {name}`Bool`s can be converted to {name}`Decision`s by discounting the {name Decision.maybe}`maybe` case.
 ```lean
 @[coe]
