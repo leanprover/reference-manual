@@ -22,7 +22,7 @@ def Block.example (name : Option String) : Block where
   data := ToJson.toJson (name, (none : Option Tag))
 
 structure ExampleConfig where
-  description : FileMap × Array Syntax
+  description : FileMap × TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -44,7 +44,7 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
   out := out.qsort (fun (i, _) (j, _) => i < j)
   return out.map (·.2)
 
-def isLeanBlock : Syntax → CoreM Bool
+def isLeanBlock : TSyntax `block → CoreM Bool
   | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
     let name ← realizeGlobalConstNoOverloadWithInfo nameStx
     return name == ``lean

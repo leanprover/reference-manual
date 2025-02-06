@@ -24,7 +24,7 @@ def Block.figure (name : Option String) : Block where
   data := ToJson.toJson (name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : FileMap × Array Syntax
+  caption : FileMap × TSyntaxArray `inline
   /-- Name for refs -/
   name : Option String := none
 
