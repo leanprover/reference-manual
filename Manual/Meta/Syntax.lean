@@ -79,7 +79,7 @@ structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
   label : String := "syntax"
-  title : Option (FileMap × Array Syntax) := none
+  title : Option (FileMap × TSyntaxArray `inline) := none
 
 structure SyntaxConfig extends FreeSyntaxConfig where
   aliases : List Name := []

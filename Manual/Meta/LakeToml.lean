@@ -796,7 +796,7 @@ def lakeToml : DirectiveExpander
 
         discard <| expectString "elaborated configuration" expectedStr v (useLine := (·.any (!·.isWhitespace)))
 
-        contents.mapM elabBlock
+        contents.mapM (elabBlock ⟨·⟩)
 
 @[role_expander tomlField]
 def tomlFieldInline : RoleExpander
