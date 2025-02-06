@@ -72,9 +72,18 @@ fun {α} x => { fn := fun x_1 => x }
 ```
 
 
+```lean (show := false)
+section
+variable {α : Type u}
+```
+
 Coercions are not used to resolve {tech}[generalized field notation]: only the inferred type of the term is considered.
 However, a {tech}[type ascription] can be used to trigger a coercion to the type that has the desired generalized field.
+Coercions are also not used to resolve {name}`OfNat` instances: even though there is a default instance for {lean}`OfNat Nat`, a coercion from {lean}`Nat` to {lean}`α` does not allow natural number literals to be used for {lean}`α`.
 
+```lean (show := false)
+end
+```
 
 ```lean (show := false)
 -- Test comment about field notation
@@ -120,6 +129,110 @@ Coercions can be triggered by adding a type ascription, which additionally cause
 example (n : Nat) := (n : Int).bdiv 2
 ```
 :::
+
+::::example "Coercions and `OfNat`"
+{lean}`Bin` is an inductive type that represents binary numbers.
+```lean
+inductive Bin where
+  | done
+  | zero : Bin → Bin
+  | one : Bin → Bin
+
+def Bin.toString : Bin → String
+  | .done => ""
+  | .one b => b.toString ++ "1"
+  | .zero b => b.toString ++ "0"
+
+instance : ToString Bin where
+  toString
+    | .done => "0"
+    | b => Bin.toString b
+```
+
+Binary numbers can be converted to natural numbers by repeatedly applying {lean}`Bin.succ`:
+```lean
+def Bin.succ (b : Bin) : Bin :=
+  match b with
+  | .done => Bin.done.one
+  | .zero b => .one b
+  | .one b => .zero b.succ
+
+def Bin.ofNat (n : Nat) : Bin :=
+  match n with
+  | 0 => .done
+  | n + 1 => (Bin.ofNat n).succ
+```
+
+```lean (show := false)
+--- Internal tests
+/-- info: [0, 1, 10, 11, 100, 101, 110, 111, 1000] -/
+#guard_msgs in
+#eval [
+  Bin.done,
+  Bin.done.succ,
+  Bin.done.succ.succ,
+  Bin.done.succ.succ.succ,
+  Bin.done.succ.succ.succ.succ,
+  Bin.done.succ.succ.succ.succ.succ,
+  Bin.done.succ.succ.succ.succ.succ.succ,
+  Bin.done.succ.succ.succ.succ.succ.succ.succ,
+  Bin.done.succ.succ.succ.succ.succ.succ.succ.succ]
+
+def Bin.toNat : Bin → Nat
+  | .done => 0
+  | .zero b => 2 * b.toNat
+  | .one b => 2 * b.toNat + 1
+
+def Bin.double : Bin → Bin
+  | .done => .done
+  | other => .zero other
+
+theorem Bin.toNat_succ_eq_succ {b : Bin} : b.toNat = n → b.succ.toNat = n + 1 := by
+  intro hEq
+  induction b generalizing n <;> simp_all_arith only [Bin.toNat, Bin.succ]
+
+theorem Bin.toNat_double_eq_double {b : Bin} : b.toNat = n → b.double.toNat = n * 2 := by
+  intro hEq
+  induction b generalizing n <;> simp_all_arith only [Bin.toNat, Bin.double]
+
+theorem Bin.ofNat_toNat_eq {n : Nat} : (Bin.ofNat n).toNat = n := by
+  induction n <;> simp_all [Bin.ofNat, Bin.toNat, Bin.toNat_succ_eq_succ]
+```
+
+
+Even if {lean}`Bin.ofNat` is registered as a coercion, natural number literals cannot be used for {lean}`Bin`:
+```lean (name := nineFail) (error := true)
+attribute [coe] Bin.ofNat
+
+instance : Coe Nat Bin where
+  coe := Bin.ofNat
+
+#eval (9 : Bin)
+```
+```leanOutput nineFail
+failed to synthesize
+  OfNat Bin 9
+numerals are polymorphic in Lean, but the numeral `9` cannot be used in a context where the expected type is
+  Bin
+due to the absence of the instance above
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+This is because coercions are inserted in response to mismatched types, but a failure to synthesize an {name}`OfNat` instance is not a type mismatch.
+
+
+The coercion can be used in the definition of the {lean}`OfNat Bin` instance:
+```lean (name := ten)
+instance : OfNat Bin n where
+  ofNat := n
+
+#eval (10 : Bin)
+```
+```leanOutput ten
+1010
+```
+::::
+
+
 
 # Coercion Insertion
 %%%
@@ -525,7 +638,7 @@ instance : CoeDep (List α) (x :: xs) (NonEmptyList α) where
 { contents := [1, 2, 3], non_empty := _ }
 ```
 
-Coercion insertion requires that the term to be coerced matches the one in the instance header.
+Dependent coercion insertion requires that the term to be coerced syntactically matches the term in the instance header.
 Lists that are known to be non-empty, but which are not syntactically instances of {lean type:= "{α : Type u} → α  → List α → List α"}`(· :: ·)`, cannot be coerced with this instance.
 ```lean (error := true) (name := coeFailDep)
 #check
@@ -722,20 +835,28 @@ The Lean standard library's instances are arranged such that {name}`NatCast` ins
 tag := "sort-coercion"
 %%%
 
+The Lean elaborator expects types in certain positions without necessarily being able to determine the type's {tech}[universe] ahead of time.
+For example, the term following the colon in a definition header might be a proposition or a type.
+The ordinary coercion mechanism is not applicable because it requires a specific expected type, and there's no way to express that the expected type could be _any_ universe in the {name}`Coe` class.
 
-:::TODO
+When a term is elaborated in a position where a proposition or type is expected, but the inferred type of the elaborated term is not a proposition or type, Lean  attempts to recover from the error by synthesizing an instance of {name}`CoeSort`.
+If the instance is found, and the resulting type is itself a type, then it the coercion is inserted and unfolded.
 
-Is this only when some sort is needed, or also when a specific known one is expected?
+Not every situation in which the elaborator expects a universe requires {name}`CoeSort`.
+In some cases, a particular universe is available as an expected type.
+In these situations, ordinary coercion insertion using {name}`CoeT` is used.
+Instances of {lean}`CoeSort` can be used to synthesize instances of {lean}`CoeOut`, so no separate instance is needed to support this use case.
+In general, coercions to types should be implemented as {name}`CoeSort`.
 
-It's also CoeOut
-
-:::
+{docstring CoeSort}
 
 
 :::syntax term (title := "Explicit Coercion to Sorts")
 ```grammar
 ↥ $_:term
 ```
+
+Coercions to sorts can be explicitly triggered using the {keyword}`↥` prefix operator.
 :::
 
 ::: example "Sort Coercions"
@@ -773,12 +894,53 @@ example : StringMonoid := "hello"
 ```
 :::
 
+:::example "Sort Coercions as Ordinary Coercions"
+The {tech}[inductive type] {name}`NatOrBool` represents the types {name}`Nat` and {name}`Bool`.
+The can be coerced to the actual types {name}`Nat` and {name}`Bool`:
+```lean
+inductive NatOrBool where
+  | nat | bool
+
+@[coe]
+abbrev NatOrBool.asType : NatOrBool → Type
+  | .nat => Nat
+  | .bool => Bool
+
+instance : CoeSort NatOrBool Type where
+  coe := NatOrBool.asType
+
+open NatOrBool
+```
+
+The {name}`CoeSort` instance is used when {lean}`nat` occurs to the right of a colon:
+```lean
+def x : nat := 5
+```
+
+When an expected type is available, ordinary coercion insertion is used.
+In this case, the {name}`CoeSort` instance is used to synthesize a {lean}`CoeOut NatOrBool Type` instance, which chains with the {inst}`Coe Type (Option Type)` instance to recover from the type error.
+```lean
+def y : Option Type := bool
+```
+:::
 
 # Coercing to Function Types
 %%%
 tag := "fun-coercion"
 %%%
 
+Another situation where an expected type is not generally available is the function position in a function application term.
+Dependent function types are common; together with {tech}[implicit] parameters, they cause information to flow from the elaboration of one argument to the elaboration of the others.
+Attempting to deduce the type required for the function from the expected type of the entire application term and individually-inferred types of arguments will often fail.
+In these situations, Lean uses the {name}`CoeFun` type class to coerce a non-function in an application position into a function.
+Like {name}`CoeSort`, {name}`CoeFun` instances do not chain with other coercions while inserting a function coercion, but they can be used as {name}`CoeOut` instances during ordinary coercion insertion.
+
+The second parameter to {name}`CoeFun` is an output parameter that determines the resulting function type.
+This output parameter is function that computes the function type from the term that's being coerced, rather than the function type itself.
+Unlike {name}`CoeDep`, the term itself is not taken into account during instance synthesis; it can, however, be used to create dependently typed coercions where the function type is determined by the term.
+
+
+{docstring CoeFun}
 
 :::syntax term (title := "Explicit Coercion to Functions")
 ```grammar
@@ -992,12 +1154,6 @@ At the same time, due to the coercion, they can be applied just like native Lean
 :::
 
 
-:::planned 146
- * {deftech}[Coercions]
- * When they are inserted
- * Varieties of coercions
- * When should each be used?
-:::
 
 # Implementation Details
 %%%
