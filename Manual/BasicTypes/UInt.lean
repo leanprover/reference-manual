@@ -56,11 +56,16 @@ Signed integers wrap the corresponding unsigned integers, and use a twos-complem
 
 # Run-Time Representation
 
-In compiled code, fixed-width integer types that fit in one less bit than the platform's pointer size are represented unboxed, without additional allocations or indirections.
+In compiled code, fixed-width integer types that fit in one less bit than the platform's pointer size are always represented unboxed, without additional allocations or indirections.
 This always includes {lean}`Int8`, {lean}`UInt8`, {lean}`Int16`, and {lean}`UInt16`.
-On 64-bit architectures, {lean}`Int32` and {lean}`UInt32` are also unboxed.
+On 64-bit architectures, {lean}`Int32` and {lean}`UInt32` are also always unboxed.
 
-Fixed-width integer types that take at least as many bits as the platform's pointer type are represented the same way as {name}`Nat`: if they are sufficiently small, then they are represented unboxed; if they are larger, then they are represented by a heap-allocated number value.
+In most situations, all of the fixed-width integer types are unboxed.
+Their values are represented using the corresponding unsigned fixed-width C type when a constructor parameter, function parameter, function return value, or intermediate result is known to be a fixed-width integer type.
+In contexts where other types might occur, such as the contents of polymorphic containers like {name}`Array`, these types are boxed.
+Inspecting a function's type in Lean is not sufficient to determine how fixed-width integer values will be represented, because boxed values are not eagerly unboxed—a function that projects an {name}`Int64` from an array returns a boxed integer value.
+
+When boxed, fixed-width integer types that take at least as many bits as the platform's pointer type are represented the same way as {name}`Nat`: if they are sufficiently small, then they are represented unboxed within the pointer; if they are larger, then they are represented by a heap-allocated number value.
 {lean}`Int64`, {lean}`UInt64`, {lean}`ISize`, and {lean}`USize` are always represented this way, as are {lean}`Int32` and {lean}`UInt32` on 32-bit architectures.
 
 # Syntax
