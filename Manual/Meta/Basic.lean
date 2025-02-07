@@ -26,7 +26,7 @@ def ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
     | .num n => pure n.getNat
     | other => throwError "Expected string, got {repr other}"
 
-def ValDesc.inlinesString : ValDesc m (FileMap × Array Syntax) where
+def ValDesc.inlinesString : ValDesc m (FileMap × TSyntaxArray `inline) where
   description := m!"a string that contains a sequence of inline elements"
   get
     | .str s => open Lean.Parser in do
@@ -40,7 +40,7 @@ def ValDesc.inlinesString : ValDesc m (FileMap × Array Syntax) where
       if s'.allErrors.isEmpty then
         if s'.stxStack.size = 1 then
           match s'.stxStack.back with
-          | .node _ _ contents => pure (FileMap.ofString input, contents)
+          | .node _ _ contents => pure (FileMap.ofString input, contents.map (⟨·⟩))
           | other => throwError "Unexpected syntax from Verso parser. Expected a node, got {other}"
         else throwError "Unexpected internal stack size from Verso parser. Expected 1, got {s'.stxStack.size}"
       else
