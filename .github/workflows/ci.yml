@@ -33,6 +33,7 @@ jobs:
             pgf
             pdftexcmds
             luatex85
+            lualatex-math
             infwarerr
             ltxcmds
             xcolor
@@ -41,6 +42,9 @@ jobs:
             inter
             epstopdf-pkg
             tex-gyre
+            tex-gyre-math
+            unicode-math
+            amsmath
             sourcecodepro
 
       - name: Install elan
@@ -66,6 +70,10 @@ jobs:
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
+
+      - name: Build figures
+        run: |
+          lake build figures
 
       - name: Build
         run: |

@@ -111,12 +111,6 @@ end
 
 {docstring Int.repr}
 
-### Casts
-
-{docstring IntCast}
-
-{docstring Int.cast}
-
 ## Arithmetic
 
 Typically, arithmetic operations on integers are accessed using Lean's overloaded arithmetic notation.

@@ -125,7 +125,7 @@ but is expected to have type
 :::
 ::::
 
-The basic types in Lean are {tech}[universes], {tech}[function] types, and {tech}[type constructors] of {tech}[inductive types].
+The basic types in Lean are {tech}[universes], {tech}[function] types, the quotient former {name}`Quot`, and {tech}[type constructors] of {tech}[inductive types].
 {tech}[Defined constants], applications of {tech}[recursors], function application, {tech}[axioms] or {tech}[opaque constants] may additionally give types, just as they can give rise to terms in any other type.
 
 
@@ -166,7 +166,7 @@ Propositions have the following properties:
 
 # Universes
 
-Types are classified by {deftech}_universes_. {index}[universe]
+Types are classified by {deftech}_universes_. {index}[universe]{margin}[Universes are also referred to as {deftech}_sorts_.]
 Each universe has a {deftech (key:="universe level")}_level_, {index subterm := "of universe"}[level] which is a natural number.
 The {lean}`Sort` operator constructs a universe from a given level. {index}[`Sort`]
 If the level of a universe is smaller than that of another, the universe itself is said to be smaller.

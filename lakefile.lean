@@ -41,10 +41,13 @@ target subversoExtractMod : FilePath := do
     failure
 
 target figures : Array FilePath := do
-  let files := (← figureDir.readDir).filterMap fun f =>
-    match f.path.extension with
-    | some "tex" => some f.path
-    | _ => none
+  let files := (← figureDir.readDir).filterMap fun f => do
+    let some "tex" := f.path.extension | throw ()
+    let some fn := f.path.fileName | throw ()
+    -- Ignore backup files
+    if ".#".isPrefixOf fn then throw ()
+    return f.path
+
   let files := files.qsort (toString · < toString ·)
   let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile)
   let traceFile := figureDir.join "lake.trace"

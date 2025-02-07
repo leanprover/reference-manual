@@ -351,6 +351,9 @@ end Inspecting
 ```
 
 # Typed Syntax
+%%%
+tag := "typed-syntax"
+%%%
 
 Syntax may additionally be annotated with a type that specifies which {tech}[syntax category] it belongs to.
 {TODO}[Describe the problem here - complicated invisible internal invariants leading to weird error msgs]
