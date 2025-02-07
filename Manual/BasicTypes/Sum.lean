@@ -17,9 +17,6 @@ set_option pp.rawOnError true
 tag := "sum-types"
 %%%
 
-:::planned 172
-Describe {name}`Sum` and {name}`PSum`, their syntax and API
-:::
 
 {deftech}_Sum types_ represent a choice between two types: an element of the sum is an element of one of the other types, paired with an indication of which type it came from.
 Sums are also known as disjoint unions, discriminated unions, or tagged unions.
