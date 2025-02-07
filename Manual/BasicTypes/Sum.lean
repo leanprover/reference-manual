@@ -22,34 +22,68 @@ Describe {name}`Sum` and {name}`PSum`, their syntax and API
 :::
 
 {deftech}_Sum types_ represent a choice between two types: an element of the sum is an element of one of the other types, paired with an indication of which type it came from.
-Sums are also known as disjoint unions.
+Sums are also known as disjoint unions, discriminated unions, or tagged unions.
+The constructors of a sum are also called {deftech}_injections_; mathematically, they can be considered as injective functions from each summand to the sum.
+
+:::paragraph
+There are two varieties of the sum type:
+
+ * {lean}`Sum` is {tech key:="universe polymorphism"}[polymorphic] over all {lean}`Type` {tech}[universes], and is never a {tech}[proposition].
+
+ * {lean}`PSum` is allows the summands to be propositions or types. Unlike {name}`Or`, the {name}`PSum` of two propositions is still a type, and non-propositional code can check which injection was used to construct a given value.
+
+Manually-written Lean code almost always uses only {lean}`Sum`, while {lean}`PSum` is used as part of the implementation of proof automation. This is because it imposes problematic constraints that universe level unification cannot solve.
+:::
 
 {docstring Sum}
-
-
-# Universe-Polymorphic Sums
-%%%
-tag := "psum"
-%%%
 
 {docstring PSum}
 
 
+
 # Syntax
+%%%
+tag := "sum-syntax"
+%%%
+
+The names {name}`Sum` and {name}`PSum` are rarely written explicitly.
+Most code uses the corresponding infix operators.
+
+```lean (show := false)
+section
+variable {α : Type u} {β : Type v}
+```
 
 :::syntax term title:="Sum Types"
 ```grammar
 $_ ⊕ $_
 ```
 
+{lean}`α ⊕ β` is notation for {lean}`Sum α β`.
+
 :::
 
-:::syntax term title:="Universe-Polymorphic Sum Types"
+```lean (show := false)
+end
+```
+
+```lean (show := false)
+section
+variable {α : Sort u} {β : Sort v}
+```
+
+:::syntax term title:="Potentially-Propositional Sum Types"
 ```grammar
 $_ ⊕' $_
 ```
+
+{lean}`α ⊕' β` is notation for {lean}`PSum α β`.
+
 :::
 
+```lean (show := false)
+end
+```
 
 # API Reference
 %%%
@@ -87,7 +121,7 @@ As such, their primary API is the constructors {name Sum.inl}`inl` and {name Sum
 
 The {name}`Inhabited` definitions for {name}`Sum` and {name}`PSum` are not registered as instances.
 This is because there are two separate ways to construct a default value (via {name Sum.inl}`inl` or {name Sum.inr}`inr`), and instance synthesis might result in either choice.
-The result could be situations where two identically-written terms elaborate differently and are not {tech}[definitionally equal].
+The result could be situations where two identically-written terms elaborate differently and are not {tech key:="definitional equality"}[definitionally equal].
 
 Both types have {name}`Nonempty` instances, for which {tech}[proof irrelevance] makes the choice of {name Sum.inl}`inl` or {name Sum.inr}`inr` not matter.
 This is enough to enable {keyword}`partial` functions.
