@@ -88,7 +88,7 @@ There are the following possibilities:
       [self : MonadLiftT m n] {α : Type u} :
       m α → n α
     ```
- 3. If neither {lean}`m` and {lean}`n` nor {lean}`α` and {lean}`β` can be unified, but {lean}`m` can be lifted into {lean}`n` and {lean}`α` can be coerced to {lean}`β`, then a lift and a coercion can be combined.
+ 3. If neither {lean}`m` and {lean}`n` nor {lean}`α` and {lean}`β` can be unified, but {lean}`m` can be lifted into {lean}`n` and {lean}`α` can be {tech key:="coercion"}[coerced] to {lean}`β`, then a lift and a coercion can be combined.
     This is done by inserting a call to {name}`Lean.Internal.liftCoeM`:
     ```signature
     Lean.Internal.liftCoeM.{u, v, w}

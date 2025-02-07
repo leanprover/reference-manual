@@ -616,7 +616,7 @@ end
 
 {docstring CoeTail}
 
-Instances of {name}`CoeT` can be synthesized when an appropriate chain of instances exists, or when there is a single applicable {name}`CoeDep` instance.
+Instances of {name}`CoeT` can be synthesized when an appropriate chain of instances exists, or when there is a single applicable {name}`CoeDep` instance.{margin}[When coercing from {lean}`Nat` to another type, a {name}`NatCast` instances also suffices.]
 If both exist, then the {name}`CoeDep` instance takes priority.
 
 {docstring CoeT}
@@ -855,24 +855,29 @@ def friday : Weekday :=
 
 :::
 
-## Coercions from Natural Numbers
+## Coercions from Natural Numbers and Integers
 %%%
 tag := "nat-api-cast"
 %%%
 
-The type class {name}`NatCast` is a special case of {name}`Coe` that's used to define a coercion from {lean}`Nat` to some other type that is in some sense canonical.
-It exists to enable better integration with large libraries of mathematics, such as [Mathlib](https://github.com/leanprover-community/mathlib4), that make heavy use of coercions to map from the natural numbers to other structures.
-Ideally, the coercion of a natural number into these structures is a {tech}[simp normal form], because it is a convenient way to denote them.
+The type classes {name}`NatCast` and {name}`IntCast` are special cases of {name}`Coe` that are used to define a coercion from {lean}`Nat` or {lean}`Int` to some other type that is in some sense canonical.
+They exist to enable better integration with large libraries of mathematics, such as [Mathlib](https://github.com/leanprover-community/mathlib4), that make heavy use of coercions to map from the natural numbers or integers to other structures (typically rings).
+Ideally, the coercion of a natural number or integer into these structures is a {tech}[simp normal form], because it is a convenient way to denote them.
 
-A built-in coercion from {lean}`Nat` to {lean}`Int` can interact badly with the existence of coercions from both {lean}`Nat` and {lean}`Int` to another structure, because there may be two separate paths by which the coercion might occur.
-The {tech}[simp normal form] would need to choose a single coercion path, but lemmas could easily be stated using the other path, which would lead to them not being used.
-{lean}`NatCast` instances, on the other hand, are typically {tech key:="definitional equality"}[definitionally equal], avoiding the problem.
-The Lean standard library's instances are arranged such that {name}`NatCast` instances are chosen preferentially over {name}`Coe` instances during coercion insertion.
+When the coercion application is expected to be the {tech}[simp normal form] for a type, it is important that _all_ such coercions are {tech key:="definitional equality"}[definitionally equal] in practice.
+Otherwise, the {tech}[simp normal form] would need to choose a single chained coercion path, but lemmas could accidentally stated using a different path.
+Because {tactic}`simp`'s internal index is based on the underlying structure of the term, rather than its presentation in the surface syntax, these differences would cause the lemmas to not be applied where expected.
+{lean}`NatCast` and {lean}`IntCast` instances, on the other hand, should be defined such that they are always {tech key:="definitional equality"}[definitionally equal], avoiding the problem.
+The Lean standard library's instances are arranged such that {name}`NatCast` or {name}`IntCast` instances are chosen preferentially over chains of coercion instances during coercion insertion.
+They can also be used as {name}`CoeOut` instances, allowing a graceful fallback to coercion chaining when needed.
 
 {docstring NatCast}
 
 {docstring Nat.cast}
 
+{docstring IntCast}
+
+{docstring Int.cast}
 
 
 # Coercing to Sorts
@@ -1202,13 +1207,29 @@ At the same time, due to the coercion, they can be applied just like native Lean
 
 # Implementation Details
 %%%
-tag := "coercion-chain-impl"
+tag := "coercion-impl"
 %%%
 
 
 Only ordinary coercion insertion uses chaining.
 Inserting coercions to a {ref "sort-coercion"}[sort] or a {ref "fun-coercion"}[function] uses ordinary instance synthesis.
 Similarly, {tech}[dependent coercions] are not chained.
+
+## Unfolding Coercions
+%%%
+tag := "coercion-unfold-impl"
+%%%
+
+The coercion insertion mechanism unfolds applications of coercions, which allows them to control the specific shape of the resulting term.
+This is important both to ensure readable proof goals and to control evaluation of the coerced term in compiled code.
+Unfolding coercions is controlled by the {attr}`coe_decl` attribute, which is applied to each coercion method (e.g. {name}`Coe.coe`).
+This attribute should be considered part of the internals of the coercion mechanism, rather than part of the public coercion API.
+
+
+## Coercion Chaining
+%%%
+tag := "coercion-chain-impl"
+%%%
 
 :::paragraph
 
