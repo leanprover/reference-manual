@@ -1207,7 +1207,7 @@ At the same time, due to the coercion, they can be applied just like native Lean
 
 # Implementation Details
 %%%
-tag := "coercion-impl"
+tag := "coercion-impl-details"
 %%%
 
 
