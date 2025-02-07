@@ -361,8 +361,6 @@ Describe {name}`Prod` and {name}`PProd`, their syntax and API
 
 {docstring MProd}
 
-# Sum Types
-
 {include 0 Manual.BasicTypes.Sum}
 
 # Dependent Pairs
