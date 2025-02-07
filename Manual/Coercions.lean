@@ -53,25 +53,30 @@ The set of coercions can be extended by adding further instances of the appropri
 end
 ```
 
+:::example "Coercions"
 
-```lean (show := false) (keep := false)
--- Test the coercions in the list
+All of the following examples rely on coercions:
+
+```lean
 example (n : Nat) : Int := n
-example (n : Lean.TSyntax `ident) : Lean.TSyntax `term := n
 example (n : Fin k) : Nat := n
 example (x : α) : Option α := x
-def th (x : α) : Thunk α := x
 
-/--
-info: def th.{u_1} : {α : Type u_1} → α → Thunk α :=
-fun {α} x => { fn := fun x_1 => x }
--/
-#guard_msgs in
-#print th
-/-- info: instCoeTOfCoeHTCT -/
-#guard_msgs in
-#synth CoeT Lean.Name `ident Lean.SyntaxNodeKinds
+def th (f : Int → String) (x : Nat) : Thunk String := f x
+
+open Lean in
+example (n : Ident) : Term := n
 ```
+
+In the case of {name}`th`, using {keywordOf Lean.Parser.Command.print}`#print` demonstrates that evaluation of the function application is delayed until the thunk's value is requested:
+```lean (name := thunkEval)
+#print th
+```
+```leanOutput thunkEval
+def th : (Int → String) → Nat → Thunk String :=
+fun f x => { fn := fun x_1 => f ↑x }
+```
+:::
 
 
 ```lean (show := false)
@@ -234,6 +239,46 @@ instance : OfNat Bin n where
 ```
 ::::
 
+Most new coercions can be defined by declaring an instance of the {name}`Coe` {tech}[type class] and applying the {attr}`coe` attribute to the function that performs the coercion.
+To enable more control over coercions or to enable them in more contexts, Lean provides further classes that can be implemented, described in the rest of this chapter.
+
+:::example "Defining Coercions: Decimal Numbers"
+Decimal numbers can be defined as arrays of digits.
+
+```lean
+structure Decimal where
+  digits : Array (Fin 10)
+```
+
+Adding a coercion allows them to be used in contexts that expect {lean}`Nat`, but also contexts that expect any type that {lean}`Nat` can be coerced to.
+
+```lean
+@[coe]
+def Decimal.toNat (d : Decimal) : Nat :=
+  d.digits.foldl (init := 0) fun n d => n * 10 + d.val
+
+instance : Coe Decimal Nat where
+  coe := Decimal.toNat
+```
+
+This can be demonstrated by treating a {lean}`Decimal` as an {lean}`Int` as well as a {lean}`Nat`:
+```lean (name := digival)
+def twoHundredThirteen : Decimal where
+  digits := #[2, 1, 3]
+
+def one : Decimal where
+  digits := #[1]
+
+#eval (one : Int) - (twoHundredThirteen : Nat)
+```
+```leanOutput digival
+-212
+```
+
+:::
+
+{docstring Coe}
+
 
 
 # Coercion Insertion
@@ -245,11 +290,11 @@ tag := "coercion-insertion"
 The process of searching for a coercion from one type to another is called {deftech}_coercion insertion_.
 Coercion insertion is attempted in the following situations where an error would otherwise occur:
 
- * When the expected type for a term is not equal to the type found for the term
+ * The expected type for a term is not equal to the type found for the term.
 
- * When a type or proposition is expected, but the term's type is not a {tech}[universe]
+ * A type or proposition is expected, but the term's type is not a {tech}[universe].
 
- * When a term is applied as though it were a function, but its type is not a function type
+ * A term is applied as though it were a function, but its type is not a function type.
 
 Coercions are also inserted when they are explicitly requested.
 Each situation in which coercions may be inserted has a corresponding prefix operator that triggers the appropriate insertion.
@@ -568,8 +613,6 @@ end
 {docstring CoeHead}
 
 {docstring CoeOut}
-
-{docstring Coe}
 
 {docstring CoeTail}
 

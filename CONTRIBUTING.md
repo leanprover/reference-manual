@@ -18,8 +18,39 @@ Please remember to get in touch ahead of time to plan a larger contribution. In 
  * Empirical claims about Lean should be tested, either via examples or hidden test cases.
  * Examples should be clearly marked as such, separating the description of the system from the illustrative examples.
  * Technical terms should be introduced using the `deftech` role and referred to using the `tech` role.
- * Write in US English, deferring to the Chicago Manual of Style when in doubt. Exceptions to this style may be added and documented.
+ * Write in US English, deferring to the Chicago Manual of Style 18 (CMS) when in doubt. Exceptions to this style may be added and documented.
  * One sentence per line, to make diffs easier to follow.
+
+### Style
+
+Headings should be set in title case, rather than just capitalizing the first word. This is defined in CMS rule 8.160, but a good first approximation is to capitalize the first and last words, plus all words other than the following:
+ * prepositions less than five letters when not used as adverbs or adjectives
+ * "a", "an", "the", "to" (infinitive marker), "and", "but", "for", "or", "nor"
+ * conventionally lower-case components of names, like "de" or "van"
+
+Numbered or bulleted lists should be introduced by a grammatically-complete sentence that is terminated with a colon, follow one of two options:
+
+ * All list items contain one or more complete sentences that start with a capital letter and are punctuated accordingly.
+ 
+ * All list items contain noun phrases or sentence fragments that begin with a lower-case letter and do not end with punctuation.
+ 
+That is to say, lists may consist of:
+
+ 1. complete sentences, punctuated accordingly
+ 
+ 2. non-sentences, punctuated accordingly
+
+In Verso, the list and the sentence with the colon should be grouped with the `paragraph` directive.
+
+
+If necessary for emphasis, a sentence that contains a list may be broken up into a vertical list element (cf Chicago rule 6.142). In this case, punctuate the list items as though they were inline in the sentence, without using a colon at the start. When using this style in this document, rememember to
+
+ * use the `paragraph` directive so the list is typeset together with its sentence,
+ * punctuate with semicolons if the list items themselves contain commas, and
+ * remember the trailing "and" and period in the penultimate and final items.
+
+
+Automated tooling is not yet capable of implementing these rules perfectly, so pull requests that bring text into compliance with this guide are very welcome.
 
 ## Markup
 
