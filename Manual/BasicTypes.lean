@@ -15,6 +15,7 @@ import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
+import Manual.BasicTypes.Sum
 
 open Manual.FFIDocType
 
@@ -361,17 +362,8 @@ Describe {name}`Prod` and {name}`PProd`, their syntax and API
 {docstring MProd}
 
 # Sum Types
-%%%
-tag := "sum-types"
-%%%
 
-:::planned 172
-Describe {name}`Sum` and {name}`PSum`, their syntax and API
-:::
-
-{docstring Sum}
-
-{docstring PSum}
+{include 0 Manual.BasicTypes.Sum}
 
 # Dependent Pairs
 %%%
