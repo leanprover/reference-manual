@@ -15,6 +15,7 @@ import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
+import Manual.BasicTypes.Products
 
 open Manual.FFIDocType
 
@@ -345,20 +346,7 @@ end ShortCircuit
 
 {include 0 Manual.BasicTypes.Option}
 
-# Tuples
-%%%
-tag := "tuples"
-%%%
-
-:::planned 171
-Describe {name}`Prod` and {name}`PProd`, their syntax and API
-:::
-
-{docstring Prod}
-
-{docstring PProd}
-
-{docstring MProd}
+{include 0 Manual.BasicTypes.Products}
 
 # Sum Types
 %%%
@@ -373,18 +361,6 @@ Describe {name}`Sum` and {name}`PSum`, their syntax and API
 
 {docstring PSum}
 
-# Dependent Pairs
-%%%
-tag := "sigma-types"
-%%%
-
-:::planned 176
-Describe {name}`Sigma` and {name}`PSigma`, their syntax and API. What is the relationship to {lean}`Subtype` and {lean}`Exists`?
-:::
-
-{docstring Sigma}
-
-{docstring PSigma}
 
 # Linked Lists
 %%%

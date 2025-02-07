@@ -77,9 +77,13 @@ def LeanBlockConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [Mona
 structure LeanInlineConfig extends LeanBlockConfig where
   /-- The expected type of the term -/
   type : Option StrLit
+  /-- Universe variables allowed in the term -/
+  universes : Option StrLit
+
+
 
 def LeanInlineConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m LeanInlineConfig :=
-  LeanInlineConfig.mk <$> LeanBlockConfig.parse <*> .named `type strLit true
+  LeanInlineConfig.mk <$> LeanBlockConfig.parse <*> .named `type strLit true <*> .named `universes strLit true
 where
   strLit : ValDesc m StrLit := {
     description := "string literal containing an expected type",
@@ -214,7 +218,7 @@ def leanTerm : CodeBlockExpander
         try
           Core.resetMessageLog
           let tree' ← runWithOpenDecls <| runWithVariables fun _vars => do
-            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            let e ←  Elab.Term.elabTerm (catchExPostpone := true) stx none
             Term.synthesizeSyntheticMVarsNoPostponing
             let _ ← Term.levelMVarToParam (← instantiateMVars e)
 
@@ -291,11 +295,19 @@ def leanInline : RoleExpander
       | throwErrorAt arg "Expected code literal with the example name"
     let altStr ← parserInputString term
 
+    let leveller :=
+      if let some us := config.universes then
+        let us :=
+          us.getString.splitOn " " |>.filterMap fun (s : String) =>
+            if s.isEmpty then none else some s.toName
+        Elab.Term.withLevelNames us
+      else id
+
     let expectedType ← config.type.mapM fun (s : StrLit) => do
       match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
       | .error e => throwErrorAt term e
       | .ok stx => withEnableInfoTree false <| runWithOpenDecls <| runWithVariables fun _ => do
-        let t ← Elab.Term.elabType stx
+        let t ← leveller <| Elab.Term.elabType stx
         Term.synthesizeSyntheticMVarsNoPostponing
         let t ← instantiateMVars t
         if t.hasExprMVar || t.hasLevelMVar then
@@ -310,7 +322,7 @@ def leanInline : RoleExpander
         try
           Core.resetMessageLog
           let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
-            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
+            let e ← leveller <| Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
             Term.synthesizeSyntheticMVarsNoPostponing
             let _ ← Term.levelMVarToParam (← instantiateMVars e)
 
