@@ -23,11 +23,20 @@ Please remember to get in touch ahead of time to plan a larger contribution. In 
 
 ### Style
 
+Automated tooling is not yet capable of implementing these rules perfectly, so pull requests that bring text into compliance with this guide are very welcome.
+If complying with style guidelines makes the text more difficult to understand, prioritize the understandability of the text.
+
+#### Typographical Unicode
+
+In English-language text, use the appropriate Unicode characters for left and right quotation marks (both single and double) and em dashes.
+
+#### Headings
 Headings should be set in title case, rather than just capitalizing the first word. This is defined in CMS rule 8.160, but a good first approximation is to capitalize the first and last words, plus all words other than the following:
  * prepositions less than five letters when not used as adverbs or adjectives
  * "a", "an", "the", "to" (infinitive marker), "and", "but", "for", "or", "nor"
  * conventionally lower-case components of names, like "de" or "van"
 
+#### Lists
 Numbered or bulleted lists should be introduced by a grammatically-complete sentence that is terminated with a colon, follow one of two options:
 
  * All list items contain one or more complete sentences that start with a capital letter and are punctuated accordingly.
@@ -50,7 +59,7 @@ If necessary for emphasis, a sentence that contains a list may be broken up into
  * remember the trailing "and" and period in the penultimate and final items.
 
 
-Automated tooling is not yet capable of implementing these rules perfectly, so pull requests that bring text into compliance with this guide are very welcome.
+
 
 ## Markup
 

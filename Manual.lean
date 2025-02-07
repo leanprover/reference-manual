@@ -283,6 +283,10 @@ Decidable.or_not_self
 ```
 
 ```exceptions
+Sum.repr
+```
+
+```exceptions
 String.revFindAux String.extract.go₂ String.substrEq.loop String.casesOn
 String.offsetOfPosAux String.extract.go₁ String.mapAux String.firstDiffPos.loop String.utf8SetAux String.revPosOfAux String.replace.loop
 String.rec String.recOn String.posOfAux String.splitAux String.foldrAux
