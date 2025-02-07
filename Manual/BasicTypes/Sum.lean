@@ -127,7 +127,7 @@ For situations that require an {name}`Inhabited` instance, such as programs that
 :::example "Inhabited Sum Types"
 
 In Lean's logic, {keywordOf Lean.Parser.Term.panic}`panic!` is equivalent to the default value specified in its type's {name}`Inhabited` instance.
-This means that the type must have such an instance—a {name}`Nonempty` instance combined with the axiom of choice would render the program noncomputable.
+This means that the type must have such an instance—a {name}`Nonempty` instance combined with the axiom of choice would render the program non-computable.
 
 Products have the right instance:
 ```lean
