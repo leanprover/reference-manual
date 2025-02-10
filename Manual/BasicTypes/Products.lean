@@ -307,7 +307,7 @@ Quince
 Plums
 Raspberries
 ```
-the ouput is:
+the output is:
 ```stdout
 How many lines to read?
 Got 4 values. They are:
