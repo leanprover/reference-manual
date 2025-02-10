@@ -164,28 +164,175 @@ As a mere pair, the primary API for {lean}`Prod` is provided by pattern matching
 tag := "sigma-types"
 %%%
 
-:::planned 176
-Describe {name}`Sigma` and {name}`PSigma`, their syntax and API.
+
+{deftech}_Dependent pairs_, also known as {deftech}_dependent sums_ or {deftech}_Σ-types_,{see "Σ-types"}[Sigma types]{index}[Σ-types] are pairs in which the second term's type may depend on the _value_ of the first term.
+They are closely related to the existential quantifier{TODO}[xref] and {name}`Subtype`.
+Unlike existentially quantified statements, dependent pairs are in the {lean}`Type` universe and are computationally relevant data.
+Unlike subtypes, the second term is also computationally relevant data.
+Like ordinary pairs, dependent pairs may be nested; this nesting is right-associative.
+
+:::syntax term (title := "Dependent Pair Types")
+
+```grammar
+($x:ident : $t) × $t
+```
+
+```grammar
+Σ $x:ident $[$_:ident]* $[: $t]?, $_
+```
+
+```grammar
+Σ ($x:ident $[$x:ident]* : $t), $_
+```
+
+Dependent pair types bind one or more variables, which are then in scope in the final term.
+If there is one variable, then its type is a that of the first element in the pair and the final term is the type of the second element in the pair.
+If there is more than one variable, the types are nested right-associatively.
+The identifiers may also be `_`.
+With parentheses, multiple bound variables may have different types, while the unparenthesized variant requires that all have the same type.
 :::
 
-:::TODO
- * Sigma and PSigma syntax
- * Example of a "product-like" use of {name}`Sigma`
+::::example "Nested Dependent Pair Types"
+
+:::paragraph
+The type
+```leanTerm
+Σ n k : Nat, Fin (n * k)
+```
+is equivalent to
+```leanTerm
+Σ n : Nat, Σ k : Nat, Fin (n * k)
+```
+and
+```leanTerm
+(n : Nat) × (k : Nat) × Fin (n * k)
+```
 :::
+
+:::paragraph
+The type
+```leanTerm
+Σ (n k : Nat) (i : Fin (n * k)) , Fin i.val
+```
+is equivalent to
+```leanTerm
+Σ (n : Nat), Σ (k : Nat), Σ (i : Fin (n * k)) , Fin i.val
+```
+and
+```leanTerm
+(n : Nat) × (k : Nat) × (i : Fin (n * k)) × Fin i.val
+```
+:::
+
+The two styles of annotation cannot be mixed in a single {keywordOf «termΣ_,_»}`Σ`-type:
+```syntaxError mixedNesting (category := term)
+Σ n k (i : Fin (n * k)) , Fin i.val
+```
+```leanOutput mixedNesting
+<example>:1:6: expected ','
+```
+::::
+
+```lean (show := false)
+section
+variable {α : Type} (x : α)
+```
+::::paragraph
+Dependent pairs are typically used in one of two ways:
+
+ 1. They can be used to “package” a concrete type index together with a value of the indexed family, used when the index value is not known ahead of time.
+    The type {lean}`Σ n, Fin n` is a pair of a natural number and some other number that's strictly smaller.
+    This is the most common way to use dependent pairs.
+
+ 2. :::paragraph
+    The first element can be thought of as a “tag” that's used to select from among different types for the second term.
+    This is similar to the way that selecting a constructor of a sum type determines the types of the constructor's arguments.
+    For example, the type
+
+    ```leanTerm
+    Σ (b : Bool), if b then Unit else α
+    ```
+
+    is equivalent to {lean}`Option α`, where {lean type:="Option α"}`none` is {lean type:="Σ (b : Bool), if b then Unit else α"}`⟨true, ()⟩` and {lean type:="Option α"}`some x` is {lean type:="Σ (b : Bool), if b then Unit else α"}`⟨false, x⟩`.
+    Using dependent pairs this way is uncommon, because it's typically much easier to define a special-purpose {tech}[inductive type] directly.
+    :::
+::::
+
+```lean (show := false)
+end
+```
 
 {docstring Sigma}
 
-{docstring PSigma}
+:::::example "Dependent Pairs with Data"
 
+::::ioExample
+The type {name}`Vector`, which associates a known length with an array, can be placed in a dependent pair with the length itself.
+While this is logically equivalent to just using {name}`Array`, this construction is sometimes necessary to bridge gaps in an API.
+
+```ioLean
+def getNLinesRev : (n : Nat) → IO (Vector String n)
+  | 0 => pure #v[]
+  | n + 1 => do
+    let xs ← getNLinesRev n
+    return xs.push (← (← IO.getStdin).getLine)
+
+def getNLines (n : Nat) : IO (Vector String n) := do
+  return (← getNLinesRev n).reverse
+
+partial def getValues : IO (Σ n, Vector String n) := do
+  let stdin ← IO.getStdin
+
+  IO.println "How many lines to read?"
+  let howMany ← stdin.getLine
+
+  if let some howMany := howMany.trim.toNat? then
+    return ⟨howMany, (← getNLines howMany)⟩
+  else
+    IO.eprintln "Please enter a number."
+    getValues
+
+def main : IO Unit := do
+  let values ← getValues
+  IO.println s!"Got {values.fst} values. They are:"
+  for x in values.snd do
+    IO.println x.trim
+```
+:::paragraph
+When calling the program with this standard input:
+```stdin
+4
+Apples
+Quince
+Plums
+Raspberries
+```
+the ouput is:
+```stdout
+How many lines to read?
+Got 4 values. They are:
+Raspberries
+Plums
+Quince
+Apples
+```
+:::
+::::
+
+:::::
 
 :::example "Dependent Pairs as Sums"
-{name}`Sigma` can be used to implement sums of {lean}`Type`s.
+{name}`Sigma` can be used to implement sum types.
+The {name}`Bool` in the first projection of {name}`Sum'` indicates which type the second projection is drawn from.
 ```lean
 def Sum' (α : Type) (β : Type) : Type :=
-  Σ (b : Bool), match b with | true => α | false => β
+  Σ (b : Bool),
+    match b with
+    | true => α
+    | false => β
 ```
 
-The injections pair a tag with a value of the indicated type.
+The injections pair a tag (a {name}`Bool`) with a value of the indicated type.
 Annotating them with {attr}`match_pattern` allows them to be used in patterns as well as in ordinary terms.
 ```lean
 variable {α β : Type}
@@ -201,3 +348,23 @@ def Sum'.swap : Sum' α β → Sum' β α
   | .inr y => .inl y
 ```
 :::
+
+
+Just as {name}`Prod` has a variant {name}`PProd` that accepts propositions as well as types, {name}`PSigma` allows its projections to be propositions.
+This has the same drawbacks as {name}`PProd`: it is much more likely to lead to failures of universe level unification.
+However, {name}`PSigma` can be necessary when implementing custom proof automation or in some rare, advanced use cases.
+
+:::syntax term (title := "Fully-Polymorphic Dependent Pair Types")
+
+```grammar
+Σ' $x:ident $[$_:ident]* $[: $t]? , $_
+```
+
+```grammar
+Σ' ($x:ident $[$x:ident]* : $t), $_
+```
+
+The rules for nesting {keyword}`Σ'`, as well as those that govern its binding structure, are the same as those for {keywordOf «termΣ_,_»}`Σ`.
+:::
+
+{docstring PSigma}

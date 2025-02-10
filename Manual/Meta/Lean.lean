@@ -303,36 +303,41 @@ def leanInline : RoleExpander
         Elab.Term.withLevelNames us
       else id
 
-    let expectedType ← config.type.mapM fun (s : StrLit) => do
-      match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
-      | .error e => throwErrorAt term e
-      | .ok stx => withEnableInfoTree false <| runWithOpenDecls <| runWithVariables fun _ => do
-        let t ← leveller <| Elab.Term.elabType stx
-        Term.synthesizeSyntheticMVarsNoPostponing
-        let t ← instantiateMVars t
-        if t.hasExprMVar || t.hasLevelMVar then
-          throwErrorAt s "Type contains metavariables: {t}"
-        pure t
-
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
     | .ok stx =>
-      let (newMsgs, tree) ← do
+
+
+      let (newMsgs, type, tree) ← do
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
-          let tree' ← runWithOpenDecls <| runWithVariables fun _ => do
+          let (tree', t) ← runWithOpenDecls <| runWithVariables fun _ => do
+
+            let expectedType ← config.type.mapM fun (s : StrLit) => do
+              match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
+              | .error e => throwErrorAt term e
+              | .ok stx => withEnableInfoTree false do
+                let t ← leveller <| Elab.Term.elabType stx
+                Term.synthesizeSyntheticMVarsNoPostponing
+                let t ← instantiateMVars t
+                if t.hasExprMVar || t.hasLevelMVar then
+                  throwErrorAt s "Type contains metavariables: {t}"
+                pure t
+
             let e ← leveller <| Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
             Term.synthesizeSyntheticMVarsNoPostponing
-            let _ ← Term.levelMVarToParam (← instantiateMVars e)
+            let e ← Term.levelMVarToParam (← instantiateMVars e)
+            let t ← Meta.inferType e >>= instantiateMVars >>= (Meta.ppExpr ·)
+            let t := Std.Format.group <| (← Meta.ppExpr e) ++ (" :" ++ .line) ++ t
 
             Term.synthesizeSyntheticMVarsNoPostponing
             let ctx := PartialContextInfo.commandCtx {
               env := ← getEnv, fileMap := ← getFileMap, mctx := ← getMCtx, currNamespace := ← getCurrNamespace,
               openDecls := ← getOpenDecls, options := ← getOptions, ngen := ← getNGen
             }
-            pure <| InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees)
-          pure (← Core.getMessageLog, tree')
+            pure <| (InfoTree.context ctx (.node (Info.ofCommandInfo ⟨`Manual.leanInline, arg⟩) (← getInfoState).trees), t)
+          pure (← Core.getMessageLog, t, tree')
         finally
           Core.setMessageLog initMsgs
 
@@ -346,6 +351,10 @@ def leanInline : RoleExpander
         modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
 
       pushInfoTree tree
+
+      if let `(inline|role{%$s $f $_*}%$e[$_*]) ← getRef then
+        Hover.addCustomHover (mkNullNode #[s, e]) type
+        Hover.addCustomHover f type
 
       match config.error with
       | none =>
@@ -651,10 +660,10 @@ structure SyntaxErrorConfig where
 
 def SyntaxErrorConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SyntaxErrorConfig :=
   SyntaxErrorConfig.mk <$>
-    .positional `name .name <*>
-    ((·.getD true) <$> .named `show .bool true) <*>
-    ((·.getD `command) <$> .named `category .name true) <*>
-    ((·.getD 0) <$> .named `precedence .nat true)
+    .positional `name (ValDesc.name.as m!"name for later reference") <*>
+    .namedD `show .bool true <*>
+    .namedD `category (ValDesc.name.as m!"syntax category (default 'command')") `command <*>
+    .namedD `precedence .nat 0
 
 open Lean.Parser in
 @[code_block_expander syntaxError]
@@ -674,7 +683,13 @@ def syntaxError : CodeBlockExpander
       let msgs := es.map fun (pos, msg) =>
         (.error, mkErrorStringWithPos  "<example>" pos msg)
       modifyEnv (leanOutputs.modifyState · (·.insert config.name msgs))
+      Hover.addCustomHover (← getRef) <| MessageData.joinSep (msgs.map fun (sev, msg) => m!"{sevStr sev}:{indentD msg}") Format.line
       return #[← `(Block.other {Block.syntaxError with data := ToJson.toJson ($(quote s), $(quote es))} #[Block.code $(quote s)])]
+where
+  sevStr : MessageSeverity → String
+    | .information => "info"
+    | .warning => "warning"
+    | .error => "error"
 
 @[block_extension syntaxError]
 def syntaxError.descr : BlockDescr where
