@@ -591,7 +591,6 @@ p : α → Prop
 inst✝ : DecidablePred p
 xs : Array α
 out✝ : Array Nat := #[]
-col✝ : Std.Range := { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
 i : Nat
 r✝ : Array Nat
 out : Array Nat := r✝
