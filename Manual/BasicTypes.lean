@@ -16,6 +16,7 @@ import Manual.BasicTypes.UInt
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
+import Manual.BasicTypes.Sum
 
 open Manual.FFIDocType
 
@@ -348,18 +349,7 @@ end ShortCircuit
 
 {include 0 Manual.BasicTypes.Products}
 
-# Sum Types
-%%%
-tag := "sum-types"
-%%%
-
-:::planned 172
-Describe {name}`Sum` and {name}`PSum`, their syntax and API
-:::
-
-{docstring Sum}
-
-{docstring PSum}
+{include 0 Manual.BasicTypes.Sum}
 
 
 # Linked Lists

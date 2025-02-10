@@ -17,12 +17,6 @@ set_option pp.rawOnError true
 tag := "empty"
 %%%
 
-:::planned 170
- * What is {lean}`Empty`?
- * Contrast with {lean}`Unit` and {lean}`False`
- * Definitional equality
-:::
-
 The empty type {name}`Empty` represents impossible values.
 It is an inductive type with no constructors whatsoever.
 

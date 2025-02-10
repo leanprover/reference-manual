@@ -56,12 +56,18 @@ Signed integers wrap the corresponding unsigned integers, and use a twos-complem
 
 # Run-Time Representation
 
-In compiled code, fixed-width integer types that fit in one less bit than the platform's pointer size are represented unboxed, without additional allocations or indirections.
+In compiled code, fixed-width integer types that fit in one less bit than the platform's pointer size are always represented unboxed, without additional allocations or indirections.
 This always includes {lean}`Int8`, {lean}`UInt8`, {lean}`Int16`, and {lean}`UInt16`.
 On 64-bit architectures, {lean}`Int32` and {lean}`UInt32` are also unboxed.
+On 32-bit architectures, {lean}`Int32` and {lean}`UInt32` are boxed, which means they may be represented by a pointer to an object on the heap.
+{lean}`ISize`, {lean}`USize`, {lean}`Int64` and {lean}`UInt64` are boxed on all architectures.
 
-Fixed-width integer types that take at least as many bits as the platform's pointer type are represented the same way as {name}`Nat`: if they are sufficiently small, then they are represented unboxed; if they are larger, then they are represented by a heap-allocated number value.
-{lean}`Int64`, {lean}`UInt64`, {lean}`ISize`, and {lean}`USize` are always represented this way, as are {lean}`Int32` and {lean}`UInt32` on 32-bit architectures.
+Even though some fixed-with integer types require boxing in general, the compiler is able to represent them without boxing in code paths that use only a specific fixed-width type rather than being polymorphic, potentially after a specialization pass.
+This applies in most practical situations where these types are used: their values are represented using the corresponding unsigned fixed-width C type when a constructor parameter, function parameter, function return value, or intermediate result is known to be a fixed-width integer type.
+The Lean run-time system includes primitives for storing fixed-width integers in constructors of {tech}[inductive types], and the primitive operations are defined on the corresponding C types, so boxing tends to happen at the “edges” of integer calculations rather than for each intermediate result.
+In contexts where other types might occur, such as the contents of polymorphic containers like {name}`Array`, these types are boxed, even if an array is statically known to contain only a single fixed-width integer type.{margin}[The monomorphic array type {lean}`ByteArray` avoids boxing for arrays of {lean}`UInt8`.]
+Lean does not specialize the representation of inductive types or arrays.
+Inspecting a function's type in Lean is not sufficient to determine how fixed-width integer values will be represented, because boxed values are not eagerly unboxed—a function that projects an {name}`Int64` from an array returns a boxed integer value.
 
 # Syntax
 
