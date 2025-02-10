@@ -17,6 +17,7 @@ open Manual.FFIDocType
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 300000
 
 example := Char
 
