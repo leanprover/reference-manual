@@ -10,7 +10,7 @@ import Lean.Parser.Command
 import Lake
 
 import Manual.Meta
--- import Manual.BuildTools.Lake.CLI
+import Manual.BuildTools.Lake.CLI
 
 open Manual
 open Verso.Genre

@@ -10,7 +10,7 @@ import Lean.Parser.Command
 import Lake
 
 import Manual.Meta
--- import Manual.BuildTools.Lake.CLI
+import Manual.BuildTools.Lake.CLI
 import Manual.BuildTools.Lake.Config
 
 open Manual
@@ -486,7 +486,7 @@ To upload a built package as an artifact to a GitHub release, Lake provides the 
 This command uses `tar` to pack the package's build directory into an archive and uses `gh release upload` to attach it to a pre-existing GitHub release for the specified tag.
 Thus, in order to use it, the package uploader (but not the downloader) needs to have `gh`, the GitHub CLI, installed and in `PATH`.
 
-include 0 Manual.BuildTools.Lake.CLI
+{include 0 Manual.BuildTools.Lake.CLI}
 
 {include 0 Manual.BuildTools.Lake.Config}
 
