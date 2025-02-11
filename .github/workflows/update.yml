@@ -1,0 +1,21 @@
+name: Update Dependencies
+
+on:
+  # schedule:
+  #   - cron: "* * * * *"
+  workflow_dispatch:
+
+jobs:
+  update_lean:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # Grants permission to push changes to the repository
+      issues: write        # Grants permission to create or update issues
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Update project
+        uses: oliver-butterley/lean-update@v1-alpha
+        with:
+          on_update_succeeds: commit
+          on_update_fails: issue
