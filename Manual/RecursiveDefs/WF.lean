@@ -323,7 +323,6 @@ h✝ : ¬n ≤ 1
 
 ```
 
-
 Similarly, in the following (contrived) example the termination proof contains an additional assumption showing that {lean}`x ∈ xs`.
 
 ```lean (error := true) (keep := false) (name := nestGoal1)
@@ -355,6 +354,62 @@ h✝ : x ∈ xs
 -/
 ```
 
+A {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop is also enriched, in this case with a {name}`Std.Range` membership hypothesis.
+
+
+```lean (error := true) (keep := false) (name := nestGoal3)
+def f (xs : Array Nat) : Nat := Id.run do
+  let mut s := xs.sum
+  for i in [:xs.size] do
+    s := s + f (xs.take i)
+  pure s
+termination_by xs
+decreasing_by
+  skip
+```
+```leanOutput nestGoal3 (whitespace := lax) (show := false)
+unsolved goals
+xs : Array Nat
+i : Nat
+h✝ : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
+⊢ sizeOf (xs.take i) < sizeOf xs
+```
+
+```proofState
+∀ (xs : Array Nat)
+  (i : Nat)
+  («h✝» : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one : Std.Range}),
+   sizeOf (xs.take i) < sizeOf xs := by
+  set_option tactic.hygienic false in
+  intros
+```
+
+This feature requires special setup for the higher-order function under which the recursive call is nested, as described in {ref "well-founded-preprocessing"}[the section on preprocessing].
+In the following definition, idential to the one above except using a custom, equivalent function instead of {name}`List.map`, the proof obligation context is not enriched:
+
+
+```lean (error := true) (keep := false) (name := nestGoal4)
+def List.myMap := @List.map
+def f (n : Nat) (xs : List Nat) : Nat :=
+  List.sum (xs.myMap (fun x => f x []))
+termination_by xs
+decreasing_by
+  skip
+```
+```leanOutput nestGoal4 (whitespace := lax) (show := false)
+unsolved goals
+n : Nat
+xs : List Nat
+x : Nat
+⊢ sizeOf [] < sizeOf xs
+```
+
+```proofState
+∀ (n : Nat) (xs : List Nat) (x : Nat), sizeOf ([] : List Nat) < sizeOf xs := by
+  set_option tactic.hygienic false in
+  intros
+```
+
 :::
 
 ```lean (show := false)
@@ -365,8 +420,6 @@ end
 ```lean (show := false)
 section
 ```
-
-
 
 ::::TODO
 
@@ -677,7 +730,7 @@ The preprocessing happens in three steps:
 3.  Finally, any left-over {name}`wfParam` markers are removed.
 
 Some rewrite rules in the {attr}`wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
-In particular, the theorem {name}`ite_eq_dite` is used to extend the context of a an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition:
+In particular, the theorem {name}`ite_eq_dite` is used to extend the context of an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition:
 
 ```signature
 ite_eq_dite {P : Prop} {α : Sort u} {a b : α} [Decidable P]  :
@@ -691,7 +744,7 @@ section
 variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
 ```
 
-This is typically done in two steps.
+This is typically done in two steps:
 
 1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function paramter or subterm thereof, and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
 
@@ -702,7 +755,7 @@ This is typically done in two steps.
 2. A theorem such as {name}`List.map_unattach` makes that assertion available to the function paramter of {name}`List.map`.
 
     ```signature
-    List.map_unattach (P : α → Prop) (xs : List (Subtype P)) (f : α → β) :
+    List.map_unattach (P : α → Prop) (xs : List { x : α // P x }) (f : α → β) :
       xs.unattach.map f = xs.map fun ⟨x, h⟩ =>
         binderNameHint x f <| binderNameHint h () <|
         f (wfParam x)
@@ -710,11 +763,16 @@ This is typically done in two steps.
 
   This theorem uses the {name}`binderNameHint` gadget to preserve a user-chosen binder name, should {lean}`f` be a lambda expression.
 
-By separating the introduction of of {name}`List.attach` from the propagation, even for chains such as {lean}`(xs.reverse.filter p).map f` the {lean}`x ∈ xs` assumption is made available to {lean}`f`.
+By separating the introduction of of {name}`List.attach` from the propagation, even for chains such as {lean}`(xs.reverse.filter p).map f`, the {lean}`x ∈ xs` assumption is made available to {lean}`f`.
 
 ```lean (show := false)
 end
 ```
+
+The preprocessing can be turned off by setting the option {option}`wf.preprocess` to {lean}`false`.
+To see the preprocessed function definition, before and after the removal of {name}`wfParam` markers, set the option {option}`trace.Elab.definition.wf` to {lean}`true`.
+
+
 {spliceContents Manual.RecursiveDefs.WF.PreprocessExample}
 
 # Theory and Construction

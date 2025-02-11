@@ -97,7 +97,7 @@ def Pair.attach (p : Pair α) : Pair {x : α // x ∈ p} where
   snd := ⟨p.snd, .snd⟩
 
 def Pair.unattach {P : α → Prop} :
-    Pair (Subtype P) → Pair α :=
+    Pair {x : α // P x} → Pair α :=
   Pair.map Subtype.val
 ```
 
