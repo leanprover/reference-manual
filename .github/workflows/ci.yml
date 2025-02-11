@@ -201,6 +201,38 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: "447031bf-9a96-4cee-831b-1f73599a7cb2"
 
+  preview:
+    name: Deploy preview
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    steps:
+      - name: Get generated HTML from artifact storage
+        uses: actions/download-artifact@v4
+        with:
+          name: 'html'
+          path: '_out/'
+
+      - name: Deploy current draft
+        id: deploy-draft
+        if: ${{ steps.workflow-info.outputs.pullRequestNumber != '' }}
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: _out/html-multi
+          production-branch: main
+          production-deploy: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: |
+            ${{ format('preview of {0}', github.ref) }}
+          enable-commit-comment: false
+          enable-pull-request-comment: false
+          github-deployment-description: |
+            Latest draft (without proofreading info)
+          fails-without-credentials: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: "32e0f63e-7a18-4bf9-87f4-713650c7db70"
+
 
   check-links:
     name: Check links
