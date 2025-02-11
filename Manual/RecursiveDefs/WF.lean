@@ -9,6 +9,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Papers
 import Manual.RecursiveDefs.WF.GuessLexExample
+import Manual.RecursiveDefs.WF.PreprocessExample
 
 open Manual
 open Verso.Genre
@@ -676,7 +677,12 @@ The preprocessing happens in three steps:
 3.  Finally, any left-over {name}`wfParam` markers are removed.
 
 Some rewrite rules in the {attr}`wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
-In particular, the theorem {name}`ite_eq_dite` is used to extend the context of a an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition.
+In particular, the theorem {name}`ite_eq_dite` is used to extend the context of a an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition:
+
+```signature
+ite_eq_dite {P : Prop} {α : Sort u} {a b : α} [Decidable P]  :
+  (if P then a else b) = if h : P then binderNameHint h () a else binderNameHint h () b
+```
 
 Other rewrite rules use the {name}`wfParam` marker to fire only when a function (like {name}`List.map`) is applied to a parameter or subterm of a parameter, but not otherwise.
 
@@ -684,7 +690,6 @@ Other rewrite rules use the {name}`wfParam` marker to fire only when a function 
 section
 variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
 ```
-
 
 This is typically done in two steps.
 
@@ -710,10 +715,7 @@ By separating the introduction of of {name}`List.attach` from the propagation, e
 ```lean (show := false)
 end
 ```
-
-
-
-
+{spliceContents Manual.RecursiveDefs.WF.PreprocessExample}
 
 # Theory and Construction
 
