@@ -19,7 +19,7 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-set_option maxHeartbeats 300000
+set_option maxHeartbeats 400000
 
 #doc (Manual) "Tactic Reference" =>
 %%%
