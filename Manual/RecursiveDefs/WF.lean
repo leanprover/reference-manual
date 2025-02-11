@@ -337,19 +337,19 @@ unsolved goals
 n : Nat
 xs : List Nat
 x : Nat
-h : x ∈ xs
+h✝ : x ∈ xs
 ⊢ sizeOf [] < sizeOf xs
 ```
 
 ```proofState
-∀ (n : Nat) (xs : List Nat) (x : Nat) (h : x ∈ xs), sizeOf ([] : List Nat) < sizeOf xs := by
+∀ (n : Nat) (xs : List Nat) (x : Nat) («h✝» : x ∈ xs), sizeOf ([] : List Nat) < sizeOf xs := by
   set_option tactic.hygienic false in
   intros
 /--
 n : Nat
 xs : List Nat
 x : Nat
-h : x ∈ xs
+h✝ : x ∈ xs
 ⊢ sizeOf [] < sizeOf xs
 -/
 ```
@@ -675,10 +675,43 @@ The preprocessing happens in three steps:
 
 3.  Finally, any left-over {name}`wfParam` markers are removed.
 
-Some rewrite rules in the `wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
+Some rewrite rules in the {attr}`wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
 In particular, the theorem {name}`ite_eq_dite` is used to extend the context of a an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition.
 
 Other rewrite rules use the {name}`wfParam` marker to fire only when a function (like {name}`List.map`) is applied to a parameter or subterm of a parameter, but not otherwise.
+
+```lean (show := false)
+section
+variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
+```
+
+
+This is typically done in two steps.
+
+1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function paramter or subterm thereof, and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
+
+    ```signature
+    List.map_wfParam (xs : List α) (f : α → β) :
+      (wfParam xs).map f = xs.attach.unattach.map f
+    ```
+2. A theorem such as {name}`List.map_unattach` makes that assertion available to the function paramter of {name}`List.map`.
+
+    ```signature
+    List.map_unattach (P : α → Prop) (xs : List (Subtype P)) (f : α → β) :
+      xs.unattach.map f = xs.map fun ⟨x, h⟩ =>
+        binderNameHint x f <| binderNameHint h () <|
+        f (wfParam x)
+    ```
+
+  This theorem uses the {name}`binderNameHint` gadget to preserve a user-chosen binder name, should {lean}`f` be a lambda expression.
+
+By separating the introduction of of {name}`List.attach` from the propagation, even for chains such as {lean}`(xs.reverse.filter p).map f` the {lean}`x ∈ xs` assumption is made available to {lean}`f`.
+
+```lean (show := false)
+end
+```
+
+
 
 
 
