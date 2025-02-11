@@ -344,7 +344,7 @@ def Tree.depth : Tree → Nat
 termination_by t => t
 ```
 
-Rewriting the function by replacing pattern matching with a structure field accessor results in an error.
+Rewriting the function by replacing pattern matching with a structure field lookup results in an error.
 The relationship between the recursive call and the original structure is still present, but the proof is no longer automatic.
 
 ```lean (keep := false) (name := nestedBad) (error := true)
