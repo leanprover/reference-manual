@@ -18,9 +18,9 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Coersions" =>
+#doc (Manual) "Coercions" =>
 
-These tactics deal with coersions/casts between different types.
+These tactics deal with coercions/casts between different types.
 
 :::tactic Mathlib.Tactic.normNum
 :::

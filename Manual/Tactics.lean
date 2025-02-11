@@ -14,7 +14,7 @@ import Manual.Tactics.Analysis
 import Manual.Tactics.Assumptions
 import Manual.Tactics.Automation
 import Manual.Tactics.CategoryTheory
-import Manual.Tactics.Coersions
+import Manual.Tactics.Coercions
 import Manual.Tactics.CongrExt
 import Manual.Tactics.Control
 import Manual.Tactics.Conv
@@ -77,7 +77,7 @@ freely to make them more useful! PR go to the [repository of this manual](https:
 
 {include 0 Manual.Tactics.CongrExt}
 
-{include 0 Manual.Tactics.Coersions}
+{include 0 Manual.Tactics.Coercions}
 
 {include 0 Manual.Tactics.DefEq}
 

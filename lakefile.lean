@@ -22,7 +22,6 @@ package "verso-manual" where
 
 lean_lib Manual where
 
-
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
 
