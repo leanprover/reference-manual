@@ -381,7 +381,10 @@ The Elan executable used by Lake can be configured using the {envVar}`ELAN` envi
 Create a Lean package in a new directory
 
 USAGE:
-  lake new <name> [<template>][.<language>]
+  lake [+<lean-version>] new <name> [<template>][.<language>]
+
+If you are using Lake through Elan (which is standard), you can create a
+package with a specific Lean version via the `+` option.
 
 The initial configuration and starter files are based on the template:
 
@@ -391,7 +394,7 @@ The initial configuration and starter files are based on the template:
   math                  library only with a mathlib dependency
 
 Templates can be suffixed with `.lean` or `.toml` to produce a Lean or TOML
-version of the configuration file, respectively. The default is Lean.
+version of the configuration file, respectively. The default is TOML.
 ```
 
 :::lake new "name [template][\".\"language]"

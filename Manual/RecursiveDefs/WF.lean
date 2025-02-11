@@ -333,11 +333,23 @@ structure Tree where
   children : List Tree
 ```
 
-A naïve attempt to define a recursive function over this data structure will fail:
+The depth of a tree can be calculated by a recursive function:
+```lean (keep := false) (name := nestedOk)
+def Tree.depth : Tree → Nat
+  | {children} =>
+    let depths := children.map fun c => Tree.depth c
+    match depths.max? with
+    | some d => d+1
+    | none => 0
+termination_by t => t
+```
+
+Rewriting the function by replacing pattern matching with a structure field lookup results in an error.
+The relationship between the recursive call and the original structure is still present, but the proof is no longer automatic.
+
 ```lean (keep := false) (name := nestedBad) (error := true)
 def Tree.depth (t : Tree) : Nat :=
-  let {children} := t
-  let depths := children.map (fun c => Tree.depth c)
+  let depths := t.children.map fun c => Tree.depth c
   match depths.max? with
   | some d => d+1
   | none => 0
@@ -348,38 +360,87 @@ failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
   - Use `termination_by` to specify a different well-founded relation
   - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-children : List Tree
-c : Tree
-⊢ sizeOf c < 1 + sizeOf children
+t c : Tree
+h✝ : c ∈ t.children
+⊢ sizeOf c < sizeOf t
 ```
+
+Introducing a {keywordOf Lean.Parser.Term.let}`let`-binding for the children removes even this relationship:
+
+```lean (keep := false) (name := nestedBad2) (error := true)
+def Tree.depth (t : Tree) : Nat :=
+  let children := t.children
+  let depths := children.map fun c => Tree.depth c
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+```
+```leanOutput nestedBad2
+failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+t c : Tree
+⊢ sizeOf c < sizeOf t
+```
+
 
 ```lean (show := false)
 variable (t : Tree) (c : Tree) (children : List Tree)
 ```
 
-
 The termination proof obligation is not provable, because there is no connection between the local variable {lean}`c` and the parameter {lean}`t`.
 However, {name}`List.map` applies its function argument only to elements of the given list; thus, {lean}`c` is always an element of {lean}`t.children`.
 
-Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that {lean}`c` is indeed an element of the list {lean}`t.children`.
-This can be achieved by “attaching” a proof of membership in {lean}`t.children` to each of its elements using the function {name}`List.attach` and then bringing this proof into scope in the function passed to {name}`List.map`:
+Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that {lean}`c` is indeed an element of the list {lean}`children`.
+This can be achieved by “attaching” a proof of membership in {lean}`children` to each of its elements using the function {name}`List.attach` and then bringing this proof into scope in the function passed to {name}`List.map`:
 
+```lean (keep := false) (name := nestedBad3) (error := true)
+def Tree.depth (t : Tree) : Nat :=
+  let children := t.children
+  let depths := children.attach.map fun ⟨c, hc⟩ =>
+    Tree.depth c
+  match depths.max? with
+  | some d => d+1
+  | none => 0
+termination_by t
+```
+```leanOutput nestedBad3
+failed to prove termination, possible solutions:
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+t : Tree
+children : List Tree := t.children
+c : Tree
+hc : c ∈ children
+⊢ sizeOf c < sizeOf t
+```
+
+The context now contains everything needed to write the proof:
 ```lean (keep := false)
 def Tree.depth (t : Tree) : Nat :=
-  let {children} := t
-  let depths := children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
+  let children := t.children
+  let depths := children.attach.map fun ⟨c, hc⟩ =>
+    Tree.depth c
   match depths.max? with
   | some d => d+1
   | none => 0
 termination_by t
 decreasing_by
-  decreasing_tactic
+  cases t
+  decreasing_trivial
 ```
 
-Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ children`.
-The initial goal, that {lean}`sizeOf c < sizeOf t.children`, can be simplified with the {tactic}`cases` tactic into one for which  {tactic}`decreasing_tactic` succeeds.
+In particular, the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ children`.
+The initial goal, that {lean}`sizeOf c < sizeOf t`, can be simplified with the {tactic}`cases` tactic into one for which  {tactic}`decreasing_tactic` succeeds.
 
-```lean (keep := false) (show := false)
+Behind the scenes, Lean automatically inserts calls to {name}`List.attach` and related functions for other collection types.{TODO}[xref]
+This is why the second version of {name}`Tree.depth` had a local assumption relating {lean}`c` and {lean}`t.children`.
+Inserting the {keywordOf Lean.Parser.Term.let}`let`-binding defeated this automatic insertion.
+
+```lean (keep := true) (show := false)
 /--
 error: failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
