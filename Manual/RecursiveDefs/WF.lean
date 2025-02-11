@@ -270,10 +270,17 @@ n : Nat
 
 :::
 
-Additionally, in the branches of {ref "if-then-else"}[if-then-else] expressions, a hypothesis asserting the current branch's condition is brought into scope, much as if the dependent if-then-else syntax had been used.
+Additionally, the context is enriched with additional hypotheses.
+For example, in the branches of an {ref "if-then-else"}[if-then-else] expression, a hypothesis asserting the current branch's condition is brought into scope, much as if the dependent if-then-else syntax had been used.
+Similarly, for certain higher-order functions the context is enriched with hypotheses that assert additional properties of the parameter to the higher order function's functional argument.
+This mechanism is extensible and described in more details below in {ref "well-founded-preprocessing"}[the section on preprocessing].
 
+```lean (show := false)
+section
+variable {x : Nat} {xs : List Nat}
+```
 
-:::example "Local Assumptions and Conditionals"
+:::example "Enriched proof obligation contexts"
 
 Here, the {keywordOf termIfThenElse}`if` does not bring a local assumption about the condition into scope. Nevertheless, it is available in the context of the termination proof.
 
@@ -316,88 +323,35 @@ h✝ : ¬n ≤ 1
 ```
 
 
+Similarly, in the following (contrived) example the termination proof contains an additional assumption showing that {lean}`x ∈ xs`.
 
-:::
-
-```lean (show := false)
-section
-```
-
-:::example "Nested Recursion in Higher-order Functions"
-
-When recursive calls are nested in higher-order functions, sometimes the function definition has to be adjusted so that the termination proof obligations can be discharged.
-This often happens when defining functions recursively over {ref "nested-inductive-types"}[nested inductive types], such as the following tree structure:
-
-```lean
-structure Tree where
-  children : List Tree
-```
-
-A naïve attempt to define a recursive function over this data structure will fail:
-```lean (keep := false) (name := nestedBad) (error := true)
-def Tree.depth (t : Tree) : Nat :=
-  let {children} := t
-  let depths := children.map (fun c => Tree.depth c)
-  match depths.max? with
-  | some d => d+1
-  | none => 0
-termination_by t
-```
-```leanOutput nestedBad
-failed to prove termination, possible solutions:
-  - Use `have`-expressions to prove the remaining goals
-  - Use `termination_by` to specify a different well-founded relation
-  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-children : List Tree
-c : Tree
-⊢ sizeOf c < 1 + sizeOf children
-```
-
-```lean (show := false)
-variable (t : Tree) (c : Tree) (children : List Tree)
-```
-
-
-The termination proof obligation is not provable, because there is no connection between the local variable {lean}`c` and the parameter {lean}`t`.
-However, {name}`List.map` applies its function argument only to elements of the given list; thus, {lean}`c` is always an element of {lean}`t.children`.
-
-Because the termination proof goal provides access to the local context of the recursive call, it helps to bring facts into scope in the function definition that indicate that {lean}`c` is indeed an element of the list {lean}`t.children`.
-This can be achieved by “attaching” a proof of membership in {lean}`t.children` to each of its elements using the function {name}`List.attach` and then bringing this proof into scope in the function passed to {name}`List.map`:
-
-```lean (keep := false)
-def Tree.depth (t : Tree) : Nat :=
-  let {children} := t
-  let depths := children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
-  match depths.max? with
-  | some d => d+1
-  | none => 0
-termination_by t
+```lean (error := true) (keep := false) (name := nestGoal1)
+def f (n : Nat) (xs : List Nat) : Nat :=
+  List.sum (xs.map (fun x => f x []))
+termination_by xs
 decreasing_by
-  decreasing_tactic
+  skip
+```
+```leanOutput nestGoal1 (whitespace := lax) (show := false)
+unsolved goals
+n : Nat
+xs : List Nat
+x : Nat
+h : x ∈ xs
+⊢ sizeOf [] < sizeOf xs
 ```
 
-Note that the proof goal after {keywordOf Lean.Parser.Command.declaration}`decreasing_by` now includes the assumption {lean}`c ∈ children`.
-The initial goal, that {lean}`sizeOf c < sizeOf t.children`, can be simplified with the {tactic}`cases` tactic into one for which  {tactic}`decreasing_tactic` succeeds.
-
-```lean (keep := false) (show := false)
+```proofState
+∀ (n : Nat) (xs : List Nat) (x : Nat) (h : x ∈ xs), sizeOf ([] : List Nat) < sizeOf xs := by
+  set_option tactic.hygienic false in
+  intros
 /--
-error: failed to prove termination, possible solutions:
-  - Use `have`-expressions to prove the remaining goals
-  - Use `termination_by` to specify a different well-founded relation
-  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-t c : Tree
-hc : c ∈ t.children
-⊢ sizeOf c < sizeOf t
+n : Nat
+xs : List Nat
+x : Nat
+h : x ∈ xs
+⊢ sizeOf [] < sizeOf xs
 -/
-#guard_msgs in
-def Tree.depth (t : Tree) : Nat :=
-  let depths := t.children.attach.map (fun ⟨c, hc⟩ => Tree.depth c)
-  match depths.max? with
-  | some d => d+1
-  | none => 0
-termination_by t
-decreasing_by
-  decreasing_tactic
 ```
 
 :::
@@ -405,6 +359,12 @@ decreasing_by
 ```lean (show := false)
 end
 ```
+
+
+```lean (show := false)
+section
+```
+
 
 
 ::::TODO
@@ -689,6 +649,38 @@ Try this: termination_by (n, 1)
 ```
 
 :::
+
+# Preprocessing function definitions
+%%%
+tag := "well-founded-preprocessing"
+%%%
+
+Lean preprocesses the function's body before determining the proof obligations.
+This is primarily used to enrich the local context with additional assumptions that may be necessary to solve the termination proof obligations.
+It uses Lean's simplifier and is extensible by the user.
+
+The preprocessing happens in three steps:
+
+1.  Lean annotates occurrences of a function's parameter, or a subterm of a parameter, with the {name}`wfParam` marker.
+
+    ```signature
+    wfParam {α} (a : α) : α
+    ```
+
+    More precisely, every occurrence of the function's parameter is wrapped in {name}`wfParam`.
+    Then whenever a {keywordOf Lean.Parser.Term.match}`match` expression has any discriminant wrapped in {name}`wfParam`, the marker is removed and every occurrence of a pattern match variable is wrapped in {name}`wfParam`.
+    Also, {name}`wfParam` calls are floated out of projection functions.
+
+2.  The annotated function body is simplified using the Lean's simplifier, using only the simplification rules annotated with with {attr}`wf_preprocess` attribute.
+
+3.  Finally, any left-over {name}`wfParam` markers are removed.
+
+Some rewrite rules in the `wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
+In particular, the theorem {name}`ite_eq_dite` is used to extend the context of a an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition.
+
+Other rewrite rules use the {name}`wfParam` marker to fire only when a function (like {name}`List.map`) is applied to a parameter or subterm of a parameter, but not otherwise.
+
+
 
 # Theory and Construction
 
