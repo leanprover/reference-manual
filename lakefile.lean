@@ -7,9 +7,14 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
-require subverso from git "https://github.com/leanprover/subverso.git"@"main"
-require "leanprover-community" / "mathlib"
+-- Note: not sure if this works: Idea is that `lake update` updates to lean-toolchain
+-- to the correct one for the current Mathlib and then Verso is picked accordingly.
+-- Most likely this is not as stable as it should be
+
+-- Using this assumes that each dependency has a tag of the form `v4.X.0`.
+def leanVersion : String := s!"v{Lean.versionString}"
+require "leanprover-community" / "mathlib" -- @ git leanVersion
+require verso from git "https://github.com/leanprover/verso.git" @ leanVersion
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -73,7 +78,6 @@ target figures : Array FilePath := do
                 buf ← h.read 1024
 
     pure (srcInfo, depTrace)
-
 @[default_target]
 lean_exe "generate-manual" where
   extraDepTargets := #[`figures, `subversoExtractMod]
