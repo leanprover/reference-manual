@@ -419,7 +419,7 @@ hc : c ∈ children
 ```
 
 The context now contains everything needed to write the proof:
-```lean
+```lean (keep := false)
 def Tree.depth (t : Tree) : Nat :=
   let children := t.children
   let depths := children.attach.map fun ⟨c, hc⟩ =>
@@ -440,7 +440,7 @@ Behind the scenes, Lean automatically inserts calls to {name}`List.attach` and r
 This is why the second version of {name}`Tree.depth` had a local assumption relating {lean}`c` and {lean}`t.children`.
 Inserting the {keywordOf Lean.Parser.Term.let}`let`-binding defeated this automatic insertion.
 
-```lean (keep := false) (show := false)
+```lean (keep := true) (show := false)
 /--
 error: failed to prove termination, possible solutions:
   - Use `have`-expressions to prove the remaining goals
