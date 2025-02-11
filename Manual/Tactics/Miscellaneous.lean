@@ -20,14 +20,31 @@ open Lean.Elab.Tactic
 
 #doc (Manual) "Miscellaneous" =>
 
-:::tactic finiteness show:="finiteness"
-:::
-
-:::tactic Mathlib.Tactic.Monotonicity.mono
-:::
+These tactics have not been sorted into an appropriate section yet
 
 :::tactic Mathlib.Tactic.Nontriviality.nontriviality
 :::
 
+:::tactic Lean.Elab.Tactic.inhabit
+:::
+
 :::tactic Mathlib.Tactic.subsingletonStx
+:::
+
+:::tactic tacticMeasurability
+:::
+
+:::tactic Mathlib.Tactic.Borelize.tacticBorelize___
+:::
+
+:::tactic ArithmeticFunction.arith_mult
+:::
+
+:::tactic Mathlib.Tactic.subsingletonStx
+:::
+
+:::tactic "ext"
+:::
+
+:::tactic "funext"
 :::

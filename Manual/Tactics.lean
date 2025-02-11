@@ -15,7 +15,6 @@ import Manual.Tactics.Assumptions
 import Manual.Tactics.Automation
 import Manual.Tactics.CategoryTheory
 import Manual.Tactics.Coercions
-import Manual.Tactics.CongrExt
 import Manual.Tactics.Control
 import Manual.Tactics.Conv
 import Manual.Tactics.DefEq
@@ -67,26 +66,24 @@ freely to make them more useful! PR go to the [repository of this manual](https:
 
 {include 0 Manual.Tactics.Analysis}
 
+{include 0 Manual.Tactics.Coercions}
+
 {include 0 Manual.Tactics.CategoryTheory}
-
-{include 0 Manual.Tactics.Miscellaneous}
-
-{include 0 Manual.Tactics.Induction}
 
 {include 0 Manual.Tactics.Logic}
 
-{include 0 Manual.Tactics.CongrExt}
-
-{include 0 Manual.Tactics.Coercions}
-
-{include 0 Manual.Tactics.DefEq}
+{include 0 Manual.Tactics.Induction}
 
 {include 0 Manual.Tactics.Assumptions}
+
+{include 0 Manual.Tactics.DefEq}
 
 {include 0 Manual.Tactics.Conv}
 
 {include 0 Manual.Tactics.Control}
 
 {include 0 Manual.Tactics.Test}
+
+{include 0 Manual.Tactics.Miscellaneous}
 
 {include 0 Manual.Tactics.All}

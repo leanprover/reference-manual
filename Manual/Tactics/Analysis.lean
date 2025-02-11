@@ -18,9 +18,21 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Function Properties / Analysis / Measure Theory" =>
+#doc (Manual) "Analysis" =>
 
-These tactics proof certain properties about functions.
+add intro text here
+
+:::tactic "congr"
+:::
+
+:::tactic Mathlib.Tactic.GCongr.tacticGcongr__With__
+:::
+
+:::tactic finiteness show:="finiteness"
+:::
+
+:::tactic Mathlib.Tactic.Monotonicity.mono
+:::
 
 :::tactic Mathlib.Meta.FunProp.funPropTacStx
 :::
@@ -28,15 +40,9 @@ These tactics proof certain properties about functions.
 :::tactic tacticContinuity
 :::
 
-:::tactic tacticMeasurability
-:::
-
-:::tactic Mathlib.Tactic.Borelize.tacticBorelize___
-:::
-
 :::example "bound"
 TODO
 :::
 
-:::tactic ArithmeticFunction.arith_mult
+:::tactic Mathlib.Tactic.normNum
 :::

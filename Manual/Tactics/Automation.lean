@@ -32,10 +32,16 @@ open Lean.Elab.Tactic
 :::tactic Lean.Parser.Tactic.simp
 :::
 
+::: tactic Lean.Parser.Tactic.simpAll
+:::
+
 :::tactic "infer_instance"
 :::
 
 :::tactic Mathlib.Tactic.Tauto.tauto
+:::
+
+:::tactic Lean.Parser.Tactic.bvDecide
 :::
 
 :::tactic "trivial"

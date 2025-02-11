@@ -22,9 +22,6 @@ open Lean.Elab.Tactic
 
 These tactics deal with coercions/casts between different types.
 
-:::tactic Mathlib.Tactic.normNum
-:::
-
 :::tactic Lean.Parser.Tactic.tacticNorm_cast__
 :::
 
