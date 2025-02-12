@@ -385,7 +385,7 @@ h✝ : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_o
 ```
 
 This feature requires special setup for the higher-order function under which the recursive call is nested, as described in {ref "well-founded-preprocessing"}[the section on preprocessing].
-In the following definition, idential to the one above except using a custom, equivalent function instead of {name}`List.map`, the proof obligation context is not enriched:
+In the following definition, identical to the one above except using a custom, equivalent function instead of {name}`List.map`, the proof obligation context is not enriched:
 
 
 ```lean (error := true) (keep := false) (name := nestGoal4)
@@ -725,7 +725,7 @@ The preprocessing happens in three steps:
     Then whenever a {keywordOf Lean.Parser.Term.match}`match` expression has any discriminant wrapped in {name}`wfParam`, the marker is removed and every occurrence of a pattern match variable is wrapped in {name}`wfParam`.
     Also, {name}`wfParam` calls are floated out of projection functions.
 
-2.  The annotated function body is simplified using the Lean's simplifier, using only the simplification rules annotated with with {attr}`wf_preprocess` attribute.
+2.  The annotated function body is simplified using the Lean's simplifier, using only the simplification rules annotated with {attr}`wf_preprocess` attribute.
 
 3.  Finally, any left-over {name}`wfParam` markers are removed.
 
@@ -746,13 +746,13 @@ variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
 
 This is typically done in two steps:
 
-1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function paramter or subterm thereof, and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
+1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function parameter or subterm thereof, and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
 
     ```signature
     List.map_wfParam (xs : List α) (f : α → β) :
       (wfParam xs).map f = xs.attach.unattach.map f
     ```
-2. A theorem such as {name}`List.map_unattach` makes that assertion available to the function paramter of {name}`List.map`.
+2. A theorem such as {name}`List.map_unattach` makes that assertion available to the function parameter of {name}`List.map`.
 
     ```signature
     List.map_unattach (P : α → Prop) (xs : List { x : α // P x }) (f : α → β) :
@@ -763,7 +763,7 @@ This is typically done in two steps:
 
   This theorem uses the {name}`binderNameHint` gadget to preserve a user-chosen binder name, should {lean}`f` be a lambda expression.
 
-By separating the introduction of of {name}`List.attach` from the propagation, even for chains such as {lean}`(xs.reverse.filter p).map f`, the {lean}`x ∈ xs` assumption is made available to {lean}`f`.
+By separating the introduction of {name}`List.attach` from the propagation, the desired the {lean}`x ∈ xs` assumption is made available to {lean}`f` even in chains such as `(xs.reverse.filter p).map f`.
 
 ```lean (show := false)
 end

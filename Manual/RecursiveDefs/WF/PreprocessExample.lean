@@ -20,7 +20,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 :::example "Preprocessing for a custom data type"
 
-In this example, we define a new container-like data type (for homogeneous pairs), with a memberhship predicate, a map function and the necessary setup to allow well-founded recursion through that map function.
+In this example, we define a new container-like data type (for homogeneous pairs), with a membership predicate, a map function and the necessary setup to allow well-founded recursion through that map function.
 
 ```lean
 /-- A homogeneous pair -/
@@ -89,7 +89,7 @@ theorem Pair.size_lt_of_mem {α} [SizeOf α]
   cases h <;> cases p <;> (simp; omega)
 ```
 
-Furthermore we introduce the attach and unattach functions that enrich the elements of the pair with the assertion that they are in the pair, respectively remove that assertion.
+Furthermore we introduce `attach` and `unattach` functions that enrich the elements of the pair with the assertion that they are in the pair, respectively remove that assertion.
 
 ```lean
 def Pair.attach (p : Pair α) : Pair {x : α // x ∈ p} where
