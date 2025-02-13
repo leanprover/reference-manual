@@ -271,19 +271,26 @@ n : Nat
 
 :::
 
-Additionally, the context is enriched with additional hypotheses.
-For example, in the branches of an {ref "if-then-else"}[if-then-else] expression, a hypothesis asserting the current branch's condition is brought into scope, much as if the dependent if-then-else syntax had been used.
-Similarly, for certain higher-order functions the context is enriched with hypotheses that assert additional properties of the parameter to the higher order function's functional argument.
-This mechanism is extensible and described in more details below in {ref "well-founded-preprocessing"}[the section on preprocessing].
+:::paragraph
+Additionally, the context is enriched with additional assumptions that can make it easier to prove termination.
+Some examples include:
+
+ * In the branches of an {ref "if-then-else"}[if-then-else] expression, a hypothesis that asserts the current branch's condition is added, much as if the dependent if-then-else syntax had been used.
+ * In the function argument to certain higher-order functions, the context of the function's body is enriched with assumptions about the argument.
+
+This list is not exhaustive, and the mechanism is extensible.
+It is described in detail in {ref "well-founded-preprocessing"}[the section on preprocessing].
+:::
 
 ```lean (show := false)
 section
-variable {x : Nat} {xs : List Nat}
+variable {x : Nat} {xs : List Nat} {n : Nat}
 ```
 
-:::example "Enriched proof obligation contexts"
+:::example "Enriched Proof Obligation Contexts"
 
-Here, the {keywordOf termIfThenElse}`if` does not bring a local assumption about the condition into scope. Nevertheless, it is available in the context of the termination proof.
+Here, the {keywordOf termIfThenElse}`if` does not add a local assumption about the condition (that is, whether {lean}`n ≤ 1`) to the local contexts in the branches.
+
 
 ```lean (error := true) (keep := false) (name := fibGoals3)
 def fib (n : Nat) :=
@@ -307,6 +314,8 @@ unsolved goals
    ⊢ n - 2 < n
 ```
 
+Nevertheless, the assumptions are available in the context of the termination proof:
+
 ```proofState
 ∀ (n : Nat), («h✝» : ¬ n ≤ 1) → n - 1 < n ∧ n - 2 < n := by
   intro n «h✝»
@@ -323,7 +332,36 @@ h✝ : ¬n ≤ 1
 
 ```
 
-Similarly, in the following (contrived) example the termination proof contains an additional assumption showing that {lean}`x ∈ xs`.
+Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Range` membership hypothesis:
+
+```lean (error := true) (keep := false) (name := nestGoal3)
+def f (xs : Array Nat) : Nat := Id.run do
+  let mut s := xs.sum
+  for i in [:xs.size] do
+    s := s + f (xs.take i)
+  pure s
+termination_by xs
+decreasing_by
+  skip
+```
+```leanOutput nestGoal3 (whitespace := lax) (show := false)
+unsolved goals
+xs : Array Nat
+i : Nat
+h✝ : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
+⊢ sizeOf (xs.take i) < sizeOf xs
+```
+
+```proofState
+∀ (xs : Array Nat)
+  (i : Nat)
+  («h✝» : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one : Std.Range}),
+   sizeOf (xs.take i) < sizeOf xs := by
+  set_option tactic.hygienic false in
+  intros
+```
+
+Similarly, in the following (contrived) example, the termination proof contains an additional assumption showing that {lean}`x ∈ xs`.
 
 ```lean (error := true) (keep := false) (name := nestGoal1)
 def f (n : Nat) (xs : List Nat) : Nat :=
@@ -354,39 +392,8 @@ h✝ : x ∈ xs
 -/
 ```
 
-A {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop is also enriched, in this case with a {name}`Std.Range` membership hypothesis.
-
-
-```lean (error := true) (keep := false) (name := nestGoal3)
-def f (xs : Array Nat) : Nat := Id.run do
-  let mut s := xs.sum
-  for i in [:xs.size] do
-    s := s + f (xs.take i)
-  pure s
-termination_by xs
-decreasing_by
-  skip
-```
-```leanOutput nestGoal3 (whitespace := lax) (show := false)
-unsolved goals
-xs : Array Nat
-i : Nat
-h✝ : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
-⊢ sizeOf (xs.take i) < sizeOf xs
-```
-
-```proofState
-∀ (xs : Array Nat)
-  (i : Nat)
-  («h✝» : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one : Std.Range}),
-   sizeOf (xs.take i) < sizeOf xs := by
-  set_option tactic.hygienic false in
-  intros
-```
-
 This feature requires special setup for the higher-order function under which the recursive call is nested, as described in {ref "well-founded-preprocessing"}[the section on preprocessing].
 In the following definition, identical to the one above except using a custom, equivalent function instead of {name}`List.map`, the proof obligation context is not enriched:
-
 
 ```lean (error := true) (keep := false) (name := nestGoal4)
 def List.myMap := @List.map
@@ -704,49 +711,71 @@ Try this: termination_by (n, 1)
 
 :::
 
-# Preprocessing function definitions
+# Preprocessing Function Definitions
 %%%
 tag := "well-founded-preprocessing"
 %%%
 
-Lean preprocesses the function's body before determining the proof obligations.
-This is primarily used to enrich the local context with additional assumptions that may be necessary to solve the termination proof obligations.
-It uses Lean's simplifier and is extensible by the user.
+Lean _preprocesses_ the function's body before determining the proof obligations at each call site, transforming it into an equivalent definition that may include additional information.
+This preprocessing step is primarily used to enrich the local context with additional assumptions that may be necessary in order to solve the termination proof obligations, freeing users from the need to perform equivalent transformations by hand.
+Preprocessing uses the {ref "the-simplifier"}[simplifier] and is extensible by the user.
+
+:::paragraph
 
 The preprocessing happens in three steps:
 
-1.  Lean annotates occurrences of a function's parameter, or a subterm of a parameter, with the {name}`wfParam` marker.
+1.  Lean annotates occurrences of a function's parameter, or a subterm of a parameter, with the {name}`wfParam` {tech}[gadget].
 
     ```signature
     wfParam {α} (a : α) : α
     ```
 
-    More precisely, every occurrence of the function's parameter is wrapped in {name}`wfParam`.
-    Then whenever a {keywordOf Lean.Parser.Term.match}`match` expression has any discriminant wrapped in {name}`wfParam`, the marker is removed and every occurrence of a pattern match variable is wrapped in {name}`wfParam`.
-    Also, {name}`wfParam` calls are floated out of projection functions.
+    More precisely, every occurrence of the function's parameters is wrapped in {name}`wfParam`.
+    Whenever a {keywordOf Lean.Parser.Term.match}`match` expression has any discriminant wrapped in {name}`wfParam`, the gadget is removed and every occurrence of a pattern match variable is wrapped in {name}`wfParam`.
+    The {name}`wfParam` gadget is additionally floated out of {tech}[projection function] applications.
 
-2.  The annotated function body is simplified using the Lean's simplifier, using only the simplification rules annotated with {attr}`wf_preprocess` attribute.
+2.  The annotated function body is simplified using {ref "the-simplifier"}[the simplifier], using only simplification rules from the {attr}`wf_preprocess` {tech}[custom simp set].
 
 3.  Finally, any left-over {name}`wfParam` markers are removed.
 
+Annotating function parameters that are used for well-founded recursion allows the preprocessing simplification rules to distinguish between parameters and other terms.
+:::
+
+:::syntax attr (title := "Preprocessing Simp Set for Well-Founded Recursion")
+```grammar
+wf_preprocess
+```
+
+{includeDocstring Lean.Parser.Attr.wf_preprocess}
+
+:::
+
+{docstring wfParam}
+
 Some rewrite rules in the {attr}`wf_preprocess` simp set apply generally, without heeding the {lean}`wfParam` marker.
-In particular, the theorem {name}`ite_eq_dite` is used to extend the context of an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition:
+In particular, the theorem {name}`ite_eq_dite` is used to extend the context of an {ref "if-then-else"}[if-then-else] expression branch with an assumption about the condition:{margin}[This assumption's name should be an inaccessible name based on `h`, as is indicated by using {name}`binderNameHint` with the term {lean}`()`. Binder name hints are described in the {ref "bound-variable-name-hints"}[tactic language reference].]
 
 ```signature
 ite_eq_dite {P : Prop} {α : Sort u} {a b : α} [Decidable P]  :
-  (if P then a else b) = if h : P then binderNameHint h () a else binderNameHint h () b
+  (if P then a else b) =
+  if h : P then
+    binderNameHint h () a
+  else
+    binderNameHint h () b
 ```
 
-Other rewrite rules use the {name}`wfParam` marker to fire only when a function (like {name}`List.map`) is applied to a parameter or subterm of a parameter, but not otherwise.
 
 ```lean (show := false)
 section
 variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
 ```
 
+:::paragraph
+
+Other rewrite rules use the {name}`wfParam` marker to restrict their applicability; they are used only when a function (like {name}`List.map`) is applied to a parameter or subterm of a parameter, but not otherwise.
 This is typically done in two steps:
 
-1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function parameter or subterm thereof, and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
+1.  A theorem such as {name}`List.map_wfParam` recognizes a call of {name}`List.map` on a function parameter (or subterm), and uses {name}`List.attach` to enrich the type of the list elements with the assertion that they are indeed elements of that list:
 
     ```signature
     List.map_wfParam (xs : List α) (f : α → β) :
@@ -755,23 +784,28 @@ This is typically done in two steps:
 2. A theorem such as {name}`List.map_unattach` makes that assertion available to the function parameter of {name}`List.map`.
 
     ```signature
-    List.map_unattach (P : α → Prop) (xs : List { x : α // P x }) (f : α → β) :
+    List.map_unattach (P : α → Prop)
+      (xs : List { x : α // P x }) (f : α → β) :
       xs.unattach.map f = xs.map fun ⟨x, h⟩ =>
-        binderNameHint x f <| binderNameHint h () <|
+        binderNameHint x f <|
+        binderNameHint h () <|
         f (wfParam x)
     ```
 
   This theorem uses the {name}`binderNameHint` gadget to preserve a user-chosen binder name, should {lean}`f` be a lambda expression.
 
-By separating the introduction of {name}`List.attach` from the propagation, the desired the {lean}`x ∈ xs` assumption is made available to {lean}`f` even in chains such as `(xs.reverse.filter p).map f`.
+By separating the introduction of {name}`List.attach` from the propagation of the introduced assumption, the desired the {lean}`x ∈ xs` assumption is made available to {lean}`f` even in chains such as `(xs.reverse.filter p).map f`.
+
+:::
 
 ```lean (show := false)
 end
 ```
 
-The preprocessing can be turned off by setting the option {option}`wf.preprocess` to {lean}`false`.
+This preprocessing can be disabled by setting the option {option}`wf.preprocess` to {lean}`false`.
 To see the preprocessed function definition, before and after the removal of {name}`wfParam` markers, set the option {option}`trace.Elab.definition.wf` to {lean}`true`.
 
+{optionDocs trace.Elab.definition.wf}
 
 {spliceContents Manual.RecursiveDefs.WF.PreprocessExample}
 
