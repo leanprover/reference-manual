@@ -13,8 +13,6 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 
-set_option maxHeartbeats 350000
-
 #doc (Manual) "Basic Classes" =>
 %%%
 tag := "basic-classes"

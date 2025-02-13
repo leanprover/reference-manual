@@ -12,8 +12,6 @@ open Manual.FFIDocType
 
 open Verso.Genre Manual
 
-set_option maxHeartbeats 300000
-
 #doc (Manual) "Comparisons" =>
 %%%
 tag := "fixed-int-comparisons"
