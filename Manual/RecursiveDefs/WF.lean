@@ -731,7 +731,7 @@ The preprocessing happens in three steps:
     ```
 
     More precisely, every occurrence of the function's parameters is wrapped in {name}`wfParam`.
-    Whenever a {keywordOf Lean.Parser.Term.match}`match` expression has any discriminant wrapped in {name}`wfParam`, the gadget is removed and every occurrence of a pattern match variable is wrapped in {name}`wfParam`.
+    Whenever a {keywordOf Lean.Parser.Term.match}`match` expression has _any_ discriminant wrapped in {name}`wfParam`, the gadget is removed and every occurrence of a pattern match variable (regardless of whether it comes from the discriminant with the {name}`wfParam` gadget) is wrapped in {name}`wfParam`.
     The {name}`wfParam` gadget is additionally floated out of {tech}[projection function] applications.
 
 2.  The annotated function body is simplified using {ref "the-simplifier"}[the simplifier], using only simplification rules from the {attr}`wf_preprocess` {tech}[custom simp set].
