@@ -1208,10 +1208,20 @@ partial def grammar.descr : BlockDescr where
       | .error e =>
         Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
         pure .empty
-  extraCss := [grammarCss]
+  extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [highlightingJs, grammarJs]
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  localContentItem _ json _ := do
+    let .arr #[_, .arr #[_, .arr toks]] := json
+      | failure
+    let toks ← Except.toOption <| toks.mapM fun v => do
+        let Json.str str ← v.getObjVal? "string"
+          | throw "Not a string"
+        let .str k ← v.getObjVal? "kind"
+          | throw "Not a string"
+        pure {{<span class={{k}}>{{str}}</span>}}
+    {{<span class="syntax">{{toks}}</span>}}
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
