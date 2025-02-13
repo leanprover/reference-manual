@@ -17,8 +17,8 @@ open Verso.Genre.Manual
 open Lean Elab Command
 
 /- Needed due to big infotree coming out of the instance quotation in the example here -/
-set_option maxHeartbeats 1000000
 set_option maxRecDepth 1024
+set_option maxHeartbeats 650_000
 
 def derivableClasses : IO (Array Name) := do
   let handlers ← derivingHandlersRef.get

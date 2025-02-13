@@ -54,7 +54,12 @@ def attr : RoleExpander
       | .ok {descr, name, ref, ..} =>
         let attrTok := a.getString
         let hl : Highlighted := attrToken ref descr attrTok
-        discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
+        try
+          -- Attempt to add info to the document source for go-to-def and the like, but this doesn't
+          -- work for all attributes (e.g. `csimp`)
+          discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
+        catch _ =>
+          pure ()
         pure #[← `(Verso.Doc.Inline.other {Inline.attr with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote attrTok)])]
 
 where
