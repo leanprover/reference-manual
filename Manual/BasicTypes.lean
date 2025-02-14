@@ -13,6 +13,7 @@ import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
+import Manual.BasicTypes.Float
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
@@ -58,17 +59,8 @@ tag := "BitVec"
  * Cross-reference to TBW chapter on `bv_decide`
 :::
 
-# Floating-Point Numbers
-%%%
-tag := "Float"
-%%%
+{include 0 Manual.BasicTypes.Float}
 
-
-:::planned 107
- * Run-time and kernel representations
- * Precision, and whether it's platform-dependent
- * Relationship between IEEE floats and decidable equality
-:::
 
 # Characters
 %%%
