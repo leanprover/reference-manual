@@ -79,7 +79,7 @@ example : S.mk x.f1 x.f2 = x := by rfl
 export S (f1 f2)
 ```
 
-Definitional equality includes η-equivalence of functions and single-constructor inductive types.
+Definitional equality includes {deftech}[η-equivalence] of functions and single-constructor inductive types.
 That is, {lean}`fun x => f x` is definitionally equal to {lean}`f`, and {lean}`S.mk x.f1 x.f2` is definitionally equal to {lean}`x`, if {lean}`S` is a structure with fields {lean}`f1` and {lean}`f2`.
 It also features {deftech}_proof irrelevance_: any two proofs of the same proposition are definitionally equal.
 It is reflexive, symmetric, and a congruence.

@@ -18,6 +18,7 @@ import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
 import Manual.BasicTypes.Sum
 import Manual.BasicTypes.List
+import Manual.BasicTypes.Subtype
 
 open Manual.FFIDocType
 
@@ -356,17 +357,8 @@ end ShortCircuit
 
 {include 0 Manual.BasicTypes.Array}
 
-# Subtypes
-%%%
-tag := "Subtype"
-%%%
+{include 0 Manual.BasicTypes.Subtype}
 
-:::planned 173
- * When to use them?
- * Run-time representation
-:::
-
-{docstring Subtype}
 
 # Lazy Computations
 %%%

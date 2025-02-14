@@ -165,7 +165,7 @@ axiom f : (x : α) → β x
 example : (fun x => f x) = f := by rfl
 ```
 
-In addition to reduction and renaming of bound variables, definitional equality does support one limited form of extensionality, called {deftech}_η-equivalence_, in which functions are equal to abstractions whose bodies apply them to the argument.
+In addition to reduction and renaming of bound variables, definitional equality does support one limited form of extensionality, called {tech}_η-equivalence_, in which functions are equal to abstractions whose bodies apply them to the argument.
 Given {lean}`f` with type {lean}`(x : α) → β x`, {lean}`f` is definitionally equal to {lean}`fun x => f x`.
 ::::
 
