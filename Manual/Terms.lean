@@ -268,8 +268,11 @@ def MyList α := List α
 ::::
 
 # Function Types
+%%%
+tag := "function-types"
+%%%
 
-Lean's function types describe more than just the function's domain and range.
+Lean's function types describe more than just the function's domain and codomain.
 They also provide instructions for elaborating application sites by indicating that some parameters are to be discovered automatically via unification or {ref "instance-synth"}[type class synthesis], that others are optional with default values, and that yet others should be synthesized using a custom tactic script.
 Furthermore, their syntax contains support for abbreviating {tech key:="currying"}[curried] functions.
 

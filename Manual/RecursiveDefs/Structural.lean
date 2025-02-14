@@ -73,7 +73,7 @@ n' : Nat := n - 1
 This is because there was no pattern matching on the parameter {lean}`n`.
 While this function indeed terminates, the argument that it does so is based on properties of if, the equality test, and subtraction, rather than being a generic feature of {lean}`Nat` being an {tech}[inductive type].
 These arguments are expressed using {tech}[well-founded recursion], and a slight change to the function definition allows Lean's automatic support for well-founded recursion to construct an alternative termination proof.
-This version branches on the decidability of propositional equality for {lean}`Nat` rather than the result of a Boolean equality test:
+This version branches on the decidability of {tech}[propositional equality] for {lean}`Nat` rather than the result of a Boolean equality test:
 
 ```lean
 def countdown' (n : Nat) : List Nat :=
