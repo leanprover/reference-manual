@@ -17,6 +17,7 @@ import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
 import Manual.BasicTypes.Sum
+import Manual.BasicTypes.List
 
 open Manual.FFIDocType
 
@@ -351,21 +352,7 @@ end ShortCircuit
 
 {include 0 Manual.BasicTypes.Sum}
 
-
-# Linked Lists
-%%%
-tag := "List"
-%%%
-
-
-::: planned 108
- * Representation at compile time and run time
- * API reference
- * Literal syntax
- * Constructor/pattern syntax
-:::
-
-{docstring List}
+{include 0 Manual.BasicTypes.List}
 
 {include 0 Manual.BasicTypes.Array}
 

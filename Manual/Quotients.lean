@@ -13,8 +13,6 @@ import Manual.Language.InductiveTypes
 
 open Verso.Genre Manual
 
-set_option maxHeartbeats 400000
-
 #doc (Manual) "Quotients" =>
 %%%
 tag := "quotients"

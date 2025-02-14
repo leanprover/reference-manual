@@ -82,7 +82,9 @@ structure FreeSyntaxConfig where
   title : Option (FileMap × TSyntaxArray `inline) := none
 
 structure SyntaxConfig extends FreeSyntaxConfig where
+  namespaces : List Name := []
   aliases : List Name := []
+
 
 structure KeywordOfConfig where
   ofSyntax : Ident
@@ -240,12 +242,12 @@ partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : 
 def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FreeSyntaxConfig :=
   FreeSyntaxConfig.mk <$>
     .positional `name .name <*>
-    ((·.getD true) <$> (.named `open .bool true)) <*>
-    ((·.getD "syntax") <$> .named `label .string true) <*>
+    .namedD `open .bool true <*>
+    .namedD `label .string "syntax" <*>
     .named `title .inlinesString true
 
 def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m SyntaxConfig :=
-  SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `alias .resolvedName false) <* .done)
+  SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `namespace .name false)) <*> (many (.named `alias .resolvedName false) <* .done)
 
 inductive GrammarTag where
   | lhs
@@ -686,6 +688,10 @@ def withOpenedNamespace (ns : Name) (act : DocElabM α) : DocElabM α :=
   finally
     popScope
 
+def withOpenedNamespaces (nss : List Name) (act : DocElabM α) : DocElabM α :=
+  (nss.foldl (init := id) fun acc ns => withOpenedNamespace ns ∘ acc) act
+
+
 inductive SearchableTag where
   | meta
   | keyword
@@ -894,7 +900,7 @@ where
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
     let scope := (← Manual.Meta.Lean.Scopes.getScopes).head!
 
-    withOpenedNamespace `Manual.FreeSyntax do
+    withOpenedNamespace `Manual.FreeSyntax <| withOpenedNamespaces config.namespaces <| do
       match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) (openDecls := scope.openDecls) with
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
@@ -1208,10 +1214,20 @@ partial def grammar.descr : BlockDescr where
       | .error e =>
         Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
         pure .empty
-  extraCss := [grammarCss]
+  extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [highlightingJs, grammarJs]
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  localContentItem _ json _ := do
+    let .arr #[_, .arr #[_, .arr toks]] := json
+      | failure
+    let toks ← Except.toOption <| toks.mapM fun v => do
+        let Json.str str ← v.getObjVal? "string"
+          | throw "Not a string"
+        let .str k ← v.getObjVal? "kind"
+          | throw "Not a string"
+        pure {{<span class={{k}}>{{str}}</span>}}
+    {{<span class="syntax">{{toks}}</span>}}
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
