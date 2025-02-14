@@ -165,7 +165,7 @@ The language implemented by the kernel is a version of the Calculus of Construct
  * A {tech}[predicative], non-cumulative hierarchy of universes of data
  * {ref "quotients"}[Quotient types] with a definitional computation rule
  * Propositional function extensionality{margin}[Function extensionality is a theorem that can be proved using quotient types, but it is such an important consequence that it's worth listing separately.]
- * Definitional η-equality for functions and products
+ * Definitional {tech key:="η-equivalence"}[η-equality] for functions and products
  * Universe-polymorphic definitions
  * Consistency: there is no axiom-free closed term of type {lean}`False`
 

@@ -970,7 +970,7 @@ Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}
 
-There is an {lean}`OfScientific` instance for {name}`Float`, but no separate floating-point literals.
+There are an {lean}`OfScientific` instances for {name}`Float` and {name}`Float32`, but no separate floating-point literals.
 
 ## Strings
 

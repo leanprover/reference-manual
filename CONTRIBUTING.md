@@ -36,6 +36,8 @@ Headings should be set in title case, rather than just capitalizing the first wo
  * "a", "an", "the", "to" (infinitive marker), "and", "but", "for", "or", "nor"
  * conventionally lower-case components of names, like "de" or "van"
 
+The [Title Case Converter](https://titlecaseconverter.com/) is useful if in doubt. Remember to select "Chicago" from the list of styles.
+
 #### Lists
 Numbered or bulleted lists should be introduced by a grammatically-complete sentence that is terminated with a colon, follow one of two options:
 

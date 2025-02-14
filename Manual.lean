@@ -267,6 +267,7 @@ Thunk
 _root_
 BitVec
 Float
+Float32
 Empty
 Quotient
 Quot
