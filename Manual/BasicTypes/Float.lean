@@ -67,6 +67,14 @@ theorem Float.zero_eq_zero_plus_zero :
     ((0.0 : Float) == (0.0 + 0.0 : Float)) = true :=
   by rfl
 ```
+```leanOutput zeroPlusZero'
+tactic 'rfl' failed, the left-hand side
+  0.0 == 0.0 + 0.0
+is not definitionally equal to the right-hand side
+  true
+⊢ (0.0 == 0.0 + 0.0) = true
+```
+
 
 However, the {tactic}`native_decide` tactic can invoke the underlying platform's floating-point primitives that are used by Lean for run-time programs:
 ```lean
