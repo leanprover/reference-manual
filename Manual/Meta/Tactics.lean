@@ -563,11 +563,19 @@ def proofStateStyle := r#"
   padding: 0;
   border: none;
 }
-
 .hl.lean.tactic-view .tactic-state .goal {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+.hl.lean.tactic-view .tactic-state .goal:first-child {
   margin-top: 0.25em;
+}
+.hl.lean.tactic-view .tactic-state .goal:last-child {
   margin-bottom: 0.25em;
 }
+
+
 "#
 
 

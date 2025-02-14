@@ -973,4 +973,19 @@ These options affect the meaning of tactics.
 
 {include 0 Manual.Tactics.Conv}
 
+# Naming Bound Variables
+%%%
+tag := "bound-variable-name-hints"
+%%%
+
+When the {ref "the-simplifier"}[simplifier] or the {tactic}`rw` tactic introduce new binding forms such as function parameters, they select a name for the bound variable based on the one in the statement of the rewrite rule being applied.
+This name is made unique if necessary.
+In some situations, such as {ref "well-founded-preprocessing"}[preprocessing definitions for termination proofs that use well-founded recursion], the names that appear in termination proof obligations should be the corresponding names written in the original function definition.
+
+The {name}`binderNameHint` {tech}[gadget] can be used to indicate that a bound variable should be named according to the variables bound in some other term.
+By convention, the term {lean}`()` is used to indicate that a name should _not_ be taken from the original definition.
+
+{docstring binderNameHint}
+
+
 {include 0 Manual.Tactics.Custom}

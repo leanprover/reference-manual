@@ -357,6 +357,9 @@ end ShortCircuit
 {include 0 Manual.BasicTypes.Array}
 
 # Subtypes
+%%%
+tag := "Subtype"
+%%%
 
 :::planned 173
  * When to use them?

@@ -579,6 +579,8 @@ def signature : CodeBlockExpander
   | args, str => do
     let {«show»} ← SignatureConfig.parse.run args
     let altStr ← parserInputString str
+    let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
 
     match Parser.runParserCategory (← getEnv) `signature_spec altStr (← getFileName) with
     | .error e => throwError e
@@ -602,14 +604,19 @@ def signature : CodeBlockExpander
         try
           let ((hls, _, _, _), st') ← ((SubVerso.Examples.checkSignature name sig).run cmdCtx).run cmdState
           setInfoState st'.infoState
-          pure hls
+          pure (Highlighted.seq hls)
         catch e =>
           let fmt ← PrettyPrinter.ppSignature (TSyntax.mk name.raw[0]).getId
           Suggestion.saveSuggestion str (fmt.fmt.pretty 60) (fmt.fmt.pretty 30 ++ "\n")
           throw e
 
+      let hls :=
+        if let some col := col? then
+          hls.deIndent col
+        else hls
+
       if «show» then
-        pure #[← `(Block.other {Block.signature with data := ToJson.toJson $(quote (Highlighted.seq hls))} #[Block.code $(quote str.getString)])]
+        pure #[← `(Block.other {Block.signature with data := ToJson.toJson $(quote hls)} #[Block.code $(quote str.getString)])]
       else
         pure #[]
 

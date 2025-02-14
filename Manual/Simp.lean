@@ -363,7 +363,7 @@ simp $p:prio
 ```
 :::
 
-Custom simp sets are created with {name Lean.Meta.registerSimpAttr}`registerSimpAttr`, which must be run during {tech}[initialization] by placing it in an {keywordOf Lean.Parser.Command.initialize}`initialize` block.
+{deftech}_Custom simp sets_ are created with {name Lean.Meta.registerSimpAttr}`registerSimpAttr`, which must be run during {tech}[initialization] by placing it in an {keywordOf Lean.Parser.Command.initialize}`initialize` block.
 As a side effect, it creates a new attribute with the same interface as {attr}`simp` that adds rules to the custom simp set.
 The returned value is a {name Lean.Meta.SimpExtension}`SimpExtension`, which can be used to programmatically access the contents of the custom simp set.
 The {tactic}`simp` tactics can be instructed to use the new simp set by including its attribute name in the rule list.
