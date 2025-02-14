@@ -182,4 +182,7 @@ def Tree.map (f : α → β) : Tree α → Tree β
 termination_by t => t
 ```
 
+To keep the example short, the {tactic}`sizeOf_pair_dec` tactic is tailored to this particular recursion pattern and isn't really general enough for a general-purpose container library.
+It does, however, demonstrate that libraries can be just as convenient in practice as the container types in the standard library.
+
 ::::
