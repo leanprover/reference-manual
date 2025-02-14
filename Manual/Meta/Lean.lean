@@ -558,6 +558,16 @@ def option.descr : InlineDescr where
       | .ok (hl : Highlighted) =>
         hl.inlineHtml "examples"
 
+@[directive_expander leanSection]
+def leanSection : DirectiveExpander
+  | args, contents => do
+    let name? ← ArgParse.run ((some <$> .positional `name .string) <|> pure none) args
+    let arg ← `(argument| «show» := false)
+    let code := name?.map (s!"section {·}") |>.getD "section"
+    let start ← `(block|```lean $arg | $(quote code) ```)
+    let code := name?.map (s!"end {·}") |>.getD "end"
+    let «end» ← `(block|```lean $arg | $(quote code) ```)
+    return #[← elabBlock start] ++ (← contents.mapM elabBlock) ++ #[← elabBlock «end»]
 
 
 def Block.signature : Block where
