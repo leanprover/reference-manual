@@ -74,7 +74,7 @@ Field names not used by Lake should not be used to store metadata to be processe
 The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
 The only mandatory field is `name`, which declares the package's name.
 
-::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs
+::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs skip:=dynlibs skip:=plugins
 
 :::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
@@ -110,7 +110,7 @@ These options define a cloud release for the package, as described in the sectio
 
 :::
 
-:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" String (sort := 2)
+:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" "default targets' names (array)" String (sort := 2)
 
 {includeDocstring Lake.Package.defaultTargets (elab:=false)}
 
@@ -140,7 +140,9 @@ name = "example-package"
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `«example-package»,
     manifestFile := none,
     extraDepTargets := #[],
@@ -149,7 +151,7 @@ name = "example-package"
     moreGlobalServerArgs := #[],
     srcDir := FilePath.mk ".",
     buildDir := FilePath.mk ".lake/build",
-    leanLibDir := FilePath.mk "lib",
+    leanLibDir := FilePath.mk "lib/lean",
     nativeLibDir := FilePath.mk "lib",
     binDir := FilePath.mk "bin",
     irDir := FilePath.mk "ir",
@@ -215,7 +217,9 @@ name = "Sorting"
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `«example-package»,
     manifestFile := none,
     extraDepTargets := #[],
@@ -224,7 +228,7 @@ name = "Sorting"
     moreGlobalServerArgs := #[],
     srcDir := FilePath.mk ".",
     buildDir := FilePath.mk ".lake/build",
-    leanLibDir := FilePath.mk "lib",
+    leanLibDir := FilePath.mk "lib/lean",
     nativeLibDir := FilePath.mk "lib",
     binDir := FilePath.mk "bin",
     irDir := FilePath.mk "ir",
@@ -262,7 +266,9 @@ name = "Sorting"
           moreLinkArgs := #[],
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
-          platformIndependent := none },
+          platformIndependent := none,
+          dynlibs := #[],
+          plugins := #[] },
         name := `Sorting,
         srcDir := FilePath.mk ".",
         roots := #[`Sorting],
@@ -300,22 +306,22 @@ The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` field
 If neither are provided, then the dependency is fetched from {ref "reservoir"}[Reservoir], or an alternative registry if one has been configured.
 The {tomlField Lake.Dependency}`scope` field is required when fetching a package from Reservoir.
 
-:::tomlField Lake.Dependency path "Path" System.FilePath
+:::tomlField Lake.Dependency path "Path" "Paths" System.FilePath
 A dependency on the local filesystem, specified by its path.
 :::
 
-:::tomlField Lake.Dependency git "Git specification" Lake.DependencySrc
+:::tomlField Lake.Dependency git "Git specification" "Git specifications" Lake.DependencySrc
 A dependency in a Git repository, specified either by its URL as a string or by a table with the keys:
  * `url`: the repository URL
  * `subDir`: the subdirectory of the Git repository that contains the package's source code
 :::
 
-:::tomlField Lake.Dependency rev "Git revision" String
+:::tomlField Lake.Dependency rev "Git revision" "Git revisions" String
 For Git or Reservoir dependencies, this field specifies the Git revision, which may be a branch name, a tag name, or a specific hash.
 On Reservoir, the `version` field takes precedence over this field.
 :::
 
-:::tomlField Lake.Dependency source "Package Source" Lake.DependencySrc
+:::tomlField Lake.Dependency source "Package Source" "Package Sources" Lake.DependencySrc
 A dependency source, specified as a self-contained table, which is used when neither the `git` nor the `path` key is present.
 The key `type` should be either the string `"git"` or the string `"path"`.
 If the type is `"path"`, then there must be a further key `"path"` whose value is a string that provides the location of the package on disk.
@@ -325,7 +331,7 @@ If the type is `"git"`, then the following keys should be present:
  * `subDir`: the subdirectory of the Git repository that contains the package's source code
 :::
 
-:::tomlField Lake.Dependency version "version as string" String
+:::tomlField Lake.Dependency version "version as string" "versions as strings" String
 
 {includeDocstring Lake.Dependency.version?}
 
@@ -472,7 +478,9 @@ name = "TacticTools"
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `TacticTools,
     srcDir := FilePath.mk ".",
     roots := #[`TacticTools],
@@ -507,7 +515,9 @@ precompileModules = true
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `TacticTools,
     srcDir := FilePath.mk "src",
     roots := #[`TacticTools],
@@ -547,7 +557,9 @@ name = "trustworthytool"
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `trustworthytool,
     srcDir := FilePath.mk ".",
     root := `trustworthytool,
@@ -589,7 +601,9 @@ exeName = "tt"
       moreLinkArgs := #[],
       weakLinkArgs := #[],
       backend := Lake.Backend.default,
-      platformIndependent := none },
+      platformIndependent := none,
+      dynlibs := #[],
+      plugins := #[] },
     name := `«trustworthy-tool»,
     srcDir := FilePath.mk ".",
     root := `TrustworthyTool,

@@ -41,7 +41,7 @@ The fact that strings are internally represented as UTF-8-encoded byte arrays is
 tag := "string-runtime"
 %%%
 
-:::figure "Memory layout of strings" (name := "stringffi")
+:::figure "Memory layout of strings" (tag := "stringffi")
 ![Memory layout of strings](/static/figures/string.svg)
 :::
 

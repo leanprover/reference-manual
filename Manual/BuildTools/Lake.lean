@@ -73,7 +73,7 @@ Workspaces typically have the following layout:
      * `.lake/build/ir` - The package's intermediate result directory, which contains generated intermediate artifacts, primarily C code.
 :::
 
-:::figure "Workspace Layout"
+:::figure "Workspace Layout" (tag :="workspace-layout")
 ![Lake Workspaces](/static/figures/lake-workspace.svg)
 :::
 

@@ -120,6 +120,12 @@ def lakeOptDef.descr : InlineDescr where
       else
         pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
 
+  localContentItem _ info _ := open Verso.Output.Html in do
+    let .arr #[.str name, _jsonKind, _meta] := info
+      | failure
+    {{<code>{{name}}</code>}}
+
+
 @[role_expander lakeOpt]
 def lakeOpt : RoleExpander
   | args, inlines => do

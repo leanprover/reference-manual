@@ -436,13 +436,6 @@ tag := "tactic-ref-control"
 :::tactic "sleep"
 :::
 
-
-:::tactic "checkpoint"
-:::
-
-:::tactic "save"
-:::
-
 :::tactic "stop"
 :::
 
