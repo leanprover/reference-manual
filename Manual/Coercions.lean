@@ -194,11 +194,11 @@ def Bin.double : Bin → Bin
 
 theorem Bin.toNat_succ_eq_succ {b : Bin} : b.toNat = n → b.succ.toNat = n + 1 := by
   intro hEq
-  induction b generalizing n <;> simp_all_arith only [Bin.toNat, Bin.succ]
+  induction b generalizing n <;> simp_all +arith [Bin.toNat, Bin.succ]
 
 theorem Bin.toNat_double_eq_double {b : Bin} : b.toNat = n → b.double.toNat = n * 2 := by
   intro hEq
-  induction b generalizing n <;> simp_all_arith only [Bin.toNat, Bin.double]
+  induction b generalizing n <;> simp_all +arith [Bin.toNat, Bin.double]
 
 theorem Bin.ofNat_toNat_eq {n : Nat} : (Bin.ofNat n).toNat = n := by
   induction n <;> simp_all [Bin.ofNat, Bin.toNat, Bin.toNat_succ_eq_succ]
@@ -1247,7 +1247,7 @@ The specific rules governing the ordering of instances in the chain (namely, tha
 
 :::
 
-:::figure "Auxiliary Classes for Coercions" (name := "coe-aux-classes")
+:::figure "Auxiliary Classes for Coercions" (tag := "coe-aux-classes")
 ![A graphical representation of the relationships between the coercion transitive closure auxiliary classes](/static/figures/coe-chain.svg)
 :::
 

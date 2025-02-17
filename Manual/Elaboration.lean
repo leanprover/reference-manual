@@ -48,7 +48,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
   The compiler transforms elaborated Lean code into executables that can be run.
 
 
-:::figure "The Lean Pipeline" (name := "pipeline-overview")
+:::figure "The Lean Pipeline" (tag := "pipeline-overview")
 ![The Lean Pipeline](/static/figures/pipeline-overview.svg)
 :::
 

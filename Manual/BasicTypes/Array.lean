@@ -53,7 +53,7 @@ Adding items to an array that has no extra space results in a reallocation that 
 The amortized overhead scales linearly with the size of the array.
 The values in the array are represented as described in the {ref "inductive-types-ffi"}[section on the foreign function interface].
 
-:::figure "Memory layout of arrays" (name := "arrayffi")
+:::figure "Memory layout of arrays" (tag := "arrayffi")
 ![Memory layout of arrays](/static/figures/array.svg)
 :::
 

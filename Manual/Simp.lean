@@ -108,7 +108,7 @@ h' : p (3 + x + 9)
 ⊢ p (6 + x + 1)
 ```
 
-the tactic {tacticStep}`simp_arith` simplifies only the goal:
+the tactic {tacticStep}`simp +arith` simplifies only the goal:
 
 ```post
 p : Nat → Prop
@@ -132,7 +132,7 @@ h' : p (3 + x + 9)
 ⊢ p (6 + x + 1)
 ```
 
-Invoking {tacticStep}`simp_arith at h` yields a goal in which the hypothesis `h` has been simplified:
+Invoking {tacticStep}`simp +arith at h` yields a goal in which the hypothesis `h` has been simplified:
 
 ```post
 p : Nat → Prop
@@ -156,7 +156,7 @@ h' : p (3 + x + 9)
 ⊢ p (6 + x + 1)
 ```
 
-The conclusion can be additionally simplified by adding `⊢`, that is, {tacticStep}`simp_arith at h ⊢`:
+The conclusion can be additionally simplified by adding `⊢`, that is, {tacticStep}`simp +arith at h ⊢`:
 
 ```post
 p : Nat → Prop
@@ -180,7 +180,7 @@ h' : p (3 + x + 9)
 ⊢ p (6 + x + 1)
 ```
 
-Using {tacticStep}`simp_arith at *` simplifies all assumptions together with the conclusion:
+Using {tacticStep}`simp +arith at *` simplifies all assumptions together with the conclusion:
 
 ```post
 p : Nat → Prop

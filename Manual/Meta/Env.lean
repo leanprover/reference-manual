@@ -101,3 +101,8 @@ r#"
               return {{<code class="env-var"><a href={{url}}>s!"{var}"</a></code>}}
 
       return {{<code class="env-var">s!"{var}"</code>}}
+
+  localContentItem _ info _ := open Verso.Output.Html in do
+    let .arr #[.str var, .bool true] := info
+      | failure
+    {{<code>{{var}}</code>}}

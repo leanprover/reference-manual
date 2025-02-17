@@ -275,7 +275,7 @@ This relation is an equivalence relation:
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp_arith [eq]
+    simp +arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -344,7 +344,7 @@ def Z.eq (n k : Z') : Prop :=
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp_arith [eq]
+    simp +arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -435,7 +435,7 @@ def Z.eq (n k : Z') : Prop :=
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp_arith [eq]
+    simp +arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -492,7 +492,7 @@ This is provable using {tactic}`simp_arith`.
 theorem Z.add_neg_inverse (n : Z) : n  + (-n) = 0 := by
   cases n using Quotient.ind
   apply Quotient.sound
-  simp_arith [· ≈ ·, Setoid.r, eq]
+  simp +arith [· ≈ ·, Setoid.r, eq]
 ```
 
 :::

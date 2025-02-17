@@ -45,7 +45,7 @@ inductive FieldType where
   | oneOf (choices : List String)
   | option (t : FieldType)
   | bool
-  | other (name : Name) (what : String)
+  | other (name : Name) (what : String) (whatPlural : Option String)
 deriving Repr, ToJson, FromJson
 
 open Lean Syntax in
@@ -61,7 +61,7 @@ where
     | .oneOf cs => mkCApp ``FieldType.oneOf #[quote cs]
     | .option x => mkCApp ``FieldType.option #[q x]
     | .bool => mkCApp ``FieldType.bool #[]
-    | .other x y => mkCApp ``FieldType.other #[quote x, quote y]
+    | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
 
 
 open Output Html in
@@ -71,7 +71,8 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .version => if plural then "version strings" else "Version string"
   | .path => if plural then "paths" else "Path"
   | .array t => (if plural then "arrays of " else "Array of ") ++ t.toHtml true
-  | .other _ y => if plural then y ++ "s" else y
+  | .other _ y none => if plural then y ++ "s" else y
+  | .other _ y (some z) => if plural then z else y
   | .bool => if plural then "Booleans" else "Boolean"
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
@@ -132,6 +133,7 @@ structure TomlFieldOpts where
   inTable : Name
   field : Name
   typeDesc : String
+  typeDescPlural : String
   type : Name
   sort : Option Nat
 
@@ -144,7 +146,7 @@ private partial def many [Applicative f] [Alternative f] (p : f α) : f (List α
 
 
 def TomlFieldOpts.parse  [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlFieldOpts :=
-  TomlFieldOpts.mk <$> .positional `inTable .name <*> .positional `field .name <*> .positional `typeDesc .string <*> .positional `type .resolvedName <*> .named `sort .nat true
+  TomlFieldOpts.mk <$> .positional `inTable .name <*> .positional `field .name <*> .positional `typeDesc .string <*> .positional `typeDescPlural .string <*> .positional `type .resolvedName <*> .named `sort .nat true
 
 instance : Quote Empty where
   quote := nofun
@@ -152,8 +154,8 @@ instance : Quote Empty where
 @[directive_expander tomlField]
 def tomlField : DirectiveExpander
   | args, contents => do
-    let {inTable, field, typeDesc, type, sort} ← TomlFieldOpts.parse.run args
-    let field : Toml.Field Empty := {name := field, type := .other type typeDesc, docs? := none}
+    let {inTable, field, typeDesc, typeDescPlural, type, sort} ← TomlFieldOpts.parse.run args
+    let field : Toml.Field Empty := {name := field, type := .other type typeDesc typeDescPlural, docs? := none}
     let contents ← contents.mapM elabBlock
     return #[← ``(Block.other (Block.tomlField $(quote sort) $(quote inTable) $(quote field)) #[$contents,*])]
 
@@ -196,6 +198,10 @@ def Block.tomlField.descr : BlockDescr where
             {{← contents.mapM goB}}
         </dd>
       }}
+  localContentItem _ info _ := open Verso.Output Html in do
+    let .ok (_, _inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
+      | failure
+    pure {{<code class="field-name">{{field.name.toString}}</code>}}
 
 private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
   blocks.flatMap fun
@@ -389,6 +395,15 @@ dl.toml-table-field-spec {
         </div>
       }}
 
+  localContentItem _ info _ := open Verso.Output Html in do
+    let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
+      | failure
+    if let some arrayKey := arrayKey then
+      pure {{<code>s!"[[{arrayKey}]]"</code>}}
+    else
+      pure {{ {{humanName}} }}
+
+
 namespace Toml
 
 section
@@ -443,17 +458,19 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isConstOf ``Name then some .string
                 else if type.isConstOf ``Bool then some .bool
                 else if type.isConstOf ``System.FilePath then some .path
-                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration")
+                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration" none)
                 else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
                 else if type.isConstOf ``Lake.StdVer then some .version
-                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern")
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option"))
+                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern" none)
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option" none))
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``Bool then some (.option .bool)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``String then some (.option .string)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.option .path)
+                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``Lake.Dynlib then
+                  some (.array (.other ``Lake.Dynlib "dynamic library" "dynamic libraries"))
                 else none
               if let some type := type' then
                 return { name := fieldName, type, docs?}

@@ -571,14 +571,6 @@ They are probably only of interest to users who are implementing custom proof au
 
 {docstring UInt64.reduceOfNat}
 
-{docstring UInt8.reduceOfNatCore}
-
-{docstring UInt16.reduceOfNatCore}
-
-{docstring UInt32.reduceOfNatCore}
-
-{docstring UInt64.reduceOfNatCore}
-
 {docstring UInt8.reduceSub}
 
 {docstring UInt16.reduceSub}
