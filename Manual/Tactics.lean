@@ -960,8 +960,6 @@ tag := "tactic-language-options"
 
 These options affect the meaning of tactics.
 
-{optionDocs tactic.dbg_cache}
-
 {optionDocs tactic.customEliminators}
 
 {optionDocs tactic.skipAssignedInstances}
