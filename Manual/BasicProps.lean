@@ -238,7 +238,7 @@ Unlike both {name}`Subtype` and {name}`Sigma`, it is a {tech}[proposition]; this
 
 When writing a proof, the {tactic}`exists` tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
 The {tactic}`constructor` tactic, on the other hand, creates a {tech}[metavariable] for the witness; providing a proof of the predicate may solve the metavariable as well.
-The components of an existential assumption can be made available individually by pattern matching with {tactic}`let` or {tactic show:="match"}`Lean.Parser.Tactic.match` or by using {tactic}`cases` or {tactic}`rcases`.
+The components of an existential assumption can be made available individually by pattern matching with {tactic}`let` or {tactic show:="match"}`Lean.Parser.Tactic.match`, as well as by using {tactic}`cases` or {tactic}`rcases`.
 
 :::example "Proving Existential Statements"
 
