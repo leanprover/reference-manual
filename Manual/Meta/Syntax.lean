@@ -436,6 +436,168 @@ def infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format 
   let post := if let .original _ _ trailing _ := info2 then lined trailing.toString else .nil
   pre ++ doc ++ post
 
+def longestSuffix (strs : Array String) : String := Id.run do
+  if h : strs.size = 0 then ""
+  else
+    let mut suff := strs[0]
+
+    repeat
+      if suff == "" then return ""
+      let suff' := suff
+      for s in strs do
+        unless s.dropSuffix? suff |>.isSome do
+          suff := suff.drop 1
+      if suff' == suff then return suff'
+    return ""
+
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "abc"]
+/-- info: "bc" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "bc"]
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestSuffix #["abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #[]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "def"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "def", "abc"]
+
+def longestPrefix (strs : Array String) : String := Id.run do
+  if h : strs.size = 0 then ""
+  else
+    let mut pref := strs[0]
+
+    repeat
+      if pref == "" then return ""
+      let pref' := pref
+      for s in strs do
+        unless s.dropPrefix? pref |>.isSome do
+          pref := pref.dropRight 1
+      if pref' == pref then return pref'
+    return ""
+
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "bc"]
+/-- info: "ab" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "ab"]
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestPrefix #["abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #[]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "def"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "def", "abc"]
+/-- info: "a" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "aaa"]
+
+/-- Does this syntax take up zero source code? -/
+partial def isEmptySyntax : Syntax → Bool
+  | .node info _ args => isEmptyInfo info && args.all isEmptySyntax
+  | .atom info s => isEmptyInfo info && s.isEmpty
+  | .ident .. => false
+  | .missing => false
+where
+  isEmptyInfo
+    | .original leading _ trailing _ => leading.isEmpty && trailing.isEmpty
+    | _ => true
+
+def removeLeadingString (string : String) : Syntax → Syntax
+  | .missing => .missing
+  | .atom info str => .atom (remove info).2 str
+  | .ident info x raw pre => .ident (remove info).2 x raw pre
+  | .node info k args => Id.run do
+    let (string', info') := remove info
+    let mut args' := #[]
+    for h : i in [0 : args.size] do
+
+      if isEmptySyntax args[i] then
+        args' := args'.push args[i]
+      else
+        let this := removeLeadingString string' args[i]
+        args' := args'.push this
+        args' := args' ++ args.extract (i + 1) args.size
+        break
+
+    .node info' k args'
+where
+  remove : SourceInfo → String × SourceInfo
+  | .original leading pos trailing pos' =>
+    (string.take leading.toString.length, .original (leading.drop string.length) pos trailing pos')
+  | other => (string, other)
+
+partial def removeTrailingString (string : String) : Syntax → Syntax :=
+  fun stx =>
+  if string.isEmpty then stx else
+  match stx with
+
+  | .missing => .missing
+  | .atom info str => .atom (remove info).2 str
+  | .ident info x raw pre => .ident (remove info).2 x raw pre
+  | .node info k args => Id.run do
+    let (string', info') := remove info
+    let mut args' := #[]
+    for h : i in [0 : args.size] do
+      let j := args.size - (i + 1)
+      have : i < args.size := by get_elem_tactic
+      have : j < args.size := by omega
+      if isEmptySyntax args[j] then
+        -- The parser doesn't presently put source info here, so it's expedient to not check for
+        -- whitespace on this source info. If this ever changes, update this code.
+        args' := args'.push args[j]
+      else
+        let this := removeTrailingString string' args[j]
+        args' := args'.push this
+        args' := args.extract 0 j ++ args'.reverse
+        break
+    .node info' k args'
+where
+  remove : SourceInfo → String × SourceInfo
+  | .original leading pos trailing pos' =>
+    (string.dropRight trailing.toString.length, .original leading pos (trailing.dropRight string.length) pos')
+  | other => (string, other)
+
+/--
+Extracts the common leading and trailing whitespaces from an array of syntaxes.
+
+This is to be used when rendering choice nodes in a grammar, so they don't have redundant whitespace.
+-/
+def commonWs (stxs : Array Syntax) : String × Array Syntax × String :=
+  let allLeading := stxs.map Syntax.getHeadInfo |>.map fun
+    | .none => ""
+    | .synthetic .. => ""
+    | .original leading _ _ _ => leading.toString
+
+  let allTrailing := stxs.map Syntax.getTailInfo |>.map fun
+    | .none => ""
+    | .synthetic .. => ""
+    | .original _ _ trailing _ => trailing.toString
+
+  let pref := longestPrefix allLeading
+  let suff := longestSuffix allTrailing
+  let stxs := stxs.map fun stx =>
+    removeLeadingString pref (removeTrailingString suff stx)
+
+
+  (pref, stxs, suff)
+
 open StateT (lift) in
 partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
@@ -477,7 +639,12 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
       infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleeneLike star)
     | `choice, _, opts => do
-      return (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")")
+      -- Extract the common whitespace here. Otherwise, something like `∀ $_ $_*, $_` might render as
+      -- `∀ (binder  | thing )(binder  | thing )*, term`
+      -- instead of
+      -- `∀ (binder | thing) (binder | thing)* , term`
+      let (pre, opts, post) := commonWs opts
+      return pre ++ (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")") ++ post
     | ``Attr.simple, _, #[.ident kinfo _ name _, other] => do
       return infoWrap info (infoWrap kinfo (← lift <| tag .keyword name.toString) ++ (← production which other))
     | ``FreeSyntax.docCommentItem, _, _ =>
