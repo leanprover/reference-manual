@@ -19,7 +19,7 @@ tag := "quotients"
 %%%
 
 
-{deftech}_Quotient types_ allow a new type to be formed by decreasing the granularity of an existing type's propositional equality.
+{deftech}_Quotient types_ allow a new type to be formed by decreasing the granularity of an existing type's {tech}[propositional equality].
 In particular, given an type $`A` and an equivalence relation $`\sim`, the quotient $`A / \sim` contains the same elements as $`A`, but every pair of elements that are related by $`\sim` are considered equal.
 Equality is respected universally; nothing in Lean's logic can observe any difference between two equal terms.
 Thus, quotient types provide a way to build an impenetrable abstraction barrier.
@@ -70,7 +70,7 @@ While {name}`Quotient` is a convenient way to form quotients with reasonable com
 
 In general, a type $`Q` is said to be the quotient of $`A` by an equivalence relation $`\sim` if it respects the universal property of quotients: there is a function $`q:A\to Q` with the property that $`q(a)=q(b)` if and only if $`a\sim b` for all $`a` and $`b` in $`A`.
 
-Quotients formed with {name}`Quotient` have this property up to propositional equality: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
+Quotients formed with {name}`Quotient` have this property up to {tech}[propositional equality]: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
 But members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
 
 Quotients may also be implemented by designating a single representative of each equivalence class in $`A` itself, and then defining $`Q` as pair of elements in $`A` with proofs that they are such a canonical representative.

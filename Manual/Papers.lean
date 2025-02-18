@@ -70,3 +70,11 @@ def bulwahn2007 : InProceedings where
   booktitle := .concat (inlines!"Proceedings of the International Conference on Theorem Proving in Higher Order Logics (TPHOLS 2007)")
   series := some <| .concat (inlines!"LNTCS 4732")
   url := "https://doi.org/10.1007/978-3-540-74591-4_5"
+
+def streicher1993 : Thesis where
+  title := .concat (inlines!"Investigations into Intensional Type Theory")
+  author := .concat (inlines!"Thomas Streicher")
+  year := 1993
+  university := .concat (inlines!"Ludwig-Maximilians-Universität München")
+  url := "https://www2.mathematik.tu-darmstadt.de/~streicher/HabilStreicher.pdf"
+  degree := .concat (inlines!"Habilitation")
