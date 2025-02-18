@@ -17,18 +17,18 @@ tag := "functions"
 
 
 Function types are a built-in feature of Lean.
-{deftech}[Functions] map the values of one type (the {deftech}_domain_) into those of another type (the {deftech}_range_), and {deftech}_function types_ specify the domain and range of functions.
+{deftech}[Functions] map the values of one type (the {deftech}_domain_) into those of another type (the {deftech}_codomain_), and {deftech}_function types_ specify the domain and codomain of functions.
 
 There are two kinds of function type:
 
  : {deftech}[Dependent]
 
-   Dependent function types explicitly name the parameter, and the function's range may refer explicitly to this name.
+   Dependent function types explicitly name the parameter, and the function's codomain may refer explicitly to this name.
    Because types can be computed from values, a dependent function may return values from any number of different types, depending on its argument.{margin}[Dependent functions are sometimes referred to as {deftech}_dependent products_, because they correspond to an indexed product of sets.]
 
  : {deftech}[Non-Dependent]
 
-   Non-dependent function types do not include a name for the parameter, and the range does not vary based on the specific argument provided.
+   Non-dependent function types do not include a name for the parameter, and the codomain does not vary based on the specific argument provided.
 
 
 ::::keepEnv
@@ -48,7 +48,7 @@ The body of the function cannot be written with `if...then...else...` because it
 :::
 ::::
 
-In Lean's core language, all function types are dependent: non-dependent function types are dependent function types in which the parameter name does not occur in the range.
+In Lean's core language, all function types are dependent: non-dependent function types are dependent function types in which the parameter name does not occur in the {tech}[codomain].
 Additionally, two dependent function types that have different parameter names may be definitionally equal if renaming the parameter makes them equal.
 However, the Lean elaborator does not introduce a local binding for non-dependent functions' parameters.
 
@@ -129,7 +129,7 @@ tag := "currying"
 %%%
 
 
-In Lean's core type theory, every function maps each element of the domain to a single element of the range.
+In Lean's core type theory, every function maps each element of the {tech}[domain] to a single element of the {tech}[codomain].
 In other words, every function expects exactly one parameter.
 Multiple-parameter functions are implemented by defining higher-order functions that, when supplied with the first parameter, return a new function that expects the remaining parameters.
 This encoding is called {deftech}_currying_, popularized by and named after Haskell B. Curry.
@@ -145,7 +145,7 @@ tag := "function-extensionality"
 
 Definitional equality of functions in Lean is {deftech}_intensional_.
 This means that definitional equality is defined _syntactically_, modulo renaming of bound variables and {tech}[reduction].
-To a first approximation, this means that two functions are definitionally equal if they implement the same algorithm, rather than the usual mathematical notion of equality that states that two functions are equal if they map equal elements of the domain to equal elements of the range.
+To a first approximation, this means that two functions are definitionally equal if they implement the same algorithm, rather than the usual mathematical notion of equality that states that two functions are equal if they map equal elements of the {tech}[domain] to equal elements of the {tech}[codomain].
 
 
 Definitional equality is used by the type checker, so it's important that it be predictable.
@@ -180,11 +180,11 @@ tag := "totality"
 
 
 Functions can be defined recursively using {keywordOf Lean.Parser.Command.declaration}`def`.
-From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the domain to an element of the range in finite time.{margin}[Some programming language communities use the term _total_ in a different sense, where functions are considered total if they do not crash due to unhandled cases but non-termination is ignored.]
+From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the {tech}[domain] to an element of the {tech}[codomain] in finite time.{margin}[Some programming language communities use the term _total_ in a different sense, where functions are considered total if they do not crash due to unhandled cases but non-termination is ignored.]
 The values of total functions are defined for all type-correct arguments, and they cannot fail to terminate or crash due to a missing case in a pattern match.
 
 While the logical model of Lean considers all functions to be total, Lean is also a practical programming language that provides certain "escape hatches".
-Functions that have not been proven to terminate can still be used in Lean's logic as long as their range is proven nonempty.
+Functions that have not been proven to terminate can still be used in Lean's logic as long as their {tech}[codomain] is proven nonempty.
 These functions are treated as uninterpreted functions by Lean's logic, and their computational behavior is ignored.
 In compiled code, these functions are treated just like any others.
 Other functions may be marked unsafe; these functions are not available to Lean's logic at all.

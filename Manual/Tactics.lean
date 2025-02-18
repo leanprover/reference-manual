@@ -356,7 +356,7 @@ Printing very large terms can lead to slowdowns or even stack overflows in tooli
 tag := "metavariables-in-proofs"
 %%%
 
-Terms that begin with a question mark are _metavariables_ that correspond to an unknown value.
+Terms that begin with a question mark are {deftech}_metavariables_ that correspond to an unknown value.
 They may stand for either {tech}[universe] levels or for terms.
 Some metavariables arise as part of Lean's elaboration process, when not enough information is yet available to determine a value.
 These metavariables' names have a numeric component at the end, such as `?m.392` or `?u.498`.
@@ -547,7 +547,7 @@ tag := "tactic-language-branching"
 Tactic proofs may use pattern matching and conditionals.
 However, their meaning is not quite the same as it is in terms.
 While terms are expected to be executed once the values of their variables are known, proofs are executed with their variables left abstract and should consider _all_ cases simultaneously.
-Thus, when `if` and `match` are used in tactics, their meaning is reasoning by cases rather than selection of a concrete branch.
+Thus, when {keyword}`if` and {keyword}`match` are used in tactics, their meaning is reasoning by cases rather than selection of a concrete branch.
 All of their branches are executed, and the condition or pattern match is used to refine the main goal with more information in each branch, rather than to select a single branch.
 
 :::tactic Lean.Parser.Tactic.tacIfThenElse show := "if ... then ... else ..."
@@ -570,7 +570,7 @@ example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
 ```
 :::
 
-:::tactic Lean.Parser.Tactic.match show := "match"
+:::tactic Lean.Parser.Tactic.match (show := "match")
 
 When pattern matching, instances of the scrutinee in the goal are replaced with the patterns that match them in each branch.
 Each branch must then prove the refined goal.

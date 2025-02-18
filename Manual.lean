@@ -15,6 +15,7 @@ import Manual.Terms
 import Manual.Tactics
 import Manual.Simp
 import Manual.BasicTypes
+import Manual.BasicProps
 import Manual.NotationsMacros
 import Manual.IO
 import Manual.Interaction
@@ -87,6 +88,8 @@ Additionally, we will be adding missing API reference documentation and revising
 {include 0 Manual.Tactics}
 
 {include 0 Manual.Simp}
+
+{include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
 
@@ -279,6 +282,15 @@ Lake.RecBuildM
 Lake.FetchM
 Lake.ScriptM
 MonadEval
+True
+False
+And
+Or
+Not
+Iff
+Exists
+Eq
+HEq
 ```
 
 ```exceptions

@@ -60,7 +60,7 @@ There are five main kinds of recursive functions that can be defined:
   Lean generates additional partial correctness theorems for these monadic functions.
   As with well-founded recursion, applications of functions defined as partial fixpoints are not definitionally equal to their return values, but Lean generates theorems that propositionally equate the function to its unfolding and to the reduction behavior specified in its definition.
 
-: Partial functions with nonempty ranges
+: Partial functions with nonempty codomains
 
   For many applications, it's not important to reason about the implementation of certain functions.
   A recursive function might be used only as part of the implementation of proof automation steps, or it might be an ordinary program that will never be formally proved correct.
