@@ -21,13 +21,13 @@ import Manual.BasicTypes.Products
 import Manual.BasicTypes.Sum
 import Manual.BasicTypes.List
 import Manual.BasicTypes.Subtype
+import Manual.BasicTypes.Thunk
 
 open Manual.FFIDocType
 
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
-
 
 #doc (Manual) "Basic Types" =>
 %%%
@@ -341,19 +341,7 @@ end ShortCircuit
 
 {include 0 Manual.BasicTypes.Subtype}
 
-
-# Lazy Computations
-%%%
-tag := "Thunk"
-%%%
-
-
-::: planned 92
-Description and API reference for {name}`Thunk`:
- * Logical model as wrapper around a function from {lean}`Unit`
- * Run-time realization as a lazy computation
- * API reference
-:::
+{include 0 Manual.BasicTypes.Thunk}
 
 # Tasks and Threads
 %%%
