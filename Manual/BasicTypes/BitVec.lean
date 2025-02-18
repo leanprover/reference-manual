@@ -16,12 +16,6 @@ set_option maxRecDepth 768
 
 #doc (Manual) "Bitvectors" =>
 
-:::planned 106
- * Run-time and kernel representations of {name}`BitVec`
- * API reference
- * Cross-reference to TBW chapter on `bv_decide`
-:::
-
 Bitvectors are fixed-width sequences of binary digits.
 They are frequently used in software verification, because they closely model efficient data structures and operations that are similar to hardware.
 A bitvector can be understood from two perspectives: as a sequence of bits, or as a number encoded by a sequence of bits.
