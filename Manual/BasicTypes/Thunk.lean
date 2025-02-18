@@ -171,7 +171,7 @@ xs: 2
 [0, 1, 2, 0, 1, 2]
 ```
 
-Finally, takeing a prefix of {lean}`xs.append ys` results in only some of the thunks in {lean}`ys` being evaluated:
+Finally, taking a prefix of {lean}`xs.append ys` results in only some of the thunks in {lean}`ys` being evaluated:
 ```lean (name := lazy4)
 #eval xs.append ys |>.take 4 |>.toList
 ```
