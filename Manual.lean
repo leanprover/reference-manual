@@ -185,6 +185,7 @@ LawfulFunctor
 LawfulApplicative
 LawfulMonad
 Id
+Thunk
 ForM
 ForIn
 ForInStep
