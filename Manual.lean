@@ -385,6 +385,13 @@ EStateM.dummyRestore
 ```
 
 ```exceptions
+BitVec.rotateLeftAux
+BitVec.rotateRightAux
+BitVec.unexpandBitVecOfNat
+BitVec.unexpandBitVecOfNatLt
+```
+
+```exceptions
 Array.get?_size
 Array.forIn'.loop
 Array.mapM.map
