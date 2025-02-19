@@ -13,6 +13,7 @@ import Manual.BasicTypes.String
 import Manual.BasicTypes.Array
 import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
+import Manual.BasicTypes.BitVec
 import Manual.BasicTypes.Float
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
@@ -46,18 +47,7 @@ Other types don't have special compiler support _per se_, but rely in important 
 
 {include 0 Manual.BasicTypes.UInt}
 
-
-# Bitvectors
-%%%
-tag := "BitVec"
-%%%
-
-
-:::planned 106
- * Run-time and kernel representations of {name}`BitVec`
- * API reference
- * Cross-reference to TBW chapter on `bv_decide`
-:::
+{include 0 Manual.BasicTypes.BitVec}
 
 {include 0 Manual.BasicTypes.Float}
 
