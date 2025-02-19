@@ -188,7 +188,7 @@ tag := "partial-fixpoint-monadic"
 Defining a function as a partial fixpoint is more powerful if the function's return type is a monad that is an instance of {name}`Lean.Order.MonoBind`, such as {name}`Option`.
 In this case, recursive call are not restricted to tail-positions, but may also occur inside higher-order monadic functions such as {name}`bind` and {name}`List.mapM`.
 
-The set of higher-order functions for which this works is extensible (see TODO below), so no exhaustive list is given here.
+The set of higher-order functions for which this works is {ref "partial-fixpoint-theory"}[extensible], so no exhaustive list is given here.
 The aspiration is that a monadic recursive function definition that is built using abstract monadic operations like {name}`bind`, but that does not open the abstraction of the monad (e.g. by matching on the {name}`Option` value), is accepted.
 In particular, using {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation] should work.
 

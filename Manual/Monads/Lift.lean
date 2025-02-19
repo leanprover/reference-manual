@@ -226,7 +226,7 @@ def getBytes (input : Array Nat) : StateT (Array UInt8) (Except String) Unit := 
 Except.ok #[1, 58, 255, 2]
 ```
 {name}`getBytes` uses an `Option` returned from the lifted action to signal the desired state updates.
-This quickly becomes unwieldy if there are more possible ways to react to the inner action, such as saving handled exceptions.
+This quickly becomes unwieldy if there is more than one way to react to the inner action, such as saving handled exceptions.
 Ideally, state updates would be performed within the {name}`tryCatch` call directly.
 
 
