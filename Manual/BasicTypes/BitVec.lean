@@ -15,6 +15,9 @@ set_option pp.rawOnError true
 set_option maxRecDepth 768
 
 #doc (Manual) "Bitvectors" =>
+%%%
+tag := "BitVec"
+%%%
 
 Bitvectors are fixed-width sequences of binary digits.
 They are frequently used in software verification, because they closely model efficient data structures and operations that are similar to hardware.
@@ -32,19 +35,33 @@ Because {name}`Fin` itself is a wrapper around a {name}`Nat`, bitvectors are abl
 # Runtime Representation
 
 Bitvectors are represented as a {lean}`Fin` with the corresponding range.
-Because {name}`BitVec` is a {ref "inductive-types-trivial-wrappers"}[trivial wrapper] around {name}`Fin` and {name}`Fin` is a trivial wrapper around {name}`Nat`, bitvectors use the same runtime representation as {name}`Nat`.
+Because {name}`BitVec` is a {ref "inductive-types-trivial-wrappers"}[trivial wrapper] around {name}`Fin` and {name}`Fin` is a trivial wrapper around {name}`Nat`, bitvectors use the same runtime representation as {name}`Nat` in compiled code.
 
 # Syntax
 :::leanSection
 ```lean (show := false)
 variable {w n : Nat}
 ```
-There is an {inst}`OfNat (BitVec w) n` instance for all widths {lean}`n` and natural numbers {lean}`n`.
-Natural number literals, including those that use hexadecimal notation, may be used to represent bitvectors in contexts where the expected type is known.
+There is an {inst}`OfNat (BitVec w) n` instance for all widths {lean}`w` and natural numbers {lean}`n`.
+Natural number literals, including those that use hexadecimal or binary notation, may be used to represent bitvectors in contexts where the expected type is known.
 When the expected type is not known, a dedicated syntax allows the width of the bitvector to be specified along with its value.
 :::
 
-:::syntax term (title := "Bitvector Literals")
+:::example "Numeric Literals for Bitvectors"
+The following literals are all equivalent:
+```lean
+example : BitVec 8 := 0xff
+example : BitVec 8 := 255
+example : BitVec 8 := 0b1111_1111
+```
+```lean (show := false)
+-- Inline test
+example : (0xff : BitVec 8) = 255 := by rfl
+example : (0b1111_1111 : BitVec 8) = 255 := by rfl
+```
+:::
+
+:::syntax term (title := "Fixed-Width Bitvector Literals")
 ```grammar
 $_:num#$_
 ```
@@ -53,7 +70,7 @@ Spaces are forbidden around the `#`.
 Literals that overflow the width of the bitvector are truncated.
 :::
 
-:::::example "Bitvector Literals"
+:::::example "Fixed-Width Bitvector Literals"
 
 Bitvectors may be represented by natural number literals, so {lean}`(5 : BitVec 8)` is a valid bitvector.
 Additionally, a width may be specified directly in the literal:
