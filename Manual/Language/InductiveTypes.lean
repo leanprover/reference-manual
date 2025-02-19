@@ -362,12 +362,12 @@ Not every inductive type is represented as indicated here—some inductive types
 axiom α : Prop
 ````
 
- * The representation of the fixed-width integer types {lean}`UInt8`, ..., {lean}`UInt64`, {lean}`Int8`, ..., {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
+ * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
    Fixed-width integer types that are strictly smaller than the architecture's pointer type are stored unboxed by setting the lowest bit of a pointer to `1`.
    Integer types that are at least as large as the architecture's pointer type may be boxed or unboxed, depending on whether a concrete value fits in one fewer bits than the pointer type.
    If so, it is encoded by setting the lowest bit of the value to `1` (checked by `lean_is_scalar`).
    Otherwise, the value is represented is a pointer to a fixed-size Lean object on the heap.
-   In the C FFI, these values are marshalled into the appropriate C types `uint8_t`, ..., `uint64_t`, and `size_t`, respectively.{margin}[Fixed-width signed integer types are also represented as unsigned C integers in the FFI.]
+   In the C FFI, these values are marshalled into the appropriate C types `uint8_t`, …, `uint64_t`, and `size_t`, respectively.{margin}[Fixed-width signed integer types are also represented as unsigned C integers in the FFI.]
 
  * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
 
@@ -838,5 +838,5 @@ tag := "nested-inductive-types"
 %%%
 
 :::planned 235
-TODO
+A description of nested inductive types, including a definition of the term, the shape of the eliminator, and the rules that govern them.
 :::

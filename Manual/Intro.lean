@@ -21,7 +21,7 @@ tag := "introduction"
 %%%
 
 The _Lean Language Reference_ is intended as a comprehensive, precise description of Lean.
-It is first and foremost a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
+It is a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
 At the moment, this reference manual is a public preview.
 Many sections are still to be written.
 For tutorials and learning materials, please visit [the Lean documentation page](https://lean-lang.org/documentation/).

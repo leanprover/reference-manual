@@ -1,7 +1,7 @@
 import sys
 import json
 
-def annotate_source(file_path, message, start_line, start_column, end_line=None, end_column=None):
+def annotate_source(file_path, message, start_line=None, start_column=None, end_line=None, end_column=None):
     """Annotates a file with a message, highlighting the specified span."""
     try:
         with open(file_path, 'r') as f:
@@ -16,9 +16,29 @@ def annotate_source(file_path, message, start_line, start_column, end_line=None,
         end_column = start_column
 
     # Check if the specified line numbers are within the file's range
-    if start_line < 1 or end_line > len(lines):
+    if start_line is not None and (start_line < 1 or end_line > len(lines)):
         print("Error: Specified line range is out of bounds.")
         return
+
+    pos = f"{file_path}"
+    if start_line is not None:
+        if end_line != start_line:
+            pos += f":{start_line}-{end-line}"
+        else:
+            pos += f":{start_line}"
+        if start_column is not None:
+            if end_column != start_column:
+                pos += f":{start_column}-{end_column}"
+            else:
+                pos += f":{start_column}"
+
+    print(f"\n{pos}:\n")
+
+    # No source position
+    if start_line is None:
+        print(f"  \033[1m{message}\033[0m\n")
+        return
+
 
     # Display a few lines of context before the highlighted span
     context_lines_before = 2
@@ -26,7 +46,8 @@ def annotate_source(file_path, message, start_line, start_column, end_line=None,
     start_display = max(0, start_line - 1 - context_lines_before)
     end_display = min(len(lines), end_line + context_lines_after)
 
-    print("\nSource annotation:\n")
+
+
     for i in range(start_display, end_display):
         line_number = i + 1
         line_content = lines[i].rstrip("\n")
@@ -83,6 +104,9 @@ if __name__ == "__main__":
                 message = feedback['Message']
                 severity = feedback['Severity']
                 check = feedback['Check']
-                annotate_source(file, f'[{severity}] {check}: {message}', line, c1, line, c2)
+                if line == 1 and c1 == 1 and c2 == 1:
+                    annotate_source(file, f'[{severity}] {check}: {message}')
+                else:
+                    annotate_source(file, f'[{severity}] {check}: {message}', line, c1, line, c2)
     else:
         print(f"Skipping non-object JSON value: {json_obj}", file=sys.stderr)

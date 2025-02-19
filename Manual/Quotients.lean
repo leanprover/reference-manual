@@ -71,7 +71,7 @@ While {name}`Quotient` is a convenient way to form quotients with reasonable com
 In general, a type $`Q` is said to be the quotient of $`A` by an equivalence relation $`\sim` if it respects the universal property of quotients: there is a function $`q:A\to Q` with the property that $`q(a)=q(b)` if and only if $`a\sim b` for all $`a` and $`b` in $`A`.
 
 Quotients formed with {name}`Quotient` have this property up to {tech}[propositional equality]: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
-But members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
+However, members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
 
 Quotients may also be implemented by designating a single representative of each equivalence class in $`A` itself, and then defining $`Q` as pair of elements in $`A` with proofs that they are such a canonical representative.
 Together with a function that maps each $`a` in $`A` to its canonical representative, $`Q` is a quotient of $`A`.
