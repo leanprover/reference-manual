@@ -187,6 +187,14 @@ tag := "string-api-lookup"
 
 {docstring String.dropRightWhile}
 
+{docstring String.dropPrefix?}
+
+{docstring String.stripPrefix}
+
+{docstring String.dropSuffix?}
+
+{docstring String.stripSuffix}
+
 {docstring String.trim}
 
 {docstring String.trimLeft}

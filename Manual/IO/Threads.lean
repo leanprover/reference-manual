@@ -47,6 +47,10 @@ A detailed description of the Lean multi-threading model, including:
 
 {docstring Task.get}
 
+{docstring Task.map}
+
+{docstring Task.bind}
+
 {docstring IO.wait}
 
 {docstring IO.waitAny}
@@ -82,3 +86,5 @@ A detailed description of the Lean multi-threading model, including:
 {docstring IO.checkCanceled}
 
 {docstring IO.hasFinished}
+
+{docstring IO.getTID}

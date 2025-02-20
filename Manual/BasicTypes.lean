@@ -328,6 +328,8 @@ end ShortCircuit
 
 {docstring Bool.toNat}
 
+{docstring Bool.toInt}
+
 
 {include 0 Manual.BasicTypes.Option}
 

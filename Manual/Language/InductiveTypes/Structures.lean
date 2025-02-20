@@ -20,8 +20,9 @@ tag := "structures"
 :::syntax command
 ```grammar
 $_:declModifiers
-structure $d:declId $_:bracketedBinder*
-    $[extends $_,*]? $[: $_]? where
+structure $d:declId $_:bracketedBinder* $[: $_]?
+  $[extends $[$[$_ : ]?$_],*]?
+  where
   $[$_:declModifiers $_ ::]?
   $_
 $[deriving $[$_],*]?

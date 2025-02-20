@@ -181,6 +181,10 @@ tag := "array-api"
 
 {docstring Array.range}
 
+{docstring Array.range'}
+
+{docstring Array.finRange}
+
 {docstring Array.ofFn}
 
 {docstring Array.mkArray}
@@ -201,15 +205,7 @@ tag := "array-api"
 
 {docstring Array.extract}
 
-{docstring Array.get}
-
-{docstring Array.get?}
-
-{docstring Array.getIdx?}
-
 {docstring Array.getD}
-
-{docstring Array.get!}
 
 {docstring Array.uget}
 
@@ -221,6 +217,18 @@ tag := "array-api"
 
 {docstring Array.getMax?}
 
+## Queries
+
+{docstring Array.count}
+
+{docstring Array.countP}
+
+{docstring Array.idxOf}
+
+{docstring Array.idxOf?}
+
+{docstring Array.finIdxOf?}
+
 ## Conversions
 
 {docstring Array.toList}
@@ -229,11 +237,14 @@ tag := "array-api"
 
 {docstring Array.toListAppend}
 
+{docstring Array.toVector}
+
 {docstring Array.toSubarray}
 
 {docstring Array.ofSubarray}
 
 {docstring Array.toPArray'}
+
 
 ## Modification
 
@@ -245,13 +256,19 @@ tag := "array-api"
 
 {docstring Array.erase}
 
+{docstring Array.eraseP}
+
 {docstring Array.eraseIdx}
+
+{docstring Array.eraseIdx!}
+
+{docstring Array.eraseIdxIfInBounds}
 
 {docstring Array.eraseReps}
 
 {docstring Array.swap}
 
-{docstring Array.swap!}
+{docstring Array.swapIfInBounds}
 
 {docstring Array.swapAt}
 
@@ -261,7 +278,7 @@ tag := "array-api"
 
 {docstring Array.set!}
 
-{docstring Array.setD}
+{docstring Array.setIfInBounds}
 
 {docstring Array.uset}
 
@@ -271,9 +288,11 @@ tag := "array-api"
 
 {docstring Array.modifyOp}
 
-{docstring Array.insertAt}
+{docstring Array.insertIdx}
 
-{docstring Array.insertAt!}
+{docstring Array.insertIdx!}
+
+{docstring Array.insertIdxIfInBounds}
 
 {docstring Array.reverse}
 
@@ -282,6 +301,10 @@ tag := "array-api"
 {docstring Array.take}
 
 {docstring Array.takeWhile}
+
+{docstring Array.drop}
+
+{docstring Array.shrink}
 
 {docstring Array.flatten}
 
@@ -317,17 +340,23 @@ tag := "array-api"
 
 {docstring Array.forIn'}
 
+{docstring Array.firstM}
+
+{docstring Array.sum}
+
 ## Transformation
 
-{docstring Array.concatMap}
+{docstring Array.flatMap}
 
-{docstring Array.concatMapM}
+{docstring Array.flatMapM}
 
 {docstring Array.zip}
 
 {docstring Array.zipWith}
 
-{docstring Array.zipWithIndex}
+{docstring Array.zipWithAll}
+
+{docstring Array.zipIdx}
 
 {docstring Array.unzip}
 
@@ -357,8 +386,6 @@ tag := "array-api"
 
 {docstring Array.flatMapM}
 
-{docstring Array.sequenceMap}
-
 ## Filtering
 
 {docstring Array.filterMap}
@@ -366,6 +393,8 @@ tag := "array-api"
 {docstring Array.filter}
 
 {docstring Array.filterM}
+
+{docstring Array.filterRevM}
 
 {docstring Array.filterMapM}
 
@@ -376,8 +405,6 @@ tag := "array-api"
 {docstring Array.filterSepElemsM}
 
 ## Partitioning
-
-{docstring Array.split}
 
 {docstring Array.partition}
 
@@ -390,13 +417,15 @@ tag := "array-api"
 
 {docstring Array.elem}
 
-{docstring Array.indexOf?}
-
 {docstring Array.find?}
 
 {docstring Array.findRev?}
 
+{docstring Array.findIdx}
+
 {docstring Array.findIdx?}
+
+{docstring Array.findFinIdx?}
 
 {docstring Array.findM?}
 
@@ -431,6 +460,8 @@ tag := "array-api"
 
 {docstring Array.isPrefixOf}
 
+{docstring Array.lex}
+
 ## Termination Helpers
 
 {docstring Array.attach}
@@ -438,6 +469,8 @@ tag := "array-api"
 {docstring Array.attachWith}
 
 {docstring Array.unattach}
+
+{docstring Array.pmap}
 
 ## Proof Automation
 

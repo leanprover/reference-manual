@@ -265,6 +265,8 @@ Some operations on paths consult the filesystem.
 
 {docstring IO.FS.withTempFile}
 
+{docstring IO.FS.withTempDir}
+
 {docstring IO.FS.createDirAll}
 
 {docstring IO.FS.writeBinFile}
@@ -274,6 +276,8 @@ Some operations on paths consult the filesystem.
 {docstring IO.FS.removeDirAll}
 
 {docstring IO.FS.createTempFile}
+
+{docstring IO.FS.createTempDir}
 
 {docstring IO.FS.readFile}
 

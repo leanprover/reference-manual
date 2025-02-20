@@ -146,6 +146,28 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int64.size}
 
+## Ranges
+
+{docstring ISize.minValue}
+
+{docstring ISize.maxValue}
+
+{docstring Int8.minValue}
+
+{docstring Int8.maxValue}
+
+{docstring Int16.minValue}
+
+{docstring Int16.maxValue}
+
+{docstring Int32.minValue}
+
+{docstring Int32.maxValue}
+
+{docstring Int64.minValue}
+
+{docstring Int64.maxValue}
+
 ## Conversions
 
 ### To and From `Int`
@@ -170,6 +192,27 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int64.ofInt}
 
+{docstring ISize.ofIntTruncate}
+
+{docstring Int8.ofIntTruncate}
+
+{docstring Int16.ofIntTruncate}
+
+{docstring Int32.ofIntTruncate}
+
+{docstring Int64.ofIntTruncate}
+
+{docstring ISize.ofIntLE}
+
+{docstring Int8.ofIntLE}
+
+{docstring Int16.ofIntLE}
+
+{docstring Int32.ofIntLE}
+
+{docstring Int64.ofIntLE}
+
+
 ### To and From `Nat`
 
 {docstring USize.ofNat}
@@ -186,10 +229,6 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring UInt32.ofNat}
 
-{docstring UInt32.ofNat'}
-
-{docstring UInt32.ofNatTruncate}
-
 {docstring Int32.ofNat}
 
 {docstring UInt64.ofNat}
@@ -198,41 +237,47 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring USize.ofNat32}
 
-{docstring USize.ofNatCore}
+{docstring USize.ofNatLT}
 
-{docstring UInt8.ofNatCore}
+{docstring UInt8.ofNatLT}
 
-{docstring UInt16.ofNatCore}
+{docstring UInt16.ofNatLT}
 
-{docstring UInt32.ofNatCore}
+{docstring UInt32.ofNatLT}
 
-{docstring UInt64.ofNatCore}
+{docstring UInt64.ofNatLT}
+
+{docstring USize.ofNatTruncate}
+
+{docstring UInt8.ofNatTruncate}
+
+{docstring UInt16.ofNatTruncate}
+
+{docstring UInt32.ofNatTruncate}
+
+{docstring UInt64.ofNatTruncate}
 
 {docstring USize.toNat}
 
-{docstring ISize.toNat}
+{docstring ISize.toNatClampNeg}
 
 {docstring UInt8.toNat}
 
-{docstring Int8.toNat}
+{docstring Int8.toNatClampNeg}
 
 {docstring UInt16.toNat}
 
-{docstring Int16.toNat}
+{docstring Int16.toNatClampNeg}
 
 {docstring UInt32.toNat}
 
-{docstring Int32.toNat}
+{docstring Int32.toNatClampNeg}
 
 {docstring UInt64.toNat}
 
-{docstring Int64.toNat}
+{docstring Int64.toNatClampNeg}
 
 ### To Other Fixed-Width Integers
-
-{docstring Int32.toISize}
-
-{docstring Int64.toISize}
 
 {docstring ISize.toInt32}
 
@@ -244,7 +289,11 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring USize.toUInt8}
 
+{docstring UInt8.toInt8}
+
 {docstring UInt16.toUInt8}
+
+{docstring ISize.toInt8}
 
 {docstring Int16.toInt8}
 
@@ -260,7 +309,11 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring UInt8.toUInt16}
 
+{docstring ISize.toInt16}
+
 {docstring Int8.toInt16}
+
+{docstring UInt16.toInt16}
 
 {docstring UInt32.toUInt16}
 
@@ -280,6 +333,8 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int16.toInt32}
 
+{docstring UInt32.toInt32}
+
 {docstring UInt64.toUInt32}
 
 {docstring Int64.toInt32}
@@ -298,6 +353,8 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int32.toInt64}
 
+{docstring UInt64.toInt64}
+
 {docstring UInt8.toUSize}
 
 {docstring UInt16.toUSize}
@@ -306,35 +363,101 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring UInt64.toUSize}
 
+{docstring USize.toISize}
+
+{docstring Int8.toISize}
+
+{docstring Int16.toISize}
+
+{docstring Int32.toISize}
+
+{docstring Int64.toISize}
+
 ### To Floating-Point Numbers
+
+{docstring ISize.toFloat}
+
+{docstring ISize.toFloat32}
+
+{docstring Int8.toFloat}
+
+{docstring Int8.toFloat32}
+
+{docstring Int16.toFloat}
+
+{docstring Int16.toFloat32}
+
+{docstring Int32.toFloat}
+
+{docstring Int32.toFloat32}
+
+{docstring Int64.toFloat}
+
+{docstring Int64.toFloat32}
+
+{docstring USize.toFloat}
+
+{docstring USize.toFloat32}
+
+{docstring UInt8.toFloat}
+
+{docstring UInt8.toFloat32}
+
+{docstring UInt16.toFloat}
+
+{docstring UInt16.toFloat32}
+
+{docstring UInt32.toFloat}
+
+{docstring UInt32.toFloat32}
 
 {docstring UInt64.toFloat}
 
 {docstring UInt64.toFloat32}
 
-### To Bitvectors
+### To and From Bitvectors
 
 {docstring ISize.toBitVec}
 
+{docstring ISize.ofBitVec}
+
 {docstring Int8.toBitVec}
+
+{docstring Int8.ofBitVec}
 
 {docstring Int16.toBitVec}
 
+{docstring Int16.ofBitVec}
+
 {docstring Int32.toBitVec}
+
+{docstring Int32.ofBitVec}
 
 {docstring Int64.toBitVec}
 
-### To Finite Numbers
+{docstring Int64.ofBitVec}
 
-{docstring USize.val}
+### To and From Finite Numbers
 
-{docstring UInt8.val}
+{docstring USize.toFin}
 
-{docstring UInt16.val}
+{docstring UInt8.toFin}
 
-{docstring UInt32.val}
+{docstring UInt16.toFin}
 
-{docstring UInt64.val}
+{docstring UInt32.toFin}
+
+{docstring UInt64.toFin}
+
+{docstring USize.ofFin}
+
+{docstring UInt8.ofFin}
+
+{docstring UInt16.ofFin}
+
+{docstring UInt32.ofFin}
+
+{docstring UInt64.ofFin}
 
 {docstring USize.repr}
 
@@ -570,6 +693,14 @@ They are probably only of interest to users who are implementing custom proof au
 {docstring UInt32.reduceOfNat}
 
 {docstring UInt64.reduceOfNat}
+
+{docstring UInt8.reduceOfNatLT}
+
+{docstring UInt16.reduceOfNatLT}
+
+{docstring UInt32.reduceOfNatLT}
+
+{docstring UInt64.reduceOfNatLT}
 
 {docstring UInt8.reduceSub}
 

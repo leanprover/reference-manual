@@ -202,23 +202,43 @@ These operations exist to support the {inst}`OfScientific Float` and {inst}`OfSc
 
 {docstring Float.toUInt8}
 
+{docstring Float.toInt8}
+
 {docstring Float32.toUInt8}
+
+{docstring Float32.toInt8}
 
 {docstring Float.toUInt16}
 
+{docstring Float.toInt16}
+
 {docstring Float32.toUInt16}
+
+{docstring Float32.toInt16}
 
 {docstring Float.toUInt32}
 
 {docstring Float32.toUInt32}
 
+{docstring Float.toInt32}
+
+{docstring Float32.toInt32}
+
 {docstring Float.toUInt64}
 
+{docstring Float.toInt64}
+
 {docstring Float32.toUInt64}
+
+{docstring Float32.toInt64}
 
 {docstring Float.toUSize}
 
 {docstring Float32.toUSize}
+
+{docstring Float.toISize}
+
+{docstring Float32.toISize}
 
 {docstring Float.ofInt}
 

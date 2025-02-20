@@ -238,11 +238,7 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.get}
 
-{docstring List.get?}
-
 {docstring List.getD}
-
-{docstring List.get!}
 
 {docstring List.getLast}
 
@@ -567,9 +563,9 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.le}
 
-{docstring List.lex}
-
 {docstring List.lt}
+
+{docstring List.lex}
 
 {docstring List.hasDecEq}
 

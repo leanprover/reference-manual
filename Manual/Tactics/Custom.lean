@@ -229,10 +229,6 @@ These operations are exposed through standard Lean monad type classes.
 
 {docstring Lean.Elab.Tactic.adaptExpander}
 
-### Case Analysis
-
-{docstring Lean.Elab.Tactic.elabCasesTargets}
-
 ### Simplifier
 
 {docstring Lean.Elab.Tactic.elabSimpArgs}

@@ -153,3 +153,13 @@ open Lean Elab Command in
 {docstring UInt32.log2}
 
 {docstring UInt64.log2}
+
+{docstring ISize.abs}
+
+{docstring Int8.abs}
+
+{docstring Int16.abs}
+
+{docstring Int32.abs}
+
+{docstring Int64.abs}

@@ -95,8 +95,9 @@ Type classes are declared with the {keywordOf Lean.Parser.Command.declaration}`c
 :::syntax command
 ```grammar
 $_:declModifiers
-class $d:declId $_:bracketedBinder*
-    $[extends $_,*]? $[: $_]? where
+class $d:declId $_:bracketedBinder* $[: $_]?
+  $[extends $[$[$_ : ]?$_],*]?
+  where
   $[$_:declModifiers $_ ::]?
   $_
 $[deriving $[$x:ident],*]?

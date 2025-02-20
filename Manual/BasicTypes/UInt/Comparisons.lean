@@ -55,7 +55,7 @@ open Lean Elab Command in
 
 {docstring Int16.le}
 
-`{docstring UInt32.le}`
+{docstring UInt32.le}
 
 {docstring Int32.le}
 
@@ -75,7 +75,7 @@ open Lean Elab Command in
 
 {docstring Int16.lt}
 
-`{docstring UInt32.lt}`
+{docstring UInt32.lt}
 
 {docstring Int32.lt}
 

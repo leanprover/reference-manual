@@ -140,6 +140,8 @@ As a mere pair, the primary API for {lean}`Prod` is provided by pattern matching
 
 ### Ordering
 
+{docstring Prod.lex}
+
 {docstring Prod.lexLt}
 
 ### Transformation
