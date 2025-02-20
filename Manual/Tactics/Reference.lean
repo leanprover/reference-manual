@@ -24,6 +24,13 @@ set_option linter.unusedVariables false
 tag := "tactic-ref"
 %%%
 
+# Classical Logic
+%%%
+tag := "tactic-ref-classical"
+%%%
+
+:::tactic "classical"
+:::
 
 
 # Assumptions
@@ -112,6 +119,18 @@ tag := "tactic-ref-equality"
 :::tactic "ac_rfl"
 :::
 
+# Associativity and Commutativity
+%%%
+tag := "tactic-ref-associativity-commutativity"
+%%%
+
+:::tactic "ac_nf"
+:::
+
+:::tactic "ac_nf0"
+:::
+
+
 # Lemmas
 %%%
 tag := "tactic-ref-lemmas"
@@ -132,9 +151,12 @@ tag := "tactic-ref-lemmas"
 :::tactic "solve_by_elim"
 :::
 
-
 :::tactic "apply_rules"
 :::
+
+:::tactic "as_aux_lemma"
+:::
+
 
 # Falsehood
 %%%
@@ -307,8 +329,15 @@ Description of the `@[induction_eliminator]` and `@[cases_eliminator]` attribute
 :::tactic "rcases"
 :::
 
+:::tactic "fun_cases"
+:::
+
 :::tactic "induction"
 :::
+
+:::tactic "fun_induction"
+:::
+
 
 :::tactic "nofun"
 :::
@@ -458,7 +487,6 @@ These tactics are used during elaboration of terms to satisfy obligations that a
 :::
 
 
-
 # Debugging Utilities
 %%%
 tag := "tactic-ref-debug"
@@ -496,6 +524,9 @@ tag := "tactic-ref-other"
 :::
 
 :::tactic "infer_instance"
+:::
+
+:::tactic "expose_names"
 :::
 
 :::tactic Lean.Parser.Tactic.tacticUnhygienic_

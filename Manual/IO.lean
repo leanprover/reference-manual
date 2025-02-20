@@ -272,6 +272,22 @@ There is one specific {lean}`IO` helper.
 
 {include 0 Manual.IO.Files}
 
+# System and Platform Information
+%%%
+tag := "platform-info"
+%%%
+
+{docstring System.Platform.numBits}
+
+{docstring System.Platform.target}
+
+{docstring System.Platform.isWindows}
+
+{docstring System.Platform.isOSX}
+
+{docstring System.Platform.isEmscripten}
+
+
 # Environment Variables
 %%%
 tag := "io-monad-getenv"

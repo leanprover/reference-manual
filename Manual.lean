@@ -318,6 +318,7 @@ String.utf8ByteSize.go String.validateUTF8.loop
 String.crlfToLf.go
 String.fromUTF8.loop
 String.one_le_csize
+String.mangle
 ```
 
 ```exceptions
@@ -521,6 +522,14 @@ Array.tacticArray_get_dec
 Array.back_eq_back?
 Array.mkArray_data
 Array.getLit
+Array.zipWithAll.go
+Array.shrink.loop
+Array.idxOfAux
+Array.firstM.go
+Array.get!Internal
+Array.getInternal
+Array.findFinIdx?.loop
+Array.insertIdx.loop
 ```
 
 ```exceptions
@@ -561,6 +570,22 @@ Lean.Elab.Tactic.elabSimpArgs.resolveSimpIdTheorem?
 Lean.Elab.Tactic.tactic.dbg_cache
 Lean.Elab.Tactic.tactic.simp.trace
 Lean.Elab.Tactic.liftMetaTacticAux
+```
+
+```exceptions
+Int.add_of_le
+```
+
+```exceptions
+System.Platform.getIsEmscripten
+System.Platform.getIsOSX
+System.Platform.getIsWindows
+System.Platform.getNumBits
+System.Platform.getTarget
+```
+
+```exceptions
+Prod.rprod
 ```
 
 ```exceptions
@@ -740,7 +765,14 @@ Lean.Parser.Tactic.nestedTactic
 Lean.Parser.Tactic.unknown
 Lean.Parser.Tactic.paren
 tacticDecreasing_trivial_pre_omega
+SubVerso.Compat.HashMap.Compat_simp_arith_all
+Lean.Parser.Tactic.bvDecideMacro
+Lean.Parser.Tactic.bvNormalizeMacro
+Lean.Parser.Tactic.bvTraceMacro
+Lean.Parser.Tactic.attemptAll
+Lean.Parser.Tactic.tryResult
 ```
+
 
 
 ```exceptions

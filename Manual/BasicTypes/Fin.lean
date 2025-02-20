@@ -169,6 +169,8 @@ Typically, bitwise operations on {name}`Fin` should be accessed using Lean's ove
 
 ## Conversions
 
+{docstring Fin.toNat}
+
 {docstring Fin.ofNat'}
 
 {docstring Fin.cast}

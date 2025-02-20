@@ -236,6 +236,8 @@ They are probably only of interest to users who are implementing custom proof au
 
 {docstring Int.reduceDiv}
 
+{docstring Int.reduceDvd}
+
 {docstring Int.reduceEq}
 
 {docstring Int.reduceFDiv}

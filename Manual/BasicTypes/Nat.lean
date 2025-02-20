@@ -263,7 +263,19 @@ tag := "nat-api-conversion"
 
 {docstring Nat.toUSize}
 
+{docstring Nat.toInt8}
+
+{docstring Nat.toInt16}
+
+{docstring Nat.toInt32}
+
+{docstring Nat.toInt64}
+
+{docstring Nat.toISize}
+
 {docstring Nat.toFloat}
+
+{docstring Nat.toFloat32}
 
 {docstring Nat.isValidChar}
 
@@ -332,9 +344,9 @@ tag := "nat-api-induction"
 %%%
 
 
-{docstring Nat.strongInductionOn}
+{docstring Nat.strongRecOn}
 
-{docstring Nat.caseStrongInductionOn}
+{docstring Nat.caseStrongRecOn}
 
 {docstring Nat.div.inductionOn}
 
@@ -370,9 +382,21 @@ tag := "nat-simp"
 
 {docstring Nat.reduceDiv}
 
+{docstring Nat.reduceDvd}
+
 {docstring Nat.reduceMod}
 
 {docstring Nat.reduceGcd}
+
+{docstring Nat.reduceAnd}
+
+{docstring Nat.reduceOr}
+
+{docstring Nat.reduceXor}
+
+{docstring Nat.reduceShiftLeft}
+
+{docstring Nat.reduceShiftRight}
 
 {docstring Nat.reduceLT}
 
