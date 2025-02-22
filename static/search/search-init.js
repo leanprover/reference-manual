@@ -39,8 +39,8 @@ const searchHTML = `<div id="search-wrapper">
 // Initialize search box
 const data = fetch(siteRoot + "/xref.json").then((data) => data.json())
 window.addEventListener("load", () => {
-  const main = document.querySelector("main");
-  main.insertAdjacentHTML("afterbegin", searchHTML);
+  const main = document.querySelector("header");
+  main.insertAdjacentHTML("beforeend", searchHTML);
   const searchWrapper = document.querySelector(".combobox-list");
   data.then((data) => {
     registerSearch({searchWrapper, data, domainMappers});
