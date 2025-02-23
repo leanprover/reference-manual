@@ -51,7 +51,7 @@ In polymorphic contexts, characters are boxed.
 tag := "char-syntax"
 %%%
 
-Character literals consist of a single character or an escape sequence enclosed in single quotes (`'`, Unicode 0x27 `APOSTROPHE`).
+Character literals consist of a single character or an escape sequence enclosed in single quotes (`'`, Unicode `'APOSTROPHE' (U+0027)`).
 Between these single quotes, the character literal may contain character other that `'`, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as `'\n'`, regardless of file encoding and platform).
 Special characters may be escaped with a backslash, so `'\''` is a character literal that contains a single quote.
 The following forms of escape sequences are accepted:
@@ -185,7 +185,7 @@ tag := "char-api-classes"
 ## Proof Automation
 
 This section contains simprocs and helper functions that are used by the simplifier to reduce expressions that involve characters.
-They are generally only of interest to implementors of custom proof automation.
+They are generally only of interest to those implementing custom proof automation.
 
 {docstring Char.fromExpr?}
 
