@@ -25,6 +25,7 @@ import Manual.BuildTools
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
+set_option maxRecDepth 300000
 
 #doc (Manual) "The Lean Language Reference" =>
 %%%
@@ -319,6 +320,16 @@ String.crlfToLf.go
 String.fromUTF8.loop
 String.one_le_csize
 String.mangle
+```
+
+```exceptions
+Char.ofNatAux
+Char.quoteCore
+Char.quoteCore.smallCharToHex
+Char.notLTTrans
+Char.notLTTotal
+Char.notLTAntisymm
+Char.repr
 ```
 
 ```exceptions

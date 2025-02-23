@@ -15,6 +15,7 @@ import Manual.BasicTypes.Fin
 import Manual.BasicTypes.UInt
 import Manual.BasicTypes.BitVec
 import Manual.BasicTypes.Float
+import Manual.BasicTypes.Char
 import Manual.BasicTypes.Option
 import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
@@ -51,58 +52,8 @@ Other types don't have special compiler support _per se_, but rely in important 
 
 {include 0 Manual.BasicTypes.Float}
 
+{include 0 Manual.BasicTypes.Char}
 
-# Characters
-%%%
-tag := "Char"
-%%%
-
-
-{docstring Char}
-
-## Syntax
-%%%
-tag := "char-syntax"
-%%%
-
-
-## Logical Model
-%%%
-tag := "char-model"
-%%%
-
-## Run-Time Representation
-%%%
-tag := "char-runtime"
-%%%
-
-
-In monomorphic contexts, characters are represented as 32-bit immediate values. In other words, a field of a constructor or structure of type {lean}`Char` does not require indirection to access. In polymorphic contexts, characters are boxed.
-
-
-## API Reference
-%%%
-tag := "char-api"
-%%%
-
-
-### Character Classes
-%%%
-tag := "char-api-classes"
-%%%
-
-
-{docstring Char.isAlpha}
-
-{docstring Char.isAlphanum}
-
-{docstring Char.isDigit}
-
-{docstring Char.isLower}
-
-{docstring Char.isUpper}
-
-{docstring Char.isWhitespace}
 
 {include 0 Manual.BasicTypes.String}
 
