@@ -59,14 +59,34 @@ Other types don't have special compiler support _per se_, but rely in important 
 
 # The Unit Type
 
-The unit type is the least informative type.
-It is used when a value is needed, but no further information is relevant.
-There are two varieties of the unit type:
+The unit type is the canonical type with exactly one element, named {name Unit.unit}`unit` and represented by the empty tuple {lean}`()`.
+It describes only a single value, which consists of said constructor applied to no arguments whatsoever.
+
+{lean}`Unit` is analogous to `void` in languages derived from C: even though `void` has no elements that can be named, it represents the return of control flow from a function with no additional information.
+In functional programming, {lean}`Unit` is the return type of things that "return nothing".
+Mathematically, this is represented by a single completely uninformative value, as opposed to an empty type such as {lean}`Empty`, which represents unreachable code.
+
+:::leanSection
+```lean (show := false)
+variable {m : Type → Type} [Monad m] {α : Type}
+```
+
+When programming with {ref "monads-and-do"}[monads], {lean}`Unit` is especially useful.
+For any type {lean}`α`, {lean}`m α` represents an action that has side effects and returns a value of type {lean}`α`.
+The type {lean}`m Unit` represents an action that has some side effects but does not return a value.
+
+:::
+
+
+
+There are two variants of the unit type:
 
  * {lean}`Unit` is a {lean}`Type` that exists in the smallest non-propositional {tech}[universe].
 
  * {lean}`PUnit` is {tech key:="universe polymorphism"}[universe polymorphic] and can be used in any non-propositional {tech}[universe].
 
+Behind the scenes, {lean}`Unit` is actually defined as {lean}`PUnit.{1}`.
+{lean}`Unit` should be preferred over {name}`PUnit` when possible to avoid unnecessary universe parameters.
 If in doubt, use {lean}`Unit` until universe errors occur.
 
 {docstring Unit}
