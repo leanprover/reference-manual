@@ -405,6 +405,10 @@ BitVec.unexpandBitVecOfNatLt
 ```
 
 ```exceptions
+Id.hasBind
+```
+
+```exceptions
 Array.get?_size
 Array.forIn'.loop
 Array.mapM.map
