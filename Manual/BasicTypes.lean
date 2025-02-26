@@ -198,7 +198,7 @@ end BoolProp
 
 ## Syntax
 
-:::syntax term
+:::syntax term (title := "Boolean Infix Operators")
 The infix operators `&&`, `||`, and `^^` are notations for {lean}`Bool.and`, {lean}`Bool.or`, and {lean}`Bool.xor`, respectively.
 
 ```grammar
@@ -212,7 +212,7 @@ $_:term ^^ $_:term
 ```
 :::
 
-:::syntax term
+:::syntax term (title := "Boolean Negation")
 The prefix operator `!` is notation for {lean}`Bool.not`.
 ```grammar
 !$_:term
@@ -249,9 +249,9 @@ end ShortCircuit
 
 {docstring Bool.xor}
 
-{docstring Bool.atLeastTwo}
-
 ### Comparisons
+
+Most comparisons on Booleans should be performed using the {inst}`DecidableEq Bool`, {inst}`LT Bool`, {inst}`LE Bool` instances.
 
 {docstring Bool.decEq}
 
