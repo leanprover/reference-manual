@@ -1914,7 +1914,7 @@ In these cases, the prefix versions can be easier to read.
 ```grammar
 show $_ from $_
 ```
-When the term in the body of {keywordOf Lean.Parser.Term.show}`show` is a proof, the keyword {keywordOf Lean.Parser.Term.show}`from` may be omitted.
+When the term in the body of {keywordOf Lean.Parser.Term.show}`show` is a tactic proof, the keyword {keywordOf Lean.Parser.Term.show}`from` may be omitted.
 ```grammar
 show $_ by $_
 ```
