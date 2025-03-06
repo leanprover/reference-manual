@@ -297,6 +297,7 @@ HEq
 
 ```exceptions
 Bool.toLBool
+Bool.atLeastTwo
 Bool.«term_^^_»
 ```
 
