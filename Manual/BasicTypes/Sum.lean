@@ -22,6 +22,11 @@ tag := "sum-types"
 Sums are also known as disjoint unions, discriminated unions, or tagged unions.
 The constructors of a sum are also called {deftech}_injections_; mathematically, they can be considered as injective functions from each summand to the sum.
 
+::::leanSection
+```lean (show := false)
+universe u v
+```
+
 :::paragraph
 There are two varieties of the sum type:
 
@@ -29,8 +34,12 @@ There are two varieties of the sum type:
 
  * {lean}`PSum` is allows the summands to be propositions or types. Unlike {name}`Or`, the {name}`PSum` of two propositions is still a type, and non-propositional code can check which injection was used to construct a given value.
 
-Manually-written Lean code almost always uses only {lean}`Sum`, while {lean}`PSum` is used as part of the implementation of proof automation. This is because it imposes problematic constraints that universe level unification cannot solve.
+Manually-written Lean code almost always uses only {lean}`Sum`, while {lean}`PSum` is used as part of the implementation of proof automation.
+This is because it imposes problematic constraints that universe level unification cannot solve.
+In particular, this type is in the universe {lean}`Sort (max 1 u v)`, which can cause problems for universe level unification because the equation `max 1 u v = ?u + 1` has no solution in level arithmetic.
+`PSum` is usually only used in automation that constructs sums of arbitrary types.
 :::
+::::
 
 {docstring Sum}
 
