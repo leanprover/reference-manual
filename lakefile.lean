@@ -7,10 +7,6 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
--- Note: not sure if this works: Idea is that `lake update` updates to lean-toolchain
--- to the correct one for the current Mathlib and then Verso is picked accordingly.
--- Most likely this is not as stable as it should be
-
 -- Using this assumes that each dependency has a tag of the form `v4.X.0`.
 def leanVersion : String := s!"v{Lean.versionString}"
 require "leanprover-community" / "mathlib" -- @ git leanVersion

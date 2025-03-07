@@ -7,18 +7,52 @@ Author: David Thrane Christiansen
 import Lean.Data.Position
 import Lean.Parser
 
+import Verso.Parser
 import Verso.Doc.ArgParse
 import SubVerso.Highlighting
 
 open Lean
 
-open Verso.ArgParse in
-def Verso.ArgParse.ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
+namespace Verso.ArgParse
+
+open Lean.Elab (MonadInfoTree)
+open Lean
+
+variable {m} [Monad m] [MonadInfoTree m] [MonadResolveName m] [MonadEnv m] [MonadError m] [MonadLiftT CoreM m] [MonadFileMap m]
+
+def ValDesc.nat [Monad m] [MonadError m] : ValDesc m Nat where
   description := m!"a name"
   get
     | .num n => pure n.getNat
     | other => throwError "Expected string, got {repr other}"
 
+def ValDesc.inlinesString : ValDesc m (FileMap × Array Syntax) where
+  description := m!"a string that contains a sequence of inline elements"
+  get
+    | .str s => open Lean.Parser in do
+      let text ← getFileMap
+      let input := s.getString
+      let ictxt := mkInputContext input s!"string literal on line {s.raw.getPos?.map ((s!" on line {text.toPosition · |>.line}")) |>.getD ""}"
+      let env ← getEnv
+      let pmctx : ParserModuleContext := {env, options := {}}
+      let p := Parser.textLine
+      let s' := p.run ictxt pmctx (getTokenTable env) (mkParserState input)
+      if s'.allErrors.isEmpty then
+        if s'.stxStack.size = 1 then
+          match s'.stxStack.back with
+          | .node _ _ contents => pure (FileMap.ofString input, contents)
+          | other => throwError "Unexpected syntax from Verso parser. Expected a node, got {other}"
+        else throwError "Unexpected internal stack size from Verso parser. Expected 1, got {s'.stxStack.size}"
+      else
+        let mut msg := "Failed to parse:"
+        for (p, _, e) in s'.allErrors do
+          let {line, column} := text.toPosition p
+          msg := msg ++ s!"  {line}:{column}: {toString e}\n    {repr <| input.extract p input.endPos}\n"
+        throwError msg
+    | other => throwError "Expected string, got {repr other}"
+
+
+end Verso.ArgParse
 
 namespace Manual
 
@@ -61,16 +95,21 @@ where
     errs.reverse
 
 open Lean.Parser in
-def runParser (env : Environment) (opts : Lean.Options) (p : Parser) (input : String) (fileName : String := "<example>") (prec : Nat := 0) : Except (List (Position × String)) Syntax :=
-    let ictx := mkInputContext input fileName
-    let p' := adaptCacheableContext ({· with prec}) p
-    let s := p'.fn.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
-    if !s.allErrors.isEmpty then
-      Except.error (toErrorMsg ictx s)
-    else if ictx.input.atEnd s.pos then
-      Except.ok s.stxStack.back
-    else
-      Except.error (toErrorMsg ictx (s.mkError "end of input"))
+def runParser
+    (env : Environment) (opts : Lean.Options)
+    (p : Parser) (input : String) (fileName : String := "<example>")
+    (currNamespace : Name := .anonymous) (openDecls : List OpenDecl := [])
+    (prec : Nat := 0) :
+    Except (List (Position × String)) Syntax :=
+  let ictx := mkInputContext input fileName
+  let p' := adaptCacheableContext ({· with prec}) p
+  let s := p'.fn.run ictx { env, currNamespace, openDecls, options := opts } (getTokenTable env) (mkParserState input)
+  if !s.allErrors.isEmpty then
+    Except.error (toErrorMsg ictx s)
+  else if ictx.input.atEnd s.pos then
+    Except.ok s.stxStack.back
+  else
+    Except.error (toErrorMsg ictx (s.mkError "end of input"))
 where
   toErrorMsg (ctx : InputContext) (s : ParserState) : List (Position × String) := Id.run do
     let mut errs := []

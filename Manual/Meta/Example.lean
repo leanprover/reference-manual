@@ -24,12 +24,12 @@ def Block.example (name : Option String) : Block where
 structure ExampleConfig where
   description : FileMap × Array Syntax
   /-- Name for refs -/
-  name : Option String := none
+  tag : Option String := none
   keep : Bool := false
 
 
 def ExampleConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m ExampleConfig :=
-  ExampleConfig.mk <$> .positional `description .inlinesString <*> .named `name .string true <*> (.named `keep .bool true <&> (·.getD false))
+  ExampleConfig.mk <$> .positional `description .inlinesString <*> .named `tag .string true <*> (.named `keep .bool true <&> (·.getD false))
 
 def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) (xs : Array α) : m (Array β) := do
   let mut out := #[]
@@ -71,7 +71,7 @@ def «example» : DirectiveExpander
         withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote cfg.name)) #[Block.para #[$description,*], $blocks,*])]
+    pure #[← ``(Block.other (Block.example $(quote cfg.tag)) #[Block.para #[$description,*], $blocks,*])]
 
 @[block_extension «example»]
 def example.descr : BlockDescr where

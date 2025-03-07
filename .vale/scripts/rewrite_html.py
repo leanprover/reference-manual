@@ -42,10 +42,22 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="grammar"):
         element.decompose()
 
+    # Delete grammar specifications
+    for element in soup.find_all(class_="toml-field"):
+        element.decompose()
+
+    # Delete ignored elements
+    for element in soup.find_all(class_="no-vale"):
+        element.decompose()
+
     # Replace citations with their text
     for element in soup.find_all(class_="citation"):
         for inner in element.contents:
             inner.replace_with(inner.get_text())
+
+    # Delete software license info
+    for element in soup.find_all("section", class_="license-info"):
+        element.decompose()
 
     # Ensure the output directory exists
     os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
