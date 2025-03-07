@@ -244,6 +244,7 @@ def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) 
 ```leanOutput getBytesErr
 failed to synthesize
   MonadStateOf (Array String) (Except String)
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 

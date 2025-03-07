@@ -66,6 +66,7 @@ example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 ```leanOutput NatFunNotDecEq
 failed to synthesize
   Decidable (f = g)
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 

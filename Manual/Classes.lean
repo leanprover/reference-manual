@@ -372,6 +372,7 @@ However, {name}`plusTimes2` fails, because there is no {lean}`AddMul' Nat` insta
 ```leanOutput plusTimes2a
 failed to synthesize
   AddMul' ?m.22
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 Declaring an very general instance takes care of the problem for {lean}`Nat` and every other type:

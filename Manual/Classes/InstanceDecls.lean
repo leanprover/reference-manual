@@ -140,6 +140,7 @@ with errors in both the left and right recursive calls that read:
 ```leanOutput beqNatTreeFail
 failed to synthesize
   BEq NatTree
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 Given a suitable recursive function, such as {lean}`NatTree.beq`:
@@ -184,6 +185,7 @@ def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
 ```leanOutput natRoseTreeBEqFail
 failed to synthesize
   BEq (Array NatRoseTree)
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
@@ -261,6 +263,7 @@ instance : DecidableEq StringList
 ```leanOutput stringListNoRec
 failed to synthesize
   Decidable (t1 = t2)
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 However, because it is an ordinary Lean function, it can recursively refer to its own explicitly-provided name:

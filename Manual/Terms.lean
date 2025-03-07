@@ -17,7 +17,6 @@ set_option linter.unusedVariables false
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option linter.constructorNameAsVariable false
-set_option guard_msgs.diff true
 
 set_option guard_msgs.diff true
 
@@ -883,6 +882,7 @@ failed to synthesize
 numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
   Array ?m.4
 due to the absence of the instance above
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
@@ -1389,7 +1389,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1542, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1555, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
