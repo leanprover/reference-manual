@@ -5,7 +5,10 @@ Author: David Thrane Christiansen
 -/
 import VersoManual
 import Std
+
 import Manual.Tactics
+import Manual.Guides
+
 import Lake.CLI.Main
 
 open Verso.Genre Manual
@@ -61,3 +64,5 @@ If you would like to contribute content, please create a PR using the two github
 at the bottom left of this page!
 
 {include 0 Manual.Tactics}
+
+{include 0 Manual.Guides}
