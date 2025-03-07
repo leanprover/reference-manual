@@ -9,7 +9,7 @@ open System (FilePath)
 
 -- Using this assumes that each dependency has a tag of the form `v4.X.0`.
 def leanVersion : String := s!"v{Lean.versionString}"
-require "leanprover-community" / "mathlib" -- @ git leanVersion
+require "leanprover-community" / "mathlib" @ git leanVersion
 require verso from git "https://github.com/leanprover/verso.git" @ leanVersion
 
 package "verso-manual" where
