@@ -17,7 +17,6 @@ set_option linter.unusedVariables false
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option linter.constructorNameAsVariable false
-set_option guard_msgs.diff true
 
 set_option guard_msgs.diff true
 
@@ -1389,7 +1388,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1542, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1543, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
