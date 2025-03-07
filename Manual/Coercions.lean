@@ -220,6 +220,7 @@ failed to synthesize
 numerals are polymorphic in Lean, but the numeral `9` cannot be used in a context where the expected type is
   Bin
 due to the absence of the instance above
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 This is because coercions are inserted in response to mismatched types, but a failure to synthesize an {name}`OfNat` instance is not a type mismatch.

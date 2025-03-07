@@ -276,6 +276,7 @@ Because instance synthesis selects the most recently defined instance, the follo
 ```leanOutput nosmaller
 failed to synthesize
   OneSmaller (Option Bool) Bool
+
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 The {lean}`OneSmaller (Option Bool) (Option Unit)` instance was selected during instance synthesis, without regard to the supplied value of `β`.
