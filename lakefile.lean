@@ -18,6 +18,15 @@ package "verso-manual" where
       #["-Wl,-ignore_optimization_hints"]
     else #[]
 
+
+  -- Work around a compiler bug (Lean issue #7399). This is part 1/2.
+  plugins := unsafe #[@Target.mk _ (.customTarget `«verso-manual» `libLake_shared) lcProof]
+
+
+-- Work around a compiler bug (Lean issue #7399). This is part 2/2.
+target libLake_shared : Dynlib := do
+  return Job.pure <| Dynlib.mk (← getLakeInstall).sharedLib "Lake_shared"
+
 lean_lib Manual where
 
 

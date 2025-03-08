@@ -294,17 +294,22 @@ partial_fixpoint
 With this function definition, Lean automatically proves the following partial correctness theorem:
 
 ```signature
-List.findIndex.partial_correctness {α : Type _} (motive : List α → (α → Bool) → Nat → Prop)
+List.findIndex.partial_correctness.{u_1} {α : Type u_1}
+  (p : α → Bool)
+  (motive : List α → Nat → Prop)
   (h :
-    ∀ (findIndex : List α → (α → Bool) → Option Nat),
-      (∀ (xs : List α) (p : α → Bool) (r : Nat), findIndex xs p = some r → motive xs p r) →
-        ∀ (xs : List α) (p : α → Bool) (r : Nat),
+    ∀ (findIndex : List α → Option Nat),
+      (∀ (xs : List α) (r : Nat), findIndex xs = some r → motive xs r) →
+        ∀ (xs : List α) (r : Nat),
           (match xs with
               | [] => none
-              | x :: ys => if p x = true then some 0 else (fun x => x + 1) <$> findIndex ys p) =
-              some r →
-            motive xs p r)
-  (xs : List α) (p : α → Bool) (r : Nat) : xs.findIndex p = some r → motive xs p r
+              | x :: ys =>
+                if p x = true then some 0
+                else (fun x => x + 1) <$> findIndex ys) = some r →
+            motive xs r)
+  (xs : List α) (r : Nat) :
+  xs.findIndex p = some r →
+    motive xs r
 ```
 
 :::paragraph
@@ -323,11 +328,13 @@ The partial correctness theorem is a reasoning principle.
 It can be used to prove that the resulting number is a valid index in the list and that the predicate holds for that index:
 
 ```lean
-theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
-    xs.findIndex p = some i → ∃x, xs[i]? = some x ∧ p x := by
+theorem List.findIndex_implies_pred
+    (xs : List α) (p : α → Bool) :
+    xs.findIndex p = some i →
+    ∃x, xs[i]? = some x ∧ p x := by
   apply List.findIndex.partial_correctness
-          (motive := fun xs p i => ∃ x, xs[i]? = some x ∧ p x)
-  intro findIndex ih xs p r hsome
+          (motive := fun xs i => ∃ x, xs[i]? = some x ∧ p x)
+  intro findIndex ih xs r hsome
   split at hsome
   next => contradiction
   next x ys =>
@@ -338,7 +345,7 @@ theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
     next =>
       simp only [Option.map_eq_map, Option.map_eq_some'] at hsome
       obtain ⟨r', hr, rfl⟩ := hsome
-      specialize ih _ _ _ hr
+      specialize ih _ _ hr
       simpa
 ```
 
