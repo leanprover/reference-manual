@@ -343,6 +343,16 @@ String.sluggify
 ```
 
 ```exceptions
+Ordering.ofNat
+Ordering.toCtorIdx
+```
+
+```exceptions
+Ord.arrayOrd
+```
+
+
+```exceptions
 Nat.anyM.loop
 Nat.nextPowerOfTwo.go
 Nat.foldRevM.loop

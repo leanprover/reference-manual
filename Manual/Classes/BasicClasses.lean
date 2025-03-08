@@ -30,13 +30,149 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Ordering
 
+There are two primary ways to order the values of a type:
+ * The {name}`Ord` type class provides a three-way comparison operator, {name}`compare`, which can indicate that one value is less than, equal to, or greater than another. It returns an {name}`Ordering`.
+ * The {name}`LT` and {name}`LE` classes provide canonical {lean}`Prop`-valued ordering relations for a type that do not need to be decidable. These relations are used to overload the `<` and `≤` operators.
+
 {docstring Ord}
 
+The {name}`compare` method is exported, so no explicit `Ord` namespace is required to use it.
+
+{docstring compareOn}
+
+{docstring Ord.opposite}
+
 {docstring Ordering}
+
+{docstring Ordering.swap}
+
+{docstring Ordering.then}
+
+{docstring Ordering.isLT}
+
+{docstring Ordering.isLE}
+
+{docstring Ordering.isEq}
+
+{docstring Ordering.isNe}
+
+{docstring Ordering.isGE}
+
+{docstring Ordering.isGT}
+
+{docstring compareOfLessAndEq}
+
+{docstring compareOfLessAndBEq}
+
+{docstring compareLex}
+
+:::syntax term (title := "Ordering Operators")
+
+The less-than operator is overloaded in the {name}`LT` class:
+
+```grammar
+$_ < $_
+```
+
+The less-than-or-equal-to operator is overloaded in the {name}`LE` class:
+
+```grammar
+$_ ≤ $_
+```
+
+The greater-than and greater-than-or-equal-to operators are the reverse of the less-than and less-than-or-equal-to operators, and cannot be independently overloaded:
+
+```grammar
+$_ > $_
+```
+
+```grammar
+$_ ≥ $_
+```
+
+:::
 
 {docstring LT}
 
 {docstring LE}
+
+An {name}`Ord` can be used to construct {name}`BEq`, {name}`LT`, and {name}`LE` instances with the following helpers.
+They are not automatically instances because many types are better served by custom relations.
+
+{docstring ltOfOrd}
+
+{docstring leOfOrd}
+
+{docstring Ord.toBEq}
+
+{docstring Ord.toLE}
+
+{docstring Ord.toLT}
+
+:::example "Using `Ord` Instances for `LT` and `LE` Instances"
+
+Lean can automatically derive an {name}`Ord` instance.
+In this case, the {inst}`Ord Vegetable` instance compares vegetables lexicographically:
+```lean
+structure Vegetable where
+  color : String
+  size : Fin 5
+deriving Ord
+```
+
+```lean
+def broccoli : Vegetable where
+  color := "green"
+  size := 2
+
+def sweetPotato : Vegetable where
+  color := "orange"
+  size := 3
+```
+
+
+Using the helpers {name}`ltOfOrd` and {name}`leOfOrd`, {inst}`LT Vegetable` and {inst}`LE Vegetable` instances can be defined.
+These instances compare the vegetables using {name}`compare` and logically assert that the result is as expected.
+```lean
+instance : LT Vegetable := ltOfOrd
+instance : LE Vegetable := leOfOrd
+```
+
+The resulting relations are decidable because equality is decidable for {lean}`Ordering`:
+
+```lean (name := brLtSw)
+#eval broccoli < sweetPotato
+```
+```leanOutput brLtSw
+true
+```
+```lean (name := brLeSw)
+#eval broccoli ≤ sweetPotato
+```
+```leanOutput brLeSw
+true
+```
+```lean (name := brLtBr)
+#eval broccoli < broccoli
+```
+```leanOutput brLtBr
+false
+```
+```lean (name := brLeBr)
+#eval broccoli ≤ broccoli
+```
+```leanOutput brLeBr
+true
+```
+:::
+
+## Instance Construction
+
+{docstring Ord.lex}
+
+{docstring Ord.lex'}
+
+{docstring Ord.on}
 
 # Decidability
 %%%
