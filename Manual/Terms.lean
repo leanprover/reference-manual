@@ -1389,7 +1389,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1555, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1557, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..

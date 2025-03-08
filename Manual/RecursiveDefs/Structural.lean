@@ -193,14 +193,10 @@ def afterVarying (n : Nat) (p : Nat) (x : WithParam' p n) : Nat :=
 termination_by structural x
 ```
 ```leanOutput badparam
-cannot use specified measure for structural recursion:
-  its type is an inductive datatype
-    WithParam' p n
-  and the datatype parameter
-    p
-  depends on the function parameter
-    p
-  which does not come before the varying parameters and before the indices of the recursion parameter.
+failed to infer structural recursion:
+Cannot use parameter x:
+  failed to eliminate recursive application
+    afterVarying (n + 1) p WithParam'.zero
 ```
 :::
 

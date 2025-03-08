@@ -175,6 +175,7 @@ structure A where
   x : Nat
   y : Int
 example (a : A) : ⟨a.x, a.y⟩ = a := rfl
+set_option linter.unusedVariables false in
 inductive B where
   | mk (x : Nat) (y : Int) : B
 example (b : B) : ⟨b.1, b.2⟩ = b := rfl
@@ -182,7 +183,7 @@ example (b : B) : ⟨b.1, b.2⟩ = b := rfl
 error: type mismatch
   rfl
 has type
-  ?m.713 = ?m.713 : Prop
+  ?m.714 = ?m.714 : Prop
 but is expected to have type
   e1 = e2 : Prop
 -/
