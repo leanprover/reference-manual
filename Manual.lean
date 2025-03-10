@@ -188,6 +188,8 @@ ExceptCpsT
 LawfulFunctor
 LawfulApplicative
 LawfulMonad
+LawfulBEq
+LawfulHashable
 Id
 Thunk
 ForM
@@ -293,6 +295,8 @@ Iff
 Exists
 Eq
 HEq
+Max
+Min
 ```
 
 ```exceptions

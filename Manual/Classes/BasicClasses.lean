@@ -22,11 +22,21 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Boolean Equality Tests
 
+The Boolean equality operator `==` is overloaded by defining instances of `BEq`.
+The companion class `Hashable` specifies a hashing procedure for a type.
+When a type has both `BEq` and `Hashable` instances, then the hashes computed should respect the `BEq` instance: two values equated by `BEq.bEq` should always have the same hash.
+
 {docstring BEq}
 
 {docstring Hashable}
 
+{docstring mixHash}
+
 {docstring LawfulBEq}
+
+{docstring LawfulHashable}
+
+{docstring hash_eq}
 
 # Ordering
 
@@ -173,6 +183,30 @@ true
 {docstring Ord.lex'}
 
 {docstring Ord.on}
+
+# Minimum and Maximum Values
+
+The classes `Max` and `Min` provide overloaded operators for choosing the greater or lesser of two values.
+These should be in agreement with `Ord`, `LT`, and `LE` instances, if they exist, but there is no mechanism to enforce this.
+
+{docstring Min}
+
+{docstring Max}
+
+:::leanSection
+
+```lean (show := false)
+variable {α : Type u} [LE α]
+```
+
+Given an {inst}`LE α` instance for which {name}`LE.le` is decidable, the helpers {name}`minOfLe` and {name}`maxOfLe` can be used to create suitable {lean}`Min α` and {lean}`Max α` instances.
+They can be used as the right-hand side of an {keywordOf Lean.Parser.Command.declaration}`instance` declaration.
+
+{docstring minOfLe}
+
+{docstring maxOfLe}
+
+:::
 
 # Decidability
 %%%
