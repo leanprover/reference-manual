@@ -185,9 +185,15 @@ By default, only algorithmic {lean}`Decidable` instances for which code can be g
 
 {docstring Decidable}
 
+{docstring DecidablePred}
+
 {docstring DecidableRel}
 
 {docstring DecidableEq}
+
+{docstring DecidableLT}
+
+{docstring DecidableLE}
 
 {docstring Decidable.decide}
 
@@ -221,6 +227,14 @@ noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 {docstring Inhabited}
 
 {docstring Nonempty}
+
+# Subsingleton Types
+
+{docstring Subsingleton}
+
+{docstring Subsingleton.elim}
+
+{docstring Subsingleton.helim}
 
 # Visible Representations
 
