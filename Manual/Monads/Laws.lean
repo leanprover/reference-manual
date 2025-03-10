@@ -70,11 +70,17 @@ end F
 
 In addition to proving that the potentially-optimized {name}`SeqLeft.seqLeft` and {name}`SeqRight.seqRight` operations are equivalent to their default implementations, Applicative functors {lean}`f` must satisfy four laws.
 
+:::TODO
+Discuss of the relationship between the traditional Applicative laws and this presentation
+:::
+
 {docstring LawfulApplicative}
 
 The {deftech}[monad laws] specify that {name}`pure` followed by {name}`bind` should be equivalent to function application (that is, {name}`pure` has no effects), that {name}`bind` followed by {name}`pure` around a function application is equivalent to {name Functor.map}`map`, and that {name}`bind` is associative.
 
+
 {docstring LawfulMonad}
+
 
 {docstring LawfulMonad.mk'}
 
