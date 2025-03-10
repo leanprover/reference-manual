@@ -710,3 +710,5 @@ end
 {docstring Squash.mk}
 
 {docstring Squash.lift}
+
+{docstring Squash.ind}
