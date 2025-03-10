@@ -188,6 +188,8 @@ ExceptCpsT
 LawfulFunctor
 LawfulApplicative
 LawfulMonad
+LawfulBEq
+LawfulHashable
 Id
 Thunk
 ForM
@@ -293,6 +295,8 @@ Iff
 Exists
 Eq
 HEq
+Max
+Min
 ```
 
 ```exceptions
@@ -341,6 +345,16 @@ Quot.lcInv
 ```exceptions
 String.sluggify
 ```
+
+```exceptions
+Ordering.ofNat
+Ordering.toCtorIdx
+```
+
+```exceptions
+Ord.arrayOrd
+```
+
 
 ```exceptions
 Nat.anyM.loop
@@ -601,7 +615,10 @@ System.Platform.getTarget
 ```
 
 ```exceptions
+Prod.repr
 Prod.rprod
+Prod.lex
+Prod.Lex
 ```
 
 ```exceptions

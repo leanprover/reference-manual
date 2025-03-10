@@ -38,7 +38,12 @@ deriving instance Repr for OpenDecl
 def runWithOpenDecls (act : TermElabM α) : TermElabM α := do
   let scope := (← getScopes).head!
   withTheReader Core.Context ({· with currNamespace := scope.currNamespace, openDecls := scope.openDecls}) do
-    act
+    let initNames := (← getThe Term.State).levelNames
+    try
+      modifyThe Term.State ({· with levelNames := scope.levelNames})
+      act
+    finally
+      modifyThe Term.State ({· with levelNames := initNames})
 
 /--
 A version of Lean.Elab.Command.runTermElabM that uses the saved scopes instead of the command

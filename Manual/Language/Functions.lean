@@ -208,3 +208,18 @@ example : thirdChar #['!'] = 'A' := rfl
 example : thirdChar #['-', 'x'] = 'A' := rfl
 ```
 :::
+
+# API Reference
+%%%
+tag := "function-api"
+%%%
+
+The `Function` namespace contains general-purpose helpers for working with functions.
+
+{docstring Function.comp}
+
+{docstring Function.const}
+
+{docstring Function.curry}
+
+{docstring Function.uncurry}

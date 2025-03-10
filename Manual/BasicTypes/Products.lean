@@ -119,7 +119,7 @@ Generally speaking, {name}`PProd` is primarily used in the implementation of pro
 end
 ```
 
-:::syntax term title:="Product Types"
+:::syntax term title:="Products of Arbitrary Sorts"
 ```grammar
 $_ ×' $_
 ```
@@ -138,18 +138,11 @@ tag := "prod-api"
 
 As a mere pair, the primary API for {lean}`Prod` is provided by pattern matching and by the first and second projections {name}`Prod.fst` and {name}`Prod.snd`.
 
-### Ordering
-
-{docstring Prod.lex}
-
-{docstring Prod.lexLt}
-
 ### Transformation
 
 {docstring Prod.map}
 
 {docstring Prod.swap}
-
 
 ### Natural Number Ranges
 
@@ -159,6 +152,9 @@ As a mere pair, the primary API for {lean}`Prod` is provided by pattern matching
 
 {docstring Prod.foldI}
 
+### Ordering
+
+{docstring Prod.lexLt}
 
 
 # Dependent Pairs
