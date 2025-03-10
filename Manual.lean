@@ -612,6 +612,8 @@ System.Platform.getTarget
 
 ```exceptions
 Prod.rprod
+Prod.lex
+Prod.Lex
 ```
 
 ```exceptions

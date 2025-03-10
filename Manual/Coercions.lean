@@ -637,6 +637,9 @@ end
 {docstring CoeDep}
 
 :::example "Dependent Coercion"
+```lean (show := false)
+universe u
+```
 
 A type of non-empty lists can be defined as a pair of a list and a proof that it is not empty.
 This type can be coerced to ordinary lists by applying the projection:
@@ -682,8 +685,9 @@ instance : CoeDep (List α) (x :: xs) (NonEmptyList α) where
 { contents := [1, 2, 3], non_empty := _ }
 ```
 
+
 Dependent coercion insertion requires that the term to be coerced syntactically matches the term in the instance header.
-Lists that are known to be non-empty, but which are not syntactically instances of {lean type:= "{α : Type u} → α  → List α → List α"}`(· :: ·)`, cannot be coerced with this instance.
+Lists that are known to be non-empty, but which are not syntactically instances of {lean type:= "{α : Type u} → α → List α → List α"}`(· :: ·)`, cannot be coerced with this instance.
 ```lean (error := true) (name := coeFailDep)
 #check
   fun (xs : List Nat) =>
