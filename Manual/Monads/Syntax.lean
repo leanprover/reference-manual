@@ -209,7 +209,7 @@ It provides familiar syntax for sequencing effectful operations, early return, l
 All of these features are translated to the operations of the {lean}`Monad` type class, with a few of them requiring addition instances of classes such as {lean}`ForIn` that specify iteration over containers.
 A {keywordOf Lean.Parser.Term.do}`do` term consists of the keyword {keywordOf Lean.Parser.Term.do}`do` followed by a sequence of {deftech}_{keywordOf Lean.Parser.Term.do}`do` items_.
 
-:::syntax term
+:::syntax term (title := "`do`-Notation")
 ```grammar
 do $stmt*
 ```
@@ -225,14 +225,14 @@ variable {m : Type → Type} [Monad m] {α β γ: Type} {e1 : m Unit} {e : β} {
 
 One form of {tech}[{keywordOf Lean.Parser.Term.do}`do` item] is a term.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Terms in `do`-Notation")
 ```grammar
 $e:term
 ```
 :::
 
 
-A term followed by a sequence of items is translated to a use {name}`bind`; in particular, {lean}`do e1; es` is translated to {lean}`e1 >>= fun () => do es`.
+A term followed by a sequence of items is translated to a use of {name}`bind`; in particular, {lean}`do e1; es` is translated to {lean}`e1 >>= fun () => do es`.
 
 
 :::table (header := true)
@@ -264,7 +264,7 @@ section
 variable {e1 : m β} {e1? : m (Option β)} {fallback : m α} {e2 : m γ} {f : β → γ → m Unit} {g : γ → α} {h : β → m γ}
 ```
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Data Dependence in `do`-Notation")
 There are two forms of monadic {keywordOf Lean.Parser.Term.doLet}`let`-binding in a {keywordOf Lean.Parser.Term.do}`do` block.
 The first binds an identifier to the result, with an optional type annotation:
 ```grammar
@@ -281,7 +281,7 @@ This syntax is also translated to a use of {name}`bind`.
 {lean}`do let x ← e1; es` is translated to {lean}`e1 >>= fun x => do es`, and fallback clauses are translated to default pattern matches.
 {keywordOf Lean.Parser.Term.doLet}`let` may also be used with the standard definition syntax `:=` instead of `←`.
 This indicates a pure, rather than monadic, definition:
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Local Definitions in `do`-Notation")
 ```grammar
 let $v := $e:term
 ```
@@ -430,7 +430,7 @@ Early return terminates a computation immediately with a given value.
 The value is returned from the closest containing {keywordOf Lean.Parser.Term.do}`do` block; however, this may not be the closest `do` keyword.
 The rules for determining the extent of a {keywordOf Lean.Parser.Term.do}`do` block are described {ref "closest-do-block"}[in their own section].
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Early Return")
 ```grammar
 return $e
 ```
@@ -452,7 +452,7 @@ On its own, {keywordOf Lean.Parser.Term.doReturn}`return` is short for {keywordO
 
 Local mutable state is mutable state that cannot escape the {keywordOf Lean.Parser.Term.do}`do` block in which it is defined.
 The {keywordOf Lean.Parser.Term.doLet}`let mut` binder introduces a locally-mutable binding.
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Local Mutability")
 Mutable bindings may be initialized either with pure computations or with monadic computations:
 ```grammar
 let mut $x := $e
@@ -489,7 +489,7 @@ There are {keywordOf Lean.Parser.Term.do}`do` items that correspond to most of L
 When they occur as a step in a {keywordOf Lean.Parser.Term.do}`do` block, they are interpreted as {keywordOf Lean.Parser.Term.do}`do` items rather than terms.
 Each branch of the control structures is a sequence of {keywordOf Lean.Parser.Term.do}`do` items, rather than a term, and some of them are more syntactically flexible than their corresponding terms.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Conditionals")
 In a {keywordOf Lean.Parser.Term.do}`do` block, {keywordOf Lean.Parser.Term.doIf}`if` statements may omit their {keywordOf Lean.Parser.Term.doIf}`else` branch.
 Omitting an {keywordOf Lean.Parser.Term.doIf}`else` branch is equivalent to using {name}`pure`{lean}` ()` as the contents of the branch.
 ```grammar
@@ -503,7 +503,7 @@ $[else
 Syntactically, the {keywordOf Lean.Parser.Term.doIf}`then` branch cannot be omitted.
 For these cases, {keywordOf Lean.Parser.Term.doUnless}`unless` only executes its body when the condition is false.
 The {keywordOf Lean.Parser.Term.do}`do` in {keywordOf Lean.Parser.Term.doUnless}`unless` is part of its syntax and does not induce a nested {keywordOf Lean.Parser.Term.do}`do` block.
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Reverse Conditionals")
 ```grammar
 unless $e do
   $e*
@@ -513,7 +513,7 @@ unless $e do
 
 When {keywordOf Lean.Parser.Term.doMatch}`match` is used in a {keywordOf Lean.Parser.Term.do}`do` block, each branch is considered to be part of the same block.
 Otherwise, it is equivalent to the {keywordOf Lean.Parser.Term.match}`match` term.
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Pattern Matching")
 ```grammar
 match $[$[$h :]? $e],* with
   $[| $t,* => $e*]*
@@ -526,7 +526,7 @@ match $[$[$h :]? $e],* with
 Within a {keywordOf Lean.Parser.Term.do}`do` block, {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loops allow iteration over a data structure.
 The body of the loop is part of the containing {keywordOf Lean.Parser.Term.do}`do` block, so local effects such as early return and mutable variables may be used.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Iteration over Collections")
 ```grammar
 for $[$[$h :]? $x in $y],* do
   $e*
@@ -611,7 +611,7 @@ It is possible to write infinite loops using them in functions that are not mark
 This is because the {keywordOf Lean.Parser.Command.declaration}`partial` modifier only applies to non-termination or infinite regress induced by the function being defined, and not by those that it calls.
 The translation of {keywordOf Lean.doElemWhile_Do_}`while` loops relies on a separate helper.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Conditional Loops")
 ```grammar
 while $e do
   $e*
@@ -622,10 +622,23 @@ while $h : $e do
 ```
 :::
 
+The body of a {keywordOf Lean.doElemRepeat__Until_}`repeat`-{keywordOf Lean.doElemRepeat__Until_}`until` loop is always executed at least once.
+After each iteration, the condition is checked, and the loop is repeated when the condition is *false*.
+When the condition becomes true, iteration stops.
+
+:::syntax Lean.Parser.Term.doSeqItem (title := "Post-Tested Loops")
+```grammar
+repeat
+  $e*
+until $_
+```
+:::
+
+
 The body of a {keywordOf Lean.doElemRepeat_}`repeat` loop is repeated until a {keywordOf Lean.Parser.Term.doBreak}`break` statement is executed.
 Just like {keywordOf Lean.doElemWhile_Do_}`while` loops, these loops can be used in functions that are not marked {keywordOf Lean.Parser.Command.declaration}`partial`.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Unconditional Loops")
 ```grammar
 repeat
   $e*
@@ -635,7 +648,7 @@ repeat
 The {keywordOf Lean.Parser.Term.doContinue}`continue` statement skips the rest of the body of the closest enclosing {keywordOf Lean.doElemRepeat_}`repeat`, {keywordOf Lean.doElemWhile_Do_}`while`, or {keywordOf Lean.Parser.Term.doFor}`for` loop, moving on to the next iteration.
 The {keywordOf Lean.Parser.Term.doBreak}`break` statement terminates the closest enclosing {keywordOf Lean.doElemRepeat_}`repeat`, {keywordOf Lean.doElemWhile_Do_}`while`, or {keywordOf Lean.Parser.Term.doFor}`for` loop, stopping iteration.
 
-:::syntax Lean.Parser.Term.doSeqItem
+:::syntax Lean.Parser.Term.doSeqItem (title := "Loop Control Statements")
 ```grammar
 continue
 ```
