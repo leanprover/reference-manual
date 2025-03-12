@@ -225,10 +225,9 @@ div.planned .label {
         </div>
       }}
 
-
 @[role_expander versionString]
 def versionString : RoleExpander
-  | #[], #[] => do pure #[← ``(Verso.Doc.Inline.text $(quote Lean.versionString))]
+  | #[], #[] => do pure #[← ``(Verso.Doc.Inline.code $(quote Lean.versionString))]
   | _, _ => throwError "Unexpected arguments"
 
 inductive FFIDocType where
