@@ -241,6 +241,8 @@ end ShortCircuit
 
 {docstring cond}
 
+{docstring Bool.dcond}
+
 {docstring Bool.not}
 
 {docstring Bool.and}

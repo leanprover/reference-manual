@@ -672,7 +672,7 @@ package $name where
 $[$_:docComment]?
 $[@[$_,*]]?
 package $_:identOrStr {
-  $[$_:declField $[,]?]*
+  $[$_:declField];*
 }
 $[where
   $[$_:letRecDecl];*]?
@@ -767,7 +767,7 @@ lean_lib $_:identOrStr where
 $[$_:docComment]?
 $[$_:attributes]?
 lean_lib $_:identOrStr {
-  $[$_:declField $[,]?]*
+  $[$_:declField];*
 }
 $[where
   $[$_:letRecDecl];*]?
@@ -800,7 +800,7 @@ lean_exe $_:identOrStr where
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
 lean_exe $_:identOrStr {
-  $[$_:declField $[,]?]*
+  $[$_:declField];*
 }
 $[where
   $[$_:letRecDecl];*]?
