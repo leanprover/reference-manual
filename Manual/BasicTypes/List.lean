@@ -162,6 +162,18 @@ $_ <:+: $_
 
 :::
 
+{docstring List.Sublist}
+
+::: syntax term (title := "Sublists") (namespace := List)
+```grammar
+$_ <+ $_
+```
+
+{includeDocstring List.«term_<+_»}
+
+This syntax is only available when the `List` namespace is opened.
+:::
+
 {docstring List.Perm}
 
 :::syntax term (title := "List Permutation") (namespace := List)
@@ -252,13 +264,7 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.max?}
 
-{docstring List.maxNatAbs}
-
 {docstring List.min?}
-
-{docstring List.minNatAbs}
-
-{docstring List.nonzeroMinimum}
 
 ### Queries
 
@@ -290,7 +296,6 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.asString}
 
-
 {docstring List.toArray}
 
 {docstring List.toArrayImpl}
@@ -299,10 +304,7 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.toFloatArray}
 
-{docstring List.toPArray'}
-
 {docstring List.toString}
-
 
 ## Modification
 
@@ -312,13 +314,15 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.modify}
 
-{docstring List.modifyHead}
-
 {docstring List.modifyTR}
+
+{docstring List.modifyHead}
 
 {docstring List.modifyTailIdx}
 
 {docstring List.erase}
+
+{docstring List.eraseTR}
 
 {docstring List.eraseDups}
 
@@ -331,8 +335,6 @@ This syntax is only available when the `List` namespace is opened.
 {docstring List.erasePTR}
 
 {docstring List.eraseReps}
-
-{docstring List.eraseTR}
 
 {docstring List.extract}
 
@@ -367,14 +369,13 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.insertIdxTR}
 
-{docstring List.intercalate}
-
-{docstring List.intercalateTR}
-
 {docstring List.intersperse}
 
 {docstring List.intersperseTR}
 
+{docstring List.intercalate}
+
+{docstring List.intercalateTR}
 
 ## Sorting
 
@@ -387,8 +388,6 @@ This syntax is only available when the `List` namespace is opened.
 {docstring List.forA}
 
 {docstring List.forM}
-
-{docstring List.forIn'}
 
 {docstring List.firstM}
 
@@ -453,13 +452,9 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.flatMap}
 
-{docstring List.flatMapM}
-
 {docstring List.flatMapTR}
 
-{docstring List.unzip}
-
-{docstring List.unzipTR}
+{docstring List.flatMapM}
 
 {docstring List.zip}
 
@@ -467,13 +462,15 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.zipIdxTR}
 
-{docstring List.zipIdxLE}
-
 {docstring List.zipWith}
 
 {docstring List.zipWithTR}
 
 {docstring List.zipWithAll}
+
+{docstring List.unzip}
+
+{docstring List.unzipTR}
 
 
 ## Filtering
@@ -484,13 +481,13 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.filterM}
 
+{docstring List.filterRevM}
+
 {docstring List.filterMap}
 
 {docstring List.filterMapTR}
 
 {docstring List.filterMapM}
-
-{docstring List.filterRevM}
 
 
 ## Partitioning
@@ -505,11 +502,11 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.drop}
 
+{docstring List.dropWhile}
+
 {docstring List.dropLast}
 
 {docstring List.dropLastTR}
-
-{docstring List.dropWhile}
 
 {docstring List.splitAt}
 
@@ -567,8 +564,6 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.lex}
 
-{docstring List.hasDecEq}
-
 ## Termination Helpers
 
 {docstring List.attach}
@@ -578,10 +573,3 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 {docstring List.unattach}
 
 {docstring List.pmap}
-
-## Proof Automation
-
-
-{docstring List.reduceOption}
-
-{docstring List.reduceReplicate}

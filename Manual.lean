@@ -809,6 +809,12 @@ Lean.Parser.Tactic.tryResult
 
 
 ```exceptions
+List.hasDecEq
+List.zipIdxLE
+List.toPArray'
+List.maxNatAbs
+List.minNatAbs
+List.nonzeroMinimum
 List.toAssocList'
 List.toPArray'
 List.countP.go
