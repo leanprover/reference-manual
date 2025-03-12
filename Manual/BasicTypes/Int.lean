@@ -95,7 +95,7 @@ end
 
 {docstring Int.toNat}
 
-{docstring Int.toNat'}
+{docstring Int.toNat?}
 
 {docstring Int.toISize}
 

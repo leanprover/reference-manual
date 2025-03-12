@@ -193,6 +193,10 @@ tag := "array-api"
 
 {docstring Array.appendList}
 
+{docstring Array.leftpad}
+
+{docstring Array.rightpad}
+
 ## Size
 
 {docstring Array.size}
@@ -273,6 +277,8 @@ tag := "array-api"
 {docstring Array.swapAt}
 
 {docstring Array.swapAt!}
+
+{docstring Array.replace}
 
 {docstring Array.set}
 

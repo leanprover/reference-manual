@@ -694,6 +694,9 @@ They are encoded using the {name}`optParam` and {name}`autoParam` {tech}[gadgets
 {docstring autoParam}
 
 ## Generalized Field Notation
+%%%
+tag := "generalized-field-notation"
+%%%
 
 The {ref "structure-fields"}[section on structure fields] describes the notation for projecting a field from a term whose type is a structure.
 Generalized field notation consists of a term followed by a dot (`.`) and an identifier, not separated by spaces.
