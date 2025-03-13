@@ -165,8 +165,6 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream}
 
-{docstring IO.FS.withIsolatedStreams}
-
 {docstring IO.FS.Stream.ofBuffer}
 
 {docstring IO.FS.Stream.ofHandle}
@@ -175,9 +173,6 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream.Buffer}
 
-{docstring IO.FS.Stream.Buffer.data}
-
-{docstring IO.FS.Stream.Buffer.pos}
 
 # Paths
 
