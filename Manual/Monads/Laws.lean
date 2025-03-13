@@ -24,7 +24,7 @@ set_option linter.unusedVariables false
 tag := "monad-laws"
 %%%
 
-:::keepEnv
+::::keepEnv
 
 ```lean (show := false)
 section Laws
@@ -84,4 +84,4 @@ The {deftech}[monad laws] specify that {name}`pure` followed by {name}`bind` sho
 
 {docstring LawfulMonad.mk'}
 
-:::
+::::
