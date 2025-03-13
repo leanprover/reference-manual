@@ -32,39 +32,27 @@ set_option maxRecDepth 300000
 tag := "lean-language-reference"
 %%%
 
-
 This is the _Lean Language Reference_, an in-progress reference work on Lean.
 It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial intended for new users.
-For other documentation, please refer to the [Lean documentation site](https://lean-lang.org/documentation/).
+For other documentation, please refer to the [Lean documentation overview](https://lean-lang.org/documentation/).
+This manual covers Lean version {versionString}[].
 
-This reference manual is not yet complete, but there's enough information to provide value to users.
-The top priority is to add the missing information as quickly as possible while staying up to date with Lean development.
-As the rest of the text is written, regular snapshots will be released, tracking upstream changes.
-This snapshot covers Lean version {versionString}[].
+Lean is an *interactive theorem prover* based on dependent type theory, designed for use both in cutting-edge mathematics and in software verification.
+Lean's core type theory is expressive enough to capture very complicated mathematical objects, but simple enough to admit independent implementations, reducing the risk of bugs that affect soundness.
+The core type theory is implemented in a minimal {tech}[kernel] that does nothing other than check proof terms.
+This core theory and kernel are supported by advanced automation, realized in {ref "tactics"}[an expressive tactic language].
+Each tactic produces a term in the core type theory that is checked by the kernel, so bugs in tactics do not threaten the soundness of Lean as a whole.
+Along with many other parts of Lean, the tactic language is user-extensible, so it can be built up to meet the needs of a given formalization project.
+Tactics are written in Lean itself, and can be used immediately upon definition; rebuilding the prover or loading external modules is not required.
 
-Our prioritization of content is based on our best understanding of our users' needs.
-Please use the [issue tracker](https://github.com/leanprover/reference-manual/issues) to help us better understand what you need to know.
-In particular, please create or upvote issues for topics that are important to you.
-Your feedback is much appreciated!
-Once sufficient content is available, we will begin saving snapshots for each release of Lean and making them conveniently available.
+Lean is also a pure *functional programming language*, with features such as a run-time system based on reference counting that can efficiently work with packed array structures, multi-threading, and monadic {name}`IO`.
+As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech}[elaborator], and tactic system.
+This very book is written in [Verso](https://github.com/leanprover/verso), a documentation authoring tool written in Lean.
 
-API reference documentation is included from the Lean standard library source code.
-Due to technical limitations at the moment, the Lean terms and examples embedded in it do not render as nicely as we would like.
-In the near future, we will be working on removing these limitations.
-Additionally, we will be adding missing API reference documentation and revising and improving the existing API reference documentation.
+Familiarity with Lean's programming features is valuable even for users whose primary interest is in writing proofs, because Lean programs are used to implement new tactics and proof automation.
+Thus, this reference manual does not draw a barrier between the two aspects, but rather describes them together so they can shed light on one another
 
-**Release History**
 
-: 2025-02-03
-
-  This release updates the contents for Lean version 4.17.0-rc1.
-  It adds descriptions of {ref "well-founded-recursion"}[well-founded recursion], the new {ref "partial-fixpoint"}[partial fixpoint] feature, {ref "quotients"}[quotient types], and {ref "lake"}[Lake], and {ref "structural-recursion"}[the description of structural recursion] has been greatly improved.
-  Descriptions and API references for all fixed-width integer types, {name}`Int`, {name}`Fin`, {name}`Empty`, and {name}`Option` were also added.
-  This release also includes a quick-jump box that can be used to quickly navigate to any documented topic.
-
-: 2024-12-16
-
-  This is the initial release of the reference manual.
 
 {include 0 Manual.Intro}
 
