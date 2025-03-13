@@ -249,6 +249,10 @@ Some operations on paths consult the filesystem.
 
 {docstring System.FilePath.walkDir}
 
+{docstring IO.AccessRight}
+
+{docstring IO.AccessRight.flags}
+
 {docstring IO.FileRight}
 
 {docstring IO.FileRight.flags}
