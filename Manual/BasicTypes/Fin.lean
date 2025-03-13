@@ -177,13 +177,13 @@ Typically, bitwise operations on {name}`Fin` should be accessed using Lean's ove
 
 {docstring Fin.cast}
 
-{docstring Fin.castAdd}
+{docstring Fin.castLT}
 
 {docstring Fin.castLE}
 
-{docstring Fin.castSucc}
+{docstring Fin.castAdd}
 
-{docstring Fin.castLT}
+{docstring Fin.castSucc}
 
 {docstring Fin.rev}
 

@@ -193,6 +193,12 @@ Setoids are useful on their own, in addition to being a building block for quoti
 
 {docstring Setoid}
 
+{docstring Setoid.refl}
+
+{docstring Setoid.symm}
+
+{docstring Setoid.trans}
+
 # Equivalence Relations
 %%%
 tag := "equivalence-relations"
@@ -710,3 +716,5 @@ end
 {docstring Squash.mk}
 
 {docstring Squash.lift}
+
+{docstring Squash.ind}
