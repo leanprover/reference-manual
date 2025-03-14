@@ -34,7 +34,9 @@ set_option linter.unusedVariables false
 -- set_option trace.SubVerso.Highlighting.Code true
 
 #doc (Manual) "Varieties of Monads" =>
-
+%%%
+tag := "monad-varieties"
+%%%
 
 The {lean}`IO` monad has many, many effects, and is used for writing programs that need to interact with the world.
 It is described in {ref "io"}[its own section].

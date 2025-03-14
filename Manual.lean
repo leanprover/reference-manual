@@ -215,6 +215,7 @@ IO.FS.DirEntry
 EIO
 BaseIO
 IO.FileRight
+IO.AccessRight
 IO.FS.Stream
 Task
 Task.Priority

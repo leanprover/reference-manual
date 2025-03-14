@@ -198,64 +198,6 @@ Access granted!
 :::
 ::::
 
-### Constructing IO Errors
-%%%
-tag := "io-error-construction"
-%%%
-
-{docstring IO.Error.mkUnsupportedOperation}
-
-{docstring IO.Error.mkUnsatisfiedConstraints}
-
-{docstring IO.Error.mkProtocolError}
-
-{docstring IO.Error.mkResourceBusy}
-
-{docstring IO.Error.mkResourceVanished}
-
-{docstring IO.Error.mkNoSuchThing}
-
-{docstring IO.Error.mkNoSuchThingFile}
-
-{docstring IO.Error.mkEofError}
-
-{docstring IO.Error.mkPermissionDenied}
-
-{docstring IO.Error.mkNoFileOrDirectory}
-
-{docstring IO.Error.mkTimeExpired}
-
-{docstring IO.Error.fopenErrorToString}
-
-{docstring IO.Error.mkAlreadyExists}
-
-{docstring IO.Error.mkInvalidArgument}
-
-{docstring IO.Error.mkHardwareFault}
-
-{docstring IO.Error.mkResourceExhausted}
-
-{docstring IO.Error.mkInappropriateType}
-
-{docstring IO.Error.mkOtherError}
-
-{docstring IO.Error.otherErrorToString}
-
-{docstring IO.Error.mkInvalidArgumentFile}
-
-{docstring IO.Error.mkResourceExhaustedFile}
-
-{docstring IO.Error.mkAlreadyExistsFile}
-
-
-{docstring IO.Error.mkIllegalOperation}
-
-{docstring IO.Error.mkPermissionDeniedFile}
-
-{docstring IO.Error.mkInterrupted}
-
-{docstring IO.Error.mkInappropriateTypeFile}
-
 # Control Structures
 %%%
 tag := "io-monad-control"

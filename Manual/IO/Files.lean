@@ -165,8 +165,6 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream}
 
-{docstring IO.FS.withIsolatedStreams}
-
 {docstring IO.FS.Stream.ofBuffer}
 
 {docstring IO.FS.Stream.ofHandle}
@@ -175,9 +173,6 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream.Buffer}
 
-{docstring IO.FS.Stream.Buffer.data}
-
-{docstring IO.FS.Stream.Buffer.pos}
 
 # Paths
 
@@ -248,6 +243,10 @@ Some operations on paths consult the filesystem.
 {docstring System.FilePath.readDir}
 
 {docstring System.FilePath.walkDir}
+
+{docstring IO.AccessRight}
+
+{docstring IO.AccessRight.flags}
 
 {docstring IO.FileRight}
 
