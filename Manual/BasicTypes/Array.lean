@@ -81,8 +81,8 @@ tag := "array-performance"
 %%%
 
 
-Despite the fact that they appear to be an ordinary constructor and projection, {name}`Array.mk` and {name}`Array.data` take *time linear in the size of the array* in compiled code.
-This is because they must implement the conversions between linked lists and packed arrays, which must necessarily visit each element.
+Despite the fact that they appear to be an ordinary constructor and projection, {name}`Array.mk` and {name}`Array.toList` take *time linear in the size of the array* in compiled code.
+This is because converting between linked lists and packed arrays must necessarily visit each element.
 
 Mutable arrays can be used to write very efficient code.
 However, they are a poor persistent data structure.
@@ -97,7 +97,7 @@ tag := "array-syntax"
 Array literals allow arrays to be written directly in code.
 They may be used in expression or pattern contexts.
 
-:::syntax term
+:::syntax term (title := "Array Literals")
 Array literals begin with `#[` and contain a comma-separated sequence of terms, terminating with `]`.
 
 ```grammar
@@ -121,7 +121,7 @@ def oneTwoThree : Array Nat := #[1, 2, 3]
 ::::
 
 Additionally, {ref "subarray"}[sub-arrays] may be extracted using the following syntax:
-:::syntax term
+:::syntax term (title := "Sub-Arrays")
 A start index followed by a colon constructs a sub-array that contains the values from the start index onwards (inclusive):
 ```grammar
 $t[$t:term :]
@@ -134,7 +134,7 @@ $t[$t:term : $_:term]
 :::
 
 ::::keepEnv
-:::example "Sub-array Syntax"
+:::example "Sub-Array Syntax"
 
 The array {lean}`ten` contains the first ten natural numbers.
 ```lean
@@ -177,6 +177,8 @@ tag := "array-api"
 
 {docstring Array.empty}
 
+{docstring Array.emptyWithCapacity}
+
 {docstring Array.singleton}
 
 {docstring Array.range}
@@ -213,11 +215,11 @@ tag := "array-api"
 
 {docstring Array.uget}
 
+{docstring Array.back}
+
 {docstring Array.back?}
 
 {docstring Array.back!}
-
-{docstring Array.back}
 
 {docstring Array.getMax?}
 
@@ -246,8 +248,6 @@ tag := "array-api"
 {docstring Array.toSubarray}
 
 {docstring Array.ofSubarray}
-
-{docstring Array.toPArray'}
 
 
 ## Modification
@@ -302,8 +302,6 @@ tag := "array-api"
 
 {docstring Array.reverse}
 
-{docstring Array.binInsertM}
-
 {docstring Array.take}
 
 {docstring Array.takeWhile}
@@ -326,6 +324,8 @@ tag := "array-api"
 
 {docstring Array.binInsert}
 
+{docstring Array.binInsertM}
+
 {docstring Array.binSearch}
 
 {docstring Array.binSearchContains}
@@ -344,27 +344,11 @@ tag := "array-api"
 
 {docstring Array.forRevM}
 
-{docstring Array.forIn'}
-
 {docstring Array.firstM}
 
 {docstring Array.sum}
 
 ## Transformation
-
-{docstring Array.flatMap}
-
-{docstring Array.flatMapM}
-
-{docstring Array.zip}
-
-{docstring Array.zipWith}
-
-{docstring Array.zipWithAll}
-
-{docstring Array.zipIdx}
-
-{docstring Array.unzip}
 
 {docstring Array.map}
 
@@ -382,19 +366,24 @@ tag := "array-api"
 
 {docstring Array.mapFinIdx}
 
-{docstring Array.mapIndexed}
-
-{docstring Array.mapIndexedM}
-
 {docstring Array.mapFinIdxM}
 
 {docstring Array.flatMap}
 
 {docstring Array.flatMapM}
 
-## Filtering
+{docstring Array.zip}
 
-{docstring Array.filterMap}
+{docstring Array.zipWith}
+
+{docstring Array.zipWithAll}
+
+{docstring Array.zipIdx}
+
+{docstring Array.unzip}
+
+
+## Filtering
 
 {docstring Array.filter}
 
@@ -402,9 +391,9 @@ tag := "array-api"
 
 {docstring Array.filterRevM}
 
-{docstring Array.filterMapM}
+{docstring Array.filterMap}
 
-{docstring Array.filterPairsM}
+{docstring Array.filterMapM}
 
 {docstring Array.filterSepElems}
 
@@ -431,13 +420,17 @@ tag := "array-api"
 
 {docstring Array.findIdx?}
 
+{docstring Array.findIdxM?}
+
 {docstring Array.findFinIdx?}
 
 {docstring Array.findM?}
 
 {docstring Array.findRevM?}
 
-{docstring Array.findIdxM?}
+{docstring Array.findSome?}
+
+{docstring Array.findSome!}
 
 {docstring Array.findSomeM?}
 
@@ -449,18 +442,13 @@ tag := "array-api"
 
 {docstring Array.allM}
 
-{docstring Array.allDiff}
-
 {docstring Array.any}
 
 {docstring Array.anyM}
 
+{docstring Array.allDiff}
+
 {docstring Array.isEqv}
-
-{docstring Array.findSome?}
-
-{docstring Array.findSome!}
-
 
 ## Comparisons
 
@@ -477,16 +465,6 @@ tag := "array-api"
 {docstring Array.unattach}
 
 {docstring Array.pmap}
-
-## Proof Automation
-
-{docstring Array.reduceOption}
-
-{docstring Array.reduceGetElem}
-
-{docstring Array.reduceGetElem?}
-
-{docstring Array.reduceGetElem!}
 
 {include 1 Manual.BasicTypes.Array.Subarray}
 
