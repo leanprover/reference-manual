@@ -684,7 +684,7 @@ Similarly, parsing fails when they are mismatched:
 example := balanced [() (]]
 ```
 ```leanOutput mismatch
-<example>:1:25: expected ')' or balanced
+<example>:1:25-1:26: unexpected token ']'; expected ')' or balanced
 ```
 :::
 ::::
@@ -790,7 +790,7 @@ The following examples are not syntactically valid because the columns of the bu
    • "Two"
 ```
 ```leanOutput noteEx2
-<example>:4:3: expected end of input
+<example>:4:3-4:4: expected end of input
 ```
 
 ```syntaxError noteEx2
@@ -800,7 +800,7 @@ The following examples are not syntactically valid because the columns of the bu
      • "Two"
 ```
 ```leanOutput noteEx2
-<example>:4:5: expected end of input
+<example>:4:5-4:6: expected end of input
 ```
 :::
 ::::

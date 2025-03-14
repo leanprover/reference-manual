@@ -151,7 +151,7 @@ However, the ignored term must still be syntactically valid:
 #eval ignore (2 +) 5
 ```
 ```leanOutput ignore'
-<example>:1:17: expected term
+<example>:1:17-1:18: unexpected token ')'; expected term
 ```
 :::
 ::::

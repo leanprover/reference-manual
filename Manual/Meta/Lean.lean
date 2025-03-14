@@ -692,14 +692,15 @@ def syntaxError : CodeBlockExpander
       (detail? := some "Syntax error")
 
     let s := str.getString
-    match runParserCategory (← getEnv) (← getOptions) config.category s with
+    match runParserCategory' (← getEnv) (← getOptions) config.category s with
     | .ok stx =>
       throwErrorAt str m!"Expected a syntax error for category {config.category}, but got {indentD stx}"
     | .error es =>
-      let msgs := es.map fun (pos, msg) =>
-        (.error, mkErrorStringWithPos  "<example>" pos msg)
+      let msgs := es.toList.map fun {pos, endPos, text := msg} =>
+        (.error, mkErrorStringWithPos  "<example>" pos msg (endPos := endPos))
       modifyEnv (leanOutputs.modifyState · (·.insert config.name msgs))
       Hover.addCustomHover (← getRef) <| MessageData.joinSep (msgs.map fun (sev, msg) => m!"{sevStr sev}:{indentD msg}") Format.line
+
       return #[← `(Block.other {Block.syntaxError with data := ToJson.toJson ($(quote s), $(quote es))} #[Block.code $(quote s)])]
 where
   sevStr : MessageSeverity → String
@@ -745,21 +746,15 @@ def syntaxError.descr : BlockDescr where
   font-weight: bold;
 }
 
-.syntax-error .parse-message > code {
+.syntax-error .parse-message > code.hover-info {
   display:none;
 }
+
 .syntax-error .parse-message {
-  position: relative;
-  width: 1em;
-  height: 1em;
-  display: inline-block;
-}
-.syntax-error .parse-message::before {
-  content: '🛑';
-  text-decoration: none;
-  position: absolute;
-  top: 0; left: 0;
+  white-space: pre;
+  text-decoration-skip-ink: none;
   color: red;
+  font-weight: 600;
 }
 "
   ]
@@ -775,25 +770,30 @@ def syntaxError.descr : BlockDescr where
       | .error err =>
         HtmlT.logError <| "Couldn't deserialize Lean code while rendering HTML: " ++ err
         pure .empty
-      | .ok (str, (msgs : (List (Position × String)))) =>
+      | .ok (str, (msgs : (Array SyntaxError))) =>
         let mut pos : String.Pos := ⟨0⟩
         let mut out : Array Html := #[]
         let mut line : Array Html := #[]
         let filemap := FileMap.ofString str
-        let mut msgs := msgs
+        let mut msgs := msgs.toSubarray
         for lineNum in [1:filemap.getLastLine] do
           pos := filemap.lineStart lineNum
           let lineEnd := str.prev (filemap.lineStart (lineNum + 1))
           repeat
-            match msgs with
-            | [] => break
-            | (pos', msg) :: more =>
-              let pos' := filemap.ofPosition pos'
+            if h : msgs.size = 0 then break
+            else
+              let {pos := errPos, endPos, text := errText} := msgs[0]
+              let pos' := filemap.ofPosition errPos
               if pos' > lineEnd then break
-              msgs := more
+              let pos'' := filemap.ofPosition endPos
+
+              msgs := msgs.drop 1
               line := line.push <| str.extract pos pos'
-              line := line.push {{<span class="parse-message has-info error"><code class="hover-info">{{msg}}</code></span>}}
-              pos := pos'
+              let spanned := str.extract pos' pos''  -- TODO account for cases where the error range spans multiple lines
+              -- If the error is just a newline, add a space so there's something to highlight
+              let spanned := if spanned.isEmpty || spanned.all (· == '\n') then " " ++ spanned else spanned
+              line := line.push {{<span class="parse-message has-info error"><code class="hover-info">{{errText}}</code>{{spanned}}</span>}}
+              pos := pos''
           line := line.push <| str.extract pos lineEnd
           out := out.push {{<code class="line">{{line}}</code>}}
           line := #[]
@@ -868,6 +868,8 @@ def leanOutput : CodeBlockExpander
  | args, str => do
     let config ← LeanOutputConfig.parser.run args
 
+    let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
     PointOfInterest.save (← getRef) (config.name.getId.toString)
       (kind := Lsp.SymbolKind.file)
       (selectionRange := config.name)
@@ -895,6 +897,7 @@ def leanOutput : CodeBlockExpander
         else return #[]
 
     for (_, m) in msgs do
+      let m := "".pushn ' ' (col?.getD 0) ++ if m.endsWith "\n" then m else m ++ "\n"
       Verso.Doc.Suggestion.saveSuggestion str (abbreviateString m) m
     throwErrorAt str "Didn't match - expected one of: {indentD (toMessageData <| msgs.map (·.2))}\nbut got:{indentD (toMessageData str.getString)}"
 where
@@ -905,6 +908,7 @@ where
 
   mostlyEqual (ws : WhitespaceMode) (s1 s2 : String) : Bool :=
     ws.apply s1.trim == ws.apply s2.trim
+
 
 @[block_extension leanOutput]
 def leanOutput.descr : BlockDescr where
