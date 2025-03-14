@@ -227,7 +227,7 @@ The two styles of annotation cannot be mixed in a single {keywordOf «termΣ_,_�
 Σ n k (i : Fin (n * k)) , Fin i.val
 ```
 ```leanOutput mixedNesting
-<example>:1:6: expected ','
+<example>:1:5-1:7: unexpected token '('; expected ','
 ```
 ::::
 

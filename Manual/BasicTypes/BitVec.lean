@@ -86,14 +86,14 @@ Spaces are not allowed on either side of the `#`:
 5 #8
 ```
 ```leanOutput spc1
-<example>:1:2: expected end of input
+<example>:1:2-1:3: expected end of input
 ```
 
 ```syntaxError spc2 (category := term)
 5# 8
 ```
 ```leanOutput spc2
-<example>:1:3: expected no space before
+<example>:1:3-1:4: expected no space before
 ```
 
 
@@ -103,7 +103,7 @@ A numeric literal is required to the left of the `#`:
 (3 + 2)#8
 ```
 ```leanOutput spc3
-<example>:1:7: expected end of input
+<example>:1:7-1:8: expected end of input
 ```
 
 

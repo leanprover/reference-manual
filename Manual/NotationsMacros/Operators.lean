@@ -55,7 +55,7 @@ Infix operators additionally have an {deftech}_associativity_ that determines th
   ```
   The parser error is:
   ```leanOutput eqs
-  <example>:1:10: expected end of input
+  <example>:1:10-1:11: expected end of input
   ```
 ::::keepEnv
 :::example "Precedence for Prefix and Infix Operators"

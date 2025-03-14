@@ -67,7 +67,7 @@ def str3 := "String with \
 ```
 The parser error is:
 ```leanOutput foo
-<example>:2:0: unexpected additional newline in string gap
+<example>:2:0-3:0: unexpected additional newline in string gap
 ```
 
 # Interpolated Strings
@@ -80,7 +80,10 @@ Interpolated strings are interpreted by appending the string that precedes the i
 
 For example:
 ```lean
-example : s!"1 + 1 = {1 + 1}\n" = "1 + 1 = " ++ toString (1 + 1) ++ "\n" := rfl
+example :
+    s!"1 + 1 = {1 + 1}\n" =
+    "1 + 1 = " ++ toString (1 + 1) ++ "\n" :=
+  rfl
 ```
 
 Preceding a literal with `m!` causes the interpolation to result in an instance of {name Lean.MessageData}`MessageData`, the compiler's internal data structure for messages to be shown to users.
@@ -106,11 +109,17 @@ The `#eval` yields:
 Including hash marks allows the strings to contain unescaped quotes:
 
 ```lean
-example : r#"This is "literally" quoted"# = "This is \"literally\" quoted" := rfl
+example :
+    r#"This is "literally" quoted"# =
+    "This is \"literally\" quoted" :=
+  rfl
 ```
 
 Adding sufficiently many hash marks allows any raw literal to be written literally:
 
 ```lean
-example : r##"This is r#"literally"# quoted"## = "This is r#\"literally\"# quoted" := rfl
+example :
+    r##"This is r#"literally"# quoted"## =
+    "This is r#\"literally\"# quoted" :=
+  rfl
 ```

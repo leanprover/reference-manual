@@ -503,7 +503,7 @@ Spaces are not allowed between the dollar sign and the identifier.
 def ex2 (e) := show m _ from `(2 + $ e:num)
 ```
 ```leanOutput ex2err1
-<example>:1:35: expected '`(tactic|' or no space before spliced term
+<example>:1:34-1:36: unexpected token '$'; expected '`(tactic|' or no space before spliced term
 ```
 
 Spaces are also not allowed before the colon:
@@ -511,7 +511,7 @@ Spaces are also not allowed before the colon:
 def ex2 (e) := show m _ from `(2 + $e :num)
 ```
 ```leanOutput ex2err2
-<example>:1:38: expected ')'
+<example>:1:37-1:39: unexpected token ':'; expected ')'
 ```
 ::::
 :::::

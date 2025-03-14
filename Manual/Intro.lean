@@ -132,7 +132,7 @@ skip
 
 Identifiers in code examples are hyperlinked to their documentation.
 
-Examples of code with syntax errors are shown with an indicator of where the parser stopped, along with the error message:
+Examples of code with syntax errors are shown with an indicator of where the parser error occurred, along with the error message:
 ```syntaxError intro
 def f : Option Nat → Type
   | some 0 => Unit
@@ -140,7 +140,7 @@ def f : Option Nat → Type
   | none => Empty
 ```
 ```leanOutput intro
-<example>:3:4: expected term
+<example>:3:3-3:6: unexpected token '=>'; expected term
 ```
 
 ## Examples
