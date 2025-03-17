@@ -18,7 +18,7 @@ open Lean Elab
 namespace Manual
 
 def Block.noVale : Block where
-  name := `Manual.NoVale
+  name := `Manual.Block.noVale
 
 @[block_extension Block.noVale]
 def Block.noVale.descr : BlockDescr where
@@ -37,4 +37,4 @@ def markdown : CodeBlockExpander
       | throwError "Failed to parse docstring as Markdown"
     let content ← ast.blocks.mapM <|
       Markdown.blockFromMarkdown (handleHeaders := Markdown.strongEmphHeaders)
-    pure #[← `(Doc.Block.other Block.noVale #[$content,*])]
+    pure #[← ``(Doc.Block.other Block.noVale #[$content,*])]
