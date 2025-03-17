@@ -21,14 +21,23 @@ def Marginalia.css := r#"
   position: relative;
   padding: 0.5rem;
 }
+
 /* Wide viewport */
 @media screen and (min-width: 1400px) {
   .marginalia .note {
     float: right;
     clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
     margin-right: -19vw;
     width: 15vw;
-    margin-top: 1rem;
   }
 }
 
