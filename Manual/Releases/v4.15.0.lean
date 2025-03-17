@@ -12,7 +12,7 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "v4.15.0" =>
+#doc (Manual) "Lean 4.15.0 (2025-01-04)" =>
 %%%
 tag := "release-v4.15.0"
 file := "v4.15.0"
