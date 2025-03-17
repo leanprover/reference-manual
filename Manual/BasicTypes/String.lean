@@ -248,6 +248,10 @@ tag := "string-api-fold"
 tag := "string-api-compare"
 %%%
 
+The {inst}`LT String` instance is defined by the lexicographic ordering on strings based on the the {inst}`LT Char` instance.
+Logically, this is modeled by the lexicographic ordering on the lists that model strings, so `List.Lex` defines the order.
+It is decidable, and the decision procedure is overridden at runtime with efficient code that takes advantage of the run-time representation of strings.
+
 {docstring String.le}
 
 {docstring String.firstDiffPos}
@@ -344,63 +348,20 @@ Substring API xref
 
 {docstring String.toSubstring'}
 
-## Proof Automation
-%%%
-tag := "string-simp"
-%%%
-
-
-{docstring String.reduceGT}
-
-{docstring String.reduceGE}
-
-{docstring String.reduceBinPred}
-
-{docstring String.reduceLT}
-
-{docstring String.reduceLE}
-
-{docstring String.reduceBEq}
-
-{docstring String.reduceEq}
-
-{docstring String.reduceAppend}
-
-{docstring String.reduceMk}
-
-{docstring String.reduceBoolPred}
-
-{docstring String.reduceBNe}
-
-{docstring String.reduceNe}
-
 ## Metaprogramming
 %%%
 tag := "string-api-meta"
 %%%
 
-
 {docstring String.toName}
-
-{docstring String.toFileMap}
 
 {docstring String.quote}
 
-{docstring String.fromExpr?}
 
 ## Encodings
 %%%
 tag := "string-api-encoding"
 %%%
-
-
-{docstring String.utf16PosToCodepointPos}
-
-{docstring String.utf16PosToCodepointPosFrom}
-
-{docstring String.codepointPosToUtf16Pos}
-
-{docstring String.codepointPosToUtf16PosFrom}
 
 {docstring String.getUtf8Byte}
 
@@ -419,10 +380,6 @@ tag := "string-api-encoding"
 {docstring String.toUTF8}
 
 {docstring String.validateUTF8}
-
-{docstring String.utf16Length}
-
-{docstring String.codepointPosToUtf8PosFrom}
 
 {docstring String.crlfToLf}
 

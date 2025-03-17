@@ -188,6 +188,8 @@ EStateM
 EStateM.Result
 EStateM.Backtrackable
 String
+Substring
+String.Pos
 Char
 Nat
 Lean.Elab.Tactic
