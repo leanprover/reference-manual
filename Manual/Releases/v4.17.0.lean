@@ -6,20 +6,16 @@ Author: Joachim Breitner
 
 import VersoManual
 
-import Lean.Parser.Command
 import Manual.Meta.Markdown
-import Lake
-
-import Manual.Meta
 
 open Manual
 open Verso.Genre
-open Verso.Genre.Manual
 
 
 #doc (Manual) "v4.17.0" =>
 %%%
 tag := "release-v4.17.0"
+file := "v4.17.0"
 %%%
 
 `````markdown

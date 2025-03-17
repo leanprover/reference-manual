@@ -6,23 +6,15 @@ Author: Joachim Breitner
 
 import VersoManual
 
-import Lean.Parser.Command
-import Lake
-
-import Manual.Meta
 import Manual.Releases.«v4.17.0»
 
 open Manual
 open Verso.Genre
-open Verso.Genre.Manual
-
-
-open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
-
 
 #doc (Manual) "Release Notes" =>
 %%%
 tag := "release-notes"
+file := "releases"
 %%%
 
 {include 0 Manual.Releases.«v4.17.0»}
