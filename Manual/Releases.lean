@@ -6,6 +6,8 @@ Author: Joachim Breitner
 
 import VersoManual
 
+import Manual.Releases.«v4.15.0»
+import Manual.Releases.«v4.16.0»
 import Manual.Releases.«v4.17.0»
 
 open Manual
@@ -18,3 +20,7 @@ file := "releases"
 %%%
 
 {include 0 Manual.Releases.«v4.17.0»}
+
+{include 0 Manual.Releases.«v4.16.0»}
+
+{include 0 Manual.Releases.«v4.15.0»}
