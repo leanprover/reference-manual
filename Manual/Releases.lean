@@ -10,7 +10,7 @@ import Lean.Parser.Command
 import Lake
 
 import Manual.Meta
-import Manual.Releases.v4_17_0
+import Manual.Releases.«v4.17.0»
 
 open Manual
 open Verso.Genre
@@ -25,4 +25,4 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 tag := "release-notes"
 %%%
 
-{include 0 Manual.Releases.v4_17_0}
+{include 0 Manual.Releases.«v4.17.0»}

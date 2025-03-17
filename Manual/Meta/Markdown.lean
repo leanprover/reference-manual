@@ -17,11 +17,24 @@ open Lean Elab
 
 namespace Manual
 
+def Block.noVale : Block where
+  name := `Manual.NoVale
+
+@[block_extension Block.noVale]
+def Block.noVale.descr : BlockDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  toHtml :=
+    open Verso.Output.Html in
+    some <| fun _ goB _ _ content => do
+      pure {{<div class="no-vale">{{← content.mapM goB}}</div>}}
+
 @[code_block_expander markdown]
 def markdown : CodeBlockExpander
   | _args, str => do
     let str ← parserInputString str
     let some ast := MD4Lean.parse str
       | throwError "Failed to parse docstring as Markdown"
-    ast.blocks.mapM <|
+    let content ← ast.blocks.mapM <|
       Markdown.blockFromMarkdown (handleHeaders := Markdown.strongEmphHeaders)
+    pure #[← `(Doc.Block.other Block.noVale #[$content,*])]
