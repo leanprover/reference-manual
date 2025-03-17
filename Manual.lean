@@ -21,6 +21,7 @@ import Manual.IO
 import Manual.Interaction
 import Manual.Monads
 import Manual.BuildTools
+import Manual.Releases
 
 open Verso.Genre Manual
 
@@ -120,6 +121,8 @@ This section will describe Elan and how to use it:
 :::
 
 {include 0 Manual.BuildTools}
+
+{include 0 Manual.Releases}
 
 # Index
 %%%
