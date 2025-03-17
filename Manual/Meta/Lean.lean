@@ -110,7 +110,7 @@ def LeanBlockConfig.outlineMeta : LeanBlockConfig → String
 
 @[code_block_expander lean]
 def lean : CodeBlockExpander
-  | args, str => do
+  | args, str => withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
     PointOfInterest.save (← getRef) ((config.name.map toString).getD (abbrevFirstLine 20 str.getString))
@@ -120,6 +120,9 @@ def lean : CodeBlockExpander
     let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
 
     let origScopes ← if config.fresh then pure [{header := ""}] else getScopes
+
+    -- Turn of async elaboration so that info trees and messages are available when highlighting syntax
+    let origScopes := origScopes.modifyHead fun sc => {sc with opts := Elab.async.set sc.opts false}
 
     let altStr ← parserInputString str
 
@@ -203,7 +206,7 @@ where
 
 @[code_block_expander leanTerm]
 def leanTerm : CodeBlockExpander
-  | args, str => do
+  | args, str => withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
     let altStr ← parserInputString str
@@ -218,7 +221,7 @@ def leanTerm : CodeBlockExpander
         try
           Core.resetMessageLog
           let tree' ← runWithOpenDecls <| runWithVariables fun _vars => do
-            let e ←  Elab.Term.elabTerm (catchExPostpone := true) stx none
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
             Term.synthesizeSyntheticMVarsNoPostponing
             let _ ← Term.levelMVarToParam (← instantiateMVars e)
 
@@ -287,7 +290,8 @@ where
 
 @[role_expander lean]
 def leanInline : RoleExpander
-  | args, inlines => do
+  -- Async elab is turned off to make sure that info trees and messages are available when highlighting
+  | args, inlines => withoutAsync do
     let config ← LeanInlineConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
@@ -306,7 +310,6 @@ def leanInline : RoleExpander
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt term e
     | .ok stx =>
-
 
       let (newMsgs, type, tree) ← do
         let initMsgs ← Core.getMessageLog
@@ -399,7 +402,7 @@ where
 
 @[role_expander inst]
 def inst : RoleExpander
-  | args, inlines => do
+  | args, inlines => withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
@@ -521,7 +524,7 @@ def Inline.option : Inline where
 
 @[role_expander option]
 def option : RoleExpander
-  | args, inlines => do
+  | args, inlines => withoutAsync do
     let () ← ArgParse.done.run args
     let #[arg] := inlines
       | throwError "Expected exactly one argument"
@@ -586,7 +589,7 @@ def SignatureConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgPar
 
 @[code_block_expander signature]
 def signature : CodeBlockExpander
-  | args, str => do
+  | args, str => withoutAsync do
     let {«show»} ← SignatureConfig.parse.run args
     let altStr ← parserInputString str
     let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
@@ -684,7 +687,7 @@ def SyntaxErrorConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [Mo
 open Lean.Parser in
 @[code_block_expander syntaxError]
 def syntaxError : CodeBlockExpander
-  | args, str => do
+  | args, str => withoutAsync do
     let config ← SyntaxErrorConfig.parse.run args
 
     PointOfInterest.save (← getRef) config.name.toString

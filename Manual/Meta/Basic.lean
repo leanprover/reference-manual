@@ -186,6 +186,14 @@ where
       errs := (pos, toString err) :: errs
     errs.reverse
 
+open Lean Elab Command in
+def commandWithoutAsync : (act : CommandElabM α) → CommandElabM α :=
+  withScope fun sc =>
+    {sc with opts := Elab.async.set sc.opts false}
+
+def withoutAsync [Monad m] [MonadWithOptions m] : (act : m α) → m α :=
+  withOptions (Elab.async.set · false)
+
 
 /--
 Consistently rewrite all substrings that look like automatic metavariables (e.g "?m.123") so
