@@ -28,6 +28,9 @@ Lean's uniform representation of syntax is very general and flexible.
 This means that extensions to Lean's parser do not require extensions to the representation of parsed syntax.
 
 # Syntax Model
+%%%
+tag := "syntax-data"
+%%%
 
 Lean's parser produces a concrete syntax tree, of type {name}`Lean.Syntax`.
 {name}`Lean.Syntax` is an inductive type that represents all of Lean's syntax, including commands, terms, tactics, and any custom extensions.
@@ -362,6 +365,8 @@ The list of syntax categories typically contains precisely one element, in which
 
 {docstring Lean.TSyntax}
 
+{docstring Lean.SyntaxNodeKinds}
+
 {tech}[Quasiquotations] prevent the substitution of typed syntax that does not come from the correct syntactic category.
 For many of Lean's built-in syntactic categories, there is a set of {tech}[coercions] that appropriately wrap one kind of syntax for another category, such as a coercion from the syntax of string literals to the syntax of terms.
 Additionally, many helper functions that are only valid on some syntactic categories are defined for the appropriate typed syntax only.
@@ -449,7 +454,7 @@ Some of the most important categories are terms, commands, universe levels, prio
 Typically, each {tech}[syntax kind] corresponds to a category.
 New categories can be declared using {keywordOf Lean.Parser.Command.syntaxCat}`declare_syntax_cat`.
 
-:::syntax command
+:::syntax command (title := "Declaring Syntactic Categories")
 Declares a new syntactic category.
 
 ```grammar
@@ -472,7 +477,7 @@ tag := "syntax-rules"
 Each {tech}[syntax category] is associated with a set of {deftech}_syntax rules_, which correspond to productions in a context-free grammar.
 Syntax rules can be defined using the {keywordOf Lean.Parser.Command.syntax}`syntax` command.
 
-:::syntax command
+:::syntax command (title := "Syntax Rules")
 ```grammar
 $[$_:docComment]?
 $[$_:attributes]?
@@ -514,7 +519,7 @@ syntax "blah" : nuhUh
 ```
 
 
-:::syntax stx (open := false)
+:::syntax stx (open := false) (title := "Syntax Specifiers")
 The syntactic category `stx` is the grammar of specifiers that may occur in the body of a {keywordOf Lean.Parser.Command.syntax}`syntax` command.
 
 String literals are parsed as {tech}[atoms] (including both keywords such as `if`, `#eval`, or `where`):

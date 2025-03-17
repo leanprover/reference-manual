@@ -761,6 +761,7 @@ tag := "token-antiquotations"
 %%%
 
 In addition to antiquotations of complete syntax, Lean features {deftech}_token antiquotations_ which allow the source information of an atom to be replaced with the source information from some other syntax.
+The resulting synthetic source information is marked {tech}[canonical] so that it will be used for error messages, proof states, and other feedback.
 This is primarily useful to control the placement of error messages or other information that Lean reports to users.
 A token antiquotation does not allow an arbitrary atom to be inserted via evaluation.
 A token antiquotation consists of an atom (that is, a keyword)
