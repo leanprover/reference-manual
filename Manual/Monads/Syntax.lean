@@ -23,6 +23,9 @@ set_option linter.unusedVariables false
 set_option guard_msgs.diff true
 
 #doc (Manual) "Syntax" =>
+%%%
+tag := "functor-applicative-monad-syntax"
+%%%
 
 Lean supports programming with functors, applicative functors, and monads via special syntax:
  * Infix operators are provided for the most common operations.
@@ -449,6 +452,9 @@ Internally, the {keywordOf Lean.Parser.Term.do}`do` elaborator performs a transl
 On its own, {keywordOf Lean.Parser.Term.doReturn}`return` is short for {keywordOf Lean.Parser.Term.doReturn}`return`​` `​{lean}`()`.
 
 ## Local Mutable State
+%%%
+tag := "do-notation-let-mut"
+%%%
 
 Local mutable state is mutable state that cannot escape the {keywordOf Lean.Parser.Term.do}`do` block in which it is defined.
 The {keywordOf Lean.Parser.Term.doLet}`let mut` binder introduces a locally-mutable binding.
