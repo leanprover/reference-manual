@@ -19,9 +19,6 @@ file := "v4.10.0"
 %%%
 
 `````markdown
-v4.10.0
-----------
-
 ### Language features, tactics, and metaprograms
 
 * `split` tactic:
