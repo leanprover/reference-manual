@@ -40,11 +40,11 @@ tag := "reader-monad"
 
 {docstring ReaderM}
 
-{docstring ReaderT.adapt}
+{docstring ReaderT.run}
 
 {docstring ReaderT.read}
 
-{docstring ReaderT.run}
+{docstring ReaderT.adapt}
 
 {docstring ReaderT.orElse}
 
