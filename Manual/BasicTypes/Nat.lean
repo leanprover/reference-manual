@@ -306,19 +306,10 @@ This is not particularly user-friendly, so an alternative logically-equivalent r
 Insert reference to section on how to do this
 :::
 
-{docstring Nat.rec}
+{docstring Nat.recAux}
 
-{docstring Nat.recOn}
+{docstring Nat.casesAuxOn}
 
-{docstring Nat.casesOn}
-
-{docstring Nat.below}
-
-{docstring Nat.noConfusionType}
-
-{docstring Nat.noConfusion}
-
-{docstring Nat.ibelow}
 
 {docstring Nat.elimOffset}
 
