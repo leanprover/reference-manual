@@ -148,8 +148,6 @@ tag := "nat-api-minmax"
 
 {docstring Nat.max}
 
-{docstring Nat.imax}
-
 ## GCD and LCM
 %%%
 tag := "nat-api-gcd-lcm"
@@ -207,8 +205,6 @@ tag := "nat-api-predicates"
 {docstring Nat.le}
 
 {docstring Nat.lt}
-
-{docstring Nat.lt_wfRel}
 
 ## Iteration
 %%%
@@ -283,8 +279,6 @@ tag := "nat-api-conversion"
 
 {docstring Nat.toDigits}
 
-{docstring Nat.toDigitsCore}
-
 {docstring Nat.digitChar}
 
 {docstring Nat.toSubscriptString}
@@ -298,16 +292,6 @@ tag := "nat-api-conversion"
 {docstring Nat.subDigitChar}
 
 {docstring Nat.superDigitChar}
-
-### Metaprogramming and Internals
-%%%
-tag := "nat-api-meta"
-%%%
-
-{docstring Nat.fromExpr?}
-
-{docstring Nat.toLevel}
-
 
 ## Elimination
 %%%
@@ -343,7 +327,6 @@ Insert reference to section on how to do this
 tag := "nat-api-induction"
 %%%
 
-
 {docstring Nat.strongRecOn}
 
 {docstring Nat.caseStrongRecOn}
@@ -353,73 +336,3 @@ tag := "nat-api-induction"
 {docstring Nat.div2Induction}
 
 {docstring Nat.mod.inductionOn}
-
-# Simplification
-%%%
-tag := "nat-simp"
-%%%
-
-
-{docstring Nat.isValue}
-
-{docstring Nat.reduceUnary}
-
-{docstring Nat.reduceBin}
-
-{docstring Nat.reduceBinPred}
-
-{docstring Nat.reduceBoolPred}
-
-{docstring Nat.reduceSucc}
-
-{docstring Nat.reduceAdd}
-
-{docstring Nat.reduceSub}
-
-{docstring Nat.reduceMul}
-
-{docstring Nat.reducePow}
-
-{docstring Nat.reduceDiv}
-
-{docstring Nat.reduceDvd}
-
-{docstring Nat.reduceMod}
-
-{docstring Nat.reduceGcd}
-
-{docstring Nat.reduceAnd}
-
-{docstring Nat.reduceOr}
-
-{docstring Nat.reduceXor}
-
-{docstring Nat.reduceShiftLeft}
-
-{docstring Nat.reduceShiftRight}
-
-{docstring Nat.reduceLT}
-
-{docstring Nat.reduceLTLE}
-
-{docstring Nat.reduceLeDiff}
-
-{docstring Nat.reduceSubDiff}
-
-{docstring Nat.reduceGT}
-
-{docstring Nat.reduceBEq}
-
-{docstring Nat.reduceBeqDiff}
-
-{docstring Nat.reduceBneDiff}
-
-{docstring Nat.reduceEqDiff}
-
-{docstring Nat.reduceBNe}
-
-{docstring Nat.reduceNatEqExpr}
-
-{docstring Nat.applyEqLemma}
-
-{docstring Nat.applySimprocConst}
