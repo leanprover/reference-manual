@@ -6,9 +6,29 @@ Author: Joachim Breitner
 
 import VersoManual
 
-import Manual.Releases.«v4.15.0»
-import Manual.Releases.«v4.16.0»
 import Manual.Releases.«v4.17.0»
+import Manual.Releases.«v4.16.0»
+import Manual.Releases.«v4.15.0»
+import Manual.Releases.«v4.14.0»
+import Manual.Releases.«v4.13.0»
+import Manual.Releases.«v4.12.0»
+import Manual.Releases.«v4.11.0»
+import Manual.Releases.«v4.10.0»
+import Manual.Releases.«v4.9.0»
+import Manual.Releases.«v4.8.0»
+import Manual.Releases.«v4.7.0»
+import Manual.Releases.«v4.6.0»
+import Manual.Releases.«v4.5.0»
+import Manual.Releases.«v4.4.0»
+import Manual.Releases.«v4.3.0»
+import Manual.Releases.«v4.2.0»
+import Manual.Releases.«v4.1.0»
+import Manual.Releases.«v4.0.0»
+import Manual.Releases.«v4.0.0-m5»
+import Manual.Releases.«v4.0.0-m4»
+import Manual.Releases.«v4.0.0-m3»
+import Manual.Releases.«v4.0.0-m2»
+import Manual.Releases.«v4.0.0-m1»
 
 open Manual
 open Verso.Genre
@@ -32,3 +52,43 @@ repository](https://github.com/leanprover/lean4/tree/master/releases).
 {include 0 Manual.Releases.«v4.16.0»}
 
 {include 0 Manual.Releases.«v4.15.0»}
+
+{include 0 Manual.Releases.«v4.14.0»}
+
+{include 0 Manual.Releases.«v4.13.0»}
+
+{include 0 Manual.Releases.«v4.12.0»}
+
+{include 0 Manual.Releases.«v4.11.0»}
+
+{include 0 Manual.Releases.«v4.10.0»}
+
+{include 0 Manual.Releases.«v4.9.0»}
+
+{include 0 Manual.Releases.«v4.8.0»}
+
+{include 0 Manual.Releases.«v4.7.0»}
+
+{include 0 Manual.Releases.«v4.6.0»}
+
+{include 0 Manual.Releases.«v4.5.0»}
+
+{include 0 Manual.Releases.«v4.4.0»}
+
+{include 0 Manual.Releases.«v4.3.0»}
+
+{include 0 Manual.Releases.«v4.2.0»}
+
+{include 0 Manual.Releases.«v4.1.0»}
+
+{include 0 Manual.Releases.«v4.0.0»}
+
+{include 0 Manual.Releases.«v4.0.0-m5»}
+
+{include 0 Manual.Releases.«v4.0.0-m4»}
+
+{include 0 Manual.Releases.«v4.0.0-m3»}
+
+{include 0 Manual.Releases.«v4.0.0-m2»}
+
+{include 0 Manual.Releases.«v4.0.0-m1»}
