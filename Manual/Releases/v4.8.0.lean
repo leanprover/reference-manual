@@ -458,7 +458,7 @@ file := "v4.8.0"
 
   In a related change, the signature of the `nativeFacets` Lake configuration options has changed
   from a static `Array` to a function `(shouldExport : Bool) → Array`.
-  See its docstring or Lake's [README](src/lake/README.md) for further details on the changed option.
+  See its docstring or Lake's [README](https://github.com/leanprover/lean4/blob/releases/v4.8.0/src/lake/README.md) for further details on the changed option.
 * [#3690](https://github.com/leanprover/lean4/pull/3690) marks "Build matrix complete" as canceled if the build is canceled.
 * [#3700](https://github.com/leanprover/lean4/pull/3700), [#3702](https://github.com/leanprover/lean4/pull/3702),
   [#3701](https://github.com/leanprover/lean4/pull/3701), [#3834](https://github.com/leanprover/lean4/pull/3834),
