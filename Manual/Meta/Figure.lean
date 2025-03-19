@@ -85,7 +85,7 @@ def figure.descr : BlockDescr where
             <figcaption>{{← caption.mapM goI}}</figcaption>
           </figure>
         }}
-  localContentItem _ info blocks := open Verso.Output.Html in do
+  localContentItem _ info blocks := open Verso.Output.Html in Id.run do
     let .ok (captionString, _, _) := FromJson.fromJson? info (α := String × Option String × Option Tag)
-      | failure
-    {{<span class="figure">{{captionString}}</span>}}
+      | #[]
+    #[(captionString, {{<span class="figure">{{captionString}}</span>}})]

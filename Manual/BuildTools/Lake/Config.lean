@@ -127,7 +127,8 @@ This package contains no {tech}[targets], so there is no code to be built.
 name = "example-package"
 ```
 ```expected
-{dir := FilePath.mk "./.",
+{name := `«example-package»,
+  dir := FilePath.mk "./.",
   relDir := FilePath.mk ".",
   config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
     toLeanConfig := { buildType := Lake.BuildType.release,
@@ -143,7 +144,6 @@ name = "example-package"
       platformIndependent := none,
       dynlibs := #[],
       plugins := #[] },
-    name := `«example-package»,
     manifestFile := none,
     extraDepTargets := #[],
     precompileModules := false,
@@ -178,10 +178,8 @@ name = "example-package"
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
-  leanLibConfigs := {},
-  leanExeConfigs := {},
-  externLibConfigs := {},
-  opaqueTargetConfigs := {},
+  targetDecls := #[],
+  targetDeclMap := {},
   defaultTargets := #[],
   scripts := {},
   defaultScripts := #[],
@@ -204,7 +202,8 @@ defaultTargets = ["Sorting"]
 name = "Sorting"
 ```
 ```expected
-{dir := FilePath.mk "./.",
+{name := `«example-package»,
+  dir := FilePath.mk "./.",
   relDir := FilePath.mk ".",
   config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
     toLeanConfig := { buildType := Lake.BuildType.release,
@@ -220,7 +219,6 @@ name = "Sorting"
       platformIndependent := none,
       dynlibs := #[],
       plugins := #[] },
-    name := `«example-package»,
     manifestFile := none,
     extraDepTargets := #[],
     precompileModules := false,
@@ -255,33 +253,59 @@ name = "Sorting"
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
-  leanLibConfigs := {`Sorting ↦
-      {toLeanConfig := { buildType := Lake.BuildType.release,
-          leanOptions := #[],
-          moreLeanArgs := #[],
-          weakLeanArgs := #[],
-          moreLeancArgs := #[],
-          moreServerOptions := #[],
-          weakLeancArgs := #[],
-          moreLinkArgs := #[],
-          weakLinkArgs := #[],
-          backend := Lake.Backend.default,
-          platformIndependent := none,
-          dynlibs := #[],
-          plugins := #[] },
+  targetDecls := #[{toConfigDecl := {pkg := `«example-package»,
         name := `Sorting,
-        srcDir := FilePath.mk ".",
-        roots := #[`Sorting],
-        globs := #[Lake.Glob.one `Sorting],
-        libName := "Sorting",
-        extraDepTargets := #[],
-        precompileModules := false,
-        defaultFacets := #[`leanArts],
-        nativeFacets := #<fun>},
+        kind := `lean_lib,
+        config := {toLeanConfig := { buildType := Lake.BuildType.release,
+            leanOptions := #[],
+            moreLeanArgs := #[],
+            weakLeanArgs := #[],
+            moreLeancArgs := #[],
+            moreServerOptions := #[],
+            weakLeancArgs := #[],
+            moreLinkArgs := #[],
+            weakLinkArgs := #[],
+            backend := Lake.Backend.default,
+            platformIndependent := none,
+            dynlibs := #[],
+            plugins := #[] },
+          srcDir := FilePath.mk ".",
+          roots := #[`Sorting],
+          globs := #[Lake.Glob.one `Sorting],
+          libName := "Sorting",
+          extraDepTargets := #[],
+          precompileModules := false,
+          defaultFacets := #[`leanArts],
+          nativeFacets := #<fun>}},
+      pkg_eq := ...}],
+  targetDeclMap := {`Sorting ↦
+      {toConfigDecl := {pkg := `«example-package»,
+          name := `Sorting,
+          kind := `lean_lib,
+          config := {toLeanConfig := { buildType := Lake.BuildType.release,
+              leanOptions := #[],
+              moreLeanArgs := #[],
+              weakLeanArgs := #[],
+              moreLeancArgs := #[],
+              moreServerOptions := #[],
+              weakLeancArgs := #[],
+              moreLinkArgs := #[],
+              weakLinkArgs := #[],
+              backend := Lake.Backend.default,
+              platformIndependent := none,
+              dynlibs := #[],
+              plugins := #[] },
+            srcDir := FilePath.mk ".",
+            roots := #[`Sorting],
+            globs := #[Lake.Glob.one `Sorting],
+            libName := "Sorting",
+            extraDepTargets := #[],
+            precompileModules := false,
+            defaultFacets := #[`leanArts],
+            nativeFacets := #<fun>}},
+        pkg_eq := ...
+      name_eq := ...},
     },
-  leanExeConfigs := {},
-  externLibConfigs := {},
-  opaqueTargetConfigs := {},
   defaultTargets := #[`Sorting],
   scripts := {},
   defaultScripts := #[],
@@ -468,28 +492,28 @@ This library declaration supplies only a name:
 name = "TacticTools"
 ```
 ```expected
-#[{toLeanConfig := { buildType := Lake.BuildType.release,
-      leanOptions := #[],
-      moreLeanArgs := #[],
-      weakLeanArgs := #[],
-      moreLeancArgs := #[],
-      moreServerOptions := #[],
-      weakLeancArgs := #[],
-      moreLinkArgs := #[],
-      weakLinkArgs := #[],
-      backend := Lake.Backend.default,
-      platformIndependent := none,
-      dynlibs := #[],
-      plugins := #[] },
-    name := `TacticTools,
-    srcDir := FilePath.mk ".",
-    roots := #[`TacticTools],
-    globs := #[Lake.Glob.one `TacticTools],
-    libName := "TacticTools",
-    extraDepTargets := #[],
-    precompileModules := false,
-    defaultFacets := #[`leanArts],
-    nativeFacets := #<fun>}]
+#[{ name := TacticTools,
+    val := {toLeanConfig := { buildType := Lake.BuildType.release,
+        leanOptions := #[],
+        moreLeanArgs := #[],
+        weakLeanArgs := #[],
+        moreLeancArgs := #[],
+        moreServerOptions := #[],
+        weakLeancArgs := #[],
+        moreLinkArgs := #[],
+        weakLinkArgs := #[],
+        backend := Lake.Backend.default,
+        platformIndependent := none,
+        dynlibs := #[],
+        plugins := #[] },
+      srcDir := FilePath.mk ".",
+      roots := #[`TacticTools],
+      globs := #[Lake.Glob.one `TacticTools],
+      libName := "TacticTools",
+      extraDepTargets := #[],
+      precompileModules := false,
+      defaultFacets := #[`leanArts],
+      nativeFacets := #<fun>}}]
 ```
 ::::
 The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
@@ -505,28 +529,28 @@ srcDir = "src"
 precompileModules = true
 ```
 ```expected
-#[{toLeanConfig := { buildType := Lake.BuildType.release,
-      leanOptions := #[],
-      moreLeanArgs := #[],
-      weakLeanArgs := #[],
-      moreLeancArgs := #[],
-      moreServerOptions := #[],
-      weakLeancArgs := #[],
-      moreLinkArgs := #[],
-      weakLinkArgs := #[],
-      backend := Lake.Backend.default,
-      platformIndependent := none,
-      dynlibs := #[],
-      plugins := #[] },
-    name := `TacticTools,
-    srcDir := FilePath.mk "src",
-    roots := #[`TacticTools],
-    globs := #[Lake.Glob.one `TacticTools],
-    libName := "TacticTools",
-    extraDepTargets := #[],
-    precompileModules := true,
-    defaultFacets := #[`leanArts],
-    nativeFacets := #<fun>}]
+#[{ name := TacticTools,
+    val := {toLeanConfig := { buildType := Lake.BuildType.release,
+        leanOptions := #[],
+        moreLeanArgs := #[],
+        weakLeanArgs := #[],
+        moreLeancArgs := #[],
+        moreServerOptions := #[],
+        weakLeancArgs := #[],
+        moreLinkArgs := #[],
+        weakLinkArgs := #[],
+        backend := Lake.Backend.default,
+        platformIndependent := none,
+        dynlibs := #[],
+        plugins := #[] },
+      srcDir := FilePath.mk "src",
+      roots := #[`TacticTools],
+      globs := #[Lake.Glob.one `TacticTools],
+      libName := "TacticTools",
+      extraDepTargets := #[],
+      precompileModules := true,
+      defaultFacets := #[`leanArts],
+      nativeFacets := #<fun>}}]
 ```
 ::::
 The library's source is located in the directory `src`, in the module hierarchy rooted at `TacticTools`.
@@ -547,26 +571,26 @@ This executable declaration supplies only a name:
 name = "trustworthytool"
 ```
 ```expected
-#[{toLeanConfig := { buildType := Lake.BuildType.release,
-      leanOptions := #[],
-      moreLeanArgs := #[],
-      weakLeanArgs := #[],
-      moreLeancArgs := #[],
-      moreServerOptions := #[],
-      weakLeancArgs := #[],
-      moreLinkArgs := #[],
-      weakLinkArgs := #[],
-      backend := Lake.Backend.default,
-      platformIndependent := none,
-      dynlibs := #[],
-      plugins := #[] },
-    name := `trustworthytool,
-    srcDir := FilePath.mk ".",
-    root := `trustworthytool,
-    exeName := "trustworthytool",
-    extraDepTargets := #[],
-    supportInterpreter := false,
-    nativeFacets := #<fun>}]
+#[{ name := trustworthytool,
+    val := {toLeanConfig := { buildType := Lake.BuildType.release,
+        leanOptions := #[],
+        moreLeanArgs := #[],
+        weakLeanArgs := #[],
+        moreLeancArgs := #[],
+        moreServerOptions := #[],
+        weakLeancArgs := #[],
+        moreLinkArgs := #[],
+        weakLinkArgs := #[],
+        backend := Lake.Backend.default,
+        platformIndependent := none,
+        dynlibs := #[],
+        plugins := #[] },
+      srcDir := FilePath.mk ".",
+      root := `trustworthytool,
+      exeName := "trustworthytool",
+      extraDepTargets := #[],
+      supportInterpreter := false,
+      nativeFacets := #<fun>}}]
 ```
 ::::
 
@@ -591,26 +615,26 @@ root = "TrustworthyTool"
 exeName = "tt"
 ```
 ```expected
-#[{toLeanConfig := { buildType := Lake.BuildType.release,
-      leanOptions := #[],
-      moreLeanArgs := #[],
-      weakLeanArgs := #[],
-      moreLeancArgs := #[],
-      moreServerOptions := #[],
-      weakLeancArgs := #[],
-      moreLinkArgs := #[],
-      weakLinkArgs := #[],
-      backend := Lake.Backend.default,
-      platformIndependent := none,
-      dynlibs := #[],
-      plugins := #[] },
-    name := `«trustworthy-tool»,
-    srcDir := FilePath.mk ".",
-    root := `TrustworthyTool,
-    exeName := "tt",
-    extraDepTargets := #[],
-    supportInterpreter := false,
-    nativeFacets := #<fun>}]
+#[{ name := «trustworthy-tool»,
+    val := {toLeanConfig := { buildType := Lake.BuildType.release,
+        leanOptions := #[],
+        moreLeanArgs := #[],
+        weakLeanArgs := #[],
+        moreLeancArgs := #[],
+        moreServerOptions := #[],
+        weakLeancArgs := #[],
+        moreLinkArgs := #[],
+        weakLinkArgs := #[],
+        backend := Lake.Backend.default,
+        platformIndependent := none,
+        dynlibs := #[],
+        plugins := #[] },
+      srcDir := FilePath.mk ".",
+      root := `TrustworthyTool,
+      exeName := "tt",
+      extraDepTargets := #[],
+      supportInterpreter := false,
+      nativeFacets := #<fun>}}]
 ```
 ::::
 
@@ -678,7 +702,7 @@ $[where
   $[$_:letRecDecl];*]?
 ```
 
-There can only be one {keywordOf Lake.DSL.packageDecl}`package` declaration per Lake configuration file.
+There can only be one {keywordOf Lake.DSL.packageCommand}`package` declaration per Lake configuration file.
 The defined package configuration will be available for reference as `_package`.
 
 ::::
@@ -745,7 +769,7 @@ Marks a target as a default, to be built when no other target is specified.
 
 :::syntax command (title := "Library Targets")
 
-To define a library in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanLibDecl}`lean_lib` with no further fields.
+To define a library in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanLibCommand}`lean_lib` with no further fields.
 
 ```grammar
 $[$_:docComment]?
@@ -774,7 +798,7 @@ $[where
 ```
 :::
 
-The fields of {keywordOf Lake.DSL.leanLibDecl}`lean_lib` are those of the {name Lake.LeanLibConfig}`LeanLibConfig` structure.
+The fields of {keywordOf Lake.DSL.leanLibCommand}`lean_lib` are those of the {name Lake.LeanLibConfig}`LeanLibConfig` structure.
 
 {docstring Lake.LeanLibConfig}
 
@@ -782,7 +806,7 @@ The fields of {keywordOf Lake.DSL.leanLibDecl}`lean_lib` are those of the {name 
 
 :::syntax command
 
-To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeDecl}`lean_exe` with no further fields.
+To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeCommand}`lean_exe` with no further fields.
 
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
@@ -807,7 +831,7 @@ $[where
 ```
 :::
 
-The fields of {keywordOf Lake.DSL.leanExeDecl}`lean_exe` are those of the {name Lake.LeanExeConfig}`LeanExeConfig` structure.
+The fields of {keywordOf Lake.DSL.leanExeCommand}`lean_exe` are those of the {name Lake.LeanExeConfig}`LeanExeConfig` structure.
 
 {docstring Lake.LeanExeConfig}
 
@@ -827,7 +851,7 @@ extern_lib $_:identOrStr $_? := $_:term
 $[where $_*]?
 ```
 
-{includeDocstring Lake.DSL.externLibDecl}
+{includeDocstring Lake.DSL.externLibCommand}
 
 :::
 
@@ -844,7 +868,7 @@ target $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
 
-{includeDocstring Lake.DSL.externLibDecl}
+{includeDocstring Lake.DSL.externLibCommand}
 
 :::
 
