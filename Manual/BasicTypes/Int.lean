@@ -99,13 +99,13 @@ end
 
 {docstring Int.toISize}
 
+{docstring Int.toInt8}
+
 {docstring Int.toInt16}
 
 {docstring Int.toInt32}
 
 {docstring Int.toInt64}
-
-{docstring Int.toInt8}
 
 {docstring Int.repr}
 
@@ -168,6 +168,10 @@ All evaluate to 0.
 
 {docstring Int.emod}
 
+{docstring Int.tdiv}
+
+{docstring Int.tmod}
+
 {docstring Int.bdiv}
 
 {docstring Int.bmod}
@@ -175,10 +179,6 @@ All evaluate to 0.
 {docstring Int.fdiv}
 
 {docstring Int.fmod}
-
-{docstring Int.tdiv}
-
-{docstring Int.tmod}
 
 ## Bitwise Operators
 
@@ -203,77 +203,3 @@ example (i j : Int) : Decidable (i = j) := inferInstance
 {docstring Int.lt}
 
 {docstring Int.decEq}
-
-## Proof Automation
-
-The functions in this section are primarily parts of the implementation of simplification rules employed by {tactic}`simp`.
-They are probably only of interest to users who are implementing custom proof automation that involves integers.
-
-
-{docstring Int.fromExpr?}
-
-{docstring Int.isPosValue}
-
-{docstring Int.reduceAbs}
-
-{docstring Int.reduceAdd}
-
-{docstring Int.reduceBEq}
-
-{docstring Int.reduceBNe}
-
-{docstring Int.reduceBdiv}
-
-{docstring Int.reduceBin}
-
-{docstring Int.reduceBinIntNatOp}
-
-{docstring Int.reduceBinPred}
-
-{docstring Int.reduceBmod}
-
-{docstring Int.reduceBoolPred}
-
-{docstring Int.reduceDiv}
-
-{docstring Int.reduceDvd}
-
-{docstring Int.reduceEq}
-
-{docstring Int.reduceFDiv}
-
-{docstring Int.reduceFMod}
-
-{docstring Int.reduceGE}
-
-{docstring Int.reduceGT}
-
-{docstring Int.reduceLE}
-
-{docstring Int.reduceLT}
-
-{docstring Int.reduceMod}
-
-{docstring Int.reduceMul}
-
-{docstring Int.reduceNatCore}
-
-{docstring Int.reduceNe}
-
-{docstring Int.reduceNeg}
-
-{docstring Int.reduceNegSucc}
-
-{docstring Int.reduceOfNat}
-
-{docstring Int.reducePow}
-
-{docstring Int.reduceSub}
-
-{docstring Int.reduceTDiv}
-
-{docstring Int.reduceTMod}
-
-{docstring Int.reduceToNat}
-
-{docstring Int.reduceUnary}
