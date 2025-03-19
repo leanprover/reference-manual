@@ -519,9 +519,11 @@ def L := List (Type 0)
 
 ### Universe Lifting
 
-:::planned 174
- * When to use universe lifting?
-:::
+When a type's universe is smaller than the one expected in some context, {deftech}_universe lifting_ operators can bridge the gap.
+These are wrappers around terms of a given type that are in larger universes than the wrapped type.
+There are two lifting operators:
+ * {name}`PLift` can lift any type, including {tech}[propositions], by one level. It can be used to include proofs in data structures such as lists.
+ * {name}`ULift` can lift any non-proposition type by any number of levels.
 
 {docstring PLift}
 
