@@ -292,10 +292,11 @@ def lakeCommand.descr : BlockDescr where
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := open Verso.Output.Html in Id.run do
     let Json.arr #[ Json.str name, _, _] := info
-      | failure
-    {{<code>"lake "{{name}}</code>}}
+      | #[]
+    let str := s!"lake {name}"
+    #[(str, {{<code>{{str}}</code>}})]
 
 @[role_expander lakeMeta]
 def lakeMeta : RoleExpander

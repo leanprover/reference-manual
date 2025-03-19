@@ -102,7 +102,7 @@ r#"
 
       return {{<code class="env-var">s!"{var}"</code>}}
 
-  localContentItem _ info _ := open Verso.Output.Html in do
+  localContentItem _ info _ := open Verso.Output.Html in Id.run do
     let .arr #[.str var, .bool true] := info
-      | failure
-    {{<code>{{var}}</code>}}
+      | #[]
+    #[(var, {{<code>{{var}}</code>}}), (s!"{var} (Environment Variable)", {{<code>{{var}}</code>" (Environment Variable)"}})]
