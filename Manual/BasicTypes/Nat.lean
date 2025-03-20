@@ -83,9 +83,11 @@ theorem noConfusionDiagonal (n : Nat) : NoConfusion n n :=
 theorem noConfusion (n k : Nat) (eq : n = k) : NoConfusion n k :=
   eq ▸ noConfusionDiagonal n
 
-theorem succ_injective : n + 1 = k + 1 → n = k := noConfusion (n + 1) (k + 1)
+theorem succ_injective : n + 1 = k + 1 → n = k :=
+  noConfusion (n + 1) (k + 1)
 
-theorem succ_not_zero : ¬n + 1 = 0 := noConfusion (n + 1) 0
+theorem succ_not_zero : ¬n + 1 = 0 :=
+  noConfusion (n + 1) 0
 ```
 
 # Run-Time Representation
