@@ -971,7 +971,7 @@ Scientific number literals consist of a sequence of digits followed by an option
 If no period or exponent is present, then the term is instead a natural number literal.
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
-{docstring OfScientific}
+{docstring OfScientific (allowMissing := true)}
 
 There are an {lean}`OfScientific` instances for {name}`Float` and {name}`Float32`, but no separate floating-point literals.
 

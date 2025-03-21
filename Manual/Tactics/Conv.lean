@@ -89,7 +89,7 @@ tag := "conv-control"
 :::conv convTry_ show := "try"
 :::
 
-:::conv «conv_<;>_» show:="<;>"
+:::conv «conv_<;>_» (show:="<;>") (allowMissing := true)
 :::
 
 :::conv convRepeat_ show := "repeat"

@@ -167,7 +167,7 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream.ofBuffer}
 
-{docstring IO.FS.Stream.ofHandle}
+{docstring IO.FS.Stream.ofHandle (allowMissing := true)}
 
 {docstring IO.FS.Stream.putStrLn}
 
@@ -188,7 +188,7 @@ Avoid hard-coding these rules.
 
 There is an instance of the {lean}`Div` type class for {name System.FilePath}`FilePath` which allows the slash operator to be used to concatenate paths.
 
-{docstring System.FilePath}
+{docstring System.FilePath (allowMissing := true)}
 
 {docstring System.mkFilePath}
 
@@ -244,7 +244,7 @@ Some operations on paths consult the filesystem.
 
 {docstring System.FilePath.walkDir}
 
-{docstring IO.AccessRight}
+{docstring IO.AccessRight (allowMissing := true)}
 
 {docstring IO.AccessRight.flags}
 

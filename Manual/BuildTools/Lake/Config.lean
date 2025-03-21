@@ -973,7 +973,7 @@ Whitespace is not permitted between the name and `.*` or `.+`.
 
 
 
-{docstring Lake.LeanOption}
+{docstring Lake.LeanOption (allowMissing := true)}
 
 {docstring Lake.Backend}
 
