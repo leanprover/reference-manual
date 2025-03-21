@@ -387,7 +387,7 @@ def deploy_version(source_dir, version, branch):
 
             # Checkout the specified branch
             print(f"Checking out branch: {branch}")
-            run_git_command(["git", "checkout", branch])
+            run_git_command(["git", "switch", "-c", branch, "--track", "origin/" + branch])
 
             # The target directory for this version
             version_dir = version
@@ -427,7 +427,7 @@ def deploy_version(source_dir, version, branch):
     finally:
         # Restore the original branch
         print(f"Restoring original branch: {current_branch}")
-        run_git_command(["git", "checkout", current_branch])
+        run_git_command(["git", "switch", current_branch])
 
     print(f"Deployment of version {version} completed successfully.")
 
