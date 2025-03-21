@@ -16,7 +16,7 @@ open Verso.Genre Manual
 
 set_option verso.docstring.allowMissing true
 
-#doc (Manual) "Fixed-Precision Integer Types" =>
+#doc (Manual) "Fixed-Precision Integers" =>
 %%%
 tag := "fixed-ints"
 %%%
@@ -184,6 +184,7 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int64.toInt}
 
+
 {docstring ISize.ofInt}
 
 {docstring Int8.ofInt}
@@ -194,6 +195,7 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int64.ofInt}
 
+
 {docstring ISize.ofIntTruncate}
 
 {docstring Int8.ofIntTruncate}
@@ -203,6 +205,7 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 {docstring Int32.ofIntTruncate}
 
 {docstring Int64.ofIntTruncate}
+
 
 {docstring ISize.ofIntLE}
 
@@ -279,101 +282,109 @@ This is not equivalent to C's `sizeof` operator, which instead determines how ma
 
 {docstring Int64.toNatClampNeg}
 
+
 ### To Other Fixed-Width Integers
-
-{docstring ISize.toInt32}
-
-{docstring Int8.toInt32}
-
-{docstring Int16.toInt32}
-
-{docstring ISize.toInt64}
 
 {docstring USize.toUInt8}
 
-{docstring UInt8.toInt8}
-
-{docstring UInt16.toUInt8}
-
-{docstring ISize.toInt8}
-
-{docstring Int16.toInt8}
-
-{docstring UInt32.toUInt8}
-
-{docstring Int32.toInt8}
-
-{docstring UInt64.toUInt8}
-
-{docstring Int64.toInt8}
-
 {docstring USize.toUInt16}
-
-{docstring UInt8.toUInt16}
-
-{docstring ISize.toInt16}
-
-{docstring Int8.toInt16}
-
-{docstring UInt16.toInt16}
-
-{docstring UInt32.toUInt16}
-
-{docstring Int32.toInt16}
-
-{docstring UInt64.toUInt16}
-
-{docstring Int64.toInt16}
 
 {docstring USize.toUInt32}
 
-{docstring UInt8.toUInt32}
-
-{docstring Int8.toInt32}
-
-{docstring UInt16.toUInt32}
-
-{docstring Int16.toInt32}
-
-{docstring UInt32.toInt32}
-
-{docstring UInt64.toUInt32}
-
-{docstring Int64.toInt32}
-
 {docstring USize.toUInt64}
-
-{docstring UInt8.toUInt64}
-
-{docstring Int8.toInt64}
-
-{docstring UInt16.toUInt64}
-
-{docstring Int16.toInt64}
-
-{docstring UInt32.toUInt64}
-
-{docstring Int32.toInt64}
-
-{docstring UInt64.toInt64}
-
-{docstring UInt8.toUSize}
-
-{docstring UInt16.toUSize}
-
-{docstring UInt32.toUSize}
-
-{docstring UInt64.toUSize}
 
 {docstring USize.toISize}
 
+
+{docstring UInt8.toInt8}
+
+{docstring UInt8.toUInt16}
+
+{docstring UInt8.toUInt32}
+
+{docstring UInt8.toUInt64}
+
+{docstring UInt8.toUSize}
+
+
+{docstring UInt16.toUInt8}
+
+{docstring UInt16.toInt16}
+
+{docstring UInt16.toUInt32}
+
+{docstring UInt16.toUInt64}
+
+{docstring UInt16.toUSize}
+
+
+{docstring UInt32.toUInt8}
+
+{docstring UInt32.toUInt16}
+
+{docstring UInt32.toInt32}
+
+{docstring UInt32.toUInt64}
+
+{docstring UInt32.toUSize}
+
+
+{docstring UInt64.toUInt8}
+
+{docstring UInt64.toUInt16}
+
+{docstring UInt64.toUInt32}
+
+{docstring UInt64.toInt64}
+
+{docstring UInt64.toUSize}
+
+
+{docstring ISize.toInt8}
+
+{docstring ISize.toInt16}
+
+{docstring ISize.toInt32}
+
+{docstring ISize.toInt64}
+
+
+{docstring Int8.toInt16}
+
+{docstring Int8.toInt32}
+
+{docstring Int8.toInt64}
+
 {docstring Int8.toISize}
+
+
+{docstring Int16.toInt8}
+
+{docstring Int16.toInt32}
+
+{docstring Int16.toInt64}
 
 {docstring Int16.toISize}
 
+
+{docstring Int32.toInt8}
+
+{docstring Int32.toInt16}
+
+{docstring Int32.toInt64}
+
 {docstring Int32.toISize}
 
+
+{docstring Int64.toInt8}
+
+{docstring Int64.toInt16}
+
+{docstring Int64.toInt32}
+
 {docstring Int64.toISize}
+
+
 
 ### To Floating-Point Numbers
 
@@ -607,117 +618,5 @@ open Lean Elab Command in
 
 {docstring UInt64.shiftRight}
 
+
 {docstring Int64.shiftRight}
-
-## Proof Automation
-
-The functions in this section are primarily parts of the implementation of simplification rules employed by {tactic}`simp`.
-They are probably only of interest to users who are implementing custom proof automation that involves fixed-precision integers.
-
-{docstring USize.fromExpr}
-
-{docstring UInt8.fromExpr}
-
-{docstring UInt16.fromExpr}
-
-{docstring UInt32.fromExpr}
-
-{docstring UInt64.fromExpr}
-
-{docstring UInt8.reduceAdd}
-
-{docstring UInt16.reduceAdd}
-
-{docstring UInt32.reduceAdd}
-
-{docstring UInt64.reduceAdd}
-
-{docstring UInt8.reduceDiv}
-
-{docstring UInt16.reduceDiv}
-
-{docstring UInt32.reduceDiv}
-
-{docstring UInt64.reduceDiv}
-
-{docstring UInt8.reduceGE}
-
-{docstring UInt16.reduceGE}
-
-{docstring UInt32.reduceGE}
-
-{docstring UInt64.reduceGE}
-
-{docstring UInt8.reduceGT}
-
-{docstring UInt16.reduceGT}
-
-{docstring UInt32.reduceGT}
-
-{docstring UInt64.reduceGT}
-
-{docstring UInt8.reduceLE}
-
-{docstring UInt16.reduceLE}
-
-{docstring UInt32.reduceLE}
-
-{docstring UInt64.reduceLE}
-
-{docstring UInt8.reduceLT}
-
-{docstring UInt16.reduceLT}
-
-{docstring UInt32.reduceLT}
-
-{docstring UInt64.reduceLT}
-
-{docstring UInt8.reduceMod}
-
-{docstring UInt16.reduceMod}
-
-{docstring UInt32.reduceMod}
-
-{docstring UInt64.reduceMod}
-
-{docstring UInt8.reduceMul}
-
-{docstring UInt16.reduceMul}
-
-{docstring UInt32.reduceMul}
-
-{docstring UInt64.reduceMul}
-
-{docstring UInt8.reduceOfNat}
-
-{docstring UInt16.reduceOfNat}
-
-{docstring UInt32.reduceOfNat}
-
-{docstring UInt64.reduceOfNat}
-
-{docstring UInt8.reduceOfNatLT}
-
-{docstring UInt16.reduceOfNatLT}
-
-{docstring UInt32.reduceOfNatLT}
-
-{docstring UInt64.reduceOfNatLT}
-
-{docstring UInt8.reduceSub}
-
-{docstring UInt16.reduceSub}
-
-{docstring UInt32.reduceSub}
-
-{docstring UInt64.reduceSub}
-
-{docstring USize.reduceToNat}
-
-{docstring UInt8.reduceToNat}
-
-{docstring UInt16.reduceToNat}
-
-{docstring UInt32.reduceToNat}
-
-{docstring UInt64.reduceToNat}

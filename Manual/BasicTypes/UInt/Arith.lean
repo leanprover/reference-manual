@@ -46,6 +46,16 @@ open Lean Elab Command in
 
 {docstring Int64.neg}
 
+{docstring USize.neg}
+
+{docstring UInt8.neg}
+
+{docstring UInt16.neg}
+
+{docstring UInt32.neg}
+
+{docstring UInt64.neg}
+
 {docstring USize.add}
 
 {docstring ISize.add}

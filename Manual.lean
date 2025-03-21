@@ -133,6 +133,12 @@ file := some "the-index"
 
 {theIndex}
 
+# Progress
+%%%
+number := false
+draft := true
+file := some "the-index"
+%%%
 
 
 ::::::draft
@@ -338,6 +344,10 @@ Quot.lcInv
 ```
 
 ```exceptions
+String.Pos.isValid.go
+```
+
+```exceptions
 String.sluggify
 ```
 
@@ -350,6 +360,23 @@ Ordering.toCtorIdx
 Ord.arrayOrd
 ```
 
+```exceptions
+Nat.applyEqLemma
+Nat.applySimprocConst
+Nat.div.go
+Nat.fromExpr?
+Nat.imax
+Nat.lt_wfRel
+Nat.modCore.go
+Nat.reduceBin
+Nat.reduceBinPred
+Nat.reduceBoolPred
+Nat.reduceLTLE
+Nat.reduceNatEqExpr
+Nat.reduceUnary
+Nat.toDigitsCore
+Nat.toLevel
+```
 
 ```exceptions
 Nat.anyM.loop
@@ -599,6 +626,26 @@ Lean.Elab.Tactic.liftMetaTacticAux
 
 ```exceptions
 Int.add_of_le
+Int.fromExpr?
+Int.reduceBin
+Int.reduceBinIntNatOp
+Int.reduceBinPred
+Int.reduceBoolPred
+Int.reduceNatCore
+Int.reduceUnary
+```
+
+```exceptions
+Int8.fromExpr
+Int16.fromExpr
+Int32.fromExpr
+Int64.fromExpr
+ISize.fromExpr
+UInt8.fromExpr
+UInt16.fromExpr
+UInt32.fromExpr
+UInt64.fromExpr
+USize.fromExpr
 ```
 
 ```exceptions
@@ -711,6 +758,35 @@ Lean.Elab.Tactic.evalSkip
 Lean.Elab.Tactic.evalCalc.throwFailed
 Lean.Elab.Tactic.evalSubstEqs
 Lean.Elab.Tactic.evalTacticSeq1Indented
+```
+
+```exceptions
+IO.Error.fopenErrorToString
+IO.Error.mkAlreadyExists
+IO.Error.mkAlreadyExistsFile
+IO.Error.mkEofError
+IO.Error.mkHardwareFault
+IO.Error.mkIllegalOperation
+IO.Error.mkInappropriateType
+IO.Error.mkInappropriateTypeFile
+IO.Error.mkInterrupted
+IO.Error.mkInvalidArgument
+IO.Error.mkInvalidArgumentFile
+IO.Error.mkNoFileOrDirectory
+IO.Error.mkNoSuchThing
+IO.Error.mkNoSuchThingFile
+IO.Error.mkOtherError
+IO.Error.mkPermissionDenied
+IO.Error.mkPermissionDeniedFile
+IO.Error.mkProtocolError
+IO.Error.mkResourceBusy
+IO.Error.mkResourceExhausted
+IO.Error.mkResourceExhaustedFile
+IO.Error.mkResourceVanished
+IO.Error.mkTimeExpired
+IO.Error.mkUnsatisfiedConstraints
+IO.Error.mkUnsupportedOperation
+IO.Error.otherErrorToString
 ```
 
 ```exceptions

@@ -21,7 +21,7 @@ tag := "fixed-int-comparisons"
 
 
 The operators in this section are rarely invoked by name.
-Typically, comparisons operations on fixed-width integers should use the decidability of the corresponding relations, which consist of the equality type {name}`Eq` and those implemented in instances of {name}`LE`, {name}`LT`.
+Typically, comparisons operations on fixed-width integers should use the decidability of the corresponding relations, which consist of the equality type {name}`Eq` and those implemented in instances of {name}`LE` and {name}`LT`.
 
 ```lean (show := false)
 -- Check that all those instances really exist
