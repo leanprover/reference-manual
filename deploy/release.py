@@ -412,10 +412,14 @@ def deploy_version(source_dir, version, branch):
                 if os.path.islink(latest_link):
                     os.unlink(latest_link)
 
-                # Create relative symlink
+                # If it's a directory, delete it
+                if os.path.isdir(latest_link):
+                    shutil.rmtree(latest_link, ignore_errors=True)
+
+                # Copy the latest version (Netlify deploy doesn't work with symlinks)
                 latest_target = latest_version
-                os.symlink(latest_version, latest_link, target_is_directory=True)
-                print(f"Updated 'latest' symlink to point to: {latest_version}")
+                shutil.copytree(latest_version, latest_link)
+                print(f"Updated 'latest' alias as a copy of: {latest_version}")
 
                 run_git_command(["git", "add", "latest"])
 
