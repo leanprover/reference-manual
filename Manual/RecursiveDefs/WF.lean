@@ -348,7 +348,7 @@ decreasing_by
 unsolved goals
 xs : Array Nat
 i : Nat
-h✝ : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one }
+h✝ : i ∈ { stop := xs.size, step_pos := Nat.zero_lt_one }
 ⊢ sizeOf (xs.take i) < sizeOf xs
 ```
 
