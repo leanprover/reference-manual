@@ -78,13 +78,21 @@ def Inline.keyword : Inline where
 structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
-  label : String := "syntax"
-  title : Option (FileMap × TSyntaxArray `inline) := none
+  label : Option String := none
+  title : (FileMap × TSyntaxArray `inline)
+
+def FreeSyntaxConfig.getLabel (config : FreeSyntaxConfig) : String :=
+  config.label.getD <|
+    match config.name with
+    | `attr => "attribute"
+    | _ => "syntax"
 
 structure SyntaxConfig extends FreeSyntaxConfig where
   namespaces : List Name := []
   aliases : List Name := []
 
+def SyntaxConfig.getLabel (config : SyntaxConfig) : String :=
+  config.toFreeSyntaxConfig.getLabel
 
 structure KeywordOfConfig where
   ofSyntax : Ident
@@ -243,8 +251,8 @@ def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [Mon
   FreeSyntaxConfig.mk <$>
     .positional `name .name <*>
     .namedD `open .bool true <*>
-    .namedD `label .string "syntax" <*>
-    .named `title .inlinesString true
+    .named `label .string true <*>
+    .named `title .inlinesString false
 
 def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m SyntaxConfig :=
   SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `namespace .name false)) <*> (many (.named `alias .resolvedName false) <* .done)
@@ -786,7 +794,7 @@ def selectedParser : Parser := leading_parser
 
 
 elab "#test_syntax" arg:selectedParser : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := (TSyntax.mk arg.raw[0]).getId} true [arg.raw[2]])
+  let bnf ← Command.liftTermElabM (testGetBnf {name := (TSyntax.mk arg.raw[0]).getId, title := (FileMap.ofString "", #[])} true [arg.raw[2]])
   logInfo bnf
 
 /--
@@ -812,7 +820,7 @@ info: term ::= ...
 
 
 elab "#test_free_syntax" x:ident arg:free_syntaxes : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := x.getId} true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
+  let bnf ← Command.liftTermElabM (testGetBnf {name := x.getId, title := (FileMap.ofString "", #[])} true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
   logInfo bnf
 
 /--
@@ -1029,11 +1037,12 @@ def «syntax» : DirectiveExpander
   | args, blocks => do
     let config ← SyntaxConfig.parse.run args
 
-    let title ← config.title.mapM fun (fm, t) =>
+    let title ← do
+      let (fm, t) := config.title
       DocElabM.withFileMap fm <| t.mapM elabInline
 
     let env ← getEnv
-    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+    let titleString := inlinesToString env (config.title.snd)
 
     let mut content := #[]
     let mut firstGrammar := true
@@ -1046,10 +1055,10 @@ def «syntax» : DirectiveExpander
       | _ =>
         content := content.push <| ← elabBlock b
 
-    Doc.PointOfInterest.save (← getRef) (titleString.getD config.name.toString)
+    Doc.PointOfInterest.save (← getRef) titleString
       (selectionRange := (← getRef)[0])
 
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[Block.para #[$(title.getD #[]),*], $content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
@@ -1061,7 +1070,7 @@ where
     let {of, prec} ← GrammarConfig.parse.run args
     let config : SyntaxConfig :=
       if let some n := of then
-        {name := n, «open» := false}
+        {name := n, «open» := false, title := config.title}
       else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
@@ -1105,10 +1114,11 @@ def freeSyntax : DirectiveExpander
   | args, blocks => do
     let config ← FreeSyntaxConfig.parse.run args
 
-    let title ← config.title.mapM fun (fm, t) =>
+    let title ← do
+      let (fm, t) := config.title
       DocElabM.withFileMap fm <| t.mapM elabInline
     let env ← getEnv
-    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+    let titleString := inlinesToString env config.title.snd
 
     let mut content := #[]
     let mut firstGrammar := true
@@ -1120,7 +1130,7 @@ def freeSyntax : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, #[])} #[Doc.Block.para #[$(title.getD #[]),*], $content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Doc.Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>

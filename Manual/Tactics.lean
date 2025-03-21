@@ -55,7 +55,7 @@ tag := "by"
 The syntax of `by` is showing with commas instead of semicolons below
 :::
 
-:::syntax Lean.Parser.Term.byTactic
+:::syntax Lean.Parser.Term.byTactic (title := "Tactic Proofs with {keyword}`by`")
 Tactics are included in terms using {keywordOf Lean.Parser.Term.byTactic}`by`, which is followed by a sequence of tactics in which each has the same indentation:
 ```grammar
 by
@@ -258,7 +258,7 @@ Tactics such as {tactic}`assumption` or {tactic}`simp` can scan the entire list 
 Other tactics, such as {tactic}`rename_i` and {tactic}`next`, can be used to name inaccessible assumptions, making them accessible.
 Additionally, assumptions can be referred to by their type, by writing the type in single guillemets.
 
-::::syntax term
+::::syntax term (title := "Assumptions by Type")
 Single guillemets around a term represent a reference to some term in scope with that type.
 
 ```grammar
@@ -892,14 +892,14 @@ Many tactics are configurable.{index subterm:="of tactics"}[configuration]
 By convention, tactics share a configuration syntax, described using {syntaxKind}`optConfig`.
 The specific options available to each tactic are described in the tactic's documentation.
 
-:::syntax Lean.Parser.Tactic.optConfig (open := false)
+:::syntax Lean.Parser.Tactic.optConfig (open := false) (title := "Tactic Configuration")
 A tactic configuration consists of zero or more {deftech}[configuration items]:
 ```grammar
 $x:configItem*
 ```
 :::
 
-:::syntax Lean.Parser.Tactic.configItem (open := false)
+:::syntax Lean.Parser.Tactic.configItem (open := false) (title := "Tactic Configuration Items")
 Each configuration item has a name that corresponds to an underlying tactic option.
 Boolean options may be enabled or disabled using prefix `+` and `-`:
 ```grammar

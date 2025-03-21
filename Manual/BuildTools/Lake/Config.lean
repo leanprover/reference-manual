@@ -707,7 +707,7 @@ The defined package configuration will be available for reference as `_package`.
 
 ::::
 
-::::syntax command
+::::syntax command (title := "Post-Update Hooks")
 ```grammar
 post_update $[$name]? $v
 ```
@@ -804,7 +804,7 @@ The fields of {keywordOf Lake.DSL.leanLibCommand}`lean_lib` are those of the {na
 
 ### Executables
 
-:::syntax command
+:::syntax command (title := "Executable Targets")
 
 To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeCommand}`lean_exe` with no further fields.
 
@@ -842,7 +842,7 @@ External library targets should produce a build job that carries out the build a
 For the external library to link properly when {name Lake.PackageConfig.precompileModules}`precompileModules` is on, the static library produced by an {keyword}`extern_lib` target must follow the platform's naming conventions for libraries (i.e., be named foo.a on Windows or libfoo.a on Unix-like systems).
 The utility function {name}`Lake.nameToStaticLib` converts a library name into its proper file name for current platform.
 
-:::syntax command
+:::syntax command (title := "External Library Targets")
 
 ```grammar
 $[$_:docComment]?
@@ -859,7 +859,7 @@ $[where $_*]?
 
 Custom targets may be used to define any incrementally-built artifact whatsoever, using the Lake API.
 
-:::syntax command
+:::syntax command (title := "Custom Targets")
 
 ```grammar
 $[$_:docComment]?
@@ -989,7 +989,7 @@ Workspace information in scripts is primarily accessed via the {inst}`MonadWorks
 example : ScriptFn = (List String → ScriptM UInt32) := rfl
 ```
 
-:::syntax command
+:::syntax command (title := "Script Declarations")
 ```grammar
 $[$_:docComment]?
 $[@[$_,*]]?
@@ -1006,7 +1006,7 @@ $[where
 {docstring Lake.ScriptM}
 
 
-:::syntax attr
+:::syntax attr (label := "attribute") (title := "Default Scripts")
 ```grammar
 default_script
 ```
@@ -1019,7 +1019,7 @@ Marks a {tech}[Lake script] as the {tech}[package]'s default.
 
 ## Utilities
 
-:::syntax term
+:::syntax term (title := "The Current Directory")
 ```grammar
 __dir__
 ```
@@ -1028,7 +1028,7 @@ __dir__
 
 :::
 
-:::syntax term
+:::syntax term (title := "Configuration Options")
 ```grammar
 get_config? $t
 ```
@@ -1037,7 +1037,7 @@ get_config? $t
 
 :::
 
-:::syntax command
+:::syntax command (title := "Compile-Time Conditionals")
 
 ```grammar
 meta if $_ then
@@ -1049,7 +1049,7 @@ $[else $_]?
 
 :::
 
-:::syntax cmdDo
+:::syntax cmdDo (title := "Command Sequences")
 
 ```grammar
   $_:command
@@ -1065,7 +1065,7 @@ do
 
 :::
 
-:::syntax term
+:::syntax term (title := "Compile-Time Side Effects")
 ```grammar
 run_io $t
 ```

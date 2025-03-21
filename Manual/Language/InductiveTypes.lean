@@ -44,7 +44,7 @@ This section describes the specific details of the syntax used to specify both i
 tag := "inductive-declarations"
 %%%
 
-:::syntax command (alias := «inductive»)
+:::syntax command (alias := «inductive») (title := "Inductive Type Declarations")
 ```grammar
 $_:declModifiers
 inductive $d:declId $_:optDeclSig where

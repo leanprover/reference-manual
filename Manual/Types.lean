@@ -460,7 +460,7 @@ unknown universe level 'v'
 
 In addition to using `autoImplicit`, particular identifiers can be declared as universe variables in a particular {tech}[section scope] using the `universe` command.
 
-:::syntax Lean.Parser.Command.universe
+:::syntax Lean.Parser.Command.universe (title := "Universe Parameter Declarations")
 ```grammar
 universe $x:ident $xs:ident*
 ```

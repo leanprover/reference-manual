@@ -92,7 +92,7 @@ tag := "class"
 
 Type classes are declared with the {keywordOf Lean.Parser.Command.declaration}`class` keyword.
 
-:::syntax command
+:::syntax command (title := "Type Class Declarations")
 ```grammar
 $_:declModifiers
 class $d:declId $_:bracketedBinder* $[: $_]?
@@ -316,7 +316,7 @@ This is naturally modeled by a product type, from which the overloaded methods a
 Some classes, however, are sum types: they require that the recipient of the synthesized instance first check _which_ of the available instance constructors was provided.
 To account for these classes, a class declaration may consist of an arbitrary {tech}[inductive type], not just an extended form of structure declaration.
 
-:::syntax Lean.Parser.Command.declaration
+:::syntax Lean.Parser.Command.declaration (title := "Class Inductive Type Declarations")
 ```grammar
 $_:declModifiers
 class inductive $d:declId $_:optDeclSig where
@@ -399,14 +399,14 @@ tag := "deriving-instances"
 Lean can automatically generate instances for many classes, a process known as {deftech}_deriving_ instances.
 Instance deriving can be invoked either when defining a type or as a stand-alone command.
 
-:::syntax Lean.Parser.Command.optDeriving (open := false)
+:::syntax Lean.Parser.Command.optDeriving (open := false) (title := "Instance Deriving (Optional)")
 As part of a command that creates a new inductive type, a {keywordOf Lean.Parser.Command.declaration}`deriving` clause specifies a comma-separated list of class names for which instances should be generated:
 ```grammar
 $[deriving $[$_],*]?
 ```
 :::
 
-:::syntax Lean.Parser.Command.deriving
+:::syntax Lean.Parser.Command.deriving (title := "Stand-Alone Deriving of Instances")
 The stand-alone {keywordOf Lean.Parser.Command.deriving}`deriving` command specifies a number of class names and subject names.
 Each of the specified classes are derived for each of the specified subjects.
 ```grammar

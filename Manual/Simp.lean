@@ -68,7 +68,7 @@ tag := "simp-tactic-params"
 
 The simplification tactics have the following grammar:
 
-:::syntax tactic
+:::syntax tactic (title := "Simplification Tactics")
 ```grammar
 simp $_:optConfig $[only]? $[ [ $[$e],* ] ]? $[at $[$h]*]?
 ```
@@ -334,7 +334,7 @@ The `only` modifier to the {tactic}`simp` tactic causes it to start with an empt
 Rules are added to the default simp set using the {attr}`simp` attribute.
 
 
-:::syntax attr alias := Lean.Meta.simpExtension label:="attribute"
+:::syntax attr alias := Lean.Meta.simpExtension (title := "Registering {keyword}`simp` Lemmas")
 The {attr}`simp` attribute adds a declaration to the default simp set.
 If the declaration is a definition, the definition is marked for unfolding; if it is a theorem, then the theorem is registered as a rewrite rule.
 

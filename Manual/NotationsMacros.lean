@@ -360,7 +360,7 @@ info: do
           $(⟨.missing⟩):tactic; $(⟨.missing⟩)) : MacroM _)
 ```
 
-:::freeSyntax term (open := false)
+:::freeSyntax term (open := false) (title := "Quotations")
 
 Lean's syntax includes quotations for terms, commands, tactics, and sequences of tactics, as well as a general quotation syntax that allows any input that Lean can parse to be quoted.
 Term quotations have the highest priority, followed by tactic quotations, general quotations, and finally command quotations.
@@ -835,7 +835,7 @@ The {keywordOf Lean.Parser.Command.macro}`macro` command can be seen as a genera
 tag := "macro_rules"
 %%%
 
-:::syntax command
+:::syntax command (title := "Rule-Based Macros With {keyword}`macro_rules`")
 
 The {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command takes a sequence of rewrite rules, specified as syntax pattern matches, and adds each as a macro.
 The rules are attempted in order, before previously-defined macros, and later macro definitions may add further macro rules.
@@ -1072,7 +1072,7 @@ The {keywordOf Lean.Parser.Command.macro}`macro` command simultaneously defines 
 Unlike {keywordOf Lean.Parser.Command.notation}`notation`, which can define only new term syntax and in which the expansion is a term into which the parameters are to be substituted, the {keywordOf Lean.Parser.Command.macro}`macro` command may define syntax in any {tech}[syntax category] and it may use arbitrary code in the {name}`MacroM` monad to generate the expansion.
 Because macros are so much more flexible than notations, Lean cannot automatically generate an unexpander; this means that new syntax implemented via the {keywordOf Lean.Parser.Command.macro}`macro` command is available for use in _input_ to Lean, but Lean's output does not use it without further work.
 
-:::syntax command
+:::syntax command (title := "Macro Declarations")
 ```grammar
 $[$_:docComment]?
 $[@[$attrs,*]]?
@@ -1081,7 +1081,7 @@ $_:attrKind macro$[:$p]? $[(name := $_)]? $[(priority := $_)]? $xs:macroArg* : $
 ```
 :::
 
-:::syntax Lean.Parser.Command.macroArg (open := false)
+:::syntax Lean.Parser.Command.macroArg (open := false) (title := "Macro Arguments")
 A macro's arguments are either syntax items (as used in the {keywordOf Lean.Parser.Command.syntax}`syntax` command) or syntax items with attached names.
 ```grammar
 $s:stx
@@ -1141,7 +1141,7 @@ tag := "macro-attribute"
 {tech}[Macros] can be manually added to a syntax kind using the {keywordOf Lean.Parser.Attr.macro}`macro` attribute.
 This low-level means of specifying macros is typically not useful, except as a result of code generation by macros that themselves generate macro definitions.
 
-:::syntax attr label:="attribute"
+:::syntax attr (title := "The {keyword}`macro` Attribute")
 The {keywordOf Lean.Parser.Attr.macro}`macro` attribute specifies that a function is to be considered a {tech}[macro] for the specified syntax kind.
 ```grammar
 macro $_:ident

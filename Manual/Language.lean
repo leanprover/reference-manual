@@ -61,14 +61,14 @@ All of these commands cause Lean to {tech key:="elaborator"}[elaborate] a term b
 With the exception of {syntaxKind}`example`, which discards the result, the resulting expression in Lean's core language is saved for future use in the environment.
 The {keywordOf Lean.Parser.Command.declaration}`instance` command is described in the {ref "instance-declarations"}[section on instance declarations].
 
-:::syntax Lean.Parser.Command.declaration
+:::syntax Lean.Parser.Command.declaration (title := "Definitions with Modifiers")
 ```grammar
 $_:declModifiers
 $_:definition
 ```
 :::
 
-:::syntax Lean.Parser.Command.definition
+:::syntax Lean.Parser.Command.definition (title := "Definitions")
 ```grammar
 def $_ $_ := $_
 ```
@@ -84,7 +84,7 @@ def $_ $_ where
 ```
 :::
 
-:::syntax Lean.Parser.Command.theorem
+:::syntax Lean.Parser.Command.theorem (title := "Theorems")
 ```grammar
 theorem $_ $_ := $_
 ```
@@ -100,7 +100,7 @@ theorem $_ $_ where
 ```
 :::
 
-:::syntax Lean.Parser.Command.abbrev
+:::syntax Lean.Parser.Command.abbrev (title := "Abbreviations")
 ```grammar
 abbrev $_ $_ := $_
 ```
@@ -118,7 +118,7 @@ abbrev $_ $_ where
 
 
 
-:::syntax Lean.Parser.Command.example
+:::syntax Lean.Parser.Command.example (title := "Examples")
 ```grammar
 example $_ $_ := $_
 ```
@@ -136,13 +136,13 @@ example $_ $_ where
 
 {deftech}_Opaque constants_ are defined constants that cannot be reduced to their definition.
 
-:::syntax Lean.Parser.Command.opaque
+:::syntax Lean.Parser.Command.opaque (title := "Opaque Constants")
 ```grammar
 opaque $_ $_
 ```
 :::
 
-:::syntax Lean.Parser.Command.axiom
+:::syntax Lean.Parser.Command.axiom (title := "Axioms")
 ```grammar
 axiom $_ $_
 ```
@@ -160,7 +160,7 @@ A description of each modifier allowed in the production `declModifiers`, includ
 
 :::
 
-:::syntax declModifiers alias:=Lean.Parser.Command.declModifiers
+:::syntax declModifiers alias:=Lean.Parser.Command.declModifiers (title := "Declaration Modifiers")
 
 ```grammar
 $_
@@ -249,7 +249,7 @@ Sections may optionally be named; the {keywordOf Lean.Parser.Command.end}`end` c
 If section names have multiple components (that is, if they contain `.`-separated names), then multiple nested sections are introduced.
 Section names have no other effect, and are a readability aid.
 
-:::syntax command
+:::syntax command (title := "Sections")
 The {keywordOf Lean.Parser.Command.section}`section` command creates a section scope that lasts either until an `end` command or the end of the file.
 ```grammar
 section $[$id:ident]?
@@ -329,7 +329,7 @@ Like sections, changes made to the section scope are reverted when the namespace
 To close a namespace, the {keywordOf Lean.Parser.Command.end}`end` command requires a suffix of the current namespace, which is removed.
 All section scopes introduced by the {keywordOf Lean.Parser.Command.namespace}`namespace` command that introduced part of that suffix are closed.
 
-:::syntax command
+:::syntax command (title := "Namespace Declarations")
 The `namespace` command modifies the current namespace by appending the provided identifier.
 
 creates a section scope that lasts either until an {keywordOf Lean.Parser.Command.end}`end` command or the end of the file.
@@ -339,7 +339,7 @@ namespace $id:ident
 :::
 
 
-:::syntax command
+:::syntax command (title := "Section and Namespace Terminators")
 Without an identifier, {keywordOf Lean.Parser.Command.end}`end` closes the most recently opened section, which must be anonymous.
 ```grammar
 end
@@ -391,7 +391,7 @@ end A
 Rather than opening a section for a single command, the {keywordOf Lean.Parser.Command.in}`in` combinator can be used to create single-command section scope.
 The {keywordOf Lean.Parser.Command.in}`in` combinator is right-associative, allowing multiple scope modifications to be stacked.
 
-:::syntax command
+:::syntax command (title := "Local Section Scopes")
 The `in` command combinator introduces a section scope for a single command.
 ```grammar
 $c:command in
@@ -437,13 +437,13 @@ Otherwise, modifying the proof of a theorem could change its statement if the pr
 Variables are declared using the {keywordOf Lean.Parser.Command.variable}`variable` command.
 
 
-:::syntax command
+:::syntax command (title := "Variable Declarations")
 ```grammar
 variable $b:bracketedBinder $b:bracketedBinder*
 ```
 :::
 
-:::syntax bracketedBinder (open := false)
+:::syntax bracketedBinder (open := false) (title := "Bracketed Binders")
 The bracketed binders allowed after `variable` match the syntax used in definition headers.
 ```grammar
 ($x $x* : $t $[:= $e]?)
@@ -560,7 +560,7 @@ Many attributes can be applied in a particular scope.
 This determines whether the attribute's effect is visible only in the current section scope, in namespaces that open the current namespace, or everywhere.
 These scope indications are also used to control {ref "syntax-rules"}[syntax extensions] and {ref "instance-attribute"}[type class instances].
 
-:::syntax attrKind (open := false)
+:::syntax attrKind (open := false) (title := "Attribute Scopes")
 Globally-scoped declarations (the default) are in effect whenever the {tech}[module] in which they're established is transitively imported.
 They are indicated by the absence of another scope modifier.
 ```grammar

@@ -198,7 +198,7 @@ tag := "module-structure"
 %%%
 
 
-:::syntax Lean.Parser.Module.module (open := false)
+:::syntax Lean.Parser.Module.module (open := false) (title := "Modules")
 ```grammar
 $hdr:header $cmd:command*
 ```
@@ -216,7 +216,7 @@ tag := "module-headers"
 
 The module header consists of a sequence of {deftech}[`import` statements].
 
-:::syntax Lean.Parser.Module.header (open := false)
+:::syntax Lean.Parser.Module.header (open := false) (title := "Module Headers")
 ```grammar
 $i:import*
 ```
@@ -229,7 +229,7 @@ prelude $«import»*
 :::
 
 
-:::syntax Lean.Parser.Module.prelude (open := false)
+:::syntax Lean.Parser.Module.prelude (open := false) (title := "Prelude Modules")
 ```grammar
 prelude
 ```
@@ -237,7 +237,7 @@ prelude
 The `prelude` keyword indicates that the module is part of the implementation of the Lean {deftech}_prelude_, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.
 :::
 
-:::syntax Lean.Parser.Module.import
+:::syntax Lean.Parser.Module.import (title := "Imports")
 ```grammar
 import $mod:ident
 ```
