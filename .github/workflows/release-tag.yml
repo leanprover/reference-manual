@@ -70,7 +70,7 @@ jobs:
 
       - name: Run build script build.sh
         run: |
-          ./deploy/prep.sh
+          ./deploy/build.sh
 
       - name: Save cache for .lake
         uses: actions/cache/save@v4
@@ -89,7 +89,10 @@ jobs:
           echo "Deploying from tag: '$TAG_NAME'"
           
 
-          python deploy/release.py html "$VERSION" deploy
+          python deploy/release.py html/html-multi "$VERSION" deploy
 
+      - name: Push deploy branch
+        run: |
+          git push origin deploy
           
         
