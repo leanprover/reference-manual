@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      (function(){
+  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
+  if (!(path.endsWith("/") || path.endsWith(".html"))) {
+    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+  }
+})()</script>
+    <base href="./../../"><meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Custom Tactics</title><link rel="stylesheet" href="book.css">
+    <script>
+      const __versoSiteRoot = document.baseURI;</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
+    <script src="static/katex/katex.min.js"></script>
+    <script src="static/math.js"></script>
+    <script src="static/search/fuzzysort.js"></script>
+    <script src="static/print.js"></script>
+    <script src="-verso-js/popper.js"></script>
+    <script src="-verso-js/tippy.js"></script>
+    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <link rel="stylesheet" href="static/colors.css">
+    <link rel="stylesheet" href="static/theme.css">
+    <link rel="stylesheet" href="static/print.css">
+    <link rel="stylesheet" href="static/search/search-box.css">
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <style>
+a.lake-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.hl.lean.tactic-view {
+  white-space: collapse;
+}
+.hl.lean.tactic-view .tactic-state {
+  display: block;
+  left: 0;
+  padding: 0;
+  border: none;
+}
+.hl.lean.tactic-view .tactic-state .goal {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+.hl.lean.tactic-view .tactic-state .goal:first-child {
+  margin-top: 0.25em;
+}
+.hl.lean.tactic-view .tactic-state .goal:last-child {
+  margin-bottom: 0.25em;
+}
+
+
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 5%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+.example-file {
+  white-space: normal;
+  font-family: var(--verso-structure-font-family);
+  margin: 1rem;
+  width: fit-content;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+}
+.example-file::before {
+  counter-reset: linenumber;
+}
+.example-file > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.example-file > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+.example-file > .line::after {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "⏎";
+  opacity: 0;
+}
+.example-file > .line:hover::after {
+  opacity: 1;
+}
+.example-file > .line:hover, .example-file > .line:hover::before {
+  background-color: #eee;
+}
+.example-file > .empty {
+  display: block;
+  white-space: pre;
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+.example-file > .empty::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "";
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+div.planned {
+  font-style: italic;
+}
+div.planned .label {
+  font-size: large;
+  text-align: center;
+  font-family: var(--verso-structure-font-family);
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.hl.lean .keyword {
+  font-weight : bold;
+}
+
+.hl.lean .var {
+  font-style: italic;
+  position: relative;
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+  font-size: inherit;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
+  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
+    display: inline-block;
+    position: absolute;
+    top: 1rem;
+    font-weight: normal;
+    font-style: normal;
+    width: min-content;
+  }
+}
+*/
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error {
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error pre {
+    color: red;
+}
+
+.hl.lean .has-info.warning {
+  text-decoration-color: #efd871;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color: #efd871;
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: #efd871;
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #efd871;
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.info {
+  text-decoration-color: blue;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.info:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.info {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: sans-serif;
+  white-space: normal;
+  max-width: 40rem;
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  left: 2rem;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+  z-index: 200;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: block;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
+    display: block;
+    position: absolute;
+    left: 0;
+    transform: translate(0.25rem, 0);
+    z-index: 250;
+  }
+}
+*/
+
+.hl.lean .tactic > label {
+  position: relative;
+  transition: all 0.5s;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover {
+    border-bottom: 1px dotted #bbbbbb;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  border-radius: 1rem;
+  height: 0.25rem;
+  vertical-align: middle;
+  width: 0.6rem;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5rem;
+}
+
+.hl.lean .tactic-state summary {
+  margin-left: -0.5rem;
+}
+
+.hl.lean .tactic-state details {
+  padding-left: 0.5rem;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7rem;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .tactic-state .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  margin-left: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .tactic-state .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .tactic-state .goal-name {
+  font-style: italic;
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state .hypotheses {
+  display: table;
+}
+
+.hl.lean .tactic-state .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .tactic-state .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .tactic-state .hypotheses .colon {
+  text-align: center;
+  min-width: 1rem;
+}
+
+.hl.lean .tactic-state .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .tactic-state .hypotheses .name,
+.hl.lean .tactic-state .hypotheses .type,
+.hl.lean .tactic-state .conclusion .type {
+  font-family: monospace;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #efd871;
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1.5em;
+  margin-right: 1.5em;
+  margin-bottom: 0.5em;
+  display: inline-block;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>.example {
+  padding: 1.5em;
+  border: 1px solid #98B2C0;
+  border-radius: 0.5em;
+  margin-bottom: 0.75em;
+  margin-top: 0.75em;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example p:last-child {margin-bottom:0;}
+.example .description::before {
+  content: "Example: ";
+}
+.example[open] .description {
+  margin-bottom: 1em;
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
+.namedocs {
+  position: relative;
+  border: solid 2px #99b3c0;
+  background-color: #99b3c0;
+  padding-left: 1px;
+  padding-right: 1px;
+  padding-bottom: 1px;
+  padding-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .text {
+  /* Causes margins on child elements to collapse inside the element, such
+     that the margins don't extend into parent with the background color.
+     The effect is that weird borders in the definition box don't happen anymore. */
+  display: flow-root;
+  background-color: white;
+  /* Add a padding. this is the same as the margin applied to the first and last child.
+     The effect is that the padding looks the same size on all sides. */
+  padding: 0 1.5rem;
+}
+
+.namedocs .text > pre {
+  overflow-x: auto;
+}
+
+.namedocs .signature {
+  font-family: var(--verso-code-font-family);
+  margin-top: 0 !important;
+  margin-left: 1.5rem !important;
+  margin-right: 1.5rem;
+}
+
+.namedocs .label {
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+}
+
+/* Sticking content into the right margin is not good on narrow screens,
+   so move the label to the left to make space for the permalink widget. */
+
+@media screen and (max-width: 700px) {
+  .namedocs:has(.permalink-widget.block) .label {
+    right: 1.5rem;
+  }
+}
+
+.namedocs h1 {
+  font-size: inherit;
+  font-weight: bold;
+}
+
+.namedocs > .text .constructor {
+  padding-left: 0.5rem;
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.namedocs > .text .constructor::before {
+  content: '| ';
+  display: block;
+  font-family: var(--verso-code-font-family);
+  font-weight: bold;
+  float: left;
+  width: 0.5rem;
+  white-space: pre;
+}
+
+.namedocs > .text .constructor .name-and-type {
+  padding-left: 0.5rem;
+  float: left;
+  margin-top: 0;
+  max-width: calc(100% - 1rem);
+}
+.namedocs > .text .constructor .docs {
+  clear: both;
+  padding-left: 1rem;
+}
+
+/* These margins work together with the padding on .text */
+.namedocs .text > :first-child {
+  margin-top: 1.5rem;
+}
+.namedocs .text > :last-child {
+  margin-bottom: 1.5rem;
+}
+
+.namedocs .methods td, .namedocs .fields td {
+  vertical-align: top;
+}
+.namedocs .inheritance {
+  vertical-align: top;
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+}
+.namedocs .inheritance ol {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+.namedocs .inheritance ol li {
+  list-style-type: none;
+  display: inline-block;
+}
+.namedocs .inheritance ol li::after {
+  content: " > "
+}
+.namedocs .inheritance ol li:last-child::after {
+  content: "";
+}
+
+.namedocs .extends {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.namedocs .extends li {
+  list-style-type: none;
+  display: inline-block;
+}
+
+.namedocs .extends li label {
+  padding-right: 1rem;
+}
+
+.namedocs .subdocs .name-and-type {
+  font-size: 1rem;
+  margin-left: 0;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs .subdocs .docs {
+  margin-left: 1.5rem;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs:has(input[data-parent-idx]) [data-inherited-from] {
+  transition-property: opacity, display;
+  transition-duration: 0.4s;
+  transition-behavior: allow-discrete;
+  @starting-style { opacity: 0 !important; }
+}
+
+#this-page-items .tactic-name { font-weight: bold; }
+.namedocs:has(input[data-parent-idx="0"]) [data-inherited-from="0"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked):has(.inheritance[data-inherited-from="0"]:hover) [data-inherited-from]:not([data-inherited-from="0"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="1"]) [data-inherited-from="1"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked):has(.inheritance[data-inherited-from="1"]:hover) [data-inherited-from]:not([data-inherited-from="1"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="2"]) [data-inherited-from="2"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked):has(.inheritance[data-inherited-from="2"]:hover) [data-inherited-from]:not([data-inherited-from="2"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="3"]) [data-inherited-from="3"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked):has(.inheritance[data-inherited-from="3"]:hover) [data-inherited-from]:not([data-inherited-from="3"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="4"]) [data-inherited-from="4"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked):has(.inheritance[data-inherited-from="4"]:hover) [data-inherited-from]:not([data-inherited-from="4"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="5"]) [data-inherited-from="5"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked):has(.inheritance[data-inherited-from="5"]:hover) [data-inherited-from]:not([data-inherited-from="5"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="6"]) [data-inherited-from="6"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked):has(.inheritance[data-inherited-from="6"]:hover) [data-inherited-from]:not([data-inherited-from="6"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="7"]) [data-inherited-from="7"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked):has(.inheritance[data-inherited-from="7"]:hover) [data-inherited-from]:not([data-inherited-from="7"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="8"]) [data-inherited-from="8"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked):has(.inheritance[data-inherited-from="8"]:hover) [data-inherited-from]:not([data-inherited-from="8"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="9"]) [data-inherited-from="9"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked):has(.inheritance[data-inherited-from="9"]:hover) [data-inherited-from]:not([data-inherited-from="9"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="10"]) [data-inherited-from="10"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked):has(.inheritance[data-inherited-from="10"]:hover) [data-inherited-from]:not([data-inherited-from="10"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="11"]) [data-inherited-from="11"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked):has(.inheritance[data-inherited-from="11"]:hover) [data-inherited-from]:not([data-inherited-from="11"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="12"]) [data-inherited-from="12"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked):has(.inheritance[data-inherited-from="12"]:hover) [data-inherited-from]:not([data-inherited-from="12"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="13"]) [data-inherited-from="13"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked):has(.inheritance[data-inherited-from="13"]:hover) [data-inherited-from]:not([data-inherited-from="13"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="14"]) [data-inherited-from="14"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked):has(.inheritance[data-inherited-from="14"]:hover) [data-inherited-from]:not([data-inherited-from="14"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="15"]) [data-inherited-from="15"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked):has(.inheritance[data-inherited-from="15"]:hover) [data-inherited-from]:not([data-inherited-from="15"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="16"]) [data-inherited-from="16"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked):has(.inheritance[data-inherited-from="16"]:hover) [data-inherited-from]:not([data-inherited-from="16"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="17"]) [data-inherited-from="17"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked):has(.inheritance[data-inherited-from="17"]:hover) [data-inherited-from]:not([data-inherited-from="17"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="18"]) [data-inherited-from="18"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked):has(.inheritance[data-inherited-from="18"]:hover) [data-inherited-from]:not([data-inherited-from="18"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="19"]) [data-inherited-from="19"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked):has(.inheritance[data-inherited-from="19"]:hover) [data-inherited-from]:not([data-inherited-from="19"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="20"]) [data-inherited-from="20"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked):has(.inheritance[data-inherited-from="20"]:hover) [data-inherited-from]:not([data-inherited-from="20"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="21"]) [data-inherited-from="21"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked):has(.inheritance[data-inherited-from="21"]:hover) [data-inherited-from]:not([data-inherited-from="21"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="22"]) [data-inherited-from="22"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked):has(.inheritance[data-inherited-from="22"]:hover) [data-inherited-from]:not([data-inherited-from="22"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="23"]) [data-inherited-from="23"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked):has(.inheritance[data-inherited-from="23"]:hover) [data-inherited-from]:not([data-inherited-from="23"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="24"]) [data-inherited-from="24"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked):has(.inheritance[data-inherited-from="24"]:hover) [data-inherited-from]:not([data-inherited-from="24"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="25"]) [data-inherited-from="25"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked):has(.inheritance[data-inherited-from="25"]:hover) [data-inherited-from]:not([data-inherited-from="25"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="26"]) [data-inherited-from="26"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked):has(.inheritance[data-inherited-from="26"]:hover) [data-inherited-from]:not([data-inherited-from="26"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="27"]) [data-inherited-from="27"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked):has(.inheritance[data-inherited-from="27"]:hover) [data-inherited-from]:not([data-inherited-from="27"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="28"]) [data-inherited-from="28"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked):has(.inheritance[data-inherited-from="28"]:hover) [data-inherited-from]:not([data-inherited-from="28"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="29"]) [data-inherited-from="29"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked):has(.inheritance[data-inherited-from="29"]:hover) [data-inherited-from]:not([data-inherited-from="29"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="30"]) [data-inherited-from="30"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked):has(.inheritance[data-inherited-from="30"]:hover) [data-inherited-from]:not([data-inherited-from="30"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="31"]) [data-inherited-from="31"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked):has(.inheritance[data-inherited-from="31"]:hover) [data-inherited-from]:not([data-inherited-from="31"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="32"]) [data-inherited-from="32"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked):has(.inheritance[data-inherited-from="32"]:hover) [data-inherited-from]:not([data-inherited-from="32"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="33"]) [data-inherited-from="33"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked):has(.inheritance[data-inherited-from="33"]:hover) [data-inherited-from]:not([data-inherited-from="33"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="34"]) [data-inherited-from="34"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked):has(.inheritance[data-inherited-from="34"]:hover) [data-inherited-from]:not([data-inherited-from="34"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="35"]) [data-inherited-from="35"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked):has(.inheritance[data-inherited-from="35"]:hover) [data-inherited-from]:not([data-inherited-from="35"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="36"]) [data-inherited-from="36"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked):has(.inheritance[data-inherited-from="36"]:hover) [data-inherited-from]:not([data-inherited-from="36"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="37"]) [data-inherited-from="37"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked):has(.inheritance[data-inherited-from="37"]:hover) [data-inherited-from]:not([data-inherited-from="37"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="38"]) [data-inherited-from="38"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked):has(.inheritance[data-inherited-from="38"]:hover) [data-inherited-from]:not([data-inherited-from="38"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="39"]) [data-inherited-from="39"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked):has(.inheritance[data-inherited-from="39"]:hover) [data-inherited-from]:not([data-inherited-from="39"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="40"]) [data-inherited-from="40"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked):has(.inheritance[data-inherited-from="40"]:hover) [data-inherited-from]:not([data-inherited-from="40"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="41"]) [data-inherited-from="41"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked):has(.inheritance[data-inherited-from="41"]:hover) [data-inherited-from]:not([data-inherited-from="41"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="42"]) [data-inherited-from="42"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked):has(.inheritance[data-inherited-from="42"]:hover) [data-inherited-from]:not([data-inherited-from="42"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="43"]) [data-inherited-from="43"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked):has(.inheritance[data-inherited-from="43"]:hover) [data-inherited-from]:not([data-inherited-from="43"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="44"]) [data-inherited-from="44"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked):has(.inheritance[data-inherited-from="44"]:hover) [data-inherited-from]:not([data-inherited-from="44"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="45"]) [data-inherited-from="45"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked):has(.inheritance[data-inherited-from="45"]:hover) [data-inherited-from]:not([data-inherited-from="45"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="46"]) [data-inherited-from="46"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked):has(.inheritance[data-inherited-from="46"]:hover) [data-inherited-from]:not([data-inherited-from="46"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="47"]) [data-inherited-from="47"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked):has(.inheritance[data-inherited-from="47"]:hover) [data-inherited-from]:not([data-inherited-from="47"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="48"]) [data-inherited-from="48"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked):has(.inheritance[data-inherited-from="48"]:hover) [data-inherited-from]:not([data-inherited-from="48"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="49"]) [data-inherited-from="49"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
+  display: table-row;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
+  opacity: 0.5;
+}
+</style><style>
+.syntax-error {
+  white-space: normal;
+}
+.syntax-error::before {
+  counter-reset: linenumber;
+}
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
+}
+
+.syntax-error .parse-message > code.hover-info {
+  display:none;
+}
+
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
+}
+</style><script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
+    <script>
+      
+window.onload = () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector("input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    function blockedByTippy(elem) {
+      // Don't show a new hover until the old ones are all closed.
+      // Scoped to the nearest "top-level block" to avoid being O(n) in the size of the document.
+      var block = elem;
+      const topLevel = new Set(["section", "body", "html", "nav", "header"]);
+      while (block.parentNode && !topLevel.has(block.parentNode.nodeName.toLowerCase())) {
+        block = block.parentNode;
+      }
+      for (const child of block.querySelectorAll(".token, .has-info")) {
+        if (child._tippy && child._tippy.state.isVisible) { return true };
+      }
+      return false;
+    }
+
+    for (const c of document.querySelectorAll(".hl.lean .token")) {
+        if (c.dataset.binding != "") {
+            c.addEventListener("mouseover", (event) => {
+                if (blockedByTactic(c)) {return;}
+                const context = c.closest(".hl.lean").dataset.leanContext;
+                for (const example of document.querySelectorAll(".hl.lean")) {
+                    if (example.dataset.leanContext == context) {
+                        for (const tok of example.querySelectorAll(".token")) {
+                            if (c.dataset.binding == tok.dataset.binding) {
+                                tok.classList.add("binding-hl");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        c.addEventListener("mouseout", (event) => {
+            for (const tok of document.querySelectorAll(".hl.lean .token")) {
+                tok.classList.remove("binding-hl");
+            }
+        });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
+    let docsJson = siteRoot + "-verso-docs.json";
+    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+
+      const defaultTippyProps = {
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        theme: "lean",
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        ignoreAttributes: true,
+        onShow(inst) {
+          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+            if (blockedByTactic(inst.reference)) { return false };
+            if (blockedByTippy(inst.reference)) { return false; }
+          } else { // Nothing to show here!
+            return false;
+          }
+        },
+        content (tgt) {
+          const content = document.createElement("span");
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
+              }
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
+          }
+          return content;
+        }
+      };
+
+      const addTippy = (selector, props) => {
+        tippy(selector, Object.assign({}, defaultTippyProps, props));
+      };
+      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
+      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
+      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
+      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
+
+      tippy('.hl.lean .tactic', {
+        allowHtml: true,
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        maxWidth: "none",
+        onShow(inst) {
+          const toggle = inst.reference.querySelector("input.tactic-toggle");
+          if (toggle && toggle.checked) {
+            return false;
+          }
+          if (blockedByTippy(inst.reference)) { return false; }
+        },
+        theme: "tactic",
+        placement: 'bottom-start',
+        content (tgt) {
+          const content = document.createElement("span");
+          const state = tgt.querySelector(".tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+          return content;
+        }
+      });
+  });
+}
+</script>
+    <script type="module" src="static/search/search-init.js"></script>
+    </head>
+  <body>
+    <header>
+      <div class="header-logo-wrapper">
+        <a href="" id="logo"><img src="static/lean_logo.svg"></a></div>
+      <div class="header-title-wrapper">
+        <a href="" class="header-title"><h1>
+            The Lean Language Reference</h1>
+          </a></div>
+      </header>
+    <label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc">
+      <div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div>
+      <nav id="toc">
+        <input type="checkbox" id="toggle-toc"><div class="first">
+          <a href="" class="toc-title"><h1>
+              The Lean Language Reference</h1>
+            </a><div class="split-tocs">
+            <div class="split-toc book">
+              <div class="title">
+                <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="current numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-tactics" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-tactics" checked="checked"></label><span class="number">11.</span> <span class=""><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></span></div>
+              <table><tr class="numbered"><td class="num">11.1.</td><td><a href="Tactic-Proofs/Running-Tactics/#by">Running Tactics</a></td></tr><tr class="numbered"><td class="num">11.2.</td><td><a href="Tactic-Proofs/Reading-Proof-States/#proof-states">Reading Proof States</a></td></tr><tr class="numbered"><td class="num">11.3.</td><td><a href="Tactic-Proofs/The-Tactic-Language/#tactic-language">The Tactic Language</a></td></tr><tr class="numbered"><td class="num">11.4.</td><td><a href="Tactic-Proofs/Options/#tactic-language-options">Options</a></td></tr><tr class="numbered"><td class="num">11.5.</td><td><a href="Tactic-Proofs/Tactic-Reference/#tactic-ref">Tactic Reference</a></td></tr><tr class="numbered"><td class="num">11.6.</td><td><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv">Targeted Rewriting with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv-next"><span class="keyword token" data-binding="" data-verso-hover="0">conv</span></a></code></a></td></tr><tr class="numbered"><td class="num">11.7.</td><td><a href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints">Naming Bound Variables</a></td></tr><tr class="current numbered"><td class="num">11.8.</td><td><a href="Tactic-Proofs/Custom-Tactics/#custom-tactics">Custom Tactics</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-custom-tactics" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-custom-tactics" checked="checked"></label><span class="number">11.8.</span> <span class="current"><a href="Tactic-Proofs/Custom-Tactics/#custom-tactics">Custom Tactics</a></span></div>
+              <ol>
+                <li>
+                  <span class="header head-1"><span class="level-num">1.</span> <a href="Tactic-Proofs/Custom-Tactics/#tactic-macros">Tactic Macros</a></span></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">1.1.</span> <a href="Tactic-Proofs/Custom-Tactics/#tactic-macro-extension">Extensible Tactic Macros</a></span></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">2.</span> <a href="Tactic-Proofs/Custom-Tactics/#tactic-monad">The Tactic Monad</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___Tactic"><code>Tactic</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><code>TacticM</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___run"><code>run</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___runTermElab"><code>runTermElab</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.1.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Control">Control</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___tryTactic"><code>tryTactic</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___tryTactic___"><code>tryTactic?</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.2.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Expressions">Expressions</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___ensureHasNoMVars"><code>ensureHasNoMVars</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getFVarId"><code>getFVarId</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getFVarIds"><code>getFVarIds</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___sortMVarIdsByIndex"><code>sortMVarIdsByIndex</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___sortMVarIdArrayByIndex"><code>sortMVarIdArrayByIndex</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.3.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Source-Locations">Source Locations</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___withLocation"><code>withLocation</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.4.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Goals">Goals</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getGoals"><code>getGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___setGoals"><code>setGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getMainGoal"><code>getMainGoal</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getMainTag"><code>getMainTag</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___closeMainGoal"><code>closeMainGoal</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___focus"><code>focus</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___tagUntaggedGoals"><code>tagUntaggedGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getUnsolvedGoals"><code>getUnsolvedGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___pruneSolvedGoals"><code>pruneSolvedGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___appendGoals"><code>appendGoals</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___closeMainGoalUsing"><code>closeMainGoalUsing</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.5.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Term-Elaboration">Term Elaboration</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTerm"><code>elabTerm</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTermEnsuringType"><code>elabTermEnsuringType</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTermWithHoles"><code>elabTermWithHoles</code></a></li>
+                <li>
+                  <span class="header head-2"><span class="level-num">2.6.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations">Low-Level Operations</a></span></li>
+                <li>
+                  <span class="header head-3"><span class="level-num">2.6.1.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Monad-Class-Implementations">Monad Class Implementations</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___tryCatch"><code>tryCatch</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___liftMetaMAtMain"><code>liftMetaMAtMain</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getMainModule"><code>getMainModule</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___orElse"><code>orElse</code></a></li>
+                <li>
+                  <span class="header head-3"><span class="level-num">2.6.2.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Macro-Expansion">Macro Expansion</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___getCurrMacroScope"><code>getCurrMacroScope</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___adaptExpander"><code>adaptExpander</code></a></li>
+                <li>
+                  <span class="header head-3"><span class="level-num">2.6.3.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Simplifier">Simplifier</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabSimpArgs"><code>elabSimpArgs</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabSimpConfig"><code>elabSimpConfig</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabSimpConfigCtxCore"><code>elabSimpConfigCtxCore</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___dsimpLocation___"><code>dsimpLocation'</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabDSimpConfigCore"><code>elabDSimpConfigCore</code></a></li>
+                <li>
+                  <span class="header head-3"><span class="level-num">2.6.4.</span> <a href="Tactic-Proofs/Custom-Tactics/#The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Attributes">Attributes</a></span></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___tacticElabAttribute"><code>tacticElabAttribute</code></a></li>
+                <li>
+                  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___mkTacticAttribute"><code>mkTacticAttribute</code></a></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        <div class="last">
+          <ul id="meta-links">
+            <li>
+              <a href="https://github.com/leanprover/reference-manual">Source Code</a></li>
+            <li>
+              <a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li>
+            </ul>
+          </div>
+        </nav>
+      <main><div class="content-wrapper">
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints" rel="prev" title="11.7. Naming Bound Variables"><span class="arrow">←</span><span class="where">11.7. Naming Bound Variables</span></a><a class="local-button active" href="The-Simplifier/#the-simplifier" rel="next" title="12. The Simplifier"><span class="where">12. The Simplifier</span><span class="arrow">→</span></a></nav>
+          <section>
+            <h1>
+              11.8. Custom Tactics<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=custom-tactics" title="Permalink">🔗</a></span></h1>
+            <p>
+              Tactics are productions in the syntax category <code>tactic</code>. 
+Given the syntax of a tactic, the tactic interpreter is responsible for carrying out actions in the tactic monad <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a></code>, which is a wrapper around Lean's term elaborator that keeps track of the additional state needed to execute tactics.
+A custom tactic consists of an extension to the <code>tactic</code> category along with either:</p>
+            <ul>
+              <li>
+                <p>
+                  a <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-Macros">macro</a> that translates the new syntax into existing syntax, or</p>
+                </li>
+              <li>
+                <p>
+                  an elaborator that carries out <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a></code> actions to implement the tactic.</p>
+                </li>
+              </ul>
+            <section>
+              <h2 id="tactic-macros">
+                11.8.1. Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=tactic-macros" title="Permalink">🔗</a></span></h2>
+              <p>
+                The easiest way to define a new tactic is as a <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-Macros">macro</a> that expands into already-existing tactics.
+Macro expansion is interleaved with tactic execution.
+The tactic interpreter first expands tactic macros just before they are to be interpreted.
+Because tactic macros are not fully expanded prior to running a tactic script, they can use recursion; as long as the recursive occurrence of the macro syntax is beneath a tactic that can be executed, there will not be an infinite chain of expansion.</p>
+              <details class="example"><summary class="description">Recursive tactic macro</summary><p>
+                  This recursive implementation of a tactic akin to <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#repeat"><span class="keyword token" data-binding="" data-verso-hover="2746">repeat</span></a></code> is defined via macro expansion.
+When the argument <code>$t</code> fails, the recursive occurrence of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="">rep</span></code> is never invoked, and is thus never macro expanded.</p>
+                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-1973">syntax</span></a> <span class="literal string token" data-binding="" data-verso-hover="3011">"rep"</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="3012">tactic</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="3012">tactic</span>
+<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-2002">macro_rules</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="keyword token" data-binding="kw-occ-tacticRep_-2027">rep</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="3013">t</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span>
+  <span class="unknown token" data-binding="">`(tactic|</span>
+    <a href="Tactic-Proofs/The-Tactic-Language/#first"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.first-2054" data-verso-hover="2721">first</span></a>
+      <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="3013">t</span><span class="unknown token" data-binding="">;</span> <span class="keyword token" data-binding="kw-occ-tacticRep_-2072">rep</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="3013">t</span>
+      <span class="unknown token" data-binding="">|</span> <a href="Tactic-Proofs/Tactic-Reference/#skip"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.skip-2087" data-verso-hover="1152">skip</span></a><span class="unknown token" data-binding="">)</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2094">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span> <span class="unknown token" data-binding="">≤</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-2869965795596119961-2115-2117"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2115" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2869965795596119961-2115-2117"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">0<a href="Type-Classes/Basic-Classes/#LE___mk"><span class="const token" data-binding="const-LE.le" data-verso-hover="305"> ≤ </span></a>4</span></span></span></span></span>
+  <span class="keyword token" data-binding="kw-occ-tacticRep_-2120">rep</span> <span class="unknown token" data-binding="">(</span><span class="tactic"><label for="tactic-state-6314021410781866091-2125-2142"><a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2125" data-verso-hover="583">apply</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le.step" data-verso-hover="3014">Nat.le.step</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-6314021410781866091-2125-2142"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-343" checked="checked"><span for="--verso-unique-343" class="goal-name">a.a.a.a</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le" data-verso-hover="3015">Nat.le</span></a> 0 0</span></span></span></span></span></span><span class="unknown token" data-binding="">)</span>
+  <span class="tactic"><label for="tactic-state-7-2146-2163"><a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2146" data-verso-hover="583">apply</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le.refl" data-verso-hover="3016">Nat.le.refl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2146-2163"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code></details><p>
+                Like other Lean macros, tactic macros are <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-hygienic">hygienic</a>.
+References to global names are resolved when the macro is defined, and names introduced by the tactic macro cannot capture names from its invocation site.</p>
+              <p>
+                When defining a tactic macro, it's important to specify that the syntax being matched or constructed is for the syntax category <code>tactic</code>.
+Otherwise, the syntax will be interpreted as that of a term, which will match against or construct an incorrect AST for tactics.</p>
+              <section>
+                <h3 id="tactic-macro-extension">
+                  11.8.1.1. Extensible Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=tactic-macro-extension" title="Permalink">🔗</a></span></h3>
+                <p>
+                  Because macro expansion can fail,  multiple macros can match the same syntax, allowing backtracking.
+Tactic macros take this further: even if a tactic macro expands successfully, if the expansion fails when interpreted, the tactic interpreter will attempt the next expansion.
+This is used to make a number of Lean's built-in tactics extensible—new behavior can be added to a tactic by adding a <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declaration.</p>
+                <details class="example"><summary class="description">Extending <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="186">trivial</span></a></code></summary><p>
+                    The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="186">trivial</span></a></code>, which is used by many other tactics to quickly dispatch subgoals that are not worth bothering the user with, is designed to be extended through new macro expansions.
+Lean's default <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-trivial" data-verso-hover="2774">trivial</span></code> can't solve <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span></code> goals:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3562">def</span> <span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017" id="IsEmpty">IsEmpty</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="unknown token" data-binding="">¬</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span> <span class="unknown token" data-binding="">≠</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3615">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-3629" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-4562394008649919575-3664-3666"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3664" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-4562394008649919575-3664-3666"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">]</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-4562394008649919575-3667-3674"><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">tactic 'assumption' failed
+α : Type u
+⊢ IsEmpty []</code></span></span><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3667" data-verso-hover="186">trivial</span></a></span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-4562394008649919575-3667-3674"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">]</span></a></span></span></span></span></span>
+<span class="unknown token" data-binding=""></span></code><p>
+                    The error message is an artifact of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="186">trivial</span></a></code> trying <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#assumption"><span class="keyword token" data-binding="" data-verso-hover="1172">assumption</span></a></code> last.
+Adding another expansion allows <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="186">trivial</span></a></code> to take care of these goals:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3855">def</span> <span class="const token" data-binding="const-emptyIsEmpty" data-verso-hover="3018" id="emptyIsEmpty">emptyIsEmpty</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-7125603140277119478-3899-3901"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3899" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7125603140277119478-3899-3901"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.13" data-verso-hover="44">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">]</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-3902-3916"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-3902" data-verso-hover="36">simp</span></a> <span class="unknown token" data-binding="">[</span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3902-3916"><span class="tactic-state">All goals completed! 🐙</span></span>
+
+<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-3918">macro_rules</span></a> <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3941" data-verso-hover="186">trivial</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#exact"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.exact-3962" data-verso-hover="657">exact</span></a> <span class="unknown token" data-binding="">emptyIsEmpty</span><span class="unknown token" data-binding="">)</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3983">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.781" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-3997" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.781" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-9970506142679591305-4032-4034"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4032" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9970506142679591305-4032-4034"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.781" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="3017">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="329">]</span></a></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-7-4037-4044"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-4037" data-verso-hover="186">trivial</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4037-4044"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code></details><details class="example"><summary class="description">Expansion Backtracking</summary><p>
+                    Macro expansion can induce backtracking when the failure arises from any part of the expanded syntax.
+An infix version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#first"><span class="keyword token" data-binding="" data-verso-hover="2721">first</span></a></code> can be defined by providing multiple expansions in separate <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations:</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4384">syntax</span></a> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="3012">tactic</span> <span class="literal string token" data-binding="" data-verso-hover="3019">"&lt;|||&gt;"</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="3012">tactic</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="3012">tactic</span>
+<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4422">macro_rules</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.79" data-verso-hover="3013">t1</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.72" data-verso-hover="3013">t2</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/#Pure___mk"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1160">pure</span></a> <span class="var token" data-binding="var-_uniq.79" data-verso-hover="3013">t1</span>
+<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4473">macro_rules</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.436" data-verso-hover="3013">t1</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.429" data-verso-hover="3013">t2</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/#Pure___mk"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1160">pure</span></a> <span class="var token" data-binding="var-_uniq.429" data-verso-hover="3013">t2</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4525">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1112723314391947637-4544-4546"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4544" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1112723314391947637-4544-4546"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-7-4549-4552"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4549" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4549-4552"><span class="tactic-state">All goals completed! 🐙</span></span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4559" data-verso-hover="583">apply</span></a> <span class="unknown token" data-binding="">And.intro</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4576">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1112723314391947637-4595-4597"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4595" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1112723314391947637-4595-4597"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span>
+  <a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4600" data-verso-hover="583">apply</span></a> <span class="unknown token" data-binding="">And.intro</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="tactic"><label for="tactic-state-7-4622-4625"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4622" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4622-4625"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code><p>
+                    Multiple <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations are needed because each defines a pattern-matching function that will always take the first matching alternative.
+Backtracking is at the granularity of <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations, not their individual cases.</p>
+                  </details></section>
+              </section>
+            <section>
+              <h2 id="tactic-monad">
+                11.8.2. The Tactic Monad<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=tactic-monad" title="Permalink">🔗</a></span></h2>
+              <div class="planned">
+                <div class="label">
+                  Planned Content</div>
+                <ul>
+                  <li>
+                    <p>
+                      Relationship to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Term.TermElabM" data-verso-hover="685">Lean.Elab.Term.TermElabM</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Meta.MetaM" data-verso-hover="686">Lean.Meta.MetaM</span></code></p>
+                    </li>
+                  <li>
+                    <p>
+                      Overview of available effects</p>
+                    </li>
+                  <li>
+                    <p>
+                      Checkpointing</p>
+                    </li>
+                  </ul>
+                <p>
+                  Tracked at issue <a href="https://github.com/leanprover/reference-manual/issues/67">#67</a></p>
+                </div>
+              <div class="namedocs" id="Lean___Elab___Tactic___Tactic">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.Tactic" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.Tactic : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text"></div>
+                </div>
+              <div class="namedocs" id="Lean___Elab___Tactic___TacticM">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.TacticM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.TacticM (<span class="var token" data-binding="var-_uniq.11" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text"></div>
+                </div>
+              <div class="namedocs" id="Lean___Elab___Tactic___run">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.run" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.run (<span class="var token" data-binding="var-_uniq.12" data-verso-hover="3020">mvarId</span> : <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)
+  (<span class="var token" data-binding="var-_uniq.14" data-verso-hover="3022">x</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a>) :
+  <span class="const token" data-binding="const-Lean.Elab.Term.TermElabM" data-verso-hover="685">Lean.Elab.TermElabM</span> (<a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)</pre><div class="text"></div>
+                </div>
+              <div class="namedocs" id="Lean___Elab___Tactic___runTermElab">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.runTermElab" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.runTermElab {<span class="var token" data-binding="var-_uniq.40" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.42" data-verso-hover="3023">k</span> : <span class="const token" data-binding="const-Lean.Elab.Term.TermElabM" data-verso-hover="685">Lean.Elab.TermElabM</span> <span class="var token" data-binding="var-_uniq.40" data-verso-hover="88">α</span>)
+  (<span class="var token" data-binding="var-_uniq.43" data-verso-hover="2666">mayPostpone</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.40" data-verso-hover="88">α</span></pre><div class="text">
+                  <p>
+                    Runs a term elaborator inside a tactic.</p>
+                  <p>
+                    This function ensures that term elaboration fails when backtracking,
+i.e., in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">first</span><span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">tac</span> <span class="unknown token" data-binding="">term</span> <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">other</span></code>.</p>
+                  </div>
+                </div>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Control">
+                  11.8.2.1. Control</h3>
+                <div class="namedocs" id="Lean___Elab___Tactic___tryTactic">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.tryTactic" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.tryTactic {<span class="var token" data-binding="var-_uniq.45" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.47" data-verso-hover="3024">tactic</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.45" data-verso-hover="88">α</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___tryTactic___">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.tryTactic?" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.tryTactic? {<span class="var token" data-binding="var-_uniq.49" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.51" data-verso-hover="3024">tactic</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="88">α</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> (<a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="88">α</span>)</pre><div class="text"></div>
+                  </div>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Expressions">
+                  11.8.2.2. Expressions</h3>
+                <div class="namedocs" id="Lean___Elab___Tactic___ensureHasNoMVars">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.ensureHasNoMVars" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.ensureHasNoMVars
+  (<span class="var token" data-binding="var-_uniq.53" data-verso-hover="3025">e</span> : <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___getFVarId">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getFVarId" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getFVarId (<span class="var token" data-binding="var-_uniq.55" data-verso-hover="1485">id</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.FVarId" data-verso-hover="3027">Lean.FVarId</span></pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___getFVarIds">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getFVarIds" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getFVarIds
+  (<span class="var token" data-binding="var-_uniq.57" data-verso-hover="3028">ids</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> (<a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <span class="const token" data-binding="const-Lean.FVarId" data-verso-hover="3027">Lean.FVarId</span>)</pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___sortMVarIdsByIndex">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.sortMVarIdsByIndex" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.sortMVarIdsByIndex
+  {<span class="var token" data-binding="var-_uniq.60" data-verso-hover="688">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} [<span class="const token" data-binding="const-Lean.MonadMCtx" data-verso-hover="3029">Lean.MonadMCtx</span> <span class="var token" data-binding="var-_uniq.60" data-verso-hover="688">m</span>] [<a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="167">Monad</span></a> <span class="var token" data-binding="var-_uniq.60" data-verso-hover="688">m</span>]
+  (<span class="var token" data-binding="var-_uniq.64" data-verso-hover="3030">mvarIds</span> : <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>) :
+  <span class="var token" data-binding="var-_uniq.60" data-verso-hover="688">m</span> (<a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)</pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___sortMVarIdArrayByIndex">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.sortMVarIdArrayByIndex" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.sortMVarIdArrayByIndex
+  {<span class="var token" data-binding="var-_uniq.66" data-verso-hover="688">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} [<span class="const token" data-binding="const-Lean.MonadMCtx" data-verso-hover="3029">Lean.MonadMCtx</span> <span class="var token" data-binding="var-_uniq.66" data-verso-hover="688">m</span>] [<a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="167">Monad</span></a> <span class="var token" data-binding="var-_uniq.66" data-verso-hover="688">m</span>]
+  (<span class="var token" data-binding="var-_uniq.70" data-verso-hover="3031">mvarIds</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>) :
+  <span class="var token" data-binding="var-_uniq.66" data-verso-hover="688">m</span> (<a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)</pre><div class="text"></div>
+                  </div>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Source-Locations">
+                  11.8.2.3. Source Locations</h3>
+                <div class="namedocs" id="Lean___Elab___Tactic___withLocation">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.withLocation" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.withLocation (<span class="var token" data-binding="var-_uniq.173" data-verso-hover="3032">loc</span> : <span class="const token" data-binding="const-Lean.Elab.Tactic.Location" data-verso-hover="3033">Location</span>)
+  (<span class="var token" data-binding="var-_uniq.176" data-verso-hover="3034">atLocal</span> : <span class="const token" data-binding="const-Lean.FVarId" data-verso-hover="3027">Lean.FVarId</span> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a>)
+  (<span class="var token" data-binding="var-_uniq.179" data-verso-hover="3022">atTarget</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a>)
+  (<span class="var token" data-binding="var-_uniq.182" data-verso-hover="3035">failed</span> : <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                    <p>
+                      Runs the given <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.72" data-verso-hover="3034">atLocal</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.73" data-verso-hover="3022">atTarget</span></code> methods on each of the locations selected by the given <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.71" data-verso-hover="3032">loc</span></code>.</p>
+                    <ul>
+                      <li>
+                        <p>
+                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.105" data-verso-hover="3032">loc</span></code> is a list of locations, runs at each specified hypothesis (and finally the goal if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">⊢</span></code> is included),
+and fails if any of the tactic applications fail.</p>
+                        </li>
+                      <li>
+                        <p>
+                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.105" data-verso-hover="3032">loc</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">*</span></code>, runs at the target first and then the hypotheses in reverse order.
+If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.107" data-verso-hover="3022">atTarget</span></code> closes the main goal, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___withLocation"><span class="const token" data-binding="const-Lean.Elab.Tactic.withLocation" data-verso-hover="3036">withLocation</span></a></code> does not run <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.106" data-verso-hover="3034">atLocal</span></code>.
+If all tactic applications fail, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___withLocation"><span class="const token" data-binding="const-Lean.Elab.Tactic.withLocation" data-verso-hover="3036">withLocation</span></a></code> with call <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.108" data-verso-hover="3035">failed</span></code> with the main goal mvar.</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Goals">
+                  11.8.2.4. Goals</h3>
+                <div class="namedocs" id="Lean___Elab___Tactic___getGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getGoals :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> (<a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)</pre><div class="text">
+                    <p>
+                      Returns the list of goals. Goals may or may not already be assigned.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___setGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.setGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.setGoals
+  (<span class="var token" data-binding="var-_uniq.195" data-verso-hover="3030">mvarIds</span> : <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___getMainGoal">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getMainGoal" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getMainGoal :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span></pre><div class="text">
+                    <p>
+                      Return the first goal.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___getMainTag">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getMainTag" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getMainTag : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span></pre><div class="text">
+                    <p>
+                      Return the main goal tag.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___closeMainGoal">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.closeMainGoal" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.closeMainGoal
+  (<span class="var token" data-binding="var-_uniq.270" data-verso-hover="3037">tacName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span>) (<span class="var token" data-binding="var-_uniq.271" data-verso-hover="3025">val</span> : <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>)
+  (<span class="var token" data-binding="var-_uniq.272" data-verso-hover="2366">checkUnassigned</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                    <p>
+                      Closes main goal using the given expression.
+If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.219" data-verso-hover="2366">checkUnassigned</span> <span class="unknown token" data-binding="">==</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>, then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.218" data-verso-hover="3025">val</span></code> must not contain unassigned metavariables.
+Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.218" data-verso-hover="3025">val</span></code> was successfully used to close the goal.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___focus">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.focus" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.focus {<span class="var token" data-binding="var-_uniq.294" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.296" data-verso-hover="3024">x</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.294" data-verso-hover="88">α</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.294" data-verso-hover="88">α</span></pre><div class="text">
+                    <p>
+                      Runs <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.275" data-verso-hover="3024">x</span></code> with only the first unsolved goal as the goal.
+Fails if there are no goal to be solved.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___tagUntaggedGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.tagUntaggedGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.tagUntaggedGoals
+  (<span class="var token" data-binding="var-_uniq.430" data-verso-hover="3037">parentTag </span><span class="var token" data-binding="var-_uniq.431" data-verso-hover="3037">newSuffix</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span>)
+  (<span class="var token" data-binding="var-_uniq.432" data-verso-hover="3030">newGoals</span> : <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                    <p>
+                      Use <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.298" data-verso-hover="3037">parentTag</span></code> to tag untagged goals at <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.300" data-verso-hover="3030">newGoals</span></code>.
+If there are multiple new untagged goals, they are named using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;</span><span class="unknown token" data-binding="">parentTag</span><span class="unknown token" data-binding="">&gt;</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">&lt;</span><span class="unknown token" data-binding="">newSuffix</span><span class="unknown token" data-binding="">&gt;</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">&lt;</span><span class="unknown token" data-binding="">idx</span><span class="unknown token" data-binding="">&gt;</span></code> where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.373" data-verso-hover="7">idx</span> <span class="unknown token" data-binding="">&gt;</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span></code>.
+If there is only one new untagged goal, then we just use <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.298" data-verso-hover="3037">parentTag</span></code></p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___getUnsolvedGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getUnsolvedGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getUnsolvedGoals :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> (<a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>)</pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___pruneSolvedGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.pruneSolvedGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.pruneSolvedGoals : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text"></div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___appendGoals">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.appendGoals" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.appendGoals
+  (<span class="var token" data-binding="var-_uniq.446" data-verso-hover="3030">mvarIds</span> : <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                    <p>
+                      Add the given goals at the end of the current list of goals.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___closeMainGoalUsing">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.closeMainGoalUsing" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.closeMainGoalUsing
+  (<span class="var token" data-binding="var-_uniq.588" data-verso-hover="3037">tacName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span>)
+  (<span class="var token" data-binding="var-_uniq.593" data-verso-hover="3038">x</span> :
+    <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span> → <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>)
+  (<span class="var token" data-binding="var-_uniq.596" data-verso-hover="2366">checkNewUnassigned</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                    <p>
+                      Try to close main goal using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.449" data-verso-hover="3038">x</span> <span class="var token" data-binding="var-_uniq.475" data-verso-hover="3025">target</span> <span class="var token" data-binding="var-_uniq.487" data-verso-hover="3037">tag</span></code>, where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.475" data-verso-hover="3025">target</span></code> is the type of the main goal and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.487" data-verso-hover="3037">tag</span></code> is its user name.</p>
+                    <p>
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.499" data-verso-hover="2366">checkNewUnassigned</span></code> is true, then throws an error if the resulting value has metavariables that were created during the execution of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.498" data-verso-hover="3038">x</span></code>.
+If it is false, then it is the responsibility of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.498" data-verso-hover="3038">x</span></code> to add such metavariables to the goal list.</p>
+                    <p>
+                      During the execution of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.534" data-verso-hover="3038">x</span></code>:</p>
+                    <ul>
+                      <li>
+                        <p>
+                          The local context is that of the main goal.</p>
+                        </li>
+                      <li>
+                        <p>
+                          The goal list has the main goal removed.</p>
+                        </li>
+                      <li>
+                        <p>
+                          It is allowable to modify the goal list, for example with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.pushGoals" data-verso-hover="3039">Lean.Elab.Tactic.pushGoals</span></code>.</p>
+                        </li>
+                      </ul>
+                    <p>
+                      On failure, the main goal remains at the front of the goal list.</p>
+                    </div>
+                  </div>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Term-Elaboration">
+                  11.8.2.5. Term Elaboration</h3>
+                <div class="namedocs" id="Lean___Elab___Tactic___elabTerm">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabTerm" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabTerm (<span class="var token" data-binding="var-_uniq.632" data-verso-hover="1485">stx</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>)
+  (<span class="var token" data-binding="var-_uniq.633" data-verso-hover="3040">expectedType?</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>)
+  (<span class="var token" data-binding="var-_uniq.634" data-verso-hover="2666">mayPostpone</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span></pre><div class="text">
+                    <p>
+                      Elaborate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.598" data-verso-hover="1485">stx</span></code> in the current <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MVarContext</span></code>. If given, the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">expectedType</span></code> will be used to help
+elaboration but not enforced (use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTermEnsuringType"><span class="const token" data-binding="const-Lean.Elab.Tactic.elabTermEnsuringType" data-verso-hover="3041">elabTermEnsuringType</span></a></code> to enforce an expected type).</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___elabTermEnsuringType">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabTermEnsuringType" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabTermEnsuringType
+  (<span class="var token" data-binding="var-_uniq.675" data-verso-hover="1485">stx</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>)
+  (<span class="var token" data-binding="var-_uniq.676" data-verso-hover="3040">expectedType?</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>)
+  (<span class="var token" data-binding="var-_uniq.677" data-verso-hover="2666">mayPostpone</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span></pre><div class="text">
+                    <p>
+                      Elaborate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.636" data-verso-hover="1485">stx</span></code> in the current <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MVarContext</span></code>. If given, the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">expectedType</span></code> will be used to help
+elaboration and then a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">TypeMismatchError</span></code> will be thrown if the elaborated type doesn't match.</p>
+                    </div>
+                  </div>
+                <div class="namedocs" id="Lean___Elab___Tactic___elabTermWithHoles">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabTermWithHoles" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabTermWithHoles
+  (<span class="var token" data-binding="var-_uniq.824" data-verso-hover="1485">stx</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>)
+  (<span class="var token" data-binding="var-_uniq.825" data-verso-hover="3040">expectedType?</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span>)
+  (<span class="var token" data-binding="var-_uniq.826" data-verso-hover="3037">tagSuffix</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span>)
+  (<span class="var token" data-binding="var-_uniq.827" data-verso-hover="2666">allowNaturalHoles</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> := <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a>)
+  (<span class="var token" data-binding="var-_uniq.829" data-verso-hover="3042">parentTag?</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span> := <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">(</span></a><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="3026">Lean.Expr</span><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116"> × </span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">)</span></a></pre><div class="text">
+                    <p>
+                      Elaborates <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.679" data-verso-hover="1485">stx</span></code> and collects the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MVarId</span></code>s of any holes that were created during elaboration.</p>
+                    <p>
+                      With <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">allowNaturalHoles</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">false</span></code> (the default), any new natural holes (<code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">_</span></code>) which cannot
+be synthesized during elaboration cause <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTermWithHoles"><span class="const token" data-binding="const-Lean.Elab.Tactic.elabTermWithHoles" data-verso-hover="3043">elabTermWithHoles</span></a></code> to fail. (Natural goals appearing in
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.702" data-verso-hover="1485">stx</span></code> which were created prior to elaboration are permitted.)</p>
+                    <p>
+                      Unnamed <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MVarId</span></code>s are renamed to share the tag <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.730" data-verso-hover="3042">parentTag?</span></code> (or the main goal's tag if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.730" data-verso-hover="3042">parentTag?</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a></code>).
+If multiple unnamed goals are encountered, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.728" data-verso-hover="3037">tagSuffix</span></code> is appended to this tag along with a numerical index.</p>
+                    <p>
+                      Note:</p>
+                    <ul>
+                      <li>
+                        <p>
+                          Previously-created <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MVarId</span></code>s which appear in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.764" data-verso-hover="1485">stx</span></code> are not returned.</p>
+                        </li>
+                      <li>
+                        <p>
+                          All parts of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabTermWithHoles"><span class="const token" data-binding="const-Lean.Elab.Tactic.elabTermWithHoles" data-verso-hover="3043">elabTermWithHoles</span></a></code> operate at the current <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">MCtxDepth</span></code>, and therefore may assign
+metavariables.</p>
+                        </li>
+                      <li>
+                        <p>
+                          When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">allowNaturalHoles</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">true</span></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.764" data-verso-hover="1485">stx</span></code> is elaborated under <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">withAssignableSyntheticOpaque</span></code>,
+meaning that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">.syntheticOpaque</span></code> metavariables might be assigned during elaboration. This is a
+consequence of the implementation.</p>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations">
+                  11.8.2.6. Low-Level Operations</h3>
+                <p>
+                  These operations are primarily used as part of the implementation of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a></code> or of particular tactics.
+It's rare that they are useful when implementing new tactics.</p>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Monad-Class-Implementations">
+                    11.8.2.6.1. Monad Class Implementations</h4>
+                  <p>
+                    These operations are exposed through standard Lean monad type classes.</p>
+                  <div class="namedocs" id="Lean___Elab___Tactic___tryCatch">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.tryCatch" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.tryCatch {<span class="var token" data-binding="var-_uniq.845" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.847" data-verso-hover="3024">x</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.845" data-verso-hover="88">α</span>)
+  (<span class="var token" data-binding="var-_uniq.850" data-verso-hover="3044">h</span> : <span class="const token" data-binding="const-Lean.Exception" data-verso-hover="3045">Lean.Exception</span> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.845" data-verso-hover="88">α</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.845" data-verso-hover="88">α</span></pre><div class="text">
+                      <p>
+                        Non-backtracking <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/The-Tactic-Language/#try"><span class="keyword token" data-binding="" data-verso-hover="2724">try</span></a></code>/<code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">catch</span></code>.</p>
+                      </div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___liftMetaMAtMain">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.liftMetaMAtMain" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.liftMetaMAtMain {<span class="var token" data-binding="var-_uniq.853" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.856" data-verso-hover="3046">x</span> : <span class="const token" data-binding="const-Lean.MVarId" data-verso-hover="3021">Lean.MVarId</span> → <span class="const token" data-binding="const-Lean.Meta.MetaM" data-verso-hover="686">Lean.MetaM</span> <span class="var token" data-binding="var-_uniq.853" data-verso-hover="88">α</span>) : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.853" data-verso-hover="88">α</span></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___getMainModule">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getMainModule" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getMainModule :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1534">Lean.Name</span></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___orElse">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.orElse" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.orElse {<span class="var token" data-binding="var-_uniq.860" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  (<span class="var token" data-binding="var-_uniq.862" data-verso-hover="3024">x</span> : <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.860" data-verso-hover="88">α</span>) (<span class="var token" data-binding="var-_uniq.865" data-verso-hover="3047">y</span> : <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.860" data-verso-hover="88">α</span>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="var token" data-binding="var-_uniq.860" data-verso-hover="88">α</span></pre><div class="text"></div>
+                    </div>
+                  </section>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Macro-Expansion">
+                    11.8.2.6.2. Macro Expansion</h4>
+                  <div class="namedocs" id="Lean___Elab___Tactic___getCurrMacroScope">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.getCurrMacroScope" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.getCurrMacroScope :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.MacroScope" data-verso-hover="3048">Lean.MacroScope</span></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___adaptExpander">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.adaptExpander" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.adaptExpander
+  (<span class="var token" data-binding="var-_uniq.883" data-verso-hover="3049">exp</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___Tactic"><span class="const token" data-binding="const-Lean.Elab.Tactic.Tactic" data-verso-hover="3050">Tactic</span></a></pre><div class="text">
+                      <p>
+                        Adapt a syntax transformation to a regular tactic evaluator.</p>
+                      </div>
+                    </div>
+                  </section>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Simplifier">
+                    11.8.2.6.3. Simplifier</h4>
+                  <div class="namedocs" id="Lean___Elab___Tactic___elabSimpArgs">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabSimpArgs" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabSimpArgs
+  (<span class="var token" data-binding="var-_uniq.958" data-verso-hover="1485">stx</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>)
+  (<span class="var token" data-binding="var-_uniq.959" data-verso-hover="3051">ctx</span> : <span class="const token" data-binding="const-Lean.Meta.Simp.Context" data-verso-hover="3052">Lean.Meta.Simp.Context</span>)
+  (<span class="var token" data-binding="var-_uniq.960" data-verso-hover="3053">simprocs</span> : <span class="const token" data-binding="const-Lean.Meta.Simp.SimprocsArray" data-verso-hover="3054">Lean.Meta.Simp.SimprocsArray</span>)
+  (<span class="var token" data-binding="var-_uniq.961" data-verso-hover="79">eraseLocal</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a>) (<span class="var token" data-binding="var-_uniq.962" data-verso-hover="3055">kind</span> : <span class="const token" data-binding="const-Lean.Elab.Tactic.SimpKind" data-verso-hover="3056">SimpKind</span>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Elab.Tactic.ElabSimpArgsResult" data-verso-hover="3057">ElabSimpArgsResult</span></pre><div class="text">
+                      <p>
+                        Elaborate extra simp theorems provided to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>. <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.885" data-verso-hover="1485">stx</span></code> is of the form <code class="hl lean inline" data-lean-context="docstring-examples"><span class="literal string token" data-binding="" data-verso-hover="3058">"["</span> <span class="unknown token" data-binding="">simpTheorem</span><span class="unknown token" data-binding="">,*</span> <span class="literal string token" data-binding="" data-verso-hover="3059">"]"</span></code>
+If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.888" data-verso-hover="79">eraseLocal</span> <span class="unknown token" data-binding="">==</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>, then we consider local declarations when resolving names for erased theorems (<code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">-</span> <span class="const token" data-binding="const-id" data-verso-hover="139">id</span></code>),
+this option only makes sense for <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="557">simp_all</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">*</span></code> is used.
+When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">recover</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">true</span></code>, try to recover from errors as much as possible so that users keep seeing
+the current goal.</p>
+                      </div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___elabSimpConfig">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabSimpConfig" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabSimpConfig
+  (<span class="var token" data-binding="var-_uniq.964" data-verso-hover="1485">optConfig</span> : <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a>) (<span class="var token" data-binding="var-_uniq.965" data-verso-hover="3055">kind</span> : <span class="const token" data-binding="const-Lean.Elab.Tactic.SimpKind" data-verso-hover="3056">SimpKind</span>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3060">Lean.Meta.Simp.Config</span></a></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___elabSimpConfigCtxCore">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabSimpConfigCtxCore" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabSimpConfigCtxCore :
+  <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Meta.Simp.ConfigCtx" data-verso-hover="3061">Lean.Meta.Simp.ConfigCtx</span></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___dsimpLocation___">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.dsimpLocation'" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.dsimpLocation'
+  (<span class="var token" data-binding="var-_uniq.985" data-verso-hover="3051">ctx</span> : <span class="const token" data-binding="const-Lean.Meta.Simp.Context" data-verso-hover="3052">Lean.Meta.Simp.Context</span>)
+  (<span class="var token" data-binding="var-_uniq.986" data-verso-hover="3053">simprocs</span> : <span class="const token" data-binding="const-Lean.Meta.Simp.SimprocsArray" data-verso-hover="3054">Lean.Meta.Simp.SimprocsArray</span>)
+  (<span class="var token" data-binding="var-_uniq.987" data-verso-hover="3032">loc</span> : <span class="const token" data-binding="const-Lean.Elab.Tactic.Location" data-verso-hover="3033">Location</span>) :
+  <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <span class="const token" data-binding="const-Lean.Meta.Simp.Stats" data-verso-hover="3062">Lean.Meta.Simp.Stats</span></pre><div class="text">
+                      <p>
+                        Implementation of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp___-next"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimpTrace-0" data-verso-hover="2854">dsimp?</span></a></code>.</p>
+                      </div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___elabDSimpConfigCore">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.elabDSimpConfigCore" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Elab.Tactic.elabDSimpConfigCore :
+  <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Lean.Syntax</span></a> → <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___TacticM"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="3010">TacticM</span></a> <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config" data-verso-hover="3063">Lean.Meta.DSimp.Config</span></a></pre><div class="text"></div>
+                    </div>
+                  </section>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Tactic-Proofs--Custom-Tactics--The-Tactic-Monad--Low-Level-Operations--Attributes">
+                    11.8.2.6.4. Attributes</h4>
+                  <div class="namedocs" id="Lean___Elab___Tactic___tacticElabAttribute">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.tacticElabAttribute" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">Lean.Elab.Tactic.tacticElabAttribute :
+  <span class="const token" data-binding="const-Lean.KeyedDeclsAttribute" data-verso-hover="3064">Lean.KeyedDeclsAttribute</span> <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___Tactic"><span class="const token" data-binding="const-Lean.Elab.Tactic.Tactic" data-verso-hover="3050">Tactic</span></a></pre><div class="text"></div>
+                    </div>
+                  <div class="namedocs" id="Lean___Elab___Tactic___mkTacticAttribute">
+                    <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Elab.Tactic.mkTacticAttribute" title="Permalink">🔗</a></span><span class="label">unsafe def</span><pre class="signature hl lean block">Lean.Elab.Tactic.mkTacticAttribute :
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<span class="const token" data-binding="const-Lean.KeyedDeclsAttribute" data-verso-hover="3064">Lean.KeyedDeclsAttribute</span> <a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___Tactic"><span class="const token" data-binding="const-Lean.Elab.Tactic.Tactic" data-verso-hover="3050">Tactic</span></a>)</pre><div class="text"></div>
+                    </div>
+                  </section>
+                </section>
+              </section>
+            </section>
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints" rel="prev" title="11.7. Naming Bound Variables"><span class="arrow">←</span><span class="where">11.7. Naming Bound Variables</span></a><a class="local-button active" href="The-Simplifier/#the-simplifier" rel="next" title="12. The Simplifier"><span class="where">12. The Simplifier</span><span class="arrow">→</span></a></nav>
+          </div>
+        </main></div>
+    </body>
+  </html>
+
