@@ -1,0 +1,14 @@
+name: Check for too-big Lean imports
+
+on: [pull_request]
+
+jobs:
+  check-lean-files:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Don't 'import Lean', use precise imports
+      run: |
+        ! (find . -name "*.lean" -type f -print0 | xargs -0 grep -E -n '^import Lean$')
+
