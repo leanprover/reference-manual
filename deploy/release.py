@@ -372,8 +372,8 @@ def deploy_version(source_dir, version, branch):
         version (str): Version string (will be used as the directory name)
         branch (str): Git branch to checkout
     """
-    # Save current git branch to restore later
-    current_branch = run_git_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    # Save current git commit to restore later
+    current_commit = run_git_command(["git", "rev-parse", "HEAD"])
 
     try:
         # Create a temporary directory
@@ -426,8 +426,8 @@ def deploy_version(source_dir, version, branch):
 
     finally:
         # Restore the original branch
-        print(f"Restoring original branch: {current_branch}")
-        run_git_command(["git", "switch", current_branch])
+        print(f"Restoring original commit: {current_commit}")
+        run_git_command(["git", "switch", current_commit])
 
     print(f"Deployment of version {version} completed successfully.")
 
