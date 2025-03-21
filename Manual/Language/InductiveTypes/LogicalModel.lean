@@ -273,6 +273,7 @@ This restriction rules out unsound inductive type definitions, at the cost of al
 
 :::::example "Non-strictly-positive inductive types"
 ::::keepEnv
+:::keepEnv
 The type `Bad` would make Lean inconsistent if it were not rejected:
 ```lean (name := Bad) (error := true)
 inductive Bad where
@@ -281,6 +282,7 @@ inductive Bad where
 ```leanOutput Bad
 (kernel) arg #1 of 'Bad.bad' has a non positive occurrence of the datatypes being declared
 ```
+:::
 
 :::keepEnv
 ```lean (show := false)
@@ -291,6 +293,7 @@ This is because it would be possible to write a circular argument that proves {l
 {lean}`Bad.bad` is rejected because the constructor's parameter has type {lean}`Bad → Bad`, which is a function type in which {lean}`Bad` occurs as an argument type.
 :::
 
+:::keepEnv
 This declaration of a fixed point operator is rejected, because `Fix` occurs as an argument to `f`:
 ```lean (name := Fix) (error := true)
 inductive Fix (f : Type u → Type u) where
@@ -299,6 +302,7 @@ inductive Fix (f : Type u → Type u) where
 ```leanOutput Fix
 (kernel) arg #2 of 'Fix.fix' contains a non valid occurrence of the datatypes being declared
 ```
+:::
 
 `Fix.fix` is rejected because `f` is not a type constructor of an inductive type, but `Fix` itself occurs as an argument to it.
 In this case, `Fix` is also sufficient to construct a type equivalent to `Bad`:
