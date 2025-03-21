@@ -271,6 +271,9 @@ noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 {docstring Subsingleton.helim}
 
 # Visible Representations
+%%%
+draft := true
+%%%
 
 :::planned 135
 
@@ -282,7 +285,7 @@ noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 
 {docstring Repr}
 
-{docstring ToString}
+{docstring ToString (allowMissing := true)}
 
 # Arithmetic and Bitwise Operators
 
@@ -348,4 +351,4 @@ noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 
 {docstring GetElem?}
 
-{docstring LawfulGetElem}
+{docstring LawfulGetElem (allowMissing := true)}

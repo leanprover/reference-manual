@@ -51,7 +51,7 @@ In compiled code, this representation removes one level of indirection from each
 
 {docstring EStateM.adaptExcept}
 
-{docstring EStateM.fromStateM}
+{docstring EStateM.fromStateM (allowMissing := true)}
 
 # State Rollback
 

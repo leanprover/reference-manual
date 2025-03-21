@@ -38,18 +38,18 @@ tag := "reader-monad"
 
 {docstring ReaderT}
 
-{docstring ReaderM}
-
-{docstring ReaderT.adapt}
-
-{docstring ReaderT.read}
+{docstring ReaderM (allowMissing := true)}
 
 {docstring ReaderT.run}
 
-{docstring ReaderT.orElse}
+{docstring ReaderT.read}
+
+{docstring ReaderT.adapt}
+
+{docstring ReaderT.pure}
 
 {docstring ReaderT.bind}
 
-{docstring ReaderT.failure}
+{docstring ReaderT.orElse (allowMissing := true)}
 
-{docstring ReaderT.pure}
+{docstring ReaderT.failure (allowMissing := true)}

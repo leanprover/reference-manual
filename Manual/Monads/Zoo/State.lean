@@ -57,31 +57,31 @@ variable {α σ : Type u}
 The tuple-based state monads represent a computation with states that have type {lean}`σ` yielding values of type {lean}`α` as functions that take a starting state and yield a value paired with a final state, e.g. {lean}`σ → α × σ`.
 The {name}`Monad` operations thread the state correctly through the computation.
 
-{docstring StateM}
+{docstring StateM (allowMissing := true)}
 
-{docstring StateT}
+{docstring StateT (allowMissing := true)}
 
-{docstring StateT.run}
+{docstring StateT.run (allowMissing := true)}
 
-{docstring StateT.get}
+{docstring StateT.get (allowMissing := true)}
 
-{docstring StateT.set}
+{docstring StateT.set (allowMissing := true)}
 
-{docstring StateT.orElse}
+{docstring StateT.orElse (allowMissing := true)}
 
-{docstring StateT.failure}
+{docstring StateT.failure (allowMissing := true)}
 
-{docstring StateT.run'}
+{docstring StateT.run' (allowMissing := true)}
 
-{docstring StateT.bind}
+{docstring StateT.bind (allowMissing := true)}
 
-{docstring StateT.modifyGet}
+{docstring StateT.modifyGet (allowMissing := true)}
 
-{docstring StateT.lift}
+{docstring StateT.lift (allowMissing := true)}
 
-{docstring StateT.map}
+{docstring StateT.map (allowMissing := true)}
 
-{docstring StateT.pure}
+{docstring StateT.pure (allowMissing := true)}
 
 # State Monads in Continuation Passing Style
 
@@ -95,15 +95,15 @@ State monads in continuation passing style have different performance characteri
 #guard_msgs in
 #reduce (types := true) StateCpsT σ Id α
 ```
-{docstring StateCpsT}
+{docstring StateCpsT (allowMissing := true)}
 
-{docstring StateCpsT.lift}
+{docstring StateCpsT.lift (allowMissing := true)}
 
-{docstring StateCpsT.runK}
+{docstring StateCpsT.runK (allowMissing := true)}
 
-{docstring StateCpsT.run'}
+{docstring StateCpsT.run' (allowMissing := true)}
 
-{docstring StateCpsT.run}
+{docstring StateCpsT.run (allowMissing := true)}
 
 # State Monads from Mutable References
 
@@ -135,16 +135,16 @@ Its elaborator synthesizes an instance of {lean}`STWorld ω m` to ensure that {l
 Having discovered the value of {lean}`ω`, it then produces the term {lean}`StateRefT' ω σ m`, discarding the synthesized instance.
 :::
 
-{docstring StateRefT'}
+{docstring StateRefT' (allowMissing := true)}
 
-{docstring StateRefT'.get}
+{docstring StateRefT'.get (allowMissing := true)}
 
-{docstring StateRefT'.set}
+{docstring StateRefT'.set (allowMissing := true)}
 
-{docstring StateRefT'.modifyGet}
+{docstring StateRefT'.modifyGet (allowMissing := true)}
 
-{docstring StateRefT'.run}
+{docstring StateRefT'.run (allowMissing := true)}
 
-{docstring StateRefT'.run'}
+{docstring StateRefT'.run' (allowMissing := true)}
 
-{docstring StateRefT'.lift}
+{docstring StateRefT'.lift (allowMissing := true)}

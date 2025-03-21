@@ -18,6 +18,7 @@ open Verso.Genre Manual
 set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
+set_option verso.docstring.allowMissing true
 
 open Lean.Elab.Tactic
 

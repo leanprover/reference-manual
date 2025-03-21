@@ -179,11 +179,11 @@ tag := "string-api-lookup"
 
 {docstring String.takeRightWhile}
 
-{docstring String.drop}
+{docstring String.drop (allowMissing := true)}
 
 {docstring String.dropWhile}
 
-{docstring String.dropRight}
+{docstring String.dropRight (allowMissing := true)}
 
 {docstring String.dropRightWhile}
 

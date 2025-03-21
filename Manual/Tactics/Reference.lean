@@ -265,13 +265,13 @@ tag := "tactic-ref-rw"
 :::tactic Lean.Parser.Tactic.tacticRwa__
 :::
 
-{docstring Lean.Meta.Rewrite.Config}
+{docstring Lean.Meta.Rewrite.Config (allowMissing := true)}
 
-{docstring Lean.Meta.Occurrences}
+{docstring Lean.Meta.Occurrences (allowMissing := true)}
 
-{docstring Lean.Meta.TransparencyMode}
+{docstring Lean.Meta.TransparencyMode (allowMissing := true)}
 
-{docstring Lean.Meta.Rewrite.NewGoals}
+{docstring Lean.Meta.Rewrite.NewGoals (allowMissing := true)}
 
 
 :::tactic "unfold"

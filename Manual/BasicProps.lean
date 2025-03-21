@@ -465,18 +465,18 @@ theorem Vector.append_assoc :
 
 {docstring HEq.ndrecOn}
 
-{docstring HEq.subst}
+{docstring HEq.subst (allowMissing := true)}
 
-{docstring eq_of_heq}
+{docstring eq_of_heq (allowMissing := true)}
 
-{docstring heq_of_eq}
+{docstring heq_of_eq (allowMissing := true)}
 
-{docstring heq_of_eqRec_eq}
+{docstring heq_of_eqRec_eq (allowMissing := true)}
 
-{docstring eqRec_heq}
+{docstring eqRec_heq (allowMissing := true)}
 
-{docstring cast_heq}
+{docstring cast_heq (allowMissing := true)}
 
-{docstring heq_of_heq_of_eq}
+{docstring heq_of_heq_of_eq (allowMissing := true)}
 
-{docstring type_eq_of_heq}
+{docstring type_eq_of_heq (allowMissing := true)}

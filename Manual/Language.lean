@@ -604,7 +604,7 @@ tag := "attributes"
 
 {docstring Dynamic}
 
-{docstring Dynamic.mk}
+{docstring Dynamic.mk (allowMissing := true)}
 
 {docstring Dynamic.get?}
 

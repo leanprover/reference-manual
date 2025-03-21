@@ -70,7 +70,7 @@ The inductive type {name}`Except` captures this pattern, and is itself a monad.
 
 # “Finally” Computations
 
-{docstring MonadFinally}
+{docstring MonadFinally (allowMissing := true)}
 
 # Transformer
 

@@ -368,10 +368,9 @@ As a side effect, it creates a new attribute with the same interface as {attr}`s
 The returned value is a {name Lean.Meta.SimpExtension}`SimpExtension`, which can be used to programmatically access the contents of the custom simp set.
 The {tactic}`simp` tactics can be instructed to use the new simp set by including its attribute name in the rule list.
 
-{docstring Lean.Meta.registerSimpAttr}
+{docstring Lean.Meta.registerSimpAttr (allowMissing := true)}
 
-{docstring Lean.Meta.SimpExtension}
-
+{docstring Lean.Meta.SimpExtension (allowMissing := true)}
 
 
 # Simp Normal Forms

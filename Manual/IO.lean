@@ -516,15 +516,15 @@ There are 90 four-digit palindromes.
 
 {docstring RandomGen}
 
-{docstring StdGen}
+{docstring StdGen (allowMissing := true)}
 
-{docstring stdRange}
+{docstring stdRange (allowMissing := true)}
 
-{docstring stdNext}
+{docstring stdNext (allowMissing := true)}
 
-{docstring stdSplit}
+{docstring stdSplit (allowMissing := true)}
 
-{docstring mkStdGen}
+{docstring mkStdGen (allowMissing := true)}
 
 ## System Randomness
 

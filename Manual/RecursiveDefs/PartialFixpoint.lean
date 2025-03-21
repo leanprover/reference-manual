@@ -375,9 +375,9 @@ Instead, the definitions and theorems in `Lean.Order` are only intended as imple
 
 The notion of a partial order, and that of a chain-complete partial order, are represented by the type classes {name}`Lean.Order.PartialOrder` and {name}`Lean.Order.CCPO`, respectively.
 
-{docstring Lean.Order.PartialOrder}
+{docstring Lean.Order.PartialOrder (allowMissing := true)}
 
-{docstring Lean.Order.CCPO}
+{docstring Lean.Order.CCPO (allowMissing := true)}
 
 ```lean (show := false)
 section

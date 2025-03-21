@@ -507,7 +507,7 @@ This is true for all of the monads in the Lake API, including {name Lake.ScriptM
 
 {docstring Lake.MonadLakeEnv}
 
-{docstring Lake.getLakeEnv}
+{docstring Lake.getLakeEnv (allowMissing := true)}
 
 {docstring Lake.getNoCache}
 
@@ -584,7 +584,7 @@ open Lake
 end
 ```
 
-{docstring Lake.MonadWorkspace}
+{docstring Lake.MonadWorkspace (allowMissing := true)}
 
 {docstring Lake.getRootPackage}
 

@@ -404,6 +404,9 @@ The most important topics related to Lean's reference-counting-based allocator:
 
 
 # Initialization
+%%%
+tag := "initialization"
+%%%
 
 Before starting up, the elaborator must be correctly initialized.
 Lean itself contains {deftech}[initialization] code that must be run in order to correctly construct the compiler's initial state; this code is run before loading any modules and before the elaborator is invoked.
