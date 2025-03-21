@@ -8,6 +8,9 @@ import subprocess
 import shlex
 from pathlib import Path
 
+# This script is for deploying releases of the manual in response to
+# pushed tags.
+
 def parse_version(version_str):
     """
     Parse different types of version numbers into a structured format.
