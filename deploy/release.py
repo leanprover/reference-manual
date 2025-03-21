@@ -427,7 +427,7 @@ def deploy_version(source_dir, version, branch):
     finally:
         # Restore the original branch
         print(f"Restoring original commit: {current_commit}")
-        run_git_command(["git", "switch", current_commit])
+        run_git_command(["git", "switch", "--detach", current_commit])
 
     print(f"Deployment of version {version} completed successfully.")
 
