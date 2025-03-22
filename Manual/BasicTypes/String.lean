@@ -11,6 +11,7 @@ import Manual.Meta
 import Manual.BasicTypes.String.Logical
 import Manual.BasicTypes.String.Literals
 import Manual.BasicTypes.String.FFI
+import Manual.BasicTypes.String.Substrings
 
 open Manual.FFIDocType
 
@@ -334,19 +335,10 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.pos}
 
-## Substrings
-%%%
-tag := "string-api-substring"
-%%%
+
+{include 2 Manual.BasicTypes.String.Substrings}
 
 
-:::TODO
-Substring API xref
-:::
-
-{docstring String.toSubstring}
-
-{docstring String.toSubstring'}
 
 ## Metaprogramming
 %%%
