@@ -72,7 +72,7 @@ Because `∧` has higher precedence than `=` and is right-associative, {lean}`¬
 ::::
 
 Lean provides commands for defining new operators:
-:::syntax command
+:::syntax command (title := "Operator Declarations")
 Non-associative infix operators are defined using {keywordOf Lean.Parser.Command.mixfix}`infix`:
 ```grammar
 $[$_:docComment]?

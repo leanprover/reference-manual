@@ -162,7 +162,7 @@ tag := "conv-nav"
 :::conv arg show:= "arg [@]i"
 :::
 
-:::syntax Lean.Parser.Tactic.Conv.enterArg
+:::syntax Lean.Parser.Tactic.Conv.enterArg (title := "Arguments to {keyword}`enter`")
 ```grammar
 $i:num
 ```

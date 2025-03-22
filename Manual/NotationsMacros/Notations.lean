@@ -30,7 +30,7 @@ However, notations are more general: the new syntax may freely intermix required
 Notations may also rearrange their parameters in the resulting subterms, while infix operators provide them to the function term in a fixed order.
 Because notations may define operators that use a mix of prefix, infix, and postfix components, they can be called {deftech}_mixfix_ operators.
 
-:::syntax command
+:::syntax command (title := "Notation Declarations")
 Notations are defined using the {keywordOf Lean.Parser.Command.notation}`notation` command.
 
 ```grammar
@@ -40,7 +40,7 @@ $_:attrKind notation$[:$_:prec]? $[(name := $_:ident)]? $[(priority := $_:prio)]
 ```
 :::
 
-:::syntax Lean.Parser.Command.notationItem (open := false)
+:::syntax Lean.Parser.Command.notationItem (open := false) (title := "Notation Items")
 The body of a notation definition consists of a sequence of {deftech}_notation items_, which may be either string literals or identifiers with optional precedences.
 ```grammar
 $s:str

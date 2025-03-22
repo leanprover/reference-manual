@@ -124,7 +124,7 @@ Nonetheless, its instances are terms; keeping them around could lead to unnecess
 
 {docstring STWorld}
 
-:::syntax term
+:::syntax term (title := "`StateRefT`")
 The syntax for {lean}`StateRefT σ m` accepts two arguments:
 
 ```grammar

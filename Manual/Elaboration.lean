@@ -419,7 +419,7 @@ Next, all initialization code specified by the dependencies is executed in the i
 At this point, the number of environment extensions is known, so the pre-environment can be reallocated into an environment structure with a correctly-sized extensions array.
 
 
-:::syntax command
+:::syntax command (title := "Initialization Blocks")
 An {keywordOf Lean.Parser.Command.initialize}`initialize` block adds code to the module's initializers.
 The contents of an {keywordOf Lean.Parser.Command.initialize}`initialize` block are treated as the contents of a {keywordOf Lean.Parser.Term.do}`do` block in the {lean}`IO` monad.
 
@@ -439,7 +439,7 @@ initialize $x:ident : $t:term ←
 :::
 
 
-:::syntax command
+:::syntax command (title := "Compiler-Internal Initializers")
 Lean's internals also define code that must run during initialization.
 However, because Lean is a bootstrapping compiler, special care must be taken with initializers defined as part of Lean itself, and Lean's own initializers must run prior to importing or loading _any_ modules.
 These initializers are specified using {keywordOf Lean.Parser.Command.initialize}`builtin_initialize`, which should not be used outside the compiler's implementation.

@@ -556,7 +556,7 @@ Multiple arguments are represented via currying.
 The high-level term language treats a function together with one or more arguments as a single unit, and supports additional features such as implicit, optional, and by-name arguments along with ordinary positional arguments.
 The elaborator converts these to the simpler model of the core type theory.
 
-:::freeSyntax term
+:::freeSyntax term (title := "Function Application")
 A function application consists of a term followed by one or more arguments, or by zero or more arguments and a final {deftech}[ellipsis].
 ```grammar
 $e:term $e:argument+
@@ -1721,7 +1721,7 @@ end
 tag := "pattern-fun"
 %%%
 
-:::syntax term
+:::syntax term (title := "Pattern-Matching Functions")
 Functions may be specified via pattern matching by writing a sequence of patterns after {keywordOf Lean.Parser.Term.fun}`fun`, each preceded by a vertical bar (`|`).
 ```grammar
 fun
@@ -1780,7 +1780,7 @@ fun n =>
 
 In addition to {keywordOf Lean.Parser.Term.match}`match` and {keywordOf termIfLet}`if let`, there are a few other operators that perform pattern matching.
 
-:::syntax term
+:::syntax term (title := "The {keyword}`matches` Operator")
 The {keywordOf Lean.«term_Matches_|»}`matches` operator returns {lean}`true` if the term on the left matches the pattern on the right.
 ```grammar
 $e matches $e

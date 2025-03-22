@@ -17,7 +17,7 @@ open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 tag := "structures"
 %%%
 
-:::syntax command
+:::syntax command (title := "Structure Declarations")
 ```grammar
 $_:declModifiers
 structure $d:declId $_:bracketedBinder* $[: $_]?
@@ -254,7 +254,7 @@ false
 :::::
 
 
-:::syntax term
+:::syntax term (title := "Structure Updates")
 ```grammar
 {$e:term with
   $_,*

@@ -22,7 +22,7 @@ tag := "instance-declarations"
 The syntax of instance declarations is almost identical to that of definitions.
 The only syntactic differences are that the keyword {keywordOf Lean.Parser.Command.declaration}`def` is replaced by {keywordOf Lean.Parser.Command.declaration}`instance` and the name is optional:
 
-:::syntax Lean.Parser.Command.instance
+:::syntax Lean.Parser.Command.instance (title := "Instance Declarations")
 
 Most instances define each method using {keywordOf Lean.Parser.Command.declaration}`where` syntax:
 
@@ -294,7 +294,7 @@ tag := "instance-priorities"
 Instances may be assigned {deftech}_priorities_.
 During instance synthesis, higher-priority instances are preferred; see {ref "instance-synth"}[the section on instance synthesis] for details of instance synthesis.
 
-:::syntax prio open:=false
+:::syntax prio open:=false (title := "Instance Priorities")
 Priorities may be numeric:
 ```grammar
 $n:num
@@ -338,7 +338,7 @@ tag := "default-instances"
 The {attr}`default_instance` attribute specifies that an instance {ref "default-instance-synth"}[should be used as a fallback in situations where there is not enough information to select it otherwise].
 If no priority is specified, then the default priority `default` is used.
 
-:::syntax attr
+:::syntax attr (title := "The {keyword}`default_instance` Attribute")
 ```grammar
 default_instance $p?
 ```
@@ -411,7 +411,7 @@ The {attr}`instance` attribute declares a name to be an instance, with the speci
 Like other attributes, {attr}`instance` can be applied globally, locally, or only when the current namespace is opened.
 The {keywordOf Lean.Parser.Command.declaration}`instance` declaration is a form of definition that automatically applies the {attr}`instance` attribute.
 
-:::syntax attr
+:::syntax attr (title := "The `instance` Attribute")
 
 Declares the definition to which it is applied to be an instance.
 If no priority is provided, then the default priority `default` is used.
