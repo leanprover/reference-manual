@@ -8,8 +8,11 @@ import VersoManual
 
 import Manual.Meta
 
-import Manual.BasicTypes.Array.Subarray
-import Manual.BasicTypes.Array.FFI
+import Manual.BasicTypes.List.Predicates
+import Manual.BasicTypes.List.Comparisons
+import Manual.BasicTypes.List.Partitioning
+import Manual.BasicTypes.List.Modification
+import Manual.BasicTypes.List.Transformation
 
 open Manual.FFIDocType
 
@@ -127,73 +130,7 @@ In compiled code, the tail-recursive versions are automatically used instead of 
 tag := "list-api-reference"
 %%%
 
-## Predicates and Relations
-
-{docstring List.IsPrefix}
-
-:::syntax term (title := "List Prefix")
-```grammar
-$_ <+: $_
-```
-
-{includeDocstring List.«term_<+:_»}
-
-:::
-
-{docstring List.IsSuffix}
-
-:::syntax term (title := "List Suffix")
-```grammar
-$_ <:+ $_
-```
-
-{includeDocstring List.«term_<:+_»}
-
-:::
-
-{docstring List.IsInfix}
-
-:::syntax term (title := "List Infix")
-```grammar
-$_ <:+: $_
-```
-
-{includeDocstring List.«term_<:+:_»}
-
-:::
-
-{docstring List.Sublist}
-
-::: syntax term (title := "Sublists") (namespace := List)
-```grammar
-$_ <+ $_
-```
-
-{includeDocstring List.«term_<+_»}
-
-This syntax is only available when the `List` namespace is opened.
-:::
-
-{docstring List.Perm}
-
-:::syntax term (title := "List Permutation") (namespace := List)
-```grammar
-$_ ~ $_
-```
-
-{includeDocstring List.«term_~_»}
-
-This syntax is only available when the `List` namespace is opened.
-:::
-
-{docstring List.Pairwise}
-
-{docstring List.Nodup}
-
-{docstring List.Lex}
-
-{docstring List.Mem}
-
+{include 2 Manual.BasicTypes.List.Predicates}
 
 ## Constructing Lists
 
@@ -266,7 +203,7 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.min?}
 
-### Queries
+## Queries
 
 {docstring List.count}
 
@@ -306,76 +243,8 @@ This syntax is only available when the `List` namespace is opened.
 
 {docstring List.toString}
 
-## Modification
 
-{docstring List.set}
-
-{docstring List.setTR}
-
-{docstring List.modify}
-
-{docstring List.modifyTR}
-
-{docstring List.modifyHead}
-
-{docstring List.modifyTailIdx}
-
-{docstring List.erase}
-
-{docstring List.eraseTR}
-
-{docstring List.eraseDups}
-
-{docstring List.eraseIdx}
-
-{docstring List.eraseIdxTR}
-
-{docstring List.eraseP}
-
-{docstring List.erasePTR}
-
-{docstring List.eraseReps}
-
-{docstring List.extract}
-
-{docstring List.removeAll}
-
-{docstring List.replace}
-
-{docstring List.replaceTR}
-
-{docstring List.reverse}
-
-{docstring List.flatten}
-
-{docstring List.flattenTR}
-
-{docstring List.rotateLeft}
-
-{docstring List.rotateRight}
-
-{docstring List.leftpad}
-
-{docstring List.leftpadTR}
-
-{docstring List.rightpad}
-
-### Insertion
-
-
-{docstring List.insert}
-
-{docstring List.insertIdx}
-
-{docstring List.insertIdxTR}
-
-{docstring List.intersperse}
-
-{docstring List.intersperseTR}
-
-{docstring List.intercalate}
-
-{docstring List.intercalateTR}
+{include 2 Manual.BasicTypes.List.Modification}
 
 ## Sorting
 
@@ -425,53 +294,7 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.foldrTR}
 
-
-## Transformation
-
-{docstring List.map}
-
-{docstring List.mapTR}
-
-{docstring List.mapM}
-
-{docstring List.mapM'}
-
-{docstring List.mapA}
-
-{docstring List.mapFinIdx}
-
-{docstring List.mapFinIdxM}
-
-{docstring List.mapIdx}
-
-{docstring List.mapIdxM}
-
-{docstring List.mapMono}
-
-{docstring List.mapMonoM}
-
-{docstring List.flatMap}
-
-{docstring List.flatMapTR}
-
-{docstring List.flatMapM}
-
-{docstring List.zip}
-
-{docstring List.zipIdx}
-
-{docstring List.zipIdxTR}
-
-{docstring List.zipWith}
-
-{docstring List.zipWithTR}
-
-{docstring List.zipWithAll}
-
-{docstring List.unzip}
-
-{docstring List.unzipTR}
-
+{include 2 Manual.BasicTypes.List.Transformation}
 
 ## Filtering
 
@@ -489,38 +312,7 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.filterMapM}
 
-
-## Partitioning
-
-{docstring List.take}
-
-{docstring List.takeTR}
-
-{docstring List.takeWhile}
-
-{docstring List.takeWhileTR}
-
-{docstring List.drop}
-
-{docstring List.dropWhile}
-
-{docstring List.dropLast}
-
-{docstring List.dropLastTR}
-
-{docstring List.splitAt}
-
-{docstring List.span}
-
-{docstring List.splitBy}
-
-{docstring List.partition}
-
-{docstring List.partitionM}
-
-{docstring List.partitionMap}
-
-{docstring List.groupByKey}
+{include Manual.BasicTypes.List.Partitioning}
 
 ## Element Predicates
 
@@ -540,29 +332,7 @@ Monadic folds, indicated with an `-M` suffix, allow the combining function to us
 
 {docstring List.or}
 
-## Comparisons
-
-{docstring List.beq}
-
-{docstring List.isEqv}
-
-{docstring List.isPerm}
-
-{docstring List.isPrefixOf}
-
-{docstring List.isPrefixOf?}
-
-{docstring List.isSublist}
-
-{docstring List.isSuffixOf}
-
-{docstring List.isSuffixOf?}
-
-{docstring List.le}
-
-{docstring List.lt}
-
-{docstring List.lex}
+{include 2 Manual.BasicTypes.List.Comparisons}
 
 ## Termination Helpers
 
