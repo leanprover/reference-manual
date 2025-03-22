@@ -52,7 +52,7 @@ def Marginalia.css := r#"
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 

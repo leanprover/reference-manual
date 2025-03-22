@@ -103,16 +103,17 @@ def example.descr : BlockDescr where
         pure {{
           <details class="example" {{attrs}}>
             <summary class="description">{{← description.mapM goI}}</summary>
-            {{← blocks.extract 1 blocks.size |>.mapM goB}}
+            <div class="example-content">
+              {{← blocks.extract 1 blocks.size |>.mapM goB}}
+            </div>
           </details>
         }}
   extraCss := [
 r#".example {
-  padding: 1.5em;
   border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
 }
 /* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
 @media screen and (700px < width <= 1400px) {
@@ -120,16 +121,25 @@ r#".example {
     clear: both; /* Don't overlap margin notes with examples */
   }
 }
-.example p:last-child {margin-bottom:0;}
 .example .description::before {
   content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
 }
 .example .description {
   font-style: italic;
   font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
 }
 .example .hl.lean.block {
   overflow-x: auto;

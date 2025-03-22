@@ -1205,9 +1205,9 @@ r#"
   font-family: var(--verso-structure-font-family);
   font-size: larger;
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
   display: inline-block;
 }
 "#
