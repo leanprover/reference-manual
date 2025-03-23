@@ -39,9 +39,9 @@ Lean provides two floating-point types: {name}`Float` represents 64-bit floating
 The precision of {name}`Float` does not vary based on the platform that Lean is running on.
 
 
-{docstring Float}
+{docstring Float (label := "type") (hideStructureConstructor := true) (hideFields := true)}
 
-{docstring Float32}
+{docstring Float32 (label := "type") (hideStructureConstructor := true) (hideFields := true)}
 
 
 :::example "No Kernel Reasoning About Floating-Point Numbers"
