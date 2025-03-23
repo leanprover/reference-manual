@@ -207,11 +207,19 @@ where
 @[code_block_expander leanTerm]
 def leanTerm : CodeBlockExpander
   | args, str => withoutAsync <| do
-    let config ← LeanBlockConfig.parse.run args
+    let config ← LeanInlineConfig.parse.run args
 
     let altStr ← parserInputString str
 
     let col? := (← getRef).getPos? |>.map (← getFileMap).utf8PosToLspPos |>.map (·.character)
+
+    let leveller :=
+      if let some us := config.universes then
+        let us :=
+          us.getString.splitOn " " |>.filterMap fun (s : String) =>
+            if s.isEmpty then none else some s.toName
+        Elab.Term.withLevelNames us
+      else id
 
     match Parser.runParserCategory (← getEnv) `term altStr (← getFileName) with
     | .error e => throwErrorAt str e
@@ -220,8 +228,22 @@ def leanTerm : CodeBlockExpander
         let initMsgs ← Core.getMessageLog
         try
           Core.resetMessageLog
+
+
+
           let tree' ← runWithOpenDecls <| runWithVariables fun _vars => do
-            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx none
+            let expectedType ← config.type.mapM fun (s : StrLit) => do
+              match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
+              | .error e => throwErrorAt stx e
+              | .ok stx => withEnableInfoTree false do
+                let t ← leveller <| Elab.Term.elabType stx
+                Term.synthesizeSyntheticMVarsNoPostponing
+                let t ← instantiateMVars t
+                if t.hasExprMVar || t.hasLevelMVar then
+                  throwErrorAt s "Type contains metavariables: {t}"
+                pure t
+
+            let e ← Elab.Term.elabTerm (catchExPostpone := true) stx expectedType
             Term.synthesizeSyntheticMVarsNoPostponing
             let _ ← Term.levelMVarToParam (← instantiateMVars e)
 

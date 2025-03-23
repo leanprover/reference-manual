@@ -29,6 +29,13 @@ def castPaper : ArXiv where
   year := 2020
   id := "2001.10594"
 
+def doUnchained : InProceedings where
+  title := .concat (inlines!"`do` unchained: ")
+  authors := #[.concat (inlines!"Sebastian Ullrich"), .concat (inlines!"Leonardo de Moura")]
+  url := some "https://dl.acm.org/doi/10.1145/3547640"
+  year := 2022
+  booktitle := .concat (inlines!"Proceedings of the ACM on Programming Languages: ICFP")
+
 def pratt73 : InProceedings where
   title := .concat (inlines!"Top down operator precedence")
   authors := #[.concat (inlines!"Vaughan Pratt")]

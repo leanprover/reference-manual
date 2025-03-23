@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Papers
 
 import Lean.Parser.Command
 
@@ -207,6 +208,7 @@ tag := "do-notation"
 Monads are primarily used via {deftech}[{keywordOf Lean.Parser.Term.do}`do`-notation], which is an embedded language for programming in an imperative style.
 It provides familiar syntax for sequencing effectful operations, early return, local mutable variables, loops, and exception handling.
 All of these features are translated to the operations of the {lean}`Monad` type class, with a few of them requiring addition instances of classes such as {lean}`ForIn` that specify iteration over containers.
+For more details about the design of {keywordOf Lean.Parser.Term.do}`do`-notation, please consult {citet doUnchained}[].
 A {keywordOf Lean.Parser.Term.do}`do` term consists of the keyword {keywordOf Lean.Parser.Term.do}`do` followed by a sequence of {deftech}_{keywordOf Lean.Parser.Term.do}`do` items_.
 
 :::syntax term (title := "`do`-Notation")
@@ -522,6 +524,9 @@ match $[$[$h :]? $e],* with
 
 
 ## Iteration
+%%%
+tag := "monad-iteration-syntax"
+%%%
 
 Within a {keywordOf Lean.Parser.Term.do}`do` block, {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loops allow iteration over a data structure.
 The body of the loop is part of the containing {keywordOf Lean.Parser.Term.do}`do` block, so local effects such as early return and mutable variables may be used.
@@ -605,6 +610,100 @@ def satisfyingIndices (p : α → Prop) [DecidablePred p] (xs : Array α) : Arra
 ```
 :::
 ::::
+
+:::::keepEnv
+::::leanSection
+
+Iteration with `for`-loops is translated into uses of `ForIn.forIn`, which is an analogue of `ForM.forM` with added support for local mutations and early termination.
+{name}`ForIn.forIn` receives an initial value for the local mutable state and a monadic action as parameters, along with the collection being iterated over.
+The monadic action passed to {name}`ForIn.forIn` takes a current state as a parameter and, after carrying out actions in the monad {lean}`m`, returns either {name}`ForInStep.yield` to indicate that iteration should continue with an updated set of local mutable values, or {name}`ForInStep.done` to indicate that {keywordOf Lean.Parser.Term.doBreak}`break` or {keywordOf Lean.Parser.Term.doReturn}`return` was executed.
+When iteration is complete, {name}`ForIn.forIn` returns the final values of the local mutable values.
+
+The specific desugaring of a loop depends on how state and early termination are used in its body.
+Here are some examples:
+```lean (show := false)
+axiom «<B>» : Type u
+axiom «<b>» : β
+variable [Monad m] (xs : Coll) [ForIn m Coll α] [instMem : Membership α Coll] [ForIn' m Coll α instMem]
+variable (f : α → β → m β) (f' : (x : α) → x ∈ xs → β → m β)
+
+macro "…" : term => `((«<b>» : β))
+```
+
+:::table (header := true)
+* ignored
+  * {keywordOf Lean.Parser.Term.do}`do` Item
+  * Desugaring
+* ignored
+  * ```leanTerm (type := "m α")
+    do
+    let mut b := …
+    for x in xs do
+      b ← f x b
+    es
+    ```
+  * ```leanTerm (type := "m α")
+    do
+    let b := …
+    let b ← ForIn.forIn xs b fun x b => do
+      let b ← f x b
+      return ForInStep.yield b
+    es
+    ```
+* ignored
+  * ```leanTerm (type := "m α")
+    do
+    let mut b := …
+    for x in xs do
+      b ← f x b
+      break
+    es
+    ```
+  * ```leanTerm (type := "m α")
+    do
+    let b := …
+    let b ← ForIn.forIn xs b fun x b => do
+      let b ← f x b
+      return ForInStep.done b
+    es
+    ```
+* ignored
+  * ```leanTerm (type := "m α")
+    do
+    let mut b := …
+    for h : x in xs do
+      b ← f' x h b
+    es
+    ```
+  * ```leanTerm (type := "m α")
+    do
+    let b := …
+    let b ← ForIn'.forIn' xs b fun x h b => do
+      let b ← f' x h b
+      return ForInStep.yield b
+    es
+    ```
+* ignored
+  * ```leanTerm (type := "m α")
+    do
+    let mut b := …
+    for h : x in xs do
+      b ← f' x h b
+      break
+    es
+    ```
+  * ```leanTerm (type := "m α")
+    do
+    let b := …
+    let b ← ForIn'.forIn' xs b fun x h b => do
+      let b ← f' x h b
+      return ForInStep.done b
+    es
+    ```
+:::
+::::
+:::::
+
 
 The body of a {keywordOf Lean.doElemWhile_Do_}`while` loop is repeated while the condition remains true.
 It is possible to write infinite loops using them in functions that are not marked {keywordOf Lean.Parser.Command.declaration}`partial`.
@@ -819,6 +918,8 @@ Implementing {lean}`ForIn'` additionally allows the use of {keywordOf Lean.Parse
 {docstring ForIn'}
 
 {docstring ForInStep}
+
+{docstring ForInStep.value}
 
 {docstring ForM (allowMissing := true)}
 
