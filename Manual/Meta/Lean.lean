@@ -229,8 +229,6 @@ def leanTerm : CodeBlockExpander
         try
           Core.resetMessageLog
 
-
-
           let tree' ← runWithOpenDecls <| runWithVariables fun _vars => do
             let expectedType ← config.type.mapM fun (s : StrLit) => do
               match Parser.runParserCategory (← getEnv) `term s.getString (← getFileName) with
@@ -1043,3 +1041,20 @@ def name.descr : InlineDescr where
         pure .empty
       | .ok (hl : Highlighted) =>
         hl.inlineHtml "examples"
+
+-- Placeholder for module names (eventually hyperlinking these will be important, so better to tag them now)
+
+@[role_expander module]
+def module : RoleExpander
+  | args, #[arg] => do
+    let cfg ← ArgParse.done.run args
+    let `(inline|code( $name:str )) := arg
+      | throwErrorAt arg "Expected code literal with the module's name"
+    let exampleName := name.getString.toName
+    let identStx := mkIdentFrom arg exampleName (canonical := true)
+    pure #[← ``(Doc.Inline.code $(quote name.getString))]
+  | _, more =>
+    if h : more.size > 0 then
+      throwErrorAt more[0] "Expected code literal with the module's name"
+    else
+      throwError "Expected code literal with the module's name"

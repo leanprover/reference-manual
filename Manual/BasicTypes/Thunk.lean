@@ -17,7 +17,8 @@ set_option pp.rawOnError true
 tag := "Thunk"
 %%%
 
-The {name}`Thunk` type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called {deftech key:="force"}_forcing_ the thunk.
+A {deftech}_thunk_ delays the computation of a value.
+In particular, the {name}`Thunk` type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called {deftech key:="force"}_forcing_ the thunk.
 The computed value is saved, so subsequent requests do not result in recomputation.
 Computing values at most once, when explicitly requested, is called {deftech}_lazy evaluation_.{index}[call-by-need]
 This caching is invisible to Lean's logic, in which {name}`Thunk` is equivalent to a function from {name}`Unit`.

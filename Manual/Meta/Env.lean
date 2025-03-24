@@ -102,7 +102,9 @@ r#"
 
       return {{<code class="env-var">s!"{var}"</code>}}
 
-  localContentItem _ info _ := open Verso.Output.Html in Id.run do
-    let .arr #[.str var, .bool true] := info
-      | #[]
-    #[(var, {{<code>{{var}}</code>}}), (s!"{var} (Environment Variable)", {{<code>{{var}}</code>" (Environment Variable)"}})]
+  localContentItem _ info _ := open Verso.Output.Html in do
+    if let .arr #[.str var, .bool isDef] := info then
+      if isDef then
+        pure #[(var, {{<code>{{var}}</code>}}), (s!"{var} (Environment Variable)", {{<code>{{var}}</code>" (Environment Variable)"}})]
+      else pure #[]
+    else throw s!"Expected a two-element array with a string and a Boolean, got {info}"
