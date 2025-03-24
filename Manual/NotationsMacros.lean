@@ -13,6 +13,7 @@ import Manual.NotationsMacros.Operators
 import Manual.NotationsMacros.Precedence
 import Manual.NotationsMacros.Notations
 import Manual.NotationsMacros.SyntaxDef
+import Manual.NotationsMacros.Elab
 
 import Lean.Parser.Command
 
@@ -1176,12 +1177,4 @@ Evaluating this new expression demonstrates that the macro is present.
 :::
 ::::
 
-
-# Elaborators
-%%%
-tag := "elaborators"
-%%%
-
-:::planned 72
-For now, a quick overview of term and command elaborators, with a detailed description to be written in a later revision.
-:::
+{include 0 Manual.NotationsMacros.Elab}
