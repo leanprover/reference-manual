@@ -383,26 +383,6 @@ A C file is produced for each Lean module; these are then compiled to native cod
 If the `precompileModules` option is set in the build configuration, then this native code can be dynamically loaded and invoked by Lean; otherwise, an interpreter is used.
 For most workloads, the overhead of compilation is larger than the time saved by avoiding the interpreter, but some workloads can be sped up dramatically by pre-compiling tactics, language extensions, or other extensions to Lean.
 
-## Memory Allocation and Reference Counting
-
-:::planned 208
-
-The most important topics related to Lean's reference-counting-based allocator:
-
- * Overview of {deftech key:="reference count"}_reference counting_
-
- * Compact regions
-
- * When are counts incremented and decremented?
-
- * Tools for debugging uniqueness issues
-
- * When should C code increment or decrement reference counts?
-
- * What is the meaning of the borrow annotation (`@&`)?
-
-:::
-
 
 # Initialization
 %%%
