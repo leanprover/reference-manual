@@ -189,7 +189,7 @@ tag := "array-api"
 
 {docstring Array.ofFn}
 
-{docstring Array.mkArray}
+{docstring Array.replicate}
 
 {docstring Array.append}
 
