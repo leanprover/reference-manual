@@ -1395,19 +1395,17 @@ partial def grammar.descr : BlockDescr where
   extraJs := [highlightingJs, grammarJs]
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
-  localContentItem _ json _ := Id.run do
-    let .arr #[_, .arr #[_, .arr toks]] := json
-      | #[]
-    let toks? ← Except.toOption <| toks.mapM fun v => do
-        let Json.str str ← v.getObjVal? "string"
-          | throw "Not a string"
-        let .str k ← v.getObjVal? "kind"
-          | throw "Not a string"
-        pure (str, {{<span class={{k}}>{{str}}</span>}})
-    if let some toks := toks? then
+  localContentItem _ json _ := open Verso.Output.Html in do
+    if let .arr #[_, .arr #[_, .arr toks]] := json then
+      let toks ← toks.mapM fun v => do
+          let Json.str str ← v.getObjVal? "string"
+            | throw "Not a string"
+          let .str k ← v.getObjVal? "kind"
+            | throw "Not a string"
+          pure (str, {{<span class={{k}}>{{str}}</span>}})
       let (strs, toks) := toks.unzip
-      #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
-    else #[]
+      pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
+    else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html

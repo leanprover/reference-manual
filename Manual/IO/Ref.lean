@@ -152,21 +152,26 @@ Final balance is zero or positive.
 
 {docstring ST.Ref.modifyGet}
 
+{docstring ST.Ref.swap}
+
 ## Comparisons
 
 {docstring ST.Ref.ptrEq}
 
-## Concurrency
+## `ST`-Backed State Monads
+
+{docstring ST.Ref.toMonadStateOf}
+
+# Concurrency
+%%%
+tag := "ref-locks"
+%%%
 
 Mutable references can be used as a locking mechanism.
 _Taking_ the contents of the reference causes attempts to take it or to read from it to block until it is {name ST.Ref.set}`set` again.
 This is a low-level feature that can be used to implement other synchronization mechanisms; it's usually better to rely on higher-level abstractions when possible.
 
 {docstring ST.Ref.take}
-
-{docstring ST.Ref.swap}
-
-{docstring ST.Ref.toMonadStateOf}
 
 
 ::::example "Reference Cells as Locks"

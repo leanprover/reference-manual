@@ -200,14 +200,15 @@ def Block.tomlField.descr : BlockDescr where
             {{← contents.mapM goB}}
         </dd>
       }}
-  localContentItem _ info _ := open Verso.Output Html in Id.run do
-    let .ok (_, inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
-      | #[]
+  localContentItem _ info _ := open Verso.Output Html in do
+    let (_, inTable, field) ← FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
     let name := field.name.toString
     let longName := s!"{inTable.toString}.{field.name.toString}"
-    #[(name, {{<code class="field-name">{{name}}</code>}}),
+    pure #[
+      (name, {{<code class="field-name">{{name}}</code>}}),
       (longName, {{<code class="field-name">{{longName}}</code>}}),
-      (s!"{longName} (TOML Field)", {{<code class="field-name">{{longName}}</code>" (TOML Field)"}})]
+      (s!"{longName} (TOML Field)", {{<code class="field-name">{{longName}}</code>" (TOML Field)"}})
+    ]
 
 private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
   blocks.flatMap fun
@@ -401,13 +402,12 @@ dl.toml-table-field-spec {
         </div>
       }}
 
-  localContentItem _ info _ := open Verso.Output Html in Id.run do
-    let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
-      | #[]
+  localContentItem _ info _ := open Verso.Output Html in do
+    let (arrayKey, humanName, typeName) ← FromJson.fromJson? (α := Option String × String × Name) info
     if let some arrayKey := arrayKey then
-      #[(s!"[[{arrayKey}]]", {{<code>s!"[[{arrayKey}]]"</code>}})]
+      pure #[(s!"[[{arrayKey}]]", {{<code>s!"[[{arrayKey}]]"</code>}})]
     else
-      #[(humanName, {{ {{humanName}} }})]
+      pure #[(humanName, {{ {{humanName}} }})]
 
 
 namespace Toml

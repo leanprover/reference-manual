@@ -317,19 +317,3 @@ Most comparisons on Booleans should be performed using the {inst}`DecidableEq Bo
 {include 0 Manual.BasicTypes.Subtype}
 
 {include 0 Manual.BasicTypes.Thunk}
-
-# Tasks and Threads
-%%%
-tag := "concurrency"
-draft := true
-%%%
-
-
-::: planned 90
-Description and API reference for {name}`Task` and runtime threads, including {lean}`IO.Promise`
-
- * Scheduling model
- * Things to be careful of
-
-This section may be moved to the section on {name}`IO` in particular.
-:::
