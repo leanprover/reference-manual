@@ -38,7 +38,7 @@ Lean's type theory is explicit enough that derivations can be reconstructed from
 This means that proof terms are sufficient evidence of the truth of a theorem and are amenable to independent verification.
 
 In addition to having types, terms are also related by {deftech}_definitional equality_.
-This is the mechanically-checkable relation that equates terms modulo their computational behavior.
+This is the mechanically-checkable relation that syntactically equates terms modulo their computational behavior.
 Definitional equality includes the following forms of {deftech}[reduction]:
 
  : {deftech}[β] (beta)
@@ -56,6 +56,10 @@ Definitional equality includes the following forms of {deftech}[reduction]:
  : {deftech}[ζ] (zeta)
 
      Replacement of let-bound variables by their defined values
+
+ : Quotient reduction
+
+   {ref "quotient-model"}[Reduction of the quotient type's function lifting operator] when applied to an element of a quotient
 
 Terms in which all possible reductions have been carried out are in {deftech}_normal form_.
 
@@ -78,11 +82,10 @@ example : S.mk x.f1 x.f2 = x := by rfl
 
 export S (f1 f2)
 ```
-
 Definitional equality includes {deftech}[η-equivalence] of functions and single-constructor inductive types.
 That is, {lean}`fun x => f x` is definitionally equal to {lean}`f`, and {lean}`S.mk x.f1 x.f2` is definitionally equal to {lean}`x`, if {lean}`S` is a structure with fields {lean}`f1` and {lean}`f2`.
 It also features {deftech}_proof irrelevance_: any two proofs of the same proposition are definitionally equal.
-It is reflexive, symmetric, and a congruence.
+It is reflexive and symmetric, but not transitive.
 ::::
 
 Definitional equality is used by conversion: if two terms are definitionally equal, and a given term has one of them as its type, then it also has the other as its type.
