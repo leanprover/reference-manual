@@ -51,7 +51,7 @@ As befits a programming language, Lean is primarily implemented in itself, inclu
 This very book is written in [Verso](https://github.com/leanprover/verso), a documentation authoring tool written in Lean.
 
 Familiarity with Lean's programming features is valuable even for users whose primary interest is in writing proofs, because Lean programs are used to implement new tactics and proof automation.
-Thus, this reference manual does not draw a barrier between the two aspects, but rather describes them together so they can shed light on one another
+Thus, this reference manual does not draw a barrier between the two aspects, but rather describes them together so they can shed light on one another.
 
 
 
