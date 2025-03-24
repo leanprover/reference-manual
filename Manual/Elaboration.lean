@@ -11,6 +11,7 @@ import Manual.Papers
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
+set_option guard_msgs.diff true
 
 open Lean (Syntax SourceInfo)
 
@@ -183,7 +184,7 @@ example (b : B) : ⟨b.1, b.2⟩ = b := rfl
 error: type mismatch
   rfl
 has type
-  ?m.714 = ?m.714 : Prop
+  ?m.724 = ?m.724 : Prop
 but is expected to have type
   e1 = e2 : Prop
 -/

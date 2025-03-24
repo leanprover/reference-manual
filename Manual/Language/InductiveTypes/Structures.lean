@@ -12,6 +12,8 @@ open Verso.Genre Manual
 
 open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 
+set_option guard_msgs.diff true
+
 #doc (Manual) "Structure Declarations" =>
 %%%
 tag := "structures"
@@ -316,11 +318,21 @@ tag := "structure-inheritance"
 Structures may be declared as extending other structures using the optional {keywordOf Lean.Parser.Command.declaration (parser:=«structure»)}`extends` clause.
 The resulting structure type has all of the fields of all of the parent structure types.
 If the parent structure types have overlapping field names, then all overlapping field names must have the same type.
-If the overlapping fields have different default values, then the default value from the last parent structure that includes the field is used.
-New default values in the child structure take precedence over default values from the parent structures.
+
+The resulting structure has a {deftech}_field resolution order_ that affects the values of fields.
+When possible, this resolution order is the [C3 linearization](https://en.wikipedia.org/wiki/C3_linearization) of the structure's parents.
+Essentially, the field resolution order should be a total ordering of the entire set of parents such that every {keywordOf Lean.Parser.Command.declaration (parser:=«structure»)}`extends` list is in order.
+When there is no C3 linearization, a heuristic is used to find an order nonetheless.
+Every structure type is first in its own field resolution order.
+
+The field resolution order is used to compute the default values of optional fields.
+When the value of a field is not specified, the first default value defined in the resolution order is used.
+References to fields in the default value use the field resolution order as well; this means that child structures that override default fields of parent constructors may also change the computed default values of parent fields.
+Because the child structure is the first element of its own resolution order, default values in the child structure take precedence over default values from the parent structures.
 
 ```lean (show := false) (keep := false)
--- If the overlapping fields have different default values, then the default value from the last parent structure that includes the field is used.
+-- If the overlapping fields have different default values, then the default value from the first
+-- parent structure in the resolution order that includes the field is used.
 structure Q where
   x : Nat := 0
 deriving Repr
@@ -332,12 +344,71 @@ deriving Repr
 structure Q''' extends Q', Q
 deriving Repr
 
-/-- info: 3 -/
+/--
+info: structure Q'' : Type
+number of parameters: 0
+parents:
+  Q''.toQ : Q
+  Q''.toQ' : Q'
+fields:
+  Q.x : Nat :=
+    0
+constructor:
+  Q''.mk (toQ : Q) : Q''
+field notation resolution order:
+  Q'', Q, Q'
+-/
 #guard_msgs in
-#eval ({} : Q'').x
+#print Q''
+
 /-- info: 0 -/
 #guard_msgs in
+#eval ({} : Q'').x
+
+/--
+info: structure Q''' : Type
+number of parameters: 0
+parents:
+  Q'''.toQ' : Q'
+  Q'''.toQ : Q
+fields:
+  Q'.x : Nat :=
+    3
+constructor:
+  Q'''.mk (toQ' : Q') : Q'''
+field notation resolution order:
+  Q''', Q', Q
+-/
+#guard_msgs in
+#print Q'''
+
+/-- info: 3 -/
+#guard_msgs in
 #eval ({} : Q''').x
+
+-- Defaults use local values
+structure A where
+  n : Nat := 0
+deriving Repr
+structure B extends A where
+  k : Nat := n
+deriving Repr
+structure C extends A where
+  n := 5
+deriving Repr
+structure C' extends A where
+  n := 3
+deriving Repr
+
+structure D extends B, C, C'
+deriving Repr
+structure D' extends B, C', C
+deriving Repr
+
+#eval ({} : D).k
+
+#eval ({} : D').k
+
 ```
 
 When the new structure extends existing structures, the new structure's constructor takes the existing structure's information as additional arguments.
@@ -345,11 +416,11 @@ Typically, this is in the form of a constructor parameter for each parent struct
 This parent value contains all of the parent's fields.
 If the parents' fields overlap, however, then the subset of non-overlapping fields from one or more of the parents is included instead of an entire value of the parent structure to prevent duplicating field information.
 
-
 There is no subtyping relation between a parent structure type and its children.
 Even if structure `B` extends structure `A`, a function expecting an `A` will not accept a `B`.
 However, conversion functions are generated that convert a structure into each of its parents.
-These conversion functions are in the child structure's namespace, and their name is the parent structure's name preceded by `to`.
+These conversion functions are called {deftech}_parent projections_.
+Parent projections are in the child structure's namespace, and their name is the parent structure's name preceded by `to`.
 
 ::: example "Structure type inheritance with overlapping fields"
 In this example, a {lean}`Textbook` is a {lean}`Book` that is also an {lean}`AcademicWork`:
@@ -518,7 +589,7 @@ structure E extends A, B where
 #guard_msgs in
 #check E.mk
 /--
-error: parent field type mismatch, field 'x' from parent 'A'' has type
+error: field type mismatch, field 'x' from parent 'A'' has type
   Int : Type
 but is expected to have type
   Nat : Type
@@ -526,6 +597,77 @@ but is expected to have type
 #guard_msgs in
 structure F extends A, A' where
 
-
-
 ```
+
+
+The {keywordOf Lean.Parser.Command.print}`#print` command displays the most important information about structure types, including the {tech}[parent projections], all the fields with their default values, the constructor, and the {tech}[field resolution order].
+When working with deep hierarchies that contain inheritance diamonds, this information can be very useful.
+
+::: example "{keyword}`#print` and Structure Types"
+
+This collection of structure types models a variety of bicycles, both electric and non-electric and both ordinary-sized and large family bicycles.
+The final structure type, {lean}`ElectricFamilyBike`, contains a diamond in its inheritance graph, because both {lean}`FamilyBike` and {lean}`ElectricBike` extend {lean}`Bicycle`.
+
+```lean
+structure Vehicle where
+  wheels : Nat
+
+structure Bicycle extends Vehicle where
+  wheels := 2
+
+structure ElectricVehicle extends Vehicle where
+  batteries : Nat := 1
+
+structure FamilyBike extends Bicycle where
+  wheels := 3
+
+structure ElectricBike extends Bicycle, ElectricVehicle
+
+structure ElectricFamilyBike
+    extends FamilyBike, ElectricBike where
+  batteries := 2
+```
+
+The {keywordOf Lean.Parser.Command.print}`#print` command displays the important information about each structure type:
+```lean (name := el)
+#print ElectricBike
+```
+```leanOutput el
+structure ElectricBike : Type
+number of parameters: 0
+parents:
+  ElectricBike.toBicycle : Bicycle
+  ElectricBike.toElectricVehicle : ElectricVehicle
+fields:
+  Vehicle.wheels : Nat :=
+    2
+  ElectricVehicle.batteries : Nat :=
+    1
+constructor:
+  ElectricBike.mk (toBicycle : Bicycle) (batteries : Nat) : ElectricBike
+field notation resolution order:
+  ElectricBike, Bicycle, ElectricVehicle, Vehicle
+```
+
+An {lean}`ElectricFamilyBike` has three wheels by default because {lean}`FamilyBike` precedes {lean}`Bicycle` in its resolution order:
+```lean  (name := elFam)
+#print ElectricFamilyBike
+```
+```leanOutput elFam
+structure ElectricFamilyBike : Type
+number of parameters: 0
+parents:
+  ElectricFamilyBike.toFamilyBike : FamilyBike
+  ElectricFamilyBike.toElectricBike : ElectricBike
+fields:
+  Vehicle.wheels : Nat :=
+    3
+  ElectricVehicle.batteries : Nat :=
+    2
+constructor:
+  ElectricFamilyBike.mk (toFamilyBike : FamilyBike) (batteries : Nat) : ElectricFamilyBike
+field notation resolution order:
+  ElectricFamilyBike, FamilyBike, ElectricBike, Bicycle, ElectricVehicle, Vehicle
+```
+
+:::
