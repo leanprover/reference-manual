@@ -545,6 +545,11 @@ These are used in the same way as their {name}`Quotient`-based counterparts.
 
 {docstring Quot.sound}
 
+## Quotient Reduction
+%%%
+tag := "quotient-reduction"
+%%%
+
 ```lean (show := false)
 section
 variable
@@ -579,9 +584,10 @@ example : Quot.lift f ok (Quot.mk r x) = f x := rfl
 end
 ```
 
-{name}`Quot.liftOn` is an version of {name}`Quot.lift` that takes the quotient type's value first, by analogy to {name}`Quotient.liftOn`.
-
-{docstring Quot.liftOn}
+## Quotients and Inductive Types
+%%%
+tag := "quotients-nested-inductives"
+%%%
 
 Because {name}`Quot` is not an inductive type, types implemented as quotients may not occur around {ref "nested-inductive-types"}[nested occurrences] in inductive type declarations.
 These types declarations must be rewritten to remove the nested quotient, which can often be done by defining a quotient-free version and then separately defining an equivalence relation that implements the desired equality relation.
@@ -608,6 +614,12 @@ inductive SetTree (α : Type u) where
 ```
 
 :::
+
+## Low-Level Quotient API
+
+{name}`Quot.liftOn` is an version of {name}`Quot.lift` that takes the quotient type's value first, by analogy to {name}`Quotient.liftOn`.
+
+{docstring Quot.liftOn}
 
 Lean also provides convenient elimination from {name}`Quot` into any subsingleton without further proof obligations, along with dependent elimination principles that correspond to those used for {name}`Quotient`.
 
