@@ -22,6 +22,7 @@ import Manual.Interaction
 import Manual.Monads
 import Manual.BuildTools
 import Manual.Releases
+import Manual.Runtime
 
 open Verso.Genre Manual
 
@@ -104,6 +105,8 @@ Overview of the standard library, including types from the prelude and those tha
  * {deftech}[Pretty printing]
  * Parenthesizers
 :::
+
+{include 0 Manual.Runtime}
 
 # Elan
 %%%

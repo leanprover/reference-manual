@@ -28,7 +28,7 @@ tag := "concurrency"
 variable {α : Type u}
 ```
 
-{name}`Task` is the fundamental primitive for writing multi-threaded code.
+{deftech}_Tasks_ are the fundamental primitive for writing multi-threaded code.
 A {lean}`Task α` represents a computation that, at some point, will {deftech}_resolve_ to a value of type `α`; it may be computed on a separate thread.
 When a task has resolved, its value can be read; attempting to get the value of a task before it resolves causes the current thread to block until the task has resolved.
 Tasks are similar to promises in JavaScript, `JoinHandle` in Rust, and `Future` in Scala.

@@ -108,6 +108,16 @@ def LeanBlockConfig.outlineMeta : LeanBlockConfig → String
     | some false, false => " (hidden)"
     | _, _ => " "
 
+def firstToken? (stx : Syntax) : Option Syntax :=
+  stx.find? fun
+    | .ident info .. => usable info
+    | .atom info .. => usable info
+    | _ => false
+where
+  usable
+    | .original .. => true
+    | _ => false
+
 @[code_block_expander lean]
 def lean : CodeBlockExpander
   | args, str => withoutAsync <| do
@@ -142,10 +152,8 @@ def lean : CodeBlockExpander
       cmdState := {cmdState with messages := messages}
 
 
-      cmdState ← withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.lean, stx := cmd})) do
-        match (← liftM <| EIO.toIO' <| (Command.elabCommand cmd cctx).run cmdState) with
-        | Except.error e => logError e.toMessageData; return cmdState
-        | Except.ok ((), s) => return s
+      cmdState ← withInfoTreeContext (mkInfoTree := pure ∘ InfoTree.node (.ofCommandInfo {elaborator := `Manual.Meta.lean, stx := cmd})) <|
+        runCommand (Command.elabCommand cmd) cmd cctx cmdState
 
       if Parser.isTerminalCommand cmd then break
 
@@ -203,6 +211,23 @@ def lean : CodeBlockExpander
           logWarningAt lit msg
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+  runCommand (act : Command.CommandElabM Unit) (stx : Syntax)
+      (cctx : Command.Context) (cmdState : Command.State) :
+      DocElabM Command.State := do
+    let (output, cmdState) ←
+      match (← liftM <| IO.FS.withIsolatedStreams <| EIO.toIO' <| (act.run cctx).run cmdState) with
+      | (output, .error e) => logError e.toMessageData; pure (output, cmdState)
+      | (output, .ok ((), cmdState)) => pure (output, cmdState)
+
+    if output.trim.isEmpty then return cmdState
+
+    let log : MessageData → Command.CommandElabM Unit :=
+      if let some tok := firstToken? stx then logInfoAt tok
+      else logInfo
+
+    match (← liftM <| EIO.toIO' <| ((log output).run cctx).run cmdState) with
+    | .error _ => pure cmdState
+    | .ok ((), cmdState) => pure cmdState
 
 @[code_block_expander leanTerm]
 def leanTerm : CodeBlockExpander

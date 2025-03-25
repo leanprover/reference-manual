@@ -30,11 +30,18 @@ def castPaper : ArXiv where
   id := "2001.10594"
 
 def doUnchained : InProceedings where
-  title := .concat (inlines!"`do` unchained: ")
+  title := .concat (inlines!"`do` Unchained: Embracing Local Imperativity in a Purely Functional Language")
   authors := #[.concat (inlines!"Sebastian Ullrich"), .concat (inlines!"Leonardo de Moura")]
   url := some "https://dl.acm.org/doi/10.1145/3547640"
   year := 2022
-  booktitle := .concat (inlines!"Proceedings of the ACM on Programming Languages: ICFP")
+  booktitle := .concat (inlines!"Proceedings of the ACM on Programming Languages: ICFP 2022")
+
+def countingBeans : InProceedings where
+  title := .concat (inlines!"Counting Immutable Beans: Reference Counting Optimized for Purely Functional Programming")
+  authors := #[.concat (inlines!"Sebastian Ullrich"), .concat (inlines!"Leonardo de Moura")]
+  url := some "https://arxiv.org/abs/1908.05647"
+  year := 2019
+  booktitle := .concat (inlines!"Proceedings of the 31st Symposium on Implementation and Application of Functional Languages (IFL 2019)")
 
 def pratt73 : InProceedings where
   title := .concat (inlines!"Top down operator precedence")
