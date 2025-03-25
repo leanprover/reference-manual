@@ -23,15 +23,6 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 tag := "elan"
 %%%
 
-::: planned 74
-This section will describe Elan and how to use it:
- * `lean-toolchain` files
- * `+`-syntax for toolchain selection
- * Specific overrides
- * Using a local development build of Lean with Elan
-:::
-
-
 Elan is the Lean toolchain manager.
 It is responsible both for installing {tech}[toolchains] and for running their constituent programs.
 
@@ -89,7 +80,7 @@ The toolchain file is a text file named `lean-toolchain` that contains a single 
 This file is typically located in the root directory of a project and checked in to version control with the code, ensuring that everyone working on the project uses the same version.
 Updating to a new Lean toolchain requires only editing this file, and the new version is automatically downloaded and run the next time a Lean file is opened or built.
 
-In cases where more flexibility is required, an override can be configured.
+In cases where more flexibility is required, a {deftech}_toolchain override_ can be configured.
 Like toolchain files, overrides associate a toolchain version with a directory and its children; unlike toolchain files, overrides are stored in Elan's configuration rather than in a local file.
 They are typically used when a specific local configuration is required that does not make sense for other developers, such as testing a project with a locally-built Lean compiler.
 
@@ -184,7 +175,7 @@ If there are multiple toolchains installed, then they are all listed.
 
 ## Setting the Default Toolchain
 
-Elan's configuration file specifies a default toolchain to be used when there is no `lean-toolchain` file or {tech}[override] for the current directory.
+Elan's configuration file specifies a default toolchain to be used when there is no `lean-toolchain` file or {tech}[toolchain override] for the current directory.
 Rather than manually editing the file, this value is typically changed using the {elan}`default` command.
 
 ```elanHelp "default"
@@ -214,7 +205,7 @@ Sets the default toolchain to {elanMeta}`toolchain`, which should be a {ref "ela
 tag := "elan-toolchain"
 %%%
 
-The {elan}`toolchain` family of subcommands is used to manage the installed toolchains.
+The `elan toolchain` family of subcommands is used to manage the installed toolchains.
 Toolchains are stored in Elan's toolchain directory.
 
 Installed toolchains can take up substantial disk space.
@@ -407,6 +398,9 @@ The {elanOptDef flag}`--json` flag causes {elan}`toolchain gc` to emit the list 
 tag := "elan-override"
 %%%
 
+Directory-specific {tech}[toolchain overrides] are a local configuration that takes precedence over `lean-toolchain` files.
+The `elan override` commands manage overrides.
+
 ```elanHelp "override"
 elan-override
 Modify directory toolchain overrides
@@ -448,16 +442,24 @@ DISCUSSION:
 ```
 
 
+
 :::elan override list
-
+Lists all the currently configured directory overrides in two columns.
+The left column contains the directories in which the Lean version is overridden, and the right column lists the toolchain version.
 :::
 
-:::elan override set
 
+:::elan override set "toolchain"
+Sets {elanMeta}`toolchain` as an override for the current directory.
 :::
 
-:::elan override unset
 
+
+
+:::elan override unset "[\"--nonexistent\"] [\"--path\" path]"
+If {elanOptDef flag}`--nonexistent` flag is provided, all overrides that are configured for directories that don't currently exist are removed.
+If {elanOptDef option}`--path path` is provided, then the override set for {elanMeta}`path` is removed.
+Otherwise, the override for the current directory is removed.
 :::
 
 ## Running Tools and Commands
@@ -499,7 +501,9 @@ DISCUSSION:
 ```
 
 :::elan run "[\"--install\"] toolchain command ..."
-
+Configures an environment to use the given toolchain and then runs the specified program.
+The command may be any program; it does not need to be a command that's part of a toolchain such as `lean` or `lake`.
+This can be used for testing arbitrary toolchains without setting an override.
 :::
 
 ```elanHelp "which"
@@ -517,7 +521,7 @@ ARGS:
 ```
 
 :::elan which "command"
-
+Displays the full path to the toolchain-specific binary for {elanMeta}`command`.
 :::
 
 ## Managing Elan
@@ -542,12 +546,23 @@ SUBCOMMANDS:
     help         Prints this message or the help of the given subcommand(s)
 ```
 
-:::elan self update
 
+```elanHelp "self" "update"
+elan-self-update
+Download and install updates to elan
+
+USAGE:
+    elan self update
+
+FLAGS:
+    -h, --help    Prints help information
+```
+:::elan self update
+Downloads and installs updates to Elan itself.
 :::
 
 :::elan self uninstall
-
+Uninstalls Elan.
 :::
 
 ```elanHelp "completions"
@@ -667,5 +682,6 @@ DISCUSSION:
 ```
 
 :::elan completions "shell"
-
+Generates shell completion scripts for Elan, enabling tab completion for Elan commands in a variety of shells.
+See the output of `elan help completions` for a description of how to install them.
 :::

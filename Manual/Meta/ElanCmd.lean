@@ -266,7 +266,7 @@ a.elan-command:hover {
               let url := path.link (some slug.toString)
               return {{<a href={{url}} class="elan-command"><code>s!"elan {n}"</code></a>}}
 
-      HtmlT.logError "No name for elan command"
+      HtmlT.logError s!"No name/dest for elan command {name}"
       is.mapM goI
 
 @[role_expander elanArgs]
