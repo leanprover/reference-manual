@@ -154,24 +154,55 @@ axiom $_ $_
 tag := "declaration-modifiers"
 %%%
 
-::: planned 52
+Declarations accept a consistent set of {deftech}_modifiers_, all of which are optional.
+Modifiers change some aspect of the declaration's interpretation; for example, they can add documentation or change its scope.
+The order of modifiers is fixed, but not every kind of declaration accepts every kind of modifier.
 
-A description of each modifier allowed in the production `declModifiers`, including {deftech}[documentation comments].
-
+:::syntax declModifiers (open := false) (alias:=Lean.Parser.Command.declModifiers) (title := "Declaration Modifiers")
+Modifiers consist of the following, in order, all of which are optional:
+ 1. a documentation comment,
+ 2. a list of {tech}[attributes],
+ 3. namespace control, specifying whether the resulting name is {tech}[private] or {tech}[protected],
+ 4. the {keyword}`noncomputable` keyword, which exempts a definition from compilation,
+ 5. the {keyword}`unsafe` keyword, and
+ 6. a recursion modifier {keyword}`partial` or {keyword}`nonrec`, which disable termination proofs or disallow recursion entirely.
+```grammar
+$[$_:docComment]?
+$[$_:attributes]?
+$[$_]?
+$[noncomputable]?
+$[unsafe]?
+$[$_]?
+```
 :::
 
-:::syntax declModifiers alias:=Lean.Parser.Command.declModifiers (title := "Declaration Modifiers")
+{deftech}_Documentation comments_ are used to provide in-source API documentation for the declaration that they modify.
+Documentation comments are not, in fact comments: it is a syntax error to put a documentation comment in a position where it is not processed as documentation.
+They also occur in positions where some kind of text is required, but string escaping would be onerous, such as the desired messages on the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command.
+
+:::syntax docComment (open:=false) (title := "Documentation Comments")
+
+Documentation comments are like ordinary block comments, but they begin with the sequence `/--` rather than `/-`; just like ordinary comments, they are terminated with `-/`.
 
 ```grammar
-$_
-$_
-$_
-$_
-$_
-$_
+/--
+...
+-/
 ```
-
 :::
+
+Attributes are an extensible collection of modifiers that associate additional information with declarations.
+They are described in a {ref "attributes"}[dedicated section].
+
+If a declaration is marked {deftech key:="private"}[{keyword}`private`], then it is not accessible outside the module in which it is defined.
+If it is {keyword}`protected`, then opening its namespace does not bring it into scope.
+
+Functions marked {keyword}`noncomputable` are not compiled and cannot be executed.
+Functions must be noncomputable if they use noncomputable reasoning principles such as the axiom of choice or excluded middle to produce data that is relevant to the answer that they return, or if they use features of Lean that are exempted from code generation for efficiency reasons, such as {tech}[recursors].
+Noncomputable functions are very useful for specification and reasoning, even if they cannot be compiled and executed.
+
+The {keyword}`unsafe` marker exempts a definition from kernel checking and enables it to access features that may undermine Lean's guarantees.
+It should be used with great care, and only with a thorough understanding of Lean's internals.
 
 ### Headers and Signatures
 %%%
@@ -185,7 +216,7 @@ In Lean, signatures are written in a consistent format in different kinds of dec
 
 #### Declaration Names
 
-Most signatures begin with a {deftech}_declaration name_, which is followed by the signature proper: its parameters and the resulting type.
+Most headers begin with a {deftech}_declaration name_, which is followed by the signature proper: its parameters and the resulting type.
 A declaration name is a name that may optionally include universe parameters.
 
 :::syntax declId (open := false) (title := "Declaration Names")
@@ -208,20 +239,23 @@ Examples do not include declaration names, and names are optional for instance d
 tag := "parameter-syntax"
 %%%
 
+After the name, if present, is the header's signature.
+The signature specifies the declaration's parameters and type.
+
 :::syntax declSig (open := false) (title := "Declaration Signatures")
 A signature consists of zero or more parameters, followed by a colon and a type.
 
 ```grammar
 $_* : $_
 ```
+:::
 
 Parameters may have three forms:
  * An identifier, which names a parameter but does not provide a type.
    These parameters' types must be inferred during elaboration.
- * An underscore (`_`), which indicates a parameter that is not accessible in the local scope.
+ * An underscore (`_`), which indicates a parameter that is not accessible by name in the local scope.
    These parameters' types must also inferred during elaboration.
  * A bracketed binder, which may specify every aspect of one or more parameters, including their names, their types, default values, and whether they are explicit, implicit, strictly implicit, or instance-implicit.
-:::
 
 #### Bracketed Parameter Bindings
 %%%
@@ -551,7 +585,7 @@ tag := "namespaces"
 
 :::planned 210
 
-Describe {deftech}[namespaces], aliases, and the semantics of `export` and `open`.
+Describe {deftech}[namespaces], aliases, and the semantics of `export` and `open` and {deftech}[`protected`].
 Which language features are controlled by the currently open namespaces?
 
 :::
@@ -886,13 +920,97 @@ end
 end
 ```
 
-### Scoped Attributes
+
+# Axioms
+%%%
+tag := "axioms"
+%%%
+
+:::planned 78
+Describe {deftech}_axioms_ in detail
+:::
+
+# Attributes
+%%%
+tag := "attributes"
+%%%
+
+{deftech}_Attributes_ are an extensible set of compile-time annotations on declarations.
+They can be added as a {ref "declaration-modifiers"}[declaration modifier] or using the {keywordOf Lean.Parser.Command.attribute}`attribute` command.
+
+Attributes can associate information with declarations in compile-time tables (including {tech}[custom simp sets], {tech}[macros], and {tech}[instances]), impose additional requirements on definitions (e.g. rejecting them if their type is not a type class), or generate additional code.
+As with {tech}[macros] and custom {tech}[elaborators] for terms, commands, and tactics, the {tech}[syntax category] `attr` of attributes is designed to be extended, and there is a table that maps each extension to a compile-time program that interprets it.
+
+Attributes are applied as {deftech}_attribute instances_ that pair a scope indicator with an attribute.
+These may occur either in attributes as declaration modifiers or the stand-alone {keywordOf Lean.Parser.Command.attribute}`attribute` command.
+
+:::syntax Lean.Parser.Term.attrInstance (title := "Attribute Instances")
+```grammar
+$_:attrKind $_:attr
+```
+
+An `attrKind` is the optional {ref "scoped-attributes"}[attribute scope] keywords {keyword}`local` or {keyword}`scoped`.
+These control the visibility of the attribute's effects.
+The attribute itself is anything from the extensible {tech}[syntax category] `attr`.
+:::
+
+The attribute system is very powerful: attributes can associate arbitrary information with declarations and generate any number of helpers.
+This imposes some design trade-offs: storing this information takes space, and retrieving it takes time.
+As a result, some attributes can only be applied to a declaration in the module where the declaration is defined.
+This allows lookups to be much faster in large projects, because they don't need to examine data for all modules.
+Each attribute determines how to store its own metadata and what the appropriate tradeoff between flexibility and performance is for a given use case.
+
+## Attributes as Modifiers
+
+Attributes can be added to declarations as a {ref "declaration-modifiers"}[declaration modifier].
+They are placed between the documentation comment and the visibility modifiers.
+
+:::syntax Lean.Parser.Term.attributes (open := false) (title := "Attributes")
+```grammar
+@[$_:attrInstance,*]
+```
+:::
+
+## The {keyword}`attribute` Command
+
+The {keywordOf Lean.Parser.Command.attribute}`attribute` command can be used to modify a declaration's attributes.
+Some example uses include:
+ * registering a pre-existing declaration as an {tech}[instance] in the local scope by adding {attr}`instance`,
+ * marking a pre-existing theorem as a simp lemma or an extensionality lemma, using {attr}`simp` or {attr}`ext`, and
+ * temporarily removing a simp lemma from the default {tech}[simp set].
+
+:::syntax command (title := "Attribute Modification")
+The {keywordOf Lean.Parser.Command.attribute}`attribute` command adds or removes attributes from an existing declaration.
+The identifier is the name whose attributes are being modified.
+```grammar
+attribute [$_,*] $_
+```
+:::
+
+In addition to attribute instances that add an attribute to an existing declaration, some attributes can be removed; this is called {deftech}_erasing_ the attribute.
+Attributes can be erased by preceding their name with `-`.
+Not all attributes support erasure, however.
+
+:::syntax Lean.Parser.Command.eraseAttr (title := "Erasing Attributes")
+Attributes are erased by preceding their name with a `-`.
+
+```grammar
+-$_:ident
+```
+:::
+
+
+## Scoped Attributes
+%%%
+tag := "scoped-attributes"
+%%%
 
 Many attributes can be applied in a particular scope.
 This determines whether the attribute's effect is visible only in the current section scope, in namespaces that open the current namespace, or everywhere.
 These scope indications are also used to control {ref "syntax-rules"}[syntax extensions] and {ref "instance-attribute"}[type class instances].
+Each attribute is responsible for defining precisely what these terms mean for its particular effect.
 
-:::syntax attrKind (open := false) (title := "Attribute Scopes")
+:::syntax attrKind (open := false) (title := "Attribute Scopes") (alias := Lean.Parser.Term.attrKind)
 Globally-scoped declarations (the default) are in effect whenever the {tech}[module] in which they're established is transitively imported.
 They are indicated by the absence of another scope modifier.
 ```grammar
@@ -909,28 +1027,10 @@ scoped
 ```
 :::
 
-# Axioms
-%%%
-tag := "axioms"
-%%%
-
-:::planned 78
-Describe {deftech}_axioms_ in detail
-:::
-
-# Attributes
-%%%
-tag := "attributes"
-%%%
-
-:::planned 144
- * Concrete syntax of {deftech}[attributes]
- * Use cases
- * Scope
- * When can they be added?
-:::
-
 # Dynamic Typing
+%%%
+draft := true
+%%%
 
 {docstring TypeName}
 
