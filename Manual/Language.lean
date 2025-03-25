@@ -211,7 +211,7 @@ tag := "signature-syntax"
 
 The {deftech}[_header_] of a definition or declaration consists of the constant being declared or defined, if relevant, together with its signature.
 The {deftech}_signature_ of a constant specifies how it can be used.
-The information present in the signature is a superset of its type, including information such as {tech key:="universe parameter"}[universe level parameters] and the default values of its optional parameters.
+The information present in the signature is more than just the type, including information such as {tech key:="universe parameter"}[universe level parameters] and the default values of its optional parameters.
 In Lean, signatures are written in a consistent format in different kinds of declarations.
 
 #### Declaration Names
@@ -493,10 +493,10 @@ AtLeast.add {n✝ : Nat} {i : Fin n✝} (x y : AtLeast i) : AtLeast i
 
 Automatic implicit parameter insertion takes place after the insertion of parameters due to {tech}[section variables].
 Parameters that correspond to section variables have the same name as the corresponding variable, even when they do not correspond to a name written directly in the signature, and disabling automatic implicit parameters has no effect the parameters that correspond to section variables.
-However, when automatic implicit parameters are enabled, section variable declarations that contain otherwise-unbound variables receive additional section variables that follow the same rules as those for implicits.
+However, when automatic implicit parameters are enabled, section variable declarations that contain otherwise-unbound variables receive additional section variables that follow the same rules as those for implicit parameters.
 
 Automatic implicit parameters insertion is controlled by two options.
-By default, automatic implicits are _relaxed_, which means that any unbound identifier may be a candidate for automatic insertion.
+By default, automatic implicit parameter insertion is _relaxed_, which means that any unbound identifier may be a candidate for automatic insertion.
 Setting the option {option}`relaxedAutoImplicit` to {lean}`false` disables relaxed mode and causes only identifiers that consist of a single character followed by zero or more digits to be considered for automatic insertion.
 
 {optionDocs relaxedAutoImplicit}
