@@ -377,7 +377,7 @@ The facets available for modules are:
 
 : `bc`
 
- The compiled LLVM bitcode file produced from the Lean compiler's C file
+ LLVM bitcode file, produced by the Lean compiler
 
 : `c.o`
 
