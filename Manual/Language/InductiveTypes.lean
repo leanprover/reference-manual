@@ -273,7 +273,7 @@ inductive Either'' : Type u → Type v → Type (max u v) where
   | left : {α : Type u} → {β : Type v} → α → Either'' α β
   | right : α → Either'' α β
 ```
-{name}`Either''.right`'s type parameters are discovered via Lean's ordinary rules for {tech}[automatic implicit] parameters.
+{name}`Either''.right`'s type parameters are discovered via Lean's ordinary rules for {tech}[automatic implicit parameters].
 ::::
 :::::
 

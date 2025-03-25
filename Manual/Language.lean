@@ -173,27 +173,376 @@ $_
 
 :::
 
-### Signatures
+### Headers and Signatures
+%%%
+tag := "signature-syntax"
+%%%
 
-:::planned 53
+The {deftech}[_header_] of a definition or declaration consists of the constant being declared or defined, if relevant, together with its signature.
+The {deftech}_signature_ of a constant specifies how it can be used.
+The information present in the signature is a superset of its type, including information such as {tech key:="universe parameter"}[universe level parameters] and the default values of its optional parameters.
+In Lean, signatures are written in a consistent format in different kinds of declarations.
 
-Describe signatures, including the following topics:
- * Explicit, implicit, instance-implicit, and strict implicit parameter binders
- * {deftech key := "optional parameter"}[Optional] and {deftech}[automatic parameters]
- * {deftech}_Automatic implicit_ parameters
- * Argument names and by-name syntax
- * Which parts can be omitted where? Why?
+#### Declaration Names
+
+Most signatures begin with a {deftech}_declaration name_, which is followed by the signature proper: its parameters and the resulting type.
+A declaration name is a name that may optionally include universe parameters.
+
+:::syntax declId (open := false) (title := "Declaration Names")
+Declaration names without universe parameters consist of an identifier:
+```grammar
+$_:ident
+```
+
+Declaration names with universe parameters consist of an identifier followed by a period and one or more universe parameter names in braces:
+```grammar
+$_.{$_, $_,*}
+```
+These universe parameter names are binding occurrences.
+:::
+
+Examples do not include declaration names, and names are optional for instance declarations.
+
+#### Parameters and Types
+%%%
+tag := "parameter-syntax"
+%%%
+
+:::syntax declSig (open := false) (title := "Declaration Signatures")
+A signature consists of zero or more parameters, followed by a colon and a type.
+
+```grammar
+$_* : $_
+```
+
+Parameters may have three forms:
+ * An identifier, which names a parameter but does not provide a type.
+   These parameters' types must be inferred during elaboration.
+ * An underscore (`_`), which indicates a parameter that is not accessible in the local scope.
+   These parameters' types must also inferred during elaboration.
+ * A bracketed binder, which may specify every aspect of one or more parameters, including their names, their types, default values, and whether they are explicit, implicit, strictly implicit, or instance-implicit.
+:::
+
+#### Bracketed Parameter Bindings
+%%%
+tag := "bracketed-parameter-syntax"
+%%%
+
+
+Parameters other than identifiers or underscores are collectively referred to as {deftech}_bracketed binders_ because every syntactic form for specifying them has some kind of brackets, braces, or parentheses.
+All bracketed binders specify the type of a parameter, and most include parameter names.
+The name is optional for instance implicit parameters.
+Using an underscore (`_`) instead of a parameter name indicates an anonymous parameter.
+
+
+:::syntax bracketedBinder (open := false) (title := "Explicit Parameters")
+Parenthesized parameters indicate explicit parameters.
+If more than one identifier or underscore is provided, then all of them become parameters with the same type.
+```grammar
+($x $x* : $t)
+```
+:::
+
+:::syntax bracketedBinder (title := "Optional and Automatic Parameters")
+Parenthesized parameters with a `:=` assign default values to parameters.
+Parameters with default values are called {deftech}_optional parameters_.
+At a call site, if the parameter is not provided, then the provided term is used to fill it in.
+Prior parameters in the signature are in scope for the default value, and their values at the call site are substituted into the default value term.
+
+If a {ref "tactics"}[tactic script] is provided, then the tactics are executed at the call site to synthesize a parameter value; parameters that are filled in via tactics are called {deftech}_automatic parameters_.
+```grammar
+($x $x* : $t := $e)
+```
+:::
+
+:::syntax bracketedBinder (title := "Implicit Parameters")
+Parameters in curly braces indicate {tech}[implicit] parameters.
+Unless provided by name at a call site, these parameters are expected to be synthesized via unification at call sites.
+Implicit parameters are synthesized at all call sites.
+```grammar
+{$x $x* : $t}
+```
+:::
+
+:::syntax bracketedBinder (title := "Strict Implicit Parameters")
+Parameters in double curly braces indicate {tech}[strict implicit] parameters.
+`⦃ … ⦄` and `{{ … }}` are equivalent.
+Like implicit parameters, these parameters are expected to be synthesized via unification at call sites when they are not provided by name.
+Strict implicit parameters are only synthesized at call sites when subsequent parameters in the signature are also provided.
+
+```grammar
+⦃$x $x* : $t⦄
+```
+```grammar
+{{$x $x* : $t}}
+```
 
 :::
 
-### Headers
-
-The {deftech}[_header_] of a definition or declaration specifies the signature of the new constant that is defined.
-
-::: TODO
-* Precision and examples; list all of them here
-* Mention interaction with autoimplicits
+:::syntax bracketedBinder (title := "Instance Implicit Parameters")
+Parameters in square brackets indicate {tech}[instance implicit] parameters, which are synthesized at call sites using {tech key:="synthesis"}[instance synthesis].
+```grammar
+[$[$x :]? $t]
+```
 :::
+
+The parameters are always in scope in the signature's type, which occurs after the colon.
+They are also in scope in the declaration's body, while names bound in the type itself are only in scope in the type.
+Thus, parameter names are used twice:
+ * As names in the declaration's function type, bound as part of a {tech key:="dependent"}[dependent function type].
+ * As names in the declaration's body.
+   In function definitions, they are bound by a {keywordOf Lean.Parser.Term.fun}`fun`.
+
+:::example "Parameter Scope"
+The signature of {lean}`add` contains one parameter, `n`.
+Additionally, the signature's type is {lean}`(k : Nat) → Nat`, which is a function type that includes `k`.
+The parameter `n` is in scope in the function's body, but `k` is not.
+
+```lean
+def add (n : Nat) : (k : Nat) → Nat
+  | 0 => n
+  | k' + 1 => add n k'
+```
+
+Like {lean}`add`, the signature of {lean}`mustBeEqual` contains one parameter, `n`.
+It is in scope both in the type, where it occurs in a proposition, and in the body, where it occurs as part of the message.
+```lean
+def mustBeEqual (n : Nat) : (k : Nat) → n = k → String :=
+  fun _ =>
+    fun
+    | rfl => s!"Equal - both are {n}!"
+
+```
+:::
+
+The section on {ref "function-application"}[function application] describes the interpretation of {tech key:="optional parameter"}[optional], {tech key:="automatic parameter"}[automatic], {tech}[implicit], and {tech}[instance implicit] parameters in detail.
+
+#### Automatic Implicit Parameters
+%%%
+tag := "automatic-implicit-parameters"
+%%%
+
+
+By default, otherwise-unbound names that occur in signatures are converted into implicit parameters when possible
+These parameters are called {deftech}_automatic implicit parameters_.
+This is possible when they are not in the function position of an application and when there is sufficient information available in the signature to infer their type and any ordering constraints on them.
+This process is iterated: if the inferred type for the freshly-inserted implicit parameter has dependencies that are not uniquely determined, then these dependencies are replaced with further implicit parameters.
+
+Implicit parameters that don't correspond to names written in signatures are assigned names akin to those of {tech}[inaccessible] hypotheses in proofs, which cannot be referred to.
+They show up in signatures with a trailing dagger (`'✝'`).
+This prevents an arbitrary choice of name by Lean from becoming part of the API by being usable as a {tech}[named argument].
+
+::::leanSection
+```lean show:=false
+variable {α : Type u} {β : Type v}
+```
+:::example "Automatic Implicit Parameters"
+
+In this definition of {lean}`map`, {lean}`α` and {lean}`β` are not explicitly bound.
+Rather than this being an error, they are converted into implicit parameters.
+Because they must be types, but nothing constrains their universes, the universe parameters `u` and `v` are also inserted.
+```lean
+def map (f : α → β) : (xs : List α) → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+The full signature of {lean}`map` is:
+```signature
+map.{u, v} {α : Type u} {β : Type v}
+  (f : α → β) (xs : List α) :
+  List β
+```
+:::
+::::
+
+::::example "No Automatic Implicit Parameters"
+
+:::leanSection
+```lean show:=false
+universe u v
+variable {α : Type u} {β : Type v}
+```
+
+In this definition, {lean}`α` and {lean}`β` are not explicitly bound.
+Because {option}`autoImplicit` is disabled, this is an error:
+:::
+
+:::keepEnv
+```lean (error := true) (name := noAuto)
+set_option autoImplicit false
+
+def map (f : α → β) : (xs : List α) → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+```leanOutput noAuto
+unknown identifier 'α'
+```
+```leanOutput noAuto
+unknown identifier 'β'
+```
+:::
+
+
+The full signature allows the definition to be accepted:
+```lean (keep := false)
+set_option autoImplicit false
+
+def map.{u, v} {α : Type u} {β : Type v}
+    (f : α → β) :
+    (xs : List α) → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+Universe parameters are inserted automatically for parameters without explicit type annotations.
+The type parameters' universes can be inferred, and the appropriate universe parameters inserted, even when {option}`autoImplicit` is disabled:
+```lean (keep := false)
+set_option autoImplicit false
+
+def map {α β} (f : α → β) :
+    (xs : List α) → List β
+  | [] => []
+  | x :: xs => f x :: map f xs
+```
+
+::::
+
+
+
+:::::example "Iterated Automatic Implicit Parameters"
+
+:::leanSection
+````lean (show := false)
+variable (i : Fin n)
+````
+Given a number bounded by {lean}`n`, represented by the type `Fin n`, an {lean}`AtLeast i` is a natural number paired with a proof that it is at least as large as as `i`.
+:::
+```lean
+structure AtLeast (i : Fin n) where
+  val : Nat
+  val_gt_i : val ≥ i.val
+```
+
+These numbers can be added:
+```lean
+def AtLeast.add (x y : AtLeast i) : AtLeast i :=
+  AtLeast.mk (x.val + y.val) <| by
+    cases x
+    cases y
+    dsimp only
+    omega
+```
+
+::::paragraph
+:::leanSection
+````lean (show := false)
+variable (i : Fin n)
+````
+The signature of {lean}`AtLeast.add` requires multiple rounds of automatic implicit parameter insertion.
+First, {lean}`i` is inserted; but its type depends on the upper bound {lean}`n` of {lean}`Fin n`.
+In the second round, {lean}`n` is inserted, using a machine-chosen name.
+Because {lean}`n`'s type is {lean}`Nat`, which has no dependencies, the process terminates.
+The final signature can be seen with {keywordOf Lean.Parser.Command.check}`#check`:
+:::
+```lean (name := checkAdd)
+#check AtLeast.add
+```
+```leanOutput checkAdd
+AtLeast.add {n✝ : Nat} {i : Fin n✝} (x y : AtLeast i) : AtLeast i
+```
+::::
+
+:::::
+
+Automatic implicit parameter insertion takes place after the insertion of parameters due to {tech}[section variables].
+Parameters that correspond to section variables have the same name as the corresponding variable, even when they do not correspond to a name written directly in the signature, and disabling automatic implicit parameters has no effect the parameters that correspond to section variables.
+However, when automatic implicit parameters are enabled, section variable declarations that contain otherwise-unbound variables receive additional section variables that follow the same rules as those for implicits.
+
+Automatic implicit parameters insertion is controlled by two options.
+By default, automatic implicits are _relaxed_, which means that any unbound identifier may be a candidate for automatic insertion.
+Setting the option {option}`relaxedAutoImplicit` to {lean}`false` disables relaxed mode and causes only identifiers that consist of a single character followed by zero or more digits to be considered for automatic insertion.
+
+{optionDocs relaxedAutoImplicit}
+
+{optionDocs autoImplicit}
+
+
+::::example "Relaxed vs Non-Relaxed Automatic Implicit Parameters"
+
+Misspelled identifiers or missing imports can end up as unwanted implicit parameters, as in this example:
+```lean
+inductive Answer where
+  | yes
+  | maybe
+  | no
+```
+:::keepEnv
+```lean  (name := asnwer) (error := true)
+def select (choices : α × α × α) : Asnwer →  α
+  | .yes => choices.1
+  | .maybe => choices.2.1
+  | .no => choices.2.2
+```
+The resulting error message states that the argument's type is not a constant, so dot notation cannot be used in the pattern:
+```leanOutput asnwer
+invalid dotted identifier notation, expected type is not of the form (... → C ...) where C is a constant
+  Asnwer
+```
+This is because the signature is:
+```signature
+select.{u_1, u_2}
+  {α : Type u_1}
+  {Asnwer : Sort u_2}
+  (choices : α × α × α) :
+  Asnwer → α
+```
+:::
+
+Disabling relaxed automatic implicit parameters makes the error more clear, while still allowing the type to be inserted automatically:
+:::keepEnv
+```lean  (name := asnwer2) (error := true)
+set_option relaxedAutoImplicit false
+
+def select (choices : α × α × α) : Asnwer →  α
+  | .yes => choices.1
+  | .maybe => choices.2.1
+  | .no => choices.2.2
+```
+```leanOutput asnwer2
+unknown identifier 'Asnwer'
+```
+:::
+
+Correcting the error allows the definition to be accepted.
+:::keepEnv
+```lean
+set_option relaxedAutoImplicit false
+
+def select (choices : α × α × α) : Answer →  α
+  | .yes => choices.1
+  | .maybe => choices.2.1
+  | .no => choices.2.2
+```
+:::
+
+Turning off automatic implicit parameters entirely leads to the definition being rejected:
+:::keepEnv
+```lean (error := true) (name := noauto)
+set_option autoImplicit false
+
+def select (choices : α × α × α) : Answer →  α
+  | .yes => choices.1
+  | .maybe => choices.2.1
+  | .no => choices.2.2
+```
+````leanOutput noauto
+unknown identifier 'α'
+````
+:::
+::::
 
 ## Namespaces
 %%%
@@ -443,24 +792,7 @@ variable $b:bracketedBinder $b:bracketedBinder*
 ```
 :::
 
-:::syntax bracketedBinder (open := false) (title := "Bracketed Binders")
-The bracketed binders allowed after `variable` match the syntax used in definition headers.
-```grammar
-($x $x* : $t $[:= $e]?)
-```
-```grammar
-{$x $x* : $t}
-```
-```grammar
-⦃$x $x* : $t⦄
-```
-```grammar
-[$[$x :]? $t]
-```
-:::
-
-
-
+The bracketed binders allowed after `variable` match the {ref "bracketed-parameter-syntax"}[syntax used in definition headers].
 
 :::example "Section Variables"
 In this section, automatic implicit parameters are disabled, but a number of section variables are defined.
