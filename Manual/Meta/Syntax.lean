@@ -381,20 +381,52 @@ def isEmpty : Format → Bool
   | .align .. => false
   | .text str => str.isEmpty
 
-def isCompound : Format → Bool
-  | .nil => false
+def isCompound [Monad m] (f : Format) : TagFormatT GrammarTag m Bool := do
+  if (← beginsWithBnfParen f <&&> endsWithBnfParen f) then return false
+  match f with
+  | .nil => pure false
   | .tag _ f => isCompound f
   | .append f1 f2 =>
-    isCompound f1 || isCompound f2
-  | .line => true
+    isCompound f1 <||> isCompound f2
+  | .line => pure true
   | .group f _ => isCompound f
   | .nest _ f => isCompound f
-  | .align .. => false
+  | .align .. => pure false
   | .text str =>
-    str.any fun c => c.isWhitespace || c ∈ ['"', ':', '+', '*', ',', '\'', '(', ')', '[', ']']
+    pure <| str.any fun c => c.isWhitespace || c ∈ ['"', ':', '+', '*', ',', '\'', '(', ')', '[', ']']
+where
+  beginsWithBnfParen : Format → TagFormatT GrammarTag m Bool
+    | .nil => pure false
+    | .tag k (.text s) => do
+      if (← get).tags.find? k matches some .bnf then
+        return "(".isPrefixOf s
+      else pure false
+    | .tag _ f => beginsWithBnfParen f
+    | .append f1 f2 =>
+      if isEmpty f1 then beginsWithBnfParen f2 else beginsWithBnfParen f1
+    | .line => pure false
+    | .group f _ => beginsWithBnfParen f
+    | .nest _ f => beginsWithBnfParen f
+    | .align _ => pure false
+    | .text .. => pure false
+
+  endsWithBnfParen : Format → TagFormatT GrammarTag m Bool
+    | .nil => pure false
+    | .tag k (.text s) => do
+      if (← get).tags.find? k matches some .bnf then
+        return ")".isPrefixOf s
+      else pure false
+    | .tag _ f => endsWithBnfParen f
+    | .append f1 f2 =>
+      if isEmpty f2 then endsWithBnfParen f1 else endsWithBnfParen f2
+    | .line => pure false
+    | .group f _ => endsWithBnfParen f
+    | .nest _ f => endsWithBnfParen f
+    | .align _ => pure false
+    | .text .. => pure false
 
 partial def kleeneLike (mod : String) (f : Format) : TagFormatT GrammarTag DocElabM Format := do
-  if isCompound f then return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
+  if (← isCompound f) then return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
   else return f ++ (← tag .bnf mod)
 
 
@@ -606,6 +638,15 @@ def commonWs (stxs : Array Syntax) : String × Array Syntax × String :=
 
   (pref, stxs, suff)
 
+open Lean.Parser.Command in
+/--
+A set of parsers that exist to wrap only a single keyword and should be rendered as the keyword
+itself.
+-/
+-- TODO make this extensible in the manual itself
+def keywordParsers : List (Name × String) :=
+  [(``«private», "private"), (``«protected», "protected"), (``«partial», "partial"), (``«nonrec», "nonrec")]
+
 open StateT (lift) in
 partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
@@ -652,7 +693,10 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
       -- instead of
       -- `∀ (binder | thing) (binder | thing)* , term`
       let (pre, opts, post) := commonWs opts
-      return pre ++ (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")") ++ post
+      return pre ++
+        (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep
+          (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")") ++
+        post
     | ``Attr.simple, _, #[.ident kinfo _ name _, other] => do
       return infoWrap info (infoWrap kinfo (← lift <| tag .keyword name.toString) ++ (← production which other))
     | ``FreeSyntax.docCommentItem, _, _ =>
@@ -724,6 +768,10 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
       let doc? ← findDocString? (← getEnv) k'
       let last :=
         if let .node _ _ #[] := d then c else d
+
+      if let some kw := keywordParsers.lookup k' then
+        return infoWrap2 a.getHeadInfo last.getTailInfo (← lift (tag .keyword kw))
+
       -- Optional quasiquotes $NAME? where kind FOO is expected look like this:
       --   k := FOO.antiquot
       --   k' := FOO

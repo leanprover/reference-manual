@@ -434,10 +434,10 @@ def map.{u, v} {α : Type u} {β : Type v}
 ::::
 
 Just as Lean automatically instantiates implicit parameters, it also automatically instantiates universe parameters.
-When the {TODO}[describe this option and add xref] `autoImplicit` option is set to {lean}`true` (the default), it is not necessary to explicitly bind universe variables.
+When {ref "automatic-implicit-parameters"}[automatic implicit parameter insertion] is enabled (i.e. the {option}`autoImplicit` option is set to {lean}`true`, which is the default), it is not necessary to explicitly bind universe variables; they are inserted automatically.
 When it is set to {lean}`false`, then they must be added explicitly or declared using the `universe` command. {TODO}[xref]
 
-:::Manual.example "Auto-implicits and universe polymorphism"
+:::Manual.example "Automatic Implicit Parameters and Universe Polymorphism"
 When `autoImplicit` is {lean}`true` (which is the default setting), this definition is accepted even though it does not bind its universe parameters:
 ```lean (keep := false)
 set_option autoImplicit true
