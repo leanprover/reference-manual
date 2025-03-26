@@ -25,9 +25,13 @@ tag := "elan"
 
 Elan is the Lean toolchain manager.
 It is responsible both for installing {tech}[toolchains] and for running their constituent programs.
+Elan makes it possible to seamlessly work on a variety of projects, each of which is designed to be built with a particular version of Lean, without having to manually install and select toolchain versions.
+Each project is typically configured to use a particular version, which is transparently installed as needed, and changes to the Lean version are tracked automatically.
 
-
-# Basics
+# Selecting Toolchains
+%%%
+tag := "elan-toolchain-versions"
+%%%
 
 When using Elan, the version of each tool on the {envVar}`PATH` is a proxy that invokes the correct version.
 The proxy determines the appropriate toolchain version for the current context, ensures that it is installed, and then invokes the underlying tool in the appropriate toolchain installation.
@@ -39,7 +43,7 @@ These proxies can be instructed to use a specific version by passing it as an ar
 tag := "elan-channels"
 %%%
 
-Toolchains are specified by providing a toolchain identifier that consists of {deftech}_channel_, which identifies a particular type of Lean release, and optionally an origin.
+Toolchains are specified by providing a toolchain identifier that is either a {deftech}_channel_, which identifies a particular type of Lean release, and optionally an origin, or a {deftech}_custom toolchain name_ established by {elan}`toolchain link`.
 Channels may be:
 
  : `stable`
@@ -53,6 +57,7 @@ Channels may be:
  : A version number or specific nightly release
 
     Each Lean version number identifies a channel that contains only that release.
+    The version number may optionally be preceded with a `v`, so `v4.17.0` and `4.17.0` are equivalent.
     Similarly, `nightly-YYYY-MM-DD` specifies the nightly release from the specified date.
     A project's {tech}[toolchain file] should typically contain a specific version of Lean, rather than a general channel, to make it easier to coordinate between developers and to build and test older versions of the project.
     An archive of Lean releases and nightly builds is maintained.
@@ -63,33 +68,47 @@ Channels may be:
     This is especially useful when working on the Lean compiler itself.
 
 Specifying an {deftech}_origin_ instructs Elan to install Lean toolchains from a particular source.
-By default, this is the official project repository on GitHub, identified as `leanprover/lean4`.
+By default, this is the official project repository on GitHub, identified as [`leanprover/lean4`](https://github.com/leanprover/lean4/releases).
 If specified, an origin should precede the channel, with a colon, so `stable` is equivalent to `leanprover/lean4:stable`.
-When installing nightly releases, `-nightly` is appended to the origin, so `leanprover/lean4:nightly-2025-03-25` consults the `leanprover/lean4-nightly` repository to download releases.
-Origins are not used for custom local toolchains.
+When installing nightly releases, `-nightly` is appended to the origin, so `leanprover/lean4:nightly-2025-03-25` consults the [`leanprover/lean4-nightly`](https://github.com/leanprover/lean4-nightly/releases) repository to download releases.
+Origins are not used for custom toolchain names.
 
 ## Determining the Current Toolchain
+%%%
+tag := "elan-toolchain-config"
+%%%
+
+Elan associates toolchains with directories, and uses the toolchain of the most recent parent directory of the current working directory that has a configured toolchain.
+A directory's toolchain may result from a toolchain file or from an override configured with {ref "elan-override"}[`elan override`].
 
 The current toolchain is determined by first searching for a configured toolchain for the current directory, walking up through parent directories until a toolchain version is found or there are no more parents.
 A directory has a configured toolchain if there is a configured {tech}[toolchain override] for the directory or if it contains a `lean-toolchain` file.
 More recent parents take precedence over their ancestors, and if a directory has both an override and a toolchain file, then the override takes precedence.
-If no directory toolchain is found, then Elan's configured default toolchain is used.
+If no directory toolchain is found, then Elan's configured {deftech}_default toolchain_ is used as a fallback.
 
 The most common way to configure a Lean toolchain is with a {deftech}_toolchain file_.
-The toolchain file is a text file named `lean-toolchain` that contains a single line with a valid toolchain name.
+The toolchain file is a text file named `lean-toolchain` that contains a single line with a valid {ref "elan-channels"}[toolchain identifier].
 This file is typically located in the root directory of a project and checked in to version control with the code, ensuring that everyone working on the project uses the same version.
 Updating to a new Lean toolchain requires only editing this file, and the new version is automatically downloaded and run the next time a Lean file is opened or built.
 
-In cases where more flexibility is required, a {deftech}_toolchain override_ can be configured.
-Like toolchain files, overrides associate a toolchain version with a directory and its children; unlike toolchain files, overrides are stored in Elan's configuration rather than in a local file.
+In certain advanced use cases where more flexibility is required, a {deftech}_toolchain override_ can be configured.
+Like toolchain files, overrides associate a toolchain version with a directory and its children.
+Unlike toolchain files, overrides are stored in Elan's configuration rather than in a local file.
 They are typically used when a specific local configuration is required that does not make sense for other developers, such as testing a project with a locally-built Lean compiler.
 
 # Toolchain Locations
+%%%
+tag := "elan-dir"
+%%%
 
 By default, Elan stores installed toolchains in `.elan/toolchains` in the user's home directory, and its proxies are kept in `.elan/bin`, which is added to the path when Elan is installed.
-The environment variable {envVar def:=true}`ELAN_HOME` can be used to change this location; however, it should be set both _prior to installing Elan_ and in all sessions that use Lean in order to ensure that Elan's files are found.
+The environment variable {envVar def:=true}`ELAN_HOME` can be used to change this location.
+It should be set both prior to installing Elan and in all sessions that use Lean in order to ensure that Elan's files are found.
 
-# Elan CLI
+# Command-Line Interface
+%%%
+tag := "elan-cli"
+%%%
 
 In addition to the proxies that automatically select, install, and invoke the correct versions of Lean tools, Elan provides a command-line interface for querying and configuring its settings.
 This tool is called `elan`.
@@ -173,9 +192,33 @@ Shows the name of the active toolchain and the version of `lean`.
 If there are multiple toolchains installed, then they are all listed.
 :::
 
-## Setting the Default Toolchain
+Here is typical output from {elan}`show` in a project with a `lean-toolchain` file:
+```
+installed toolchains
+--------------------
 
-Elan's configuration file specifies a default toolchain to be used when there is no `lean-toolchain` file or {tech}[toolchain override] for the current directory.
+leanprover/lean4:nightly-2025-03-25
+leanprover/lean4:v4.17.0  (resolved from default 'stable')
+leanprover/lean4:v4.16.0
+leanprover/lean4:v4.9.0
+
+active toolchain
+----------------
+
+leanprover/lean4:v4.9.0 (overridden by '/PATH/TO/PROJECT/lean-toolchain')
+Lean (version 4.9.0, arm64-apple-darwin23.5.0, commit 8f9843a4a5fe, Release)
+```
+The `installed toolchains` section lists all the toolchains currently available on the system.
+The `active toolchain` section identifies the current toolchain and describes how it was selected.
+In this case, the toolchain was selected due to a `lean-toolchain` file.
+
+
+## Setting the Default Toolchain
+%%%
+tag := "elan-default"
+%%%
+
+Elan's configuration file specifies a {tech}[default toolchain] to be used when there is no `lean-toolchain` file or {tech}[toolchain override] for the current directory.
 Rather than manually editing the file, this value is typically changed using the {elan}`default` command.
 
 ```elanHelp "default"
@@ -197,7 +240,7 @@ DISCUSSION:
 ```
 
 :::elan default "toolchain"
-Sets the default toolchain to {elanMeta}`toolchain`, which should be a {ref "elan-channels"}[valid toolchain name] such as `stable`, `nightly`, or `4.17.0`.
+Sets the default toolchain to {elanMeta}`toolchain`, which should be a {ref "elan-channels"}[valid toolchain identifier] such as `stable`, `nightly`, or `4.17.0`.
 :::
 
 ## Managing Installed Toolchains
@@ -206,10 +249,10 @@ tag := "elan-toolchain"
 %%%
 
 The `elan toolchain` family of subcommands is used to manage the installed toolchains.
-Toolchains are stored in Elan's toolchain directory.
+Toolchains are stored in Elan's {ref "elan-dir"}[toolchain directory].
 
 Installed toolchains can take up substantial disk space.
-While using Elan, it tracks the Lean projects in which it is invoked, saving a list.
+Elan tracks the Lean projects in which it is invoked, saving a list.
 This list of projects can be used to determine which toolchains are in active use and automatically delete unused toolchain versions with {elan}`toolchain gc`.
 
 ```elanHelp "toolchain"
@@ -269,7 +312,7 @@ FLAGS:
 ```
 
 :::elan toolchain list
-Lists the currently-installed toolchains.
+Lists the currently-installed toolchains. This is a subset of the output of {elan}`show`.
 :::
 
 ```elanHelp "toolchain" "install"
@@ -308,9 +351,10 @@ ARGS:
                       toolchain`
 ```
 
-:::elan toolchain uninstall
+:::elan toolchain uninstall "toolchain"
 Uninstalls the indicated {elanMeta}`toolchain`.
-The toolchain's name should the name of an installed toolchain; {elan}`toolchain list` displays the installed toolchains with their names.
+The toolchain's name should the name of an installed toolchain.
+Use {elan}`toolchain list` to see the installed toolchains with their names.
 :::
 
 ```elanHelp "toolchain" "link"
@@ -458,7 +502,7 @@ Sets {elanMeta}`toolchain` as an override for the current directory.
 
 :::elan override unset "[\"--nonexistent\"] [\"--path\" path]"
 If {elanOptDef flag}`--nonexistent` flag is provided, all overrides that are configured for directories that don't currently exist are removed.
-If {elanOptDef option}`--path path` is provided, then the override set for {elanMeta}`path` is removed.
+If {elanOptDef option}`--path` is provided, then the override set for {elanMeta}`path` is removed.
 Otherwise, the override for the current directory is removed.
 :::
 
@@ -467,6 +511,8 @@ Otherwise, the override for the current directory is removed.
 tag := "elan-run"
 %%%
 
+The commands in this section provide the ability to run a command in a specific toolchain and to locate a tool from a particular toolchain on disk.
+This can be useful when experimenting with different Lean versions, for cross-version testing, and for integrating Elan with other tools.
 
 ```elanHelp "run"
 elan-run
@@ -502,6 +548,7 @@ DISCUSSION:
 
 :::elan run "[\"--install\"] toolchain command ..."
 Configures an environment to use the given toolchain and then runs the specified program.
+The toolchain will be installed if the {elanOptDef flag}`--install` flag is provided.
 The command may be any program; it does not need to be a command that's part of a toolchain such as `lean` or `lake`.
 This can be used for testing arbitrary toolchains without setting an override.
 :::
@@ -529,6 +576,8 @@ Displays the full path to the toolchain-specific binary for {elanMeta}`command`.
 tag := "elan-self"
 %%%
 
+Elan can manage its own installation.
+It can upgrade itself, remove itself, and help configure tab completion for many popular shells.
 
 ```elanHelp "self"
 elan-self

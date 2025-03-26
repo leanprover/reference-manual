@@ -59,7 +59,7 @@ private partial def addElanMetaInline (name : String) : Doc.Inline Verso.Genre.M
   | .other i xs =>
     if i.name == Inline.elanMeta.name || i.name == `Manual.elanArgs then
       if let Json.arr #[mn, _] := i.data then
-        .other {i with data := .arr #[mn, .str name]} <| xs.map (addElanMetaInline name)
+        .other {i with data := .arr #[mn, .str <| name.replace " " "~~"]} <| xs.map (addElanMetaInline name)
       else
         .other i <| xs.map (addElanMetaInline name)
     else
@@ -100,9 +100,10 @@ def elan : DirectiveExpander
           match CommandSpec.ofSyntax stx with
           | .error e => throwErrorAt spec e
           | .ok spec => pure spec
+    let nameStr := String.intercalate " " (name.map (·.toString (escape := false)))
     let contents ← contents.mapM fun b => do
-      ``(addElanMetaBlock $(quote <| String.intercalate "~~" (name.map (·.toString (escape := false)))) $(← elabBlock b))
-    pure #[← ``(Verso.Doc.Block.other (Block.elanCommand $(quote <| String.intercalate " " <| name.map (·.toString (escape := false))) $(quote <| aliases.map (·.toString (escape := false))) $(quote spec)) #[$contents,*])]
+      ``(addElanMetaBlock $(quote nameStr) $(← elabBlock b))
+    pure #[← ``(Verso.Doc.Block.other (Block.elanCommand $(quote nameStr) $(quote <| aliases.map (·.toString (escape := false))) $(quote spec)) #[$contents,*])]
 
 def elanCommandDomain : Name := `Manual.elanCommand
 
@@ -163,7 +164,7 @@ def elanCommand.descr : BlockDescr where
         <div class="namedocs" {{idAttr}}>
           {{permalink id xref false}}
           <span class="label">"Elan command"</span>
-          <pre class="signature hl lean block" data-lean-context={{name}}>
+          <pre class="signature hl lean block" data-lean-context={{name.replace " "  "~~"}}>
             {{← (Highlighted.seq #[elanTok, .text " ", nameTok, .text " ", spec]).toHtml}}
           </pre>
           <div class="text">

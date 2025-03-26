@@ -118,7 +118,7 @@ def elanOptDef.descr : InlineDescr where
         | HtmlT.logError s!"Failed to deserialize argument metadata for Elan option def: {meta}"; content.mapM goB
 
       if let some mv := meta then
-        pure {{<code {{idAttr}} class="elan-opt">{{name}}"="{{mv}}</code>}}
+        pure {{<code {{idAttr}} class="elan-opt">{{name}}" "{{mv}}</code>}}
       else
         pure {{<code {{idAttr}} class="elan-opt">{{name}}</code>}}
 
