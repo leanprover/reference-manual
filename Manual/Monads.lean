@@ -110,7 +110,7 @@ instance : Applicative (LenList n) where
   map := LenList.map
   pure x := {
     list := List.replicate n x
-    lengthOk := List.length_replicate _ _
+    lengthOk := List.length_replicate
   }
   seq {α β} fs xs := fs.zipWith (· ·) (xs ())
 ```
