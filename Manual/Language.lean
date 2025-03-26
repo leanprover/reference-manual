@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Language.Files
+import Manual.Language.Axioms
 import Manual.Coercions
 
 import Lean.Parser.Command
@@ -142,12 +143,7 @@ opaque $_ $_
 ```
 :::
 
-:::syntax Lean.Parser.Command.axiom (title := "Axioms")
-```grammar
-axiom $_ $_
-```
-:::
-
+{tech}[Axiom] declarations are described in a {ref "axioms"}[dedicated section].
 
 ### Modifiers
 %%%
@@ -920,15 +916,7 @@ end
 end
 ```
 
-
-# Axioms
-%%%
-tag := "axioms"
-%%%
-
-:::planned 78
-Describe {deftech}_axioms_ in detail
-:::
+{include 0 Manual.Language.Axioms}
 
 # Attributes
 %%%
