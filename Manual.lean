@@ -108,21 +108,6 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.Runtime}
 
-# Elan
-%%%
-tag := "elan"
-%%%
-
-
-::: planned 74
-
-This section will describe Elan and how to use it:
-
- * `lean-toolchain` files
- * `+`-syntax for toolchain selection
- * Specific overrides
- * Using a local development build of Lean with Elan
-:::
 
 {include 0 Manual.BuildTools}
 
