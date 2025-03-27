@@ -21,6 +21,7 @@ import Manual.Meta.ExpectString
 import Manual.Meta.Lean.Scopes
 import Manual.Meta.Lean.Block
 import Manual.Meta.LakeToml.Toml
+import Manual.Meta.LakeToml.Test
 
 import Lake
 import Lake.Toml.Decode
@@ -554,21 +555,6 @@ def tomlTableDocs : DirectiveExpander
 
 namespace Toml
 
-/-- Types that can be used in in-manual tests for TOML decoding -/
-class Test (α : Type u) where
-  toString : α → Format
-
-instance [ToString α] : Test α where
-  toString := .text ∘ toString
-
-instance [Repr α] : Test α where
-  toString x := repr x
-
-instance [Test α] : Test (Array α) where
-  toString arr := "#[" ++ .group (.nest 2 <| Format.joinSep (arr.map Test.toString).toList ("," ++ .line))  ++ "]"
-
-instance [Test α] : Test (NameMap α) where
-  toString xs := "{" ++ .group (.nest 2 <| Format.joinSep (xs.toList.map (fun x => s!"'{x.1}' ↦ {Test.toString x.2}")) ("," ++ .line)) ++ "}"
 
 instance [Test α] : Test (Lake.OrdNameMap α) where
   toString xs := Id.run do
@@ -602,76 +588,14 @@ instance : Test (Lake.OpaqueTargetConfig n n') where
 instance : Test (Lake.OpaquePostUpdateHook α) where
   toString _ := s!"#<post-update-hook>"
 
--- HACK: This is easier to write than a deriving handler and there's a deadline
-/--
-info: {toWorkspaceConfig, toLeanConfig, manifestFile, extraDepTargets, precompileModules, moreServerArgs, moreGlobalServerArgs, srcDir, buildDir, leanLibDir, nativeLibDir, binDir, irDir, releaseRepo, buildArchive, preferReleaseBuild, testDriver, testDriverArgs, lintDriver, lintDriverArgs, version, versionTags, description, keywords, homepage, license, licenseFiles, readmeFile, reservoir}
-"{" ++ .group (.nest 2 <| "toWorkspaceConfig := " ++ Test.toString toWorkspaceConfig ++ "," ++ .line ++ "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "manifestFile := " ++ Test.toString manifestFile ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "moreServerArgs := " ++ Test.toString moreServerArgs ++ "," ++ .line ++ "moreGlobalServerArgs := " ++ Test.toString moreGlobalServerArgs ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "buildDir := " ++ Test.toString buildDir ++ "," ++ .line ++ "leanLibDir := " ++ Test.toString leanLibDir ++ "," ++ .line ++ "nativeLibDir := " ++ Test.toString nativeLibDir ++ "," ++ .line ++ "binDir := " ++ Test.toString binDir ++ "," ++ .line ++ "irDir := " ++ Test.toString irDir ++ "," ++ .line ++ "releaseRepo := " ++ Test.toString releaseRepo ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "preferReleaseBuild := " ++ Test.toString preferReleaseBuild ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "testDriverArgs := " ++ Test.toString testDriverArgs ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver ++ "," ++ .line ++ "lintDriverArgs := " ++ Test.toString lintDriverArgs ++ "," ++ .line ++ "version := " ++ Test.toString version ++ "," ++ .line ++ "versionTags := " ++ Test.toString versionTags ++ "," ++ .line ++ "description := " ++ Test.toString description ++ "," ++ .line ++ "keywords := " ++ Test.toString keywords ++ "," ++ .line ++ "homepage := " ++ Test.toString homepage ++ "," ++ .line ++ "license := " ++ Test.toString license ++ "," ++ .line ++ "licenseFiles := " ++ Test.toString licenseFiles ++ "," ++ .line ++ "readmeFile := " ++ Test.toString readmeFile ++ "," ++ .line ++ "reservoir := " ++ Test.toString reservoir) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.PackageConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-
-instance : Test (Lake.PackageConfig n) where
-  toString
-    | {toWorkspaceConfig, toLeanConfig, manifestFile, extraDepTargets, precompileModules, moreServerArgs, moreGlobalServerArgs, srcDir, buildDir, leanLibDir, nativeLibDir, binDir, irDir, releaseRepo, buildArchive := _, preferReleaseBuild, testDriver, testDriverArgs, lintDriver, lintDriverArgs, version, versionTags, description, keywords, homepage, license, licenseFiles, readmeFile, reservoir} =>
-      "{" ++ .group (.nest 2 <| "toWorkspaceConfig := " ++ Test.toString toWorkspaceConfig ++ "," ++ .line ++ "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "manifestFile := " ++ Test.toString manifestFile ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "moreServerArgs := " ++ Test.toString moreServerArgs ++ "," ++ .line ++ "moreGlobalServerArgs := " ++ Test.toString moreGlobalServerArgs ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "buildDir := " ++ Test.toString buildDir ++ "," ++ .line ++ "leanLibDir := " ++ Test.toString leanLibDir ++ "," ++ .line ++ "nativeLibDir := " ++ Test.toString nativeLibDir ++ "," ++ .line ++ "binDir := " ++ Test.toString binDir ++ "," ++ .line ++ "irDir := " ++ Test.toString irDir ++ "," ++ .line ++ "releaseRepo := " ++ Test.toString releaseRepo ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "preferReleaseBuild := " ++ Test.toString preferReleaseBuild ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "testDriverArgs := " ++ Test.toString testDriverArgs ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver ++ "," ++ .line ++ "lintDriverArgs := " ++ Test.toString lintDriverArgs ++ "," ++ .line ++ "version := " ++ Test.toString version ++ "," ++ .line ++ "versionTags := " ++ Test.toString versionTags ++ "," ++ .line ++ "description := " ++ Test.toString description ++ "," ++ .line ++ "keywords := " ++ Test.toString keywords ++ "," ++ .line ++ "homepage := " ++ Test.toString homepage ++ "," ++ .line ++ "license := " ++ Test.toString license ++ "," ++ .line ++ "licenseFiles := " ++ Test.toString licenseFiles ++ "," ++ .line ++ "readmeFile := " ++ Test.toString readmeFile ++ "," ++ .line ++ "reservoir := " ++ Test.toString reservoir) ++ "}"
-instance : Test Lake.Dependency where
-  toString
-    | {name, scope, version?, src?, opts} =>
-      "{" ++ .group (.nest 2 <| "name := `" ++ name.toString ++ "," ++ .line ++ "scope := " ++ scope.quote ++ "," ++ .line ++ s!"version := {version?}" ++ "," ++ .line ++ "src? := " ++ Test.toString src? ++ "," ++ .line ++ "opts := " ++ Test.toString opts) ++ .line ++ "}"
-
 instance : Test Lake.Toml.DecodeError where
   toString
     | {ref, msg} => s!"{msg} at {ref}"
 
-instance {α : Type u} {β : Type v} : Test (α → β) where
-  toString _ := "#<fun>"
-
-/--
-info: {toLeanConfig, srcDir, roots, globs, libName, extraDepTargets, precompileModules, defaultFacets, nativeFacets}
-"{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "roots := " ++ Test.toString roots ++ "," ++ .line ++ "globs := " ++ Test.toString globs ++ "," ++ .line ++ "libName := " ++ Test.toString libName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "defaultFacets := " ++ Test.toString defaultFacets ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.LeanLibConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-instance : Test (Lake.LeanLibConfig n) where
-  toString
-    | {toLeanConfig, srcDir, roots, globs, libName, extraDepTargets, precompileModules, defaultFacets, nativeFacets} =>
-      "{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "roots := " ++ Test.toString roots ++ "," ++ .line ++ "globs := " ++ Test.toString globs ++ "," ++ .line ++ "libName := " ++ Test.toString libName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "defaultFacets := " ++ Test.toString defaultFacets ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
-
-/--
-info: {toLeanConfig, srcDir, root, exeName, extraDepTargets, supportInterpreter, nativeFacets}
-"{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "root := " ++ Test.toString root ++ "," ++ .line ++ "exeName := " ++ Test.toString exeName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "supportInterpreter := " ++ Test.toString supportInterpreter ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.LeanExeConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-instance : Test (Lake.LeanExeConfig n) where
-  toString
-    | {toLeanConfig, srcDir, root, exeName, extraDepTargets, supportInterpreter, nativeFacets} =>
-      "{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "root := " ++ Test.toString root ++ "," ++ .line ++ "exeName := " ++ Test.toString exeName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "supportInterpreter := " ++ Test.toString supportInterpreter ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
-
-
+deriving instance Test for Lake.Dependency
+deriving instance Test for Lake.PackageConfig
+deriving instance Test for Lake.LeanLibConfig
+deriving instance Test for Lake.LeanExeConfig
 
 instance : Test (Lake.ConfigType kind pkg name) where
   toString :=
@@ -682,67 +606,12 @@ instance : Test (Lake.ConfigType kind pkg name) where
     | .anonymous => fun (x : Lake.OpaqueTargetConfig pkg name) => Test.toString x
     | _ => fun _ => "Impossible!"
 
-/--
-info: {pkg, name, kind, config}
-"{" ++ .group (.nest 2 <| "pkg := " ++ Test.toString pkg ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "kind := " ++ Test.toString kind ++ "," ++ .line ++ "config := " ++ Test.toString config) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.ConfigDecl |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
 
-instance : Test (Lake.ConfigDecl) where
-  toString
-    | {pkg, name, kind, config} =>
-      "{" ++ .group (.nest 2 <| "pkg := " ++ Test.toString pkg ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "kind := " ++ Test.toString kind ++ "," ++ .line ++ "config := " ++ Test.toString config) ++ "}"
+deriving instance Test for Lake.ConfigDecl
+deriving instance Test for Lake.PConfigDecl
+deriving instance Test for Lake.NConfigDecl
+deriving instance Test for Lake.Package
 
-/--
-info: {toConfigDecl, pkg_eq}
-"{" ++ .group (.nest 2 <| "toConfigDecl := " ++ Test.toString toConfigDecl ++ "," ++ .line ++ "pkg_eq := " ++ "...") ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.PConfigDecl |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `pkg_eq then "\"...\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-instance : Test (Lake.PConfigDecl n) where
-  toString
-    | {toConfigDecl, pkg_eq := _} =>
-      "{" ++ .group (.nest 2 <| "toConfigDecl := " ++ Test.toString toConfigDecl ++ "," ++ .line ++ "pkg_eq := " ++ "...") ++ "}"
-
-instance : Test (Lake.NConfigDecl n n') where
-  toString
-    | {toConfigDecl, name_eq := _, pkg_eq := _} =>
-      "{" ++ .group (.nest 2 <| "toConfigDecl := " ++ Test.toString toConfigDecl ++ "," ++ .line ++ "pkg_eq := " ++ "...") ++ .line ++ "name_eq := " ++ "..." ++ "}"
-
-/--
-info: {name, dir, relDir, config, relConfigFile, relManifestFile, scope, remoteUrl, depConfigs, targetDecls, targetDeclMap, defaultTargets, scripts, defaultScripts, postUpdateHooks, buildArchive, testDriver, lintDriver}
-"{" ++ .group (.nest 2 <| "name := " ++ Test.toString name ++ "," ++ .line ++ "dir := " ++ Test.toString dir ++ "," ++ .line ++ "relDir := " ++ Test.toString relDir ++ "," ++ .line ++ "config := " ++ Test.toString config ++ "," ++ .line ++ "relConfigFile := " ++ Test.toString relConfigFile ++ "," ++ .line ++ "relManifestFile := " ++ Test.toString relManifestFile ++ "," ++ .line ++ "scope := " ++ Test.toString scope ++ "," ++ .line ++ "remoteUrl := " ++ Test.toString remoteUrl ++ "," ++ .line ++ "depConfigs := " ++ Test.toString depConfigs ++ "," ++ .line ++ "targetDecls := " ++ Test.toString targetDecls ++ "," ++ .line ++ "targetDeclMap := " ++ Test.toString targetDeclMap ++ "," ++ .line ++ "defaultTargets := " ++ Test.toString defaultTargets ++ "," ++ .line ++ "scripts := " ++ Test.toString scripts ++ "," ++ .line ++ "defaultScripts := " ++ Test.toString defaultScripts ++ "," ++ .line ++ "postUpdateHooks := " ++ Test.toString postUpdateHooks ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.Package |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-instance : Test Lake.Package where
-  toString
-    | {name, dir, relDir, config, relConfigFile, relManifestFile, scope, remoteUrl, depConfigs, targetDecls, targetDeclMap, defaultTargets, scripts, defaultScripts, postUpdateHooks, buildArchive := _, testDriver, lintDriver} =>
-      "{" ++ .group (.nest 2 <| "name := " ++ Test.toString name ++ "," ++ .line ++ "dir := " ++ Test.toString dir ++ "," ++ .line ++ "relDir := " ++ Test.toString relDir ++ "," ++ .line ++ "config := " ++ Test.toString config ++ "," ++ .line ++ "relConfigFile := " ++ Test.toString relConfigFile ++ "," ++ .line ++ "relManifestFile := " ++ Test.toString relManifestFile ++ "," ++ .line ++ "scope := " ++ Test.toString scope ++ "," ++ .line ++ "remoteUrl := " ++ Test.toString remoteUrl ++ "," ++ .line ++ "depConfigs := " ++ Test.toString depConfigs ++ "," ++ .line ++ "targetDecls := " ++ Test.toString targetDecls ++ "," ++ .line ++ "targetDeclMap := " ++ Test.toString targetDeclMap ++ "," ++ .line ++ "defaultTargets := " ++ Test.toString defaultTargets ++ "," ++ .line ++ "scripts := " ++ Test.toString scripts ++ "," ++ .line ++ "defaultScripts := " ++ Test.toString defaultScripts ++ "," ++ .line ++ "postUpdateHooks := " ++ Test.toString postUpdateHooks ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver) ++ "}"
 
 open Lake Toml in
 def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
