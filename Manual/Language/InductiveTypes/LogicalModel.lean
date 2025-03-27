@@ -33,7 +33,7 @@ Recursors have function types, but they are primitive and are not definable usin
 tag := "recursor-types"
 %%%
 
-
+:::paragraph
 The recursor takes the following parameters:
 : The inductive type's {tech}[parameters]
 
@@ -43,15 +43,18 @@ The recursor takes the following parameters:
 
   The motive determines the type of an application of the recursor. The motive is a function whose arguments are the type's indices and an instance of the type with these indices instantiated. The specific universe for the type that the motive determines depends on the inductive type's universe and the specific constructors—see the section on {ref "subsingleton-elimination"}[{tech}[subsingleton] elimination] for details.
 
-: A case for each constructor
+: A {deftech}_minor premise_ for each constructor
 
-  For each constructor, the recursor expects a function that satisfies the motive for an arbitrary application of the constructor. Each case abstracts over all of the constructor's parameters. If the constructor's parameter's type is the inductive type itself, then the case additionally takes a parameter whose type is the motive applied to that parameter's value—this will receive the result of recursively processing the recursive parameter.
+  For each constructor, the recursor expects a function that satisfies the motive for an arbitrary application of the constructor.
+  Each minor premise abstracts over all of the constructor's parameters.
+  If the constructor's parameter's type is the inductive type itself, then the case additionally takes a parameter whose type is the motive applied to that parameter's value—this will receive the result of recursively processing the recursive parameter.
 
-: The target
+: The {deftech}_major premise_, or target
 
   Finally, the recursor takes an instance of the type as an argument, along with any index values.
 
 The result type of the recursor is the motive applied to these indices and the target.
+:::
 
 :::example "The recursor for {lean}`Bool`"
 {lean}`Bool`'s recursor {name}`Bool.rec` has the following parameters:

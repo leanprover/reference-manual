@@ -9,6 +9,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Language.InductiveTypes.LogicalModel
 import Manual.Language.InductiveTypes.Structures
+import Manual.Language.InductiveTypes.Nested
 
 open Verso.Genre Manual
 
@@ -832,11 +833,4 @@ tag := "mutual-inductive-types-run-time"
 Mutual inductive types are represented identically to {ref "run-time-inductives"}[non-mutual inductive types] in compiled code and in the runtime.
 The restrictions on mutual inductive types exist to ensure Lean's consistency as a logic, and do not impact compiled code.
 
-## Nested inductive types
-%%%
-tag := "nested-inductive-types"
-%%%
-
-:::planned 235
-A description of nested inductive types, including a definition of the term, the shape of the eliminator, and the rules that govern them.
-:::
+{include 2 Manual.Language.InductiveTypes.Nested}
