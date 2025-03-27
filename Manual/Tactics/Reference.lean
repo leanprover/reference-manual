@@ -71,10 +71,6 @@ tag := "tactic-ref-quantifiers"
 tag := "tactic-ref-relations"
 %%%
 
-:::planned 47
- * Descriptions of the `symm` and `refl` and `trans` attributes
-:::
-
 :::tactic "rfl"
 :::
 
@@ -85,16 +81,34 @@ tag := "tactic-ref-relations"
 :::tactic Lean.Parser.Tactic.applyRfl
 :::
 
+:::syntax attr (title := "Reflexive Relations")
+The {attr}`refl` attribute marks a lemma as a proof of reflexivity for some relation.
+These lemmas are used by the {tactic}`rfl`, {tactic}`rfl'`, and {tactic}`apply_rfl` tactics.
+
+```grammar
+refl
+```
+:::
+
 :::tactic "symm"
 :::
 
 :::tactic "symm_saturate"
 :::
 
+:::syntax attr (title := "Symmetric Relations")
+The {attr}`symm` attribute marks a lemma as a proof that a relation is symmetric.
+These lemmas are used by the {tactic}`symm` and {tactic}`symm_saturate` tactics.
+
+```grammar
+symm
+```
+:::
 
 :::tactic "calc"
 :::
 
+{docstring Trans}
 
 ## Equality
 %%%
