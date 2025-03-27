@@ -92,3 +92,10 @@ def streicher1993 : Thesis where
   university := .concat (inlines!"Ludwig-Maximilians-Universität München")
   url := "https://www2.mathematik.tu-darmstadt.de/~streicher/HabilStreicher.pdf"
   degree := .concat (inlines!"Habilitation")
+
+def wadler1989 : InProceedings where
+  title := .concat (inlines!"Theorems for free!")
+  authors := #[.concat (inlines!"Philip Wadler")]
+  year := 1989
+  booktitle := .concat (inlines!"Proceedings of the Fourth International Conference on Functional Programming Languages and Computer Architecture")
+  url := "https://dl.acm.org/doi/pdf/10.1145/99370.99404"
