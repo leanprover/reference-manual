@@ -158,7 +158,7 @@ info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemai
 
 ````
 
-Identifiers components may also be surrounded by double guillemets (`'«'` and `'»'`).
+Identifiers components may also be surrounded by double {deftech}[guillemets] (`'«'` and `'»'`).
 Such identifier components may contain any character at all aside from `'»'`, even `'«'`, `'.'`, and newlines.
 The guillemets are not part of the resulting identifier component, so `«x»` and `x` denote the same identifier.
 `«Nat.add»`, on the other hand, is an identifier with a single component, while `Nat.add` has two.

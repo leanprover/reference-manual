@@ -37,6 +37,9 @@ The {tech}[elaborator] translates them to Lean's minimal core language, which is
 The syntax of terms is {ref "syntax-ext"}[arbitrarily extensible]; this chapter documents the term syntax that Lean provides out-of-the-box.
 
 # Identifiers
+%%%
+tag := "identifiers-and-resolution"
+%%%
 
 :::syntax term (title := "Identifiers")
 ```
@@ -69,7 +72,7 @@ Name resolution is affected by the following:
  * The {tech}[macro scopes] attached to the identifier
  * The local bindings in scope, including auxiliary definitions created as part of the elaboration of {keywordOf Lean.Parser.Term.letrec}`let rec`.
  * Aliases created with {keywordOf Lean.Parser.Command.export}`export` in modules transitively imported by the current module
- * The current {tech}[section scope], in particular the current namespace, opened namespaces, and section variables
+ * The current {tech}[section scope], in particular the {tech}[current namespace], opened namespaces, and section variables
 
 
 Any prefix of an identifier can resolve to a set of names.
