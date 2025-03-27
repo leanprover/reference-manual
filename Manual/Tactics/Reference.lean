@@ -454,6 +454,21 @@ tag := "tactic-ref-sat"
 :::tactic Lean.Parser.Tactic.bvTrace
 :::
 
+# Controlling Reduction
+%%%
+tag := "tactic-reducibility"
+%%%
+
+:::tactic Lean.Parser.Tactic.withReducible
+:::
+
+:::tactic Lean.Parser.Tactic.withReducibleAndInstances
+:::
+
+:::tactic Lean.Parser.Tactic.withUnfoldingAll
+:::
+
+
 # Control Flow
 %%%
 tag := "tactic-ref-control"

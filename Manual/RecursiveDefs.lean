@@ -191,7 +191,200 @@ This section will describe `partial` and `unsafe` definitions:
 :::
 
 # Controlling Reduction
+%%%
+tag := "reducibility"
+htmlSplit := .never
+%%%
 
-:::planned 58
-This section will describe {deftech}_reducibility_: {deftech}[reducible], {deftech}[semi-reducible], and {deftech}[irreducible] definitions.
+While checking proofs and programs, Lean takes {deftech}_reducibility_, also known as _transparency_, into account.
+A definition's reducibility controls the contexts in which it is unfolded during elaboration and proof execution.
+
+There are three levels of reducibility:
+
+: {deftech}[Reducible]
+
+  Reducible definitions are unfolded essentially everywhere, on demand.
+  Type class instance synthesis, definitional equality checks, and the rest of the language treat the definition as being essentially an abbreviation.
+  This is the setting applied by the {keywordOf Lean.Parser.Command.declaration}`abbrev` command.
+
+: {deftech}[Semireducible]
+
+  Semireducible definitions are not unfolded by potentially expensive automation such as type class instance synthesis or {tactic}`simp`, but they are unfolded while checking definitional equality and while resolving {tech}[generalized field notation].
+  The {keywordOf Lean.Parser.Command.declaration}`def` command generally creates semireducible definitions unless a different reducibility level is specified with an attribute; however, definitions that use {tech}[well-founded recursion] are irreducible by default.
+
+: {deftech}[Irreducible]
+
+  Irreducible definitions are not unfolded at all during elaboration.
+  Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
+
+:::example "Reducibility and Instance Synthesis"
+These three aliasees for {lean}`String` are respectively reducible, semireducible, and irreducible.
+```lean
+abbrev Phrase := String
+
+def Clause := String
+
+@[irreducible]
+def Utterance := String
+```
+
+The reducible and semireducible aliases are unfolded during the elaborator's definitional equality check, causing them to be considered equivalent to {lean}`String`:
+```lean
+def hello : Phrase := "Hello"
+
+def goodMorning : Clause := "Good morning"
+```
+The irreducible alias, on the other hand, is rejected as the type for a string, because the elaborator's definitional equality test does not unfold it:
+```lean (error := true) (name := irred)
+def goodEvening : Utterance := "Good evening"
+```
+```leanOutput irred
+type mismatch
+  "Good evening"
+has type
+  String : Type
+but is expected to have type
+  Utterance : Type
+```
+
+Because {lean}`Phrase` is reducible, the {inst}`ToString String` instance can be used as a {inst}`ToString Phrase` instance:
+```lean
+#synth ToString Phrase
+```
+
+However, {lean}`Clause` is semireducible, so the {inst}`ToString String` instance cannot be used:
+```lean (error := true) (name := toStringClause)
+#synth ToString Clause
+```
+```leanOutput toStringClause
+failed to synthesize
+  ToString Clause
+
+Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+The instance can be explicitly enabled by creating a {lean}`ToString Clause` instance that reduces to the {lean}`ToString String` instance.
+This example works because semireducible definitions are unfolded while checking definitional equality:
+```lean
+instance : ToString Clause := inferInstanceAs (ToString String)
+```
 :::
+
+
+:::example "Reducibility and Generalized Field Notation"
+{tech}[Generalized field notation] unfolds reducible and semireducible declarations while searching for matching names.
+Given the semireducible alias {name}`Sequence` for {name}`List`:
+```lean
+def Sequence := List
+
+def Sequence.ofList (xs : List α) : Sequence α := xs
+```
+generalized field notation allows {name}`List.reverse` to be accessed from a term of type {lean}`Sequence Nat`.
+```lean
+#check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
+```
+
+However, declaring {name}`Sequence` to be irreducible prevents the unfolding:
+```lean (error := true) (name := irredSeq)
+attribute [irreducible] Sequence
+
+#check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
+```
+```leanOutput irredSeq
+invalid field 'reverse', the environment does not contain 'Sequence.reverse'
+  xs
+has type
+  Sequence Nat
+```
+:::
+
+:::syntax attr (title := "Reducibility Annotations")
+A definition's reducibility can be set using one of the three reducibility attributes:
+
+```grammar
+reducible
+```
+```grammar
+semireducible
+```
+```grammar
+irreducible
+```
+These attributes can only be applied globally in the same file as the definition being modified, but they may be {keywordOf attrInst parser:=Lean.Parser.Term.attrKind}`local`ly applied anywhere.
+:::
+
+## Reducibility and Tactics
+
+The tactics {tactic}`with_reducible`, {tactic}`with_reducible_and_instances`, and {tactic}`with_unfolding_all` control which definitions are unfolded by most tactics.
+
+
+
+:::example "Reducibility and Tactics"
+The functions {lean}`plus`, {lean}`sum`, and {lean}`tally` are all synonyms for {lean}`Nat.add` that are respectively reducible, semireducible, and irreducible:
+```lean
+abbrev plus := Nat.add
+
+def sum := Nat.add
+
+@[irreducible]
+def tally := Nat.add
+```
+
+The reducible synonym is unfolded by {tactic}`simp`:
+```lean
+theorem plus_eq_add : plus x y = x + y := by simp
+```
+
+The semireducible synonym is not, however, unfolded by {tactic}`simp`:
+```lean (keep := false) (error := true) (name := simpSemi)
+theorem sum_eq_add : sum x y = x + y := by simp
+```
+Nonetheless, the definitional equality check induced by {tactic}`rfl` unfolds the {lean}`sum`:
+```lean
+theorem sum_eq_add : sum x y = x + y := by rfl
+```
+The irreducible {lean}`tally`, however, is not reduced by definitional equality.
+```lean  (keep := false) (error := true) (name := reflIr)
+theorem tally_eq_add : tally x y = x + y := by rfl
+```
+The {tactic}`simp` tactic can unfold any definition, even irreducible ones, when they are explicitly provided:
+```lean  (keep := false) (name := simpName)
+theorem tally_eq_add : tally x y = x + y := by simp [tally]
+```
+Similarly, part of a proof can be instructed to ignore irreducibility by placing it in a {tactic}`with_unfolding_all` block:
+```lean
+theorem tally_eq_add : tally x y = x + y := by with_unfolding_all rfl
+```
+:::
+
+## Modifying Reducibility
+
+The reducibility of a definition can be globally modified in the module in which it is defined by applying the appropriate attribute with the {keywordOf Lean.Parser.Command.attribute}`attribute` command.
+In other modules, the reducibility of imported definitions can be modified by applying the attribute with the {keyword}`local` modifier.
+The {keywordOf Lean.Parser.commandSeal__}`seal` and  {keywordOf Lean.Parser.commandUnseal__}`unseal` commands are a shorthand for this process.
+
+:::syntax command (title := "Local Irreducibility")
+
+{includeDocstring Lean.Parser.commandSeal__}
+
+```grammar
+seal $_:ident $_*
+```
+:::
+
+:::syntax command (title := "Local Reducibility")
+{includeDocstring Lean.Parser.commandUnseal__}
+
+```grammar
+unseal $_:ident $_*
+```
+
+:::
+
+## Options
+
+For performance, the elaborator and many tactics construct indices and caches.
+Many of these take reducibility into account, and there's no way to invalidate and regenerate them if reducibility changes globally.
+Unsafe changes to reducibility settings that could have unpredictable results are disallowed by default, but they can be enabled by using the {option}`allowUnsafeReducibility` option.
+
+{optionDocs allowUnsafeReducibility}
