@@ -117,10 +117,8 @@ def keywordOf : RoleExpander
       for (k, ()) in contents.kinds do
         if kindName == k then catName := some cat; break
       if let some _ := catName then break
-    let some c := catName
-      | throwErrorAt kind s!"Unknown syntax kind {kindName}"
     let kindDoc ← findDocString? (← getEnv) kindName
-    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Name × Name × Option String)) $(quote (kw.getString, c, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
+    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
 
 @[inline_extension keywordOf]
 def keywordOf.descr : InlineDescr where
@@ -130,7 +128,7 @@ def keywordOf.descr : InlineDescr where
   toHtml :=
     open Verso.Output Html in
     some <| fun goI _ info content => do
-      match FromJson.fromJson? (α := (String × Name × Name × Option String)) info with
+      match FromJson.fromJson? (α := (String × Option Name × Name × Option String)) info with
       | .ok (kw, cat, kind, kindDoc) =>
         -- TODO: use the presentation of the syntax in the manual to show the kind, rather than
         -- leaking the kind name here, which is often horrible. But we need more data to test this
@@ -146,7 +144,7 @@ def keywordOf.descr : InlineDescr where
         pure {{
           <span class="hl lean keyword-of">
             <code class="hover-info">
-              <code>{{kind.toString}} " : " {{cat.toString}}</code>
+              <code>{{kind.toString}} {{cat.map (" : " ++ toString ·) |>.getD ""}}</code>
               {{if let some doc := kindDoc then
                   {{ <span class="sep"/> <code class="docstring">{{doc}}</code>}}
                 else

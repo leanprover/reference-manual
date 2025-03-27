@@ -17,6 +17,7 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 
+set_option guard_msgs.diff true
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
@@ -240,7 +241,8 @@ The facets available for packages are:
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`barrel, `cache, `deps, `extraDep, `optBarrel, `optCache, `optRelease, `release, `transDeps]
+info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
+  `package.optRelease, `package.release, `package.transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
@@ -293,7 +295,10 @@ info: #[`barrel, `cache, `deps, `extraDep, `optBarrel, `optCache, `optRelease, `
 
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
-/-- info: [`modules, `static, `leanArts, `shared, `extraDep, `static.export] -/
+/--
+info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
+  `lean_lib.default]
+-/
 #guard_msgs in
 #eval Lake.initLibraryFacetConfigs.toList.map (·.1)
 ```
@@ -333,8 +338,9 @@ Executables have a single `exe` facet that consists of the executable binary.
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`bc, `bc.o, `c, `c.o, `c.o.export, `c.o.noexport, `deps, `dynlib, `ilean, `imports, `leanArts, `o, `o.export,
-  `o.noexport, `olean, `precompileImports, `transImports]
+info: #[`module.bc, `module.bc.o, `module.c, `module.c.o, `module.c.o.export, `module.c.o.noexport, `module.deps,
+  `module.dynlib, `module.ilean, `module.imports, `module.leanArts, `module.o, `module.o.export, `module.o.noexport,
+  `module.olean, `module.precompileImports, `module.transImports]
 -/
 #guard_msgs in
 #eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
