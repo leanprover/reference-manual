@@ -37,6 +37,9 @@ The {tech}[elaborator] translates them to Lean's minimal core language, which is
 The syntax of terms is {ref "syntax-ext"}[arbitrarily extensible]; this chapter documents the term syntax that Lean provides out-of-the-box.
 
 # Identifiers
+%%%
+tag := "identifiers-and-resolution"
+%%%
 
 :::syntax term (title := "Identifiers")
 ```
