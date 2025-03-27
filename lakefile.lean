@@ -43,7 +43,7 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
 target subversoExtractMod : FilePath := do
   if let some pkg := ← findPackage? `subverso then
     if let some exe := pkg.findLeanExe? `«subverso-extract-mod» then
-      exe.recBuildExe
+      exe.fetch
     else
       failure
   else
