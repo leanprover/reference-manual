@@ -9,7 +9,9 @@ import VersoManual
 import Manual.Meta
 import Manual.Language.Files
 import Manual.Language.Axioms
+import Manual.Language.Namespaces
 import Manual.Coercions
+
 
 import Lean.Parser.Command
 
@@ -574,17 +576,8 @@ unknown identifier 'α'
 :::
 ::::
 
-## Namespaces
-%%%
-tag := "namespaces"
-%%%
+{include 2 Manual.Language.Namespaces}
 
-:::planned 210
-
-Describe {deftech}[namespaces], aliases, and the semantics of `export` and `open` and {deftech}[`protected`].
-Which language features are controlled by the currently open namespaces?
-
-:::
 
 ## Section Scopes
 %%%
