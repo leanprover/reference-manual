@@ -22,10 +22,15 @@ tag := "axioms"
 universe u
 ```
 
-{deftech}_Axioms_ are constants of a specified type that are postulated.
+{deftech}_Axioms_ are postulated constants.
 While the axiom's type must itself be a type (that is, it must have type {lean}`Sort u`), there are no further requirements.
 Axioms do not {tech key:="reduction"}[reduce] to other terms.
 :::
+
+Axioms can be used to experiment with the consequences of an idea before investing the time required to construct a model or prove a theorem.
+They can also be used to adopt reasoning principles that can't otherwise be accessed in Lean's type theory; Lean itself provides {ref "standard-axioms"}[three such axioms] that are known to be consistent.
+However, axioms should be used with caution: axioms that are inconsistent with one another, or just false, undermine the very foundations of proofs.
+Lean automatically tracks the axioms that each proof depends on so that they can be audited.
 
 # Axiom Declarations
 %%%
@@ -42,7 +47,7 @@ axiom $_ $_
 
 Axioms declarations may be modified with all possible {ref "declaration-modifiers"}[declaration modifiers].
 Documentation comments, attributes, {keyword}`private`, and {keyword}`protected` have the same meaning as for other declarations.
-Using {keyword}`partial`, {keyword}`nonrec`, {keyword}`noncomputable` and {keyword}`unsafe` have no effect.
+The modifiers {keyword}`partial`, {keyword}`nonrec`, {keyword}`noncomputable` and {keyword}`unsafe` have no effect.
 
 # Consistency
 %%%
@@ -54,7 +59,7 @@ Because they introduce a new constant of any type, and an inhabitant of a type t
 Any proof that relies on an axiom can be trusted only to the extent that the axiom is both true and consistent with the other axioms used.
 By their very nature, Lean cannot check whether new axioms are consistent; please exercise care when adding axioms.
 
-:::example "Inconsistency From Axioms"
+:::example "Inconsistencies From Axioms"
 Axioms may introduce inconsistency, either alone or in combination with other axioms.
 
 Assuming a false statement allows any statement at all to be proved:
@@ -69,7 +74,8 @@ For example, parametricity is a powerful reasoning technique when used in langua
 If parametricity held, then the “free theorem” from the introduction to Wadler's [_Theorems for Free_](https://dl.acm.org/doi/pdf/10.1145/99370.99404) (1989), which describes a technique for using parametricity to derive theorems about polymorphic functions, would be true.
 As an axiom, it reads:
 ```lean
-axiom List.free_theorem {α β} (f : {α : _} → List α → List α) (g : α → β) :
+axiom List.free_theorem {α β}
+  (f : {α : _} → List α → List α) (g : α → β) :
   f ∘ (List.map g) = (List.map g) ∘ f
 ```
 However, a consequence of excluded middle is that all propositions are decidable; this means that a function can _check_ whether they are true or false.
@@ -84,17 +90,17 @@ noncomputable def nonParametric
 ```
 The existence of this function contradicts the “free theorem”:
 ```lean
-theorem counterexample : False := by
-  have unit_not_nat : Unit ≠ Nat := by
-    intro eq
-    have ⟨allEq⟩ := eq ▸ inferInstanceAs (Subsingleton Unit)
-    specialize allEq 0 1
-    contradiction
+theorem unit_not_nat : Unit ≠ Nat := by
+  intro eq
+  have ⟨allEq⟩ := eq ▸ inferInstanceAs (Subsingleton Unit)
+  specialize allEq 0 1
+  contradiction
 
+example : False := by
   have := List.free_theorem nonParametric (fun () => 42)
 
   unfold nonParametric at this
-  simp [*] at this
+  simp [unit_not_nat] at this
 
   have := congrFun this [()]
   contradiction
@@ -145,10 +151,9 @@ failed to compile definition, consider marking it as 'noncomputable' because it 
 
 Axioms used in proofs rather than programs do not prevent a function from being compiled.
 The compiler does not generate code for proofs, so axioms in proofs are no problem.
-{lean}`nextOdd` computes the next odd number from a {lean}`Nat`, which may be itself:
+{lean}`nextOdd` computes the next odd number from a {lean}`Nat`, which may be the number itself or one greater:
 ```lean
-def nextOdd
-    (k : Nat) :
+def nextOdd (k : Nat) :
     { n : Nat // n % 2 = 1 ∧ (n = k ∨ n = k + 1) } where
   val := if k % 2 = 1 then k else k + 1
   property := by
@@ -224,5 +229,5 @@ However, they allow the use of compiled code in proofs to be carefully controlle
 axiom Anything : Type
 ```
 Finally, the axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean type:="Anything"}`sorry` term.
-Uses of this axiom are not intended to occur in finished proofs, but this can be confirmed using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
+Uses of this axiom are not intended to occur in finished proofs, and this can be confirmed using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
 :::
