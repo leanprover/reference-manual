@@ -180,15 +180,110 @@ After the first step of elaboration, in which definitions are still recursive, a
 tag := "partial-unsafe"
 %%%
 
-:::planned 59
-This section will describe `partial` and `unsafe` definitions:
+
+While most Lean functions can be reasoned about in Lean's type theory as well as compiled and run, definitions marked {keyword}`partial` or {keyword}`unsafe` cannot be meaningfully reasoned about.
+From the perspective of the logic, {keyword}`partial` functions are opaque constants and {keyword}`unsafe` definitions do not exist.
+In exchange for the inability to use these functions for reasoning, there are far fewer requirements placed on them; this can make it possible to write programs that would be impractical or cost-prohibitive to prove anything about, while not giving up formal reasoning for the rest.
+In essence, the {keyword}`partial` subset of Lean is a traditional functional programming language that is nonetheless deeply integrated with the theorem proving features, and the {keyword}`unsafe` subset features the ability to break Lean's runtime invariants if needed, at the cost of less integration with Lean's theorem-proving features.
+Analogously, {keyword}`noncomputable` definitions may use features that don't make sense in programs, but are meaningful in the logic.
+
+## Partial Functions
+
+The {keyword}`partial` modifier may only be applied to function definitions.
+Partial functions are not required to demonstrate termination, and Lean does not attempt to do so.
+These functions are “partial” in the sense that they do not necessarily specify mapping from each element of the domain to an element of the codomain, because they might fail to terminate for some or all elements of the domain.
+They are elaborated into {tech}[pre-definitions] that contain explicit recursion, and type checked using the kernel; however, they are subsequently treated as opaque constants by the logic.
+The function's return type must be inhabited; this ensures soundness.
+
+With partial definitions, the kernel is responsible for the following:
+* It ensures that the pre-definition's type is indeed a well-formed type.
+* It checks that the pre-definition's type is a function type.
+* It ensures that the function's codomain is inhabited by demanding a {lean}`Nonempty` or {lean}`Inhabited` instance.
+* It checks that the resulting term would be type-correct if Lean had recursive definitions.
+
+Even though recursive definitions are not part of the kernel's type theory, the kernel can still be used to check that the body of the definition has the right type.
+This works the same way as in other functional languages: uses of recursion are type checked by checking the body in an environment in which the definition is already associated with its type.
+Having ensured that it type checks, the body is discarded and only the opaque constant is retained by the kernel.
+As with all Lean functions, the compiler generates code from the elaborated {tech}[pre-definition].
+
+## Unsafe Lean
+
+Unsafe definitions have even fewer safeguards than partial functions.
+Their codomains do not need to be inhabited, they are not restricted to function definitions, and they have access to features of Lean that might violate internal invariants or break abstractions.
+As a result, they cannot be used at all as part of mathematical reasoning.
+While partial functions are treated as opaque constants by the type theory, unsafe definitions may only be referenced from other unsafe definitions.
+As a consequence, any function that calls an unsafe function must be unsafe itself.
+Theorems are not allowed to be declared unsafe.
+
+In addition to unrestricted uses of recursion, unsafe functions have access to the following operations:
+
+{docstring unsafeCast}
+
+{docstring ptrEq (allowMissing := true)}
+
+{docstring ptrEqList (allowMissing := true)}
+
+{docstring ptrAddrUnsafe (allowMissing := true)}
+
+{docstring unsafeIO}
+
+{docstring unsafeEIO}
+
+{docstring unsafeBaseIO}
 
 
- * Interaction with the kernel and elaborator
- * What guarantees are there, and what aren't there?
- * How to bridge from unsafe to safe code?
+Frequently, unsafe operators are used to write fast code that takes advantage of low-level details.
+Just as Lean code may be replaced at runtime with C code via the FFI,{TODO}[xref] safe Lean code may be replaced with unsafe Lean code for runtime programs.
+This is accomplished by adding the {attr}`implemented_by` attribute to the function that is to be replaced, which is often an {keyword}`opaque` definition.
+While this does not threaten Lean's soundness as a logic because the constant to be replaced has already been checked by the kernel and the unsafe replacement is only used in runtime code, it is still risky.
+Both C code and unsafe code may execute arbitrary side effects.
 
+:::syntax attr (title := "Replacing Run-Time Implementations")
+The {attr}`implemented_by` attribute instructs the compiler to replace one constant with another in compiled code.
+The replacement constant may be unsafe.
+```grammar
+implemented_by $_:ident
+```
 :::
+
+:::example "Checking Equality with Pointers"
+
+Ordinarily, a {lean}`BEq` instance's equality predicate must fully traverse both of its arguments to determine whether they are equal.
+If they are, in fact, the very same object in memory, this is wasteful indeed.
+A pointer equality test can be used prior to the traversal to catch this case.
+
+The type being compared is {name}`Tree`, a type of binary trees.
+```lean
+inductive Tree α where
+  | empty
+  | branch (left : Tree α) (val : α) (right : Tree α)
+```
+
+An unsafe function may use pointer equality to terminate the structural equality test more quickly, falling back to structural checks when pointer equality fails.
+```lean
+unsafe def Tree.fastBEq [BEq α] (t1 t2 : Tree α) : Bool :=
+  if ptrEq t1 t2 then
+    true
+  else
+    match t1, t2 with
+    | .empty, .empty => true
+    | .branch l1 x r1, .branch l2 y r2 =>
+      if ptrEq x y || x == y then
+        l1.fastBEq l2 && r1.fastBEq r2
+      else false
+    | _, _ => false
+```
+
+An {attr}`implemented_by` attribute on an opaque definition bridges the worlds of safe and unsafe code.
+```lean
+@[implemented_by Tree.fastBEq]
+opaque Tree.beq [BEq α] (t1 t2 : Tree α) : Bool
+
+instance [BEq α] : BEq (Tree α) where
+  beq := Tree.beq
+```
+:::
+
 
 # Controlling Reduction
 %%%

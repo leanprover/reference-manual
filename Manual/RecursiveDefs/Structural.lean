@@ -516,7 +516,7 @@ This elaboration uses the {ref "recursor-elaboration-helpers"}[`below` and `brec
 
 {spliceContents Manual.RecursiveDefs.Structural.RecursorExample}
 
-The structural recursion analysis attempts to translate the recursive pre-definition into a use of the appropriate structural recursion constructions.
+The structural recursion analysis attempts to translate the recursive {tech}[pre-definition] into a use of the appropriate structural recursion constructions.
 At this step, pattern matching has already been translated into the use of matcher functions; these are treated specially by the termination checker.
 Next, for each group of parameters, a translation using `brecOn` is attempted.
 
