@@ -361,6 +361,8 @@ Because bitvectors are understood as two's complement numbers, addition, subtrac
 
 {docstring BitVec.uaddOverflow}
 
+{docstring BitVec.usubOverflow}
+
 ### Signed Operations
 
 {docstring BitVec.abs}
@@ -377,9 +379,13 @@ Because bitvectors are understood as two's complement numbers, addition, subtrac
 
 {docstring BitVec.saddOverflow}
 
+{docstring BitVec.ssubOverflow}
+
 ## Iteration
 
 {docstring BitVec.iunfoldr}
+
+{docstring BitVec.iunfoldr_replace}
 
 ## Proof Automation
 
