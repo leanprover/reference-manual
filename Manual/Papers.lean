@@ -99,3 +99,9 @@ def wadler1989 : InProceedings where
   year := 1989
   booktitle := .concat (inlines!"Proceedings of the Fourth International Conference on Functional Programming Languages and Computer Architecture")
   url := "https://dl.acm.org/doi/pdf/10.1145/99370.99404"
+
+def wadlerBlott89 : InProceedings where
+  title := .concat (inlines!"How to make ad-hoc polymorphism less ad hoc")
+  authors := #[.concat (inlines!"Philip Wadler"), .concat (inlines!"Stephen Blott")]
+  year := 1980
+  booktitle := .concat (inlines!"Proceedings of the 16th Symposium on Principles of Programming Languages")

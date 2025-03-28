@@ -185,7 +185,12 @@ def planned.descr : BlockDescr where
         logError s!"Missing issue number for planned content indicator at {file} line {line}"
       else
         logError s!"Missing issue number for planned content indicator"
-    | .ok (some _, _) => pure ()
+    | .ok (some n, loc?) =>
+      if !(← isDraft) then
+        let loc := loc?.map (fun (l, f) => s!" at {f} line {l}") |>.getD ""
+        logError s!"Planned content {n} in final rendering{loc}"
+      else
+        pure ()
 
     | .error e =>
       logError s!"Failed to deserialize issue number from {data} during traversal: {e}"

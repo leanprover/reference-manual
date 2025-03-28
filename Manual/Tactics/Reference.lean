@@ -281,7 +281,7 @@ tag := "tactic-ref-rw"
 
 {docstring Lean.Meta.Rewrite.Config (allowMissing := true)}
 
-{docstring Lean.Meta.Occurrences (allowMissing := true)}
+{docstring Lean.Meta.Occurrences}
 
 {docstring Lean.Meta.TransparencyMode (allowMissing := true)}
 
@@ -331,10 +331,102 @@ tag := "tactic-ref-inductive-intro"
 tag := "tactic-ref-inductive-elim"
 %%%
 
-:::planned 48
+Elimination tactics use {ref "recursors"}[recursors] and the automatically-derived {ref "recursor-elaboration-helpers"}[`casesOn` helper] to implement induction and case splitting.
+The {tech}[subgoals] that result from these tactics are determined by the types of the minor premises of the eliminators, and using different eliminators with the {keyword}`using` option results in different subgoals.
 
-Description of the `@[induction_eliminator]` and `@[cases_eliminator]` attributes
+:::::leanSection
+```lean (show := false)
+variable {n : Nat}
+```
+::::example "Choosing Eliminators"
 
+:::tacticExample
+```setup
+intro n i
+```
+{goal show:= false}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
+
+```pre (show := false)
+n : Nat
+i : Fin (n + 1)
+⊢ 0 + i = i
+```
+
+When attempting to prove that {lean}`∀(i : Fin (n + 1)), 0 + i = i`, after introducing the hypotheses the tactic {tacticStep}`induction i` results in:
+
+```post
+case mk
+n val✝ : Nat
+isLt✝ : val✝ < n + 1
+⊢ 0 + ⟨val✝, isLt✝⟩ = ⟨val✝, isLt✝⟩
+```
+
+This is because {name}`Fin` is a {tech}[structure] with a single non-recursive constructor.
+Its recursor has a single minor premise for this constructor:
+```signature
+Fin.rec.{u} {n : Nat} {motive : Fin n → Sort u}
+  (mk : (val : Nat) →
+    (isLt : val < n) →
+    motive ⟨val, isLt⟩)
+  (t : Fin n) : motive t
+```
+:::
+:::tacticExample
+```setup
+intro n i
+```
+{goal show:= false}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
+
+```pre (show := false)
+n : Nat
+i : Fin (n + 1)
+⊢ 0 + i = i
+```
+
+Using the tactic {tacticStep}`induction i using Fin.induction` instead results in:
+
+```post
+case zero
+n : Nat
+⊢ 0 + 0 = 0
+
+case succ
+n : Nat
+i✝ : Fin n
+a✝ : 0 + i✝.castSucc = i✝.castSucc
+⊢ 0 + i✝.succ = i✝.succ
+```
+
+{name}`Fin.induction` is an alternative eliminator that implements induction on the underlying {name}`Nat`:
+```signature
+Fin.induction.{u} {n : Nat}
+  {motive : Fin (n + 1) → Sort u}
+  (zero : motive 0)
+  (succ : (i : Fin n) →
+    motive i.castSucc →
+    motive i.succ)
+  (i : Fin (n + 1)) : motive i
+```
+:::
+
+::::
+:::::
+
+{deftech}[Custom eliminators] can be registered using the {attr}`induction_eliminator` and {attr}`cases_eliminator` attributes.
+The eliminator is registered for its explicit targets (i.e. those that are explicit, rather than implicit, parameters to the eliminator function) and will be applied when {tactic}`induction` or {tactic}`cases` is used on targets of those types.
+When present, custom eliminators take precedence over recursors.
+Setting {option}`tactic.customEliminators` to {lean}`false` disables the use of custom eliminators.
+
+:::syntax attr (title := "Custom Eliminators")
+The {attr}`induction_eliminator` attribute registers an eliminator for use by the {tactic}`induction` tactic.
+```grammar
+induction_eliminator
+```
+
+The {attr}`induction_eliminator` attribute registers an eliminator for use by the {tactic}`cases` tactic.
+```grammar
+cases_eliminator
+```
 :::
 
 :::tactic "cases"

@@ -10,19 +10,15 @@ import Manual.Meta
 
 open Verso.Genre Manual
 
-#doc (Manual) "Files" =>
+#doc (Manual) "Source Files and Modules" =>
 %%%
 tag := "files"
+htmlSplit := .never
 %%%
 
 The smallest unit of compilation in Lean is a single {deftech}[module].
 Modules correspond to source files, and are imported into other modules based on their filenames.
 In other words, the names and folder structures of files are significant in Lean code.
-
-# Modules
-%%%
-tag := "modules"
-%%%
 
 Every Lean file defines a module.
 A module's name is derived from a combination of its filename and the way in which Lean was invoked: Lean has a _root directory_ in which it expects to find code, and the module's name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
@@ -32,7 +28,7 @@ For example, if Lean is invoked with `Projects/MyLib/src` as its root, the file 
 Describe case sensitivity/preservation for filenames here
 :::
 
-## Encoding and Representation
+# Encoding and Representation
 %%%
 tag := "module-encoding"
 %%%
@@ -44,17 +40,17 @@ However, Lean normalizes line endings when parsing or comparing files, so all fi
 Marginal note: this is to make cached files and `#guard_msgs` and the like work even when git changes line endings. Also keeps offsets stored in parsed syntax objects consistent.
 :::
 
-## Concrete Syntax
+# Concrete Syntax
 %%%
 tag := "module-syntax"
 %%%
 
 
-Lean's concrete syntax is extensible.
+Lean's concrete syntax is {ref "language-extension"}[extensible].
 In a language like Lean, it's not possible to completely describe the syntax once and for all, because libraries may define syntax in addition to new constants or {tech}[inductive types].
 Rather than completely describing the language here, the overall framework is described, while the syntax of each language construct is documented in the section to which it belongs.
 
-### Whitespace
+## Whitespace
 %%%
 tag := "whitespace"
 %%%
@@ -64,7 +60,7 @@ Tokens in Lean may be separated by any number of {deftech}[_whitespace_] charact
 Whitespace may be a space (`" "`, Unicode `'SPACE (SP)' (U+0020)`), a valid newline sequence, or a comment. {TODO}[xref]
 Neither tab characters nor carriage returns not followed by newlines are valid whitespace sequences.
 
-### Comments
+## Comments
 %%%
 tag := "comments"
 %%%
@@ -88,7 +84,7 @@ Even though documentation resembles comments, they are their own syntactic categ
 
 
 
-### Keywords and Identifiers
+## Keywords and Identifiers
 %%%
 tag := "keywords-and-identifiers"
 %%%
@@ -192,7 +188,7 @@ Contexts in which keywords may be used as identifiers without guillemets, such a
 Identifiers that contain one or more `'.'` characters, and thus consist of more than one identifier component, are called {deftech}[hierarchical identifiers].
 Hierarchical identifiers are used to represent both module names and names in a namespace.
 
-## Structure
+# Structure
 %%%
 tag := "module-structure"
 %%%
@@ -208,33 +204,35 @@ A module consists of a {deftech}_module header_ followed by a sequence of {defte
 :::
 
 
-### Module Headers
+## Module Headers
 %%%
 tag := "module-headers"
 %%%
 
 
-The module header consists of a sequence of {deftech}[`import` statements].
+Module headers list the modules that should be elaborated prior to the current module.
+Their declarations are visible in the current module.
 
 :::syntax Lean.Parser.Module.header (open := false) (title := "Module Headers")
+The module header consists of a sequence of {deftech}[`import` statements]:
 ```grammar
 $i:import*
 ```
 
-An optional keyword `prelude`, for use in Lean's implementation, is also allowed:
-
+The optional {keyword}`prelude` keyword should only be used in Lean's source code:
 ```grammar
-prelude $«import»*
+prelude
+$i:import*
 ```
 :::
 
+If present, the {keyword}`prelude` keyword indicates that the module is part of the implementation of the Lean {deftech}_prelude_, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.
 
 :::syntax Lean.Parser.Module.prelude (open := false) (title := "Prelude Modules")
 ```grammar
 prelude
 ```
 
-The `prelude` keyword indicates that the module is part of the implementation of the Lean {deftech}_prelude_, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.
 :::
 
 :::syntax Lean.Parser.Module.import (title := "Imports")
@@ -252,7 +250,7 @@ The imported module name is translated to a filename by replacing dots (`'.'`) i
 Lean searches its include path for the corresponding intermediate build product or importable module file.
 :::
 
-### Commands
+## Commands
 %%%
 tag := "commands"
 %%%
@@ -260,20 +258,21 @@ tag := "commands"
 
 {tech}[Commands] are top-level statements in Lean.
 Some examples are inductive type declarations, theorems, function definitions, namespace modifiers like `open` or `variable`, and interactive queries such as `#check`.
-The syntax of commands is user-extensible.
+The syntax of commands is user-extensible, and commands may even {ref "language-extension"}[add new syntax that is used to parse subsequent commands].
 Specific Lean commands are documented in the corresponding chapters of this manual, rather than being listed here.
 
 ::: TODO
 Make the index include links to all commands, then xref from here
 :::
 
-## Contents
+# Elaborated Modules
 %%%
 tag := "module-contents"
 %%%
 
+When Lean elaborates a module, the result is an {TODO}[def and xref] environment.
+The environment includes the constants, {tech}[inductive types], {tech}[theorems], {tech key:="type class"}[type classes], {tech}[instances], and everything else declared in the module, along with side tables that track data as diverse as {tech}[simp sets], namespace aliases, and {tech}[documentation comments].
 
-A module includes an {TODO}[def and xref] environment, which includes both the inductive type and constant definitions from an environment and any data stored in {TODO}[xref] its environment extensions.
 As the module is processed by Lean, commands add content to the environment.
 A module's environment can be serialized to a {deftech (key:="olean")}[`.olean` file], which contains both the environment and a compacted heap region with the run-time objects needed by the environment.
 This means that an imported module can be loaded without re-executing all of its commands.
@@ -285,13 +284,9 @@ tag := "code-distribution"
 %%%
 
 
-Lean code is organized into {deftech}_packages_, which are units of code distribution.
+Lean modules are organized into {deftech}_packages_, which are units of code distribution.
 A {tech}[package] may contain multiple libraries or executables.
 
 Code in a package that is intended for use by other Lean packages is organized into {deftech (key:="library")}[libraries].
 Code that is intended to be compiled and run as independent programs is organized into {deftech (key:="executable")}[executables].
-Together, libraries and executables are referred to as {deftech}_targets_ in Lake, the standard Lean build tool. {TODO}[section xref]
-
-:::TODO
-Write Lake section, coordinate this content with it
-:::
+Packagesw, libraries, and executables are described in detail in the section on {ref "lake"}[Lake, the standard Lean build tool].

@@ -60,7 +60,7 @@ Here, {lean}`ST` is analogous to {lean}`BaseIO` rather than {lean}`IO`, because 
 
 {docstring ST.Ref (hideFields := true)}
 
-{docstring ST.mkRef (allowMissing := true)}
+{docstring ST.mkRef}
 
 ## Reading and Writing
 

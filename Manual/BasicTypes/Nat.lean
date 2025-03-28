@@ -12,8 +12,6 @@ open Manual.FFIDocType
 
 open Verso.Genre Manual
 
-set_option verso.docstring.allowMissing true
-
 #doc (Manual) "Natural Numbers" =>
 %%%
 tag := "Nat"
@@ -342,17 +340,11 @@ tag := "nat-api-elim"
 
 The recursion principle that is automatically generated for {lean}`Nat` results in proof goals that are phrased in terms of {lean}`Nat.zero` and {lean}`Nat.succ`.
 This is not particularly user-friendly, so an alternative logically-equivalent recursion principle is provided that results in goals that are phrased in terms of {lean}`0` and `n + 1`.
-
-:::TODO
-Insert reference to section on how to do this
-:::
+{tech}[Custom eliminators] for the {tactic}`induction` and {tactic}`cases` tactics can be supplied using the {attr}`induction_eliminator` and {attr}`cases_eliminator` attributes.
 
 {docstring Nat.recAux}
 
 {docstring Nat.casesAuxOn}
-
-
-{docstring Nat.elimOffset}
 
 ### Alternative Induction Principles
 %%%

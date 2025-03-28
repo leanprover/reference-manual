@@ -12,7 +12,6 @@ open Manual.FFIDocType
 open Verso.Genre Manual
 
 set_option pp.rawOnError true
-set_option verso.docstring.allowMissing true
 
 #doc (Manual) "Substrings" =>
 %%%
@@ -118,7 +117,7 @@ tag := "string-api-substring"
 
 {docstring Substring.isNat}
 
-{docstring Substring.toNat?}
+{docstring Substring.toNat? (allowMissing := true)}
 
 {docstring Substring.toIterator}
 

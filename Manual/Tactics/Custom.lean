@@ -136,6 +136,7 @@ Backtracking is at the granularity of {keywordOf Lean.Parser.Command.macro_rules
 # The Tactic Monad
 %%%
 tag := "tactic-monad"
+draft := true
 %%%
 
 ::: planned 67

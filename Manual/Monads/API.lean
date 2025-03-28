@@ -82,11 +82,11 @@ The {name}`discard` function is especially useful when using an action that retu
 
 # Lifting Boolean Operations
 
-{docstring andM (allowMissing := true)}
+{docstring andM}
 
-{docstring orM (allowMissing := true)}
+{docstring orM}
 
-{docstring notM (allowMissing := true)}
+{docstring notM}
 
 # Kleisli Composition
 

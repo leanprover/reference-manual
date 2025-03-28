@@ -1450,7 +1450,11 @@ partial def grammar.descr : BlockDescr where
             | throw "Not a string"
           pure (str, {{<span class={{k}}>{{str}}</span>}})
       let (strs, toks) := toks.unzip
-      pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
+      if strs == #["…"] || strs == #["..."] then
+        -- Dont' add the item if it'd be useless for navigating the page
+        pure #[]
+      else
+        pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
     else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
 where
 

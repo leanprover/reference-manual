@@ -46,7 +46,8 @@ lean_array_object * lean_to_array(lean_object * o)
 Performs a runtime check that `o` is indeed an array. If `o` is not an array, an assertion fails.
 :::
 
-
+::::draft
 :::planned 158
  * Complete C API for {lean}`Array`
 :::
+::::

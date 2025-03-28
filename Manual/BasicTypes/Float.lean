@@ -17,8 +17,6 @@ open Verso.Genre Manual
 
 set_option pp.rawOnError true
 
-set_option verso.docstring.allowMissing true
-
 #doc (Manual) "Floating-Point Numbers" =>
 %%%
 tag := "Float"

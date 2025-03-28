@@ -15,8 +15,7 @@ open Verso.Genre Manual
 tag := "namespaces"
 %%%
 
-Names are organized into hierarchical {deftech}_namespaces_, which are collections of names.
-Namespaces are the primary means of organizing APIs in Lean.
+
 Names that contain periods (that aren't inside {tech}[guillemets]) are hierarchical names; the periods separate the _components_ of a name.
 All but the final component of a name are the namespace, while the final component is the name itself.
 

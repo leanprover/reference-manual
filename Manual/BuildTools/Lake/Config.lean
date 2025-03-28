@@ -78,7 +78,7 @@ The only mandatory field is `name`, which declares the package's name.
 
 :::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
-They are used by {ref "reservoir"}[Reservoir] to index and display packages.
+They are used by [Reservoir](https://reservoir.lean-lang.org/) to index and display packages.
 If a field is left out, Reservoir may use information from the package's GitHub repository to fill in details.
 :::
 
@@ -333,14 +333,14 @@ name = "Sorting"
 
 Dependencies are specified in the {toml}`[[require]]` field array of a package configuration, which specifies both the name and the source of each package.
 There are three kinds of sources:
- * {ref "reservoir"}[Reservoir], or an alternative package registry
+ * [Reservoir](https://reservoir.lean-lang.org/), or an alternative package registry
  * Git repositories, which may be local paths or URLs
  * Local paths
 
 ::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version?
 
 The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
-If neither are provided, then the dependency is fetched from {ref "reservoir"}[Reservoir], or an alternative registry if one has been configured.
+If neither are provided, then the dependency is fetched from [Reservoir](https://reservoir.lean-lang.org/), or an alternative registry if one has been configured.
 The {tomlField Lake.Dependency}`scope` field is required when fetching a package from Reservoir.
 
 :::tomlField Lake.Dependency path "Path" "Paths" System.FilePath
@@ -740,7 +740,7 @@ $doc:docComment
 require $name:depName $[@ $[git]? $_:term]? $[$_:fromClause]? $[with $_:term]?
 ```
 
-The `@` clause specifies a package version, which is used when requiring a package from {ref "reservoir"}[Reservoir].
+The `@` clause specifies a package version, which is used when requiring a package from [Reservoir](https://reservoir.lean-lang.org/).
 The version may either be a string that specifies the version declared in the package's {name Lake.PackageConfig.version}`version` field, or a specific Git revision.
 Git revisions may be branch names, tag names, or commit hashes.
 

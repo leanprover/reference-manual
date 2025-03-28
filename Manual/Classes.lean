@@ -7,9 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
-import Manual.Language.Functions
-import Manual.Language.Files
-import Manual.Language.InductiveTypes
+import Manual.Papers
 import Manual.Classes.InstanceDecls
 import Manual.Classes.InstanceSynth
 import Manual.Classes.DerivingHandlers
@@ -26,11 +24,6 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-def wadlerBlott89 : InProceedings where
-  title := .concat (inlines!"How to make ad-hoc polymorphism less ad hoc")
-  authors := #[.concat (inlines!"Philip Wadler"), .concat (inlines!"Stephen Blott")]
-  year := 1980
-  booktitle := .concat (inlines!"Proceedings of the 16th Symposium on Principles of Programming Languages")
 
 set_option maxRecDepth 100000
 #doc (Manual) "Type Classes" =>

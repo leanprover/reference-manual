@@ -351,4 +351,4 @@ draft := true
 
 {docstring GetElem?}
 
-{docstring LawfulGetElem (allowMissing := true)}
+{docstring LawfulGetElem}

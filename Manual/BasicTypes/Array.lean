@@ -362,7 +362,7 @@ tag := "array-api"
 
 {docstring Array.mapIdx}
 
-{docstring Array.mapIdxM (allowMissing := true)}
+{docstring Array.mapIdxM}
 
 {docstring Array.mapFinIdx}
 

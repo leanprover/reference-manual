@@ -167,7 +167,7 @@ Afterwards, the file contains:
 
 {docstring IO.FS.Stream.ofBuffer}
 
-{docstring IO.FS.Stream.ofHandle (allowMissing := true)}
+{docstring IO.FS.Stream.ofHandle}
 
 {docstring IO.FS.Stream.putStrLn}
 

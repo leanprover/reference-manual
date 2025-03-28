@@ -14,6 +14,7 @@ import Manual.NotationsMacros.Precedence
 import Manual.NotationsMacros.Notations
 import Manual.NotationsMacros.SyntaxDef
 import Manual.NotationsMacros.Elab
+import Manual.NotationsMacros.Delab
 
 import Lean.Parser.Command
 
@@ -1178,3 +1179,5 @@ Evaluating this new expression demonstrates that the macro is present.
 ::::
 
 {include 0 Manual.NotationsMacros.Elab}
+
+{include 0 Manual.NotationsMacros.Delab}

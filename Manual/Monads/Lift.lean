@@ -16,7 +16,6 @@ open Verso.Genre
 open Verso.Genre.Manual
 
 set_option pp.rawOnError true
-set_option verso.docstring.allowMissing true
 
 set_option linter.unusedVariables false
 

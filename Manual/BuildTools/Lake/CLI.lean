@@ -214,7 +214,7 @@ Lake itself can be configured with the following environment variables:
     If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
 * row
   * {envVar def:=true}`LAKE_NO_CACHE`
-  * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub].
+  * If true, Lake does not use cached builds from [Reservoir](https://reservoir.lean-lang.org/) or {ref "lake-github"}[GitHub].
     This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
 
 :::

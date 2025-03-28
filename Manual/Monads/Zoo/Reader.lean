@@ -38,7 +38,7 @@ tag := "reader-monad"
 
 {docstring ReaderT}
 
-{docstring ReaderM (allowMissing := true)}
+{docstring ReaderM}
 
 {docstring ReaderT.run}
 
@@ -50,6 +50,6 @@ tag := "reader-monad"
 
 {docstring ReaderT.bind}
 
-{docstring ReaderT.orElse (allowMissing := true)}
+{docstring ReaderT.orElse}
 
-{docstring ReaderT.failure (allowMissing := true)}
+{docstring ReaderT.failure}
