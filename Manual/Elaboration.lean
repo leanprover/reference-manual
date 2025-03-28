@@ -215,6 +215,7 @@ This translation is additionally a proof that the function terminates for all po
 The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
 These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration].]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
+A definition that still includes recursion, but has otherwise been elaborated to the core language, is called a {deftech}[pre-definition].
 To see auxiliary pattern matching functions in Lean's output, set the option {option}`pp.match` to {lean}`false`.
 
 {optionDocs pp.match}
@@ -250,19 +251,23 @@ fun {α} motive x h_1 h_2 =>
 #print third_of_five.match_1
 ```
 
-The elaborated definition is then sent to the compiler and to the kernel.
-The compiler receives the version in which recursion is still present, while the version sent to the kernel undergoes a second transformation that replaces explicit recursion with uses of recursors.
+:::paragraph
+The pre-definition is then sent to the compiler and to the kernel.
+The compiler receives the pre-definition as-is, with recursion intact.
+The version sent to the kernel, on the other hand, undergoes a second transformation that replaces explicit recursion with {ref "structural-recursion"}[uses of recursors], {ref "well-founded-recursion"}[well-founded recursion], or .
 This split is for three reasons:
  * The compiler can compile {ref "partial-unsafe"}[`partial` functions] that the kernel treats as opaque constants for the purposes of reasoning.
  * The compiler can also compile {ref "partial-unsafe"}[`unsafe` functions] that bypass the kernel entirely.
  * Translation to recursors does not necessarily preserve the cost model expected by programmers, in particular laziness vs strictness, but compiled code must have predictable performance.
+   The other strategies used to justify recursive definitions result in internal terms that are even further from the program as it was written.
 
 The compiler stores an intermediate representation in an environment extension.
+:::
 
 For straightforwardly structurally recursive functions, the translation will use the type's recursor.
 These functions tend to be relatively efficient when run in the kernel, their defining equations hold definitionally, and they are easy to understand.
-Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call.
-Lean can automatically derive many of these cases, but some require manual proofs.
+Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call, or using {ref "partial-fixpoint"}[partial fixpoints], which logically capture at least part of a function's specification by appealing to domain-theoretic constructions.
+Lean can automatically derive many of these termination proofs, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
 To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves {deftech}[equational lemmas] that relate the function to its original definition.
 In the function's namespace, `eq_unfold` relates the function directly to its definition, `eq_def` relates it to the definition after instantiating implicit parameters, and $`N` lemmas `eq_N` relate each case of its pattern-matching to the corresponding right-hand side, including sufficient assumptions to indicate that earlier branches were not taken.
