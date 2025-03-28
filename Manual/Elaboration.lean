@@ -266,7 +266,7 @@ The compiler stores an intermediate representation in an environment extension.
 
 For straightforwardly structurally recursive functions, the translation will use the type's recursor.
 These functions tend to be relatively efficient when run in the kernel, their defining equations hold definitionally, and they are easy to understand.
-Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call, or using {ref "partial-fixpoints"}[partial fixpoints], which logically capture at least part of a function's specification by appealing to domain-theoretic constructions.
+Functions that use other patterns of recursion that cannot be captured by the type's recursor are translated using {deftech}[well-founded recursion], which is structural recursion on a proof that some {deftech}_measure_ decreases at each recursive call, or using {ref "partial-fixpoint"}[partial fixpoints], which logically capture at least part of a function's specification by appealing to domain-theoretic constructions.
 Lean can automatically derive many of these termination proofs, but some require manual proofs.
 Well-founded recursion is more flexible, but the resulting functions are often slower to execute in the kernel due to the proof terms that show that a measure decreases, and their defining equations may hold only propositionally.
 To provide a uniform interface to functions defined via structural and well-founded recursion and to check its own correctness, the elaborator proves {deftech}[equational lemmas] that relate the function to its original definition.
