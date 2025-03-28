@@ -269,7 +269,7 @@ While partial functions are treated as opaque constants by the type theory, unsa
 As a consequence, any function that calls an unsafe function must be unsafe itself.
 Theorems are not allowed to be declared unsafe.
 
-In addition to unrestricted use of recursion, unsafe functions can cast unrestrictedly from one type to another, check whether two values are the very same object in memory, retrieve pointer values, and run {lean}`IO` actions from otherwise-pure code.
+In addition to unrestricted use of recursion, unsafe functions can cast from one type to another, check whether two values are the very same object in memory, retrieve pointer values, and run {lean}`IO` actions from otherwise-pure code.
 Using these operators requires a thorough understanding of the Lean implementation.
 
 {docstring unsafeCast}
