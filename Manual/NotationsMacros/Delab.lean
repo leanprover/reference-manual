@@ -119,7 +119,7 @@ v : One
 ```
 This proof state shows the constructor using {tech}[structure instance] syntax.
 An unexpander can be used to override this choice.
-Because {name}`One.mk` cannot be applied to any arguments, the uenxpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(One.mk) ```.
+Because {name}`One.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(One.mk) ```.
 
 ```lean
 @[app_unexpander One.mk]
