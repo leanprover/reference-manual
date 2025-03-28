@@ -175,25 +175,31 @@ After the first step of elaboration, in which definitions are still recursive, a
 
 {include 0 Manual.RecursiveDefs.PartialFixpoint}
 
-# Partial and Unsafe Recursive Definitions
+# Partial and Unsafe Definitions
 %%%
 tag := "partial-unsafe"
 %%%
 
 
 While most Lean functions can be reasoned about in Lean's type theory as well as compiled and run, definitions marked {keyword}`partial` or {keyword}`unsafe` cannot be meaningfully reasoned about.
-From the perspective of the logic, {keyword}`partial` functions are opaque constants and {keyword}`unsafe` definitions do not exist.
+From the perspective of the logic, {keyword}`partial` functions are opaque constants, and theorems that refer to {keyword}`unsafe` definitions are summarily rejected.
 In exchange for the inability to use these functions for reasoning, there are far fewer requirements placed on them; this can make it possible to write programs that would be impractical or cost-prohibitive to prove anything about, while not giving up formal reasoning for the rest.
-In essence, the {keyword}`partial` subset of Lean is a traditional functional programming language that is nonetheless deeply integrated with the theorem proving features, and the {keyword}`unsafe` subset features the ability to break Lean's runtime invariants if needed, at the cost of less integration with Lean's theorem-proving features.
+In essence, the {keyword}`partial` subset of Lean is a traditional functional programming language that is nonetheless deeply integrated with the theorem proving features, and the {keyword}`unsafe` subset features the ability to break Lean's runtime invariants in certain rare situations, at the cost of less integration with Lean's theorem-proving features.
 Analogously, {keyword}`noncomputable` definitions may use features that don't make sense in programs, but are meaningful in the logic.
 
 ## Partial Functions
+%%%
+tag := "partial-functions"
+%%%
 
 The {keyword}`partial` modifier may only be applied to function definitions.
 Partial functions are not required to demonstrate termination, and Lean does not attempt to do so.
-These functions are “partial” in the sense that they do not necessarily specify mapping from each element of the domain to an element of the codomain, because they might fail to terminate for some or all elements of the domain.
+These functions are “partial” in the sense that they do not necessarily specify a mapping from each element of the domain to an element of the codomain, because they might fail to terminate for some or all elements of the domain.
 They are elaborated into {tech}[pre-definitions] that contain explicit recursion, and type checked using the kernel; however, they are subsequently treated as opaque constants by the logic.
+
 The function's return type must be inhabited; this ensures soundness.
+Otherwise, a partial function could have a type such as {lean}`Unit → Empty`.
+Together with {name}`Empty.elim`, the existence of such a function could be used to prove {lean}`False` even if it does not reduce.
 
 With partial definitions, the kernel is responsible for the following:
 * It ensures that the pre-definition's type is indeed a well-formed type.
@@ -206,16 +212,65 @@ This works the same way as in other functional languages: uses of recursion are 
 Having ensured that it type checks, the body is discarded and only the opaque constant is retained by the kernel.
 As with all Lean functions, the compiler generates code from the elaborated {tech}[pre-definition].
 
-## Unsafe Lean
+Even though partial functions are not unfolded by the kernel, it is still possible to reason about other functions that call them so long as this reasoning doesn't depend on the implementation of the partial function itself.
+
+:::example "Partial Functions in Proofs"
+The recursive function {name}`nextPrime` inefficiently computes the next prime number after a given number by repeatedly testing candidates with trial division.
+Because there are infinitely many prime numbers, it always terminates; however, formulating this proof would be nontrivial.
+It is thus marked {keyword}`partial`.
+
+````lean
+def isPrime (n : Nat) : Bool := Id.run do
+  for i in [2:n] do
+    if i * i > n then return true
+    if n % i = 0 then return false
+  return true
+
+partial def nextPrime (n : Nat) : Nat :=
+  let n := n + 1
+  if isPrime n then n else nextPrime n
+````
+
+It is nonetheless possible to prove that the following two functions are equal:
+```lean
+def answerUser (n : Nat) : String :=
+  s!"The next prime is {nextPrime n}"
+
+def answerOtherUser (n : Nat) : String :=
+  " ".intercalate [
+    "The",
+    "next",
+    "prime",
+    "is",
+    toString (nextPrime n)
+  ]
+```
+The proof contains two {tactic}`simp` steps to demonstrate that the two functions are not syntactically identical.
+In particular, the desugaring of string interpolation resulted in an extra {lean}`toString ""` at the end of {lean}`answerUser`'s result.
+```lean
+theorem answer_eq_other : answerUser = answerOtherUser := by
+  funext n
+  simp only [answerUser, answerOtherUser]
+  simp only [toString, String.append_empty]
+  rfl
+```
+:::
+
+## Unsafe Definitions
+%%%
+tag := "unsafe"
+%%%
 
 Unsafe definitions have even fewer safeguards than partial functions.
 Their codomains do not need to be inhabited, they are not restricted to function definitions, and they have access to features of Lean that might violate internal invariants or break abstractions.
 As a result, they cannot be used at all as part of mathematical reasoning.
+
 While partial functions are treated as opaque constants by the type theory, unsafe definitions may only be referenced from other unsafe definitions.
 As a consequence, any function that calls an unsafe function must be unsafe itself.
 Theorems are not allowed to be declared unsafe.
 
-In addition to unrestricted uses of recursion, unsafe functions have access to the following operations:
+In addition to unrestricted use of recursion, unsafe functions can cast unrestrictedly from one type to another, check whether two values are the very same object in memory, retrieve pointer values, and run {lean}`IO` actions from otherwise-pure code.
+Using these operators requires a thorough understanding of the Lean implementation.
 
 {docstring unsafeCast}
 
@@ -235,7 +290,7 @@ In addition to unrestricted uses of recursion, unsafe functions have access to t
 Frequently, unsafe operators are used to write fast code that takes advantage of low-level details.
 Just as Lean code may be replaced at runtime with C code via the FFI,{TODO}[xref] safe Lean code may be replaced with unsafe Lean code for runtime programs.
 This is accomplished by adding the {attr}`implemented_by` attribute to the function that is to be replaced, which is often an {keyword}`opaque` definition.
-While this does not threaten Lean's soundness as a logic because the constant to be replaced has already been checked by the kernel and the unsafe replacement is only used in runtime code, it is still risky.
+While this does not threaten Lean's soundness as a logic because the constant to be replaced has already been checked by the kernel and the unsafe replacement is only used in run-time code, it is still risky.
 Both C code and unsafe code may execute arbitrary side effects.
 
 :::syntax attr (title := "Replacing Run-Time Implementations")
@@ -284,6 +339,32 @@ instance [BEq α] : BEq (Tree α) where
 ```
 :::
 
+::::example "Taking Advantage of Run-Time Representations"
+
+Because a {name}`Fin` is represented identically to its underlying {name}`Nat`, {lean}`List.map Fin.val` can be replaced by {name}`unsafeCast` to avoid a linear-time traversal that, in practice, does nothing:
+```lean
+unsafe def unFinImpl (xs : List (Fin n)) : List Nat :=
+  unsafeCast xs
+
+@[implemented_by unFinImpl]
+def unFin (xs : List (Fin n)) : List Nat :=
+  xs.map Fin.val
+```
+
+:::paragraph
+From the perspective of the Lean kernel, {lean}`unFin` is defined using {name}`List.map`:
+```lean
+theorem unFin_length_eq_length {xs : List (Fin n)} :
+    (unFin xs).length = xs.length := by
+  simp [unFin]
+```
+In compiled code, there is no traversal of the list.
+:::
+
+This kind of replacement is risky: the correspondence between the proof and the compiled code depends fully on the equivalence of the two implementations, which cannot be proved in Lean.
+The correspondence relies on details of Lean's implementation.
+These “escape hatches” should be used very carefully.
+::::
 
 # Controlling Reduction
 %%%
