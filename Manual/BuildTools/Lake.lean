@@ -51,7 +51,7 @@ A single package may contain multiple libraries or executable programs.
 A package consist of a directory that contains a {tech}[package configuration] file together with source code.
 Packages may {deftech}_require_ other packages, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
 The {deftech}_direct dependencies_ of a package are those that it requires, and the {deftech}_transitive dependencies_ are the direct dependencies of a package together with their transitive dependencies.
-Packages may either be obtained from {ref "reservoir"}[Reservoir], the Lean package repository, or from a manually-specified location.
+Packages may either be obtained from [Reservoir](https://reservoir.lean-lang.org/){TODO}[xref chapter], the Lean package repository, or from a manually-specified location.
 {deftech}_Git dependencies_ are specified by a Git repository URL along with a revision (branch, tag, or hash) and must be cloned locally prior to build, while local {deftech}_path dependencies_ are specified by a path relative to the package's directory.
 
 :::paragraph
@@ -513,7 +513,7 @@ This is true for all of the monads in the Lake API, including {name Lake.ScriptM
 
 {docstring Lake.MonadLakeEnv}
 
-{docstring Lake.getLakeEnv (allowMissing := true)}
+{docstring Lake.getLakeEnv}
 
 {docstring Lake.getNoCache}
 
@@ -590,7 +590,7 @@ open Lake
 end
 ```
 
-{docstring Lake.MonadWorkspace (allowMissing := true)}
+{docstring Lake.MonadWorkspace}
 
 {docstring Lake.getRootPackage}
 

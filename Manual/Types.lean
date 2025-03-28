@@ -513,6 +513,9 @@ def L := List (Type 0)
 :::
 
 ### Universe Unification
+%%%
+draft := true
+%%%
 
 :::planned 99
  * Rules for unification, properties of algorithm

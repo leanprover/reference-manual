@@ -25,12 +25,6 @@ set_option guard_msgs.diff true
 tag := "terms"
 %%%
 
-::: planned 66
-This chapter will describe Lean's term language, including the following features:
- * Name resolution, including variable occurrences, `open` declarations and terms
- * `fun`, with and without pattern matching
- * Literals (some via cross-references to the appropriate types, e.g. {name}`String`)
-:::
 
 {deftech}_Terms_ are the principal means of writing mathematics and programs in Lean.
 The {tech}[elaborator] translates them to Lean's minimal core language, which is then checked by the kernel and compiled for execution.
@@ -974,7 +968,7 @@ Scientific number literals consist of a sequence of digits followed by an option
 If no period or exponent is present, then the term is instead a natural number literal.
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
-{docstring OfScientific (allowMissing := true)}
+{docstring OfScientific}
 
 There are an {lean}`OfScientific` instances for {name}`Float` and {name}`Float32`, but no separate floating-point literals.
 
@@ -1843,6 +1837,7 @@ example : x = "Hello" → x = "world" → False := nofun
 ## Elaborating Pattern Matching
 %%%
 tag := "pattern-match-elaboration"
+draft := true
 %%%
 
 :::planned 209

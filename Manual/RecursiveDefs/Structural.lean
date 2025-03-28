@@ -469,12 +469,13 @@ termination_by structural a => a
 
 :::
 
+::::draft
 :::planned 235
 
 Describe mutual structural recursion over {ref "nested-inductive-types"}[nested inductive types].
 
 :::
-
+::::
 
 # Inferring Structural Recursion
 %%%
@@ -775,6 +776,8 @@ The actual elaborator keeps track of the relationship between the parameter bein
 end
 ```
 
+::::draft
 ::: planned 56
 A description of the elaboration of mutually recursive functions
 :::
+::::

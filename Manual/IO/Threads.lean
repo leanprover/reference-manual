@@ -220,7 +220,7 @@ In particular, there is an instance of type {inst}`ForIn m (Std.Channel.Sync α)
 
 The types and functions in this section are available after importing {module}`Std.Sync.Mutex`.
 
-{docstring Std.Mutex (allowMissing := true) (label := "type") (hideFields := true)}
+{docstring Std.Mutex (label := "type") (hideStructureConstructor := true) (hideFields := true)}
 
 {docstring Std.Mutex.new}
 

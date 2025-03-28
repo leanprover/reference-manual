@@ -8,9 +8,11 @@ import VersoManual
 import Manual.Intro
 import Manual.Elaboration
 import Manual.Types
-import Manual.Language
-import Manual.RecursiveDefs
+import Manual.SourceFiles
+import Manual.Attributes
+import Manual.Defs
 import Manual.Classes
+import Manual.Axioms
 import Manual.Terms
 import Manual.Tactics
 import Manual.Simp
@@ -22,6 +24,7 @@ import Manual.Interaction
 import Manual.Monads
 import Manual.BuildTools
 import Manual.Releases
+import Manual.Namespaces
 import Manual.Runtime
 
 open Verso.Genre Manual
@@ -60,29 +63,51 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.Elaboration}
 
-{include 0 Manual.Types}
-
 {include 0 Manual.Interaction}
 
-{include 0 Manual.Language}
+{include 0 Manual.Types}
 
-{include 0 Manual.RecursiveDefs}
+{include 0 Manual.SourceFiles}
+
+{include 0 Manual.Namespaces}
+
+{include 0 Manual.Defs}
+
+{include 0 Manual.Axioms}
+
+{include 0 Manual.Attributes}
 
 {include 0 Manual.Terms}
 
 {include 0 Manual.Classes}
 
+{include 0 Manual.Coercions}
+
+{include 0 Manual.Tactics}
+
 {include 0 Manual.Monads}
 
 {include 0 Manual.IO}
-
-{include 0 Manual.Tactics}
 
 {include 0 Manual.Simp}
 
 {include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
+
+# Dynamic Typing
+%%%
+draft := true
+%%%
+
+{docstring TypeName}
+
+{docstring Dynamic}
+
+{docstring Dynamic.mk (allowMissing := true)}
+
+{docstring Dynamic.get?}
+
 
 # Standard Library
 %%%
@@ -97,14 +122,6 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.NotationsMacros}
 
-# Output from Lean
-
-:::planned 122
- * {deftech}[Unexpanders]
- * {deftech key:="delaborate"}[Delaboration]
- * {deftech}[Pretty printing]
- * Parenthesizers
-:::
 
 {include 0 Manual.Runtime}
 

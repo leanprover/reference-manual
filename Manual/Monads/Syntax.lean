@@ -921,6 +921,6 @@ Implementing {lean}`ForIn'` additionally allows the use of {keywordOf Lean.Parse
 
 {docstring ForInStep.value}
 
-{docstring ForM (allowMissing := true)}
+{docstring ForM}
 
 {docstring ForM.forIn}

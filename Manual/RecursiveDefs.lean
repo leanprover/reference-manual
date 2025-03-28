@@ -280,6 +280,8 @@ Using these operators requires a thorough understanding of the Lean implementati
 
 {docstring ptrAddrUnsafe (allowMissing := true)}
 
+{docstring isExclusiveUnsafe}
+
 {docstring unsafeIO}
 
 {docstring unsafeEIO}

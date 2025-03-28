@@ -29,20 +29,20 @@ It can also be considered as a monad, and thus a way of performing computations.
 The {lean}`Option` monad and its transformer {lean}`OptionT` can be understood as describing computations that may terminate early, discarding the results.
 Callers can check for early termination and invoke a fallback if desired using {name}`OrElse.orElse` or by treating it as a {lean}`MonadExcept Unit`.
 
-{docstring OptionT (allowMissing := true)}
+{docstring OptionT}
 
-{docstring OptionT.run (allowMissing := true)}
+{docstring OptionT.run}
 
-{docstring OptionT.lift (allowMissing := true)}
+{docstring OptionT.lift}
 
-{docstring OptionT.mk (allowMissing := true)}
+{docstring OptionT.mk}
 
-{docstring OptionT.pure (allowMissing := true)}
+{docstring OptionT.pure}
 
-{docstring OptionT.bind (allowMissing := true)}
+{docstring OptionT.bind}
 
-{docstring OptionT.fail (allowMissing := true)}
+{docstring OptionT.fail}
 
-{docstring OptionT.orElse (allowMissing := true)}
+{docstring OptionT.orElse}
 
-{docstring OptionT.tryCatch (allowMissing := true)}
+{docstring OptionT.tryCatch}

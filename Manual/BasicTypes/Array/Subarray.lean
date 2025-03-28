@@ -19,7 +19,7 @@ set_option pp.rawOnError true
 tag := "subarray"
 %%%
 
-{docstring Subarray (allowMissing := true)}
+{docstring Subarray}
 
 {docstring Subarray.toArray}
 
@@ -61,7 +61,7 @@ tag := "subarray"
 
 {docstring Subarray.forRevM}
 
-{docstring Subarray.forIn (allowMissing := true)}
+{docstring Subarray.forIn}
 
 # Element Predicates
 

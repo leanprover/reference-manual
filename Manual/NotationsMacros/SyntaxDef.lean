@@ -146,7 +146,7 @@ tag := "source-info"
 
 Atoms, identifiers, and nodes optionally contain {deftech}[source information] that tracks their correspondence with the original file.
 The parser saves source information for all tokens, but not for nodes; position information for parsed nodes is reconstructed from their first and last tokens.
-Not all {name Lean.Syntax}`Syntax` data results from the parser: it may be the result of {tech}[macro expansion], in which case it typically contains a mix of generated and parsed syntax, or it may be the result of {tech key:="delaborate"}[delaborating] an internal term to display it to a user.
+Not all {name Lean.Syntax}`Syntax` data results from the parser: it may be the result of {tech}[macro expansion], in which case it typically contains a mix of generated and parsed syntax, or it may be the result of {tech key:="delaborator"}[delaborating] an internal term to display it to a user.
 In these use cases, nodes may themselves contain source information.
 
 Source information comes in two varieties:

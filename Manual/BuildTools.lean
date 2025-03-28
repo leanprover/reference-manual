@@ -65,6 +65,7 @@ They also include external proof automation tools that are used by tactics inclu
 # Reservoir
 %%%
 tag := "reservoir"
+draft := true
 %%%
 
 

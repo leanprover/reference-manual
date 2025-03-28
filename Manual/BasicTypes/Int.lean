@@ -12,8 +12,6 @@ open Manual.FFIDocType
 
 open Verso.Genre Manual
 
-set_option verso.docstring.allowMissing true
-
 #doc (Manual) "Integers" =>
 %%%
 tag := "Int"

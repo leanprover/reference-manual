@@ -14,8 +14,6 @@ open Manual.FFIDocType
 
 open Verso.Genre Manual
 
-set_option verso.docstring.allowMissing true
-
 #doc (Manual) "Fixed-Precision Integers" =>
 %%%
 tag := "fixed-ints"

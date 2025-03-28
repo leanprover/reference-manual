@@ -12,9 +12,9 @@ import Manual.Papers
 open Verso.Genre Manual
 
 #doc (Manual) "Axioms" =>
-
 %%%
 tag := "axioms"
+htmlSplit := .never
 %%%
 :::leanSection
 
