@@ -736,7 +736,7 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         scope := cfg.scope
         remoteUrl := cfg.remoteUrl
         config, depConfigs, targetDecls, targetDeclMap
-        defaultTargets
+        defaultTargets, name
       }
 
     .ok <$> report pkg errs

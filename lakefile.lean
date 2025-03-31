@@ -80,5 +80,5 @@ target figures : Array FilePath := do
 
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/figures]
+  needs := #[`@/figures, `@/subversoExtractMod]
   root := `Main
