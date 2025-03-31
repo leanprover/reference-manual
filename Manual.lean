@@ -37,7 +37,7 @@ set_option maxRecDepth 300000
 tag := "lean-language-reference"
 %%%
 
-This is the _Lean Language Reference_, an in-progress reference work on Lean.
+This is the _Lean Language Reference_.
 It is intended to be a comprehensive, precise description of Lean: a reference work in which Lean users can look up detailed information, rather than a tutorial intended for new users.
 For other documentation, please refer to the [Lean documentation overview](https://lean-lang.org/documentation/).
 This manual covers Lean version {versionString}[].

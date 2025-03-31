@@ -48,6 +48,7 @@ inductive FieldType where
   | oneOf (choices : List String)
   | option (t : FieldType)
   | bool
+  | target
   | other (name : Name) (what : String) (whatPlural : Option String)
 deriving Repr, ToJson, FromJson
 
@@ -64,6 +65,7 @@ where
     | .oneOf cs => mkCApp ``FieldType.oneOf #[quote cs]
     | .option x => mkCApp ``FieldType.option #[q x]
     | .bool => mkCApp ``FieldType.bool #[]
+    | .target => mkCApp ``FieldType.target #[]
     | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
 
 
@@ -77,6 +79,7 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .other _ y none => if plural then y ++ "s" else y
   | .other _ y (some z) => if plural then z else y
   | .bool => if plural then "Booleans" else "Boolean"
+  | .target => if plural then "targets" else "target"
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
     let opts := xs
@@ -175,7 +178,11 @@ def Block.tomlField.descr : BlockDescr where
     modify fun s =>
       let name := s!"{inTable} {field.name}"
       s |>.saveDomainObject tomlFieldDomain name id
-        |>.saveDomainObjectData tomlFieldDomain name (json%{"table": $inTable.toString, "tableArrayKey": $(tableArrayKey.getD .null), "field": $field.name.toString})
+        |>.saveDomainObjectData tomlFieldDomain name (json%{
+          "table": $inTable.toString,
+          "tableArrayKey": $(tableArrayKey.getD .null),
+          "field": $field.name.toString
+        })
     discard <| externalTag id (← read).path s!"{inTable}-{field.name}"
     pure none
   toTeX := none
@@ -202,13 +209,10 @@ def Block.tomlField.descr : BlockDescr where
         </dd>
       }}
   localContentItem _ info _ := open Verso.Output Html in do
-    let (_, inTable, field) ← FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
+    let (_, _inTable, field) ← FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
     let name := field.name.toString
-    let longName := s!"{inTable.toString}.{field.name.toString}"
     pure #[
-      (name, {{<code class="field-name">{{name}}</code>}}),
-      (longName, {{<code class="field-name">{{longName}}</code>}}),
-      (s!"{longName} (TOML Field)", {{<code class="field-name">{{longName}}</code>" (TOML Field)"}})
+      (name, {{<code class="field-name">{{name}}</code>}})
     ]
 
 private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
@@ -473,11 +477,14 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.PartialBuildKey then some (.array .target)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``Bool then some (.option .bool)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``String then some (.option .string)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.option .path)
                 else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``Lake.Dynlib then
                   some (.array (.other ``Lake.Dynlib "dynamic library" "dynamic libraries"))
+                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``System.FilePath then
+                  some (.array .path)
                 else none
               if let some type := type' then
                 return { name := fieldName, type, docs?}
@@ -570,11 +577,33 @@ instance [{n : Name} → Test (f n)] : Test (Lake.DNameMap f) where
       out := out ++ .group (.nest 2 <| Test.toString k ++ " ↦" ++ .line ++ Test.toString v) ++ "," ++ .line
     return .group (.nest 2 <| "{" ++ out) ++ "}"
 
-instance : Test Lake.StrPat where
-  toString
-    | .satisfies _f n => s!".satisfies #<fun> {n}"
-    | .startsWith s => s!".startsWith {s.quote}"
-    | .mem ss => s!".mem {Test.toString ss}"
+
+
+mutual
+
+partial def testPatDescr [Test α] [Test β] : (Lake.PatternDescr α β) → Std.Format
+  | .not x => .group <| .nest 2 <| ".not" ++ .line ++ testPat x
+  | .coe x => .group <| .nest 2 <| ".coe" ++ .line ++ Test.toString x
+  | .any xs => .group <| .nest 2 <| ".any" ++ .line ++ "#[" ++ arrElems (xs.map testPat) ++ "]"
+  | .all xs => .group <| .nest 2 <| ".all" ++ .line ++ "#[" ++ arrElems (xs.map testPat) ++ "]"
+where
+  arrElems (xs : Array Std.Format) : Std.Format :=
+    .group <| .nest 2 <| (Std.Format.text "," ++ .line).joinSep xs.toList
+
+partial def testPat [Test α] [Test β] : (Lake.Pattern α β) → Std.Format
+  | {filter, name, descr?} =>
+    let fields : List Std.Format := [
+      "filter :=" ++ .line ++ Test.toString filter,
+      "name :=" ++ .line ++ Test.toString name,
+      "descr? :=" ++ .line ++ Test.toString (descr?.map testPatDescr),
+    ]
+    .group <| (.nest 2 <| "{" ++ .line ++ (Std.Format.text "," ++ .line).joinSep fields) ++ "}"
+end
+
+instance [Test α] [Test β] : Test (Lake.PatternDescr α β) := ⟨testPatDescr⟩
+instance [Test α] [Test β] : Test (Lake.Pattern α β) := ⟨testPat⟩
+
+deriving instance Repr for Lake.StrPatDescr
 
 instance : Test (Lake.Script) where
   toString s := s!"#<script {s.name}>"

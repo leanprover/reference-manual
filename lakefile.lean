@@ -19,14 +19,6 @@ package "verso-manual" where
     else #[]
 
 
-  -- Work around a compiler bug (Lean issue #7399). This is part 1/2.
-  plugins := unsafe #[@Target.mk _ (.customTarget `«verso-manual» `libLake_shared) lcProof]
-
-
--- Work around a compiler bug (Lean issue #7399). This is part 2/2.
-target libLake_shared : Dynlib := do
-  return Job.pure <| Dynlib.mk (← getLakeInstall).sharedLib "Lake_shared"
-
 lean_lib Manual where
 
 
@@ -49,6 +41,7 @@ target subversoExtractMod : FilePath := do
   else
     failure
 
+
 target figures : Array FilePath := do
   let files := (← figureDir.readDir).filterMap fun f => do
     let some "tex" := f.path.extension | throw ()
@@ -58,10 +51,10 @@ target figures : Array FilePath := do
     return f.path
 
   let files := files.qsort (toString · < toString ·)
-  let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile)
+  let srcs := Job.collectArray (← liftM <| files.mapM inputTextFile)
   let traceFile := figureDir.join "lake.trace"
-  liftM <| srcs.bindSync fun srcInfo depTrace => do
-    buildUnlessUpToDate traceFile depTrace traceFile do
+  srcs.mapM fun srcInfo => do
+    buildUnlessUpToDate traceFile (← getTrace) traceFile do
       for src in srcInfo do
         let some f := src.fileStem
           | continue
@@ -83,9 +76,9 @@ target figures : Array FilePath := do
                 h'.write buf
                 buf ← h.read 1024
 
-    pure (srcInfo, depTrace)
+    pure srcInfo
 
 @[default_target]
 lean_exe "generate-manual" where
-  extraDepTargets := #[`figures, `subversoExtractMod]
+  needs := #[`@/figures]
   root := `Main
