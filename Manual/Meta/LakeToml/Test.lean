@@ -42,8 +42,11 @@ def deriveTest (declNames : Array Name) : CommandElabM Bool := do
   if h : declNames.size ≠ 1 then return false
   else
     let declName := declNames[0]
+    if !isStructure (← getEnv) declName then
+      throwError "Can't derive 'Test' for non-structure '{declName}'"
     let params ← liftTermElabM do
-      let ty ← Meta.inferType (.const declName [])
+      let uniParams ← (← getEnv).find? declName |>.mapM (Meta.mkFreshLevelMVarsFor ·)
+      let ty ← Meta.inferType (.const declName <| uniParams.getD [])
       Meta.forallTelescopeReducing ty fun params ret =>
         pure <| params.mapIdx fun i _ => s!"x{i}".toName
     let fs := getStructureFields (← getEnv) declName

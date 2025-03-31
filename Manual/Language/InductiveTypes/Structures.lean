@@ -521,7 +521,6 @@ def two : EvenPrime where
   val := 2
   isPrime := by
     intros
-    dsimp only at *
     repeat' (cases ‹Nat.le _ _›)
     all_goals omega
 
