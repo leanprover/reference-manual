@@ -112,8 +112,8 @@ def example.descr : BlockDescr where
 r#".example {
   border: 1px solid #98B2C0;
   border-radius: 0.5rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.75rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
 }
 /* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
 @media screen and (700px < width <= 1400px) {
@@ -127,13 +127,13 @@ r#".example {
 .example .description {
   font-style: italic;
   font-family: var(--verso-structure-font-family);
-  padding: 1.5rem;
+  padding: var(--verso--box-padding);
 }
 .example[open] .description {
   margin-bottom: 0;
 }
 .example-content {
-  padding: 0 1.5rem 1.5rem;
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
 }
 .example-content > :first-child {
   margin-top: 0;
