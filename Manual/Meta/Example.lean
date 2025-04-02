@@ -58,7 +58,7 @@ def «example» : DirectiveExpander
 
     let description ←
       DocElabM.withFileMap cfg.description.1 <|
-      cfg.description.2.mapM elabInline
+      cfg.description.2.mapM (elabInline ⟨·⟩)
     PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
       (selectionRange := mkNullNode cfg.description.2)
       (kind := Lsp.SymbolKind.interface)
@@ -66,9 +66,9 @@ def «example» : DirectiveExpander
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     let blocks ←
       if cfg.keep then
-        prioritizedElab (isLeanBlock ·) elabBlock contents
+        prioritizedElab (isLeanBlock ·) (elabBlock ⟨·⟩) contents
       else
-        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
+        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) (elabBlock ⟨·⟩) contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
     pure #[← ``(Block.other (Block.example $(quote cfg.tag)) #[Block.para #[$description,*], $blocks,*])]

@@ -857,7 +857,7 @@ def «syntax» : DirectiveExpander
     let config ← SyntaxConfig.parse.run args
 
     let title ← config.title.mapM fun (fm, t) =>
-      DocElabM.withFileMap fm <| t.mapM elabInline
+      DocElabM.withFileMap fm <| t.mapM (elabInline ⟨·⟩)
 
     let env ← getEnv
     let titleString := config.title.map (fun (_, i) => inlinesToString env i)
@@ -933,7 +933,7 @@ def freeSyntax : DirectiveExpander
     let config ← FreeSyntaxConfig.parse.run args
 
     let title ← config.title.mapM fun (fm, t) =>
-      DocElabM.withFileMap fm <| t.mapM elabInline
+      DocElabM.withFileMap fm <| t.mapM (elabInline ⟨·⟩)
     let env ← getEnv
     let titleString := config.title.map (fun (_, i) => inlinesToString env i)
 

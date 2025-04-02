@@ -120,7 +120,7 @@ def lean : CodeBlockExpander
     let altStr ← parserInputString str
 
     let ictx := Parser.mkInputContext altStr (← getFileName)
-    let cctx : Command.Context := { fileName := ← getFileName, fileMap := FileMap.ofString altStr, tacticCache? := none, snap? := none, cancelTk? := none}
+    let cctx : Command.Context := { fileName := ← getFileName, fileMap := FileMap.ofString altStr, snap? := none, cancelTk? := none}
 
     let mut cmdState : Command.State := {env := ← getEnv, maxRecDepth := ← MonadRecDepth.getMaxRecDepth, scopes := origScopes}
     let mut pstate := {pos := 0, recovering := false}
@@ -572,7 +572,6 @@ def signature : CodeBlockExpander
       let cmdCtx : Command.Context := {
         fileName := ← getFileName,
         fileMap := ← getFileMap,
-        tacticCache? := none,
         snap? := none,
         cancelTk? := none
       }

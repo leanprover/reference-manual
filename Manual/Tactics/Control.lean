@@ -29,11 +29,5 @@ useful along the way.
 :::tactic "done"
 :::
 
-:::tactic "checkpoint"
-:::
-
-:::tactic "save"
-:::
-
 :::tactic "stop"
 :::

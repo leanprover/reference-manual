@@ -31,7 +31,7 @@ This reference manual contains figures that are built from LaTeX sources. To bui
    + `tex-gyre`
    + `sourcecodepro`
  * `pdftocairo`, which can be found in the `poppler-utils` package on Debian-derived systems and the `poppler` package in Homebrew
- 
+
 Additionally, to run the style checker locally, you'll need [Vale](https://vale.sh/). It runs in CI, so this is not a necessary step to contribute.
 
 To build the manual, run the following command:

@@ -43,7 +43,7 @@ def figure : DirectiveExpander
       (detail? := some "Figure")
 
     let caption ← DocElabM.withFileMap cfg.caption.1 <|
-      cfg.caption.2.mapM elabInline
+      (cfg.caption.2.map (⟨·⟩)).mapM elabInline
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON
     -- entails repeated (de)serialization.
