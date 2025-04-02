@@ -118,6 +118,27 @@ where
     | .original .. => true
     | _ => false
 
+def reportMessages {m} [Monad m] [MonadLog m] [MonadError m]
+    (errorExpected : Option Bool) (blame : Syntax) (messages : MessageLog) :
+    m Unit := do
+  match errorExpected with
+  | none =>
+    for msg in messages.toArray do
+      logMessage {msg with
+        isSilent := msg.isSilent || msg.severity != .error
+      }
+  | some true =>
+    if messages.hasErrors then
+      for msg in messages.errorsToWarnings.toArray do
+        logMessage {msg with isSilent := true}
+    else
+      throwErrorAt blame "Error expected in code block, but none occurred"
+  | some false =>
+    for msg in messages.toArray do
+      logMessage {msg with isSilent := msg.isSilent || msg.severity != .error}
+    if messages.hasErrors then
+      throwErrorAt blame "No error expected in code block, one occurred"
+
 @[code_block_expander lean]
 def lean : CodeBlockExpander
   | args, str => withoutAsync <| do
@@ -167,8 +188,9 @@ def lean : CodeBlockExpander
 
 
       let mut hls := Highlighted.empty
+      let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
       for cmd in cmds do
-        hls := hls ++ (← highlight cmd cmdState.messages.toArray cmdState.infoState.trees)
+        hls := hls ++ (← highlight cmd nonSilentMsgs cmdState.infoState.trees)
 
       if let some col := col? then
         hls := hls.deIndent col
@@ -182,7 +204,8 @@ def lean : CodeBlockExpander
         setEnv origEnv
 
       if let some name := config.name then
-        let msgs ← cmdState.messages.toList.mapM fun msg => do
+        let nonSilentMsgs := cmdState.messages.toList.filter (!·.isSilent)
+        let msgs ← nonSilentMsgs.mapM fun msg => do
 
           let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
           let txt := withNewline <| head ++ (← msg.data.toString)
@@ -190,21 +213,7 @@ def lean : CodeBlockExpander
           pure (msg.severity, txt)
         modifyEnv (leanOutputs.modifyState · (·.insert name msgs))
 
-      match config.error with
-      | none =>
-        for msg in cmdState.messages.toArray do
-          logMessage msg
-      | some true =>
-        if cmdState.messages.hasErrors then
-          for msg in cmdState.messages.errorsToWarnings.toArray do
-            logMessage msg
-        else
-          throwErrorAt str "Error expected in code block, but none occurred"
-      | some false =>
-        for msg in cmdState.messages.toArray do
-          logMessage msg
-        if cmdState.messages.hasErrors then
-          throwErrorAt str "No error expected in code block, one occurred"
+      reportMessages config.error str cmdState.messages
 
       if config.show.getD true then
         for (_line, lit, msg) in (← Meta.warnLongLines col? str) do
@@ -407,18 +416,22 @@ def leanInline : RoleExpander
       match config.error with
       | none =>
         for msg in newMsgs.toArray do
-          logMessage msg
+          logMessage {msg with
+            isSilent := msg.isSilent || msg.severity != .error
+          }
       | some true =>
         if newMsgs.hasErrors then
           for msg in newMsgs.errorsToWarnings.toArray do
-            logMessage msg
+            logMessage {msg with isSilent := true}
         else
-          throwErrorAt term "Error expected in code, but none occurred"
+          throwErrorAt term "Error expected in code block, but none occurred"
       | some false =>
         for msg in newMsgs.toArray do
-          logMessage msg
+          logMessage {msg with isSilent := msg.isSilent || msg.severity != .error}
         if newMsgs.hasErrors then
-          throwErrorAt term "No error expected in code, one occurred"
+          throwErrorAt term "No error expected in code block, one occurred"
+
+      reportMessages config.error term newMsgs
 
       let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
 
@@ -489,21 +502,7 @@ def inst : RoleExpander
 
       pushInfoTree tree
 
-      match config.error with
-      | none =>
-        for msg in newMsgs.toArray do
-          logMessage msg
-      | some true =>
-        if newMsgs.hasErrors then
-          for msg in newMsgs.errorsToWarnings.toArray do
-            logMessage msg
-        else
-          throwErrorAt term "Error expected in code, but none occurred"
-      | some false =>
-        for msg in newMsgs.toArray do
-          logMessage msg
-        if newMsgs.hasErrors then
-          throwErrorAt term "No error expected in code, one occurred"
+      reportMessages config.error term newMsgs
 
       let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
 
