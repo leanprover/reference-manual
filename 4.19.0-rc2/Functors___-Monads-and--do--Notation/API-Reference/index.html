@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      (function(){
+  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
+  if (!(path.endsWith("/") || path.endsWith(".html"))) {
+    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+  }
+})()</script>
+    <base href="./../../"><meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>API Reference</title><link rel="stylesheet" href="book.css">
+    <script>
+      const __versoSiteRoot = document.baseURI;</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
+    <script src="static/katex/katex.min.js"></script>
+    <script src="static/math.js"></script>
+    <script src="static/search/fuzzysort.js"></script>
+    <script src="static/print.js"></script>
+    <script src="-verso-js/popper.js"></script>
+    <script src="-verso-js/tippy.js"></script>
+    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <link rel="stylesheet" href="static/colors.css">
+    <link rel="stylesheet" href="static/theme.css">
+    <link rel="stylesheet" href="static/print.css">
+    <link rel="stylesheet" href="static/search/search-box.css">
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+a.lake-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.hl.lean.tactic-view {
+  white-space: collapse;
+}
+.hl.lean.tactic-view .tactic-state {
+  display: block;
+  left: 0;
+  padding: 0;
+  border: none;
+}
+.hl.lean.tactic-view .tactic-state .goal {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+.hl.lean.tactic-view .tactic-state .goal:first-child {
+  margin-top: 0.25em;
+}
+.hl.lean.tactic-view .tactic-state .goal:last-child {
+  margin-bottom: 0.25em;
+}
+
+
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+</style><style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.example-file {
+  white-space: normal;
+  font-family: var(--verso-structure-font-family);
+  margin: 1rem;
+  width: fit-content;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.example-file::before {
+  counter-reset: linenumber;
+}
+.example-file > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.example-file > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+.example-file > .line::after {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "⏎";
+  opacity: 0;
+}
+.example-file > .line:hover::after {
+  opacity: 1;
+}
+.example-file > .line:hover, .example-file > .line:hover::before {
+  background-color: #eee;
+}
+.example-file > .empty {
+  display: block;
+  white-space: pre;
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+.example-file > .empty::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "";
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.hl.lean .keyword {
+  font-weight : bold;
+}
+
+.hl.lean .var {
+  font-style: italic;
+  position: relative;
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+  font-size: inherit;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
+  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
+    display: inline-block;
+    position: absolute;
+    top: 1rem;
+    font-weight: normal;
+    font-style: normal;
+    width: min-content;
+  }
+}
+*/
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error {
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error pre {
+    color: red;
+}
+
+.hl.lean .has-info.warning {
+  text-decoration-color: var(--verso-warning-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.info {
+  text-decoration-color: blue;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.info:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.info {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: sans-serif;
+  white-space: normal;
+  max-width: 40rem;
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  left: 2rem;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+  z-index: 200;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: block;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
+    display: block;
+    position: absolute;
+    left: 0;
+    transform: translate(0.25rem, 0);
+    z-index: 250;
+  }
+}
+*/
+
+.hl.lean .tactic > label {
+  position: relative;
+  transition: all 0.5s;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover {
+    border-bottom: 1px dotted #bbbbbb;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  border-radius: 1rem;
+  height: 0.25rem;
+  vertical-align: middle;
+  width: 0.6rem;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5rem;
+}
+
+.hl.lean .tactic-state summary {
+  margin-left: -0.5rem;
+}
+
+.hl.lean .tactic-state details {
+  padding-left: 0.5rem;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7rem;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .tactic-state .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  margin-left: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .tactic-state .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .tactic-state .goal-name {
+  font-style: italic;
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state .hypotheses {
+  display: table;
+}
+
+.hl.lean .tactic-state .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .tactic-state .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .tactic-state .hypotheses .colon {
+  text-align: center;
+  min-width: 1rem;
+}
+
+.hl.lean .tactic-state .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .tactic-state .hypotheses .name,
+.hl.lean .tactic-state .hypotheses .type,
+.hl.lean .tactic-state .conclusion .type {
+  font-family: monospace;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.namedocs {
+  position: relative;
+  border: solid 2px #99b3c0;
+  background-color: #99b3c0;
+  padding-left: 1px;
+  padding-right: 1px;
+  padding-bottom: 1px;
+  padding-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs .text {
+  /* Causes margins on child elements to collapse inside the element, such
+     that the margins don't extend into parent with the background color.
+     The effect is that weird borders in the definition box don't happen anymore. */
+  display: flow-root;
+  background-color: white;
+  /* Add a padding. this is the same as the margin applied to the first and last child.
+     The effect is that the padding looks the same size on all sides. */
+  padding: 0 1.5rem;
+}
+
+.namedocs .text > pre {
+  overflow-x: auto;
+}
+
+.namedocs .signature {
+  font-family: var(--verso-code-font-family);
+  margin-top: 0 !important;
+  margin-left: 1.5rem !important;
+  margin-right: 1.5rem;
+}
+
+.namedocs .label {
+  display: block;
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+}
+
+/* Sticking content into the right margin is not good on narrow screens,
+   so move the label to the left to make space for the permalink widget. */
+
+@media screen and (max-width: 700px) {
+  .namedocs:has(.permalink-widget.block) .label {
+    right: 1.5rem;
+  }
+}
+
+.namedocs h1 {
+  font-size: inherit;
+  font-weight: bold;
+}
+
+.namedocs > .text .constructor {
+  padding-left: 0.5rem;
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.namedocs > .text .constructor::before {
+  content: '| ';
+  display: block;
+  font-family: var(--verso-code-font-family);
+  font-weight: bold;
+  float: left;
+  width: 0.5rem;
+  white-space: pre;
+}
+
+.namedocs > .text .constructor .name-and-type {
+  padding-left: 0.5rem;
+  float: left;
+  margin-top: 0;
+  max-width: calc(100% - 1rem);
+}
+.namedocs > .text .constructor .docs {
+  clear: both;
+  padding-left: 1rem;
+}
+
+/* These margins work together with the padding on .text */
+.namedocs .text > :first-child {
+  margin-top: 1.5rem;
+}
+.namedocs .text > :last-child {
+  margin-bottom: 1.5rem;
+}
+
+.namedocs .methods td, .namedocs .fields td {
+  vertical-align: top;
+}
+.namedocs .inheritance {
+  vertical-align: top;
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+}
+.namedocs .inheritance ol {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+.namedocs .inheritance ol li {
+  list-style-type: none;
+  display: inline-block;
+}
+.namedocs .inheritance ol li::after {
+  content: " > "
+}
+.namedocs .inheritance ol li:last-child::after {
+  content: "";
+}
+
+.namedocs .extends {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.namedocs .extends li {
+  list-style-type: none;
+  display: inline-block;
+}
+
+.namedocs .extends li label {
+  padding-right: 1rem;
+}
+
+.namedocs .subdocs .name-and-type {
+  font-size: 1rem;
+  margin-left: 0;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs .subdocs .docs {
+  margin-left: 1.5rem;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs:has(input[data-parent-idx]) [data-inherited-from] {
+  transition-property: opacity, display;
+  transition-duration: 0.4s;
+  transition-behavior: allow-discrete;
+  @starting-style { opacity: 0 !important; }
+}
+
+#this-page-items .tactic-name { font-weight: bold; }
+.namedocs:has(input[data-parent-idx="0"]) [data-inherited-from="0"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked):has(.inheritance[data-inherited-from="0"]:hover) [data-inherited-from]:not([data-inherited-from="0"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="1"]) [data-inherited-from="1"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked):has(.inheritance[data-inherited-from="1"]:hover) [data-inherited-from]:not([data-inherited-from="1"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="2"]) [data-inherited-from="2"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked):has(.inheritance[data-inherited-from="2"]:hover) [data-inherited-from]:not([data-inherited-from="2"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="3"]) [data-inherited-from="3"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked):has(.inheritance[data-inherited-from="3"]:hover) [data-inherited-from]:not([data-inherited-from="3"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="4"]) [data-inherited-from="4"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked):has(.inheritance[data-inherited-from="4"]:hover) [data-inherited-from]:not([data-inherited-from="4"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="5"]) [data-inherited-from="5"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked):has(.inheritance[data-inherited-from="5"]:hover) [data-inherited-from]:not([data-inherited-from="5"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="6"]) [data-inherited-from="6"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked):has(.inheritance[data-inherited-from="6"]:hover) [data-inherited-from]:not([data-inherited-from="6"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="7"]) [data-inherited-from="7"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked):has(.inheritance[data-inherited-from="7"]:hover) [data-inherited-from]:not([data-inherited-from="7"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="8"]) [data-inherited-from="8"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked):has(.inheritance[data-inherited-from="8"]:hover) [data-inherited-from]:not([data-inherited-from="8"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="9"]) [data-inherited-from="9"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked):has(.inheritance[data-inherited-from="9"]:hover) [data-inherited-from]:not([data-inherited-from="9"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="10"]) [data-inherited-from="10"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked):has(.inheritance[data-inherited-from="10"]:hover) [data-inherited-from]:not([data-inherited-from="10"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="11"]) [data-inherited-from="11"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked):has(.inheritance[data-inherited-from="11"]:hover) [data-inherited-from]:not([data-inherited-from="11"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="12"]) [data-inherited-from="12"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked):has(.inheritance[data-inherited-from="12"]:hover) [data-inherited-from]:not([data-inherited-from="12"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="13"]) [data-inherited-from="13"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked):has(.inheritance[data-inherited-from="13"]:hover) [data-inherited-from]:not([data-inherited-from="13"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="14"]) [data-inherited-from="14"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked):has(.inheritance[data-inherited-from="14"]:hover) [data-inherited-from]:not([data-inherited-from="14"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="15"]) [data-inherited-from="15"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked):has(.inheritance[data-inherited-from="15"]:hover) [data-inherited-from]:not([data-inherited-from="15"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="16"]) [data-inherited-from="16"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked):has(.inheritance[data-inherited-from="16"]:hover) [data-inherited-from]:not([data-inherited-from="16"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="17"]) [data-inherited-from="17"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked):has(.inheritance[data-inherited-from="17"]:hover) [data-inherited-from]:not([data-inherited-from="17"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="18"]) [data-inherited-from="18"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked):has(.inheritance[data-inherited-from="18"]:hover) [data-inherited-from]:not([data-inherited-from="18"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="19"]) [data-inherited-from="19"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked):has(.inheritance[data-inherited-from="19"]:hover) [data-inherited-from]:not([data-inherited-from="19"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="20"]) [data-inherited-from="20"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked):has(.inheritance[data-inherited-from="20"]:hover) [data-inherited-from]:not([data-inherited-from="20"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="21"]) [data-inherited-from="21"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked):has(.inheritance[data-inherited-from="21"]:hover) [data-inherited-from]:not([data-inherited-from="21"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="22"]) [data-inherited-from="22"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked):has(.inheritance[data-inherited-from="22"]:hover) [data-inherited-from]:not([data-inherited-from="22"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="23"]) [data-inherited-from="23"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked):has(.inheritance[data-inherited-from="23"]:hover) [data-inherited-from]:not([data-inherited-from="23"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="24"]) [data-inherited-from="24"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked):has(.inheritance[data-inherited-from="24"]:hover) [data-inherited-from]:not([data-inherited-from="24"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="25"]) [data-inherited-from="25"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked):has(.inheritance[data-inherited-from="25"]:hover) [data-inherited-from]:not([data-inherited-from="25"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="26"]) [data-inherited-from="26"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked):has(.inheritance[data-inherited-from="26"]:hover) [data-inherited-from]:not([data-inherited-from="26"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="27"]) [data-inherited-from="27"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked):has(.inheritance[data-inherited-from="27"]:hover) [data-inherited-from]:not([data-inherited-from="27"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="28"]) [data-inherited-from="28"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked):has(.inheritance[data-inherited-from="28"]:hover) [data-inherited-from]:not([data-inherited-from="28"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="29"]) [data-inherited-from="29"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked):has(.inheritance[data-inherited-from="29"]:hover) [data-inherited-from]:not([data-inherited-from="29"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="30"]) [data-inherited-from="30"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked):has(.inheritance[data-inherited-from="30"]:hover) [data-inherited-from]:not([data-inherited-from="30"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="31"]) [data-inherited-from="31"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked):has(.inheritance[data-inherited-from="31"]:hover) [data-inherited-from]:not([data-inherited-from="31"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="32"]) [data-inherited-from="32"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked):has(.inheritance[data-inherited-from="32"]:hover) [data-inherited-from]:not([data-inherited-from="32"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="33"]) [data-inherited-from="33"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked):has(.inheritance[data-inherited-from="33"]:hover) [data-inherited-from]:not([data-inherited-from="33"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="34"]) [data-inherited-from="34"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked):has(.inheritance[data-inherited-from="34"]:hover) [data-inherited-from]:not([data-inherited-from="34"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="35"]) [data-inherited-from="35"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked):has(.inheritance[data-inherited-from="35"]:hover) [data-inherited-from]:not([data-inherited-from="35"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="36"]) [data-inherited-from="36"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked):has(.inheritance[data-inherited-from="36"]:hover) [data-inherited-from]:not([data-inherited-from="36"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="37"]) [data-inherited-from="37"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked):has(.inheritance[data-inherited-from="37"]:hover) [data-inherited-from]:not([data-inherited-from="37"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="38"]) [data-inherited-from="38"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked):has(.inheritance[data-inherited-from="38"]:hover) [data-inherited-from]:not([data-inherited-from="38"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="39"]) [data-inherited-from="39"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked):has(.inheritance[data-inherited-from="39"]:hover) [data-inherited-from]:not([data-inherited-from="39"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="40"]) [data-inherited-from="40"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked):has(.inheritance[data-inherited-from="40"]:hover) [data-inherited-from]:not([data-inherited-from="40"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="41"]) [data-inherited-from="41"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked):has(.inheritance[data-inherited-from="41"]:hover) [data-inherited-from]:not([data-inherited-from="41"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="42"]) [data-inherited-from="42"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked):has(.inheritance[data-inherited-from="42"]:hover) [data-inherited-from]:not([data-inherited-from="42"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="43"]) [data-inherited-from="43"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked):has(.inheritance[data-inherited-from="43"]:hover) [data-inherited-from]:not([data-inherited-from="43"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="44"]) [data-inherited-from="44"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked):has(.inheritance[data-inherited-from="44"]:hover) [data-inherited-from]:not([data-inherited-from="44"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="45"]) [data-inherited-from="45"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked):has(.inheritance[data-inherited-from="45"]:hover) [data-inherited-from]:not([data-inherited-from="45"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="46"]) [data-inherited-from="46"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked):has(.inheritance[data-inherited-from="46"]:hover) [data-inherited-from]:not([data-inherited-from="46"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="47"]) [data-inherited-from="47"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked):has(.inheritance[data-inherited-from="47"]:hover) [data-inherited-from]:not([data-inherited-from="47"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="48"]) [data-inherited-from="48"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked):has(.inheritance[data-inherited-from="48"]:hover) [data-inherited-from]:not([data-inherited-from="48"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="49"]) [data-inherited-from="49"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
+  opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
+.syntax-error {
+  white-space: normal;
+}
+.syntax-error::before {
+  counter-reset: linenumber;
+}
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
+}
+
+.syntax-error .parse-message > code.hover-info {
+  display:none;
+}
+
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
+}
+</style><script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
+    <script>
+      
+window.onload = () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector("input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    function blockedByTippy(elem) {
+      // Don't show a new hover until the old ones are all closed.
+      // Scoped to the nearest "top-level block" to avoid being O(n) in the size of the document.
+      var block = elem;
+      const topLevel = new Set(["section", "body", "html", "nav", "header"]);
+      while (block.parentNode && !topLevel.has(block.parentNode.nodeName.toLowerCase())) {
+        block = block.parentNode;
+      }
+      for (const child of block.querySelectorAll(".token, .has-info")) {
+        if (child._tippy && child._tippy.state.isVisible) { return true };
+      }
+      return false;
+    }
+
+    for (const c of document.querySelectorAll(".hl.lean .token")) {
+        if (c.dataset.binding != "") {
+            c.addEventListener("mouseover", (event) => {
+                if (blockedByTactic(c)) {return;}
+                const context = c.closest(".hl.lean").dataset.leanContext;
+                for (const example of document.querySelectorAll(".hl.lean")) {
+                    if (example.dataset.leanContext == context) {
+                        for (const tok of example.querySelectorAll(".token")) {
+                            if (c.dataset.binding == tok.dataset.binding) {
+                                tok.classList.add("binding-hl");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        c.addEventListener("mouseout", (event) => {
+            for (const tok of document.querySelectorAll(".hl.lean .token")) {
+                tok.classList.remove("binding-hl");
+            }
+        });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
+    let docsJson = siteRoot + "-verso-docs.json";
+    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+
+      const defaultTippyProps = {
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        theme: "lean",
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        ignoreAttributes: true,
+        onShow(inst) {
+          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+            if (blockedByTactic(inst.reference)) { return false };
+            if (blockedByTippy(inst.reference)) { return false; }
+          } else { // Nothing to show here!
+            return false;
+          }
+        },
+        content (tgt) {
+          const content = document.createElement("span");
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
+              }
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
+          }
+          return content;
+        }
+      };
+
+      const addTippy = (selector, props) => {
+        tippy(selector, Object.assign({}, defaultTippyProps, props));
+      };
+      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
+      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
+      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
+      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
+
+      tippy('.hl.lean .tactic', {
+        allowHtml: true,
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        maxWidth: "none",
+        onShow(inst) {
+          const toggle = inst.reference.querySelector("input.tactic-toggle");
+          if (toggle && toggle.checked) {
+            return false;
+          }
+          if (blockedByTippy(inst.reference)) { return false; }
+        },
+        theme: "tactic",
+        placement: 'bottom-start',
+        content (tgt) {
+          const content = document.createElement("span");
+          const state = tgt.querySelector(".tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+          return content;
+        }
+      });
+  });
+}
+</script>
+    <script type="module" src="static/search/search-init.js"></script>
+    </head>
+  <body>
+    <header>
+      <div class="header-logo-wrapper">
+        <a href="" id="logo"><img src="static/lean_logo.svg"></a></div>
+      <div class="header-title-wrapper">
+        <a href="" class="header-title"><h1>
+            The Lean Language Reference</h1>
+          </a></div>
+      </header>
+    <label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc">
+      <div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div>
+      <nav id="toc">
+        <input type="checkbox" id="toggle-toc"><div class="first">
+          <a href="" class="toc-title"><h1>
+              The Lean Language Reference</h1>
+            </a><div class="split-tocs">
+            <div class="split-toc book">
+              <div class="title">
+                <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="current numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-monads-and-do" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-monads-and-do" checked="checked"></label><span class="number">14.</span> <span class=""><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></span></div>
+              <table><tr class="numbered"><td class="num">14.1.</td><td><a href="Functors___-Monads-and--do--Notation/Laws/#monad-laws">Laws</a></td></tr><tr class="numbered"><td class="num">14.2.</td><td><a href="Functors___-Monads-and--do--Notation/Lifting-Monads/#lifting-monads">Lifting Monads</a></td></tr><tr class="numbered"><td class="num">14.3.</td><td><a href="Functors___-Monads-and--do--Notation/Syntax/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--Syntax">Syntax</a></td></tr><tr class="current numbered"><td class="num">14.4.</td><td><a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference">API Reference</a></td></tr><tr class="numbered"><td class="num">14.5.</td><td><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#monad-varieties">Varieties of Monads</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference" checked="checked"></label><span class="number">14.4.</span> <span class="current"><a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference">API Reference</a></span></div>
+              <ol>
+                <li>
+                  <span class="header head-1"><span class="level-num">1.</span> <a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Discarding-Results">Discarding Results</a></span></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#Functor___discard"><code>discard</code></a></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">2.</span> <a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Control-Flow">Control Flow</a></span></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#guard"><code>guard</code></a></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#optional"><code>optional</code></a></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">3.</span> <a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Lifting-Boolean-Operations">Lifting Boolean Operations</a></span></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#andM"><code>andM</code></a></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#orM"><code>orM</code></a></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#notM"><code>notM</code></a></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">4.</span> <a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Kleisli-Composition">Kleisli Composition</a></span></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#Bind___kleisliRight"><code>kleisliRight</code></a></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#Bind___kleisliLeft"><code>kleisliLeft</code></a></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">5.</span> <a href="Functors___-Monads-and--do--Notation/API-Reference/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Re-Ordered-Operations">Re-Ordered Operations</a></span></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#Functor___mapRev"><code>mapRev</code></a></li>
+                <li>
+                  <a href="Functors___-Monads-and--do--Notation/API-Reference/#Bind___bindLeft"><code>bindLeft</code></a></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        <div class="last">
+          <ul id="meta-links">
+            <li>
+              <a href="https://github.com/leanprover/reference-manual">Source Code</a></li>
+            <li>
+              <a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li>
+            </ul>
+          </div>
+        </nav>
+      <main><div class="content-wrapper">
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="Functors___-Monads-and--do--Notation/Syntax/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--Syntax" rel="prev" title="14.3. Syntax"><span class="arrow">←</span><span class="where">14.3. Syntax</span></a><a class="local-button active" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#monad-varieties" rel="next" title="14.5. Varieties of Monads"><span class="where">14.5. Varieties of Monads</span><span class="arrow">→</span></a></nav>
+          <section>
+            <h1>
+              14.4. API Reference</h1>
+            <p>
+              In addition to the general functions described here, there are some functions that are conventionally defined as part of the API of in the namespace of each collection type:</p>
+            <ul>
+              <li>
+                <p>
+                  <code>mapM</code> maps a monadic function.</p>
+                </li>
+              <li>
+                <p>
+                  <code>forM</code> maps a monadic function, throwing away the result.</p>
+                </li>
+              <li>
+                <p>
+                  <code>filterM</code> filters using a monadic predicate, returning the values that satisfy it.</p>
+                </li>
+              </ul>
+            <details class="example"><summary class="description">Monadic Collection Operations</summary><div class="example-content">
+                <p>
+                  <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___filterM"><span class="const token" data-binding="const-Array.filterM" data-verso-hover="2804">Array.filterM</span></a></code> can be used to write a filter that depends on a side effect.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-values" data-verso-hover="815">values</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-31">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2758">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-53">do</span></a>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-58">let</span> <span class="unknown token" data-binding="">filtered</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">values.filterM</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-90">fun</span> <span class="unknown token" data-binding="">v</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-99">do</span></a>
+    <span class="unknown token" data-binding="">repeat</span>
+      <span class="unknown token" data-binding="">IO.println</span> <span class="unknown token" data-binding="">s!</span><span class="literal string token" data-binding="" data-verso-hover="2805">"Keep {v}? [y/n]"</span>
+      <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-156">let</span> <span class="unknown token" data-binding="">answer</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.getStdin</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">getLine</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">trim</span>
+      <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-213">if</span> <span class="unknown token" data-binding="">answer</span> <span class="unknown token" data-binding=""></span></code><div class="example-file">
+                  <code>stdin</code><code class="line">y</code><code class="line">n</code><code class="line">oops</code><code class="line">y</code><code class="line">n</code><code class="line">y</code></div>
+                <div class="example-file">
+                  <code>stdout</code><code class="line">Keep 1? [y/n]</code><code class="line">Keep 2? [y/n]</code><code class="line">Keep 3? [y/n]</code><code class="line">Keep 3? [y/n]</code><code class="line">Keep 5? [y/n]</code><code class="line">Keep 8? [y/n]</code><code class="line">These values were kept:</code><code class="line"> * 1</code><code class="line"> * 3</code><code class="line"> * 8</code></div>
+                </div>
+              </details><section>
+              <h2 id="The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Discarding-Results">
+                14.4.1. Discarding Results</h2>
+              <p>
+                The <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/API-Reference/#Functor___discard"><span class="const token" data-binding="const-Functor.discard" data-verso-hover="2806">discard</span></a></code> function is especially useful when using an action that returns a value only for its side effects.</p>
+              <div class="namedocs" id="Functor___discard">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Functor.discard" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Functor.discard.{u, v} {<span class="var token" data-binding="var-_uniq.35" data-verso-hover="97">f</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>}
+  {<span class="var token" data-binding="var-_uniq.36" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>} [<a href="Functors___-Monads-and--do--Notation/#Functor___mk"><span class="const token" data-binding="const-Functor" data-verso-hover="2570">Functor</span></a> <span class="var token" data-binding="var-_uniq.35" data-verso-hover="97">f</span>] (<span class="var token" data-binding="var-_uniq.38" data-verso-hover="2577">x</span> : <span class="var token" data-binding="var-_uniq.35" data-verso-hover="97">f</span> <span class="var token" data-binding="var-_uniq.36" data-verso-hover="55">α</span>) : <span class="var token" data-binding="var-_uniq.35" data-verso-hover="97">f</span> <a href="Basic-Types/The-Unit-Type/#PUnit___unit"><span class="const token" data-binding="const-PUnit" data-verso-hover="145">PUnit</span></a></pre><div class="text">
+                  <p>
+                    Discards the value in a functor, retaining the functor's structure.</p>
+                  <p>
+                    Discarding values is especially useful when using <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/#Applicative___mk"><span class="const token" data-binding="const-Applicative" data-verso-hover="2571">Applicative</span></a></code> functors or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="238">Monad</span></a></code>s to implement
+effects, and some operation should be carried out only for its effects. In <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">do</span></code>-notation, statements
+whose values are discarded must return <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/API-Reference/#Functor___discard"><span class="const token" data-binding="const-Functor.discard" data-verso-hover="2806">discard</span></a></code> can be used to explicitly discard their
+values.</p>
+                  </div>
+                </div>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Control-Flow">
+                14.4.2. Control Flow</h2>
+              <div class="namedocs" id="guard">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=guard" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">guard.{v} {<span class="var token" data-binding="var-_uniq.48" data-verso-hover="2807">f</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>} [<a href="Functors___-Monads-and--do--Notation/#Alternative___mk"><span class="const token" data-binding="const-Alternative" data-verso-hover="2576">Alternative</span></a> <span class="var token" data-binding="var-_uniq.48" data-verso-hover="2807">f</span>]
+  (<span class="var token" data-binding="var-_uniq.50" data-verso-hover="204">p</span> : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>) [<a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="463">Decidable</span></a> <span class="var token" data-binding="var-_uniq.50" data-verso-hover="204">p</span>] : <span class="var token" data-binding="var-_uniq.48" data-verso-hover="2807">f</span> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+                  <p>
+                    If the proposition <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.41" data-verso-hover="204">p</span></code> is true, does nothing, else fails (using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Alternative.failure" data-verso-hover="231">failure</span></code>).</p>
+                  </div>
+                </div>
+              <div class="namedocs" id="optional">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=optional" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">optional.{u, v} {<span class="var token" data-binding="var-_uniq.61" data-verso-hover="97">f</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Alternative___mk"><span class="const token" data-binding="const-Alternative" data-verso-hover="2576">Alternative</span></a> <span class="var token" data-binding="var-_uniq.61" data-verso-hover="97">f</span>] {<span class="var token" data-binding="var-_uniq.63" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>} (<span class="var token" data-binding="var-_uniq.64" data-verso-hover="2577">x</span> : <span class="var token" data-binding="var-_uniq.61" data-verso-hover="97">f</span> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="55">α</span>) :
+  <span class="var token" data-binding="var-_uniq.61" data-verso-hover="97">f</span> (<a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="55">α</span>)</pre><div class="text">
+                  <p>
+                    Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="var token" data-binding="var-_uniq.55" data-verso-hover="2577">x</span></code> if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="97">f</span></code> succeeds with value <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.55" data-verso-hover="2577">x</span></code>, else returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a></code>.</p>
+                  </div>
+                </div>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Lifting-Boolean-Operations">
+                14.4.3. Lifting Boolean Operations</h2>
+              <div class="namedocs" id="andM">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=andM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">andM.{u, v} {<span class="var token" data-binding="var-_uniq.97" data-verso-hover="97">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>} {<span class="var token" data-binding="var-_uniq.98" data-verso-hover="55">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="238">Monad</span></a> <span class="var token" data-binding="var-_uniq.97" data-verso-hover="97">m</span>] [<span class="const token" data-binding="const-ToBool" data-verso-hover="2808">ToBool</span> <span class="var token" data-binding="var-_uniq.98" data-verso-hover="55">β</span>] (<span class="var token" data-binding="var-_uniq.101" data-verso-hover="2682">x </span><span class="var token" data-binding="var-_uniq.102" data-verso-hover="2682">y</span> : <span class="var token" data-binding="var-_uniq.97" data-verso-hover="97">m</span> <span class="var token" data-binding="var-_uniq.98" data-verso-hover="55">β</span>) : <span class="var token" data-binding="var-_uniq.97" data-verso-hover="97">m</span> <span class="var token" data-binding="var-_uniq.98" data-verso-hover="55">β</span></pre><div class="text">
+                  <p>
+                    Converts the result of the monadic action <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.69" data-verso-hover="2682">x</span></code> to a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code>. If it is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>, returns <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.70" data-verso-hover="2682">y</span></code>; otherwise,
+returns the original result of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.69" data-verso-hover="2682">x</span></code>.</p>
+                  <p>
+                    This a monadic counterpart to the short-circuiting <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&&</span></code> operator, usually accessed via the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;&&&gt;</span></code>
+operator.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;&&&gt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/API-Reference/#andM"><span class="const token" data-binding="const-andM" data-verso-hover="2809">andM</span></a></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              <div class="namedocs" id="orM">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=orM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">orM.{u, v} {<span class="var token" data-binding="var-_uniq.135" data-verso-hover="97">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>} {<span class="var token" data-binding="var-_uniq.136" data-verso-hover="55">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="238">Monad</span></a> <span class="var token" data-binding="var-_uniq.135" data-verso-hover="97">m</span>] [<span class="const token" data-binding="const-ToBool" data-verso-hover="2808">ToBool</span> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="55">β</span>] (<span class="var token" data-binding="var-_uniq.139" data-verso-hover="2682">x </span><span class="var token" data-binding="var-_uniq.140" data-verso-hover="2682">y</span> : <span class="var token" data-binding="var-_uniq.135" data-verso-hover="97">m</span> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="55">β</span>) : <span class="var token" data-binding="var-_uniq.135" data-verso-hover="97">m</span> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="55">β</span></pre><div class="text">
+                  <p>
+                    Converts the result of the monadic action <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.107" data-verso-hover="2682">x</span></code> to a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code>. If it is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>, returns it and ignores
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.108" data-verso-hover="2682">y</span></code>; otherwise, runs <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.108" data-verso-hover="2682">y</span></code> and returns its result.</p>
+                  <p>
+                    This a monadic counterpart to the short-circuiting <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">||</span></code> operator, usually accessed via the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;||&gt;</span></code>
+operator.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;||&gt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/API-Reference/#orM"><span class="const token" data-binding="const-orM" data-verso-hover="2810">orM</span></a></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              <div class="namedocs" id="notM">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=notM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">notM.{v} {<span class="var token" data-binding="var-_uniq.145" data-verso-hover="2807">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>} [<a href="Functors___-Monads-and--do--Notation/#Applicative___mk"><span class="const token" data-binding="const-Applicative" data-verso-hover="2571">Applicative</span></a> <span class="var token" data-binding="var-_uniq.145" data-verso-hover="2807">m</span>]
+  (<span class="var token" data-binding="var-_uniq.147" data-verso-hover="2811">x</span> : <span class="var token" data-binding="var-_uniq.145" data-verso-hover="2807">m</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a>) : <span class="var token" data-binding="var-_uniq.145" data-verso-hover="2807">m</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
+                  <p>
+                    Runs a monadic action and returns the negation of its result.</p>
+                  </div>
+                </div>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Kleisli-Composition">
+                14.4.4. Kleisli Composition</h2>
+              <p>
+                <span id="--tech-term-Kleisli-composition" class="def-technical-term"><em>Kleisli composition</em></span> is the composition of monadic functions, analogous to <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Functions/#Function___comp"><span class="const token" data-binding="const-Function.comp" data-verso-hover="181">Function.comp</span></a></code> for ordinary functions.</p>
+              <div class="namedocs" id="Bind___kleisliRight">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Bind.kleisliRight" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Bind.kleisliRight.{u, u_1, u_2} {<span class="var token" data-binding="var-_uniq.190" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>}
+  {<span class="var token" data-binding="var-_uniq.192" data-verso-hover="2800">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} {<span class="var token" data-binding="var-_uniq.193" data-verso-hover="44">β </span><span class="var token" data-binding="var-_uniq.194" data-verso-hover="44">γ</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Bind___mk"><span class="const token" data-binding="const-Bind" data-verso-hover="2572">Bind</span></a> <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2800">m</span>] (<span class="var token" data-binding="var-_uniq.197" data-verso-hover="2662">f₁</span> : <span class="var token" data-binding="var-_uniq.190" data-verso-hover="55">α</span> → <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.193" data-verso-hover="44">β</span>) (<span class="var token" data-binding="var-_uniq.199" data-verso-hover="2689">f₂</span> : <span class="var token" data-binding="var-_uniq.193" data-verso-hover="44">β</span> → <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.194" data-verso-hover="44">γ</span>)
+  (<span class="var token" data-binding="var-_uniq.200" data-verso-hover="46">a</span> : <span class="var token" data-binding="var-_uniq.190" data-verso-hover="55">α</span>) : <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.194" data-verso-hover="44">γ</span></pre><div class="text">
+                  <p>
+                    Left-to-right composition of Kleisli arrows.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&gt;=&gt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">kleisliRight</span></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              <div class="namedocs" id="Bind___kleisliLeft">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Bind.kleisliLeft" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Bind.kleisliLeft.{u, u_1, u_2} {<span class="var token" data-binding="var-_uniq.234" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>}
+  {<span class="var token" data-binding="var-_uniq.236" data-verso-hover="2800">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} {<span class="var token" data-binding="var-_uniq.237" data-verso-hover="44">β </span><span class="var token" data-binding="var-_uniq.238" data-verso-hover="44">γ</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Bind___mk"><span class="const token" data-binding="const-Bind" data-verso-hover="2572">Bind</span></a> <span class="var token" data-binding="var-_uniq.236" data-verso-hover="2800">m</span>] (<span class="var token" data-binding="var-_uniq.241" data-verso-hover="2689">f₂</span> : <span class="var token" data-binding="var-_uniq.237" data-verso-hover="44">β</span> → <span class="var token" data-binding="var-_uniq.236" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.238" data-verso-hover="44">γ</span>) (<span class="var token" data-binding="var-_uniq.243" data-verso-hover="2662">f₁</span> : <span class="var token" data-binding="var-_uniq.234" data-verso-hover="55">α</span> → <span class="var token" data-binding="var-_uniq.236" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.237" data-verso-hover="44">β</span>)
+  (<span class="var token" data-binding="var-_uniq.244" data-verso-hover="46">a</span> : <span class="var token" data-binding="var-_uniq.234" data-verso-hover="55">α</span>) : <span class="var token" data-binding="var-_uniq.236" data-verso-hover="2800">m</span> <span class="var token" data-binding="var-_uniq.238" data-verso-hover="44">γ</span></pre><div class="text">
+                  <p>
+                    Right-to-left composition of Kleisli arrows.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;=&lt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">kleisliLeft</span></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--API-Reference--Re-Ordered-Operations">
+                14.4.5. Re-Ordered Operations</h2>
+              <p>
+                Sometimes, it can be convenient to partially apply a function to its second argument.
+These functions reverse the order of arguments, making it this easier.</p>
+              <div class="namedocs" id="Functor___mapRev">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Functor.mapRev" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Functor.mapRev.{u, v} {<span class="var token" data-binding="var-_uniq.290" data-verso-hover="97">f</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type v</span>}
+  [<a href="Functors___-Monads-and--do--Notation/#Functor___mk"><span class="const token" data-binding="const-Functor" data-verso-hover="2570">Functor</span></a> <span class="var token" data-binding="var-_uniq.290" data-verso-hover="97">f</span>] {<span class="var token" data-binding="var-_uniq.292" data-verso-hover="55">α </span><span class="var token" data-binding="var-_uniq.293" data-verso-hover="55">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>} :
+  <span class="var token" data-binding="var-_uniq.290" data-verso-hover="97">f</span> <span class="var token" data-binding="var-_uniq.292" data-verso-hover="55">α</span> → (<span class="var token" data-binding="var-_uniq.292" data-verso-hover="55">α</span> → <span class="var token" data-binding="var-_uniq.293" data-verso-hover="55">β</span>) → <span class="var token" data-binding="var-_uniq.290" data-verso-hover="97">f</span> <span class="var token" data-binding="var-_uniq.293" data-verso-hover="55">β</span></pre><div class="text">
+                  <p>
+                    Maps a function over a functor, with parameters swapped so that the function comes last.</p>
+                  <p>
+                    This function is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/#Functor___mk"><span class="const token" data-binding="const-Functor.map" data-verso-hover="1160">Functor.map</span></a></code> with the parameters reversed, typically used via the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;&&gt;</span></code> operator.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">&lt;&&gt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">mapRev</span></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              <div class="namedocs" id="Bind___bindLeft">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Bind.bindLeft" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Bind.bindLeft.{u, u_1} {<span class="var token" data-binding="var-_uniq.338" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>}
+  {<span class="var token" data-binding="var-_uniq.340" data-verso-hover="94">m</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} {<span class="var token" data-binding="var-_uniq.341" data-verso-hover="55">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>} [<a href="Functors___-Monads-and--do--Notation/#Bind___mk"><span class="const token" data-binding="const-Bind" data-verso-hover="2572">Bind</span></a> <span class="var token" data-binding="var-_uniq.340" data-verso-hover="94">m</span>]
+  (<span class="var token" data-binding="var-_uniq.344" data-verso-hover="2662">f</span> : <span class="var token" data-binding="var-_uniq.338" data-verso-hover="55">α</span> → <span class="var token" data-binding="var-_uniq.340" data-verso-hover="94">m</span> <span class="var token" data-binding="var-_uniq.341" data-verso-hover="55">β</span>) (<span class="var token" data-binding="var-_uniq.345" data-verso-hover="241">ma</span> : <span class="var token" data-binding="var-_uniq.340" data-verso-hover="94">m</span> <span class="var token" data-binding="var-_uniq.338" data-verso-hover="55">α</span>) : <span class="var token" data-binding="var-_uniq.340" data-verso-hover="94">m</span> <span class="var token" data-binding="var-_uniq.341" data-verso-hover="55">β</span></pre><div class="text">
+                  <p>
+                    Same as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1149">Bind.bind</span></a></code> but with arguments swapped.</p>
+                  <p>
+                    Conventions for notations in identifiers:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">=&lt;&lt;</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">bindLeft</span></code>.</p>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
+            </section>
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="Functors___-Monads-and--do--Notation/Syntax/#The-Lean-Language-Reference--Functors___-Monads-and--do--Notation--Syntax" rel="prev" title="14.3. Syntax"><span class="arrow">←</span><span class="where">14.3. Syntax</span></a><a class="local-button active" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#monad-varieties" rel="next" title="14.5. Varieties of Monads"><span class="where">14.5. Varieties of Monads</span><span class="arrow">→</span></a></nav>
+          </div>
+        </main></div>
+    </body>
+  </html>
+
