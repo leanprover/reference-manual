@@ -1249,7 +1249,7 @@ def syntax.descr : BlockDescr where
 r#"
 .namedocs .title {
   font-family: var(--verso-structure-font-family);
-  font-size: larger;
+  font-size: 1.1rem;
   margin-top: 0;
   margin-left: 1rem;
   margin-right: 1.5rem;
