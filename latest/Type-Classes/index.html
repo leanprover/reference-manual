@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,11 +2124,11 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot" checked="checked"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="current numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="current numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-type-classes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-type-classes" checked="checked"></label><span class="number">8.</span> <span class="current"><a href="Type-Classes/#type-classes">Type Classes</a></span></div>
-              <table><tr class="numbered"><td class="num">8.1.</td><td><a href="Type-Classes/Class-Declarations/#class">Class Declarations</a></td></tr><tr class="numbered"><td class="num">8.2.</td><td><a href="Type-Classes/Instance-Declarations/#instance-declarations">Instance Declarations</a></td></tr><tr class="numbered"><td class="num">8.3.</td><td><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></td></tr><tr class="numbered"><td class="num">8.4.</td><td><a href="Type-Classes/Deriving-Instances/#deriving-instances">Deriving Instances</a></td></tr><tr class="numbered"><td class="num">8.5.</td><td><a href="Type-Classes/Basic-Classes/#basic-classes">Basic Classes</a></td></tr></table></div>
+                <label for="--verso-manual-toc-type-classes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-type-classes" checked="checked"></label><span class="number">11.</span> <span class="current"><a href="Type-Classes/#type-classes">Type Classes</a></span></div>
+              <table><tr class="numbered"><td class="num">11.1.</td><td><a href="Type-Classes/Class-Declarations/#class">Class Declarations</a></td></tr><tr class="numbered"><td class="num">11.2.</td><td><a href="Type-Classes/Instance-Declarations/#instance-declarations">Instance Declarations</a></td></tr><tr class="numbered"><td class="num">11.3.</td><td><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></td></tr><tr class="numbered"><td class="num">11.4.</td><td><a href="Type-Classes/Deriving-Instances/#deriving-instances">Deriving Instances</a></td></tr><tr class="numbered"><td class="num">11.5.</td><td><a href="Type-Classes/Basic-Classes/#basic-classes">Basic Classes</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2128,10 +2142,10 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs" rel="prev" title="7.13. Proofs"><span class="arrow">←</span><span class="where">7.13. Proofs</span></a><a class="local-button active" href="Type-Classes/Class-Declarations/#class" rel="next" title="8.1. Class Declarations"><span class="where">8.1. Class Declarations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs" rel="prev" title="10.13. Proofs"><span class="arrow">←</span><span class="where">10.13. Proofs</span></a><a class="local-button active" href="Type-Classes/Class-Declarations/#class" rel="next" title="11.1. Class Declarations"><span class="where">11.1. Class Declarations</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              8. Type Classes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=type-classes" title="Permalink">🔗</a></span></h1>
+              11. Type Classes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=type-classes" title="Permalink">🔗</a></span></h1>
             <p>
               An operation is <em>polymorphic</em> if it can be used with multiple types.
 In Lean, polymorphism comes in three varieties:</p>
@@ -2146,27 +2160,27 @@ In Lean, polymorphism comes in three varieties:</p>
                 </li>
               <li>
                 <p>
-                  <span id="--tech-term-ad-hoc-polymorphism"><em>ad-hoc polymorphism</em></span>, implemented with type classes, in which operations to be overloaded may have different implementations for different types.</p>
+                  <span id="--tech-term-ad-hoc-polymorphism" class="def-technical-term"><em>ad-hoc polymorphism</em></span>, implemented with type classes, in which operations to be overloaded may have different implementations for different types.</p>
                 </li>
               </ol>
             <p>
-              Because Lean does not allow case analysis of types, polymorphic functions implement operations that are uniform for any choice of type argument; for example, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___map"><span class="const token" data-binding="const-List.map" data-verso-hover="126">List.map</span></a></code> does not suddenly compute differently depending on whether the input list contains <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code>s or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>s.
-Ad-hoc polymorphic operations are useful when there is no “uniform” way to implement an operation; the canonical use case is for overloading arithmetic operators so that they work with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="71">Int</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float___mk"><span class="const token" data-binding="const-Float" data-verso-hover="270">Float</span></a></code>, and any other type that has a sensible notion of addition.
+              Because Lean does not allow case analysis of types, polymorphic functions implement operations that are uniform for any choice of type argument; for example, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___map"><span class="const token" data-binding="const-List.map" data-verso-hover="199">List.map</span></a></code> does not suddenly compute differently depending on whether the input list contains <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code>s or <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>s.
+Ad-hoc polymorphic operations are useful when there is no “uniform” way to implement an operation; the canonical use case is for overloading arithmetic operators so that they work with <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="146">Int</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float-next"><span class="const token" data-binding="const-Float" data-verso-hover="340">Float</span></a></code>, and any other type that has a sensible notion of addition.
 Ad-hoc polymorphism may also involve multiple types; looking up a value at a given index in a collection involves the collection type, the index type, and the type of member elements to be extracted.
-A <span id="--tech-term-type-class"><em>type class</em></span><span class="marginalia"><span class="note">Type classes were first described in <span class="citation">Philip Wadler and Stephen Blott, 1980. “How to make ad-hoc polymorphism less ad hoc”. In <em>Proceedings of the 16th Symposium on Principles of Programming Languages.</em></span></span></span> describes a collection of overloaded operations (called <span id="--tech-term-methods"><em>methods</em></span>) together with the involved types.</p>
+A <span id="--tech-term-type-class" class="def-technical-term"><em>type class</em></span><span class="marginalia"><span class="note">Type classes were first described in <span class="citation">Philip Wadler and Stephen Blott, 1980. “How to make ad-hoc polymorphism less ad hoc”. In <em>Proceedings of the 16th Symposium on Principles of Programming Languages.</em></span></span></span> describes a collection of overloaded operations (called <span id="--tech-term-methods" class="def-technical-term"><em>methods</em></span>) together with the involved types.</p>
             <p>
               Type classes are very flexible.
 Overloading may involve multiple types; operations like indexing into a data structure can be overloaded for a specific choice of data structure, index type, element type, and even a predicate that asserts the presence of the key in the structure.
 Due to Lean's expressive type system, overloading operations is not restricted only to types; type classes may be parameterized by ordinary values, by families of types, and even by predicates or propositions.
 All of these possibilities are used in practice:</p>
             <dl><dt> Natural number literals</dt><dd><p>
-                  The <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Literals/#OfNat___mk"><span class="const token" data-binding="const-OfNat" data-verso-hover="507">OfNat</span></a></code> type class is used to interpret natural number literals.
+                  The <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Literals/#OfNat___mk"><span class="const token" data-binding="const-OfNat" data-verso-hover="614">OfNat</span></a></code> type class is used to interpret natural number literals.
   Instances may depend not only on the type being instantiated, but also on the number literal itself.</p>
                 </dd><dt> Computational effects</dt><dd><p>
-                  Type classes such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="167">Monad</span></a></code>, whose parameter is a function from one type to another, are used to provide <a href="Functors___-Monads-and--do--Notation/#monads-and-do">special syntax for programs with side effects.</a>
-  The “type” for which operations are overloaded is actually a type-level function, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>, or <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a></code>.</p>
+                  Type classes such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Monad___mk"><span class="const token" data-binding="const-Monad" data-verso-hover="238">Monad</span></a></code>, whose parameter is a function from one type to another, are used to provide <a href="Functors___-Monads-and--do--Notation/#monads-and-do">special syntax for programs with side effects.</a>
+  The “type” for which operations are overloaded is actually a type-level function, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>, or <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a></code>.</p>
                 </dd><dt> Predicates and propositions</dt><dd><p>
-                  The <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="391">Decidable</span></a></code> type class allows a decision procedure for a proposition to be found automatically by Lean.
+                  The <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="463">Decidable</span></a></code> type class allows a decision procedure for a proposition to be found automatically by Lean.
   This is used as the basis for <span class="hl lean keyword-of"><code class="hover-info"><code>termIfThenElse : term</code><span class="sep"></span><code class="docstring">`if c then t else e` is notation for `ite c t e`, "if-then-else", which decides to
 return `t` or `e` depending on whether `c` is true or false. The explicit argument
 `c : Prop` does not have any actual computational content, but there is an additional
@@ -2176,9 +2190,9 @@ instead for a "dependent if-then-else" `dite`, which allows `t`/`e` to use the f
 that `c` is true/false.
 </code></code><a href="Terms/Conditionals/#termIfThenElse"><code class="kw">if</code></a></span>-expressions, which may branch on any decidable proposition.</p>
                 </dd></dl><p>
-              While ordinary polymorphic definitions simply expect instantiation with arbitrary parameters, the operators overloaded with type classes are to be instantiated with <span id="--tech-term-instances"><em>instances</em></span> that define the overloaded operation for some specific set of parameters.
-These <span id="--tech-term-instance-implicit-next">instance-implicit</span> parameters are indicated in square brackets.
-At invocation sites, Lean either <span id="--tech-term-synthesizes"><em>synthesizes</em></span> <span id="--index-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span> <span id="--index-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span> a suitable instance from the available candidates or signals an error.
+              While ordinary polymorphic definitions simply expect instantiation with arbitrary parameters, the operators overloaded with type classes are to be instantiated with <span id="--tech-term-instances" class="def-technical-term"><em>instances</em></span> that define the overloaded operation for some specific set of parameters.
+These <span id="--tech-term-instance-implicit-next" class="def-technical-term">instance-implicit</span> parameters are indicated in square brackets.
+At invocation sites, Lean either <span id="--tech-term-synthesizes" class="def-technical-term"><em>synthesizes</em></span> <span id="--index--next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span> <span id="--index--next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span> a suitable instance from the available candidates or signals an error.
 Because instances may themselves have instance parameters, this search process may be recursive and result in a final composite instance value that combines code from a variety of instances.
 Thus, type class instance synthesis is also a means of constructing programs in a type-directed manner.</p>
             <p>
@@ -2195,30 +2209,30 @@ Thus, type class instance synthesis is also a means of constructing programs in 
               <li>
                 <p>
                   A type class can represent a relation between two types that allows them to be used together in some novel way by a library.
-   The <code class="hl lean inline" data-lean-context="examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a></code> class represents automatically-inserted coercions from one type to another, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Lifting-Monads/#MonadLift___mk"><span class="const token" data-binding="const-MonadLift" data-verso-hover="699">MonadLift</span></a></code> represents a way to run operations with one kind of effect in a context that expects another kind.</p>
+   The <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a></code> class represents automatically-inserted coercions from one type to another, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Lifting-Monads/#MonadLift___mk"><span class="const token" data-binding="const-MonadLift" data-verso-hover="90">MonadLift</span></a></code> represents a way to run operations with one kind of effect in a context that expects another kind.</p>
                 </li>
               <li>
                 <p>
                   Type classes can represent a framework of type-driven code generation, where instances for polymorphic types each contribute some portion of a final program.
-    The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="262">Repr</span></code> class defines a canonical pretty printer for a type, and polymorphic types end up with polymorphic <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="262">Repr</span></code> instances.
-    When pretty printing is finally invoked on an expression with a known concrete type, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">×</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="unknown token" data-binding="">⊕</span> <a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="71">Int</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span></code>, the resulting pretty printer contains code assembled from the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="262">Repr</span></code> instances for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">Prod</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Sum-Types/#Sum___inl"><span class="const token" data-binding="const-Sum" data-verso-hover="1587">Sum</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="71">Int</span></a></code>.</p>
+    The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span></code> class defines a canonical pretty printer for a type, and polymorphic types end up with polymorphic <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span></code> instances.
+    When pretty printing is finally invoked on an expression with a known concrete type, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">×</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">⊕</span> <a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="146">Int</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span></code>, the resulting pretty printer contains code assembled from the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span></code> instances for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189">Prod</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Sum-Types/#Sum___inl"><span class="const token" data-binding="const-Sum" data-verso-hover="1535">Sum</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="146">Int</span></a></code>.</p>
                 </li>
               </ul>
             <ol class="section-toc">
               <li>
-                <a href="Type-Classes/Class-Declarations/#class"><span class="number">8.1.</span> Class Declarations</a></li>
+                <a href="Type-Classes/Class-Declarations/#class"><span class="number">11.1.</span> Class Declarations</a></li>
               <li>
-                <a href="Type-Classes/Instance-Declarations/#instance-declarations"><span class="number">8.2.</span> Instance Declarations</a></li>
+                <a href="Type-Classes/Instance-Declarations/#instance-declarations"><span class="number">11.2.</span> Instance Declarations</a></li>
               <li>
-                <a href="Type-Classes/Instance-Synthesis/#instance-synth"><span class="number">8.3.</span> Instance Synthesis</a></li>
+                <a href="Type-Classes/Instance-Synthesis/#instance-synth"><span class="number">11.3.</span> Instance Synthesis</a></li>
               <li>
-                <a href="Type-Classes/Deriving-Instances/#deriving-instances"><span class="number">8.4.</span> Deriving Instances</a></li>
+                <a href="Type-Classes/Deriving-Instances/#deriving-instances"><span class="number">11.4.</span> Deriving Instances</a></li>
               <li>
-                <a href="Type-Classes/Basic-Classes/#basic-classes"><span class="number">8.5.</span> Basic Classes</a></li>
+                <a href="Type-Classes/Basic-Classes/#basic-classes"><span class="number">11.5.</span> Basic Classes</a></li>
               </ol>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs" rel="prev" title="7.13. Proofs"><span class="arrow">←</span><span class="where">7.13. Proofs</span></a><a class="local-button active" href="Type-Classes/Class-Declarations/#class" rel="next" title="8.1. Class Declarations"><span class="where">8.1. Class Declarations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs" rel="prev" title="10.13. Proofs"><span class="arrow">←</span><span class="where">10.13. Proofs</span></a><a class="local-button active" href="Type-Classes/Class-Declarations/#class" rel="next" title="11.1. Class Declarations"><span class="where">11.1. Class Declarations</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

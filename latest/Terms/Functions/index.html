@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="current numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="current numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-terms" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-terms" checked="checked"></label><span class="number">7.</span> <span class=""><a href="Terms/#terms">Terms</a></span></div>
-              <table><tr class="numbered"><td class="num">7.1.</td><td><a href="Terms/Identifiers/#The-Lean-Language-Reference--Terms--Identifiers">Identifiers</a></td></tr><tr class="numbered"><td class="num">7.2.</td><td><a href="Terms/Function-Types/#function-types">Function Types</a></td></tr><tr class="current numbered"><td class="num">7.3.</td><td><a href="Terms/Functions/#function-terms">Functions</a></td></tr><tr class="numbered"><td class="num">7.4.</td><td><a href="Terms/Function-Application/#function-application">Function Application</a></td></tr><tr class="numbered"><td class="num">7.5.</td><td><a href="Terms/Literals/#The-Lean-Language-Reference--Terms--Literals">Literals</a></td></tr><tr class="numbered"><td class="num">7.6.</td><td><a href="Terms/Structures-and-Constructors/#The-Lean-Language-Reference--Terms--Structures-and-Constructors">Structures and Constructors</a></td></tr><tr class="numbered"><td class="num">7.7.</td><td><a href="Terms/Conditionals/#if-then-else">Conditionals</a></td></tr><tr class="numbered"><td class="num">7.8.</td><td><a href="Terms/Pattern-Matching/#pattern-matching">Pattern Matching</a></td></tr><tr class="numbered"><td class="num">7.9.</td><td><a href="Terms/Holes/#The-Lean-Language-Reference--Terms--Holes">Holes</a></td></tr><tr class="numbered"><td class="num">7.10.</td><td><a href="Terms/Type-Ascription/#The-Lean-Language-Reference--Terms--Type-Ascription">Type Ascription</a></td></tr><tr class="numbered"><td class="num">7.11.</td><td><a href="Terms/Quotation-and-Antiquotation/#The-Lean-Language-Reference--Terms--Quotation-and-Antiquotation">Quotation and Antiquotation</a></td></tr><tr class="numbered"><td class="num">7.12.</td><td><a href="Terms/do--Notation/#The-Lean-Language-Reference--Terms--do--Notation"><code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">7.13.</td><td><a href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs">Proofs</a></td></tr></table></div>
+                <label for="--verso-manual-toc-terms" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-terms" checked="checked"></label><span class="number">10.</span> <span class=""><a href="Terms/#terms">Terms</a></span></div>
+              <table><tr class="numbered"><td class="num">10.1.</td><td><a href="Terms/Identifiers/#identifiers-and-resolution">Identifiers</a></td></tr><tr class="numbered"><td class="num">10.2.</td><td><a href="Terms/Function-Types/#function-types">Function Types</a></td></tr><tr class="current numbered"><td class="num">10.3.</td><td><a href="Terms/Functions/#function-terms">Functions</a></td></tr><tr class="numbered"><td class="num">10.4.</td><td><a href="Terms/Function-Application/#function-application">Function Application</a></td></tr><tr class="numbered"><td class="num">10.5.</td><td><a href="Terms/Literals/#The-Lean-Language-Reference--Terms--Literals">Literals</a></td></tr><tr class="numbered"><td class="num">10.6.</td><td><a href="Terms/Structures-and-Constructors/#The-Lean-Language-Reference--Terms--Structures-and-Constructors">Structures and Constructors</a></td></tr><tr class="numbered"><td class="num">10.7.</td><td><a href="Terms/Conditionals/#if-then-else">Conditionals</a></td></tr><tr class="numbered"><td class="num">10.8.</td><td><a href="Terms/Pattern-Matching/#pattern-matching">Pattern Matching</a></td></tr><tr class="numbered"><td class="num">10.9.</td><td><a href="Terms/Holes/#The-Lean-Language-Reference--Terms--Holes">Holes</a></td></tr><tr class="numbered"><td class="num">10.10.</td><td><a href="Terms/Type-Ascription/#The-Lean-Language-Reference--Terms--Type-Ascription">Type Ascription</a></td></tr><tr class="numbered"><td class="num">10.11.</td><td><a href="Terms/Quotation-and-Antiquotation/#The-Lean-Language-Reference--Terms--Quotation-and-Antiquotation">Quotation and Antiquotation</a></td></tr><tr class="numbered"><td class="num">10.12.</td><td><a href="Terms/do--Notation/#The-Lean-Language-Reference--Terms--do--Notation"><code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.13.</td><td><a href="Terms/Proofs/#The-Lean-Language-Reference--Terms--Proofs">Proofs</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-function-terms" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-function-terms" checked="checked"></label><span class="number">7.3.</span> <span class="current"><a href="Terms/Functions/#function-terms">Functions</a></span></div>
+                <label for="--verso-manual-toc-function-terms" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-function-terms" checked="checked"></label><span class="number">10.3.</span> <span class="current"><a href="Terms/Functions/#function-terms">Functions</a></span></div>
               <ol>
                 <li>
                   <a href="Terms/Functions/#Lean___Parser___Term___fun"><span class="syntax"><span class="keyword">fun</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="keyword">=&gt;</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
@@ -2134,8 +2148,6 @@ window.onload = () => {
                 <li>
                   <a href="Terms/Functions/#Lean___Parser___Term___fun-next-next-next-next"><span class="syntax"><span class="keyword">fun</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="keyword">=&gt;</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
                 <li>
-                  <a href="Terms/Functions/#ident___antiquot"><span class="syntax"><span class="meta">…</span></span></a></li>
-                <li>
                   <a href="Terms/Functions/#Lean___Parser___Term___paren"><span class="syntax"><span class="keyword">(</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">)</span></span></a></li>
                 <li>
                   <a href="Terms/Functions/#Lean___Parser___Term___typeAscription"><span class="syntax"><span class="keyword">(</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">:</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">)</span></span></a></li>
@@ -2148,9 +2160,9 @@ window.onload = () => {
                 <li>
                   <a href="Terms/Functions/#Lean___Parser___Term___instBinder-next-next"><span class="syntax"><span class="keyword">[</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">:</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">]</span></span></a></li>
                 <li>
-                  <a href="Terms/Functions/#Lean___Parser___Term___strictImplicitBinder-next"><span class="syntax"><span class="keyword">⦃</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">⦄</span></span></a></li>
+                  <a href="Terms/Functions/#Lean___Parser___Term___strictImplicitBinder-next-next"><span class="syntax"><span class="keyword">⦃</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">⦄</span></span></a></li>
                 <li>
-                  <a href="Terms/Functions/#Lean___Parser___Term___strictImplicitBinder-next-next"><span class="syntax"><span class="keyword">⦃</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">:</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">⦄</span></span></a></li>
+                  <a href="Terms/Functions/#Lean___Parser___Term___strictImplicitBinder-next-next-next"><span class="syntax"><span class="keyword">⦃</span><span class="meta">…</span><span class="ws"> </span><span class="keyword">:</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">⦄</span></span></a></li>
                 </ol>
               </div>
             </div>
@@ -2166,14 +2178,14 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Terms/Function-Types/#function-types" rel="prev" title="7.2. Function Types"><span class="arrow">←</span><span class="where">7.2. Function Types</span></a><a class="local-button active" href="Terms/Function-Application/#function-application" rel="next" title="7.4. Function Application"><span class="where">7.4. Function Application</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Terms/Function-Types/#function-types" rel="prev" title="10.2. Function Types"><span class="arrow">←</span><span class="where">10.2. Function Types</span></a><a class="local-button active" href="Terms/Function-Application/#function-application" rel="next" title="10.4. Function Application"><span class="where">10.4. Function Application</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              7.3. Functions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=function-terms" title="Permalink">🔗</a></span></h1>
+              10.3. Functions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=function-terms" title="Permalink">🔗</a></span></h1>
             <p>
               Terms with function types can be created via abstractions, introduced with the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span> keyword.<span class="marginalia"><span class="note">In various communities, function abstractions are also known as <em>lambdas</em>, due to Alonzo Church's notation for them, or <em>anonymous functions</em> because they don't need to be defined with a name in the global environment.</span></span>
 While abstractions in the core type theory only allow a single variable to be bound, function terms are quite flexible in the high-level Lean syntax.</p>
-            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next">
+            <div class="namedocs" id="term-next-next-next-next-next-next-next-next">
               <span class="label">syntax</span><span class="title">Function Abstraction</span><div class="text">
                 <p>
                   The most basic function abstraction introduces a variable to stand for the function's parameter:</p>
@@ -2187,7 +2199,7 @@ A type ascription is one way to provide this information:</p>
             <p>
               Function definitions defined with keywords such as <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.definition : command</code></code><code class="kw">def</code></span> desugar to <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span>.
 Inductive type declarations, on the other hand, introduce new values with function types (constructors and type constructors) that cannot themselves be implemented using just <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span>.</p>
-            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next">
+            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next">
               <span class="label">syntax</span><span class="title">Curried Functions</span><div class="text">
                 <p>
                   Multiple parameter names are accepted after after <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span>:</p>
@@ -2207,48 +2219,50 @@ Inductive type declarations, on the other hand, introduce new values with functi
 This syntax is described in the <a href="Terms/Pattern-Matching/#pattern-fun">section on pattern matching</a>.</p>
             <section>
               <h2 id="implicit-functions">
-                7.3.1. Implicit Parameters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=implicit-functions" title="Permalink">🔗</a></span></h2>
+                10.3.1. Implicit Parameters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=implicit-functions" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean supports implicit parameters to functions.
 This means that Lean itself can supply arguments to functions, rather than requiring users to supply all needed arguments.
 Implicit parameters come in three varieties:</p>
               <dl><dt> Ordinary implicit parameters</dt><dd><p>
-                    Ordinary <span id="--tech-term-implicit">implicit</span> parameters are function parameters that Lean should determine values for via unification.
+                    Ordinary <span id="--tech-term-implicit" class="def-technical-term">implicit</span> parameters are function parameters that Lean should determine values for via unification.
     In other words, each call site should have exactly one potential argument value that would cause the function call as a whole to be well-typed.
     The Lean elaborator attempts to find values for all implicit arguments at each occurrence of a function.
     Ordinary implicit parameters are written in curly braces (<code>{</code> and <code>}</code>).</p>
                   </dd><dt> Strict implicit parameters</dt><dd><p>
-                    <span id="--tech-term-Strict-implicit"><em>Strict implicit</em></span> parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
+                    <span id="--tech-term-Strict-implicit" class="def-technical-term"><em>Strict implicit</em></span> parameters are identical to ordinary implicit parameters, except Lean will only attempt to find argument values when subsequent explicit arguments are provided at a call site.
     Strict implicit parameters are written in double curly braces (<code>⦃</code> and <code>⦄</code>, or <code>{{</code> and <code>}}</code>).</p>
                   </dd><dt> Instance implicit parameters</dt><dd><p>
-                    Arguments for <span id="--tech-term-instance-implicit"><em>instance implicit</em></span> parameters are found via <a href="Type-Classes/Instance-Synthesis/#instance-synth">type class synthesis</a>.
+                    Arguments for <span id="--tech-term-instance-implicit" class="def-technical-term"><em>instance implicit</em></span> parameters are found via <a href="Type-Classes/Instance-Synthesis/#instance-synth">type class synthesis</a>.
     Instance implicit parameters are written in square brackets (<code>[</code> and <code>]</code>).
     Unlike the other kinds of implicit parameter, instance implicit parameters that are written without a <code>:</code> specify the parameter's type rather than providing a name.
     Furthermore, only a single name is allowed.
     Most instance implicit parameters omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.</p>
-                  </dd></dl><details class="example"><summary class="description">Ordinary vs Strict Implicit Parameters</summary><p>
-                  The difference between the functions <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1477">f</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-g" data-verso-hover="1478">g</span></code> is that <code>α</code> is strictly implicit in <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1477">f</span></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16406">def</span> <span class="const token" data-binding="const-f" data-verso-hover="1477">f</span> <span class="unknown token" data-binding="">⦃</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">⦄</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16443">fun</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16454">def</span> <span class="const token" data-binding="const-g" data-verso-hover="1478">g</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16487">fun</span> <span class="var token" data-binding="var-_uniq.31" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.31" data-verso-hover="46">x</span>
+                  </dd></dl><details class="example"><summary class="description">Ordinary vs Strict Implicit Parameters</summary><div class="example-content">
+                  <p>
+                    The difference between the functions <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1427">f</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-g" data-verso-hover="1428">g</span></code> is that <code>α</code> is strictly implicit in <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1427">f</span></code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16144">def</span> <span class="const token" data-binding="const-f" data-verso-hover="1427">f</span> <span class="unknown token" data-binding="">⦃</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">⦄</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16181">fun</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16192">def</span> <span class="const token" data-binding="const-g" data-verso-hover="1428">g</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16225">fun</span> <span class="var token" data-binding="var-_uniq.31" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.31" data-verso-hover="46">x</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  These functions are elaborated identically when applied to concrete arguments:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16590">example</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-f" data-verso-hover="1477">f</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-g" data-verso-hover="1478">g</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="82">rfl</span></a>
+                    These functions are elaborated identically when applied to concrete arguments:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16328">example</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-f" data-verso-hover="1427">f</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-g" data-verso-hover="1428">g</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a>
 <span class="unknown token" data-binding=""></span></code><p>
-                  However, when the explicit argument is not provided, uses of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1477">f</span></code> do not require the implicit <code>α</code> to be solved:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16748">example</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-f" data-verso-hover="1477">f</span>
+                    However, when the explicit argument is not provided, uses of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-f" data-verso-hover="1427">f</span></code> do not require the implicit <code>α</code> to be solved:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16486">example</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-f" data-verso-hover="1427">f</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  However, uses of <code>g</code> do require it to be solved, and fail to elaborate if there is insufficient information available:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16926">example</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">failed to infer definition type</code></span></span><span class="unknown token" data-binding="">:=</span></span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">don't know how to synthesize implicit argument 'α'
+                    However, uses of <code>g</code> do require it to be solved, and fail to elaborate if there is insufficient information available:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16664">example</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">failed to infer definition type</code></span></span><span class="unknown token" data-binding="">:=</span></span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">don't know how to synthesize implicit argument 'α'
   @g ?m.6
 context:
-⊢ Type</code></span></span><span class="const token" data-binding="const-g" data-verso-hover="1478">g</span></span>
+⊢ Type</code></span></span><span class="const token" data-binding="const-g" data-verso-hover="1428">g</span></span>
 <span class="unknown token" data-binding=""></span></code><div class="error">
-                  <pre>don't know how to synthesize implicit argument 'α'
+                    <pre>don't know how to synthesize implicit argument 'α'
   @g ?m.6
 context:
 ⊢ Type
 </pre></div>
-                </details><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                  </div>
+                </details><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next">
                 <span class="label">syntax</span><span class="title">Functions with Varying Binders</span><div class="text">
                   <p>
                     The most general syntax for <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.fun : term</code></code><code class="kw">fun</code></span> accepts a sequence of binders:</p>
@@ -2311,7 +2325,7 @@ In `@` explicit mode, if `_` is used for an instance-implicit parameter, then it
 use `(_)` to inhibit this and have it be solved for by unification instead, like an implicit argument.
 </code></code><span class="keyword">[</span><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="ident">ident</span> <span class="keyword">:</span> </span><span class="nonterminal" data-kind="term.pseudo">term</span><span class="keyword">]</span></span></pre><p>
                     or strict implicit parameters, with or without a type ascription:</p>
-                  <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___strictImplicitBinder-next"><span class="nonterminal" data-kind="Lean.Parser.Term.funBinder">funBinder</span> <span class="bnf">::=</span> ...
+                  <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___strictImplicitBinder-next-next"><span class="nonterminal" data-kind="Lean.Parser.Term.funBinder">funBinder</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Term.strictImplicitBinder"><code class="hover-info"><code class="docstring">Strict-implicit binder, like `⦃x y : A⦄` or `⦃x y⦄`.
 In contrast to `{ ... }` implicit binders, strict-implicit binders do not automatically insert
 a `_` placeholder until at least one subsequent explicit parameter is specified.
@@ -2323,7 +2337,7 @@ then `h` by itself elaborates to itself without inserting `_` for the `x : A` pa
 and `h hs` has type `p y`.
 In contrast, if `h' : ∀ {x : A}, x ∈ s → p x`, then `h` by itself elaborates to have type `?m ∈ s → p ?m`
 with `?m` a fresh metavariable.
-</code></code><span class="keyword">⦃</span><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="ident">ident</span> <span class="nonterminal" data-kind="ident">ident</span><span class="bnf">*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">⦄</span></span></pre><pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___strictImplicitBinder-next-next"><span class="nonterminal" data-kind="Lean.Parser.Term.funBinder">funBinder</span> <span class="bnf">::=</span> ...
+</code></code><span class="keyword">⦃</span><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="ident">ident</span> <span class="nonterminal" data-kind="ident">ident</span><span class="bnf">*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">⦄</span></span></pre><pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___strictImplicitBinder-next-next-next"><span class="nonterminal" data-kind="Lean.Parser.Term.funBinder">funBinder</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Term.strictImplicitBinder"><code class="hover-info"><code class="docstring">Strict-implicit binder, like `⦃x y : A⦄` or `⦃x y⦄`.
 In contrast to `{ ... }` implicit binders, strict-implicit binders do not automatically insert
 a `_` placeholder until at least one subsequent explicit parameter is specified.
@@ -2345,31 +2359,33 @@ The differences can be observed only during elaboration.</p>
               <p>
                 If the expected type of a function includes implicit parameters, but its binders do not, then the resulting function may end up with more parameters than the binders indicated in the code.
 This is because the implicit parameters are added automatically.</p>
-              <details class="example"><summary class="description">Implicit Parameters from Types</summary><p>
-                  The identity function can be written with a single explicit parameter.
+              <details class="example"><summary class="description">Implicit Parameters from Types</summary><div class="example-content">
+                  <p>
+                    The identity function can be written with a single explicit parameter.
 As long as its type is known, the implicit type parameter is added automatically.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19146">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19154">fun</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="1479">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="1479">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-18884">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-18892">fun</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="1429">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="1429">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun {α} x =&gt; x : {α : Type} → α → α
+                    <pre>fun {α} x =&gt; x : {α : Type} → α → α
 </pre></div>
-                <p>
-                  The following are all equivalent:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19337">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19345">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="88">α</span><span class="unknown token" data-binding="">}</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span>
+                  <p>
+                    The following are all equivalent:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19075">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19083">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="162">α</span><span class="unknown token" data-binding="">}</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun {α} x =&gt; x : {α : Type} → α → α
+                    <pre>fun {α} x =&gt; x : {α : Type} → α → α
 </pre></div>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19499">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19507">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="88">α</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.9" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.11" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19237">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19245">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="162">α</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.9" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.11" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun {α} x =&gt; x : {α : Type} → α → α
+                    <pre>fun {α} x =&gt; x : {α : Type} → α → α
 </pre></div>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19667">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19675">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun {α} x =&gt; x : {α : Type} → α → α</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19405">#check</span></a></span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19413">fun</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun {α} x =&gt; x : {α : Type} → α → α
+                    <pre>fun {α} x =&gt; x : {α : Type} → α → α
 </pre></div>
+                  </div>
                 </details></section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Terms/Function-Types/#function-types" rel="prev" title="7.2. Function Types"><span class="arrow">←</span><span class="where">7.2. Function Types</span></a><a class="local-button active" href="Terms/Function-Application/#function-application" rel="next" title="7.4. Function Application"><span class="where">7.4. Function Application</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Terms/Function-Types/#function-types" rel="prev" title="10.2. Function Types"><span class="arrow">←</span><span class="where">10.2. Function Types</span></a><a class="local-button active" href="Terms/Function-Application/#function-application" rel="next" title="10.4. Function Application"><span class="where">10.4. Function Application</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

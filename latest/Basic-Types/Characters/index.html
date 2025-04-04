@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">14.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
-              <table><tr class="numbered"><td class="num">14.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">14.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">14.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">14.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="current numbered"><td class="num">14.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">14.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">14.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">14.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">14.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">14.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">14.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">14.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">14.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">14.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">14.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">14.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
+                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">18.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
+              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">18.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">18.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="current numbered"><td class="num">18.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">18.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">18.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">18.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">18.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">18.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">18.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">18.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">18.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">18.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">18.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">18.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-Char" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Char" checked="checked"></label><span class="number">14.7.</span> <span class="current"><a href="Basic-Types/Characters/#Char">Characters</a></span></div>
+                <label for="--verso-manual-toc-Char" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Char" checked="checked"></label><span class="number">18.7.</span> <span class="current"><a href="Basic-Types/Characters/#Char">Characters</a></span></div>
               <ol>
                 <li>
                   <span class="header head-1"><span class="level-num">1.</span> <a href="Basic-Types/Characters/#char-model">Logical Model</a></span></li>
@@ -2192,17 +2206,17 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Floating-Point-Numbers/#Float" rel="prev" title="14.6. Floating-Point Numbers"><span class="arrow">←</span><span class="where">14.6. Floating-Point Numbers</span></a><a class="local-button active" href="Basic-Types/Strings/#String" rel="next" title="14.8. Strings"><span class="where">14.8. Strings</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Floating-Point-Numbers/#Float" rel="prev" title="18.6. Floating-Point Numbers"><span class="arrow">←</span><span class="where">18.6. Floating-Point Numbers</span></a><a class="local-button active" href="Basic-Types/Strings/#String" rel="next" title="18.8. Strings"><span class="where">18.8. Strings</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              14.7. Characters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Char" title="Permalink">🔗</a></span></h1>
+              18.7. Characters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Char" title="Permalink">🔗</a></span></h1>
             <p>
-              Characters are represented by the type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></code>, which may be any Unicode <a href="http://www.unicode.org/glossary/#unicode_scalar_value">scalar value</a>.
+              Characters are represented by the type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code>, which may be any Unicode <a href="http://www.unicode.org/glossary/#unicode_scalar_value">scalar value</a>.
 While <a href="Basic-Types/Strings/#String">strings</a> are UTF-8-encoded arrays of bytes, characters are represented by full 32-bit values.
 Lean provides special <a href="Basic-Types/Characters/#char-syntax">syntax</a> for character literals.</p>
             <section>
               <h2 id="char-model">
-                14.7.1. Logical Model<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-model" title="Permalink">🔗</a></span></h2>
+                18.7.1. Logical Model<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-model" title="Permalink">🔗</a></span></h2>
               <p>
                 From the perspective of Lean's logic, characters consist of a 32-bit unsigned integer paired with a proof that it is a valid Unicode scalar value.</p>
               <div class="namedocs" id="Char___mk">
@@ -2212,18 +2226,18 @@ Lean provides special <a href="Basic-Types/Characters/#char-syntax">syntax</a> f
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char.mk" data-verso-hover="156">Char.mk</span></a></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char.mk" data-verso-hover="229">Char.mk</span></a></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Fields</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Char.val" data-verso-hover="3554">val</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Char.val" data-verso-hover="3777">val</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></pre><div class="docs">
                       <p>
-                        The underlying Unicode scalar value as a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></code>.</p>
+                        The underlying Unicode scalar value as a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></code>.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Char.valid" data-verso-hover="3555">valid</span> : <span class="var token" data-binding="var-_uniq.2" data-verso-hover="149">self</span>.<a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char.val" data-verso-hover="151">val</span></a>.<a href="Basic-Types/Fixed-Precision-Integers/#UInt32___isValidChar"><span class="const token" data-binding="const-UInt32.isValidChar" data-verso-hover="155">isValidChar</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Char.valid" data-verso-hover="3778">valid</span> : <span class="var token" data-binding="var-_uniq.2" data-verso-hover="222">self</span>.<a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char.val" data-verso-hover="224">val</span></a>.<a href="Basic-Types/Fixed-Precision-Integers/#UInt32___isValidChar"><span class="const token" data-binding="const-UInt32.isValidChar" data-verso-hover="228">isValidChar</span></a></pre><div class="docs">
                       <p>
                         The value must be a legal scalar value.</p>
                       </div>
@@ -2233,16 +2247,16 @@ Lean provides special <a href="Basic-Types/Characters/#char-syntax">syntax</a> f
               </section>
             <section>
               <h2 id="char-runtime">
-                14.7.2. Run-Time Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-runtime" title="Permalink">🔗</a></span></h2>
+                18.7.2. Run-Time Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-runtime" title="Permalink">🔗</a></span></h2>
               <p>
-                As a <a href="The-Type-System/Inductive-Types/#inductive-types-trivial-wrappers">trivial wrapper</a>, characters are represented identically to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></code>.
+                As a <a href="The-Type-System/Inductive-Types/#inductive-types-trivial-wrappers">trivial wrapper</a>, characters are represented identically to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></code>.
 In particular, characters are represented as 32-bit immediate values in monomorphic contexts.
-In other words, a field of a constructor or structure of type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></code> does not require indirection to access.
+In other words, a field of a constructor or structure of type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code> does not require indirection to access.
 In polymorphic contexts, characters are boxed.</p>
               </section>
             <section>
               <h2 id="char-syntax">
-                14.7.3. Syntax<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-syntax" title="Permalink">🔗</a></span></h2>
+                18.7.3. Syntax<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-syntax" title="Permalink">🔗</a></span></h2>
               <p>
                 Character literals consist of a single character or an escape sequence enclosed in single quotes (<code>'</code>, Unicode <code>'APOSTROPHE' (U+0027)</code>).
 Between these single quotes, the character literal may contain character other that <code>'</code>, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as <code>'\n'</code>, regardless of file encoding and platform).
@@ -2257,19 +2271,19 @@ The following forms of escape sequences are accepted:</p>
                   </dd></dl></section>
             <section>
               <h2 id="char-api">
-                14.7.4. API Reference<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-api" title="Permalink">🔗</a></span></h2>
+                18.7.4. API Reference<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-api" title="Permalink">🔗</a></span></h2>
               <section>
                 <h3 id="The-Lean-Language-Reference--Basic-Types--Characters--API-Reference--Conversions">
-                  14.7.4.1. Conversions</h3>
+                  18.7.4.1. Conversions</h3>
                 <div class="namedocs" id="Char___ofNat">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.ofNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.ofNat (<span class="var token" data-binding="var-_uniq.12" data-verso-hover="7">n</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.ofNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.ofNat (<span class="var token" data-binding="var-_uniq.12" data-verso-hover="7">n</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></pre><div class="text">
                     <p>
-                      Converts a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> into a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></code>. If the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> does not encode a valid Unicode scalar value, <code>'\0'</code> is
+                      Converts a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> into a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code>. If the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> does not encode a valid Unicode scalar value, <code>'\0'</code> is
 returned instead.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___toNat">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toNat (<span class="var token" data-binding="var-_uniq.14" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toNat" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toNat (<span class="var token" data-binding="var-_uniq.14" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="text">
                     <p>
                       The character's Unicode code point as a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>.</p>
                     </div>
@@ -2282,7 +2296,7 @@ values</a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___ofUInt8">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.ofUInt8" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.ofUInt8 (<span class="var token" data-binding="var-_uniq.19" data-verso-hover="2197">n</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="386">UInt8</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.ofUInt8" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.ofUInt8 (<span class="var token" data-binding="var-_uniq.19" data-verso-hover="2745">n</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="458">UInt8</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></pre><div class="text">
                     <p>
                       Converts an 8-bit unsigned integer into a character.</p>
                     <p>
@@ -2290,18 +2304,18 @@ values</a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___toUInt8">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toUInt8" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toUInt8 (<span class="var token" data-binding="var-_uniq.22" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="386">UInt8</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toUInt8" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toUInt8 (<span class="var token" data-binding="var-_uniq.22" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="458">UInt8</span></a></pre><div class="text">
                     <p>
-                      Converts a character into a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="386">UInt8</span></a></code> that contains its code point.</p>
+                      Converts a character into a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="458">UInt8</span></a></code> that contains its code point.</p>
                     <p>
                       If the code point is larger than 255, it is truncated (reduced modulo 256).</p>
                     </div>
                   </div>
                 <p>
                   There are two ways to convert a character to a string.
-<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">Char.toString</span></a></code> converts a character to a singleton string that consists of only that character, while <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">Char.quote</span></a></code> converts the character to a string representation of the corresponding character literal.</p>
+<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">Char.toString</span></a></code> converts a character to a singleton string that consists of only that character, while <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">Char.quote</span></a></code> converts the character to a string representation of the corresponding character literal.</p>
                 <div class="namedocs" id="Char___toString">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toString" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toString (<span class="var token" data-binding="var-_uniq.34" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toString" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toString (<span class="var token" data-binding="var-_uniq.34" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="text">
                     <p>
                       Constructs a singleton string that contains only the provided character.</p>
                     <p>
@@ -2309,17 +2323,17 @@ values</a>.</p>
                     <ul>
                       <li>
                         <p>
-                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'L'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">toString</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3558">"L"</span></code></p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'L'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">toString</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3781">"L"</span></code></p>
                         </li>
                       <li>
                         <p>
-                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">toString</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3559">"\""</span></code></p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">toString</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3782">"\""</span></code></p>
                         </li>
                       </ul>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___quote">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.quote" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.quote (<span class="var token" data-binding="var-_uniq.44" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.quote" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.quote (<span class="var token" data-binding="var-_uniq.44" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="text">
                     <p>
                       Quotes the character to its representation as a character literal, surrounded by single quotes and
 escaped as necessary.</p>
@@ -2328,49 +2342,51 @@ escaped as necessary.</p>
                     <ul>
                       <li>
                         <p>
-                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'L'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">quote</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3560">"'L'"</span></code></p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'L'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">quote</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3783">"'L'"</span></code></p>
                         </li>
                       <li>
                         <p>
-                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">quote</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3561">"'\\\"'"</span></code></p>
+                          <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">quote</span></a> <span class="unknown token" data-binding="">=</span> <span class="literal string token" data-binding="" data-verso-hover="3784">"'\\\"'"</span></code></p>
                         </li>
                       </ul>
                     </div>
                   </div>
-                <details class="example"><summary class="description">From Characters to Strings</summary><p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">Char.toString</span></a></code> produces a string that contains only the character in question:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"e"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3195" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'e'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">toString</span></a>
+                <details class="example"><summary class="description">From Characters to Strings</summary><div class="example-content">
+                    <p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">Char.toString</span></a></code> produces a string that contains only the character in question:</p>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"e"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3195" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'e'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">toString</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"e"
+                      <pre>"e"
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"e"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3264" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'\x65'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">toString</span></a>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"e"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3264" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'\x65'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">toString</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"e"
+                      <pre>"e"
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"\""</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3337" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3556">toString</span></a>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"\""</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3337" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___toString"><span class="const token" data-binding="const-Char.toString" data-verso-hover="3779">toString</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"\""
+                      <pre>"\""
 </pre></div>
-                  <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">Char.quote</span></a></code> produces a string that contains a character literal, suitably escaped:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'e'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3498" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'e'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">quote</span></a>
+                    <p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">Char.quote</span></a></code> produces a string that contains a character literal, suitably escaped:</p>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'e'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3498" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'e'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">quote</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"'e'"
+                      <pre>"'e'"
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'e'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3568" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'\x65'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">quote</span></a>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'e'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3568" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'\x65'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">quote</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"'e'"
+                      <pre>"'e'"
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'\\\"'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3642" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3557">quote</span></a>
+                    <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"'\\\"'"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3642" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">'"'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___quote"><span class="const token" data-binding="const-Char.quote" data-verso-hover="3780">quote</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>"'\\\"'"
+                      <pre>"'\\\"'"
 </pre></div>
+                    </div>
                   </details></section>
               <section>
                 <h3 id="char-api-classes">
-                  14.7.4.2. Character Classes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-api-classes" title="Permalink">🔗</a></span></h3>
+                  18.7.4.2. Character Classes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=char-api-classes" title="Permalink">🔗</a></span></h3>
                 <div class="namedocs" id="Char___isAlpha">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isAlpha" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isAlpha (<span class="var token" data-binding="var-_uniq.58" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isAlpha" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isAlpha (<span class="var token" data-binding="var-_uniq.58" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is an ASCII letter.</p>
                     <p>
@@ -2378,7 +2394,7 @@ escaped as necessary.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___isAlphanum">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isAlphanum" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isAlphanum (<span class="var token" data-binding="var-_uniq.88" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isAlphanum" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isAlphanum (<span class="var token" data-binding="var-_uniq.88" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is an ASCII letter or digit.</p>
                     <p>
@@ -2387,7 +2403,7 @@ The ASCII digits are the following: <code class="hl lean inline" data-lean-conte
                     </div>
                   </div>
                 <div class="namedocs" id="Char___isDigit">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isDigit" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isDigit (<span class="var token" data-binding="var-_uniq.109" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isDigit" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isDigit (<span class="var token" data-binding="var-_uniq.109" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is an ASCII digit.</p>
                     <p>
@@ -2395,7 +2411,7 @@ The ASCII digits are the following: <code class="hl lean inline" data-lean-conte
                     </div>
                   </div>
                 <div class="namedocs" id="Char___isLower">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isLower" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isLower (<span class="var token" data-binding="var-_uniq.121" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isLower" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isLower (<span class="var token" data-binding="var-_uniq.121" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is a lowercase ASCII letter.</p>
                     <p>
@@ -2403,7 +2419,7 @@ The ASCII digits are the following: <code class="hl lean inline" data-lean-conte
                     </div>
                   </div>
                 <div class="namedocs" id="Char___isUpper">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isUpper" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isUpper (<span class="var token" data-binding="var-_uniq.133" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isUpper" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isUpper (<span class="var token" data-binding="var-_uniq.133" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is a uppercase ASCII letter.</p>
                     <p>
@@ -2411,7 +2427,7 @@ The ASCII digits are the following: <code class="hl lean inline" data-lean-conte
                     </div>
                   </div>
                 <div class="namedocs" id="Char___isWhitespace">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isWhitespace" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isWhitespace (<span class="var token" data-binding="var-_uniq.364" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.isWhitespace" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.isWhitespace (<span class="var token" data-binding="var-_uniq.364" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="text">
                     <p>
                       Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> if the character is a space <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">' '</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.225" data-verso-hover="7">U</span><span class="unknown token" data-binding="">+</span><span class="typed token" data-binding="" data-verso-hover="7">0020</span><span class="unknown token" data-binding="">)</span></code>, a tab <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">'\t'</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.225" data-verso-hover="7">U</span><span class="unknown token" data-binding="">+</span><span class="typed token" data-binding="" data-verso-hover="7">0009</span><span class="unknown token" data-binding="">)</span></code>, a carriage
 return <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">'\r'</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">U</span><span class="unknown token" data-binding="">+</span><span class="unknown token" data-binding="">000</span><span class="unknown token" data-binding="">D</span><span class="unknown token" data-binding="">)</span></code>, or a newline <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">'\n'</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">U</span><span class="unknown token" data-binding="">+</span><span class="unknown token" data-binding="">000</span><span class="unknown token" data-binding="">A</span><span class="unknown token" data-binding="">)</span></code>.</p>
@@ -2420,9 +2436,9 @@ return <code class="hl lean inline" data-lean-context="docstring-examples"><span
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Basic-Types--Characters--API-Reference--Case-Conversion">
-                  14.7.4.3. Case Conversion</h3>
+                  18.7.4.3. Case Conversion</h3>
                 <div class="namedocs" id="Char___toUpper">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toUpper" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toUpper (<span class="var token" data-binding="var-_uniq.376" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toUpper" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toUpper (<span class="var token" data-binding="var-_uniq.376" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></pre><div class="text">
                     <p>
                       Converts a lowercase ASCII letter to the corresponding uppercase letter. Letters outside the ASCII
 alphabet are returned unchanged.</p>
@@ -2431,7 +2447,7 @@ alphabet are returned unchanged.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___toLower">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toLower" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toLower (<span class="var token" data-binding="var-_uniq.388" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.toLower" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.toLower (<span class="var token" data-binding="var-_uniq.388" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></pre><div class="text">
                     <p>
                       Converts an uppercase ASCII letter to the corresponding lowercase letter. Letters outside the ASCII
 alphabet are returned unchanged.</p>
@@ -2442,16 +2458,16 @@ alphabet are returned unchanged.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Basic-Types--Characters--API-Reference--Comparisons">
-                  14.7.4.4. Comparisons</h3>
+                  18.7.4.4. Comparisons</h3>
                 <div class="namedocs" id="Char___le">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.le" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.le (<span class="var token" data-binding="var-_uniq.391" data-verso-hover="149">a </span><span class="var token" data-binding="var-_uniq.392" data-verso-hover="149">b</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.le" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.le (<span class="var token" data-binding="var-_uniq.391" data-verso-hover="222">a </span><span class="var token" data-binding="var-_uniq.392" data-verso-hover="222">b</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
                     <p>
                       One character is less than or equal to another if its code point is less than or equal to the
 other's.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___lt">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.lt" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.lt (<span class="var token" data-binding="var-_uniq.395" data-verso-hover="149">a </span><span class="var token" data-binding="var-_uniq.396" data-verso-hover="149">b</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.lt" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.lt (<span class="var token" data-binding="var-_uniq.395" data-verso-hover="222">a </span><span class="var token" data-binding="var-_uniq.396" data-verso-hover="222">b</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
                     <p>
                       One character is less than another if its code point is strictly less than the other's.</p>
                     </div>
@@ -2459,24 +2475,24 @@ other's.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--Basic-Types--Characters--API-Reference--Unicode">
-                  14.7.4.5. Unicode</h3>
+                  18.7.4.5. Unicode</h3>
                 <div class="namedocs" id="Char___utf8Size">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.utf8Size" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.utf8Size (<span class="var token" data-binding="var-_uniq.398" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.utf8Size" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.utf8Size (<span class="var token" data-binding="var-_uniq.398" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="text">
                     <p>
-                      Returns the number of bytes required to encode this <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></code> in UTF-8.</p>
+                      Returns the number of bytes required to encode this <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code> in UTF-8.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="Char___utf16Size">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.utf16Size" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.utf16Size (<span class="var token" data-binding="var-_uniq.400" data-verso-hover="149">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a>) : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Char.utf16Size" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Char.utf16Size (<span class="var token" data-binding="var-_uniq.400" data-verso-hover="222">c</span> : <a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a>) : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></pre><div class="text">
                     <p>
-                      Returns the number of bytes required to encode this <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="103">Char</span></a></code> in UTF-16.</p>
+                      Returns the number of bytes required to encode this <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code> in UTF-16.</p>
                     </div>
                   </div>
                 </section>
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Floating-Point-Numbers/#Float" rel="prev" title="14.6. Floating-Point Numbers"><span class="arrow">←</span><span class="where">14.6. Floating-Point Numbers</span></a><a class="local-button active" href="Basic-Types/Strings/#String" rel="next" title="14.8. Strings"><span class="where">14.8. Strings</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Floating-Point-Numbers/#Float" rel="prev" title="18.6. Floating-Point Numbers"><span class="arrow">←</span><span class="where">18.6. Floating-Point Numbers</span></a><a class="local-button active" href="Basic-Types/Strings/#String" rel="next" title="18.8. Strings"><span class="where">18.8. Strings</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

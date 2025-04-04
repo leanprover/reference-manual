@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">14.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
-              <table><tr class="numbered"><td class="num">14.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">14.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">14.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">14.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">14.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">14.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">14.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">14.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">14.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">14.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">14.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">14.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">14.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">14.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="current numbered"><td class="num">14.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">14.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
+                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">18.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
+              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">18.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">18.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">18.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">18.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">18.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">18.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">18.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">18.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">18.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">18.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">18.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">18.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="current numbered"><td class="num">18.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">18.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-Subtype" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Subtype" checked="checked"></label><span class="number">14.17.</span> <span class="current"><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></span></div>
+                <label for="--verso-manual-toc-Subtype" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Subtype" checked="checked"></label><span class="number">18.17.</span> <span class="current"><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></span></div>
               <ol>
                 <li>
                   <a href="Basic-Types/Subtypes/#Subtype___mk"><code>Subtype</code></a></li>
@@ -2140,31 +2154,31 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Arrays/#Array" rel="prev" title="14.16. Arrays"><span class="arrow">←</span><span class="where">14.16. Arrays</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="14.18. Lazy Computations"><span class="where">14.18. Lazy Computations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Arrays/#Array" rel="prev" title="18.16. Arrays"><span class="arrow">←</span><span class="where">18.16. Arrays</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="18.18. Lazy Computations"><span class="where">18.18. Lazy Computations</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              14.17. Subtypes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Subtype" title="Permalink">🔗</a></span></h1>
+              18.17. Subtypes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Subtype" title="Permalink">🔗</a></span></h1>
             <p>
-              The structure <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> represents the elements of a type that satisfy some predicate.
+              The structure <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> represents the elements of a type that satisfy some predicate.
 They are used pervasively both in mathematics and in programming; in mathematics, they are used similarly to subsets, while in programming, they allow information that is known about a value to be represented in a way that is visible to Lean's logic.</p>
             <p>
-              Syntactically, an element of a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> resembles a tuple of the base type's element and the proof that it satisfies the proposition.
-They differ from dependent pair types (<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3164">Sigma</span></a></code>) in that the second element is a proof of a proposition rather than data, and from existential quantification in that the entire <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> is a type rather than a proposition.
-Even though they are pairs syntactically, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> should really be thought of as elements of the base type with associated proof obligations.</p>
+              Syntactically, an element of a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> resembles a tuple of the base type's element and the proof that it satisfies the proposition.
+They differ from dependent pair types (<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3313">Sigma</span></a></code>) in that the second element is a proof of a proposition rather than data, and from existential quantification in that the entire <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> is a type rather than a proposition.
+Even though they are pairs syntactically, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> should really be thought of as elements of the base type with associated proof obligations.</p>
             <p>
               Subtypes are <a href="The-Type-System/Inductive-Types/#inductive-types-trivial-wrappers">trivial wrappers</a>.
 They are thus represented identically to the base type in compiled code.</p>
             <div class="namedocs" id="Subtype___mk">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Subtype.val" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">Subtype.{u} {<span class="var token" data-binding="var-_uniq.986" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>} (<span class="var token" data-binding="var-_uniq.988" data-verso-hover="397">p</span> : <span class="var token" data-binding="var-_uniq.986" data-verso-hover="95">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>) :
-  <span class="sort token" data-binding="" data-verso-hover="96">Sort (max 1 u)</span></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Subtype.val" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">Subtype.{u} {<span class="var token" data-binding="var-_uniq.986" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>} (<span class="var token" data-binding="var-_uniq.988" data-verso-hover="469">p</span> : <span class="var token" data-binding="var-_uniq.986" data-verso-hover="168">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>) :
+  <span class="sort token" data-binding="" data-verso-hover="169">Sort (max 1 u)</span></pre><div class="text">
                 <p>
                   All the elements of a type that satisfy a predicate.</p>
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="397">p</span></code>, usually written <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="95">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.55" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.55" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code>, contains all elements <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.40" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="95">α</span></code> for
-which <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.40" data-verso-hover="46">x</span></code> is true. Its constructor is a pair of the value and the proof that it satisfies the
-predicate. In run-time code, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.61" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="95">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.61" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> is represented identically to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="95">α</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="469">p</span></code>, usually written <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.49" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.55" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.55" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code>, contains all elements <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.40" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="168">α</span></code> for
+which <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.40" data-verso-hover="46">x</span></code> is true. Its constructor is a pair of the value and the proof that it satisfies the
+predicate. In run-time code, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.61" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.61" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> is represented identically to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="168">α</span></code>.</p>
                 <p>
-                  There is a coercion from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.68" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="95">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.64" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.68" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.63" data-verso-hover="95">α</span></code>, so elements of a subtype may be used where the
+                  There is a coercion from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.68" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.64" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.68" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.63" data-verso-hover="168">α</span></code>, so elements of a subtype may be used where the
 underlying type is expected.</p>
                 <p>
                   Examples:</p>
@@ -2175,7 +2189,7 @@ underlying type is expected.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.377" data-verso-hover="2204">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.377" data-verso-hover="2204">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="87">size</span></a> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">}</span></code> is the type of arrays with five <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code>s.</p>
+                      <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.377" data-verso-hover="2752">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.377" data-verso-hover="2752">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">}</span></code> is the type of arrays with five <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code>s.</p>
                     </li>
                   <li>
                     <p>
@@ -2188,26 +2202,26 @@ contained in <code class="hl lean inline" data-lean-context="docstring-examples"
                 <ul>
                   <li>
                     <p>
-                      The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.963" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.958" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.963" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">subtype</span></code>.</p>
+                      The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.963" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.958" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.963" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">subtype</span></code>.</p>
                     </li>
                   </ul>
                 <h1>
                   Constructor</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.mk" data-verso-hover="396">Subtype.mk</span></a>.{u}</pre><div class="docs"></div>
+                  <pre class="name-and-type hl lean"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.mk" data-verso-hover="468">Subtype.mk</span></a>.{u}</pre><div class="docs"></div>
                   </section>
                 <h1>
                   Fields</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4361">val</span> : <span class="var token" data-binding="var-_uniq.978" data-verso-hover="95">α</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4587">val</span> : <span class="var token" data-binding="var-_uniq.978" data-verso-hover="168">α</span></pre><div class="docs">
                     <p>
                       The value in the underlying type that satisfies the predicate.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4362">property</span> : <span class="var token" data-binding="var-_uniq.979" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.980" data-verso-hover="4363">self</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="399">val</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4588">property</span> : <span class="var token" data-binding="var-_uniq.979" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.980" data-verso-hover="4589">self</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="471">val</span></a></pre><div class="docs">
                     <p>
-                      The proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.999" data-verso-hover="46">val</span></code> satisfies the predicate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.998" data-verso-hover="397">p</span></code>.</p>
+                      The proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.999" data-verso-hover="46">val</span></code> satisfies the predicate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.998" data-verso-hover="469">p</span></code>.</p>
                     </div>
                   </section>
                 </div>
@@ -2234,7 +2248,7 @@ Examples:
 Conventions for notations in identifiers:
 
  * The recommended spelling of `{ x // p x }` in identifiers is `subtype`.</code></code><span class="keyword">{</span> <span class="nonterminal" data-kind="ident">ident</span> <span class="from-nonterminal" data-kind="null"><span class="keyword">:</span> <span class="nonterminal" data-kind="term.pseudo">term</span> </span><span class="keyword">//</span> <span class="nonterminal" data-kind="term.pseudo">term</span> <span class="keyword">}</span></span></pre><p>
-                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.1009" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.1003" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.1005" data-verso-hover="131">p</span> <span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1671">fun</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1019" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.1013" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.1015" data-verso-hover="131">p</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.1009" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.1003" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.1005" data-verso-hover="204">p</span> <span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1671">fun</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1019" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.1013" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.1015" data-verso-hover="204">p</span></code>.</p>
                 <p>
                   The type ascription may be omitted:</p>
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_term___________________FLQQ_-next"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
@@ -2257,63 +2271,69 @@ Examples:
 Conventions for notations in identifiers:
 
  * The recommended spelling of `{ x // p x }` in identifiers is `subtype`.</code></code><span class="keyword">{</span> <span class="nonterminal" data-kind="ident">ident</span> <span class="from-nonterminal" data-kind="null"></span><span class="keyword">//</span> <span class="nonterminal" data-kind="term.pseudo">term</span> <span class="keyword">}</span></span></pre><p>
-                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.1030" data-verso-hover="4364">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.1025" data-verso-hover="131">p</span> <span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1821">fun</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="4365">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.1035" data-verso-hover="131">p</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.1030" data-verso-hover="4590">x</span> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.1025" data-verso-hover="204">p</span> <span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1821">fun</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="4591">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.1035" data-verso-hover="204">p</span></code>.</p>
                 </div>
               </div>
             <p>
               Due to <a class="technical-term" href="The-Type-System/#--tech-term-proof-irrelevance">proof irrelevance</a> and <a class="technical-term" href="The-Type-System/#--tech-term-___-equivalence">η-equality</a>, two elements of a subtype are definitionally equal when the elements of the base type are definitionally equal.
-In a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="" data-verso-hover="94">ext</span></a></code> tactic can be used to transform a goal of equality of elements of a subtype into equality of their values.</p>
-            <details class="example"><summary class="description">Definitional Equality of Subtypes</summary><p>
-                The non-empty strings <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span></code> are definitionally equal despite the fact that their embedded proof terms are different.
+In a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="" data-verso-hover="167">ext</span></a></code> tactic can be used to transform a goal of equality of elements of a subtype into equality of their values.</p>
+            <details class="example"><summary class="description">Definitional Equality of Subtypes</summary><div class="example-content">
+                <p>
+                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span></code> are definitionally equal despite the fact that their embedded proof terms are different.
 No case splitting is needed in order to prove that they are equal.</p>
-              <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2441">def</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="239">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="239">x</span> <span class="unknown token" data-binding="">≠</span> <span class="literal string token" data-binding="" data-verso-hover="254">""</span> <span class="unknown token" data-binding="">}</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2441">def</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="310">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="310">x</span> <span class="unknown token" data-binding="">≠</span> <span class="literal string token" data-binding="" data-verso-hover="325">""</span> <span class="unknown token" data-binding="">}</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2491">def</span> <span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟨</span><span class="literal string token" data-binding="" data-verso-hover="4369">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">,</span> <span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="4370">ne_of_beq_false</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="82">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟩</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2491">def</span> <span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟨</span><span class="literal string token" data-binding="" data-verso-hover="4595">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">,</span> <span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="4596">ne_of_beq_false</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟩</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2556">def</span> <span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-2580">where</span>
-  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4371">val</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="4369">"equal"</span>
-  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4372">property</span></a> <span class="unknown token" data-binding="">:=</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2621">fun</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4373">h</span> <span class="unknown token" data-binding="">=&gt;</span>
-      <span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="4374">List.cons_ne_nil</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="4375">String.data_eq_of_eq</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4373">h</span><span class="unknown token" data-binding="">)</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2556">def</span> <span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-2580">where</span>
+  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4597">val</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="4595">"equal"</span>
+  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4598">property</span></a> <span class="unknown token" data-binding="">:=</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2621">fun</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4599">h</span> <span class="unknown token" data-binding="">=&gt;</span>
+      <span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="4600">List.cons_ne_nil</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="4601">String.data_eq_of_eq</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4599">h</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-2683">theorem</span> <span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="4376">s1_eq_s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-3362957666913837900-2713-2715"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2713" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-3362957666913837900-2713-2715"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-2716-2719"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-2716" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2716-2719"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></details><details class="example"><summary class="description">Extensional Equality of Subtypes</summary><p>
-                The non-empty strings <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span></code> are definitionally equal.
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-2683">theorem</span> <span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="4602">s1_eq_s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-3362957666913837900-2713-2715"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2713" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-3362957666913837900-2713-2715"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-2716-2719"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-2716" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2716-2719"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code></div>
+              </details><details class="example"><summary class="description">Extensional Equality of Subtypes</summary><div class="example-content">
+                <p>
+                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span></code> are definitionally equal.
 Ignoring that fact, the equality of the embedded strings can be used to prove that they are equal.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="" data-verso-hover="94">ext</span></a></code> tactic transforms a goal that consists of equality of non-empty strings into a goal that consists of equality of the strings.</p>
-              <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3102">abbrev</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="239">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="239">x</span> <span class="unknown token" data-binding="">≠</span> <span class="literal string token" data-binding="" data-verso-hover="254">""</span> <span class="unknown token" data-binding="">}</span>
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="" data-verso-hover="167">ext</span></a></code> tactic transforms a goal that consists of equality of non-empty strings into a goal that consists of equality of the strings.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3102">abbrev</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="310">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="310">x</span> <span class="unknown token" data-binding="">≠</span> <span class="literal string token" data-binding="" data-verso-hover="325">""</span> <span class="unknown token" data-binding="">}</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3155">def</span> <span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟨</span><span class="literal string token" data-binding="" data-verso-hover="4369">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">,</span> <span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="4370">ne_of_beq_false</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="82">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟩</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3155">def</span> <span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟨</span><span class="literal string token" data-binding="" data-verso-hover="4595">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">,</span> <span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="4596">ne_of_beq_false</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟩</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3220">def</span> <span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4368">NonEmptyString</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-3244">where</span>
-  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4371">val</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="4369">"equal"</span>
-  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4372">property</span></a> <span class="unknown token" data-binding="">:=</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3285">fun</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4373">h</span> <span class="unknown token" data-binding="">=&gt;</span>
-      <span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="4374">List.cons_ne_nil</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="4375">String.data_eq_of_eq</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4373">h</span><span class="unknown token" data-binding="">)</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3220">def</span> <span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NonEmptyString" data-verso-hover="4594">NonEmptyString</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-3244">where</span>
+  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="4597">val</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="4595">"equal"</span>
+  <a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="4598">property</span></a> <span class="unknown token" data-binding="">:=</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3285">fun</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4599">h</span> <span class="unknown token" data-binding="">=&gt;</span>
+      <span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="4600">List.cons_ne_nil</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="4601">String.data_eq_of_eq</span> <span class="var token" data-binding="var-_uniq.147" data-verso-hover="4599">h</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3347">theorem</span> <span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="4376">s1_eq_s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-3362957666913837900-3377-3379"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3377" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-3362957666913837900-3377-3379"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-15133596744779281116-3382-3385"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-3382" data-verso-hover="94">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15133596744779281116-3382-3385"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-469" checked="checked"><span for="--verso-unique-469" class="goal-name">a</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="399">val</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="399">val</span></a></span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-3388-3407"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-3388" data-verso-hover="312">dsimp</span></a> <span class="keyword token" data-binding="kw-occ-null-3394">only</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-s1" data-verso-hover="4366">s1</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-s2" data-verso-hover="4367">s2</span><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3388-3407"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></details><p>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3347">theorem</span> <span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="4602">s1_eq_s2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span> <span class="unknown token" data-binding="">=</span> <span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-3362957666913837900-3377-3379"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3377" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-3362957666913837900-3377-3379"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-15133596744779281116-3382-3385"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-3382" data-verso-hover="167">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15133596744779281116-3382-3385"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-522" checked="checked"><span for="--verso-unique-522" class="goal-name">a</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="471">val</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span>.<a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="471">val</span></a></span></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-7-3388-3407"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-3388" data-verso-hover="769">dsimp</span></a> <span class="keyword token" data-binding="kw-occ-null-3394">only</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-s1" data-verso-hover="4592">s1</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-s2" data-verso-hover="4593">s2</span><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3388-3407"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code></div>
+              </details><p>
               There is a coercion from a subtype to its base type.
 This allows subtypes to be used in positions where the base type is expected, essentially erasing the proof that the value satisfies the predicate.</p>
-            <details class="example"><summary class="description">Subtype Coercions</summary><p>
-                Elements of subtypes can be coerced to their base type.
-Here, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-nine" data-verso-hover="4377">nine</span></a></code> is coerced from a subtype of <code>Nat</code> that contains multiples of <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">3</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>.</p>
-              <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3857">abbrev</span> <span class="const token" data-binding="const-DivBy3" data-verso-hover="4378" id="DivBy3">DivBy3</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">%</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span> <span class="unknown token" data-binding="">}</span>
+            <details class="example"><summary class="description">Subtype Coercions</summary><div class="example-content">
+                <p>
+                  Elements of subtypes can be coerced to their base type.
+Here, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-nine" data-verso-hover="4603">nine</span></a></code> is coerced from a subtype of <code>Nat</code> that contains multiples of <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">3</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3857">abbrev</span> <span class="const token" data-binding="const-DivBy3" data-verso-hover="4604" id="DivBy3">DivBy3</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">//</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">%</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span> <span class="unknown token" data-binding="">}</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3900">def</span> <span class="const token" data-binding="const-nine" data-verso-hover="4377" id="DivBy3">nine</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-DivBy3" data-verso-hover="4378">DivBy3</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">9</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">,</span> <span class="tactic"><label for="tactic-state-16071041540479082926-3927-3929"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3927" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16071041540479082926-3927-3929"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">9<a href="Type-Classes/Basic-Classes/#HMod___mk"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="830"> % </span></a>3<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>0</span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-3930-3933"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3930" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3930-3933"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="396">⟩</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3900">def</span> <span class="const token" data-binding="const-nine" data-verso-hover="4603" id="DivBy3">nine</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-DivBy3" data-verso-hover="4604">DivBy3</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">9</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">,</span> <span class="tactic"><label for="tactic-state-16071041540479082926-3927-3929"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3927" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16071041540479082926-3927-3929"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">9<a href="Type-Classes/Basic-Classes/#HMod___mk"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="1387"> % </span></a>3<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>0</span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-3930-3933"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3930" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3930-3933"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="468">⟩</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3938" data-verso-hover="160">set_option</span> <a href="Interacting-with-Lean/#eval___type"><span class="option token" data-binding="option-eval.type" data-verso-hover="681">eval.type</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3938" data-verso-hover="160">true</span> <a href="Source-Files/Module-Contents/#Lean___Parser___Command___in"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-3938">in</span></a>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">10 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3967" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="12">Nat.succ</span></a> <a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-nine" data-verso-hover="4377">nine</span></a>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3938" data-verso-hover="89">set_option</span> <a href="Interacting-with-Lean/#eval___type"><span class="option token" data-binding="option-eval.type" data-verso-hover="71">eval.type</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3938" data-verso-hover="89">true</span> <a href="Namespaces-and-Sections/#Lean___Parser___Command___in"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-3938">in</span></a>
+<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">10 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-3967" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="12">Nat.succ</span></a> <a href="Basic-Types/Subtypes/#DivBy3"><span class="const token" data-binding="const-nine" data-verso-hover="4603">nine</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                <pre>10 : Nat
+                  <pre>10 : Nat
 </pre></div>
+                </div>
               </details></section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Arrays/#Array" rel="prev" title="14.16. Arrays"><span class="arrow">←</span><span class="where">14.16. Arrays</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="14.18. Lazy Computations"><span class="where">14.18. Lazy Computations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Arrays/#Array" rel="prev" title="18.16. Arrays"><span class="arrow">←</span><span class="where">18.16. Arrays</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="18.18. Lazy Computations"><span class="where">18.18. Lazy Computations</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

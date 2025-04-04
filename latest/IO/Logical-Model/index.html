@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="current numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="current numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-io" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io" checked="checked"></label><span class="number">10.</span> <span class=""><a href="IO/#io">IO</a></span></div>
-              <table><tr class="current numbered"><td class="num">10.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">10.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">10.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">10.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">10.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">10.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">10.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">10.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="numbered"><td class="num">10.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">10.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">10.11.</td><td><a href="IO/Tasks-and-Threads/#The-Lean-Language-Reference--IO--Tasks-and-Threads">Tasks and Threads</a></td></tr></table></div>
+                <label for="--verso-manual-toc-io" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io" checked="checked"></label><span class="number">15.</span> <span class=""><a href="IO/#io">IO</a></span></div>
+              <table><tr class="current numbered"><td class="num">15.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">15.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">15.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">15.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">15.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">15.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">15.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">15.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="numbered"><td class="num">15.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">15.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">15.11.</td><td><a href="IO/Tasks-and-Threads/#concurrency">Tasks and Threads</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-The-Lean-Language-Reference--IO--Logical-Model" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--IO--Logical-Model" checked="checked"></label><span class="number">10.1.</span> <span class="current"><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></span></div>
+                <label for="--verso-manual-toc-The-Lean-Language-Reference--IO--Logical-Model" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--IO--Logical-Model" checked="checked"></label><span class="number">15.1.</span> <span class="current"><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></span></div>
               <ol>
                 <li>
                   <span class="header head-1"><span class="level-num">1.</span> <a href="IO/Logical-Model/#io-monad">The <code>IO</code>, <code>EIO</code> and <code>BaseIO</code> Monads</a></span></li>
@@ -2168,19 +2182,19 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="IO/#io" rel="prev" title="10. IO"><span class="arrow">←</span><span class="where">10. IO</span></a><a class="local-button active" href="IO/Control-Structures/#io-monad-control" rel="next" title="10.2. Control Structures"><span class="where">10.2. Control Structures</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="IO/#io" rel="prev" title="15. IO"><span class="arrow">←</span><span class="where">15. IO</span></a><a class="local-button active" href="IO/Control-Structures/#io-monad-control" rel="next" title="15.2. Control Structures"><span class="where">15.2. Control Structures</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              10.1. Logical Model</h1>
+              15.1. Logical Model</h1>
             <p>
               Conceptually, Lean distinguishes evaluation or reduction of terms from <em>execution</em> of side effects.
 Term reduction is specified by rules such as <a class="technical-term" href="The-Type-System/#--tech-term-___">β</a> and <a class="technical-term" href="The-Type-System/#--tech-term-___-next">δ</a>, which may occur anywhere at any time.
 Side effects, which must be executed in the correct order, are abstractly described in Lean's logic.
 When programs are run, the Lean runtime system is responsible for actually carrying out the described effects.</p>
             <p>
-              The type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="const token" data-binding="const-α" data-verso-hover="2401">α</span></code> is a description of a process that, by performing side effects, should either return a value of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-α" data-verso-hover="2401">α</span></code> or throw an error.
+              The type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="const token" data-binding="const-α" data-verso-hover="2946">α</span></code> is a description of a process that, by performing side effects, should either return a value of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-α" data-verso-hover="2946">α</span></code> or throw an error.
 It can be thought of as a <a class="technical-term" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#--tech-term-State-monads">state monad</a> in which the state is the entire world.
-Just as a value of type <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#StateM"><span class="const token" data-binding="const-StateM" data-verso-hover="1586">StateM</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code> computes a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code> while having the ability to mutate a natural number, a value of type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code> computes a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code> while potentially changing the world.
+Just as a value of type <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#StateM"><span class="const token" data-binding="const-StateM" data-verso-hover="1533">StateM</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code> computes a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code> while having the ability to mutate a natural number, a value of type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code> computes a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code> while potentially changing the world.
 Error handling is accomplished by layering an appropriate exception monad transformer on top of this.</p>
             <p>
               Because the entire world can't be represented in memory, the actual implementation uses an abstract token that stands for its state.
@@ -2188,7 +2202,7 @@ The Lean runtime system is responsible for providing the initial token when the 
 This ensures that effects occur in the proper order, and it clearly separates the execution of side effects from the reduction semantics of Lean terms.</p>
             <p>
               Non-termination via general recursion is treated separately from the effects described by <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>.
-Programs that may not terminate due to infinite loops must be defined as <a href="Recursive-Definitions/Partial-and-Unsafe-Recursive-Definitions/#partial-unsafe"><code>partial</code></a> functions.
+Programs that may not terminate due to infinite loops must be defined as <a href="Definitions/Recursive-Definitions/#partial-unsafe"><code>partial</code></a> functions.
 From the logical perspective, they are treated as arbitrary constants; <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> is not needed.</p>
             <p>
               A very important property of <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> is that there is no way for values to “escape”.
@@ -2196,26 +2210,26 @@ Without using one of a few clearly-marked unsafe operators, programs have no way
 This ensures that the correct ordering of side effects is preserved, and it ensures that programs that have side effects are clearly marked as such.</p>
             <section>
               <h2 id="io-monad">
-                10.1.1. The <code>IO</code>, <code>EIO</code> and <code>BaseIO</code> Monads<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-monad" title="Permalink">🔗</a></span></h2>
+                15.1.1. The <code>IO</code>, <code>EIO</code> and <code>BaseIO</code> Monads<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-monad" title="Permalink">🔗</a></span></h2>
               <p>
                 There are two monads that are typically used for programs that interact with the real world:</p>
               <ul>
                 <li>
                   <p>
-                    Actions in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> may throw exceptions of type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> or modify the world.</p>
+                    Actions in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> may throw exceptions of type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> or modify the world.</p>
                   </li>
                 <li>
                   <p>
-                    Actions in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> can't throw exceptions, but they can modify the world.</p>
+                    Actions in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> can't throw exceptions, but they can modify the world.</p>
                   </li>
                 </ul>
               <p>
                 The distinction makes it possible to tell whether exceptions are possible by looking at an action's type signature.
-<code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> actions are automatically promoted to <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> as necessary.</p>
+<code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> actions are automatically promoted to <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> as necessary.</p>
               <div class="namedocs" id="IO">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
-                    A monad that supports arbitrary side effects and throwing exceptions of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>.</p>
+                    A monad that supports arbitrary side effects and throwing exceptions of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>.</p>
                   </div>
                 </div>
               <div class="namedocs" id="BaseIO">
@@ -2225,97 +2239,97 @@ This ensures that the correct ordering of side effects is preserved, and it ensu
                   </div>
                 </div>
               <p>
-                Both <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> are instances of <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a></code>, in which the type of errors is a parameter.
-<code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> is defined as <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>, while <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> is defined as <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="193">Empty</span></a></code>.
-In some circumstances, such as bindings to non-Lean libraries, it can be convenient to use <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a></code> with a custom error type, which ensures that errors are handled at the boundaries between these and other <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> actions.</p>
+                Both <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> are instances of <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a></code>, in which the type of errors is a parameter.
+<code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> is defined as <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>, while <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> is defined as <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="264">Empty</span></a></code>.
+In some circumstances, such as bindings to non-Lean libraries, it can be convenient to use <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a></code> with a custom error type, which ensures that errors are handled at the boundaries between these and other <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> actions.</p>
               <div class="namedocs" id="EIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO (<span class="var token" data-binding="var-_uniq.39" data-verso-hover="88">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO (<span class="var token" data-binding="var-_uniq.39" data-verso-hover="162">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
-                    A monad that can have side effects on the external world or throw exceptions of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.31" data-verso-hover="88">ε</span></code>.</p>
+                    A monad that can have side effects on the external world or throw exceptions of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.31" data-verso-hover="162">ε</span></code>.</p>
                   <p>
-                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> is a version of this monad that cannot throw exceptions. <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> sets the exception type to
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>.</p>
+                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> is a version of this monad that cannot throw exceptions. <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> sets the exception type to
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___lazyPure">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.lazyPure" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.lazyPure {<span class="var token" data-binding="var-_uniq.46" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.48" data-verso-hover="2404">fn</span> : <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> → <span class="var token" data-binding="var-_uniq.46" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.46" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.lazyPure" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.lazyPure {<span class="var token" data-binding="var-_uniq.46" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.48" data-verso-hover="2947">fn</span> : <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> → <span class="var token" data-binding="var-_uniq.46" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.46" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Creates an IO action that will invoke <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.43" data-verso-hover="2404">fn</span></code> if and when it is executed, returning the result.</p>
+                    Creates an IO action that will invoke <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.43" data-verso-hover="2947">fn</span></code> if and when it is executed, returning the result.</p>
                   </div>
                 </div>
               <div class="namedocs" id="BaseIO___toIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=BaseIO.toIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">BaseIO.toIO {<span class="var token" data-binding="var-_uniq.59" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.60" data-verso-hover="2162">act</span> : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=BaseIO.toIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">BaseIO.toIO {<span class="var token" data-binding="var-_uniq.59" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.60" data-verso-hover="1327">act</span> : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Runs a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> action, which cannot throw an exception, as an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action.</p>
+                    Runs a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> action, which cannot throw an exception, as an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action.</p>
                   <p>
-                    This function is usually used implicitly via <a href="https://lean-lang.org/doc/reference/latest/find/?domain=Verso.Genre.Manual.section&name=lifting-monads">automatic monadic
+                    This function is usually used implicitly via <a href="https://lean-lang.org/doc/reference/4.19.0-rc2/find/?domain=Verso.Genre.Manual.section&name=lifting-monads">automatic monadic
 lifting</a> rather than being called explicitly.</p>
                   </div>
                 </div>
               <div class="namedocs" id="BaseIO___toEIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=BaseIO.toEIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">BaseIO.toEIO {<span class="var token" data-binding="var-_uniq.74" data-verso-hover="88">α </span><span class="var token" data-binding="var-_uniq.75" data-verso-hover="88">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.76" data-verso-hover="2162">act</span> : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.74" data-verso-hover="88">α</span>) :
-  <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.75" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.74" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=BaseIO.toEIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">BaseIO.toEIO {<span class="var token" data-binding="var-_uniq.74" data-verso-hover="162">α </span><span class="var token" data-binding="var-_uniq.75" data-verso-hover="162">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.76" data-verso-hover="1327">act</span> : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.74" data-verso-hover="162">α</span>) :
+  <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.75" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.74" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Runs a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> action, which cannot throw an exception, in any other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a></code> monad.</p>
+                    Runs a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> action, which cannot throw an exception, in any other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a></code> monad.</p>
                   <p>
-                    This function is usually used implicitly via <a href="https://lean-lang.org/doc/reference/latest/find/?domain=Verso.Genre.Manual.section&name=lifting-monads">automatic monadic
+                    This function is usually used implicitly via <a href="https://lean-lang.org/doc/reference/4.19.0-rc2/find/?domain=Verso.Genre.Manual.section&name=lifting-monads">automatic monadic
 lifting</a> rather being than called explicitly.</p>
                   </div>
                 </div>
               <div class="namedocs" id="EIO___toBaseIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toBaseIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toBaseIO {<span class="var token" data-binding="var-_uniq.86" data-verso-hover="88">ε </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.88" data-verso-hover="2405">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.87" data-verso-hover="88">α</span>) :
-  <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> (<a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.87" data-verso-hover="88">α</span>)</pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toBaseIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toBaseIO {<span class="var token" data-binding="var-_uniq.86" data-verso-hover="162">ε </span><span class="var token" data-binding="var-_uniq.87" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.88" data-verso-hover="1325">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.87" data-verso-hover="162">α</span>) :
+  <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> (<a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.87" data-verso-hover="162">α</span>)</pre><div class="text">
                   <p>
-                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.77" data-verso-hover="88">ε</span></code> action that might throw an exception of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.77" data-verso-hover="88">ε</span></code> into an exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code>
-action that returns an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a></code> value.</p>
+                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.77" data-verso-hover="162">ε</span></code> action that might throw an exception of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.77" data-verso-hover="162">ε</span></code> into an exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code>
+action that returns an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a></code> value.</p>
                   </div>
                 </div>
               <div class="namedocs" id="EIO___toIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toIO {<span class="var token" data-binding="var-_uniq.98" data-verso-hover="88">ε </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.101" data-verso-hover="2406">f</span> : <span class="var token" data-binding="var-_uniq.98" data-verso-hover="88">ε</span> → <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a>)
-  (<span class="var token" data-binding="var-_uniq.102" data-verso-hover="2405">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.98" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.99" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.99" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toIO {<span class="var token" data-binding="var-_uniq.98" data-verso-hover="162">ε </span><span class="var token" data-binding="var-_uniq.99" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.101" data-verso-hover="2948">f</span> : <span class="var token" data-binding="var-_uniq.98" data-verso-hover="162">ε</span> → <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a>)
+  (<span class="var token" data-binding="var-_uniq.102" data-verso-hover="1325">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.98" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.99" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.99" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="88">ε</span></code> action into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action by translating any exceptions that it throws into
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>s using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2406">f</span></code>.</p>
+                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="162">ε</span></code> action into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action by translating any exceptions that it throws into
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>s using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.91" data-verso-hover="2948">f</span></code>.</p>
                   </div>
                 </div>
               <div class="namedocs" id="EIO___toIO___">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toIO'" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toIO' {<span class="var token" data-binding="var-_uniq.112" data-verso-hover="88">ε </span><span class="var token" data-binding="var-_uniq.113" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.114" data-verso-hover="2405">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="88">α</span>) :
-  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="88">α</span>)</pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.toIO'" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.toIO' {<span class="var token" data-binding="var-_uniq.112" data-verso-hover="162">ε </span><span class="var token" data-binding="var-_uniq.113" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.114" data-verso-hover="1325">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="162">α</span>) :
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="162">α</span>)</pre><div class="text">
                   <p>
-                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="88">ε</span></code> action that might throw an exception of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.103" data-verso-hover="88">ε</span></code> into an exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>
-action that returns an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a></code> value.</p>
+                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="162">ε</span></code> action that might throw an exception of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.103" data-verso-hover="162">ε</span></code> into an exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>
+action that returns an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a></code> value.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___toEIO">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.toEIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.toEIO {<span class="var token" data-binding="var-_uniq.128" data-verso-hover="88">ε </span><span class="var token" data-binding="var-_uniq.129" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.131" data-verso-hover="2407">f</span> : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a> → <span class="var token" data-binding="var-_uniq.128" data-verso-hover="88">ε</span>)
-  (<span class="var token" data-binding="var-_uniq.132" data-verso-hover="2408">act</span> : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.128" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.toEIO" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.toEIO {<span class="var token" data-binding="var-_uniq.128" data-verso-hover="162">ε </span><span class="var token" data-binding="var-_uniq.129" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.131" data-verso-hover="2949">f</span> : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a> → <span class="var token" data-binding="var-_uniq.128" data-verso-hover="162">ε</span>)
+  (<span class="var token" data-binding="var-_uniq.132" data-verso-hover="1321">act</span> : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.128" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Runs an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action in some other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a></code> monad, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.117" data-verso-hover="2407">f</span></code> to translate <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> exceptions.</p>
+                    Runs an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action in some other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a></code> monad, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.117" data-verso-hover="2949">f</span></code> to translate <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> exceptions.</p>
                   </div>
                 </div>
               </section>
             <section>
               <h2 id="io-monad-errors">
-                10.1.2. Errors and Error Handling in <code>IO</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-monad-errors" title="Permalink">🔗</a></span></h2>
+                15.1.2. Errors and Error Handling in <code>IO</code><span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-monad-errors" title="Permalink">🔗</a></span></h2>
               <p>
                 Error handling in the <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> monad uses the same facilities as any other <a class="technical-term" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#--tech-term-Exception-monads">exception monad</a>.
-In particular, throwing and catching exceptions uses the methods of the <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExceptOf___mk"><span class="const token" data-binding="const-MonadExceptOf" data-verso-hover="2278">MonadExceptOf</span></a></code> <a class="technical-term" href="Type-Classes/#--tech-term-type-class">type class</a>.
-The exceptions thrown in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> have the type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>.
+In particular, throwing and catching exceptions uses the methods of the <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExceptOf___mk"><span class="const token" data-binding="const-MonadExceptOf" data-verso-hover="2824">MonadExceptOf</span></a></code> <a class="technical-term" href="Type-Classes/#--tech-term-type-class">type class</a>.
+The exceptions thrown in <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> have the type <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>.
 The constructors of this type represent the low-level errors that occur on most operating systems, such as files not existing.
-The most-used constructor is <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2409">userError</span></a></code>, which covers all other cases and includes a string that describes the problem.</p>
+The most-used constructor is <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2950">userError</span></a></code>, which covers all other cases and includes a string that describes the problem.</p>
               <div class="namedocs" id="IO___Error___alreadyExists">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Error.resourceExhausted" title="Permalink">🔗</a></span><span class="label">inductive type</span><pre class="signature hl lean block">IO.Error : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
                     Exceptions that may be thrown in the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> monad.</p>
                   <p>
-                    Many of the constructors of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> correspond to POSIX error numbers. In these cases, the
+                    Many of the constructors of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> correspond to POSIX error numbers. In these cases, the
 documentation string lists POSIX standard error macros that correspond to the error. This list is
 not necessarily exhaustive, and these constructor includes a field for the underlying error number.</p>
                   <h1>
                     Constructors</h1>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">alreadyExists (<span class="var token" data-binding="var-_uniq.141" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) (<span class="var token" data-binding="var-_uniq.142" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.143" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">alreadyExists (<span class="var token" data-binding="var-_uniq.141" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) (<span class="var token" data-binding="var-_uniq.142" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.143" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         The operation failed because a file already exists.</p>
                       <p>
@@ -2323,15 +2337,15 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">otherError (<span class="var token" data-binding="var-_uniq.144" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.145" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">otherError (<span class="var token" data-binding="var-_uniq.144" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.145" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
-                        Some error not covered by the other constructors of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> occurred.</p>
+                        Some error not covered by the other constructors of <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> occurred.</p>
                       <p>
                         This also includes POSIX error <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">EFAULT</span></code>.</p>
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">resourceBusy (<span class="var token" data-binding="var-_uniq.146" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.147" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">resourceBusy (<span class="var token" data-binding="var-_uniq.146" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.147" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A necessary resource was busy.</p>
                       <p>
@@ -2339,8 +2353,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">resourceVanished (<span class="var token" data-binding="var-_uniq.148" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.149" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) :
-  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">resourceVanished (<span class="var token" data-binding="var-_uniq.148" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.149" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) :
+  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A necessary resource is no longer available.</p>
                       <p>
@@ -2349,8 +2363,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">unsupportedOperation (<span class="var token" data-binding="var-_uniq.150" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.151" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) :
-  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">unsupportedOperation (<span class="var token" data-binding="var-_uniq.150" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.151" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) :
+  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An operation was not supported.</p>
                       <p>
@@ -2359,17 +2373,17 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">hardwareFault (<span class="var token" data-binding="var-_uniq.152" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.153" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) :
-  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">hardwareFault (<span class="var token" data-binding="var-_uniq.152" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.153" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) :
+  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         The operation failed due to a hardware problem, such as an I/O error.</p>
                       <p>
-                        This corresponds to the POSIX error <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a></code>.</p>
+                        This corresponds to the POSIX error <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a></code>.</p>
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">unsatisfiedConstraints (<span class="var token" data-binding="var-_uniq.154" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.155" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">unsatisfiedConstraints (<span class="var token" data-binding="var-_uniq.154" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.155" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A constraint required by an operation was not satisfied (e.g. a directory was not empty).</p>
                       <p>
@@ -2377,8 +2391,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">illegalOperation (<span class="var token" data-binding="var-_uniq.156" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.157" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) :
-  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">illegalOperation (<span class="var token" data-binding="var-_uniq.156" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.157" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) :
+  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An inappropriate I/O control operation was attempted.</p>
                       <p>
@@ -2386,8 +2400,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">protocolError (<span class="var token" data-binding="var-_uniq.158" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.159" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) :
-  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">protocolError (<span class="var token" data-binding="var-_uniq.158" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.159" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) :
+  <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A protocol error occurred.</p>
                       <p>
@@ -2395,7 +2409,7 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">timeExpired (<span class="var token" data-binding="var-_uniq.160" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.161" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">timeExpired (<span class="var token" data-binding="var-_uniq.160" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.161" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An operation timed out.</p>
                       <p>
@@ -2403,8 +2417,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">interrupted (<span class="var token" data-binding="var-_uniq.162" data-verso-hover="239">filename</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) (<span class="var token" data-binding="var-_uniq.163" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.164" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">interrupted (<span class="var token" data-binding="var-_uniq.162" data-verso-hover="310">filename</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) (<span class="var token" data-binding="var-_uniq.163" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.164" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         The operation was interrupted.</p>
                       <p>
@@ -2412,8 +2426,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">noFileOrDirectory (<span class="var token" data-binding="var-_uniq.165" data-verso-hover="239">filename</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) (<span class="var token" data-binding="var-_uniq.166" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.167" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">noFileOrDirectory (<span class="var token" data-binding="var-_uniq.165" data-verso-hover="310">filename</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) (<span class="var token" data-binding="var-_uniq.166" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.167" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         No such file or directory.</p>
                       <p>
@@ -2421,8 +2435,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">invalidArgument (<span class="var token" data-binding="var-_uniq.168" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) (<span class="var token" data-binding="var-_uniq.169" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.170" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">invalidArgument (<span class="var token" data-binding="var-_uniq.168" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) (<span class="var token" data-binding="var-_uniq.169" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.170" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An argument to an I/O operation was invalid.</p>
                       <p>
@@ -2431,8 +2445,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">permissionDenied (<span class="var token" data-binding="var-_uniq.171" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>)
-  (<span class="var token" data-binding="var-_uniq.172" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.173" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">permissionDenied (<span class="var token" data-binding="var-_uniq.171" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
+  (<span class="var token" data-binding="var-_uniq.172" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.173" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An operation failed due to insufficient permissions.</p>
                       <p>
@@ -2440,8 +2454,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">resourceExhausted (<span class="var token" data-binding="var-_uniq.174" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>)
-  (<span class="var token" data-binding="var-_uniq.175" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.176" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">resourceExhausted (<span class="var token" data-binding="var-_uniq.174" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
+  (<span class="var token" data-binding="var-_uniq.175" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.176" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A resource was exhausted.</p>
                       <p>
@@ -2450,8 +2464,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">inappropriateType (<span class="var token" data-binding="var-_uniq.177" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>)
-  (<span class="var token" data-binding="var-_uniq.178" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.179" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">inappropriateType (<span class="var token" data-binding="var-_uniq.177" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
+  (<span class="var token" data-binding="var-_uniq.178" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>) (<span class="var token" data-binding="var-_uniq.179" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An argument was the wrong type (e.g. a directory when a file was required).</p>
                       <p>
@@ -2459,8 +2473,8 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">noSuchThing (<span class="var token" data-binding="var-_uniq.180" data-verso-hover="2410">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) (<span class="var token" data-binding="var-_uniq.181" data-verso-hover="153">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)
-  (<span class="var token" data-binding="var-_uniq.182" data-verso-hover="239">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">noSuchThing (<span class="var token" data-binding="var-_uniq.180" data-verso-hover="2951">filename</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) (<span class="var token" data-binding="var-_uniq.181" data-verso-hover="226">osCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)
+  (<span class="var token" data-binding="var-_uniq.182" data-verso-hover="310">details</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         A required resource does not exist.</p>
                       <p>
@@ -2469,13 +2483,13 @@ not necessarily exhaustive, and these constructor includes a field for the under
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">unexpectedEof : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">unexpectedEof : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         An unexpected end-of-file marker was encountered.</p>
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">userError (<span class="var token" data-binding="var-_uniq.183" data-verso-hover="239">msg</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">userError (<span class="var token" data-binding="var-_uniq.183" data-verso-hover="310">msg</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="docs">
                       <p>
                         Some other error occurred.</p>
                       </div>
@@ -2483,79 +2497,81 @@ not necessarily exhaustive, and these constructor includes a field for the under
                   </div>
                 </div>
               <div class="namedocs" id="IO___Error___toString">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Error.toString" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Error.toString : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a> → <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Error.toString" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Error.toString : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a> → <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="text">
                   <p>
-                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> to a descriptive string.</p>
+                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> to a descriptive string.</p>
                   <p>
-                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2409">IO.Error.userError</span></a></code> is converted to its embedded message. The other constructors are converted in a
+                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2950">IO.Error.userError</span></a></code> is converted to its embedded message. The other constructors are converted in a
 way that preserves structured information, such as error codes and filenames, that can help
 diagnose the issue.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___ofExcept">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.ofExcept" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.ofExcept.{u_1} {<span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} {<span class="var token" data-binding="var-_uniq.927" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
-  [<span class="const token" data-binding="const-ToString" data-verso-hover="508">ToString</span> <span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span>] (<span class="var token" data-binding="var-_uniq.929" data-verso-hover="2192">e</span> : <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a> <span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span> <span class="var token" data-binding="var-_uniq.927" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.927" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.ofExcept" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.ofExcept.{u_1} {<span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} {<span class="var token" data-binding="var-_uniq.927" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>}
+  [<span class="const token" data-binding="const-ToString" data-verso-hover="67">ToString</span> <span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span>] (<span class="var token" data-binding="var-_uniq.929" data-verso-hover="2740">e</span> : <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a> <span class="var token" data-binding="var-_uniq.926" data-verso-hover="44">ε</span> <span class="var token" data-binding="var-_uniq.927" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.927" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a> <span class="var token" data-binding="var-_uniq.907" data-verso-hover="44">ε</span></code> action into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action.</p>
+                    Converts an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a> <span class="var token" data-binding="var-_uniq.907" data-verso-hover="44">ε</span></code> action into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> action.</p>
                   <p>
-                    If the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a> <span class="var token" data-binding="var-_uniq.917" data-verso-hover="44">ε</span></code> action throws an exception, then the exception type's <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="508">ToString</span></code> instance is used
-to convert it into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code>, which is thrown. Otherwise, the value is returned.</p>
+                    If the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error"><span class="const token" data-binding="const-Except" data-verso-hover="1322">Except</span></a> <span class="var token" data-binding="var-_uniq.917" data-verso-hover="44">ε</span></code> action throws an exception, then the exception type's <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="67">ToString</span></code> instance is used
+to convert it into an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code>, which is thrown. Otherwise, the value is returned.</p>
                   </div>
                 </div>
               <div class="namedocs" id="EIO___catchExceptions">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.catchExceptions" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.catchExceptions {<span class="var token" data-binding="var-_uniq.939" data-verso-hover="88">ε </span><span class="var token" data-binding="var-_uniq.940" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.941" data-verso-hover="2405">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.939" data-verso-hover="88">ε</span> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="88">α</span>)
-  (<span class="var token" data-binding="var-_uniq.943" data-verso-hover="2411">h</span> : <span class="var token" data-binding="var-_uniq.939" data-verso-hover="88">ε</span> → <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="88">α</span>) : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=EIO.catchExceptions" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">EIO.catchExceptions {<span class="var token" data-binding="var-_uniq.939" data-verso-hover="162">ε </span><span class="var token" data-binding="var-_uniq.940" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} (<span class="var token" data-binding="var-_uniq.941" data-verso-hover="1325">act</span> : <a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.939" data-verso-hover="162">ε</span> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="162">α</span>)
+  (<span class="var token" data-binding="var-_uniq.943" data-verso-hover="2952">h</span> : <span class="var token" data-binding="var-_uniq.939" data-verso-hover="162">ε</span> → <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="162">α</span>) : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> <span class="var token" data-binding="var-_uniq.940" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
-                    Handles any exception that might be thrown by an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="2403">EIO</span></a> <span class="var token" data-binding="var-_uniq.930" data-verso-hover="88">ε</span></code> action, transforming it into an
-exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a></code> action.</p>
+                    Handles any exception that might be thrown by an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#EIO"><span class="const token" data-binding="const-EIO" data-verso-hover="1326">EIO</span></a> <span class="var token" data-binding="var-_uniq.930" data-verso-hover="162">ε</span></code> action, transforming it into an
+exception-free <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a></code> action.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___userError">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.userError" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.userError (<span class="var token" data-binding="var-_uniq.949" data-verso-hover="239">s</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.userError" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.userError (<span class="var token" data-binding="var-_uniq.949" data-verso-hover="310">s</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>) : <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></pre><div class="text">
                   <p>
-                    Constructs an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> from a string.</p>
+                    Constructs an <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> from a string.</p>
                   <p>
-                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="2402">IO.Error</span></a></code> is the type of exceptions thrown by the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> monad.</p>
+                    <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error" data-verso-hover="1323">IO.Error</span></a></code> is the type of exceptions thrown by the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code> monad.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Throwing and Catching Errors</summary><p>
-                  This program repeatedly demands a password, using exceptions for control flow.
+              <details class="example"><summary class="description">Throwing and Catching Errors</summary><div class="example-content">
+                  <p>
+                    This program repeatedly demands a password, using exceptions for control flow.
 The syntax used for exceptions is available in all exception monads, not just <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a></code>.
 When an incorrect password is provided, an exception is thrown, which is caught by the loop that repeats the password check.
 A correct password allows control to proceed past the check, terminating the loop, and any other exceptions are re-thrown.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-accessControl" data-verso-hover="2412" id="main-next-next-next">accessControl</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-31">do</span></a>
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="literal string token" data-binding="" data-verso-hover="2413">"What is the password?"</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-73">let</span> <span class="var token" data-binding="var-_uniq.238" data-verso-hover="239">password</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2214">IO.getStdin</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2215">getLine</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-118">if</span> <span class="var token" data-binding="var-_uniq.238" data-verso-hover="239">password</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___trim"><span class="const token" data-binding="const-String.trim" data-verso-hover="2219">trim</span></a> <span class="unknown token" data-binding="">!=</span> <span class="literal string token" data-binding="" data-verso-hover="2414">"secret"</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-118">then</span>
-    <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1495">throw</span></a> <span class="unknown token" data-binding="">(</span><a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2409">.userError</span></a> <span class="literal string token" data-binding="" data-verso-hover="2415">"Incorrect password"</span><span class="unknown token" data-binding="">)</span>
-  <span class="keyword token" data-binding="kw-occ-null-198">else</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-203" data-verso-hover="157">return</span>
-
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-211">def</span> <span class="const token" data-binding="const-repeatAccessControl" data-verso-hover="2416" id="main-next-next-next">repeatAccessControl</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-248">do</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.doElemRepeat_-253">repeat</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doTry-264">try</span>
-      <a href="IO/Logical-Model/#main-next-next-next"><span class="const token" data-binding="const-accessControl" data-verso-hover="2412">accessControl</span></a>
-      <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doBreak-294" data-verso-hover="2417">break</span>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-accessControl" data-verso-hover="2953" id="main-next-next-next">accessControl</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-31">do</span></a>
+  <span class="unknown token" data-binding="">IO.println</span> <span class="literal string token" data-binding="" data-verso-hover="2954">"What is the password?"</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-73">let</span> <span class="unknown token" data-binding="">password</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.getStdin</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">getLine</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-118">if</span> <span class="unknown token" data-binding="">password.trim</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-211">def</span> <span class="const token" data-binding="const-repeatAccessControl" data-verso-hover="2955" id="main-next-next-next">repeatAccessControl</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">invalid `do` notation, expected type is not a monad application
+  IO Unit
+You can use the `do` notation in pure code by writing `Id.run do` instead of `do`, where `Id` is the identity monad.</code></span></span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-248">do</span></a></span>
+  <span class="unknown token" data-binding="">repeat</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.termTry-264">try</span>
+      <span class="unknown token" data-binding="">accessControl</span>
+      <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doBreak-294" data-verso-hover="2777">break</span>
     <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doCatchMatch-304">catch</span>
-      <span class="unknown token" data-binding="">|</span> <a href="IO/Logical-Model/#IO___Error___alreadyExists"><span class="const token" data-binding="const-IO.Error.userError" data-verso-hover="2409">.userError</span></a> <span class="literal string token" data-binding="" data-verso-hover="2415">"Incorrect password"</span> <span class="unknown token" data-binding="">=&gt;</span>
-        <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doContinue-361" data-verso-hover="2418">continue</span>
-      <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.1058" data-verso-hover="2419">other</span> <span class="unknown token" data-binding="">=&gt;</span>
-        <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1495">throw</span></a> <span class="var token" data-binding="var-_uniq.1058" data-verso-hover="2419">other</span>
+      <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">.userError</span> <span class="literal string token" data-binding="" data-verso-hover="2956">"Incorrect password"</span> <span class="unknown token" data-binding="">=&gt;</span>
+        <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doContinue-361" data-verso-hover="2957">continue</span>
+      <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">other</span> <span class="unknown token" data-binding="">=&gt;</span>
+        <span class="unknown token" data-binding="">throw</span> <span class="unknown token" data-binding="">other</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-408">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2210">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-430">do</span></a>
-  <a href="IO/Logical-Model/#main-next-next-next"><span class="const token" data-binding="const-repeatAccessControl" data-verso-hover="2416">repeatAccessControl</span></a>
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="literal string token" data-binding="" data-verso-hover="2420">"Access granted!"</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-408">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2758">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">invalid `do` notation, expected type is not a monad application
+  IO Unit
+You can use the `do` notation in pure code by writing `Id.run do` instead of `do`, where `Id` is the identity monad.</code></span></span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-430">do</span></a></span>
+  <span class="unknown token" data-binding="">repeatAccessControl</span>
+  <span class="unknown token" data-binding="">IO.println</span> <span class="literal string token" data-binding="" data-verso-hover="2958">"Access granted!"</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  When run with this input:</p>
-                <div class="example-file">
-                  <code>stdin</code><code class="line">publicinfo</code><code class="line">secondtry</code><code class="line">secret</code></div>
-                <p>
-                  the program emits:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">What is the password?</code><code class="line">What is the password?</code><code class="line">What is the password?</code><code class="line">Access granted!</code></div>
+                    When run with this input:</p>
+                  <div class="example-file">
+                    <code>stdin</code><code class="line">publicinfo</code><code class="line">secondtry</code><code class="line">secret</code></div>
+                  <p>
+                    the program emits:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">What is the password?</code><code class="line">What is the password?</code><code class="line">What is the password?</code><code class="line">Access granted!</code></div>
+                  </div>
                 </details></section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="IO/#io" rel="prev" title="10. IO"><span class="arrow">←</span><span class="where">10. IO</span></a><a class="local-button active" href="IO/Control-Structures/#io-monad-control" rel="next" title="10.2. Control Structures"><span class="where">10.2. Control Structures</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="IO/#io" rel="prev" title="15. IO"><span class="arrow">←</span><span class="where">15. IO</span></a><a class="local-button active" href="IO/Control-Structures/#io-monad-control" rel="next" title="15.2. Control Structures"><span class="where">15.2. Control Structures</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

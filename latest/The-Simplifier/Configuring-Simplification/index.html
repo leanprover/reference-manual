@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="current numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-the-simplifier" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-the-simplifier" checked="checked"></label><span class="number">12.</span> <span class=""><a href="The-Simplifier/#the-simplifier">The Simplifier</a></span></div>
-              <table><tr class="numbered"><td class="num">12.1.</td><td><a href="The-Simplifier/Invoking-the-Simplifier/#simp-tactic-naming">Invoking the Simplifier</a></td></tr><tr class="numbered"><td class="num">12.2.</td><td><a href="The-Simplifier/Rewrite-Rules/#simp-rewrites">Rewrite Rules</a></td></tr><tr class="numbered"><td class="num">12.3.</td><td><a href="The-Simplifier/Simp-sets/#simp-sets">Simp sets</a></td></tr><tr class="numbered"><td class="num">12.4.</td><td><a href="The-Simplifier/Simp-Normal-Forms/#simp-normal-forms">Simp Normal Forms</a></td></tr><tr class="numbered"><td class="num">12.5.</td><td><a href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp">Terminal vs Non-Terminal Positions</a></td></tr><tr class="current numbered"><td class="num">12.6.</td><td><a href="The-Simplifier/Configuring-Simplification/#simp-config">Configuring Simplification</a></td></tr><tr class="numbered"><td class="num">12.7.</td><td><a href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw">Simplification vs Rewriting</a></td></tr></table></div>
+                <label for="--verso-manual-toc-the-simplifier" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-the-simplifier" checked="checked"></label><span class="number">16.</span> <span class=""><a href="The-Simplifier/#the-simplifier">The Simplifier</a></span></div>
+              <table><tr class="numbered"><td class="num">16.1.</td><td><a href="The-Simplifier/Invoking-the-Simplifier/#simp-tactic-naming">Invoking the Simplifier</a></td></tr><tr class="numbered"><td class="num">16.2.</td><td><a href="The-Simplifier/Rewrite-Rules/#simp-rewrites">Rewrite Rules</a></td></tr><tr class="numbered"><td class="num">16.3.</td><td><a href="The-Simplifier/Simp-sets/#simp-sets">Simp sets</a></td></tr><tr class="numbered"><td class="num">16.4.</td><td><a href="The-Simplifier/Simp-Normal-Forms/#simp-normal-forms">Simp Normal Forms</a></td></tr><tr class="numbered"><td class="num">16.5.</td><td><a href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp">Terminal vs Non-Terminal Positions</a></td></tr><tr class="current numbered"><td class="num">16.6.</td><td><a href="The-Simplifier/Configuring-Simplification/#simp-config">Configuring Simplification</a></td></tr><tr class="numbered"><td class="num">16.7.</td><td><a href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw">Simplification vs Rewriting</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-simp-config" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-simp-config" checked="checked"></label><span class="number">12.6.</span> <span class="current"><a href="The-Simplifier/Configuring-Simplification/#simp-config">Configuring Simplification</a></span></div>
+                <label for="--verso-manual-toc-simp-config" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-simp-config" checked="checked"></label><span class="number">16.6.</span> <span class="current"><a href="The-Simplifier/Configuring-Simplification/#simp-config">Configuring Simplification</a></span></div>
               <ol>
                 <li>
                   <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><code>Lean.Meta.Simp.Config</code></a></li>
@@ -2152,10 +2166,10 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp" rel="prev" title="12.5. Terminal vs Non-Terminal Positions"><span class="arrow">←</span><span class="where">12.5. Terminal vs Non-Terminal Positions</span></a><a class="local-button active" href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw" rel="next" title="12.7. Simplification vs Rewriting"><span class="where">12.7. Simplification vs Rewriting</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp" rel="prev" title="16.5. Terminal vs Non-Terminal Positions"><span class="arrow">←</span><span class="where">16.5. Terminal vs Non-Terminal Positions</span></a><a class="local-button active" href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw" rel="next" title="16.7. Simplification vs Rewriting"><span class="where">16.7. Simplification vs Rewriting</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              12.6. Configuring Simplification<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=simp-config" title="Permalink">🔗</a></span></h1>
+              16.6. Configuring Simplification<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=simp-config" title="Permalink">🔗</a></span></h1>
             <p>
               <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> is primarily configured via a configuration parameter, passed as a named argument called <code>config</code>.</p>
             <div class="namedocs" id="Lean___Meta___Simp___Config___mk">
@@ -2164,174 +2178,174 @@ window.onload = () => {
                   The configuration for <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>.
 Passed to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> using, for example, the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">config</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span><span class="unknown token" data-binding="">contextual</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">true</span><span class="unknown token" data-binding="">}</span><span class="unknown token" data-binding="">)</span></code> syntax.</p>
                 <p>
-                  See also <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___neutralConfig"><span class="const token" data-binding="const-Lean.Meta.Simp.neutralConfig" data-verso-hover="3084">Lean.Meta.Simp.neutralConfig</span></a></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config" data-verso-hover="3063">Lean.Meta.DSimp.Config</span></a></code>.</p>
+                  See also <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___neutralConfig"><span class="const token" data-binding="const-Lean.Meta.Simp.neutralConfig" data-verso-hover="3233">Lean.Meta.Simp.neutralConfig</span></a></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config" data-verso-hover="3212">Lean.Meta.DSimp.Config</span></a></code>.</p>
                 <h1>
                   Constructor</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.mk" data-verso-hover="3085">Lean.Meta.Simp.Config.mk</span></a></pre><div class="docs"></div>
+                  <pre class="name-and-type hl lean"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.mk" data-verso-hover="3234">Lean.Meta.Simp.Config.mk</span></a></pre><div class="docs"></div>
                   </section>
                 <h1>
                   Fields</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.maxSteps" data-verso-hover="3086">maxSteps</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.maxSteps" data-verso-hover="3235">maxSteps</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="docs">
                     <p>
                       The maximum number of subexpressions to visit when performing simplification.
 The default is 100000.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.maxDischargeDepth" data-verso-hover="3087">maxDischargeDepth</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.maxDischargeDepth" data-verso-hover="3236">maxDischargeDepth</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></pre><div class="docs">
                     <p>
                       When simp discharges side conditions for conditional lemmas, it can recursively apply simplification.
-The <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3217" data-verso-hover="7">maxDischargeDepth</span></code> (default: 2) is the maximum recursion depth when recursively applying simplification to side conditions.</p>
+The <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4817" data-verso-hover="7">maxDischargeDepth</span></code> (default: 2) is the maximum recursion depth when recursively applying simplification to side conditions.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.contextual" data-verso-hover="3088">contextual</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.contextual" data-verso-hover="3237">contextual</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3240" data-verso-hover="79">contextual</span></code> is true (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>) and simplification encounters an implication <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3267" data-verso-hover="3089">p</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3275" data-verso-hover="3090">q</span></code>
-it includes <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3267" data-verso-hover="3089">p</span></code> as an additional simp lemma when simplifying <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3275" data-verso-hover="3090">q</span></code>.</p>
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4840" data-verso-hover="154">contextual</span></code> is true (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>) and simplification encounters an implication <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4867" data-verso-hover="3238">p</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.4875" data-verso-hover="3239">q</span></code>
+it includes <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4867" data-verso-hover="3238">p</span></code> as an additional simp lemma when simplifying <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4875" data-verso-hover="3239">q</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.memoize" data-verso-hover="3091">memoize</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.memoize" data-verso-hover="3240">memoize</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When true (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) then the simplifier caches the result of simplifying each subexpression, if possible.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.singlePass" data-verso-hover="3092">singlePass</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.singlePass" data-verso-hover="3241">singlePass</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3304" data-verso-hover="79">singlePass</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), the simplifier runs through a single round of simplification,
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4904" data-verso-hover="154">singlePass</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), the simplifier runs through a single round of simplification,
 which consists of running pre-methods, recursing using congruence lemmas, and then running post-methods.
 Otherwise, when it is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, it iteratively applies this simplification procedure.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zeta" data-verso-hover="3093">zeta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zeta" data-verso-hover="3242">zeta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs zeta reduction of let expressions.
 That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">let</span> <span class="unknown token" data-binding="">x</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">;</span> <span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">]</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.
-See also <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.3340" data-verso-hover="79">zetaDelta</span></code>.</p>
+See also <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4940" data-verso-hover="154">zetaDelta</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.beta" data-verso-hover="3094">beta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.beta" data-verso-hover="3243">beta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs beta reduction of applications of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">fun</span></code> expressions.
-That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.8770" data-verso-hover="3095">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.7249" data-verso-hover="3096">e</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.8770" data-verso-hover="3095">x</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.7814" data-verso-hover="3095">v</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.</p>
+That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.14965" data-verso-hover="3244">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.12067" data-verso-hover="3245">e</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.14965" data-verso-hover="3244">x</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.13089" data-verso-hover="3244">v</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.eta" data-verso-hover="3097">eta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.eta" data-verso-hover="3246">eta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       TODO (currently unimplemented). When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs eta reduction for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">fun</span></code> expressions.
-That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.10074" data-verso-hover="3098">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">f</span> <span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">)</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10037" data-verso-hover="3099">f</span></code>.</p>
+That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.16729" data-verso-hover="3247">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">f</span> <span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">)</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16692" data-verso-hover="3248">f</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.etaStruct" data-verso-hover="3100">etaStruct</span> : <span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3101">Lean.Meta.EtaStructMode</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.etaStruct" data-verso-hover="3249">etaStruct</span> : <span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3250">Lean.Meta.EtaStructMode</span></pre><div class="docs">
                     <p>
                       Configures how to determine definitional equality between two structure instances.
-See documentation for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3101">Lean.Meta.EtaStructMode</span></code>.</p>
+See documentation for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3250">Lean.Meta.EtaStructMode</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.iota" data-verso-hover="3102">iota</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.iota" data-verso-hover="3251">iota</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), reduces <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">match</span></code> expressions applied to constructors.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.proj" data-verso-hover="3103">proj</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.proj" data-verso-hover="3252">proj</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), reduces projections of structure constructors.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.decide" data-verso-hover="3104">decide</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.decide" data-verso-hover="3253">decide</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), rewrites a proposition <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10189" data-verso-hover="3105">p</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="188">True</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></code> by inferring
-a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="391">Decidable</span></a> <span class="var token" data-binding="var-_uniq.10189" data-verso-hover="131">p</span></code> instance and reducing it.</p>
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), rewrites a proposition <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16844" data-verso-hover="3254">p</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="259">True</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></code> by inferring
+a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="463">Decidable</span></a> <span class="var token" data-binding="var-_uniq.16844" data-verso-hover="204">p</span></code> instance and reducing it.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="554">arith</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.arith" data-verso-hover="660">arith</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), simplifies simple arithmetic expressions.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.autoUnfold" data-verso-hover="3106">autoUnfold</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.autoUnfold" data-verso-hover="3255">autoUnfold</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), unfolds definitions.
-This can be enabled using the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAutoUnfold-0" data-verso-hover="2853">simp!</span></a></code> syntax.</p>
+This can be enabled using the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAutoUnfold-0" data-verso-hover="2391">simp!</span></a></code> syntax.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.dsimp" data-verso-hover="3107">dsimp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.dsimp" data-verso-hover="3256">dsimp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) then switches to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10251" data-verso-hover="79">dsimp</span></code> on dependent arguments
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) then switches to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16906" data-verso-hover="154">dsimp</span></code> on dependent arguments
 if there is no congruence theorem that would allow <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> to visit them.
-When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10251" data-verso-hover="79">dsimp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, then the argument is not visited.</p>
+When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16906" data-verso-hover="154">dsimp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, then the argument is not visited.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.failIfUnchanged" data-verso-hover="3108">failIfUnchanged</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.failIfUnchanged" data-verso-hover="3257">failIfUnchanged</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10277" data-verso-hover="79">failIfUnchanged</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10276" data-verso-hover="79">dsimp</span></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="557">simp_all</span></a></code>
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16932" data-verso-hover="154">failIfUnchanged</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16931" data-verso-hover="154">dsimp</span></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="663">simp_all</span></a></code>
 will fail if they do not make progress.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.ground" data-verso-hover="3109">ground</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.ground" data-verso-hover="3258">ground</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10306" data-verso-hover="79">ground</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then ground terms are reduced.
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16961" data-verso-hover="154">ground</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then ground terms are reduced.
 A term is ground when it does not contain free or meta variables.
 Reduction is interrupted at a function application <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span> <span class="unknown token" data-binding="">...</span></code> if <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span></code> is marked to not be unfolded.
 Ground term reduction applies <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">seval</span><span class="unknown token" data-binding="">]</span></code> lemmas.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.unfoldPartialApp" data-verso-hover="3110">unfoldPartialApp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.unfoldPartialApp" data-verso-hover="3259">unfoldPartialApp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10338" data-verso-hover="79">unfoldPartialApp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10335" data-verso-hover="79">dsimp</span></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="557">simp_all</span></a></code>
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16993" data-verso-hover="154">unfoldPartialApp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.16990" data-verso-hover="154">dsimp</span></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="663">simp_all</span></a></code>
 will unfold even partial applications of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span></code> when we request <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span></code> to be unfolded.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zetaDelta" data-verso-hover="3111">zetaDelta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zetaDelta" data-verso-hover="3260">zetaDelta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), local definitions are unfolded.
 That is, given a local context containing entry <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">t</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">e</span></code>, the free variable <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.index" data-verso-hover="3112">index</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.index" data-verso-hover="3261">index</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.index" data-verso-hover="3113">index</span></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> will only use the root symbol
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.index" data-verso-hover="3262">index</span></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> will only use the root symbol
 to find candidate <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> theorems. It approximates Lean 3 <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> behavior.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.implicitDefEqProofs" data-verso-hover="3114">implicitDefEqProofs</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.implicitDefEqProofs" data-verso-hover="3263">implicitDefEqProofs</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">implicitDefEqProofs</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">true</span></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> does not create proof terms when the
 input and output terms are definitionally equal.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zetaUnused" data-verso-hover="3115">zetaUnused</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.Simp.Config.zetaUnused" data-verso-hover="3264">zetaUnused</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then simps will remove unused let-declarations:
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-0" data-verso-hover="286">let</span> <span class="var token" data-binding="var-_uniq.10519" data-verso-hover="3116">x</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.10503" data-verso-hover="3116">v</span><span class="unknown token" data-binding="">;</span> <span class="var token" data-binding="var-_uniq.10516" data-verso-hover="3117">e</span></code> simplifies to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10516" data-verso-hover="3117">e</span></code> when <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> does not occur in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10516" data-verso-hover="3117">e</span></code>.</p>
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-0" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.17174" data-verso-hover="3265">x</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.17158" data-verso-hover="3265">v</span><span class="unknown token" data-binding="">;</span> <span class="var token" data-binding="var-_uniq.17171" data-verso-hover="3266">e</span></code> simplifies to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17171" data-verso-hover="3266">e</span></code> when <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> does not occur in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17171" data-verso-hover="3266">e</span></code>.</p>
                     </div>
                   </section>
                 </div>
               </div>
             <div class="namedocs" id="Lean___Meta___Simp___neutralConfig">
               <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Meta.Simp.neutralConfig" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Lean.Meta.Simp.neutralConfig :
-  <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3060">Lean.Meta.Simp.Config</span></a></pre><div class="text">
+  <a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3211">Lean.Meta.Simp.Config</span></a></pre><div class="text">
                 <p>
                   A neutral configuration for <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, turning off all reductions and other built-in simplifications.</p>
                 </div>
@@ -2339,113 +2353,113 @@ input and output terms are definitionally equal.</p>
             <div class="namedocs" id="Lean___Meta___DSimp___Config___mk">
               <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Meta.DSimp.Config.unfoldPartialApp" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">Lean.Meta.DSimp.Config : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                 <p>
-                  The configuration for <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a></code>.
-Passed to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a></code> using, for example, the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">config</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span><span class="unknown token" data-binding="">zeta</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">false</span><span class="unknown token" data-binding="">}</span><span class="unknown token" data-binding="">)</span></code> syntax.</p>
+                  The configuration for <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a></code>.
+Passed to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a></code> using, for example, the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">config</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span><span class="unknown token" data-binding="">zeta</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">false</span><span class="unknown token" data-binding="">}</span><span class="unknown token" data-binding="">)</span></code> syntax.</p>
                 <p>
                   Implementation note: this structure is only used for processing the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">config</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">...</span><span class="unknown token" data-binding="">)</span></code> syntax, and it is not used internally.
-It is immediately converted to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3060">Lean.Meta.Simp.Config</span></a></code> by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Custom-Tactics/#Lean___Elab___Tactic___elabSimpConfig"><span class="const token" data-binding="const-Lean.Elab.Tactic.elabSimpConfig" data-verso-hover="3118">Lean.Elab.Tactic.elabSimpConfig</span></a></code>.</p>
+It is immediately converted to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___Simp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.Simp.Config" data-verso-hover="3211">Lean.Meta.Simp.Config</span></a></code> by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.elabSimpConfig" data-verso-hover="3267">Lean.Elab.Tactic.elabSimpConfig</span></code>.</p>
                 <h1>
                   Constructor</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.mk" data-verso-hover="3119">Lean.Meta.DSimp.Config.mk</span></a></pre><div class="docs"></div>
+                  <pre class="name-and-type hl lean"><a href="The-Simplifier/Configuring-Simplification/#Lean___Meta___DSimp___Config___mk"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.mk" data-verso-hover="3268">Lean.Meta.DSimp.Config.mk</span></a></pre><div class="docs"></div>
                   </section>
                 <h1>
                   Fields</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zeta" data-verso-hover="3093">zeta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zeta" data-verso-hover="3242">zeta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs zeta reduction of let expressions.
 That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">let</span> <span class="unknown token" data-binding="">x</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">;</span> <span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">]</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.
-See also <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.10566" data-verso-hover="79">zetaDelta</span></code>.</p>
+See also <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17221" data-verso-hover="154">zetaDelta</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.beta" data-verso-hover="3094">beta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.beta" data-verso-hover="3243">beta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs beta reduction of applications of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">fun</span></code> expressions.
-That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.15986" data-verso-hover="3120">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.14465" data-verso-hover="3121">e</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.15986" data-verso-hover="3120">x</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.15030" data-verso-hover="3120">v</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.</p>
+That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.27236" data-verso-hover="3269">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.24338" data-verso-hover="3270">e</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.27236" data-verso-hover="3269">x</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.25360" data-verso-hover="3269">v</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">]</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.eta" data-verso-hover="3097">eta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.eta" data-verso-hover="3246">eta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       TODO (currently unimplemented). When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), performs eta reduction for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">fun</span></code> expressions.
-That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.17281" data-verso-hover="3122">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">f</span> <span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">)</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17244" data-verso-hover="3123">f</span></code>.</p>
+That is, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1">fun</span> <span class="var token" data-binding="var-_uniq.28991" data-verso-hover="3271">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">f</span> <span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">)</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.28954" data-verso-hover="3272">f</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.etaStruct" data-verso-hover="3100">etaStruct</span> : <span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3101">Lean.Meta.EtaStructMode</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.etaStruct" data-verso-hover="3249">etaStruct</span> : <span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3250">Lean.Meta.EtaStructMode</span></pre><div class="docs">
                     <p>
                       Configures how to determine definitional equality between two structure instances.
-See documentation for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3101">Lean.Meta.EtaStructMode</span></code>.</p>
+See documentation for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.EtaStructMode" data-verso-hover="3250">Lean.Meta.EtaStructMode</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.iota" data-verso-hover="3102">iota</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.iota" data-verso-hover="3251">iota</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), reduces <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">match</span></code> expressions applied to constructors.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.proj" data-verso-hover="3103">proj</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.proj" data-verso-hover="3252">proj</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), reduces projections of structure constructors.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.decide" data-verso-hover="3104">decide</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.decide" data-verso-hover="3253">decide</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), rewrites a proposition <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17360" data-verso-hover="3124">p</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="188">True</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></code> by inferring
-a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="391">Decidable</span></a> <span class="var token" data-binding="var-_uniq.17360" data-verso-hover="131">p</span></code> instance and reducing it.</p>
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), rewrites a proposition <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29070" data-verso-hover="3273">p</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="259">True</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></code> by inferring
+a <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Decidable___isFalse"><span class="const token" data-binding="const-Decidable" data-verso-hover="463">Decidable</span></a> <span class="var token" data-binding="var-_uniq.29070" data-verso-hover="204">p</span></code> instance and reducing it.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.autoUnfold" data-verso-hover="3106">autoUnfold</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.autoUnfold" data-verso-hover="3255">autoUnfold</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), unfolds definitions.
-This can be enabled using the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAutoUnfold-0" data-verso-hover="2853">simp!</span></a></code> syntax.</p>
+This can be enabled using the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAutoUnfold-0" data-verso-hover="2391">simp!</span></a></code> syntax.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.failIfUnchanged" data-verso-hover="3108">failIfUnchanged</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.failIfUnchanged" data-verso-hover="3257">failIfUnchanged</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17385" data-verso-hover="79">failIfUnchanged</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="557">simp_all</span></a></code>
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29095" data-verso-hover="154">failIfUnchanged</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="663">simp_all</span></a></code>
 will fail if they do not make progress.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.unfoldPartialApp" data-verso-hover="3110">unfoldPartialApp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.unfoldPartialApp" data-verso-hover="3259">unfoldPartialApp</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17408" data-verso-hover="79">unfoldPartialApp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="557">simp_all</span></a></code>
+                      If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29118" data-verso-hover="154">unfoldPartialApp</span></code> is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), then calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a></code>, or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-0" data-verso-hover="663">simp_all</span></a></code>
 will unfold even partial applications of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span></code> when we request <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">f</span></code> to be unfolded.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zetaDelta" data-verso-hover="3111">zetaDelta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zetaDelta" data-verso-hover="3260">zetaDelta</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default: <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>), local definitions are unfolded.
 That is, given a local context containing entry <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">t</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">e</span></code>, the free variable <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> reduces to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">e</span></code>.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.index" data-verso-hover="3112">index</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.index" data-verso-hover="3261">index</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
-                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.index" data-verso-hover="3113">index</span></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> will only use the root symbol
+                      When <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.index" data-verso-hover="3262">index</span></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>) is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> will only use the root symbol
 to find candidate <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> theorems. It approximates Lean 3 <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> behavior.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zetaUnused" data-verso-hover="3115">zetaUnused</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Lean.Meta.DSimp.Config.zetaUnused" data-verso-hover="3264">zetaUnused</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                     <p>
                       When <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> (default : <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code>), then simps will remove unused let-declarations:
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-0" data-verso-hover="286">let</span> <span class="var token" data-binding="var-_uniq.17539" data-verso-hover="3125">x</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.17523" data-verso-hover="3125">v</span><span class="unknown token" data-binding="">;</span> <span class="var token" data-binding="var-_uniq.17536" data-verso-hover="3126">e</span></code> simplifies to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17536" data-verso-hover="3126">e</span></code> when <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> does not occur in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.17536" data-verso-hover="3126">e</span></code>.</p>
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-0" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.29249" data-verso-hover="3274">x</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.29233" data-verso-hover="3274">v</span><span class="unknown token" data-binding="">;</span> <span class="var token" data-binding="var-_uniq.29246" data-verso-hover="3275">e</span></code> simplifies to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29246" data-verso-hover="3275">e</span></code> when <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">x</span></code> does not occur in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29246" data-verso-hover="3275">e</span></code>.</p>
                     </div>
                   </section>
                 </div>
               </div>
             <section>
               <h2 id="simp-options">
-                12.6.1. Options<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=simp-options" title="Permalink">🔗</a></span></h2>
+                16.6.1. Options<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=simp-options" title="Permalink">🔗</a></span></h2>
               <p>
                 Some global options affect <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code>:</p>
               <div class="namedocs" id="simprocs">
@@ -2453,7 +2467,7 @@ to find candidate <code class="hl lean inline" data-lean-context="docstring-exam
                   <p>
                     Default value: <code class="hl lean inline"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code></p>
                   <p>
-                    Enable/disable <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Attr.simprocAttr-0" data-verso-hover="3127">simproc</span></code>s (simplification procedures).</p>
+                    Enable/disable <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Attr.simprocAttr-0" data-verso-hover="3276">simproc</span></code>s (simplification procedures).</p>
                   </div>
                 </div>
               <div class="namedocs" id="tactic___simp___trace-next">
@@ -2461,7 +2475,7 @@ to find candidate <code class="hl lean inline" data-lean-context="docstring-exam
                   <p>
                     Default value: <code class="hl lean inline"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code></p>
                   <p>
-                    When tracing is enabled, calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="312">dsimp</span></a></code> will print an equivalent <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a> <span class="keyword token" data-binding="kw-occ-null-5">only</span></code> call.</p>
+                    When tracing is enabled, calls to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#dsimp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-0" data-verso-hover="769">dsimp</span></a></code> will print an equivalent <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a> <span class="keyword token" data-binding="kw-occ-null-5">only</span></code> call.</p>
                   </div>
                 </div>
               <div class="namedocs" id="linter___unnecessarySimpa">
@@ -2491,7 +2505,7 @@ to find candidate <code class="hl lean inline" data-lean-context="docstring-exam
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp" rel="prev" title="12.5. Terminal vs Non-Terminal Positions"><span class="arrow">←</span><span class="where">12.5. Terminal vs Non-Terminal Positions</span></a><a class="local-button active" href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw" rel="next" title="12.7. Simplification vs Rewriting"><span class="where">12.7. Simplification vs Rewriting</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="The-Simplifier/Terminal-vs-Non-Terminal-Positions/#terminal-simp" rel="prev" title="16.5. Terminal vs Non-Terminal Positions"><span class="arrow">←</span><span class="where">16.5. Terminal vs Non-Terminal Positions</span></a><a class="local-button active" href="The-Simplifier/Simplification-vs-Rewriting/#simp-vs-rw" rel="next" title="16.7. Simplification vs Rewriting"><span class="where">16.7. Simplification vs Rewriting</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

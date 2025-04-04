@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="current numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="current numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-io" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io" checked="checked"></label><span class="number">10.</span> <span class=""><a href="IO/#io">IO</a></span></div>
-              <table><tr class="numbered"><td class="num">10.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">10.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">10.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">10.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">10.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">10.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">10.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">10.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="current numbered"><td class="num">10.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">10.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">10.11.</td><td><a href="IO/Tasks-and-Threads/#The-Lean-Language-Reference--IO--Tasks-and-Threads">Tasks and Threads</a></td></tr></table></div>
+                <label for="--verso-manual-toc-io" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io" checked="checked"></label><span class="number">15.</span> <span class=""><a href="IO/#io">IO</a></span></div>
+              <table><tr class="numbered"><td class="num">15.1.</td><td><a href="IO/Logical-Model/#The-Lean-Language-Reference--IO--Logical-Model">Logical Model</a></td></tr><tr class="numbered"><td class="num">15.2.</td><td><a href="IO/Control-Structures/#io-monad-control">Control Structures</a></td></tr><tr class="numbered"><td class="num">15.3.</td><td><a href="IO/Console-Output/#The-Lean-Language-Reference--IO--Console-Output">Console Output</a></td></tr><tr class="numbered"><td class="num">15.4.</td><td><a href="IO/Mutable-References/#The-Lean-Language-Reference--IO--Mutable-References">Mutable References</a></td></tr><tr class="numbered"><td class="num">15.5.</td><td><a href="IO/Files___-File-Handles___-and-Streams/#The-Lean-Language-Reference--IO--Files___-File-Handles___-and-Streams">Files, File Handles, and Streams</a></td></tr><tr class="numbered"><td class="num">15.6.</td><td><a href="IO/System-and-Platform-Information/#platform-info">System and Platform Information</a></td></tr><tr class="numbered"><td class="num">15.7.</td><td><a href="IO/Environment-Variables/#io-monad-getenv">Environment Variables</a></td></tr><tr class="numbered"><td class="num">15.8.</td><td><a href="IO/Timing/#io-timing">Timing</a></td></tr><tr class="current numbered"><td class="num">15.9.</td><td><a href="IO/Processes/#io-processes">Processes</a></td></tr><tr class="numbered"><td class="num">15.10.</td><td><a href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers">Random Numbers</a></td></tr><tr class="numbered"><td class="num">15.11.</td><td><a href="IO/Tasks-and-Threads/#concurrency">Tasks and Threads</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-io-processes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io-processes" checked="checked"></label><span class="number">10.9.</span> <span class="current"><a href="IO/Processes/#io-processes">Processes</a></span></div>
+                <label for="--verso-manual-toc-io-processes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-io-processes" checked="checked"></label><span class="number">15.9.</span> <span class="current"><a href="IO/Processes/#io-processes">Processes</a></span></div>
               <ol>
                 <li>
                   <span class="header head-1"><span class="level-num">1.</span> <a href="IO/Processes/#The-Lean-Language-Reference--IO--Processes--Current-Process">Current Process</a></span></li>
@@ -2172,35 +2186,35 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="IO/Timing/#io-timing" rel="prev" title="10.8. Timing"><span class="arrow">←</span><span class="where">10.8. Timing</span></a><a class="local-button active" href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers" rel="next" title="10.10. Random Numbers"><span class="where">10.10. Random Numbers</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="IO/Timing/#io-timing" rel="prev" title="15.8. Timing"><span class="arrow">←</span><span class="where">15.8. Timing</span></a><a class="local-button active" href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers" rel="next" title="15.10. Random Numbers"><span class="where">15.10. Random Numbers</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              10.9. Processes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-processes" title="Permalink">🔗</a></span></h1>
+              15.9. Processes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=io-processes" title="Permalink">🔗</a></span></h1>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Processes--Current-Process">
-                10.9.1. Current Process</h2>
+                15.9.1. Current Process</h2>
               <div class="namedocs" id="IO___Process___getCurrentDir">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.getCurrentDir" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.getCurrentDir : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2463">System.FilePath</span></a></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.getCurrentDir" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.getCurrentDir : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2986">System.FilePath</span></a></pre><div class="text">
                   <p>
                     Returns the current working directory of the calling process.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___Process___setCurrentDir">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.setCurrentDir" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.setCurrentDir
-  (<span class="var token" data-binding="var-_uniq.992" data-verso-hover="2468">path</span> : <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2463">System.FilePath</span></a>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+  (<span class="var token" data-binding="var-_uniq.992" data-verso-hover="2991">path</span> : <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2986">System.FilePath</span></a>) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
                   <p>
                     Sets the current working directory of the calling process.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___Process___exit">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.exit" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.exit {<span class="var token" data-binding="var-_uniq.1017" data-verso-hover="88">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="386">UInt8</span></a> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.1017" data-verso-hover="88">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.exit" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.exit {<span class="var token" data-binding="var-_uniq.1017" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>} : <a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="458">UInt8</span></a> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <span class="var token" data-binding="var-_uniq.1017" data-verso-hover="162">α</span></pre><div class="text">
                   <p>
                     Terminates the current process with the provided exit code. <code class="hl lean inline" data-lean-context="docstring-examples"><span class="typed token" data-binding="" data-verso-hover="7">0</span></code> indicates success, all other values
 indicate failure.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___Process___getPID">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.getPID" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.getPID : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="2154">BaseIO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.getPID" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.getPID : <a href="IO/Logical-Model/#BaseIO"><span class="const token" data-binding="const-BaseIO" data-verso-hover="1324">BaseIO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></pre><div class="text">
                   <p>
                     Returns the process ID of the calling process.</p>
                   </div>
@@ -2208,212 +2222,179 @@ indicate failure.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Processes--Running-Processes">
-                10.9.2. Running Processes</h2>
+                15.9.2. Running Processes</h2>
               <p>
                 There are three primary ways to run other programs from Lean:</p>
               <ol start="1">
                 <li>
                   <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="2583">IO.Process.run</span></a></code> synchronously executes another program, returning its standard output as a string. It throws an error if the process exits with an error code other than <code>0</code>.</p>
+                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="3095">IO.Process.run</span></a></code> synchronously executes another program, returning its standard output as a string. It throws an error if the process exits with an error code other than <code>0</code>.</p>
                   </li>
                 <li>
                   <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="2584">IO.Process.output</span></a></code> synchronously executes another program with an empty standard input, capturing its standard output, standard error, and exit code. No error is thrown if the process terminates unsuccessfully.</p>
+                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="3096">IO.Process.output</span></a></code> synchronously executes another program with an empty standard input, capturing its standard output, standard error, and exit code. No error is thrown if the process terminates unsuccessfully.</p>
                   </li>
                 <li>
                   <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="2585">IO.Process.spawn</span></a></code> starts another program asynchronously and returns a data structure that can be used to access the process's standard input, output, and error streams.</p>
+                    <code class="hl lean inline" data-lean-context="examples"><a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="3097">IO.Process.spawn</span></a></code> starts another program asynchronously and returns a data structure that can be used to access the process's standard input, output, and error streams.</p>
                   </li>
                 </ol>
               <div class="namedocs" id="IO___Process___run">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.run" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Process.run (<span class="var token" data-binding="var-_uniq.1029" data-verso-hover="2586">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="2587">IO.Process.SpawnArgs</span></a>) :
-  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.run" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Process.run (<span class="var token" data-binding="var-_uniq.1029" data-verso-hover="3098">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="3099">IO.Process.SpawnArgs</span></a>) :
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="text">
                   <p>
                     Runs a process to completion, blocking until it terminates. If the child process terminates
 successfully with exit code 0, its standard output is returned. An exception is thrown if it
 terminates with any other exit code.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Running a Program</summary><p>
-                  When run, this program concatenates its own source code with itself twice using the Unix tool <code>cat</code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-25">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2210">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-47">do</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-52">let</span> <span class="var token" data-binding="var-_uniq.82" data-verso-hover="239">src2</span> <span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="2583">IO.Process.run</span></a> <span class="unknown token" data-binding="">{</span><a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2589">"cat"</span><span class="unknown token" data-binding="">,</span> <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2591">"Main.lean"</span><span class="unknown token" data-binding="">,</span> <span class="literal string token" data-binding="" data-verso-hover="2591">"Main.lean"</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">}</span>
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="var token" data-binding="var-_uniq.82" data-verso-hover="239">src2</span>
--- Main.lean ends here
-<span class="unknown token" data-binding=""></span></code><p>
-                  Its output is:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO Unit := do</code><code class="line">  let src2 ← IO.Process.run {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  IO.println src2</code><code class="line">-- Main.lean ends here</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO Unit := do</code><code class="line">  let src2 ← IO.Process.run {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  IO.println src2</code><code class="line">-- Main.lean ends here</code></div>
-                </details><details class="example"><summary class="description">Running a Program on a File</summary><p>
-                  This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes.
+              <details class="example"><summary class="description">Running a Program</summary><div class="example-content">
+                  <p>
+                    When run, this program concatenates its own source code with itself twice using the Unix tool <code>cat</code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-25">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2758">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-47">do</span></a>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-52">let</span> <span class="unknown token" data-binding="">src2</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.Process.run</span> <span class="unknown token" data-binding="">{</span><span class="unknown token" data-binding="">cmd</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="3100">"cat"</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">args</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding=""></span></code><p>
+                    Its output is:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO Unit := do</code><code class="line">  let src2 ← IO.Process.run {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  IO.println src2</code><code class="line">-- Main.lean ends here</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO Unit := do</code><code class="line">  let src2 ← IO.Process.run {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  IO.println src2</code><code class="line">-- Main.lean ends here</code></div>
+                  </div>
+                </details><details class="example"><summary class="description">Running a Program on a File</summary><div class="example-content">
+                  <p>
+                    This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes.
 It creates a file that contains all numbers from <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">0</span></code> through <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">9999</span></code>, and then invokes <code>grep</code> on it, reading the result from its standard output.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2210">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2758">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a>
   -- Feed the input to the subprocess
-  <a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___withFile"><span class="const token" data-binding="const-IO.FS.withFile" data-verso-hover="2569">IO.FS.withFile</span></a> <span class="literal string token" data-binding="" data-verso-hover="2592">"numbers.txt"</span> <a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Mode___read"><span class="const token" data-binding="const-IO.FS.Mode.write" data-verso-hover="2479">.write</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-101">fun</span> <span class="var token" data-binding="var-_uniq.144" data-verso-hover="2471">h</span> <span class="unknown token" data-binding="">=&gt;</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.termFor-114">for</span> <span class="var token" data-binding="var-_uniq.289" data-verso-hover="7">i</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-118">in</span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">:</span><span class="typed token" data-binding="" data-verso-hover="7">10000</span><span class="unknown token" data-binding="">]</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.termFor-114">do</span>
-      <span class="var token" data-binding="var-_uniq.144" data-verso-hover="2471">h</span><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle___putStrLn"><span class="const token" data-binding="const-IO.FS.Handle.putStrLn" data-verso-hover="2593">putStrLn</span></a> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-ToString.toString" data-verso-hover="514">toString</span> <span class="var token" data-binding="var-_uniq.289" data-verso-hover="7">i</span><span class="unknown token" data-binding="">)</span>
-
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-169">let</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="239">palindromes</span> <span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="2583">IO.Process.run</span></a> <span class="unknown token" data-binding="">{</span>
-    <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2594">"grep"</span><span class="unknown token" data-binding="">,</span>
-    <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2595">r#"^\([0-9]\)\([0-9]\)\2\1$"#</span><span class="unknown token" data-binding="">,</span> <span class="literal string token" data-binding="" data-verso-hover="2592">"numbers.txt"</span><span class="unknown token" data-binding="">]</span>
-  <span class="unknown token" data-binding="">}</span>
-
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-292">let</span> <span class="var token" data-binding="var-_uniq.569" data-verso-hover="7">count</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="239">palindromes</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___trim"><span class="const token" data-binding="const-String.trim" data-verso-hover="2219">trim</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___splitOn"><span class="const token" data-binding="const-String.splitOn" data-verso-hover="2596">splitOn</span></a> <span class="literal string token" data-binding="" data-verso-hover="2597">"\n"</span> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="985">length</span></a>
-
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="keyword token" data-binding="kw-occ-termS!_-359">s!</span><span class="unknown token" data-binding="">"There are {</span><span class="var token" data-binding="var-_uniq.569" data-verso-hover="7">count</span><span class="unknown token" data-binding="">} four-digit palindromes."</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  Its output is:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+  <span class="unknown token" data-binding="">IO.FS.withFile</span> <span class="literal string token" data-binding="" data-verso-hover="3101">"numbers.txt"</span> <span class="unknown token" data-binding="">.write</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-101">fun</span> <span class="unknown token" data-binding="">h</span> <span class="unknown token" data-binding="">=&gt;</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.termFor-114">for</span> <span class="unknown token" data-binding="">i</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-118">in</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">0</span><span class="unknown token" data-binding=""></span></code><p>
+                    Its output is:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+                  </div>
                 </details><div class="namedocs" id="IO___Process___output">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.output" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Process.output
-  (<span class="var token" data-binding="var-_uniq.1073" data-verso-hover="2586">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="2587">IO.Process.SpawnArgs</span></a>) :
-  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output" data-verso-hover="2598">IO.Process.Output</span></a></pre><div class="text">
+  (<span class="var token" data-binding="var-_uniq.1073" data-verso-hover="3098">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="3099">IO.Process.SpawnArgs</span></a>) :
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output" data-verso-hover="3102">IO.Process.Output</span></a></pre><div class="text">
                   <p>
                     Runs a process to completion and captures its output and exit code. The child process is run with a
 null standard input, and the current process blocks until it has run to completion.</p>
                   <p>
-                    The specifications of standard input, output, and error handles in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1071" data-verso-hover="2586">args</span></code> are ignored.</p>
+                    The specifications of standard input, output, and error handles in <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1071" data-verso-hover="3098">args</span></code> are ignored.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Checking Exit Codes</summary><p>
-                  When run, this program first invokes <code>cat</code> on a nonexistent file and displays the resulting error code.
+              <details class="example"><summary class="description">Checking Exit Codes</summary><div class="example-content">
+                  <p>
+                    When run, this program first invokes <code>cat</code> on a nonexistent file and displays the resulting error code.
 It then concatenates its own source code with itself twice using the Unix tool <code>cat</code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-25">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2599">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-49">do</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-54">let</span> <span class="var token" data-binding="var-_uniq.80" data-verso-hover="2600">src1</span> <span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="2584">IO.Process.output</span></a> <span class="unknown token" data-binding="">{</span><a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2589">"cat"</span><span class="unknown token" data-binding="">,</span> <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2601">"Nonexistent.lean"</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">}</span>
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="keyword token" data-binding="kw-occ-termS!_-144">s!</span><span class="unknown token" data-binding="">"Exit code from failed process: {</span><span class="var token" data-binding="var-_uniq.80" data-verso-hover="2600">src1</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output.exitCode" data-verso-hover="2602">exitCode</span></a><span class="unknown token" data-binding="">}"</span>
-
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-198">let</span> <span class="var token" data-binding="var-_uniq.276" data-verso-hover="2600">src2</span> <span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="2584">IO.Process.output</span></a> <span class="unknown token" data-binding="">{</span><a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2589">"cat"</span><span class="unknown token" data-binding="">,</span> <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2591">"Main.lean"</span><span class="unknown token" data-binding="">,</span> <span class="literal string token" data-binding="" data-verso-hover="2591">"Main.lean"</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">}</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-283">if</span> <span class="var token" data-binding="var-_uniq.276" data-verso-hover="2600">src2</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output.exitCode" data-verso-hover="2602">exitCode</span></a> <span class="unknown token" data-binding="">==</span> <span class="typed token" data-binding="" data-verso-hover="153">0</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-283">then</span>
-    <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="var token" data-binding="var-_uniq.276" data-verso-hover="2600">src2</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output.stdout" data-verso-hover="2603">stdout</span></a>
-  <span class="keyword token" data-binding="kw-occ-null-339">else</span>
-    <a href="IO/Console-Output/#IO___eprintln"><span class="const token" data-binding="const-IO.eprintln" data-verso-hover="2432">IO.eprintln</span></a> <span class="literal string token" data-binding="" data-verso-hover="2604">"Concatenation failed"</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-387" data-verso-hover="157">return</span> <span class="typed token" data-binding="" data-verso-hover="153">1</span>
-
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-399" data-verso-hover="157">return</span> <span class="typed token" data-binding="" data-verso-hover="153">0</span>
--- Main.lean ends here
-<span class="unknown token" data-binding=""></span></code><p>
-                  Its output is:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">Exit code from failed process: 1</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO UInt32 := do</code><code class="line">  let src1 ← IO.Process.output {cmd := "cat", args := #["Nonexistent.lean"]}</code><code class="line">  IO.println s!"Exit code from failed process: {src1.exitCode}"</code><code class="line"></code><code class="line">  let src2 ← IO.Process.output {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  if src2.exitCode == 0 then</code><code class="line">    IO.println src2.stdout</code><code class="line">  else</code><code class="line">    IO.eprintln "Concatenation failed"</code><code class="line">    return 1</code><code class="line"></code><code class="line">  return 0</code><code class="line">-- Main.lean ends here</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO UInt32 := do</code><code class="line">  let src1 ← IO.Process.output {cmd := "cat", args := #["Nonexistent.lean"]}</code><code class="line">  IO.println s!"Exit code from failed process: {src1.exitCode}"</code><code class="line"></code><code class="line">  let src2 ← IO.Process.output {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  if src2.exitCode == 0 then</code><code class="line">    IO.println src2.stdout</code><code class="line">  else</code><code class="line">    IO.eprintln "Concatenation failed"</code><code class="line">    return 1</code><code class="line"></code><code class="line">  return 0</code><code class="line">-- Main.lean ends here</code><code class="line"></code></div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-25">def</span> <span class="const token" data-binding="const-main" data-verso-hover="3103">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-49">do</span></a>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-54">let</span> <span class="unknown token" data-binding="">src1</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.Process.output</span> <span class="unknown token" data-binding="">{</span><span class="unknown token" data-binding="">cmd</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="3100">"cat"</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">args</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding=""></span></code><p>
+                    Its output is:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">Exit code from failed process: 1</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO UInt32 := do</code><code class="line">  let src1 ← IO.Process.output {cmd := "cat", args := #["Nonexistent.lean"]}</code><code class="line">  IO.println s!"Exit code from failed process: {src1.exitCode}"</code><code class="line"></code><code class="line">  let src2 ← IO.Process.output {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  if src2.exitCode == 0 then</code><code class="line">    IO.println src2.stdout</code><code class="line">  else</code><code class="line">    IO.eprintln "Concatenation failed"</code><code class="line">    return 1</code><code class="line"></code><code class="line">  return 0</code><code class="line">-- Main.lean ends here</code><code class="line">-- Main.lean begins here</code><code class="line">def main : IO UInt32 := do</code><code class="line">  let src1 ← IO.Process.output {cmd := "cat", args := #["Nonexistent.lean"]}</code><code class="line">  IO.println s!"Exit code from failed process: {src1.exitCode}"</code><code class="line"></code><code class="line">  let src2 ← IO.Process.output {cmd := "cat", args := #["Main.lean", "Main.lean"]}</code><code class="line">  if src2.exitCode == 0 then</code><code class="line">    IO.println src2.stdout</code><code class="line">  else</code><code class="line">    IO.eprintln "Concatenation failed"</code><code class="line">    return 1</code><code class="line"></code><code class="line">  return 0</code><code class="line">-- Main.lean ends here</code><code class="line"></code></div>
+                  </div>
                 </details><div class="namedocs" id="IO___Process___spawn">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.spawn" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.spawn (<span class="var token" data-binding="var-_uniq.1089" data-verso-hover="2586">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="2587">IO.Process.SpawnArgs</span></a>) :
-  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1089" data-verso-hover="2586">args</span>.<a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.toStdioConfig" data-verso-hover="2606">toStdioConfig</span></a>)</pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.spawn" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.spawn (<span class="var token" data-binding="var-_uniq.1086" data-verso-hover="3098">args</span> : <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs" data-verso-hover="3099">IO.Process.SpawnArgs</span></a>) :
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1086" data-verso-hover="3098">args</span>.<a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.toStdioConfig" data-verso-hover="3105">toStdioConfig</span></a>)</pre><div class="text">
                   <p>
                     Starts a child process with the provided configuration. The child process is spawned using operating
 system primitives, and it can be written in any language.</p>
                   <p>
                     The child process runs in parallel with the parent.</p>
                   <p>
-                    If the child process's standard input is a pipe, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Child___takeStdin"><span class="const token" data-binding="const-IO.Process.Child.takeStdin" data-verso-hover="2607">IO.Process.Child.takeStdin</span></a></code> to make it
+                    If the child process's standard input is a pipe, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Child___takeStdin"><span class="const token" data-binding="const-IO.Process.Child.takeStdin" data-verso-hover="3106">IO.Process.Child.takeStdin</span></a></code> to make it
 possible to close the child's standard input before the process terminates, which provides the child with an end-of-file marker.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Asynchronous Subprocesses</summary><p>
-                  This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes.
+              <details class="example"><summary class="description">Asynchronous Subprocesses</summary><div class="example-content">
+                  <p>
+                    This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes.
 It feeds all numbers from <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">0</span></code> through <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">9999</span></code> to the <code>grep</code> process and then reads its result.
 This code is only correct when <code>grep</code> is sufficiently fast and when the output pipe is large enough to contain all 90 four-digit palindromes.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2210">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-27">let</span> <span class="var token" data-binding="var-_uniq.75" data-verso-hover="2608">grep</span> <span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="2585">IO.Process.spawn</span></a> <span class="unknown token" data-binding="">{</span>
-    <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2594">"grep"</span><span class="unknown token" data-binding="">,</span>
-    <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2595">r#"^\([0-9]\)\([0-9]\)\2\1$"#</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span>
-    <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2609">stdin</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">.piped</span></a><span class="unknown token" data-binding="">,</span>
-    <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2611">stdout</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">.piped</span></a><span class="unknown token" data-binding="">,</span>
-    <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2612">stderr</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.null" data-verso-hover="2613">.null</span></a>
-  <span class="unknown token" data-binding="">}</span>
-
-  -- Feed the input to the subprocess
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-232" data-verso-hover="1158">for</span> <span class="var token" data-binding="var-_uniq.215" data-verso-hover="7">i</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-236">in</span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">:</span><span class="typed token" data-binding="" data-verso-hover="7">10000</span><span class="unknown token" data-binding="">]</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-232" data-verso-hover="1158">do</span>
-    <span class="var token" data-binding="var-_uniq.75" data-verso-hover="2608">grep</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child.stdin" data-verso-hover="2614">stdin</span></a><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle___putStrLn"><span class="const token" data-binding="const-IO.FS.Handle.putStrLn" data-verso-hover="2593">putStrLn</span></a> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-ToString.toString" data-verso-hover="514">toString</span> <span class="var token" data-binding="var-_uniq.215" data-verso-hover="7">i</span><span class="unknown token" data-binding="">)</span>
-
-  -- Consume its output, after waiting 100ms for grep to process the data.
-  <a href="IO/Timing/#IO___sleep"><span class="const token" data-binding="const-IO.sleep" data-verso-hover="2450">IO.sleep</span></a> <span class="typed token" data-binding="" data-verso-hover="153">100</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-384">let</span> <span class="var token" data-binding="var-_uniq.561" data-verso-hover="7">count</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="var token" data-binding="var-_uniq.75" data-verso-hover="2608">grep</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child.stdout" data-verso-hover="2615">stdout</span></a><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle___readToEnd"><span class="const token" data-binding="const-IO.FS.Handle.readToEnd" data-verso-hover="2616">readToEnd</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___trim"><span class="const token" data-binding="const-String.trim" data-verso-hover="2219">trim</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___splitOn"><span class="const token" data-binding="const-String.splitOn" data-verso-hover="2596">splitOn</span></a> <span class="literal string token" data-binding="" data-verso-hover="2597">"\n"</span> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="985">length</span></a>
-
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="keyword token" data-binding="kw-occ-termS!_-467">s!</span><span class="unknown token" data-binding="">"There are {</span><span class="var token" data-binding="var-_uniq.561" data-verso-hover="7">count</span><span class="unknown token" data-binding="">} four-digit palindromes."</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  Its output is:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2758">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-27">let</span> <span class="unknown token" data-binding="">grep</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.Process.spawn</span> <span class="unknown token" data-binding="">{</span>
+    <span class="unknown token" data-binding="">cmd</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="3107">"grep"</span><span class="unknown token" data-binding="">,</span>
+    <span class="unknown token" data-binding="">args</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding=""></span></code><p>
+                    Its output is:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+                  </div>
                 </details><div class="namedocs" id="IO___Process___SpawnArgs___mk">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.SpawnArgs.mk" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">IO.Process.SpawnArgs : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
                     Configuration for a child process to be spawned.</p>
                   <p>
-                    Use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="2585">IO.Process.spawn</span></a></code> to start the child process. <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="2584">IO.Process.output</span></a></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="2583">IO.Process.run</span></a></code> can be
+                    Use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="3097">IO.Process.spawn</span></a></code> to start the child process. <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___output"><span class="const token" data-binding="const-IO.Process.output" data-verso-hover="3096">IO.Process.output</span></a></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___run"><span class="const token" data-binding="const-IO.Process.run" data-verso-hover="3095">IO.Process.run</span></a></code> can be
 used when the child process should be run to completion, with its output and/or error code captured.</p>
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.mk" data-verso-hover="2617">IO.Process.SpawnArgs.mk</span></a></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.mk" data-verso-hover="3108">IO.Process.SpawnArgs.mk</span></a></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Extends</h1>
                   <ul class="extends">
                     <li>
-                      <input type="checkbox" id="0-IO.Process.StdioConfig-IO.Process.SpawnArgs" checked="checked" data-parent-idx="0"><label for="0-IO.Process.StdioConfig-IO.Process.SpawnArgs"><code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a></code></label></li>
+                      <input type="checkbox" id="0-IO.Process.StdioConfig-IO.Process.SpawnArgs" checked="checked" data-parent-idx="0"><label for="0-IO.Process.StdioConfig-IO.Process.SpawnArgs"><code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a></code></label></li>
                     </ul>
                   <h1>
                     Fields</h1>
                   <section class="subdocs" data-inherited-from="0">
-                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stdin</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
+                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stdin</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
                       Inherited from <ol>
                         <li>
-                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a></code></li>
+                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a></code></li>
                         </ol>
                       </div>
                     <div class="docs"></div>
                     </section>
                   <section class="subdocs" data-inherited-from="0">
-                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stdout</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
+                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stdout</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
                       Inherited from <ol>
                         <li>
-                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a></code></li>
+                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a></code></li>
                         </ol>
                       </div>
                     <div class="docs"></div>
                     </section>
                   <section class="subdocs" data-inherited-from="0">
-                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stderr</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
+                    <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">stderr</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="inheritance docs" data-inherited-from="0">
                       Inherited from <ol>
                         <li>
-                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a></code></li>
+                          <code class="hl lean inline"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a></code></li>
                         </ol>
                       </div>
                     <div class="docs"></div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="3111">cmd</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="docs">
                       <p>
                         Command name.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="3112">args</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="docs">
                       <p>
                         Arguments for the command.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cwd" data-verso-hover="2620">cwd</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2463">System.FilePath</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cwd" data-verso-hover="3113">cwd</span> : <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="IO/Files___-File-Handles___-and-Streams/#System___FilePath___mk"><span class="const token" data-binding="const-System.FilePath" data-verso-hover="2986">System.FilePath</span></a></pre><div class="docs">
                       <p>
                         The child process's working directory. Inherited from the parent current process if <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a></code>.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.env" data-verso-hover="2621">env</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="85">Array</span></a> <a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">(</span></a><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116"> × </span></a><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">)</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.env" data-verso-hover="3114">env</span> : <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189">(</span></a><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189"> × </span></a><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189">)</span></a></pre><div class="docs">
                       <p>
                         Add or remove environment variables for the child process.</p>
                       <p>
-                        The child process inherits the parent's environment, as modified by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1171" data-verso-hover="2622">env</span></code>. Keys in the array are
+                        The child process inherits the parent's environment, as modified by <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1168" data-verso-hover="3115">env</span></code>. Keys in the array are
 the names of environment variables. A <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a></code>, causes the entry to be removed from the environment,
 and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a></code> sets the variable to the new value, adding it if necessary. Variables are processed from left to right.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.setsid" data-verso-hover="2623">setsid</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.SpawnArgs.setsid" data-verso-hover="3116">setsid</span> : <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></pre><div class="docs">
                       <p>
-                        Starts the child process in a new session and process group using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1181" data-verso-hover="79">setsid</span></code>. Currently a no-op on
+                        Starts the child process in a new session and process group using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1178" data-verso-hover="154">setsid</span></code>. Currently a no-op on
 non-POSIX platforms.</p>
                       </div>
                     </section>
@@ -2426,24 +2407,24 @@ non-POSIX platforms.</p>
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.mk" data-verso-hover="2624">IO.Process.StdioConfig.mk</span></a></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.mk" data-verso-hover="3117">IO.Process.StdioConfig.mk</span></a></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Fields</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2609">stdin</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="3118">stdin</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         Configuration for the process' stdin handle.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2611">stdout</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="3119">stdout</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         Configuration for the process' stdout handle.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2612">stderr</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="3120">stderr</span> : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         Configuration for the process' stderr handle.</p>
                       </div>
@@ -2460,19 +2441,19 @@ pipes, inherited from the parent, or null.</p>
                   <h1>
                     Constructors</h1>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">piped : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">piped : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         The stream should be attached to a pipe.</p>
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">inherit : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">inherit : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         The stream should be inherited from the parent process.</p>
                       </div>
                     </div>
                   <div class="constructor">
-                    <pre class="name-and-type hl lean">null : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean">null : <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a></pre><div class="docs">
                       <p>
                         The stream should be empty.</p>
                       </div>
@@ -2481,48 +2462,48 @@ pipes, inherited from the parent, or null.</p>
                 </div>
               <div class="namedocs" id="IO___Process___Stdio___toHandleType">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Stdio.toHandleType" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">IO.Process.Stdio.toHandleType :
-  <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="2619">IO.Process.Stdio</span></a> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
+  <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio" data-verso-hover="3110">IO.Process.Stdio</span></a> → <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
                     The type of handles that can be used to communicate with a child process on its standard input,
 output, or error streams.</p>
                   <p>
-                    For <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">IO.Process.Stdio.piped</span></a></code>, this type is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2462">IO.FS.Handle</span></a></code>. Otherwise, it is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, because no
+                    For <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="3121">IO.Process.Stdio.piped</span></a></code>, this type is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2985">IO.FS.Handle</span></a></code>. Otherwise, it is <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, because no
 communication is possible.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___Process___Child___mk">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Child" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">IO.Process.Child
-  (<span class="var token" data-binding="var-_uniq.1217" data-verso-hover="2625">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
+  (<span class="var token" data-binding="var-_uniq.1214" data-verso-hover="3122">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
-                    A child process that was spawned with configuration <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1200" data-verso-hover="2625">cfg</span></code>.</p>
+                    A child process that was spawned with configuration <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1197" data-verso-hover="3122">cfg</span></code>.</p>
                   <p>
                     The configuration determines whether the child process's standard input, standard output, and
-standard error are <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2462">IO.FS.Handle</span></a></code>s or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>.</p>
+standard error are <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle"><span class="const token" data-binding="const-IO.FS.Handle" data-verso-hover="2985">IO.FS.Handle</span></a></code>s or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>.</p>
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child.mk" data-verso-hover="2626">IO.Process.Child.mk</span></a></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child.mk" data-verso-hover="3123">IO.Process.Child.mk</span></a></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Fields</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stdin" data-verso-hover="2627">stdin</span> : <span class="var token" data-binding="var-_uniq.1204" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2628">stdin</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="2629">toHandleType</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stdin" data-verso-hover="3124">stdin</span> : <span class="var token" data-binding="var-_uniq.1201" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="3125">stdin</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="3126">toHandleType</span></a></pre><div class="docs">
                       <p>
-                        The child process's standard input handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">IO.Process.Stdio.piped</span></a></code>, or
+                        The child process's standard input handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="3121">IO.Process.Stdio.piped</span></a></code>, or
 <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code> otherwise.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stdout" data-verso-hover="2630">stdout</span> : <span class="var token" data-binding="var-_uniq.1204" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2631">stdout</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="2629">toHandleType</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stdout" data-verso-hover="3127">stdout</span> : <span class="var token" data-binding="var-_uniq.1201" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="3128">stdout</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="3126">toHandleType</span></a></pre><div class="docs">
                       <p>
-                        The child process's standard output handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">IO.Process.Stdio.piped</span></a></code>, or
+                        The child process's standard output handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="3121">IO.Process.Stdio.piped</span></a></code>, or
 <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code> otherwise.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stderr" data-verso-hover="2632">stderr</span> : <span class="var token" data-binding="var-_uniq.1204" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2633">stderr</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="2629">toHandleType</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Child.stderr" data-verso-hover="3129">stderr</span> : <span class="var token" data-binding="var-_uniq.1201" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="3130">stderr</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="3126">toHandleType</span></a></pre><div class="docs">
                       <p>
-                        The child process's standard error handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">IO.Process.Stdio.piped</span></a></code>, or
+                        The child process's standard error handle, if it was configured as <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="3121">IO.Process.Stdio.piped</span></a></code>, or
 <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code> otherwise.</p>
                       </div>
                     </section>
@@ -2530,16 +2511,16 @@ standard error are <code class="hl lean inline" data-lean-context="docstring-exa
                 </div>
               <div class="namedocs" id="IO___Process___Child___wait">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Child.wait" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.Child.wait
-  {<span class="var token" data-binding="var-_uniq.1236" data-verso-hover="2625">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a>} :
-  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1236" data-verso-hover="2625">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></pre><div class="text">
+  {<span class="var token" data-binding="var-_uniq.1233" data-verso-hover="3122">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a>} :
+  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1233" data-verso-hover="3122">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></pre><div class="text">
                   <p>
                     Blocks until the child process has exited and return its exit code.</p>
                   </div>
                 </div>
               <div class="namedocs" id="IO___Process___Child___tryWait">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Child.tryWait" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.Child.tryWait
-  {<span class="var token" data-binding="var-_uniq.1244" data-verso-hover="2625">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a>} :
-  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1244" data-verso-hover="2625">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a>)</pre><div class="text">
+  {<span class="var token" data-binding="var-_uniq.1241" data-verso-hover="3122">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a>} :
+  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1241" data-verso-hover="3122">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> (<a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a>)</pre><div class="text">
                   <p>
                     Checks whether the child has exited. Returns <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a></code> if the process has not exited, or its exit code
 if it has.</p>
@@ -2547,8 +2528,8 @@ if it has.</p>
                 </div>
               <div class="namedocs" id="IO___Process___Child___kill">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Child.kill" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.Child.kill
-  {<span class="var token" data-binding="var-_uniq.1272" data-verso-hover="2625">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a>} :
-  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1272" data-verso-hover="2625">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
+  {<span class="var token" data-binding="var-_uniq.1269" data-verso-hover="3122">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a>} :
+  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1269" data-verso-hover="3122">cfg</span> → <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></pre><div class="text">
                   <p>
                     Terminates the child process using the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">SIGTERM</span></code> signal or a platform analogue.</p>
                   <p>
@@ -2557,16 +2538,16 @@ if it has.</p>
                 </div>
               <div class="namedocs" id="IO___Process___Child___takeStdin">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Child.takeStdin" title="Permalink">🔗</a></span><span class="label">opaque</span><pre class="signature hl lean block">IO.Process.Child.takeStdin
-  {<span class="var token" data-binding="var-_uniq.1309" data-verso-hover="2625">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="2618">IO.Process.StdioConfig</span></a>} :
-  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1309" data-verso-hover="2625">cfg</span> →
+  {<span class="var token" data-binding="var-_uniq.1306" data-verso-hover="3122">cfg</span> : <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig" data-verso-hover="3109">IO.Process.StdioConfig</span></a>} :
+  <a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a> <span class="var token" data-binding="var-_uniq.1306" data-verso-hover="3122">cfg</span> →
     <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a>
-      <a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">(</span></a><span class="var token" data-binding="var-_uniq.1309" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2628">stdin</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="2629">toHandleType</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116"> ×
-        </span></a><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="2605">IO.Process.Child</span></a>
-          { <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2609">stdin</span></a> := <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.null" data-verso-hover="2613">IO.Process.Stdio.null</span></a>,
-            <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2611">stdout</span></a> := <span class="var token" data-binding="var-_uniq.1309" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2631">stdout</span></a>,
-            <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2612">stderr</span></a> := <span class="var token" data-binding="var-_uniq.1309" data-verso-hover="2625">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2633">stderr</span></a> }<a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="116">)</span></a></pre><div class="text">
+      <a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189">(</span></a><span class="var token" data-binding="var-_uniq.1306" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="3125">stdin</span></a>.<a href="IO/Processes/#IO___Process___Stdio___toHandleType"><span class="const token" data-binding="const-IO.Process.Stdio.toHandleType" data-verso-hover="3126">toHandleType</span></a><a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189"> ×
+        </span></a><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child" data-verso-hover="3104">IO.Process.Child</span></a>
+          { <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="3118">stdin</span></a> := <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.null" data-verso-hover="3131">IO.Process.Stdio.null</span></a>,
+            <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="3119">stdout</span></a> := <span class="var token" data-binding="var-_uniq.1306" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="3128">stdout</span></a>,
+            <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="3120">stderr</span></a> := <span class="var token" data-binding="var-_uniq.1306" data-verso-hover="3122">cfg</span>.<a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="3130">stderr</span></a> }<a href="Basic-Types/Tuples/#Prod___mk"><span class="const token" data-binding="const-Prod" data-verso-hover="189">)</span></a></pre><div class="text">
                   <p>
-                    Extracts the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Manual.stdin" data-verso-hover="2576">stdin</span></code> field from a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Child</span></code> object, allowing the handle to be closed while maintaining
+                    Extracts the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Manual.stdin" data-verso-hover="3088">stdin</span></code> field from a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Child</span></code> object, allowing the handle to be closed while maintaining
 a reference to the child process.</p>
                   <p>
                     File handles are closed when the last reference to them is dropped. Closing the child's standard
@@ -2576,43 +2557,20 @@ to extract its exit code after calling <code class="hl lean inline" data-lean-co
 standard input is exhausted.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Closing a Subprocess's Standard Input</summary><p>
-                  This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes, ensuring that the subprocess terminates successfully.
+              <details class="example"><summary class="description">Closing a Subprocess's Standard Input</summary><div class="example-content">
+                  <p>
+                    This program uses the Unix utility <code>grep</code> as a filter to find four-digit palindromes, ensuring that the subprocess terminates successfully.
 It feeds all numbers from <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">0</span></code> through <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="7">9999</span></code> to the <code>grep</code> process, then closes the process's standard input, which causes it to terminate.
 After checking <code>grep</code>'s exit code, the program extracts its result.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="2599">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-24">do</span></a>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-29">let</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2634">grep</span> <span class="unknown token" data-binding="">←</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doNested-42">do</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-49">let</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.159" data-verso-hover="2635">stdin</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.160" data-verso-hover="2634">child</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <a href="IO/Processes/#IO___Process___spawn"><span class="const token" data-binding="const-IO.Process.spawn" data-verso-hover="2585">IO.Process.spawn</span></a> <span class="unknown token" data-binding="">{</span>
-      <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.cmd" data-verso-hover="2588">cmd</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2594">"grep"</span><span class="unknown token" data-binding="">,</span>
-      <a href="IO/Processes/#IO___Process___SpawnArgs___mk"><span class="const token" data-binding="const-IO.Process.SpawnArgs.args" data-verso-hover="2590">args</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">#[</span><span class="literal string token" data-binding="" data-verso-hover="2595">r#"^\([0-9]\)\([0-9]\)\2\1$"#</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span>
-      <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdin" data-verso-hover="2609">stdin</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">.piped</span></a><span class="unknown token" data-binding="">,</span>
-      <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stdout" data-verso-hover="2611">stdout</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.piped" data-verso-hover="2610">.piped</span></a><span class="unknown token" data-binding="">,</span>
-      <a href="IO/Processes/#IO___Process___StdioConfig___mk"><span class="const token" data-binding="const-IO.Process.StdioConfig.stderr" data-verso-hover="2612">stderr</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Processes/#IO___Process___Stdio___piped"><span class="const token" data-binding="const-IO.Process.Stdio.null" data-verso-hover="2613">.null</span></a>
-    <span class="unknown token" data-binding="">}</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Child___takeStdin"><span class="const token" data-binding="const-IO.Process.Child.takeStdin" data-verso-hover="2607">takeStdin</span></a>
-
-    -- Feed the input to the subprocess
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-296" data-verso-hover="1158">for</span> <span class="var token" data-binding="var-_uniq.300" data-verso-hover="7">i</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doForDecl-300">in</span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">:</span><span class="typed token" data-binding="" data-verso-hover="7">10000</span><span class="unknown token" data-binding="">]</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doFor-296" data-verso-hover="1158">do</span>
-      <span class="var token" data-binding="var-_uniq.159" data-verso-hover="2635">stdin</span><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle___putStrLn"><span class="const token" data-binding="const-IO.FS.Handle.putStrLn" data-verso-hover="2593">putStrLn</span></a> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-ToString.toString" data-verso-hover="514">toString</span> <span class="var token" data-binding="var-_uniq.300" data-verso-hover="7">i</span><span class="unknown token" data-binding="">)</span>
-
-    -- Return the child without its stdin handle.
-    -- This closes the handle, because there are
-    -- no more references to it.
-    <a href="Functors___-Monads-and--do--Notation/#Pure___mk"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1160">pure</span></a> <span class="var token" data-binding="var-_uniq.160" data-verso-hover="2634">child</span>
-
-  -- Wait for grep to terminate
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-535">if</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2634">grep</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Child___wait"><span class="const token" data-binding="const-IO.Process.Child.wait" data-verso-hover="2636">wait</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">!=</span> <span class="typed token" data-binding="" data-verso-hover="153">0</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-535">then</span>
-    <a href="IO/Console-Output/#IO___eprintln"><span class="const token" data-binding="const-IO.eprintln" data-verso-hover="2432">IO.eprintln</span></a> <span class="keyword token" data-binding="kw-occ-termS!_-580">s!</span><span class="unknown token" data-binding="">"grep terminated unsuccessfully"</span>
-    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-619" data-verso-hover="157">return</span> <span class="typed token" data-binding="" data-verso-hover="153">1</span>
-
-  -- Consume its output
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLet-655">let</span> <span class="var token" data-binding="var-_uniq.1109" data-verso-hover="7">count</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2634">grep</span><span class="unknown token" data-binding="">.</span><a href="IO/Processes/#IO___Process___Child___mk"><span class="const token" data-binding="const-IO.Process.Child.stdout" data-verso-hover="2615">stdout</span></a><span class="unknown token" data-binding="">.</span><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Handle___readToEnd"><span class="const token" data-binding="const-IO.FS.Handle.readToEnd" data-verso-hover="2616">readToEnd</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___trim"><span class="const token" data-binding="const-String.trim" data-verso-hover="2219">trim</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___splitOn"><span class="const token" data-binding="const-String.splitOn" data-verso-hover="2596">splitOn</span></a> <span class="literal string token" data-binding="" data-verso-hover="2597">"\n"</span> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="985">length</span></a>
-
-  <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="keyword token" data-binding="kw-occ-termS!_-738">s!</span><span class="unknown token" data-binding="">"There are {</span><span class="var token" data-binding="var-_uniq.1109" data-verso-hover="7">count</span><span class="unknown token" data-binding="">} four-digit palindromes."</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-786" data-verso-hover="157">return</span> <span class="typed token" data-binding="" data-verso-hover="153">0</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  Its output is:</p>
-                <div class="example-file">
-                  <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span> <span class="const token" data-binding="const-main" data-verso-hover="3103">main</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-24">do</span></a>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-29">let</span> <span class="unknown token" data-binding="">grep</span> <span class="unknown token" data-binding="">←</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doNested-42">do</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doLetArrow-49">let</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">stdin</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">child</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span> <span class="unknown token" data-binding="">IO.Process.spawn</span> <span class="unknown token" data-binding="">{</span>
+      <span class="unknown token" data-binding="">cmd</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="3107">"grep"</span><span class="unknown token" data-binding="">,</span>
+      <span class="unknown token" data-binding="">args</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding=""></span></code><p>
+                    Its output is:</p>
+                  <div class="example-file">
+                    <code>stdout</code><code class="line">There are 90 four-digit palindromes.</code></div>
+                  </div>
                 </details><div class="namedocs" id="IO___Process___Output___mk">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=IO.Process.Output.stdout" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">IO.Process.Output : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></pre><div class="text">
                   <p>
@@ -2620,24 +2578,24 @@ After checking <code>grep</code>'s exit code, the program extracts its result.</
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output.mk" data-verso-hover="2637">IO.Process.Output.mk</span></a></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="IO/Processes/#IO___Process___Output___mk"><span class="const token" data-binding="const-IO.Process.Output.mk" data-verso-hover="3132">IO.Process.Output.mk</span></a></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Fields</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.exitCode" data-verso-hover="2638">exitCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="143">UInt32</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.exitCode" data-verso-hover="3133">exitCode</span> : <a href="Basic-Types/Fixed-Precision-Integers/#UInt32___ofBitVec"><span class="const token" data-binding="const-UInt32" data-verso-hover="216">UInt32</span></a></pre><div class="docs">
                       <p>
                         The process's exit code.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.stdout" data-verso-hover="2639">stdout</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.stdout" data-verso-hover="3134">stdout</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="docs">
                       <p>
                         Everything that was written to the process's standard output.</p>
                       </div>
                     </section>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.stderr" data-verso-hover="2640">stderr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-IO.Process.Output.stderr" data-verso-hover="3135">stderr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></pre><div class="docs">
                       <p>
                         Everything that was written to the process's standard error.</p>
                       </div>
@@ -2647,7 +2605,7 @@ After checking <code>grep</code>'s exit code, the program extracts its result.</
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="IO/Timing/#io-timing" rel="prev" title="10.8. Timing"><span class="arrow">←</span><span class="where">10.8. Timing</span></a><a class="local-button active" href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers" rel="next" title="10.10. Random Numbers"><span class="where">10.10. Random Numbers</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="IO/Timing/#io-timing" rel="prev" title="15.8. Timing"><span class="arrow">←</span><span class="where">15.8. Timing</span></a><a class="local-button active" href="IO/Random-Numbers/#The-Lean-Language-Reference--IO--Random-Numbers" rel="next" title="15.10. Random Numbers"><span class="where">15.10. Random Numbers</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

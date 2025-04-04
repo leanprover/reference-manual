@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">14.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
-              <table><tr class="numbered"><td class="num">14.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">14.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">14.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">14.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">14.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">14.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">14.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">14.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">14.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">14.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">14.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">14.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">14.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">14.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">14.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">14.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="current numbered"><td class="num">14.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
+                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">18.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
+              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">18.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">18.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">18.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">18.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">18.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">18.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">18.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">18.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">18.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">18.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">18.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">18.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">18.17.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="current numbered"><td class="num">18.18.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-Thunk" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Thunk" checked="checked"></label><span class="number">14.18.</span> <span class="current"><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></span></div>
+                <label for="--verso-manual-toc-Thunk" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Thunk" checked="checked"></label><span class="number">18.18.</span> <span class="current"><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></span></div>
               <ol>
                 <li>
                   <span class="header head-1"><span class="level-num">1.</span> <a href="Basic-Types/Lazy-Computations/#Thunk-model">Logical Model</a></span></li>
@@ -2154,38 +2168,39 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Subtypes/#Subtype" rel="prev" title="14.17. Subtypes"><span class="arrow">←</span><span class="where">14.17. Subtypes</span></a><a class="local-button active" href="Notations-and-Macros/#language-extension" rel="next" title="15. Notations and Macros"><span class="where">15. Notations and Macros</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Subtypes/#Subtype" rel="prev" title="18.17. Subtypes"><span class="arrow">←</span><span class="where">18.17. Subtypes</span></a><a class="local-button active" href="Notations-and-Macros/#language-extension" rel="next" title="19. Notations and Macros"><span class="where">19. Notations and Macros</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              14.18. Lazy Computations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk" title="Permalink">🔗</a></span></h1>
+              18.18. Lazy Computations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk" title="Permalink">🔗</a></span></h1>
             <p>
-              The <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a></code> type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called <span id="--tech-term-forcing"><em>forcing</em></span> the thunk.
+              A <span id="--tech-term-thunk" class="def-technical-term"><em>thunk</em></span> delays the computation of a value.
+In particular, the <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a></code> type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called <span id="--tech-term-forcing" class="def-technical-term"><em>forcing</em></span> the thunk.
 The computed value is saved, so subsequent requests do not result in recomputation.
-Computing values at most once, when explicitly requested, is called <span id="--tech-term-lazy-evaluation"><em>lazy evaluation</em></span>.<span id="--index-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span>
-This caching is invisible to Lean's logic, in which <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a></code> is equivalent to a function from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>.</p>
+Computing values at most once, when explicitly requested, is called <span id="--tech-term-lazy-evaluation" class="def-technical-term"><em>lazy evaluation</em></span>.<span id="--index--next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span>
+This caching is invisible to Lean's logic, in which <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a></code> is equivalent to a function from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>.</p>
             <section>
               <h2 id="Thunk-model">
-                14.18.1. Logical Model<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-model" title="Permalink">🔗</a></span></h2>
+                18.18.1. Logical Model<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-model" title="Permalink">🔗</a></span></h2>
               <p>
                 Thunks are modeled as a single-field structure that contains a function from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>.
 The structure's field is private, so the function itself cannot be directly accessed.
-Instead, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">Thunk.get</span></a></code> should be used.
-From the perspective of the logic, they are equivalent; <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">Thunk.get</span></a></code> exists to be overridden in the compiler by the platform primitive that implements lazy evaluation.</p>
+Instead, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">Thunk.get</span></a></code> should be used.
+From the perspective of the logic, they are equivalent; <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">Thunk.get</span></a></code> exists to be overridden in the compiler by the platform primitive that implements lazy evaluation.</p>
               <div class="namedocs" id="Thunk___mk">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.mk" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block">Thunk.{u} (<span class="var token" data-binding="var-_uniq.31" data-verso-hover="55">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span>) : <span class="sort token" data-binding="" data-verso-hover="50">Type u</span></pre><div class="text">
                   <p>
                     Delays evaluation. The delayed code is evaluated at most once.</p>
                   <p>
-                    A thunk is code that constructs a value when it is requested via <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">Thunk.get</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___map"><span class="const token" data-binding="const-Thunk.map" data-verso-hover="4380">Thunk.map</span></a></code>, or
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___bind"><span class="const token" data-binding="const-Thunk.bind" data-verso-hover="4381">Thunk.bind</span></a></code>. The resulting value is cached, so the code is executed at most once. This is also
+                    A thunk is code that constructs a value when it is requested via <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">Thunk.get</span></a></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___map"><span class="const token" data-binding="const-Thunk.map" data-verso-hover="4606">Thunk.map</span></a></code>, or
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___bind"><span class="const token" data-binding="const-Thunk.bind" data-verso-hover="4607">Thunk.bind</span></a></code>. The resulting value is cached, so the code is executed at most once. This is also
 known as lazy or call-by-need evaluation.</p>
                   <p>
-                    The Lean runtime has special support for the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a></code> type in order to implement the caching
+                    The Lean runtime has special support for the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a></code> type in order to implement the caching
 behavior.</p>
                   <h1>
                     Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4382">Thunk.mk</span></a>.{u}</pre><div class="docs">
+                    <pre class="name-and-type hl lean"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4608">Thunk.mk</span></a>.{u}</pre><div class="docs">
                       <p>
                         Constructs a new thunk from a function <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.33" data-verso-hover="55">α</span></code> that will be called when the thunk is first
 forced.</p>
@@ -2193,14 +2208,12 @@ forced.</p>
                         The result is cached. It is re-used when the thunk is forced again.</p>
                       </div>
                     </section>
-                  <h1>
-                    Fields</h1>
                   </div>
                 </div>
               </section>
             <section>
               <h2 id="Thunk-runtime">
-                14.18.2. Runtime Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-runtime" title="Permalink">🔗</a></span></h2>
+                18.18.2. Runtime Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-runtime" title="Permalink">🔗</a></span></h2>
               <figure id="thunkffi"><p>
                   <img src="static/figures/thunk.svg" alt="Memory layout of thunks"></p>
                 <figcaption>Memory layout of thunks</figcaption></figure><p>
@@ -2231,125 +2244,127 @@ If not, then another thread is already computing the value; the system waits unt
               </section>
             <section>
               <h2 id="Thunk-coercions">
-                14.18.3. Coercions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-coercions" title="Permalink">🔗</a></span></h2>
+                18.18.3. Coercions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-coercions" title="Permalink">🔗</a></span></h2>
               <p>
-                There is a coercion from any type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.41" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.45" data-verso-hover="55">α</span></code> that converts a term <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="46">e</span></code> into <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4382">Thunk.mk</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2780">fun</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">e</span></code>.
-Because the elaborator <a href="Source-Files/Coercions/#coercion-insertion">unfolds coercions</a>, evaluation of the original term <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.74" data-verso-hover="46">e</span></code> is delayed; the coercion is not equivalent to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___pure"><span class="const token" data-binding="const-Thunk.pure" data-verso-hover="4383">Thunk.pure</span></a></code>.</p>
-              <details class="example"><summary class="description">Lazy Lists</summary><p>
-                  Lazy lists are lists that may contain thunks.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">delayed</span></a></code> constructor causes part of the list to be computed on demand.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3155" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-LazyList" data-verso-hover="4385" id="LazyList___cons">LazyList</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-3180" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-3188">where</span>
-  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386" id="LazyList___cons">nil</span>
-  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387" id="LazyList___cons">cons</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span>
-  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384" id="LazyList___cons">delayed</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span>
-<span class="keyword token" data-binding="kw-occ-null-3298">deriving</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="100">Inhabited</span></a>
+                There is a coercion from any type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.41" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.45" data-verso-hover="55">α</span></code> that converts a term <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="46">e</span></code> into <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4608">Thunk.mk</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2849">fun</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">e</span></code>.
+Because the elaborator <a href="Coercions/Coercion-Insertion/#coercion-insertion">unfolds coercions</a>, evaluation of the original term <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.74" data-verso-hover="46">e</span></code> is delayed; the coercion is not equivalent to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___pure"><span class="const token" data-binding="const-Thunk.pure" data-verso-hover="4609">Thunk.pure</span></a></code>.</p>
+              <details class="example"><summary class="description">Lazy Lists</summary><div class="example-content">
+                  <p>
+                    Lazy lists are lists that may contain thunks.
+The <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">delayed</span></a></code> constructor causes part of the list to be computed on demand.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3224" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-LazyList" data-verso-hover="4611" id="LazyList___cons">LazyList</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-3249" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-3257">where</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612" id="LazyList___cons">nil</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613" id="LazyList___cons">cons</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610" id="LazyList___cons">delayed</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span>
+<span class="keyword token" data-binding="kw-occ-null-3367">deriving</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="173">Inhabited</span></a>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Lazy lists can be converted to ordinary lists by forcing all the embedded thunks.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3412">def</span> <span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388" id="LazyList___toList">LazyList.toList</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span>
-  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span>
-  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">.cons</span></a> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.42" data-verso-hover="4389">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.42" data-verso-hover="4389">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
-  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4390">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4390">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">get</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
+                    Lazy lists can be converted to ordinary lists by forcing all the embedded thunks.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3481">def</span> <span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614" id="LazyList___toList">LazyList.toList</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">.cons</span></a> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.42" data-verso-hover="4615">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.42" data-verso-hover="4615">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
+  <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4616">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4616">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">get</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Many operations on lazy lists can be implemented without forcing the embedded thunks, instead building up further thunks.
-The body of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">delayed</span></a></code> does not need to be an explicit call to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4382">Thunk.mk</span></a></code> because of the coercion.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3801">def</span> <span class="const token" data-binding="const-LazyList.take" data-verso-hover="4391" id="LazyList___take">LazyList.take</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="44">α</span>
-  <span class="unknown token" data-binding="">|</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.148" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">.cons</span></a> <span class="var token" data-binding="var-_uniq.149" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.150" data-verso-hover="4389">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">.cons</span></a> <span class="var token" data-binding="var-_uniq.149" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4391">take</span></a> <span class="var token" data-binding="var-_uniq.148" data-verso-hover="7">n</span> <span class="var token" data-binding="var-_uniq.150" data-verso-hover="4389">xs</span>
-  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.379" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="var token" data-binding="var-_uniq.380" data-verso-hover="4390">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4391">take</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.379" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.380" data-verso-hover="4390">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">get</span></a>
+                    Many operations on lazy lists can be implemented without forcing the embedded thunks, instead building up further thunks.
+The body of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">delayed</span></a></code> does not need to be an explicit call to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="4608">Thunk.mk</span></a></code> because of the coercion.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3870">def</span> <span class="const token" data-binding="const-LazyList.take" data-verso-hover="4617" id="LazyList___take">LazyList.take</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="44">α</span>
+  <span class="unknown token" data-binding="">|</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.148" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">.cons</span></a> <span class="var token" data-binding="var-_uniq.149" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.150" data-verso-hover="4615">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">.cons</span></a> <span class="var token" data-binding="var-_uniq.149" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4617">take</span></a> <span class="var token" data-binding="var-_uniq.148" data-verso-hover="7">n</span> <span class="var token" data-binding="var-_uniq.150" data-verso-hover="4615">xs</span>
+  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.379" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="var token" data-binding="var-_uniq.380" data-verso-hover="4616">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4617">take</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.379" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.380" data-verso-hover="4616">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">get</span></a>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4011">def</span> <span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4392" id="LazyList___take">LazyList.ofFn</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21064" data-verso-hover="3973">f</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="394">Fin</span></a> <span class="var token" data-binding="var-_uniq.21054" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.21060" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.21060" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">:=</span>
-  <a href="Basic-Types/Finite-Natural-Numbers/#Fin___foldr"><span class="const token" data-binding="const-Fin.foldr" data-verso-hover="3383">Fin.foldr</span></a> <span class="var token" data-binding="var-_uniq.21068" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-4094">fun</span> <span class="var token" data-binding="var-_uniq.21080" data-verso-hover="2710">i</span> <span class="var token" data-binding="var-_uniq.21083" data-verso-hover="4389">xs</span> <span class="unknown token" data-binding="">=&gt;</span>
-    <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">LazyList.cons</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21064" data-verso-hover="3973">f</span> <span class="var token" data-binding="var-_uniq.21080" data-verso-hover="2710">i</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.21083" data-verso-hover="4389">xs</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4080">def</span> <span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4618" id="LazyList___take">LazyList.ofFn</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.23645" data-verso-hover="4202">f</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="var token" data-binding="var-_uniq.23635" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.23641" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.23641" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Basic-Types/Finite-Natural-Numbers/#Fin___foldr"><span class="const token" data-binding="const-Fin.foldr" data-verso-hover="3528">Fin.foldr</span></a> <span class="var token" data-binding="var-_uniq.23649" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-4163">fun</span> <span class="var token" data-binding="var-_uniq.23661" data-verso-hover="848">i</span> <span class="var token" data-binding="var-_uniq.23664" data-verso-hover="4615">xs</span> <span class="unknown token" data-binding="">=&gt;</span>
+    <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">LazyList.cons</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.23645" data-verso-hover="4202">f</span> <span class="var token" data-binding="var-_uniq.23661" data-verso-hover="848">i</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.23664" data-verso-hover="4615">xs</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4146">def</span> <span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393" id="LazyList___take">LazyList.append</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21277" data-verso-hover="4389">xs</span> <span class="var token" data-binding="var-_uniq.21280" data-verso-hover="4389">ys</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.21274" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4385">LazyList</span></a> <span class="var token" data-binding="var-_uniq.21274" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">:=</span>
-  <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span>
-    <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4223" data-verso-hover="52">match</span></a> <span class="var token" data-binding="var-_uniq.21277" data-verso-hover="4389">xs</span> <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4223" data-verso-hover="52">with</span></a>
-    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4386">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.21280" data-verso-hover="4389">ys</span>
-    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">.cons</span></a> <span class="var token" data-binding="var-_uniq.21474" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.21475" data-verso-hover="4389">xs'</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4387">LazyList.cons</span></a> <span class="var token" data-binding="var-_uniq.21474" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <span class="var token" data-binding="var-_uniq.21475" data-verso-hover="4389">xs'</span> <span class="var token" data-binding="var-_uniq.21280" data-verso-hover="4389">ys</span><span class="unknown token" data-binding="">)</span>
-    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4384">.delayed</span></a> <span class="var token" data-binding="var-_uniq.21602" data-verso-hover="4390">xs'</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <span class="var token" data-binding="var-_uniq.21602" data-verso-hover="4390">xs'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4379">get</span></a> <span class="var token" data-binding="var-_uniq.21280" data-verso-hover="4389">ys</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4215">def</span> <span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619" id="LazyList___take">LazyList.append</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.23858" data-verso-hover="4615">xs</span> <span class="var token" data-binding="var-_uniq.23861" data-verso-hover="4615">ys</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.23855" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList" data-verso-hover="4611">LazyList</span></a> <span class="var token" data-binding="var-_uniq.23855" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="unknown token" data-binding="">&lt;|</span>
+    <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4292" data-verso-hover="52">match</span></a> <span class="var token" data-binding="var-_uniq.23858" data-verso-hover="4615">xs</span> <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4292" data-verso-hover="52">with</span></a>
+    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.nil" data-verso-hover="4612">.nil</span></a> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.23861" data-verso-hover="4615">ys</span>
+    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">.cons</span></a> <span class="var token" data-binding="var-_uniq.24055" data-verso-hover="46">x</span> <span class="var token" data-binding="var-_uniq.24056" data-verso-hover="4615">xs'</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.cons" data-verso-hover="4613">LazyList.cons</span></a> <span class="var token" data-binding="var-_uniq.24055" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <span class="var token" data-binding="var-_uniq.24056" data-verso-hover="4615">xs'</span> <span class="var token" data-binding="var-_uniq.23861" data-verso-hover="4615">ys</span><span class="unknown token" data-binding="">)</span>
+    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Lazy-Computations/#LazyList___cons"><span class="const token" data-binding="const-LazyList.delayed" data-verso-hover="4610">.delayed</span></a> <span class="var token" data-binding="var-_uniq.24183" data-verso-hover="4616">xs'</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <span class="var token" data-binding="var-_uniq.24183" data-verso-hover="4616">xs'</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#Thunk___get"><span class="const token" data-binding="const-Thunk.get" data-verso-hover="4605">get</span></a> <span class="var token" data-binding="var-_uniq.23861" data-verso-hover="4615">ys</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Laziness is ordinarily invisible to Lean programs: there is no way to check whether a thunk has been forced.
+                    Laziness is ordinarily invisible to Lean programs: there is no way to check whether a thunk has been forced.
 However, <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span> can be used to gain insight into thunk evaluation.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4578">def</span> <span class="const token" data-binding="const-observe" data-verso-hover="4394" id="observe">observe</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="239">tag</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="2710">i</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="394">Fin</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">:=</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-4628" data-verso-hover="820">dbg_trace</span> <span class="unknown token" data-binding="">"{</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="239">tag</span><span class="unknown token" data-binding="">}: {</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="2710">i</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin.val" data-verso-hover="794">val</span></a><span class="unknown token" data-binding="">}"</span>
-  <span class="var token" data-binding="var-_uniq.10" data-verso-hover="2710">i</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin.val" data-verso-hover="794">val</span></a>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4647">def</span> <span class="const token" data-binding="const-observe" data-verso-hover="4620" id="observe">observe</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="310">tag</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="848">i</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">:=</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-4697" data-verso-hover="2020">dbg_trace</span> <span class="unknown token" data-binding="">"{</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="310">tag</span><span class="unknown token" data-binding="">}: {</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="848">i</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin.val" data-verso-hover="851">val</span></a><span class="unknown token" data-binding="">}"</span>
+  <span class="var token" data-binding="var-_uniq.10" data-verso-hover="848">i</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin.val" data-verso-hover="851">val</span></a>
 <span class="unknown token" data-binding=""></span></code><p>
-                  The lazy lists <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a></code> emit traces when evaluated.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4745">def</span> <span class="const token" data-binding="const-xs" data-verso-hover="4395" id="xs">xs</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4392">LazyList.ofFn</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">n</span> <span class="unknown token" data-binding="">:=</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#observe"><span class="const token" data-binding="const-observe" data-verso-hover="4394">observe</span></a> <span class="literal string token" data-binding="" data-verso-hover="4397">"xs"</span><span class="unknown token" data-binding="">)</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4793">def</span> <span class="const token" data-binding="const-ys" data-verso-hover="4396" id="xs">ys</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4392">LazyList.ofFn</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">n</span> <span class="unknown token" data-binding="">:=</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#observe"><span class="const token" data-binding="const-observe" data-verso-hover="4394">observe</span></a> <span class="literal string token" data-binding="" data-verso-hover="4398">"ys"</span><span class="unknown token" data-binding="">)</span>
+                    The lazy lists <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a></code> emit traces when evaluated.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4814">def</span> <span class="const token" data-binding="const-xs" data-verso-hover="4621" id="xs">xs</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4618">LazyList.ofFn</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">n</span> <span class="unknown token" data-binding="">:=</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#observe"><span class="const token" data-binding="const-observe" data-verso-hover="4620">observe</span></a> <span class="literal string token" data-binding="" data-verso-hover="4623">"xs"</span><span class="unknown token" data-binding="">)</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4862">def</span> <span class="const token" data-binding="const-ys" data-verso-hover="4622" id="xs">ys</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.ofFn" data-verso-hover="4618">LazyList.ofFn</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">n</span> <span class="unknown token" data-binding="">:=</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Lazy-Computations/#observe"><span class="const token" data-binding="const-observe" data-verso-hover="4620">observe</span></a> <span class="literal string token" data-binding="" data-verso-hover="4624">"ys"</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Converting <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a></code> to an ordinary list forces all of the embedded thunks:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2]</code><code class="message info">xs: 0
+                    Converting <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a></code> to an ordinary list forces all of the embedded thunks:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2]</code><code class="message info">xs: 0
 xs: 1
 xs: 2
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4947" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5016" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>xs: 0
+                    <pre>xs: 0
 xs: 1
 xs: 2
 </pre></div>
-                <div class="information">
-                  <pre>[0, 1, 2]
+                  <div class="information">
+                    <pre>[0, 1, 2]
 </pre></div>
-                <p>
-                  Likewise, converting <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a></code> to an ordinary list forces the embedded thunks:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0, 1, 2]</code><code class="message info">xs: 0
+                  <p>
+                    Likewise, converting <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a></code> to an ordinary list forces the embedded thunks:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0, 1, 2]</code><code class="message info">xs: 0
 xs: 1
 xs: 2
 ys: 0
 ys: 1
 ys: 2
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5158" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5227" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>xs: 0
+                    <pre>xs: 0
 xs: 1
 xs: 2
 ys: 0
 ys: 1
 ys: 2
 </pre></div>
-                <div class="information">
-                  <pre>[0, 1, 2, 0, 1, 2]
+                  <div class="information">
+                    <pre>[0, 1, 2, 0, 1, 2]
 </pre></div>
-                <p>
-                  Appending <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a></code> to itself before forcing the thunks results in a single set of traces, because each thunk's code is evaluated just once:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0, 1, 2]</code><code class="message info">xs: 0
+                  <p>
+                    Appending <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a></code> to itself before forcing the thunks results in a single set of traces, because each thunk's code is evaluated just once:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0, 1, 2]</code><code class="message info">xs: 0
 xs: 1
 xs: 2
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5461" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5530" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>xs: 0
+                    <pre>xs: 0
 xs: 1
 xs: 2
 </pre></div>
-                <div class="information">
-                  <pre>[0, 1, 2, 0, 1, 2]
+                  <div class="information">
+                    <pre>[0, 1, 2, 0, 1, 2]
 </pre></div>
-                <p>
-                  Finally, taking a prefix of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a></code> results in only some of the thunks in <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a></code> being evaluated:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0]</code><code class="message info">xs: 0
+                  <p>
+                    Finally, taking a prefix of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a></code> results in only some of the thunks in <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a></code> being evaluated:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[0, 1, 2, 0]</code><code class="message info">xs: 0
 xs: 1
 xs: 2
 ys: 0
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5719" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4395">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4393">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4396">ys</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4391">take</span></a> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4388">toList</span></a>
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5788" data-verso-hover="6">#eval</span></a></span> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-xs" data-verso-hover="4621">xs</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.append" data-verso-hover="4619">append</span></a> <a href="Basic-Types/Lazy-Computations/#xs"><span class="const token" data-binding="const-ys" data-verso-hover="4622">ys</span></a> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___take"><span class="const token" data-binding="const-LazyList.take" data-verso-hover="4617">take</span></a> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Lazy-Computations/#LazyList___toList"><span class="const token" data-binding="const-LazyList.toList" data-verso-hover="4614">toList</span></a>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>xs: 0
+                    <pre>xs: 0
 xs: 1
 xs: 2
 ys: 0
 </pre></div>
-                <div class="information">
-                  <pre>[0, 1, 2, 0]
+                  <div class="information">
+                    <pre>[0, 1, 2, 0]
 </pre></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="Thunk-api">
-                14.18.4. API Reference<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-api" title="Permalink">🔗</a></span></h2>
+                18.18.4. API Reference<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Thunk-api" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="Thunk___get">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.get" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Thunk.get.{u_1} {<span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} (<span class="var token" data-binding="var-_uniq.106" data-verso-hover="4399">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span>) : <span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.get" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Thunk.get.{u_1} {<span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} (<span class="var token" data-binding="var-_uniq.106" data-verso-hover="4625">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span>) : <span class="var token" data-binding="var-_uniq.105" data-verso-hover="44">α</span></pre><div class="text">
                   <p>
                     Gets the thunk's value. If the value is cached, it is returned in constant time; if not, it is
 computed.</p>
@@ -2359,16 +2374,16 @@ computed.</p>
                 </div>
               <div class="namedocs" id="Thunk___map">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.map" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Thunk.map.{u_1, u_2} {<span class="var token" data-binding="var-_uniq.112" data-verso-hover="44">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>}
-  {<span class="var token" data-binding="var-_uniq.113" data-verso-hover="114">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} (<span class="var token" data-binding="var-_uniq.115" data-verso-hover="107">f</span> : <span class="var token" data-binding="var-_uniq.112" data-verso-hover="44">α</span> → <span class="var token" data-binding="var-_uniq.113" data-verso-hover="114">β</span>) (<span class="var token" data-binding="var-_uniq.116" data-verso-hover="4399">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="44">α</span>) :
-  <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="114">β</span></pre><div class="text">
+  {<span class="var token" data-binding="var-_uniq.113" data-verso-hover="187">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} (<span class="var token" data-binding="var-_uniq.115" data-verso-hover="180">f</span> : <span class="var token" data-binding="var-_uniq.112" data-verso-hover="44">α</span> → <span class="var token" data-binding="var-_uniq.113" data-verso-hover="187">β</span>) (<span class="var token" data-binding="var-_uniq.116" data-verso-hover="4625">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.112" data-verso-hover="44">α</span>) :
+  <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="187">β</span></pre><div class="text">
                   <p>
-                    Constructs a new thunk that forces <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4399">x</span></code> and then applies <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4399">x</span></code> to the result. Upon forcing, the result
-of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.109" data-verso-hover="107">f</span></code> is cached and the reference to the thunk <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4399">x</span></code> is dropped.</p>
+                    Constructs a new thunk that forces <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4625">x</span></code> and then applies <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4625">x</span></code> to the result. Upon forcing, the result
+of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.109" data-verso-hover="180">f</span></code> is cached and the reference to the thunk <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.110" data-verso-hover="4625">x</span></code> is dropped.</p>
                   </div>
                 </div>
               <div class="namedocs" id="Thunk___pure">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.pure" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Thunk.pure.{u_1} {<span class="var token" data-binding="var-_uniq.121" data-verso-hover="44">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>} (<span class="var token" data-binding="var-_uniq.122" data-verso-hover="46">a</span> : <span class="var token" data-binding="var-_uniq.121" data-verso-hover="44">α</span>) :
-  <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.121" data-verso-hover="44">α</span></pre><div class="text">
+  <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.121" data-verso-hover="44">α</span></pre><div class="text">
                   <p>
                     Stores an already-computed value in a thunk.</p>
                   <p>
@@ -2377,16 +2392,16 @@ of <code class="hl lean inline" data-lean-context="docstring-examples"><span cla
                 </div>
               <div class="namedocs" id="Thunk___bind">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Thunk.bind" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Thunk.bind.{u_1, u_2} {<span class="var token" data-binding="var-_uniq.128" data-verso-hover="44">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span>}
-  {<span class="var token" data-binding="var-_uniq.129" data-verso-hover="114">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} (<span class="var token" data-binding="var-_uniq.130" data-verso-hover="4399">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.128" data-verso-hover="44">α</span>)
-  (<span class="var token" data-binding="var-_uniq.132" data-verso-hover="4400">f</span> : <span class="var token" data-binding="var-_uniq.128" data-verso-hover="44">α</span> → <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="114">β</span>) : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="763">Thunk</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="114">β</span></pre><div class="text">
+  {<span class="var token" data-binding="var-_uniq.129" data-verso-hover="187">β</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type u_2</span>} (<span class="var token" data-binding="var-_uniq.130" data-verso-hover="4625">x</span> : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.128" data-verso-hover="44">α</span>)
+  (<span class="var token" data-binding="var-_uniq.132" data-verso-hover="4626">f</span> : <span class="var token" data-binding="var-_uniq.128" data-verso-hover="44">α</span> → <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="187">β</span>) : <a href="Basic-Types/Lazy-Computations/#Thunk___mk"><span class="const token" data-binding="const-Thunk" data-verso-hover="1968">Thunk</span></a> <span class="var token" data-binding="var-_uniq.129" data-verso-hover="187">β</span></pre><div class="text">
                   <p>
-                    Constructs a new thunk that applies <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.126" data-verso-hover="4400">f</span></code> to the result of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.125" data-verso-hover="4399">x</span></code> when forced.</p>
+                    Constructs a new thunk that applies <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.126" data-verso-hover="4626">f</span></code> to the result of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.125" data-verso-hover="4625">x</span></code> when forced.</p>
                   </div>
                 </div>
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Subtypes/#Subtype" rel="prev" title="14.17. Subtypes"><span class="arrow">←</span><span class="where">14.17. Subtypes</span></a><a class="local-button active" href="Notations-and-Macros/#language-extension" rel="next" title="15. Notations and Macros"><span class="where">15. Notations and Macros</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Subtypes/#Subtype" rel="prev" title="18.17. Subtypes"><span class="arrow">←</span><span class="where">18.17. Subtypes</span></a><a class="local-button active" href="Notations-and-Macros/#language-extension" rel="next" title="19. Notations and Macros"><span class="where">19. Notations and Macros</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

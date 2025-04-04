@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="current numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="current numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-basic-props" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-props" checked="checked"></label><span class="number">13.</span> <span class=""><a href="Basic-Propositions/#basic-props">Basic Propositions</a></span></div>
-              <table><tr class="numbered"><td class="num">13.1.</td><td><a href="Basic-Propositions/Truth/#true-false">Truth</a></td></tr><tr class="numbered"><td class="num">13.2.</td><td><a href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives">Logical Connectives</a></td></tr><tr class="current numbered"><td class="num">13.3.</td><td><a href="Basic-Propositions/Quantifiers/#The-Lean-Language-Reference--Basic-Propositions--Quantifiers">Quantifiers</a></td></tr><tr class="numbered"><td class="num">13.4.</td><td><a href="Basic-Propositions/Propositional-Equality/#propositional-equality">Propositional Equality</a></td></tr></table></div>
+                <label for="--verso-manual-toc-basic-props" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-props" checked="checked"></label><span class="number">17.</span> <span class=""><a href="Basic-Propositions/#basic-props">Basic Propositions</a></span></div>
+              <table><tr class="numbered"><td class="num">17.1.</td><td><a href="Basic-Propositions/Truth/#true-false">Truth</a></td></tr><tr class="numbered"><td class="num">17.2.</td><td><a href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives">Logical Connectives</a></td></tr><tr class="current numbered"><td class="num">17.3.</td><td><a href="Basic-Propositions/Quantifiers/#The-Lean-Language-Reference--Basic-Propositions--Quantifiers">Quantifiers</a></td></tr><tr class="numbered"><td class="num">17.4.</td><td><a href="Basic-Propositions/Propositional-Equality/#propositional-equality">Propositional Equality</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-The-Lean-Language-Reference--Basic-Propositions--Quantifiers" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--Basic-Propositions--Quantifiers" checked="checked"></label><span class="number">13.3.</span> <span class="current"><a href="Basic-Propositions/Quantifiers/#The-Lean-Language-Reference--Basic-Propositions--Quantifiers">Quantifiers</a></span></div>
+                <label for="--verso-manual-toc-The-Lean-Language-Reference--Basic-Propositions--Quantifiers" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--Basic-Propositions--Quantifiers" checked="checked"></label><span class="number">17.3.</span> <span class="current"><a href="Basic-Propositions/Quantifiers/#The-Lean-Language-Reference--Basic-Propositions--Quantifiers">Quantifiers</a></span></div>
               <ol>
                 <li>
                   <a href="Basic-Propositions/Quantifiers/#Lean___Parser___Term___forall"><span class="syntax"><span class="keyword">∀</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="meta">(</span><span class="keyword">:</span><span class="ws"> </span><span class="meta">…</span><span class="meta">)?</span><span class="keyword">,</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
@@ -2154,10 +2168,10 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="13.2. Logical Connectives"><span class="arrow">←</span><span class="where">13.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="13.4. Propositional Equality"><span class="where">13.4. Propositional Equality</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="17.2. Logical Connectives"><span class="arrow">←</span><span class="where">17.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="17.4. Propositional Equality"><span class="where">17.4. Propositional Equality</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              13.3. Quantifiers</h1>
+              17.3. Quantifiers</h1>
             <p>
               Just as implication is implemented as ordinary function types in <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code>, universal quantification is implemented as dependent function types in <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code>.
 Because <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is <a class="technical-term" href="The-Type-System/Universes/#--tech-term-impredicative">impredicative</a>, any function type in which the <a class="technical-term" href="The-Type-System/Functions/#--tech-term-codomain">codomain</a> is a <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is itself a <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code>, even if the <a class="technical-term" href="The-Type-System/Functions/#--tech-term-domain">domain</a> is a <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="50">Type</span></code>.
@@ -2182,7 +2196,7 @@ Normally, all holes must be solved for. However, there are a few contexts where 
 Related concept: implicit parameters are automatically filled in with holes during the elaboration process.
 
 See also `?m` syntax (synthetic holes).
-</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span> <span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="ident">ident</span> <span class="bnf">|</span> <a href="Terms/Holes#Lean___Parser___Term___hole"><span class="nonterminal documented" data-kind="Lean.Parser.Term.hole"><code class="hover-info"><code class="docstring">A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.
+</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span> <span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="ident">ident</span> <span class="bnf">|</span> <a href="Terms/Holes#Lean___Parser___Term___hole"><span class="nonterminal documented" data-kind="Lean.Parser.Term.hole"><code class="hover-info"><code class="docstring">A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.
 For example, in `@id _ Nat.zero`, the `_` must be the type of `Nat.zero`, which is `Nat`.
 
 The way this works is that holes create fresh metavariables.
@@ -2196,7 +2210,7 @@ Normally, all holes must be solved for. However, there are a few contexts where 
 Related concept: implicit parameters are automatically filled in with holes during the elaboration process.
 
 See also `?m` syntax (synthetic holes).
-</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span></span><span class="bnf">)*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___forall-next-next-next"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
+</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span></span><span class="bnf">*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___forall-next-next-next"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Term.forall"><span class="keyword">forall</span> <span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="ident">ident</span> <span class="bnf">|</span> <a href="Terms/Holes#Lean___Parser___Term___hole"><span class="nonterminal documented" data-kind="Lean.Parser.Term.hole"><code class="hover-info"><code class="docstring">A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.
 For example, in `@id _ Nat.zero`, the `_` must be the type of `Nat.zero`, which is `Nat`.
 
@@ -2211,7 +2225,7 @@ Normally, all holes must be solved for. However, there are a few contexts where 
 Related concept: implicit parameters are automatically filled in with holes during the elaboration process.
 
 See also `?m` syntax (synthetic holes).
-</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span> <span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="ident">ident</span> <span class="bnf">|</span> <a href="Terms/Holes#Lean___Parser___Term___hole"><span class="nonterminal documented" data-kind="Lean.Parser.Term.hole"><code class="hover-info"><code class="docstring">A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.
+</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span> <span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="nonterminal" data-kind="ident">ident</span> <span class="bnf">|</span> <a href="Terms/Holes#Lean___Parser___Term___hole"><span class="nonterminal documented" data-kind="Lean.Parser.Term.hole"><code class="hover-info"><code class="docstring">A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.
 For example, in `@id _ Nat.zero`, the `_` must be the type of `Nat.zero`, which is `Nat`.
 
 The way this works is that holes create fresh metavariables.
@@ -2225,7 +2239,7 @@ Normally, all holes must be solved for. However, there are a few contexts where 
 Related concept: implicit parameters are automatically filled in with holes during the elaboration process.
 
 See also `?m` syntax (synthetic holes).
-</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span></span><span class="bnf">)*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><p>
+</code></code>hole</span></a> <span class="bnf">|</span> <span class="nonterminal" data-kind="Lean.Parser.Term.bracketedBinder.pseudo">bracketedBinder</span><span class="bnf">)</span></span><span class="bnf">*</span></span><span class="from-nonterminal" data-kind="null"></span><span class="keyword">,</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre><p>
                   Universal quantifiers bind one or more variables, which are then in scope in the final term.
 The identifiers may also be <code>_</code>.
 With parenthesized type annotations, multiple bound variables may have different types, while the unparenthesized variant requires that all have the same type.</p>
@@ -2236,32 +2250,34 @@ With parenthesized type annotations, multiple bound variables may have different
 Because of proof irrelevance and the elimination restriction for propositions, there's no way to actually compute data using these proofs.
 As a result, they are free to use reasoning principles that are not readily computed, such as the classical Axiom of Choice.</p>
             <p>
-              Existential quantification is implemented as a structure that is similar to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3164">Sigma</span></a></code>: it contains a <span id="--tech-term-witness"><em>witness</em></span>, which is a value that satisfies the predicate, along with a proof that the witness does in fact satisfy the predicate.
+              Existential quantification is implemented as a structure that is similar to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3313">Sigma</span></a></code>: it contains a <span id="--tech-term-witness" class="def-technical-term"><em>witness</em></span>, which is a value that satisfies the predicate, along with a proof that the witness does in fact satisfy the predicate.
 In other words, it is a form of dependent pair type.
-Unlike both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="395">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3164">Sigma</span></a></code>, it is a <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">proposition</a>; this means that programs cannot in general use a proof of an existential statement to obtain a value that satisfies the predicate.</p>
+Unlike both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk"><span class="const token" data-binding="const-Subtype" data-verso-hover="467">Subtype</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk"><span class="const token" data-binding="const-Sigma" data-verso-hover="3313">Sigma</span></a></code>, it is a <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Propositions">proposition</a>; this means that programs cannot in general use a proof of an existential statement to obtain a value that satisfies the predicate.</p>
             <p>
-              When writing a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2780">exists</span></a></code> tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="" data-verso-hover="2874">constructor</span></a></code> tactic, on the other hand, creates a <a class="technical-term" href="Tactic-Proofs/Reading-Proof-States/#--tech-term-metavariables">metavariable</a> for the witness; providing a proof of the predicate may solve the metavariable as well.
-The components of an existential assumption can be made available individually by pattern matching with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#let-rec"><span class="keyword token" data-binding="" data-verso-hover="2752">let</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#match"><span class="keyword token" data-binding="" data-verso-hover="2733">match</span></a></code>, as well as by using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#cases"><span class="keyword token" data-binding="" data-verso-hover="317">cases</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rcases"><span class="keyword token" data-binding="" data-verso-hover="2787">rcases</span></a></code>.</p>
-            <details class="example"><summary class="description">Proving Existential Statements</summary><p>
-                When proving that there exists some natural number that is the sum of four and five, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2780">exists</span></a></code> tactic expects the sum to be provided, constructing the equality proof using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="186">trivial</span></a></code>:</p>
-              <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10732">theorem</span> <span class="const token" data-binding="const-ex_four_plus_five" data-verso-hover="3165" id="ex_four_plus_five">ex_four_plus_five</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1972915951984541797-10780-10782"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-10780" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1972915951984541797-10780-10782"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314"> </span></a><span class="var token" data-binding="var-_uniq.218" data-verso-hover="7">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">, </span></a>4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.218" data-verso-hover="7">n</span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-10785-10793"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.«tacticExists_,,»-10785" data-verso-hover="2780">exists</span></a> <span class="typed token" data-binding="" data-verso-hover="7">9</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-10785-10793"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code><p>
-                The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="" data-verso-hover="2874">constructor</span></a></code> tactic, on the other hand, expects a proof.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="" data-verso-hover="14">rfl</span></a></code> tactic causes the sum to be determined as a side effect of checking definitional equality.</p>
-              <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10987">theorem</span> <span class="const token" data-binding="const-ex_four_plus_five'" data-verso-hover="3166" id="ex_four_plus_five___">ex_four_plus_five'</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-18023702865791589964-11036-11038"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-11036" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18023702865791589964-11036-11038"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314"> </span></a><span class="var token" data-binding="var-_uniq.182" data-verso-hover="7">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">, </span></a>4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.182" data-verso-hover="7">n</span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-4560253961947144680-11041-11052"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.constructor-11041" data-verso-hover="2874">constructor</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-4560253961947144680-11041-11052"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-390" checked="checked"><span for="--verso-unique-390" class="goal-name">h</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type">4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5</span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-391"><span for="--verso-unique-391" class="goal-name">w</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-11055-11058"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-11055" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-11055-11058"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></details><div class="namedocs" id="Exists___intro">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Exists.intro" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block">Exists.{u} {<span class="var token" data-binding="var-_uniq.611" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>} (<span class="var token" data-binding="var-_uniq.613" data-verso-hover="397">p</span> : <span class="var token" data-binding="var-_uniq.611" data-verso-hover="95">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
+              When writing a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2310">exists</span></a></code> tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="" data-verso-hover="2413">constructor</span></a></code> tactic, on the other hand, creates a <a class="technical-term" href="Tactic-Proofs/Reading-Proof-States/#--tech-term-metavariables">metavariable</a> for the witness; providing a proof of the predicate may solve the metavariable as well.
+The components of an existential assumption can be made available individually by pattern matching with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#let-rec"><span class="keyword token" data-binding="" data-verso-hover="2285">let</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#match"><span class="keyword token" data-binding="" data-verso-hover="2265">match</span></a></code>, as well as by using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#cases"><span class="keyword token" data-binding="" data-verso-hover="381">cases</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rcases"><span class="keyword token" data-binding="" data-verso-hover="2317">rcases</span></a></code>.</p>
+            <details class="example"><summary class="description">Proving Existential Statements</summary><div class="example-content">
                 <p>
-                  Existential quantification. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.537" data-verso-hover="397">p</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="95">α</span> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is a predicate, then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.568" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="95">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.537" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.568" data-verso-hover="46">x</span></code>
-asserts that there is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.560" data-verso-hover="3167">x</span></code> of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.536" data-verso-hover="95">α</span></code> such that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.537" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="46">x</span></code> holds.
-To create an existential proof, use the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2780">exists</span></a></code> tactic,
+                  When proving that there exists some natural number that is the sum of four and five, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2310">exists</span></a></code> tactic expects the sum to be provided, constructing the equality proof using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="257">trivial</span></a></code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10732">theorem</span> <span class="const token" data-binding="const-ex_four_plus_five" data-verso-hover="3314" id="ex_four_plus_five">ex_four_plus_five</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1972915951984541797-10780-10782"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-10780" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1972915951984541797-10780-10782"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166"> </span></a><span class="var token" data-binding="var-_uniq.218" data-verso-hover="7">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">, </span></a>4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.218" data-verso-hover="7">n</span></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-7-10785-10793"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.«tacticExists_,,»-10785" data-verso-hover="2310">exists</span></a> <span class="typed token" data-binding="" data-verso-hover="7">9</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-10785-10793"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="" data-verso-hover="2413">constructor</span></a></code> tactic, on the other hand, expects a proof.
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="" data-verso-hover="14">rfl</span></a></code> tactic causes the sum to be determined as a side effect of checking definitional equality.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10987">theorem</span> <span class="const token" data-binding="const-ex_four_plus_five'" data-verso-hover="3315" id="ex_four_plus_five___">ex_four_plus_five'</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-18023702865791589964-11036-11038"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-11036" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18023702865791589964-11036-11038"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166"> </span></a><span class="var token" data-binding="var-_uniq.182" data-verso-hover="7">n</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">, </span></a>4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.182" data-verso-hover="7">n</span></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-10318123959868632017-11041-11052"><a href="Tactic-Proofs/Tactic-Reference/#constructor"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.constructor-11041" data-verso-hover="2413">constructor</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10318123959868632017-11041-11052"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-443" checked="checked"><span for="--verso-unique-443" class="goal-name">h</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type">4<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>5<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>?w</span></span></span></span><span class="goal"><span class="labeled-case"><label class="case-label"><input type="checkbox" id="--verso-unique-444"><span for="--verso-unique-444" class="goal-name">w</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></span></span></span></span></span></span>
+  <span class="tactic"><label for="tactic-state-7-11055-11058"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-11055" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-11055-11058"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="unknown token" data-binding=""></span></code></div>
+              </details><div class="namedocs" id="Exists___intro">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Exists.intro" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block">Exists.{u} {<span class="var token" data-binding="var-_uniq.611" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>} (<span class="var token" data-binding="var-_uniq.613" data-verso-hover="469">p</span> : <span class="var token" data-binding="var-_uniq.611" data-verso-hover="168">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>) : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></pre><div class="text">
+                <p>
+                  Existential quantification. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.537" data-verso-hover="469">p</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is a predicate, then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.568" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="168">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.537" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.568" data-verso-hover="46">x</span></code>
+asserts that there is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.560" data-verso-hover="3316">x</span></code> of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.536" data-verso-hover="168">α</span></code> such that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.537" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="46">x</span></code> holds.
+To create an existential proof, use the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#exists"><span class="keyword token" data-binding="" data-verso-hover="2310">exists</span></a></code> tactic,
 or the anonymous constructor notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">h</span><span class="unknown token" data-binding="">⟩</span></code>.
-To unpack an existential, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#cases"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-0" data-verso-hover="317">cases</span></a> <span class="unknown token" data-binding="">h</span></code> where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">h</span></code> is a proof of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.594" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="95">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.537" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.594" data-verso-hover="46">x</span></code>,
-or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/The-Tactic-Language/#let"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticLet_-0" data-verso-hover="2759">let</span></a> <span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">hx</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">h</span></code> where `.</p>
+To unpack an existential, use <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#cases"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.cases-0" data-verso-hover="381">cases</span></a> <span class="unknown token" data-binding="">h</span></code> where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">h</span></code> is a proof of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.594" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.536" data-verso-hover="168">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.537" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.594" data-verso-hover="46">x</span></code>,
+or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/The-Tactic-Language/#let"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticLet_-0" data-verso-hover="2292">let</span></a> <span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">hx</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">h</span></code> where `.</p>
                 <p>
                   Because Lean has proof irrelevance, any two proofs of an existential are
 definitionally equal. One consequence of this is that it is impossible to recover the
@@ -2273,17 +2289,17 @@ For example, the following does not compile:</p>
 </pre><p>
                   The error message <code>recursor 'Exists.casesOn' can only eliminate into Prop</code> means
 that this only works when the current goal is another proposition:</p>
-                <code class="hl lean block" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-0">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="3168">h</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="188">True</span></a> <span class="unknown token" data-binding="">:=</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-45" data-verso-hover="286">let</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.44" data-verso-hover="7">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="3168">h</span>  -- ok, because the goal is `True : Prop`
-  <span class="const token" data-binding="const-trivial" data-verso-hover="2774">trivial</span>
+                <code class="hl lean block" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-0">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="3317">h</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="7">x</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Propositions/Truth/#True___intro"><span class="const token" data-binding="const-True" data-verso-hover="259">True</span></a> <span class="unknown token" data-binding="">:=</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-45" data-verso-hover="108">let</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.44" data-verso-hover="7">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="3317">h</span>  -- ok, because the goal is `True : Prop`
+  <span class="const token" data-binding="const-trivial" data-verso-hover="2305">trivial</span>
 <span class="unknown token" data-binding=""></span></code><h1>
                   Constructors</h1>
                 <div class="constructor">
-                  <pre class="name-and-type hl lean">intro.{u} {<span class="var token" data-binding="var-_uniq.604" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>} {<span class="var token" data-binding="var-_uniq.606" data-verso-hover="397">p</span> : <span class="var token" data-binding="var-_uniq.604" data-verso-hover="95">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} (<span class="var token" data-binding="var-_uniq.607" data-verso-hover="46">w</span> : <span class="var token" data-binding="var-_uniq.604" data-verso-hover="95">α</span>) (<span class="var token" data-binding="var-_uniq.608" data-verso-hover="3169">h</span> : <span class="var token" data-binding="var-_uniq.606" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.607" data-verso-hover="46">w</span>) :
-  <a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">Exists</span></a> <span class="var token" data-binding="var-_uniq.606" data-verso-hover="397">p</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean">intro.{u} {<span class="var token" data-binding="var-_uniq.604" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>} {<span class="var token" data-binding="var-_uniq.606" data-verso-hover="469">p</span> : <span class="var token" data-binding="var-_uniq.604" data-verso-hover="168">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} (<span class="var token" data-binding="var-_uniq.607" data-verso-hover="46">w</span> : <span class="var token" data-binding="var-_uniq.604" data-verso-hover="168">α</span>) (<span class="var token" data-binding="var-_uniq.608" data-verso-hover="3318">h</span> : <span class="var token" data-binding="var-_uniq.606" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.607" data-verso-hover="46">w</span>) :
+  <a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">Exists</span></a> <span class="var token" data-binding="var-_uniq.606" data-verso-hover="469">p</span></pre><div class="docs">
                     <p>
-                      Existential introduction. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.623" data-verso-hover="46">a</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.616" data-verso-hover="95">α</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">h</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">p</span> <span class="unknown token" data-binding="">a</span></code>,
-then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">a</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">h</span><span class="unknown token" data-binding="">⟩</span></code> is a proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.770" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.616" data-verso-hover="95">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.617" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.770" data-verso-hover="46">x</span></code>.</p>
+                      Existential introduction. If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.623" data-verso-hover="46">a</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.616" data-verso-hover="168">α</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">h</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">p</span> <span class="unknown token" data-binding="">a</span></code>,
+then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">a</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">h</span><span class="unknown token" data-binding="">⟩</span></code> is a proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">∃</span> <span class="var token" data-binding="var-_uniq.770" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.616" data-verso-hover="168">α</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.617" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.770" data-verso-hover="46">x</span></code>.</p>
                     </div>
                   </div>
                 </div>
@@ -2306,19 +2322,19 @@ position, where `_` means that the value should be left unnamed and inaccessible
                   Existential quantifiers bind one or more variables, which are then in scope in the final term.
 The identifiers may also be <code>_</code>.
 With parenthesized type annotations, multiple bound variables may have different types, while the unparenthesized variant requires that all have the same type.
-If more than one variable is bound, then the result is multiple instances of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">Exists</span></a></code>, nested to the right.</p>
+If more than one variable is bound, then the result is multiple instances of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">Exists</span></a></code>, nested to the right.</p>
                 </div>
               </div>
             <div class="namedocs" id="Exists___choose">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Exists.choose" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Exists.choose.{u_1} {<span class="var token" data-binding="var-_uniq.784" data-verso-hover="165">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u_1</span>}
-  {<span class="var token" data-binding="var-_uniq.786" data-verso-hover="397">p</span> : <span class="var token" data-binding="var-_uniq.784" data-verso-hover="165">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} (<span class="var token" data-binding="var-_uniq.788" data-verso-hover="3170">P</span> : <a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314"> </span></a><span class="var token" data-binding="var-_uniq.787" data-verso-hover="46">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1314">, </span></a><span class="var token" data-binding="var-_uniq.786" data-verso-hover="397">p</span> <span class="var token" data-binding="var-_uniq.787" data-verso-hover="46">a</span>) : <span class="var token" data-binding="var-_uniq.784" data-verso-hover="165">α</span></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Exists.choose" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">Exists.choose.{u_1} {<span class="var token" data-binding="var-_uniq.784" data-verso-hover="127">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u_1</span>}
+  {<span class="var token" data-binding="var-_uniq.786" data-verso-hover="469">p</span> : <span class="var token" data-binding="var-_uniq.784" data-verso-hover="127">α</span> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} (<span class="var token" data-binding="var-_uniq.788" data-verso-hover="3319">P</span> : <a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">∃</span></a><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166"> </span></a><span class="var token" data-binding="var-_uniq.787" data-verso-hover="46">a</span><a href="Basic-Propositions/Quantifiers/#Exists___intro"><span class="const token" data-binding="const-Exists" data-verso-hover="1166">, </span></a><span class="var token" data-binding="var-_uniq.786" data-verso-hover="469">p</span> <span class="var token" data-binding="var-_uniq.787" data-verso-hover="46">a</span>) : <span class="var token" data-binding="var-_uniq.784" data-verso-hover="127">α</span></pre><div class="text">
                 <p>
-                  Extract an element from an existential statement, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Classical.choose" data-verso-hover="3171">Classical.choose</span></code>.</p>
+                  Extract an element from an existential statement, using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Classical.choose" data-verso-hover="3320">Classical.choose</span></code>.</p>
                 </div>
               </div>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="13.2. Logical Connectives"><span class="arrow">←</span><span class="where">13.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="13.4. Propositional Equality"><span class="where">13.4. Propositional Equality</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="prev" title="17.2. Logical Connectives"><span class="arrow">←</span><span class="where">17.2. Logical Connectives</span></a><a class="local-button active" href="Basic-Propositions/Propositional-Equality/#propositional-equality" rel="next" title="17.4. Propositional Equality"><span class="where">17.4. Propositional Equality</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

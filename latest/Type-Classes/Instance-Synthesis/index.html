@@ -30,6 +30,15 @@
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
 a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -111,7 +120,7 @@ span.TODO {
     clear: right;
     width: 40%;
     margin: 1rem 0;
-    margin-left: 5%;
+    margin-left: 10%;
   }
 }
 
@@ -148,6 +157,41 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
 </style><style>
 .field-category > :first-child {
 }
@@ -165,6 +209,9 @@ a.technical-term:hover {
 }
 
 </style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
 .example-file {
   white-space: normal;
   font-family: var(--verso-structure-font-family);
@@ -172,6 +219,11 @@ a.technical-term:hover {
   width: fit-content;
   border: 1px solid #ddd;
   padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .example-file::before {
   counter-reset: linenumber;
@@ -222,9 +274,6 @@ a.technical-term:hover {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>
-dl.toml-table-field-spec {
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -272,49 +321,6 @@ dl.toml-table-field-spec {
   text-decoration: currentcolor underline dotted;
 }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
-  margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-div.planned {
-  font-style: italic;
-}
-div.planned .label {
-  font-size: large;
-  text-align: center;
-  font-family: var(--verso-structure-font-family);
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -471,22 +477,22 @@ div.planned .label {
 }
 
 .hl.lean .has-info.warning {
-  text-decoration-color: #efd871;
+  text-decoration-color: var(--verso-warning-color);
 }
 
 @media (hover: hover) {
   .hl.lean .has-info.warning:hover {
-    background-color: #efd871;
+    background-color:var(--verso-warning-color);
   }
 }
 
 .hl.lean .hover-info.messages > code.warning {
-  background-color: #efd871;
+  background-color: var(--verso-warning-color);
 }
 
 .hl.lean .hover-info.messages > code.error {
   background-color: #e5e5e5;
-  border-left: 0.2rem solid #efd871;
+  border-left: 0.2rem solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
@@ -802,7 +808,7 @@ div.planned .label {
 .tippy-box[data-theme~='warning'] {
   background-color: #e5e5e5;
   color: black;
-  border: 3px solid #efd871;
+  border: 3px solid var(--verso-warning-color);
 }
 
 .tippy-box[data-theme~='error'] {
@@ -838,14 +844,38 @@ div.planned .label {
 }
 
 </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
-  display: inline-block;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
 }
 </style><style>
 div.TODO {
@@ -995,32 +1025,15 @@ pre.toml {
       max-width: none;
       width: auto;
     }
-    </style><style>.example {
-  padding: 1.5em;
-  border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example p:last-child {margin-bottom:0;}
-.example .description::before {
-  content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
-}
-.example .description {
-  font-style: italic;
+    </style><style>
+.namedocs .title {
   font-family: var(--verso-structure-font-family);
-}
-.example .hl.lean.block {
-  overflow-x: auto;
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
 }
 </style><style>
 .toml-field a {
@@ -1029,18 +1042,6 @@ pre.toml {
 }
 .toml-field a:hover {
   text-decoration: currentcolor underline solid;
-}
-</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
 }
 </style><style>
 .namedocs {
@@ -1077,6 +1078,7 @@ pre.toml {
 }
 
 .namedocs .label {
+  display: block;
   font-size: smaller;
   font-family: var(--verso-structure-font-family);
   position: absolute;
@@ -1203,7 +1205,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1215,7 +1217,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1227,7 +1229,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1239,7 +1241,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1251,7 +1253,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1263,7 +1265,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1275,7 +1277,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1287,7 +1289,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1299,7 +1301,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1311,7 +1313,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1323,7 +1325,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1335,7 +1337,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1347,7 +1349,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1359,7 +1361,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1371,7 +1373,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1383,7 +1385,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1395,7 +1397,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1407,7 +1409,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1419,7 +1421,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1431,7 +1433,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1443,7 +1445,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1455,7 +1457,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1467,7 +1469,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1479,7 +1481,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1491,7 +1493,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1503,7 +1505,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1515,7 +1517,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1527,7 +1529,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1539,7 +1541,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1551,7 +1553,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1563,7 +1565,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1575,7 +1577,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1587,7 +1589,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1599,7 +1601,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1611,7 +1613,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1623,7 +1625,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1635,7 +1637,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1647,7 +1649,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1659,7 +1661,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1671,7 +1673,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1683,7 +1685,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1695,7 +1697,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1707,7 +1709,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1719,7 +1721,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1731,7 +1733,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1743,7 +1745,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1755,7 +1757,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1767,7 +1769,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1779,7 +1781,7 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
@@ -1791,12 +1793,24 @@ pre.toml {
   opacity: 0;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
-  display: table-row;
+  display: block;
   transform: none;
   opacity: 1;
 }
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
 }
 </style><style>
 .syntax-error {
@@ -2110,14 +2124,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files/#The-Lean-Language-Reference--Source-Files">Source Files</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Recursive-Definitions/#recursive-definitions">Recursive Definitions</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="current numbered"><td class="num">8.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="Output-from-Lean/#The-Lean-Language-Reference--Output-from-Lean">Output from Lean</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Elan/#elan">Elan</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="current numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-type-classes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-type-classes" checked="checked"></label><span class="number">8.</span> <span class=""><a href="Type-Classes/#type-classes">Type Classes</a></span></div>
-              <table><tr class="numbered"><td class="num">8.1.</td><td><a href="Type-Classes/Class-Declarations/#class">Class Declarations</a></td></tr><tr class="numbered"><td class="num">8.2.</td><td><a href="Type-Classes/Instance-Declarations/#instance-declarations">Instance Declarations</a></td></tr><tr class="current numbered"><td class="num">8.3.</td><td><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></td></tr><tr class="numbered"><td class="num">8.4.</td><td><a href="Type-Classes/Deriving-Instances/#deriving-instances">Deriving Instances</a></td></tr><tr class="numbered"><td class="num">8.5.</td><td><a href="Type-Classes/Basic-Classes/#basic-classes">Basic Classes</a></td></tr></table></div>
+                <label for="--verso-manual-toc-type-classes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-type-classes" checked="checked"></label><span class="number">11.</span> <span class=""><a href="Type-Classes/#type-classes">Type Classes</a></span></div>
+              <table><tr class="numbered"><td class="num">11.1.</td><td><a href="Type-Classes/Class-Declarations/#class">Class Declarations</a></td></tr><tr class="numbered"><td class="num">11.2.</td><td><a href="Type-Classes/Instance-Declarations/#instance-declarations">Instance Declarations</a></td></tr><tr class="current numbered"><td class="num">11.3.</td><td><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></td></tr><tr class="numbered"><td class="num">11.4.</td><td><a href="Type-Classes/Deriving-Instances/#deriving-instances">Deriving Instances</a></td></tr><tr class="numbered"><td class="num">11.5.</td><td><a href="Type-Classes/Basic-Classes/#basic-classes">Basic Classes</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-instance-synth" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-instance-synth" checked="checked"></label><span class="number">8.3.</span> <span class="current"><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></span></div>
+                <label for="--verso-manual-toc-instance-synth" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-instance-synth" checked="checked"></label><span class="number">11.3.</span> <span class="current"><a href="Type-Classes/Instance-Synthesis/#instance-synth">Instance Synthesis</a></span></div>
               <ol>
                 <li>
                   <a href="Type-Classes/Instance-Synthesis/#inferInstance"><code>inferInstance</code></a></li>
@@ -2164,55 +2178,55 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Type-Classes/Instance-Declarations/#instance-declarations" rel="prev" title="8.2. Instance Declarations"><span class="arrow">←</span><span class="where">8.2. Instance Declarations</span></a><a class="local-button active" href="Type-Classes/Deriving-Instances/#deriving-instances" rel="next" title="8.4. Deriving Instances"><span class="where">8.4. Deriving Instances</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Type-Classes/Instance-Declarations/#instance-declarations" rel="prev" title="11.2. Instance Declarations"><span class="arrow">←</span><span class="where">11.2. Instance Declarations</span></a><a class="local-button active" href="Type-Classes/Deriving-Instances/#deriving-instances" rel="next" title="11.4. Deriving Instances"><span class="where">11.4. Deriving Instances</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              8.3. Instance Synthesis<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=instance-synth" title="Permalink">🔗</a></span></h1>
+              11.3. Instance Synthesis<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=instance-synth" title="Permalink">🔗</a></span></h1>
             <p>
               Instance synthesis is a recursive search procedure that either finds an instance for a given type class or fails.
 In other words, given a type that is registered as a type class, instance synthesis attempts constructs a term with said type.
-It respects <a class="technical-term" href="Recursive-Definitions/Controlling-Reduction/#--tech-term-reducibility">reducibility</a>: <a class="technical-term" href="Recursive-Definitions/Controlling-Reduction/#--tech-term-semi-reducible">semi-reducible</a> or <a class="technical-term" href="Recursive-Definitions/Controlling-Reduction/#--tech-term-irreducible">irreducible</a> definitions are not unfolded, so instances for a definition are not automatically treated as instances for its unfolding unless it is <a class="technical-term" href="Recursive-Definitions/Controlling-Reduction/#--tech-term-reducible">reducible</a>.
+It respects <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-reducibility">reducibility</a>: <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Semireducible">semireducible</a> or <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Irreducible">irreducible</a> definitions are not unfolded, so instances for a definition are not automatically treated as instances for its unfolding unless it is <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Reducible">reducible</a>.
 There may be multiple possible instances for a given class; in this case, declared priorities and order of declaration are used as tiebreakers, in that order, with more recent instances taking precedence over earlier ones with the same priority.</p>
             <p>
               This search procedure is efficient in the presence of diamonds and does not loop indefinitely when there are cycles.
-<span id="--tech-term-Diamonds"><em>Diamonds</em></span> occur when there is more than one route to a given goal, and <span id="--tech-term-cycles"><em>cycles</em></span> are situations when two instances each could be solved if the other were solved.
+<span id="--tech-term-Diamonds" class="def-technical-term"><em>Diamonds</em></span> occur when there is more than one route to a given goal, and <span id="--tech-term-cycles" class="def-technical-term"><em>cycles</em></span> are situations when two instances each could be solved if the other were solved.
 Diamonds occur regularly in practice when encoding mathematical concepts using type classes, and Lean's coercion feature  naturally leads to cycles, e.g. between finite sets and finite multisets.</p>
             <p>
               Instance synthesis can be tested using the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.synth : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___synth"><code class="kw">#synth</code></a></span> command.
-Additionally, <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="546">inferInstance</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1267">inferInstanceAs</span></a></code> can be used to synthesize an instance in a position where the instance itself is needed.</p>
+Additionally, <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="652">inferInstance</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1118">inferInstanceAs</span></a></code> can be used to synthesize an instance in a position where the instance itself is needed.</p>
             <div class="namedocs" id="inferInstance">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=inferInstance" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">inferInstance.{u} {<span class="var token" data-binding="var-_uniq.270" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>} [<span class="var token" data-binding="var-_uniq.271" data-verso-hover="46">i</span> : <span class="var token" data-binding="var-_uniq.270" data-verso-hover="95">α</span>] : <span class="var token" data-binding="var-_uniq.270" data-verso-hover="95">α</span></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=inferInstance" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">inferInstance.{u} {<span class="var token" data-binding="var-_uniq.271" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>} [<span class="var token" data-binding="var-_uniq.272" data-verso-hover="46">i</span> : <span class="var token" data-binding="var-_uniq.271" data-verso-hover="168">α</span>] : <span class="var token" data-binding="var-_uniq.271" data-verso-hover="168">α</span></pre><div class="text">
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="546">inferInstance</span></a></code> synthesizes a value of any target type by typeclass
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="652">inferInstance</span></a></code> synthesizes a value of any target type by typeclass
 inference. This function has the same type signature as the identity
-function, but the square brackets on the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="46">i</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="95">α</span><span class="unknown token" data-binding="">]</span></code> argument means that it will
+function, but the square brackets on the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="46">i</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="168">α</span><span class="unknown token" data-binding="">]</span></code> argument means that it will
 attempt to construct this argument by typeclass inference. (This will fail if
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5" data-verso-hover="95">α</span></code> is not a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Attr.class-0">class</span></code>.) Example:</p>
-                <code class="hl lean block" data-lean-context="docstring-examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">inferInstance : Inhabited Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-0">#check</span></a></span> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="546">inferInstance</span></a> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="100">Inhabited</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> -- Inhabited Nat
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5" data-verso-hover="168">α</span></code> is not a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Attr.class-0">class</span></code>.) Example:</p>
+                <code class="hl lean block" data-lean-context="docstring-examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">inferInstance : Inhabited Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-0">#check</span></a></span> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="652">inferInstance</span></a> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="173">Inhabited</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> -- Inhabited Nat
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-57">def</span> <span class="const token" data-binding="const-foo" data-verso-hover="1700">foo</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="100">Inhabited</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">×</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
-  <a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="546">inferInstance</span></a>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-57">def</span> <span class="const token" data-binding="const-foo" data-verso-hover="1648">foo</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="173">Inhabited</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">×</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="652">inferInstance</span></a>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-110">example</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-foo" data-verso-hover="1700">foo</span><span class="unknown token" data-binding="">.</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1484">default</span></a> <span class="unknown token" data-binding="">=</span> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1484">default</span></a><span class="unknown token" data-binding="">,</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1484">default</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
-  <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="82">rfl</span></a>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-110">example</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-foo" data-verso-hover="1648">foo</span><span class="unknown token" data-binding="">.</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1434">default</span></a> <span class="unknown token" data-binding="">=</span> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1434">default</span></a><span class="unknown token" data-binding="">,</span> <a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1434">default</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a>
 <span class="unknown token" data-binding=""></span></code></div>
               </div>
             <div class="namedocs" id="inferInstanceAs">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=inferInstanceAs" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">inferInstanceAs.{u} (<span class="var token" data-binding="var-_uniq.305" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>) [<span class="var token" data-binding="var-_uniq.306" data-verso-hover="46">i</span> : <span class="var token" data-binding="var-_uniq.305" data-verso-hover="95">α</span>] : <span class="var token" data-binding="var-_uniq.305" data-verso-hover="95">α</span></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=inferInstanceAs" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">inferInstanceAs.{u} (<span class="var token" data-binding="var-_uniq.306" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>) [<span class="var token" data-binding="var-_uniq.307" data-verso-hover="46">i</span> : <span class="var token" data-binding="var-_uniq.306" data-verso-hover="168">α</span>] : <span class="var token" data-binding="var-_uniq.306" data-verso-hover="168">α</span></pre><div class="text">
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1267">inferInstanceAs</span></a> <span class="var token" data-binding="var-_uniq.272" data-verso-hover="95">α</span></code> synthesizes a value of any target type by typeclass
-inference. This is just like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="546">inferInstance</span></a></code> except that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.272" data-verso-hover="95">α</span></code> is given
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1118">inferInstanceAs</span></a> <span class="var token" data-binding="var-_uniq.273" data-verso-hover="168">α</span></code> synthesizes a value of any target type by typeclass
+inference. This is just like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Instance-Synthesis/#inferInstance"><span class="const token" data-binding="const-inferInstance" data-verso-hover="652">inferInstance</span></a></code> except that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.273" data-verso-hover="168">α</span></code> is given
 explicitly instead of being inferred from the target type. It is especially
-useful when the target type is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">α'</span></code> which is definitionally equal to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.272" data-verso-hover="95">α</span></code>,
-but the instance we are looking for is only registered for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.272" data-verso-hover="95">α</span></code> (because
+useful when the target type is some <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">α'</span></code> which is definitionally equal to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.273" data-verso-hover="168">α</span></code>,
+but the instance we are looking for is only registered for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.273" data-verso-hover="168">α</span></code> (because
 typeclass search does not unfold most definitions, but definitional equality
 does.) Example:</p>
-                <code class="hl lean block" data-lean-context="docstring-examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">inferInstanceAs (Inhabited Nat) : Inhabited Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-0">#check</span></a></span> <a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1267">inferInstanceAs</span></a> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="100">Inhabited</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> -- Inhabited Nat
+                <code class="hl lean block" data-lean-context="docstring-examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">inferInstanceAs (Inhabited Nat) : Inhabited Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-0">#check</span></a></span> <a href="Type-Classes/Instance-Synthesis/#inferInstanceAs"><span class="const token" data-binding="const-inferInstanceAs" data-verso-hover="1118">inferInstanceAs</span></a> <span class="unknown token" data-binding="">(</span><a href="Type-Classes/Basic-Classes/#Inhabited___mk"><span class="const token" data-binding="const-Inhabited" data-verso-hover="173">Inhabited</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> -- Inhabited Nat
 <span class="unknown token" data-binding=""></span></code></div>
               </div>
             <section>
               <h2 id="The-Lean-Language-Reference--Type-Classes--Instance-Synthesis--Instance-Search-Summary">
-                8.3.1. Instance Search Summary</h2>
+                11.3.1. Instance Search Summary</h2>
               <p>
                 Generally speaking, instance synthesis is a recursive search procedure that may, in general, backtrack arbitrarily.
 Synthesis may <em>succeed</em> with an instance term, <em>fail</em> if no such term can be found, or get <em>stuck</em> if there is insufficient information.
@@ -2235,7 +2249,7 @@ A branch of the search fails when any of the following occur:</p>
                   </li>
                 <li>
                   <p>
-                    The instance size limit specified by the option <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#synthInstance___maxSize"><span class="option token" data-binding="option-synthInstance.maxSize" data-verso-hover="1701">synthInstance.maxSize</span></a></code> is reached.</p>
+                    The instance size limit specified by the option <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#synthInstance___maxSize"><span class="option token" data-binding="option-synthInstance.maxSize" data-verso-hover="1649">synthInstance.maxSize</span></a></code> is reached.</p>
                   </li>
                 <li>
                   <p>
@@ -2252,7 +2266,7 @@ Default instances may take instance-implicit parameters, which induce further re
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Type-Classes--Instance-Synthesis--Instance-Search-Problems">
-                8.3.2. Instance Search Problems</h2>
+                11.3.2. Instance Search Problems</h2>
               <p>
                 Instance search occurs during the elaboration of (potentially nullary) function applications.
 Some of the implicit parameters' values are forced by others; for instance, an implicit type parameter may be solved using the type of a later value argument that is explicitly provided.
@@ -2269,48 +2283,52 @@ If this does not occur, stuck searches become failures.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Type-Classes--Instance-Synthesis--Candidate-Instances">
-                8.3.3. Candidate Instances</h2>
+                11.3.3. Candidate Instances</h2>
               <p>
                 Instance synthesis uses both local and global instances in its search.
-<span id="--tech-term-Local-instances"><em>Local instances</em></span> are those available in the local context; they may be either parameters to a function or locally defined with <code>let</code>. 
+<span id="--tech-term-Local-instances" class="def-technical-term"><em>Local instances</em></span> are those available in the local context; they may be either parameters to a function or locally defined with <code>let</code>. 
 Local instances do not need to be indicated specially; any local variable whose type is a type class is a candidate for instance synthesis.
-<span id="--tech-term-Global-instances"><em>Global instances</em></span> are those available in the global environment; every global instance is a defined name with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1651">instance</span></code> attribute applied.<span class="marginalia"><span class="note"><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.declaration : command</code></code><code class="kw">instance</code></span> declarations automatically apply the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1651">instance</span></code> attribute.</span></span></p>
-              <details class="example"><summary class="description">Local Instances</summary><p>
-                  In this example, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-addPairs" data-verso-hover="1702">addPairs</span></code> contains a locally-defined instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="515">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6576">structure</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="keyword token" data-binding="kw-occ-null-6594">where</span>
-  <span class="const token" data-binding="const-NatPair.x" data-verso-hover="1704">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
-  <span class="const token" data-binding="const-NatPair.y" data-verso-hover="1705">y</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+<span id="--tech-term-Global-instances" class="def-technical-term"><em>Global instances</em></span> are those available in the global environment; every global instance is a defined name with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1399">instance</span></code> attribute applied.<span class="marginalia"><span class="note"><span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.declaration : command</code></code><code class="kw">instance</code></span> declarations automatically apply the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1399">instance</span></code> attribute.</span></span></p>
+              <details class="example"><summary class="description">Local Instances</summary><div class="example-content">
+                  <p>
+                    In this example, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-addPairs" data-verso-hover="1650">addPairs</span></code> contains a locally-defined instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="621">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span></code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6575">structure</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="keyword token" data-binding="kw-occ-null-6593">where</span>
+  <span class="const token" data-binding="const-NatPair.x" data-verso-hover="1652">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+  <span class="const token" data-binding="const-NatPair.y" data-verso-hover="1653">y</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6621">def</span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1702">addPairs</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.330" data-verso-hover="1706">p1</span> <span class="var token" data-binding="var-_uniq.332" data-verso-hover="1706">p2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-6667" data-verso-hover="286">let</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="515">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="unknown token" data-binding="">:=</span>
-    <span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1707">⟨</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-6697">fun</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.364" data-verso-hover="7">x1</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.365" data-verso-hover="7">y1</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.380" data-verso-hover="7">x2</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.381" data-verso-hover="7">y2</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟨</span><span class="var token" data-binding="var-_uniq.364" data-verso-hover="7">x1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.380" data-verso-hover="7">x2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">,</span> <span class="var token" data-binding="var-_uniq.365" data-verso-hover="7">y1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.381" data-verso-hover="7">y2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟩</span><span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1707">⟩</span>
-  <span class="var token" data-binding="var-_uniq.330" data-verso-hover="1706">p1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.332" data-verso-hover="1706">p2</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6620">def</span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1650">addPairs</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.340" data-verso-hover="1654">p1</span> <span class="var token" data-binding="var-_uniq.342" data-verso-hover="1654">p2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-6666" data-verso-hover="108">let</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="621">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="unknown token" data-binding="">:=</span>
+    <span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1655">⟨</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-6696">fun</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.374" data-verso-hover="7">x1</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.375" data-verso-hover="7">y1</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.390" data-verso-hover="7">x2</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.391" data-verso-hover="7">y2</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟨</span><span class="var token" data-binding="var-_uniq.374" data-verso-hover="7">x1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.390" data-verso-hover="7">x2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">,</span> <span class="var token" data-binding="var-_uniq.375" data-verso-hover="7">y1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.391" data-verso-hover="7">y2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟩</span><span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1655">⟩</span>
+  <span class="var token" data-binding="var-_uniq.340" data-verso-hover="1654">p1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.342" data-verso-hover="1654">p2</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  The local instance is used for the addition, having been found by instance synthesis.</p>
-                </details><details class="example"><summary class="description">Local Instances Have Priority</summary><p>
-                  Here, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-addPairs" data-verso-hover="1702">addPairs</span></code> contains a locally-defined instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="515">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span></code>, even though there is a global instance:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-7052">structure</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="keyword token" data-binding="kw-occ-null-7070">where</span>
-  <span class="const token" data-binding="const-NatPair.x" data-verso-hover="1704">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
-  <span class="const token" data-binding="const-NatPair.y" data-verso-hover="1705">y</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+                    The local instance is used for the addition, having been found by instance synthesis.</p>
+                  </div>
+                </details><details class="example"><summary class="description">Local Instances Have Priority</summary><div class="example-content">
+                  <p>
+                    Here, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-addPairs" data-verso-hover="1650">addPairs</span></code> contains a locally-defined instance of <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="621">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span></code>, even though there is a global instance:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-7051">structure</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="keyword token" data-binding="kw-occ-null-7069">where</span>
+  <span class="const token" data-binding="const-NatPair.x" data-verso-hover="1652">x</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+  <span class="const token" data-binding="const-NatPair.y" data-verso-hover="1653">y</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7097">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="515">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7120">where</span>
-  <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add.add" data-verso-hover="1709">add</span></a>
-    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.369" data-verso-hover="7">x1</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.370" data-verso-hover="7">y1</span><span class="unknown token" data-binding="">⟩</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.371" data-verso-hover="7">x2</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.372" data-verso-hover="7">y2</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟨</span><span class="var token" data-binding="var-_uniq.369" data-verso-hover="7">x1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.371" data-verso-hover="7">x2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">,</span> <span class="var token" data-binding="var-_uniq.370" data-verso-hover="7">y1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.372" data-verso-hover="7">y2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟩</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7096">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="621">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7119">where</span>
+  <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add.add" data-verso-hover="1657">add</span></a>
+    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.385" data-verso-hover="7">x1</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.386" data-verso-hover="7">y1</span><span class="unknown token" data-binding="">⟩</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.387" data-verso-hover="7">x2</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.388" data-verso-hover="7">y2</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟨</span><span class="var token" data-binding="var-_uniq.385" data-verso-hover="7">x1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.387" data-verso-hover="7">x2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">,</span> <span class="var token" data-binding="var-_uniq.386" data-verso-hover="7">y1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.388" data-verso-hover="7">y2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟩</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7192">def</span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1702">addPairs</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.538" data-verso-hover="1706">p1</span> <span class="var token" data-binding="var-_uniq.540" data-verso-hover="1706">p2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-7238" data-verso-hover="286">let</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="515">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1703">NatPair</span> <span class="unknown token" data-binding="">:=</span>
-    <span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1707">⟨</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-7268">fun</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">,</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟩</span><span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1707">⟩</span>
-  <span class="var token" data-binding="var-_uniq.538" data-verso-hover="1706">p1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.540" data-verso-hover="1706">p2</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7191">def</span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1650">addPairs</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.558" data-verso-hover="1654">p1</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="1654">p2</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-7237" data-verso-hover="108">let</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Add___mk"><span class="const token" data-binding="const-Add" data-verso-hover="621">Add</span></a> <span class="const token" data-binding="const-NatPair" data-verso-hover="1651">NatPair</span> <span class="unknown token" data-binding="">:=</span>
+    <span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1655">⟨</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-7267">fun</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">,</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟩</span><span class="unknown token" data-binding="const-Add.mk" data-verso-hover="1655">⟩</span>
+  <span class="var token" data-binding="var-_uniq.558" data-verso-hover="1654">p1</span> <span class="unknown token" data-binding="">+</span> <span class="var token" data-binding="var-_uniq.560" data-verso-hover="1654">p2</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  The local instance is selected instead of the global one:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ x := 0, y := 0 }</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7393" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1702">addPairs</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟩</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1708">⟩</span>
+                    The local instance is selected instead of the global one:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ x := 0, y := 0 }</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7392" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-addPairs" data-verso-hover="1650">addPairs</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟩</span> <span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="const-NatPair.mk" data-verso-hover="1656">⟩</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>{ x := 0, y := 0 }
+                    <pre>{ x := 0, y := 0 }
 </pre></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="instance-synth-parameters">
-                8.3.4. Instance Parameters and Synthesis<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=instance-synth-parameters" title="Permalink">🔗</a></span></h2>
+                11.3.4. Instance Parameters and Synthesis<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=instance-synth-parameters" title="Permalink">🔗</a></span></h2>
               <p>
                 The search process for instances is largely governed by class parameters.
 Type classes take a certain number of parameters, and instances are tried during the search when their choice of parameters is <em>compatible</em> with those in the class type for which the instance is being synthesized.</p>
@@ -2319,136 +2337,142 @@ Type classes take a certain number of parameters, and instances are tried during
 Instances' parameters represent either variables that may be instantiated by instance synthesis or further synthesis work to be done before the instance can be used.
 In particular, parameters to instances may be explicit, implicit, or instance-implicit.
 If they are instance implicit, then they induce further recursive instance searching, while explicit or implicit parameters must be solved by unification.</p>
-              <details class="example"><summary class="description">Implicit and Explicit Parameters to Instances</summary><p>
-                  While instances typically take parameters either implicitly or instance-implicitly, explicit parameters may be filled out as if they were implicit during instance synthesis.
-In this example, <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#aNonemptySumInstance"><span class="const token" data-binding="const-aNonemptySumInstance" data-verso-hover="1710">aNonemptySumInstance</span></a></code> is found by synthesis, applied explicitly to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, which is needed to make it type-correct.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-8796">instance</span> <span class="const token" data-binding="const-aNonemptySumInstance" data-verso-hover="1710" id="aNonemptySumInstance">aNonemptySumInstance</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="88">β</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="1711">inst</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="668">Nonempty</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="668">Nonempty</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">⊕</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="88">β</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-8899" data-verso-hover="286">let</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="46">x</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="1711">inst</span>
-  <span class="unknown token" data-binding="const-Nonempty.intro" data-verso-hover="1712">⟨</span><a href="Basic-Types/Sum-Types/#Sum___inl"><span class="const token" data-binding="const-Sum.inl" data-verso-hover="1713">.inl</span></a> <span class="var token" data-binding="var-_uniq.29" data-verso-hover="46">x</span><span class="unknown token" data-binding="const-Nonempty.intro" data-verso-hover="1712">⟩</span>
-<span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-8968" data-verso-hover="160">set_option</span> <span class="option token" data-binding="option-pp.explicit" data-verso-hover="1714">pp.explicit</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-8968" data-verso-hover="160">true</span> <a href="Source-Files/Module-Contents/#Lean___Parser___Command___in"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-8968">in</span></a>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">@aNonemptySumInstance Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___synth"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.synth-8999">#synth</span></a></span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="668">Nonempty</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">⊕</span> <a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="193">Empty</span></a><span class="unknown token" data-binding="">)</span>
+              <details class="example"><summary class="description">Implicit and Explicit Parameters to Instances</summary><div class="example-content">
+                  <p>
+                    While instances typically take parameters either implicitly or instance-implicitly, explicit parameters may be filled out as if they were implicit during instance synthesis.
+In this example, <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#aNonemptySumInstance"><span class="const token" data-binding="const-aNonemptySumInstance" data-verso-hover="1658">aNonemptySumInstance</span></a></code> is found by synthesis, applied explicitly to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, which is needed to make it type-correct.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-8795">instance</span> <span class="const token" data-binding="const-aNonemptySumInstance" data-verso-hover="1658" id="aNonemptySumInstance">aNonemptySumInstance</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="162">β</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">}</span> <span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="1659">inst</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="774">Nonempty</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="774">Nonempty</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">⊕</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="162">β</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-8898" data-verso-hover="108">let</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.29" data-verso-hover="46">x</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="1659">inst</span>
+  <span class="unknown token" data-binding="const-Nonempty.intro" data-verso-hover="1660">⟨</span><a href="Basic-Types/Sum-Types/#Sum___inl"><span class="const token" data-binding="const-Sum.inl" data-verso-hover="1661">.inl</span></a> <span class="var token" data-binding="var-_uniq.29" data-verso-hover="46">x</span><span class="unknown token" data-binding="const-Nonempty.intro" data-verso-hover="1660">⟩</span>
+<span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-8967" data-verso-hover="89">set_option</span> <span class="option token" data-binding="option-pp.explicit" data-verso-hover="1662">pp.explicit</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-8967" data-verso-hover="89">true</span> <a href="Namespaces-and-Sections/#Lean___Parser___Command___in"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-8967">in</span></a>
+<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">@aNonemptySumInstance Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___synth"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.synth-8998">#synth</span></a></span> <a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="774">Nonempty</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">⊕</span> <a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="264">Empty</span></a><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  In the output, both the explicit argument <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> and the implicit argument <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="193">Empty</span></a></code> were found by unification with the search goal, while the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="668">Nonempty</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> instance was found via recursive instance synthesis.</p>
-                <div class="information">
-                  <pre>@aNonemptySumInstance Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
+                    In the output, both the explicit argument <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> and the implicit argument <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="264">Empty</span></a></code> were found by unification with the search goal, while the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Nonempty___intro"><span class="const token" data-binding="const-Nonempty" data-verso-hover="774">Nonempty</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> instance was found via recursive instance synthesis.</p>
+                  <div class="information">
+                    <pre>@aNonemptySumInstance Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 </pre></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="class-output-parameters">
-                8.3.5. Output Parameters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=class-output-parameters" title="Permalink">🔗</a></span></h2>
+                11.3.5. Output Parameters<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=class-output-parameters" title="Permalink">🔗</a></span></h2>
               <p>
                 By default, the parameters of a type class are considered to be <em>inputs</em> to the search process.
 If the parameters are not known, then the search process gets stuck, because choosing an instance would require the parameters to have values that match those in the instance, which cannot be determined on the basis of incomplete information.
 In most cases, guessing instances would make instance synthesis unpredictable.</p>
               <p>
                 In some cases, however, the choice of one parameter should cause an automatic choice of another.
-For example, the overloaded membership predicate type class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1235">Membership</span></code> treats the type of elements of a data structure as an output, so that the type of element can be determined by the type of data structure at a use site, instead of requiring that there be sufficient type annotations to determine <em>both</em> types prior to starting instance synthesis.
+For example, the overloaded membership predicate type class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1085">Membership</span></code> treats the type of elements of a data structure as an output, so that the type of element can be determined by the type of data structure at a use site, instead of requiring that there be sufficient type annotations to determine <em>both</em> types prior to starting instance synthesis.
 An element of a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> can be concluded to be a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> simply on the basis of its membership in the list.</p>
               <p>
-                Type class parameters can be declared as outputs by wrapping their types in the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="902">outParam</span></a></code> <a class="technical-term" href="Type-Classes/Class-Declarations/#--tech-term-gadgets">gadget</a>.
-When a class parameter is an <span id="--tech-term-output-parameter"><em>output parameter</em></span>, instance synthesis will not require that it be known; in fact, any existing value is ignored completely.
+                Type class parameters can be declared as outputs by wrapping their types in the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="1536">outParam</span></a></code> <a class="technical-term" href="Type-Classes/Class-Declarations/#--tech-term-gadgets">gadget</a>.
+When a class parameter is an <span id="--tech-term-output-parameter" class="def-technical-term"><em>output parameter</em></span>, instance synthesis will not require that it be known; in fact, any existing value is ignored completely.
 The first instance that matches the input parameters is selected, and that instance's assignment of the output parameter becomes its value.
 If there was a pre-existing value, then it is compared with the assignment after synthesis is complete, and it is an error if they do not match.</p>
               <div class="namedocs" id="outParam">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=outParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">outParam.{u} (<span class="var token" data-binding="var-_uniq.1976" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>) : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=outParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">outParam.{u} (<span class="var token" data-binding="var-_uniq.1977" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>) : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span></pre><div class="text">
                   <p>
                     Gadget for marking output parameters in type classes.</p>
                   <p>
-                    For example, the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1235">Membership</span></code> class is defined as:</p>
+                    For example, the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1085">Membership</span></code> class is defined as:</p>
                   <pre>class Membership (α : outParam (Type u)) (γ : Type v)
 </pre><p>
-                    This means that whenever a typeclass goal of the form <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1235">Membership</span> <span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">γ</span></code> comes
+                    This means that whenever a typeclass goal of the form <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Membership" data-verso-hover="1085">Membership</span> <span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">γ</span></code> comes
 up, Lean will wait to solve it until <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">γ</span></code> is known, but then it will run
 typeclass inference, and take the first solution it finds, for any value of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">α</span></code>,
 which thereby determines what <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">?</span><span class="unknown token" data-binding="">α</span></code> should be.</p>
                   <p>
-                    This expresses that in a term like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">a</span> <span class="unknown token" data-binding="">∈</span> <span class="unknown token" data-binding="">s</span></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.493" data-verso-hover="1715">s</span></code> might be a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Set</span> <span class="unknown token" data-binding="">α</span></code> or
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.331" data-verso-hover="95">α</span></code> or some other type with a membership operation, and in each case
-the "member" type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.331" data-verso-hover="95">α</span></code> is determined by looking at the container type.</p>
+                    This expresses that in a term like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">a</span> <span class="unknown token" data-binding="">∈</span> <span class="unknown token" data-binding="">s</span></code>, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.494" data-verso-hover="1663">s</span></code> might be a <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Set</span> <span class="unknown token" data-binding="">α</span></code> or
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.332" data-verso-hover="168">α</span></code> or some other type with a membership operation, and in each case
+the "member" type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.332" data-verso-hover="168">α</span></code> is determined by looking at the container type.</p>
                   </div>
                 </div>
-              <details class="example"><summary class="description">Output Parameters and Stuck Search</summary><p>
-                  This serialization framework provides a way to convert values to some underlying storage type:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-11318">class</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">input</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="88">output</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-11356">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">input</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="88">output</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.export-11387" data-verso-hover="1718">export</span> <span class="unknown token" data-binding="">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span><span class="unknown token" data-binding="">)</span>
+              <details class="example"><summary class="description">Output Parameters and Stuck Search</summary><div class="example-content">
+                  <p>
+                    This serialization framework provides a way to convert values to some underlying storage type:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-11317">class</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">input</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="162">output</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-11355">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">input</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="162">output</span>
+<a href="Namespaces-and-Sections/#Lean___Parser___Command___export"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.export-11386" data-verso-hover="822">export</span></a> <span class="unknown token" data-binding="">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-11411">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-11443">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1719">ser</span> <span class="var token" data-binding="var-_uniq.51" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="514">toString</span> <span class="var token" data-binding="var-_uniq.51" data-verso-hover="7">n</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-11410">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-11442">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1666">ser</span> <span class="var token" data-binding="var-_uniq.70" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="620">toString</span> <span class="var token" data-binding="var-_uniq.70" data-verso-hover="7">n</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-11472">instance</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <span class="var token" data-binding="var-_uniq.91" data-verso-hover="88">α</span> <span class="var token" data-binding="var-_uniq.95" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <span class="var token" data-binding="var-_uniq.101" data-verso-hover="88">β</span> <span class="var token" data-binding="var-_uniq.95" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1720">Append</span></a> <span class="var token" data-binding="var-_uniq.95" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span>
-    <span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">×</span> <span class="var token" data-binding="var-_uniq.101" data-verso-hover="88">β</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.95" data-verso-hover="88">γ</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-11559">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1721">ser</span>
-    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.150" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.151" data-verso-hover="112">y</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span> <span class="var token" data-binding="var-_uniq.150" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">++</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span> <span class="var token" data-binding="var-_uniq.151" data-verso-hover="112">y</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-11471">instance</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <span class="var token" data-binding="var-_uniq.111" data-verso-hover="162">α</span> <span class="var token" data-binding="var-_uniq.115" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <span class="var token" data-binding="var-_uniq.121" data-verso-hover="162">β</span> <span class="var token" data-binding="var-_uniq.115" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1667">Append</span></a> <span class="var token" data-binding="var-_uniq.115" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span>
+    <span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.111" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">×</span> <span class="var token" data-binding="var-_uniq.121" data-verso-hover="162">β</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.115" data-verso-hover="162">γ</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-11558">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1668">ser</span>
+    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.173" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.174" data-verso-hover="185">y</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span> <span class="var token" data-binding="var-_uniq.173" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">++</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span> <span class="var token" data-binding="var-_uniq.174" data-verso-hover="185">y</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  In this example, the output type is unknown.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-11699">example</span> <span class="unknown token" data-binding="">:=</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">typeclass instance problem is stuck, it is often due to metavariables
-  Serialize (Nat × Nat) ?m.16</code></span></span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span></span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
+                    In this example, the output type is unknown.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-11698">example</span> <span class="unknown token" data-binding="">:=</span> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">typeclass instance problem is stuck, it is often due to metavariables
+  Serialize (Nat × Nat) ?m.16</code></span></span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span></span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Instance synthesis can't select the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize" data-verso-hover="1716">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code> instance, and thus the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1720">Append</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code> instance, because that would require instantiating the output type as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code>, so the search gets stuck:</p>
-                <div class="error">
-                  <pre>typeclass instance problem is stuck, it is often due to metavariables
+                    Instance synthesis can't select the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize" data-verso-hover="1664">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code> instance, and thus the <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1667">Append</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code> instance, because that would require instantiating the output type as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code>, so the search gets stuck:</p>
+                  <div class="error">
+                    <pre>typeclass instance problem is stuck, it is often due to metavariables
   Serialize (Nat × Nat) ?m.16
 </pre></div>
-                <p>
-                  One way to fix the problem is to supply an expected type:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-12145">example</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1717">ser</span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
+                  <p>
+                    One way to fix the problem is to supply an expected type:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-12144">example</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1665">ser</span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  The other is to make the output type into an output parameter:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-12266">class</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">input</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1723">output</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="902">outParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-12322">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">input</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1723">output</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.export-12353" data-verso-hover="1718">export</span> <span class="unknown token" data-binding="">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span><span class="unknown token" data-binding="">)</span>
+                    The other is to make the output type into an output parameter:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-12265">class</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">input</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1670">output</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="1536">outParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-12321">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">input</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1670">output</span>
+<a href="Namespaces-and-Sections/#Lean___Parser___Command___export"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.export-12352" data-verso-hover="822">export</span></a> <span class="unknown token" data-binding="">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12377">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12409">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1719">ser</span> <span class="var token" data-binding="var-_uniq.53" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="514">toString</span> <span class="var token" data-binding="var-_uniq.53" data-verso-hover="7">n</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12376">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12408">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1666">ser</span> <span class="var token" data-binding="var-_uniq.72" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="620">toString</span> <span class="var token" data-binding="var-_uniq.72" data-verso-hover="7">n</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12438">instance</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <span class="var token" data-binding="var-_uniq.93" data-verso-hover="88">α</span> <span class="var token" data-binding="var-_uniq.97" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="88">β</span> <span class="var token" data-binding="var-_uniq.97" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1720">Append</span></a> <span class="var token" data-binding="var-_uniq.97" data-verso-hover="88">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span>
-    <span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">×</span> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="88">β</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.97" data-verso-hover="88">γ</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12525">where</span>
-  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1721">ser</span>
-    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.152" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.153" data-verso-hover="112">y</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span> <span class="var token" data-binding="var-_uniq.152" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">++</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span> <span class="var token" data-binding="var-_uniq.153" data-verso-hover="112">y</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12437">instance</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <span class="var token" data-binding="var-_uniq.113" data-verso-hover="162">α</span> <span class="var token" data-binding="var-_uniq.117" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <span class="var token" data-binding="var-_uniq.123" data-verso-hover="162">β</span> <span class="var token" data-binding="var-_uniq.117" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><a href="Type-Classes/Basic-Classes/#Append___mk"><span class="const token" data-binding="const-Append" data-verso-hover="1667">Append</span></a> <span class="var token" data-binding="var-_uniq.117" data-verso-hover="162">γ</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span>
+    <span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.113" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">×</span> <span class="var token" data-binding="var-_uniq.123" data-verso-hover="162">β</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.117" data-verso-hover="162">γ</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12524">where</span>
+  <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1668">ser</span>
+    <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.175" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.176" data-verso-hover="185">y</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span> <span class="var token" data-binding="var-_uniq.175" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">++</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span> <span class="var token" data-binding="var-_uniq.176" data-verso-hover="185">y</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Now, instance synthesis is free to select the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize" data-verso-hover="1722">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="72">String</span></a></code> instance, which solves the unknown implicit <code>output</code> parameter of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-12734">example</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1724">ser</span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code></details><details class="example"><summary class="description">Output Parameters with Pre-Existing Values</summary><p>
-                  The class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span></code> represents a way to transform non-maximal elements of a type into elements of a type that has one fewer elements.
-There are two separate instances that can match an input type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code>, with different outputs:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-13096">class</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1723">β</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="902">outParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-13146">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1726">biggest</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1727">shrink</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">≠</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">biggest</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1723">β</span>
+                    Now, instance synthesis is free to select the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize" data-verso-hover="1669">Serialize</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a></code> instance, which solves the unknown implicit <code>output</code> parameter of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span></code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-12733">example</span> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-Serialize.ser" data-verso-hover="1671">ser</span> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span>
+<span class="unknown token" data-binding=""></span></code></div>
+                </details><details class="example"><summary class="description">Output Parameters with Pre-Existing Values</summary><div class="example-content">
+                  <p>
+                    The class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span></code> represents a way to transform non-maximal elements of a type into elements of a type that has one fewer elements.
+There are two separate instances that can match an input type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code>, with different outputs:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-13095">class</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1670">β</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="1536">outParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-13145">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1673">biggest</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1674">shrink</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">≠</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">biggest</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1670">β</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13213">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="88">α</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13250">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1728">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1729">shrink</span>
-    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="var token" data-binding="var-_uniq.104" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.104" data-verso-hover="46">x</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13212">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="162">α</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13249">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1675">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1676">shrink</span>
+    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="46">x</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13305">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13355">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1730">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1731">shrink</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13304">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13354">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1677">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1678">shrink</span>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13447">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13479">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="853">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1732">shrink</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13446">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13478">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1679">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1680">shrink</span>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Because instance synthesis selects the most recently defined instance, the following code is an error:</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-13684">#check</span></a> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">failed to synthesize
+                    Because instance synthesis selects the most recently defined instance, the following code is an error:</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-13683">#check</span></a> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">failed to synthesize
   OneSmaller (Option Bool) Bool
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.</code></span></span><span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1727">OneSmaller.shrink</span></span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">β</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-13735" data-verso-hover="683">sorry</span>
+Additional diagnostic information may be available using the `set_option diagnostics true` command.</code></span></span><span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1674">OneSmaller.shrink</span></span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">β</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-13734" data-verso-hover="73">sorry</span>
 <span class="unknown token" data-binding=""></span></code><div class="error">
-                  <pre>failed to synthesize
+                    <pre>failed to synthesize
   OneSmaller (Option Bool) Bool
 
 Additional diagnostic information may be available using the `set_option diagnostics true` command.
 </pre></div>
-                <p>
-                  The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1725">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span></code> instance was selected during instance synthesis, without regard to the supplied value of <code>β</code>.</p>
+                  <p>
+                    The <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1672">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span></code> instance was selected during instance synthesis, without regard to the supplied value of <code>β</code>.</p>
+                  </div>
                 </details><p>
-                <span id="--tech-term-Semi-output-parameters"><em>Semi-output parameters</em></span> are like output parameters in that they are not required to be known prior to synthesis commencing; unlike output parameters, their values are taken into account when selecting instances.</p>
+                <span id="--tech-term-Semi-output-parameters" class="def-technical-term"><em>Semi-output parameters</em></span> are like output parameters in that they are not required to be known prior to synthesis commencing; unlike output parameters, their values are taken into account when selecting instances.</p>
               <div class="namedocs" id="semiOutParam">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=semiOutParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">semiOutParam.{u} (<span class="var token" data-binding="var-_uniq.2799" data-verso-hover="95">α</span> : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span>) : <span class="sort token" data-binding="" data-verso-hover="96">Sort u</span></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=semiOutParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block">semiOutParam.{u} (<span class="var token" data-binding="var-_uniq.2800" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>) : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span></pre><div class="text">
                   <p>
                     Gadget for marking semi output parameters in type classes.</p>
                   <p>
@@ -2456,54 +2480,56 @@ Additional diagnostic information may be available using the `set_option diagnos
 instances are processed.  Lean determines an order where all non-(semi-)output
 parameters to the instance argument have to be figured out before attempting to
 synthesize an argument (that is, they do not contain assignable metavariables
-created during TC synthesis). This rules out instances such as <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">Mul</span> <span class="unknown token" data-binding="">β</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">Add</span> <span class="unknown token" data-binding="">α</span></code> (because <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2122" data-verso-hover="1733">β</span></code> could be anything). Marking a parameter as semi-output is a
+created during TC synthesis). This rules out instances such as <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">Mul</span> <span class="unknown token" data-binding="">β</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">Add</span> <span class="unknown token" data-binding="">α</span></code> (because <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2123" data-verso-hover="1681">β</span></code> could be anything). Marking a parameter as semi-output is a
 promise that instances of the type class will always fill in a value for that
 parameter.</p>
                   <p>
-                    For example, the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a></code> class is defined as:</p>
+                    For example, the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a></code> class is defined as:</p>
                   <pre>class Coe (α : semiOutParam (Sort u)) (β : Sort v)
 </pre><p>
-                    This means that all <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a></code> instances should provide a concrete value for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2411" data-verso-hover="95">α</span></code>
-(i.e., not an assignable metavariable). An instance like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="71">Int</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a> <span class="var token" data-binding="var-_uniq.2411" data-verso-hover="95">α</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.2411" data-verso-hover="95">α</span><span class="unknown token" data-binding="">)</span></code> is fine, but <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Source-Files/Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="784">Coe</span></a> <span class="var token" data-binding="var-_uniq.2411" data-verso-hover="95">α</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> is not since it does not provide a value
-for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2411" data-verso-hover="95">α</span></code>.</p>
+                    This means that all <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a></code> instances should provide a concrete value for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2412" data-verso-hover="168">α</span></code>
+(i.e., not an assignable metavariable). An instance like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="146">Int</span></a></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a> <span class="var token" data-binding="var-_uniq.2412" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.2412" data-verso-hover="168">α</span><span class="unknown token" data-binding="">)</span></code> is fine, but <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1534">Coe</span></a> <span class="var token" data-binding="var-_uniq.2412" data-verso-hover="168">α</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> is not since it does not provide a value
+for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2412" data-verso-hover="168">α</span></code>.</p>
                   </div>
                 </div>
               <p>
                 Semi-output parameters impose a requirement on instances: each instance of a class with semi-output parameters should determine the values of its semi-output parameters.</p>
-              <details class="example"><summary class="description">Semi-Output Parameters with Pre-Existing Values</summary><p>
-                  The class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span></code> represents a way to transform non-maximal elements of a type into elements of a type that one fewer elements.
-It has two separate instances that can match an input type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a></code>, with different outputs:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-14870">class</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1735">β</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="701">semiOutParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-14924">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1736">biggest</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1737">shrink</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">≠</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">biggest</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1735">β</span>
+              <details class="example"><summary class="description">Semi-Output Parameters with Pre-Existing Values</summary><div class="example-content">
+                  <p>
+                    The class <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span></code> represents a way to transform non-maximal elements of a type into elements of a type that one fewer elements.
+It has two separate instances that can match an input type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a></code>, with different outputs:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.classTk-14869">class</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1683">β</span> <span class="unknown token" data-binding="">:</span> <a href="Type-Classes/Instance-Synthesis/#semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="92">semiOutParam</span></a> <span class="sort token" data-binding="" data-verso-hover="50">Type</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-14923">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1684">biggest</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1685">shrink</span> <span class="unknown token" data-binding="">:</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">≠</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">biggest</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="1683">β</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14991">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="88">α</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.63" data-verso-hover="88">α</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15028">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1728">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1729">shrink</span>
-    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="var token" data-binding="var-_uniq.104" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.104" data-verso-hover="46">x</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-14990">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="162">α</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="162">α</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15027">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1675">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1676">shrink</span>
+    <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="46">x</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.136" data-verso-hover="46">x</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-15083">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15133">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1730">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1731">shrink</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-15082">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15132">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1677">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1678">shrink</span>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-15225">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15257">where</span>
-  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="853">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
-  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1732">shrink</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-15224">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-15256">where</span>
+  <span class="const token" data-binding="const-OneSmaller.biggest" data-verso-hover="1679">biggest</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a>
+  <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1680">shrink</span>
     <span class="unknown token" data-binding="">|</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><p>
-                  Because instance synthesis takes semi-output parameters into account when selecting instances, the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1734">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span></code> instance is passed over due to the supplied value for <code>β</code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">OneSmaller.shrink (some false) ⋯ : Bool</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-15551">#check</span></a></span> <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1737">OneSmaller.shrink</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">β</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="80">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-15602" data-verso-hover="683">sorry</span>
+                    Because instance synthesis takes semi-output parameters into account when selecting instances, the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-OneSmaller" data-verso-hover="1682">OneSmaller</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span></code> instance is passed over due to the supplied value for <code>β</code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">OneSmaller.shrink (some false) ⋯ : Bool</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-15550">#check</span></a></span> <span class="const token" data-binding="const-OneSmaller.shrink" data-verso-hover="1685">OneSmaller.shrink</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">β</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool" data-verso-hover="155">Bool</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sorry-15601" data-verso-hover="73">sorry</span>
 <span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>OneSmaller.shrink (some false) ⋯ : Bool
+                    <pre>OneSmaller.shrink (some false) ⋯ : Bool
 </pre></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="default-instance-synth">
-                8.3.6. Default Instances<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=default-instance-synth" title="Permalink">🔗</a></span></h2>
+                11.3.6. Default Instances<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=default-instance-synth" title="Permalink">🔗</a></span></h2>
               <p>
-                When instance synthesis would otherwise fail, having not selected an instance, the <span id="--tech-term-default-instances"><em>default instances</em></span> specified using the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1693">default_instance</span></code> attribute are attempted in order of priority.
+                When instance synthesis would otherwise fail, having not selected an instance, the <span id="--tech-term-default-instances" class="def-technical-term"><em>default instances</em></span> specified using the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1640">default_instance</span></code> attribute are attempted in order of priority.
 When priorities are equal, more recently-defined default instances are chosen before earlier ones.
 The first default instance that causes the search to succeed is chosen.</p>
               <p>
@@ -2512,16 +2538,16 @@ If the recursive search fails, the search process backtracks and the next defaul
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Type-Classes--Instance-Synthesis--___Morally-Canonical___-Instances">
-                8.3.7. “Morally Canonical” Instances</h2>
+                11.3.7. “Morally Canonical” Instances</h2>
               <p>
                 During instance synthesis, if a goal is fully known (that is, contains no metavariables) and search succeeds, no further instances will be attempted for that same goal.
 In other words, when search succeeds for a goal in a way that can't be refuted by a subsequent increase in information, the goal will not be attempted again, even if there are other instances that could potentially have been used.
 This optimization can prevent a failure in a later branch of an instance synthesis search from causing spurious backtracking that replaces a fast solution from an earlier branch with a slow exploration of a large state space.</p>
               <p>
-                The optimization relies on the assumption that instances are <span id="--tech-term-morally-canonical"><em>morally canonical</em></span>.
+                The optimization relies on the assumption that instances are <span id="--tech-term-morally-canonical" class="def-technical-term"><em>morally canonical</em></span>.
 Even if there is more than one potential implementation of a given type class's overloaded operations, or more than one way to synthesize an instance due to diamonds, <em>any discovered instance should be considered as good as any other</em>.
 In other words, there's no need to consider <em>all</em> potential instances so long as one of them has been guaranteed to work.
-The optimization may be disabled with the backwards-compatibility option <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#backward___synthInstance___canonInstances"><span class="option token" data-binding="option-backward.synthInstance.canonInstances" data-verso-hover="1738">backward.synthInstance.canonInstances</span></a></code>, which may be removed in a future version of Lean.</p>
+The optimization may be disabled with the backwards-compatibility option <code class="hl lean inline" data-lean-context="examples"><a href="Type-Classes/Instance-Synthesis/#backward___synthInstance___canonInstances"><span class="option token" data-binding="option-backward.synthInstance.canonInstances" data-verso-hover="1686">backward.synthInstance.canonInstances</span></a></code>, which may be removed in a future version of Lean.</p>
               <p>
                 Code that uses instance-implicit parameters should be prepared to consider all instances as equivalent.
 In other words, it should be robust in the face of differences in synthesized instances.
@@ -2529,7 +2555,7 @@ When the code relies on instances <em>in fact</em> being equivalent, it should e
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Type-Classes--Instance-Synthesis--Options">
-                8.3.8. Options</h2>
+                11.3.8. Options</h2>
               <div class="namedocs" id="backward___synthInstance___canonInstances">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc.option&name=backward.synthInstance.canonInstances" title="Permalink">🔗</a></span><span class="label">option</span><pre class="signature hl lean block">backward.synthInstance.canonInstances</pre><div class="text">
                   <p>
@@ -2557,7 +2583,7 @@ When the code relies on instances <em>in fact</em> being equivalent, it should e
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Type-Classes/Instance-Declarations/#instance-declarations" rel="prev" title="8.2. Instance Declarations"><span class="arrow">←</span><span class="where">8.2. Instance Declarations</span></a><a class="local-button active" href="Type-Classes/Deriving-Instances/#deriving-instances" rel="next" title="8.4. Deriving Instances"><span class="where">8.4. Deriving Instances</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Type-Classes/Instance-Declarations/#instance-declarations" rel="prev" title="11.2. Instance Declarations"><span class="arrow">←</span><span class="where">11.2. Instance Declarations</span></a><a class="local-button active" href="Type-Classes/Deriving-Instances/#deriving-instances" rel="next" title="11.4. Deriving Instances"><span class="where">11.4. Deriving Instances</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

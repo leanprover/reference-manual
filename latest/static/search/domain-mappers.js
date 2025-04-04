@@ -144,6 +144,35 @@ const lakeOptMapper = {
   className: "lake-option-domain",
   displayName: "Lake Command-Line Option",
 };
+/**
+ * @type {DomainMapper}
+ */
+const elanCommandMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: `elan ${key}`,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Manual.elanCommand",
+      ref: value,
+    })),
+  className: "elan-command-domain",
+  displayName: "Elan Command",
+};
+
+/**
+ * @type {DomainMapper}
+ */
+const elanOptMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => ({
+      searchKey: key,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: "Manual.elanOpt",
+      ref: value,
+    })),
+  className: "elan-option-domain",
+  displayName: "Elan Command-Line Option",
+};
 
 /**
  * @type {DomainMapper}
@@ -207,6 +236,8 @@ export const domainMappers = {
   "Manual.lakeCommand": lakeCommandMapper,
   "Manual.lakeOpt": lakeOptMapper,
   "Manual.envVar": envVarMapper,
-  "Manual.lakeTomlTable" : lakeTomlTableMapper,
-  "Manual.lakeTomlField" : lakeTomlFieldMapper,
+  "Manual.lakeTomlTable": lakeTomlTableMapper,
+  "Manual.lakeTomlField": lakeTomlFieldMapper,
+  "Manual.elanCommand": elanCommandMapper,
+  "Manual.elanOpt": elanOptMapper,
 };
