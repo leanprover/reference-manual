@@ -12,6 +12,8 @@ import Manual.Meta.Monotonicity
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
+
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 open Lean.Order

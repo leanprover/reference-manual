@@ -11,6 +11,7 @@ import Manual.Papers
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 #doc (Manual) "Run-Time Code" =>
 %%%

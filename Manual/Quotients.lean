@@ -12,6 +12,7 @@ import Manual.Language.Functions
 import Manual.Language.InductiveTypes
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 #doc (Manual) "Quotients" =>
 %%%

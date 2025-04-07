@@ -12,6 +12,7 @@ import Manual.Meta
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 
 open Lean Elab Command
@@ -36,7 +37,7 @@ def derivableClassList : DirectiveExpander
     let classNames ← derivableClasses
     let itemStx ← classNames.filter (!(`Lean).isPrefixOf ·) |>.mapM fun n => do
       let hl : Highlighted ← constTok n n.toString
-      `(Inline.other {_root_.Manual.Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote n.toString)])
+      `(Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote n.toString)])
     let theList ← `(Verso.Doc.Block.ul #[$[⟨#[Verso.Doc.Block.para #[$itemStx]]⟩],*])
     return #[theList]
 

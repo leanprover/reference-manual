@@ -15,14 +15,12 @@ import VersoManual
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
-import Manual.Meta.Lean
-import Manual.Meta.Lean.Scopes
 
 namespace Manual
 
 open Lean Elab Term Tactic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Manual.Meta.Lean.Scopes
+open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
 
 structure TacticOutputConfig where
@@ -34,9 +32,9 @@ structure TacticOutputConfig where
 def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
   TacticOutputConfig.mk <$>
     ((·.getD true) <$> .named `show .bool true) <*>
-    .named `severity LeanOutputConfig.parser.sev true <*>
+    .named `severity .messageSeverity true <*>
     ((·.getD false) <$> .named `summarize .bool true) <*>
-    ((·.getD .exact) <$> .named `whitespace LeanOutputConfig.parser.ws true)
+    ((·.getD .exact) <$> .named `whitespace .whitespaceMode true)
 
 
 def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
@@ -362,7 +360,7 @@ def goal : RoleExpander
 
       if config.show then
         -- Just emit a normal Lean node - no need to do anything special with the rendered result
-        pure #[← ``(Inline.other (Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
+        pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
       else
         pure #[]
 where
@@ -414,7 +412,7 @@ def tacticOutput : CodeBlockExpander
     let outputSeverityName ← saveOutput str opts
 
     if opts.show then
-      return #[← `(Block.other {Block.leanOutput with data := ToJson.toJson ($outputSeverityName, $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
+      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson ($outputSeverityName, $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
     else
       return #[]
 
@@ -435,7 +433,7 @@ def tacticStep : CodeBlockExpander
       throwErrorAt str "Failed to parse tactic step"
     | .ok stx =>
       let hlTac ← saveTactic stx
-      pure #[← ``(Block.other (Block.lean $hlTac) #[Block.code $(quote str.getString)])]
+      pure #[← ``(Block.other (Verso.Genre.Manual.InlineLean.Block.lean $hlTac) #[Block.code $(quote str.getString)])]
 
 open Lean.Parser in
 @[role_expander tacticStep]
@@ -458,7 +456,7 @@ def tacticStepInline : RoleExpander
     | .ok stx =>
       let hlTac ← saveTactic stx
 
-      pure #[← ``(Inline.other (Inline.lean $hlTac) #[Inline.code $(quote tacStr.getString)])]
+      pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $hlTac) #[Inline.code $(quote tacStr.getString)])]
 
 def Block.proofState : Block where
   name := `Manual.proofState

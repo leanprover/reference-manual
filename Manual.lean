@@ -28,9 +28,10 @@ import Manual.Namespaces
 import Manual.Runtime
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
-set_option maxRecDepth 300000
+set_option maxRecDepth 1024
 
 #doc (Manual) "The Lean Language Reference" =>
 %%%

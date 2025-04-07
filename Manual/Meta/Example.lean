@@ -6,7 +6,6 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Lean
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab
@@ -47,7 +46,7 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
 def isLeanBlock : TSyntax `block → CoreM Bool
   | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
     let name ← realizeGlobalConstNoOverloadWithInfo nameStx
-    return name == ``lean
+    return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
 

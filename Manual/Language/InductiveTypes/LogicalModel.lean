@@ -8,6 +8,7 @@ import VersoManual
 import Manual.Meta
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 
