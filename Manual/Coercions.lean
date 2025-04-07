@@ -9,11 +9,11 @@ import Manual.Meta
 import Manual.Papers
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
 open Lean (Syntax SourceInfo)
-
 
 
 #doc (Manual) "Coercions" =>

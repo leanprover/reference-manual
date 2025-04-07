@@ -6,7 +6,6 @@ Author: Joachim Breitner
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Lean
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab

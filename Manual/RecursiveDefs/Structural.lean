@@ -13,6 +13,8 @@ import Manual.Meta
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
+
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 #doc (Manual) "Structural Recursion" =>

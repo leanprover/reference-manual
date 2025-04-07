@@ -8,6 +8,7 @@ import Manual.Meta
 import VersoManual
 
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 open Verso.Output.Html in
 def searchModule := {{

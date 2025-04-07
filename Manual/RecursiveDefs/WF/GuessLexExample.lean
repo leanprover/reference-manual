@@ -14,6 +14,8 @@ want to update it over and over again as we edit the large file.
 -/
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
+
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 #doc (Manual) "Termination failure (for inclusion elsewhere)" =>
@@ -38,9 +40,9 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
            n m l
-1) 30:6-25 = = =
-2) 31:6-23 = < _
-3) 32:6-23 < _ _
+1) 32:6-25 = = =
+2) 33:6-23 = < _
+3) 34:6-23 < _ _
 Please use `termination_by` to specify a decreasing measure.
 ```
 

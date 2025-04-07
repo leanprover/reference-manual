@@ -7,10 +7,10 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Verso.Code.Highlighted
+import VersoManual.InlineLean
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
-import Manual.Meta.Lean.Scopes
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -18,6 +18,7 @@ open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
 
+open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
 open Lean Elab Parser
 open Lean.Widget (TaggedText)
@@ -1120,7 +1121,7 @@ where
       else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
-    let scope := (← Manual.Meta.Lean.Scopes.getScopes).head!
+    let scope := (← Verso.Genre.Manual.InlineLean.Scopes.getScopes).head!
 
     withOpenedNamespace `Manual.FreeSyntax <| withOpenedNamespaces config.namespaces <| do
       match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) (openDecls := scope.openDecls) with

@@ -12,6 +12,7 @@ import Manual.Language.InductiveTypes.Structures
 import Manual.Language.InductiveTypes.Nested
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 open Lean.Parser.Command («inductive» «structure» declValEqns computedField)
 
