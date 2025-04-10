@@ -7,7 +7,6 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake
 
 import Manual.Meta
 

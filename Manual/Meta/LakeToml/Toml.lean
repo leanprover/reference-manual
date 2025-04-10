@@ -4,21 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 
-import Verso
-import Verso.Doc.ArgParse
-import Verso.Doc.Elab.Monad
+
 import VersoManual
-import Verso.Code
 
 import Manual.Meta.Basic
 
-import Lake
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
+
 
 open Lean.Elab.Tactic.GuardMsgs
 

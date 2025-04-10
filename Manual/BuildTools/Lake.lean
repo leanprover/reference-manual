@@ -7,7 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake
+import Lake.Build
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI

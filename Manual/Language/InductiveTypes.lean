@@ -128,26 +128,26 @@ theorem no_is_false : No = False := by
 :::
 
 :::example "A unit type" (keep := true)
-{lean}`One` is equivalent to Lean's {lean}`Unit` type:
+{lean}`Solo` is equivalent to Lean's {lean}`Unit` type:
 ```lean
-inductive One where
-  | one
+inductive Solo where
+  | solo
 ```
 It is an example of an inductive type in which the signatures have been omitted for both the type constructor and the constructor.
-Lean assigns {lean}`One` to {lean}`Type`:
+Lean assigns {lean}`Solo` to {lean}`Type`:
 ```lean (name := OneTy)
-#check One
+#check Solo
 ```
 ```leanOutput OneTy
-One : Type
+Solo : Type
 ```
-The constructor is named {lean}`One.one`, because constructor names are the type constructor's namespace.
-Because {lean}`One` expects no arguments, the signature inferred for {lean}`One.one` is:
+The constructor is named {lean}`Solo.solo`, because constructor names are the type constructor's namespace.
+Because {lean}`Solo` expects no arguments, the signature inferred for {lean}`Solo.solo` is:
 ```lean (name := oneTy)
-#check One.one
+#check Solo.solo
 ```
 ```leanOutput oneTy
-One.one : One
+Solo.solo : Solo
 ```
 :::
 
