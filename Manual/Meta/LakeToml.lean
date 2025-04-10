@@ -21,7 +21,6 @@ import Manual.Meta.ExpectString
 import Manual.Meta.LakeToml.Toml
 import Manual.Meta.LakeToml.Test
 
-import Lake
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
@@ -733,6 +732,7 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         relConfigFile := cfg.relConfigFile
         scope := cfg.scope
         remoteUrl := cfg.remoteUrl
+        configFile := cfg.configFile
         config, depConfigs, targetDecls, targetDeclMap
         defaultTargets, name
       }

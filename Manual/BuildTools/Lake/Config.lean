@@ -7,7 +7,8 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake
+import Lake.DSL
+import Lake.Config
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
@@ -129,7 +130,7 @@ name = "example-package"
 ```
 ```expected
 {name := `«example-package»,
-  dir := FilePath.mk "./.",
+  dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
     {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
@@ -175,6 +176,7 @@ name = "example-package"
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
       reservoir := true},
+  configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
   scope := "",
@@ -206,7 +208,7 @@ name = "Sorting"
 ```
 ```expected
 {name := `«example-package»,
-  dir := FilePath.mk "./.",
+  dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
     {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
@@ -252,6 +254,7 @@ name = "Sorting"
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
       reservoir := true},
+  configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
   scope := "",

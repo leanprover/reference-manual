@@ -155,9 +155,7 @@ end
 
 {docstring Option.elimM}
 
-{docstring Option.liftOrGet}
-
-{docstring Option.merge}
+{docstring Option.zipWith}
 
 
 ## Properties and Comparisons
