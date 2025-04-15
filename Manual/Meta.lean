@@ -267,6 +267,46 @@ where
       | other => throwError "Expected Boolean, got {repr other}"
   }
 
+/--
+Indicates that an element is a C type.
+
+Currently does nothing other than indicate this fact for future use.
+-/
+@[role_expander ctype]
+def ctype : RoleExpander
+  | args, contents => do
+    ArgParse.done.run args
+    let #[x] := contents
+      | throwError "Expected exactly one parameter"
+    let `(inline|code($t)) := x
+      | throwError "Expected exactly one code item"
+    pure #[← ``(Inline.code $(quote t.getString))]
+
+def Inline.ckw : Inline where
+  name := `Manual.ckw
+
+/--
+Indicates that an element is a C keyword.
+-/
+@[role_expander ckw]
+def ckw : RoleExpander
+  | args, contents => do
+    ArgParse.done.run args
+    let #[x] := contents
+      | throwError "Expected exactly one parameter"
+    let `(inline|code($t)) := x
+      | throwError "Expected exactly one code item"
+    pure #[← ``(Inline.code $(quote t.getString))]
+
+@[inline_extension ckw]
+def ckw.descr : InlineDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  toHtml := some fun goI _ _ content => open Verso.Output.Html in do
+    return {{<span class="c-keyword">{{← content.mapM goI}}</span>}}
+  extraCss :=
+    [".c-keyword code { font-weight: 600; }"]
+
 def Block.ffi : Block where
   name := `Manual.ffi
 

@@ -6,12 +6,15 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta
+import Manual.Meta.LexedText
 import Manual.Papers
 
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+
+set_option pp.rawOnError true
 
 #doc (Manual) "Run-Time Code" =>
 %%%
@@ -300,3 +303,193 @@ draft := true
 Lean includes primitives for parallel and concurrent programs, described using {tech}[tasks].
 The Lean runtime system includes a task manager that assigns hardware resources to tasks.
 Along with the API for defining tasks, this is described in detail in the {ref "concurrency"}[section on multi-threaded programs].
+
+# Foreign Function Interface
+%%%
+tag := "ffi"
+%%%
+
+
+**The current interface was designed for internal use in Lean and should be considered unstable**.
+It will be refined and extended in the future.
+
+Lean offers efficient interoperability with any language that supports the C ABI.
+This support is, however, currently limited to transferring Lean data types; in particular, it is not yet possible to pass or return compound data structures such as C {c}`struct`s by value from or to Lean.
+
+There are two primary attributes for interoperating with other languages:
+  {TODO}[It can also be used with `def` to provide an internal definition, but ensuring consistency of both definitions is up to the user.]
+* `@[export sym] def leanSym : ...`
+
+:::syntax attr (title := "External Symbols")
+```grammar
+extern $s:str
+```
+
+Binds a Lean declaration to the specified external symbol.
+:::
+
+:::syntax attr (title := "Exported Symbols")
+```grammar
+export $x:ident
+```
+Exports a Lean constant with the unmangled symbol name `sym`.
+:::
+
+
+For simple examples of how to call foreign code from Lean and vice versa, see [the FFI](https://github.com/leanprover/lean4/blob/master/src/lake/examples/ffi) and [reverse FFI](https://github.com/leanprover/lean4/blob/master/src/lake/examples/reverse-ffi) examples in the Lean source repository.
+
+## The Lean ABI
+
+:::leanSection
+
+```lean (show := false)
+variable {α₁ αₙ β αᵢ}
+private axiom «α₂→…→αₙ₋₁».{u} : Type u
+local macro "..." : term => ``(«α₂→…→αₙ₋₁»)
+```
+
+The Lean {deftech}_Application Binary Interface_ (ABI) describes how the signature of a Lean declaration is encoded in the platform-native calling convention.
+It is based on the standard C ABI and calling convention of the target platform.
+Lean declarations can be marked for interaction with foreign functions using either the attribute {attr}`extern "sym"`, which causes compiled code to use the C declaration {c}`sym` as the implementation, or the attribute {attr}`export sym`, which makes the declaration available as {c}`sym` to C.
+
+In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
+Let {lean}`α₁ → ... → αₙ → β` be the declaration's {tech key:="normal form"}[normalized] type.
+If `n` is 0, the corresponding C declaration is
+```c
+extern s sym;
+```
+where {c}`s` is the C translation of {lean}`β` as specified in {ref "ffi-types"}[the next section].
+In the case of a definition marked {attr}`extern`, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
+The section on {ref "ffi-initialization"}[initialization] describes initializers in greater detail.
+
+If `n` is greater than 0, the corresponding C declaration is
+```c
+s sym(t₁, ..., tₙ);
+```
+where the parameter types `tᵢ` are the C translations of the types {lean}`αᵢ`.
+In the case of {attr}`extern`, all {tech}[irrelevant] types are removed first.
+:::
+
+### Translating Types from Lean to C
+%%%
+tag := "ffi-types"
+%%%
+
+```lean (show := false)
+universe u
+variable (p : Prop)
+private axiom «...» : Sort u
+local macro "..." : term => ``(«...»)
+```
+
+In the {tech key:="application binary interface"}[ABI], Lean types are translated to C types as follows:
+
+* The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively.
+  If their {ref "fixed-int-runtime"}[run-time representation] requires boxing, then they are unboxed at the FFI boundary.
+* {lean}`Char` is represented by {c}`uint32_t`.
+* {lean}`Float` is represented by {c}`double`.
+* {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
+  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 ({c}`lean_is_scalar`), an encoded unboxed natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
+* A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {c}`lean_object *` with the runtime value {c}`lean_box(0)`
+* The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
+  It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
+  Its runtime value is a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or the unboxed value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
+
+  ```lean (show := false)
+  variable (u : Unit)
+  ```
+
+:::example "`Unit` in the ABI"
+The runtime value of {lean}`u`​` : `{lean}`Unit` is always `lean_box(0)`.
+:::
+
+### Borrowing
+%%%
+tag := "ffi-borrowing"
+%%%
+
+By default, all {c}`lean_object *` parameters of an {attr}`extern` function are considered {deftech}_owned_.
+The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via {c}`lean_dec`.
+To reduce reference counting overhead, parameters can be marked as {deftech}_borrowed_ by prefixing their type with {keywordOf Lean.Parser.Term.borrowed}`@&`.
+Borrowed objects must only be passed to other non-consuming functions (arbitrarily often) or converted to owned values using {c}`lean_inc`.
+In `lean.h`, the {c}`lean_object *` aliases {c}`lean_obj_arg` and {c}`b_lean_obj_arg` are used to mark this difference on the C side.
+Return values and `@[export]` parameters are always owned at the moment.
+
+:::syntax term (title := "Borrowed Parameters")
+```grammar
+@& $_
+```
+Parameters may be marked as {tech}[borrowed] by prefixing their types with {keyword}`@&`.
+:::
+
+## Initialization
+%%%
+tag := "ffi-initialization"
+%%%
+
+When including Lean code in a larger program, modules must be {deftech key:="initialize"}_initialized_ before accessing any of their declarations.
+Module initialization entails:
+* initialization of all “constant definitions” (nullary functions), including closed terms lifted out of other functions,
+* execution of all code marked with the {attr}`init` attribute, and
+* execution of all code marked with the {attr}`builtin_init` attribute, if the `builtin` parameter of the module initializer has been set.
+
+The module initializer is automatically run with the `builtin` flag for executables compiled from Lean code and for “plugins” loaded with `lean --plugin`.
+For all other modules imported by `lean`, the initializer is run without `builtin`.
+In other words, {attr}`init` functions are run if and only if their module is imported, regardless of whether they have native code available, while {attr}`builtin_init` functions are only run for native executable or plugins, regardless of whether their module is imported.
+The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.
+
+The initializer for module `A.B` is called {c}`initialize_A_B` and will automatically initialize any imported modules.
+Module initializers are idempotent when run with the same `builtin` flag, but not thread-safe.
+Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
+```c
+void lean_initialize_runtime_module();
+void lean_initialize();
+lean_object * initialize_A_B(uint8_t builtin, lean_object *);
+lean_object * initialize_C(uint8_t builtin, lean_object *);
+...
+
+lean_initialize_runtime_module();
+// Necessary (and replaces `lean_initialize_runtime_module`) for code that
+// (indirectly) accesses the `Lean` package:
+//lean_initialize();
+
+lean_object * res;
+// use same default as for Lean executables
+uint8_t builtin = 1;
+res = initialize_A_B(builtin, lean_io_mk_world());
+if (lean_io_result_is_ok(res)) {
+    lean_dec_ref(res);
+} else {
+    lean_io_result_show_error(res);
+    lean_dec(res);
+    // do not access Lean declarations if initialization failed
+    return ...;
+}
+res = initialize_C(builtin, lean_io_mk_world());
+if (lean_io_result_is_ok(res)) {
+...
+
+// Necessary for code that (indirectly) uses `Task`
+//lean_init_task_manager();
+lean_io_mark_end_initialization();
+```
+
+In addition, any other thread not spawned by the Lean runtime itself must be initialized for Lean use by calling
+```c
+void lean_initialize_thread();
+```
+and should be finalized in order to free all thread-local resources by calling
+```c
+void lean_finalize_thread();
+```
+
+## `@[extern]` in the Interpreter
+
+The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked {attr}`extern`.
+To run this code (e.g. with {keywordOf Lean.Parser.Command.eval}`#eval`), the following steps are necessary:
+  1. The module containing the declaration and its dependencies must be compiled into a shared library
+  1. This shared library to should be provided to `lean --load-dynlib=` to run code that imports the module.
+
+It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each {attr}`extern` declaration.
+Thus it is not possible to interpret an {attr}`extern` declaration in the same file.
+The Lean source repository contains an example of this usage in [`tests/compiler/foreign`](https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/).

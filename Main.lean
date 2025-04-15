@@ -117,6 +117,7 @@ where
       "/static/fonts/source-serif/source-serif-text.css",
       "/static/fonts/source-code-pro/source-code-pro.css",
       "/static/fonts/source-sans/source-sans-3.css",
+      "/static/fonts/noto-sans-mono/noto-sans-mono.css"
     ],
     extraJs := [
       -- Search box

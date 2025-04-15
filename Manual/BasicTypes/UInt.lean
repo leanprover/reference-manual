@@ -56,6 +56,9 @@ Signed integers wrap the corresponding unsigned integers, and use a twos-complem
 {docstring Int64}
 
 # Run-Time Representation
+%%%
+tag := "fixed-int-runtime"
+%%%
 
 In compiled code, fixed-width integer types that fit in one less bit than the platform's pointer size are always represented unboxed, without additional allocations or indirections.
 This always includes {lean}`Int8`, {lean}`UInt8`, {lean}`Int16`, and {lean}`UInt16`.
