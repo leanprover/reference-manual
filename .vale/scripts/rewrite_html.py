@@ -54,6 +54,10 @@ def process_html_file(filepath, output_filepath):
     for element in soup.find_all(class_="split-toc"):
         element.decompose()
 
+    # Delete C code
+    for element in soup.find_all(class_="c"):
+        element.decompose()
+
     # Replace citations with their text
     for element in soup.find_all(class_="citation"):
         for inner in element.contents:
