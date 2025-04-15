@@ -1391,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1590, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1613, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1488,17 +1488,20 @@ depth n : Nat
 Matching on the depth of a tree and the tree itself leads to a refinement of the tree's type according to the depth's pattern.
 This means that certain combinations are not well-typed, such as {lean}`0` and {name BalancedTree.branch}`branch`, because refining the second discriminant's type yields {lean}`BalancedTree α 0` which does not match the constructor's type.
 ````lean (name := patfail) (error := true)
-def BalancedTree.isPerfectlyBalanced (n : Nat) (t : BalancedTree α n) : Bool :=
+def BalancedTree.isPerfectlyBalanced
+    (n : Nat) (t : BalancedTree α n) : Bool :=
   match n, t with
   | 0, .empty => true
-  | 0, .branch left val right => isPerfectlyBalanced left && isPerfectlyBalanced right
+  | 0, .branch left val right =>
+    isPerfectlyBalanced left &&
+    isPerfectlyBalanced right
   | _, _ => false
 ````
 ```leanOutput patfail
 type mismatch
   left.branch val right
 has type
-  BalancedTree ?m.53 (?m.50 + 1) : Type ?u.46
+  BalancedTree ?m.54 (?m.51 + 1) : Type ?u.47
 but is expected to have type
   BalancedTree α 0 : Type u
 ```

@@ -196,26 +196,31 @@ The types and functions in this section are available after importing {module}`S
 
 {docstring Std.Channel.send}
 
-{docstring Std.Channel.recv?}
+{docstring Std.Channel.recv}
 
-{docstring Std.Channel.close}
 
 {docstring Std.Channel.forAsync}
 
-{docstring Std.Channel.recvAllCurrent}
 
 {docstring Std.Channel.sync}
 
 {docstring Std.Channel.Sync}
 
-{docstring Std.Channel.Sync.recv?}
+
+{docstring Std.CloseableChannel}
+
+{docstring Std.CloseableChannel.new}
+
+
+
+
 
 :::leanSection
 ```lean (show := false)
-variable {m : Type → Type v} {α : Type} [MonadLiftT BaseIO m]
+variable {m : Type → Type v} {α : Type} [MonadLiftT BaseIO m] [Inhabited α]
 ```
 Synchronous channels can also be read using {keywordOf Lean.Parser.Term.doFor}`for` loops.
-In particular, there is an instance of type {inst}`ForIn m (Std.Channel.Sync α) α` for every monad {lean}`m` with a {inst}`MonadLiftT BaseIO m` instance.
+In particular, there is an instance of type {inst}`ForIn m (Std.Channel.Sync α) α` for every monad {lean}`m` with a {inst}`MonadLiftT BaseIO m` instance and {lean}`α` with an {inst}`Inhabited α` instance.
 :::
 ## Mutexes
 

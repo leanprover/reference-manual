@@ -7,15 +7,10 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
+require MD4Lean from git "https://github.com/acmepjz/md4lean"@"main"
 require verso from git "https://github.com/leanprover/verso.git"@"main"
--- Until issues with libraries in Lake nightlies get worked out
---require MD4Lean from git "https://github.com/acmepjz/md4lean"@"main"
-require MD4Lean from git "https://github.com/david-christiansen/md4lean"@"explicit-link"
-
 
 package "verso-manual" where
-  -- Until issues with libraries in Lake nightlies get worked out
-  dynlibs := #[`@MD4Lean/MD4Lean:shared, `@MD4Lean/md4cShared]
   -- building the C code cost much more than the optimizations save
   moreLeancArgs := #["-O0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
