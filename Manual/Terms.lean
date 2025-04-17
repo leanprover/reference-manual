@@ -1342,7 +1342,8 @@ def twoPointFive? : Float → Option Float
   | _ => none
 
 /--
-info: @Neg.neg.{0} Float instNegFloat (@OfScientific.ofScientific.{0} Float instOfScientificFloat 320 Bool.true 1) : Float
+info: @Neg.neg.{0} Float instNegFloat
+  (@OfScientific.ofScientific.{0} Float instOfScientificFloat (nat_lit 320) Bool.true (nat_lit 1)) : Float
 -/
 #guard_msgs in
 set_option pp.all true in
@@ -1390,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1577, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1590, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..

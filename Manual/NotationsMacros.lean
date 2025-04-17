@@ -533,7 +533,7 @@ def f [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
 #print f
 ```
 ```leanOutput expansion
-def f : {m : Type → Type} → [inst : Monad m] → [inst : Lean.MonadQuotation m] → Lean.Term → Nat → m Syntax :=
+def f : {m : Type → Type} → [Monad m] → [Lean.MonadQuotation m] → Lean.Term → Nat → m Syntax :=
 fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
   let info ← Lean.MonadRef.mkInfoFromRefPos
   let scp ← Lean.getCurrMacroScope
