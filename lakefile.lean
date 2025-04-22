@@ -8,8 +8,14 @@ open Lake DSL
 open System (FilePath)
 
 require verso from git "https://github.com/leanprover/verso.git"@"main"
+-- Until issues with libraries in Lake nightlies get worked out
+--require MD4Lean from git "https://github.com/acmepjz/md4lean"@"main"
+require MD4Lean from git "https://github.com/david-christiansen/md4lean"@"explicit-link"
+
 
 package "verso-manual" where
+  -- Until issues with libraries in Lake nightlies get worked out
+  dynlibs := #[`@MD4Lean/MD4Lean:shared, `@MD4Lean/md4cShared]
   -- building the C code cost much more than the optimizations save
   moreLeancArgs := #["-O0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
@@ -33,13 +39,12 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
 
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
-  if let some pkg := ← findPackage? `subverso then
-    if let some exe := pkg.findLeanExe? `«subverso-extract-mod» then
-      exe.fetch
-    else
-      failure
-  else
-    failure
+  let some pkg := ← findPackage? `subverso
+    | failure
+  let some exe := pkg.findLeanExe? `«subverso-extract-mod»
+    | failure
+  exe.fetch
+
 
 
 target figures : Array FilePath := do

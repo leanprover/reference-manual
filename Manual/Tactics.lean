@@ -372,13 +372,12 @@ In this proof state, the universe level of `α` is unknown:
 ∀ (α : _) (x : α) (xs : List α), x ∈ xs → xs.length > 0 := by
   intros α x xs elem
 /--
-α : Type ?u.896
+α : Type ?u.902
 x : α
 xs : List α
 elem : x ∈ xs
 ⊢ xs.length > 0
 -/
-
 ```
 ::::
 

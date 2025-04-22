@@ -98,33 +98,34 @@ Registers an unexpander of type {name}`Unexpander` for applications of a constan
 ::::keepEnv
 A type equivalent to {lean}`Unit`, but with its own notation, can be defined as a zero-field structure and a macro:
 ```lean
-structure One where
+structure Solo where
   mk ::
 
 syntax "‹" "›" : term
 
 macro_rules
-  | `(term|‹›) => ``(One.mk)
+  | `(term|‹›) => ``(Solo.mk)
 ```
 
 
 While the new notation can be used to write theorem statements, it does not appear in proof states.
-For example, when proving that all values of type {lean}`One` are equal to {lean}`‹›`, the initial proof state is:
+For example, when proving that all values of type {lean}`Solo` are equal to {lean}`‹›`, the initial proof state is:
 ```proofState
 ∀v, v = ‹› := by
 intro v
 /--
-v : One
+v : Solo
 ⊢ v = { }
 -/
+
 ```
 This proof state shows the constructor using {tech}[structure instance] syntax.
 An unexpander can be used to override this choice.
-Because {name}`One.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(One.mk) ```.
+Because {name}`Solo.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(Solo.mk) ```.
 
 ```lean
-@[app_unexpander One.mk]
-def unexpandOne : Lean.PrettyPrinter.Unexpander
+@[app_unexpander Solo.mk]
+def unexpandSolo : Lean.PrettyPrinter.Unexpander
   | _ => `(‹›)
 ```
 
@@ -133,10 +134,9 @@ With this unexpander, the initial state of the proof now renders with the correc
 ∀v, v = ‹› := by
 intro v
 /--
-v : One
+v : Solo
 ⊢ v = ‹›
 -/
-
 ```
 
 ::::
