@@ -339,7 +339,8 @@ This can be seen in the following example, in which {lean}`T` is a gratuitously-
 Because it is marked {keywordOf Lean.Parser.Command.declaration}`opaque`, Lean can't check equality by unfolding the definitions.
 Both instantiations of {lean}`T` have the parameters and the same type, but their differing universe instantiations make them incompatible.
 ```lean (error := true) (name := uniIncomp)
-opaque T.{u} (_ : Nat) : Bool := (fun (α : Sort u) => true) PUnit.{u}
+opaque T.{u} (_ : Nat) : Bool :=
+  (fun (α : Sort u) => true) PUnit.{u}
 
 set_option pp.universes true
 
@@ -347,9 +348,9 @@ def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
 type mismatch
-  rfl.{?u.28}
+  rfl.{?u.29}
 has type
-  Eq.{?u.28} ?m.29 ?m.29 : Prop
+  Eq.{?u.29} ?m.31 ?m.31 : Prop
 but is expected to have type
   Eq.{1} (T.{u} 0) (T.{v} 0) : Prop
 ```

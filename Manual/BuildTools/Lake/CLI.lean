@@ -444,10 +444,17 @@ USAGE:
 
 A target is specified with a string of the form:
 
-  [[@]<package>/][<target>|[+]<module>][:<facet>]
+  [@[<package>]/][<target>|[+]<module>][:<facet>]
 
-The optional `@` and `+` markers can be used to disambiguate packages
-and modules from other kinds of targets (i.e., executables and libraries).
+You can also use the source path of a module as a target. For example,
+
+  lake build Foo/Bar.lean:o
+
+will build the Lean module (within the workspace) whose source file is
+`Foo/Bar.lean` and compile the generated C file into a native object file.
+
+The `@` and `+` markers can be used to disambiguate packages and modules
+from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
   leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
@@ -467,11 +474,12 @@ MODULE FACETS:          build the module's ...
   dynlib                shared library (e.g., for `--load-dynlib`)
 
 TARGET EXAMPLES:        build the ...
-  a                     default facet of target `a`
+  a                     default facet(s) of target `a`
   @a                    default target(s) of package `a`
-  +A                    Lean artifacts of module `A`
-  a/b                   default facet of target `b` of package `a`
-  a/+A:c                C file of module `A` of package `a`
+  +A                    default facet(s) of module `A`
+  @/a                   default facet(s) of target `a` of the root package
+  @a/b                  default facet(s) of target `b` of package `a`
+  @a/+A:c               C file of module `A` of package `a`
   :foo                  facet `foo` of the root package
 
 A bare `lake build` command will build the default target(s) of the root package.
@@ -486,9 +494,10 @@ Each of the {lakeMeta}`targets` is specified by a string of the form:
 
 {lakeArgs}`[["@"]package["/"]][target|["+"]module][":"facet]`
 
-The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from executables and libraries, which are specified by name as {lakeMeta}`target`.
+The optional {keyword}`@` and {keyword}`+` markers can be used to disambiguate packages and modules from file paths as well as executables, and libraries, which are specified by name as {lakeMeta}`target`.
 If not provided, {lakeMeta}`package` defaults to the {tech}[workspace]'s {tech}[root package].
 If the same target name exists in multiple packages in the workspace, then the first occurrence of the target name found in a topological sort of the package dependency graph is selected.
+Module targets may also be specified by their filename, with an optional facet after a colon.
 
 The available {tech}[facets] depend on whether a package, library, executable, or module is to be built.
 They are listed in {ref "lake-facets"}[the section on facets].
@@ -500,7 +509,7 @@ They are listed in {ref "lake-facets"}[the section on facets].
 :::table
 * ignored
   - `a`
-  - The {tech}[default facet] of target `a`
+  - The {tech}[default facet](s) of target `a`
 * ignored
   - `@a`
   - The {tech}[default targets] of {tech}[package] `a`
@@ -508,14 +517,17 @@ They are listed in {ref "lake-facets"}[the section on facets].
   - `+A`
   -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
 * ignored
-  - `a/b`
+  - `@a/b`
   - The default facet of target `b` of package `a`
 * ignored
-  - `a/+A:c`
+  - `@a/+A:c`
   - The C file compiled from module `A` of package `a`
 * ignored
   - `:foo`
   - The {tech}[root package]'s facet `foo`
+* ignored
+  - `A/B/C.lean:o`
+  - The compiled object code for the module in the file `A/B/C.lean`
 :::
 ::::
 

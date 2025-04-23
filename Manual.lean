@@ -241,6 +241,7 @@ IO.Promise
 Std.Mutex
 Std.Channel
 Std.Channel.Sync
+Std.CloseableChannel
 Std.Condvar
 Unit
 PUnit

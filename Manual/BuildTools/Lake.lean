@@ -7,7 +7,10 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake.Build
+import Lake.Build.Package
+import Lake.Build.Library
+import Lake.Build.Module
+
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
@@ -200,10 +203,17 @@ USAGE:
 
 A target is specified with a string of the form:
 
-  [[@]<package>/][<target>|[+]<module>][:<facet>]
+  [@[<package>]/][<target>|[+]<module>][:<facet>]
 
-The optional `@` and `+` markers can be used to disambiguate packages
-and modules from other kinds of targets (i.e., executables and libraries).
+You can also use the source path of a module as a target. For example,
+
+  lake build Foo/Bar.lean:o
+
+will build the Lean module (within the workspace) whose source file is
+`Foo/Bar.lean` and compile the generated C file into a native object file.
+
+The `@` and `+` markers can be used to disambiguate packages and modules
+from file paths or other kinds of targets (e.g., executables or libraries).
 
 LIBRARY FACETS:         build the library's ...
   leanArts (default)    Lean artifacts (*.olean, *.ilean, *.c files)
@@ -223,11 +233,12 @@ MODULE FACETS:          build the module's ...
   dynlib                shared library (e.g., for `--load-dynlib`)
 
 TARGET EXAMPLES:        build the ...
-  a                     default facet of target `a`
+  a                     default facet(s) of target `a`
   @a                    default target(s) of package `a`
-  +A                    Lean artifacts of module `A`
-  a/b                   default facet of target `b` of package `a`
-  a/+A:c                C file of module `A` of package `a`
+  +A                    default facet(s) of module `A`
+  @/a                   default facet(s) of target `a` of the root package
+  @a/b                  default facet(s) of target `b` of package `a`
+  @a/+A:c               C file of module `A` of package `a`
   :foo                  facet `foo` of the root package
 
 A bare `lake build` command will build the default target(s) of the root package.
@@ -423,6 +434,11 @@ Scripts are intended to be used for project-specific tasks that are not already 
 While ordinary executable programs are run in the {name}`IO` {tech}[monad], scripts are run in {name Lake.ScriptM}`ScriptM`, which extends {name}`IO` with information about the workspace.
 Because they are Lean definitions, Lake scripts can only be defined in the Lean configuration format.
 
+:::::TODO
+
+Restore the following once we can import enough of Lake to elaborate it
+
+`````
 ```lean (show := false)
 section
 open Lake DSL
@@ -450,7 +466,9 @@ script "list-deps" := do
 ```lean (show := false)
 end
 ```
+`````
 
+:::::
 
 ## Test and Lint Drivers
 %%%
@@ -463,8 +481,11 @@ Test drivers may be executable targets or {tech}[Lake scripts], in which case th
 Similarly, a {deftech}_lint driver_ is responsible for checking the code for stylistic issues.
 Lint drivers may be executables or scripts, which are run by {lake}`lint`.
 
-A test or lint driver can be configured by either setting the {tomlField Lake.PackageConfig}`testDriver` or {tomlField Lake.PackageConfig}`lintDriver` package configuration options or by tagging a script, executable, or library with the {attr}`test_driver` or {attr}`lint_driver` attribute in a Lean-format configuration file.
+A test or lint driver can be configured by either setting the {tomlField Lake.PackageConfig}`testDriver` or {tomlField Lake.PackageConfig}`lintDriver` package configuration options or by tagging a script, executable, or library with the `test_driver` or `lint_driver` attribute in a Lean-format configuration file.
 A definition in a dependency can be used as a test or lint driver by using the `<pkg>/<name>` syntax for the appropriate configuration option.
+:::TODO
+Restore the ``{attr}`` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
+:::
 
 ## GitHub Release Builds
 %%%

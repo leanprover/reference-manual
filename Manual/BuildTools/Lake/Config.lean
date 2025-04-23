@@ -7,11 +7,12 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake.DSL
-import Lake.Config
+import Lake.DSL.Syntax
+import Lake.Config.Monad
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
+
 
 open Manual
 open Verso.Genre
@@ -21,6 +22,8 @@ open Verso.Genre.Manual.InlineLean
 set_option pp.rawOnError true
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
+
+open Lake.DSL
 
 #doc (Manual) "Configuration File Format" =>
 %%%
@@ -150,6 +153,7 @@ name = "example-package"
           platformIndependent := none,
           dynlibs := #[],
           plugins := #[] },
+      bootstrap := false,
       manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
@@ -228,6 +232,7 @@ name = "Sorting"
           platformIndependent := none,
           dynlibs := #[],
           plugins := #[] },
+      bootstrap := false,
       manifestFile := none,
       extraDepTargets := #[],
       precompileModules := false,
@@ -791,7 +796,11 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
+
+:::TODO
+It's presently impossible to import Lake.DSL.AttributesCore due to initialization changes, so `default_target` can't be rendered/checked as an attribute above. This should be fixed upstream.
+:::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute")
 

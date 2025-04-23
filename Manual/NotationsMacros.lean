@@ -528,7 +528,8 @@ end
 Printing the definition of {name}`f` demonstrates the expansion of a quasiquotation.
 ```lean (name := expansion)
 open Lean in
-def f [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
+def f [Monad m] [MonadQuotation m]
+    (x : Term) (n : Nat) : m Syntax :=
   `(fun k => $x + $(quote (n + 2)) + k)
 #print f
 ```
@@ -642,7 +643,8 @@ ex1 {m : Type → Type} [Monad m] [MonadQuotation m] (xs : Syntax.TSepArray `ter
 
 However, Lean includes a collection of coercions between various representations of arrays that will automatically insert or remove separators, so an ordinary array of terms is also acceptable:
 ```lean (name := ex2)
-def ex2 (xs : Array (TSyntax `term)) := show m _ from `(#[$xs,*])
+def ex2 (xs : Array (TSyntax `term)) :=
+  show m _ from `(#[$xs,*])
 #check ex2
 ```
 ```leanOutput ex2
@@ -657,7 +659,8 @@ def ex3 (size : Nat) := show CommandElabM _ from do
   for i in [0:size] do
     nums := nums.push i
   let stx ← `(#[$(nums.map (Syntax.mkNumLit ∘ toString)):num,*])
-  -- Using logInfo here causes the syntax to be rendered via the pretty printer.
+  -- Using logInfo here causes the syntax to be rendered via
+  -- the pretty printer.
   logInfo stx
 
 #eval ex3 4
@@ -704,7 +707,8 @@ syntax "⟨| " (term)? " |⟩": term
 
 The `?` splice suffix for a term expects an {lean}`Option Term`:
 ```lean
-def mkStx [Monad m] [MonadQuotation m] (e : Option Term) : m Term :=
+def mkStx [Monad m] [MonadQuotation m]
+    (e : Option Term) : m Term :=
   `(⟨| $(e)? |⟩)
 ```
 ```lean (name := checkMkStx)
@@ -1011,15 +1015,20 @@ This is because the rules in a single {keywordOf Lean.Parser.Command.macro_rules
 
 ```lean
 macro_rules
-  | `(arbitrary! ()) => `(())
+  | `(arbitrary! ()) =>
+    `(())
 macro_rules
-  | `(arbitrary! Nat) => `(42)
+  | `(arbitrary! Nat) =>
+    `(42)
 macro_rules
-  | `(arbitrary! ($t1 × $t2)) => `((arbitrary! $t1, arbitrary! $t2))
+  | `(arbitrary! ($t1 × $t2)) =>
+    `((arbitrary! $t1, arbitrary! $t2))
 macro_rules
-  | `(arbitrary! Nat) => `(0)
+  | `(arbitrary! Nat) =>
+    `(0)
 macro_rules
-  | `(arbitrary! Empty) => throwUnsupported
+  | `(arbitrary! Empty) =>
+    throwUnsupported
 ```
 
 ```lean (name := arb2)

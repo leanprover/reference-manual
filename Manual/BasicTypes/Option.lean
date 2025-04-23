@@ -155,7 +155,7 @@ end
 
 {docstring Option.elimM}
 
-{docstring Option.zipWith}
+{docstring Option.merge}
 
 
 ## Properties and Comparisons
@@ -179,7 +179,7 @@ Ordering of optional values typically uses the {inst}`DecidableEq (Option α)`, 
 
 {docstring Option.lt}
 
-{docstring Option.decidable_eq_none}
+{docstring Option.decidableEqNone}
 
 ## Conversion
 
