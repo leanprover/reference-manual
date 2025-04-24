@@ -33,6 +33,51 @@ open Verso.Genre.Manual.InlineLean
 set_option pp.rawOnError true
 set_option maxRecDepth 1024
 
+open Verso Doc Elab ArgParse in
+open Lean in
+@[part_command Verso.Syntax.block_role]
+def includeMarkdown : PartCommand
+  | stx@`(block|block_role{includeMarkdown $args* }) => do
+    let file ← ArgParse.run (.positional `file .string) (← parseArgs args)
+    let markdown ← IO.FS.readFile file
+    let ⟨blocks⟩ ← MD4Lean.parse markdown
+    let mut levels : List Nat := []
+    for block in blocks do
+      match block with
+      | .header lvl txt =>
+        levels ← closeSections lvl levels
+        -- TODO: a real title!
+        let bogusTitle := s!"{repr txt}"
+        let bogusTitleStx ← ``(Doc.Inline.text $(quote bogusTitle))
+        -- Start a new subpart
+        PartElabM.push {
+          titleSyntax := Syntax.mkStrLit bogusTitle stx.getHeadInfo,
+          expandedTitle := some (bogusTitle, #[bogusTitleStx])
+          metadata := none,
+          blocks := #[],
+          priorParts := #[]
+        }
+      | .p txts =>
+        -- TODO: actually translate the syntax!
+        let blockStx ← ``(Doc.Block.para #[Doc.Inline.text $(quote s!"{repr txts}")])
+        PartElabM.addBlock blockStx
+      | _ => logWarningAt stx m!"Can't render {repr block} to Verso"
+  | _ => Lean.Elab.throwUnsupportedSyntax
+
+where
+  closeSections (lvl : Nat) : List Nat → PartElabM (List Nat)
+    | [] => pure []
+    | lvl' :: lvls => do
+      if lvl ≤ lvl' then
+        match (← getThe PartElabM.State).partContext.close default with -- TODO - source position!
+          | some ctxt' =>
+            modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
+            closeSections lvl lvls
+          | none => pure (lvl' :: lvls)
+      else
+        pure (lvl' :: lvls)
+
+
 #doc (Manual) "The Lean Language Reference" =>
 %%%
 tag := "lean-language-reference"
@@ -61,6 +106,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 
 {include 0 Manual.Intro}
+
+{includeMarkdown "README.md"}
 
 {include 0 Manual.Elaboration}
 
@@ -130,6 +177,7 @@ Overview of the standard library, including types from the prelude and those tha
 {include 0 Manual.BuildTools}
 
 {include 0 Manual.Releases}
+
 
 # Index
 %%%
