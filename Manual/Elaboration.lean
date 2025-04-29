@@ -8,7 +8,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Papers
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 
 set_option pp.rawOnError true
 set_option guard_msgs.diff true

@@ -6,11 +6,10 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Lean
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Verso.ArgParse
 
 open Lean Elab
@@ -44,6 +43,7 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
   out := out.qsort (fun (i, _) (j, _) => i < j)
   return out.map (·.2)
 
+open Verso.Genre.Manual.InlineLean in
 def isLeanBlock : TSyntax `block → CoreM Bool
   | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
     let name ← realizeGlobalConstNoOverloadWithInfo nameStx

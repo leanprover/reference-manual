@@ -12,7 +12,7 @@ import Manual.Meta.Basic
 import Manual.Meta.PPrint
 
 open Verso Doc Elab
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets

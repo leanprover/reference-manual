@@ -17,8 +17,6 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
-import Manual.Meta.Lean.Scopes
-import Manual.Meta.Lean.Block
 
 
 open Lean Elab

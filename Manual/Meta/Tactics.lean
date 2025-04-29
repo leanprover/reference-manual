@@ -15,14 +15,12 @@ import VersoManual
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
-import Manual.Meta.Lean
-import Manual.Meta.Lean.Scopes
 
 namespace Manual
 
 open Lean Elab Term Tactic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Manual.Meta.Lean.Scopes
+open Verso.Genre.Manual.InlineLean Scopes
 open SubVerso.Highlighting
 
 structure TacticOutputConfig where
@@ -34,9 +32,9 @@ structure TacticOutputConfig where
 def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
   TacticOutputConfig.mk <$>
     ((·.getD true) <$> .named `show .bool true) <*>
-    .named `severity LeanOutputConfig.parser.sev true <*>
+    .named `severity .messageSeverity true <*>
     ((·.getD false) <$> .named `summarize .bool true) <*>
-    ((·.getD .exact) <$> .named `whitespace LeanOutputConfig.parser.ws true)
+    ((·.getD .exact) <$> .named `whitespace .whitespaceMode true)
 
 
 def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do

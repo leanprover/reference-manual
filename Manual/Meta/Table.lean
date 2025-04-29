@@ -10,7 +10,7 @@ import Lean.Elab.InfoTree.Types
 import Manual.Meta.Figure
 
 open Verso Doc Elab
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Verso.ArgParse
 
 open Lean Elab

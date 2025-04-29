@@ -12,7 +12,7 @@ import Manual.BasicTypes.UInt.Arith
 
 open Manual.FFIDocType
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 
 #doc (Manual) "Fixed-Precision Integers" =>
 %%%

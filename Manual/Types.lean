@@ -12,7 +12,7 @@ import Manual.Language.Functions
 import Manual.Language.InductiveTypes
 import Manual.Quotients
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 
 set_option maxRecDepth 800
 

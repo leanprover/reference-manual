@@ -16,8 +16,7 @@ import Manual.Classes.BasicClasses
 import Lean.Parser.Command
 
 open Manual
-open Verso.Genre
-open Verso.Genre.Manual
+open Verso.Genre Manual InlineLean
 open Lean.Parser.Command (declModifiers)
 
 set_option pp.rawOnError true

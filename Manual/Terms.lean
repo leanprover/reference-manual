@@ -8,7 +8,7 @@ import VersoManual
 
 import Manual.Meta
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 
 set_option pp.rawOnError true
 
@@ -1389,7 +1389,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1577, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1579, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..

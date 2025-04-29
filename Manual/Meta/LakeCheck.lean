@@ -18,8 +18,6 @@ import SubVerso.Examples
 
 import Manual.Meta.Basic
 import Manual.Meta.ExpectString
-import Manual.Meta.Lean.Scopes
-import Manual.Meta.Lean.Block
 
 
 open Lean Elab

@@ -13,7 +13,7 @@ This is extracted into its own file because line numbers show up in the error me
 want to update it over and over again as we edit the large file.
 -/
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option linter.constructorNameAsVariable false

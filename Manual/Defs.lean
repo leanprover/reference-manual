@@ -10,7 +10,7 @@ import Manual.Meta
 
 import Manual.RecursiveDefs
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option maxRecDepth 1500

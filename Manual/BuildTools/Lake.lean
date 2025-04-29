@@ -14,8 +14,7 @@ import Manual.BuildTools.Lake.CLI
 import Manual.BuildTools.Lake.Config
 
 open Manual
-open Verso.Genre
-open Verso.Genre.Manual
+open Verso.Genre Manual InlineLean
 
 set_option guard_msgs.diff true
 

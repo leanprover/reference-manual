@@ -9,12 +9,11 @@ import Verso
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
-import Manual.Meta.Lean
 import Manual.Meta.Table
 
 open Lean Meta Elab
 open Verso Doc Elab Manual
-open Verso.Genre.Manual
+open Verso.Genre.Manual InlineLean
 open SubVerso.Highlighting Highlighted
 
 
@@ -76,7 +75,7 @@ def monotonicityLemmas : BlockRoleExpander
       -- Omit the `Lean.Order` namespace, if present, to keep the table concise
       let nameStr := (name.replacePrefix `Lean.Order .anonymous).getString!
       let hl : Highlighted ← constTok name nameStr
-      let nameStx ← `(Inline.other {Inline.name with data := ToJson.toJson $(quote hl)}
+      let nameStx ← `(Inline.other {InlineLean.Inline.name with data := ToJson.toJson $(quote hl)}
         #[Inline.code $(quote nameStr)])
 
       let patternStx : TSyntax `term ←

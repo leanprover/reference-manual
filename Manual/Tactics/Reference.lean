@@ -13,7 +13,7 @@ import Manual.Papers
 import Manual.Tactics.Reference.Simp
 
 
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 
 set_option pp.rawOnError true
 

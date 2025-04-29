@@ -8,7 +8,7 @@ import VersoManual
 import Lean.Data.Json
 
 open Verso Doc Elab Output Html Code
-open Verso.Genre Manual
+open Verso.Genre Manual InlineLean
 open Verso.ArgParse
 open Lean
 
