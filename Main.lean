@@ -103,6 +103,11 @@ thereof, including modifications:
 
 "#
 
+open Verso.Output.Html in
+def scarfPixel := {{
+  <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026" />
+}}
+
 def main :=
   manualMain (%doc Manual) (config := config)
 where
@@ -124,6 +129,7 @@ where
       "/static/print.js"
     ],
     extraHead := #[searchModule],
+    extraContents := #[scarfPixel]
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
