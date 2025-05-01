@@ -234,6 +234,9 @@ These requirements ensure that Lean remains consistent as a logic when it is ext
 They are conservative: there exist potential inductive types that do not undermine consistency, but that these requirements nonetheless reject.
 
 ## Universe Levels
+%%%
+tag := "inductive-type-universe-levels"
+%%%
 
 Type constructors of inductive types must either inhabit a {tech}[universe] or a function type whose return type is a universe.
 Each constructor must inhabit a function type that returns a saturated application of the inductive type.

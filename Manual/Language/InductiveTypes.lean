@@ -254,14 +254,14 @@ In this example, both parameters are specified before the colon in {name}`Either
 ```lean
 inductive Either (α : Type u) (β : Type v) : Type (max u v) where
   | left : α → Either α β
-  | right : α → Either α β
+  | right : β → Either α β
 ```
 
 In this version, there are two types named `α` that might not be identical:
 ```lean (name := Either') (error := true)
 inductive Either' (α : Type u) (β : Type v) : Type (max u v) where
   | left : {α : Type u} → {β : Type v} → α → Either' α β
-  | right : α → Either' α β
+  | right : β → Either' α β
 ```
 ```leanOutput Either'
 inductive datatype parameter mismatch
@@ -272,11 +272,12 @@ expected
 
 Placing the parameters after the colon results in parameters that can be instantiated by the constructors:
 ```lean (name := Either'')
-inductive Either'' : Type u → Type v → Type (max u v) where
+inductive Either'' : Type u → Type v → Type (max u v + 1) where
   | left : {α : Type u} → {β : Type v} → α → Either'' α β
-  | right : α → Either'' α β
+  | right : β → Either'' α β
 ```
-{name}`Either''.right`'s type parameters are discovered via Lean's ordinary rules for {tech}[automatic implicit parameters].
+A larger universe is required for this type because {ref "inductive-type-universe-levels"}[constructor parameters must be in universes that are smaller than the inductive type's universe].
+{name}`Either''.right`'s type parameter is discovered via Lean's ordinary rules for {tech}[automatic implicit parameters].
 ::::
 :::::
 
