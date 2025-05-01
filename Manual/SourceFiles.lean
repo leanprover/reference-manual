@@ -290,4 +290,4 @@ A {tech}[package] may contain multiple libraries or executables.
 
 Code in a package that is intended for use by other Lean packages is organized into {deftech (key:="library")}[libraries].
 Code that is intended to be compiled and run as independent programs is organized into {deftech (key:="executable")}[executables].
-Packagesw, libraries, and executables are described in detail in the section on {ref "lake"}[Lake, the standard Lean build tool].
+Packages, libraries, and executables are described in detail in the section on {ref "lake"}[Lake, the standard Lean build tool].

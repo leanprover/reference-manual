@@ -26,7 +26,7 @@ tag := "state-monads"
 %%%
 
 {tech}[State monads] provide access to a mutable value.
-The underlying implementation may a tuple to simulate mutability, or it may use something like {name}`ST.Ref` to ensure mutation.
+The underlying implementation may use a tuple to simulate mutability, or it may use something like {name}`ST.Ref` to ensure mutation.
 Even those implementations that use a tuple may in fact use mutation at run-time due to Lean's use of mutation when there are unique references to values, but this requires a programming style that prefers {name}`modify` and {name}`modifyGet` over {name}`get` and {name}`set`.
 
 # General State API
