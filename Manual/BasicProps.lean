@@ -401,8 +401,8 @@ In these cases, the built-in automation has no choice but to use heterogeneous e
 {docstring HEq.rfl}
 
 
-::::leanSection
-:::example "Heterogeneous Equality"
+:::::leanSection
+::::example "Heterogeneous Equality"
 ````lean (show := false)
 variable {α : Type u} {n k l₁ l₂ l₃ : Nat}
 ````
@@ -412,9 +412,10 @@ Appending {name}`Vector`s is associative, but this fact cannot be straightforwar
 ```lean
 variable
   {xs : Vector α l₁} {ys : Vector α l₂} {zs : Vector α l₃}
+set_option linter.unusedVariables false
 ```
-```lean (name := assocFail) (error := true)
-theorem Vector.append_assoc :
+```lean (name := assocFail) (error := true) (keep := false)
+theorem Vector.append_associative :
     xs ++ (ys ++ zs) = (xs ++ ys) ++ zs := by sorry
 ```
 The problem is that the associativity of addition of natural numbers holds propositionally, but not definitionally:
@@ -427,25 +428,29 @@ but is expected to have type
   Vector α (l₁ + (l₂ + l₃)) : outParam (Type u)
 ```
 
+:::paragraph
 One solution to this problem is to use the associativity of natural number addition in the statement:
 ```lean
-theorem Vector.append_assoc' :
+theorem Vector.append_associative' :
     xs ++ (ys ++ zs) =
     Nat.add_assoc _ _ _ ▸ ((xs ++ ys) ++ zs) := by
   sorry
 ```
 However, such proof statements can be difficult to work with in certain circumstances.
+:::
 
+:::paragraph
 Another is to use heterogeneous equality:
 ```lean (keep := false)
-theorem Vector.append_assoc :
+theorem Vector.append_associative :
     HEq (xs ++ (ys ++ zs)) ((xs ++ ys) ++ zs) := by sorry
 ```
+:::
 
 In this case, {ref "the-simplifier"}[the simplifier] can rewrite both sides of the equation without having to preserve their types.
 However, proving the theorem does require eventually proving that the lengths nonetheless match.
-```lean
-theorem Vector.append_assoc :
+```lean (keep := false)
+theorem Vector.append_associative :
     HEq (xs ++ (ys ++ zs)) ((xs ++ ys) ++ zs) := by
   cases xs; cases ys; cases zs
   simp
@@ -456,8 +461,8 @@ theorem Vector.append_assoc :
     . apply propext
       constructor <;> intro h <;> simp_all +arith
 ```
-:::
 ::::
+:::::
 
 {docstring HEq.elim}
 
