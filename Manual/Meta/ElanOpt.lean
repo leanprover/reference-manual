@@ -151,7 +151,7 @@ def elanOpt.descr : InlineDescr where
 
   toHtml :=
     open Verso.Output.Html in
-    some <| fun goB id data content => do
+    some <| fun goB _id data content => do
       let .arr #[.str name, .str original] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Elan option ref: {data}"; content.mapM goB
 
