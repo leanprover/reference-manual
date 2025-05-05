@@ -7,6 +7,7 @@ structure ErrorExplanation.Metadata where
   sinceVersion : String
   severity : MessageSeverity     := .error
   removedVersion : Option String := none
+deriving FromJson, ToJson
 
 structure ErrorExplanation where
   doc : String
@@ -32,15 +33,35 @@ elab docStx:docComment cmd:"register_error_explanation " nm:ident t:term : comma
     if e.hasSyntheticSorry then throwAbortTerm
     evalExpr ErrorExplanation.Metadata tp e
   let name := nm.getId
-  if name.isAnonymous then
-    throwErrorAt nm "invalid name '{nm}'"
+  if name.isAnonymous then throwErrorAt nm "Invalid name for error explanation: '{nm}'"
   validateDocComment docStx
   let doc ← getDocStringText docStx
   if errorExplanationExt.getState (← getEnv) |>.contains name then
-    throwError m!"cannot add explanation: an error explanation for '{name}' already exists"
+    throwError m!"Cannot add explanation: An error explanation already exists for '{name}'"
   modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc }))
 
-def getErrorExplanation? [Monad m] [MonadEnv m] (name : Name) : m (Option ErrorExplanation) :=
-  return errorExplanationExt.getState (← getEnv) |>.find? name
+/--
+Gets an error explanation for the given name if one exists, rewriting manual links.
+-/
+def getErrorExplanation? [Monad m] [MonadEnv m] [MonadLiftT BaseIO m] (name : Name) : m (Option ErrorExplanation) :=
+  do
+  let explan? := errorExplanationExt.getState (← getEnv) |>.find? name
+  explan?.mapM fun explan =>
+    return { explan with doc := (← rewriteManualLinks explan.doc) }
+
+private partial def compareNamedExplanations (ne ne' : Name × ErrorExplanation) : Ordering :=
+  match ne.2.metadata.removedVersion, ne'.2.metadata.removedVersion with
+  | .none, .none | .some _, .some _ => compare ne.1.toString ne'.1.toString
+  | .none, .some _ => .lt
+  | .some _, .none => .gt
+
+/--
+Returns all error explanations with their names as a sorted array, rewriting manual links.
+-/
+def getErrorExplanationsSorted [Monad m] [MonadEnv m] [MonadLiftT BaseIO m] : m (Array (Name × ErrorExplanation)) := do
+  let entries := errorExplanationExt.getState (← getEnv) |>.toArray
+  entries
+    |>.qsort (fun e e' => (compareNamedExplanations e e').isLT)
+    |>.mapM fun (n, e) => return (n, { e with doc := (← rewriteManualLinks e.doc) })
 
 end Lean

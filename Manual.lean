@@ -14,8 +14,7 @@ import Manual.Defs
 import Manual.Classes
 import Manual.Axioms
 import Manual.Terms
-import Manual.DiagnosticsTable
-import Manual.DiagnosticView
+import Manual.DiagnosticExplanations
 import Manual.Tactics
 import Manual.Simp
 import Manual.BasicTypes
@@ -131,9 +130,7 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.BuildTools}
 
-{include 0 Manual.DiagnosticsTable}
-
-{include 0 Manual.DiagnosticView}
+{include 0 Manual.DiagnosticExplanations}
 
 {include 0 Manual.Releases}
 

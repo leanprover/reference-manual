@@ -3,22 +3,17 @@ import Manual.ErrorExplanation
 
 /--
 This error indicates that something went very wrong. For example, we might have
+done something ill-advised.
 
 # Examples
 
 ## The classic vector one
 
-```lean broken (name := foo)
+```lean broken
 example (v : Vector Nat n) (h : n = 1) : v = v := by
   rewrite [h]
 ```
-
-```lean fixed (name := foo)
-example (v : Vector Nat n) (h : n = 1) : v = v := by
-  subst h <;> rfl
-```
-
-```output broken (name := foo)
+```output broken
 tactic 'rewrite' failed, motive is not type correct:
   fun _a => v = v
 Error: application type mismatch
@@ -37,6 +32,11 @@ n : Nat
 v : Vector Nat n
 h : n = 1
 ⊢ v = v
+```
+
+```lean fixed
+example (v : Vector Nat n) (h : n = 1) : v = v := by
+  subst h <;> rfl
 ```
 
 -/
@@ -61,14 +61,14 @@ This error appears when things go wrong.
 
 ## Untyped parameter whose type cannot be inferred
 
-```lean broken (name := hello)
+```lean broken
 def f x := 32
 ```
-```lean fixed (name := hello)
-def f (x : Nat) := 32
-```
-```output broken (name := hello)
+```output broken
 failed to infer binder type
+```
+```lean fixed
+def f (x : Nat) := 32
 ```
 
 We can fix this by typing our binder.
@@ -81,19 +81,13 @@ def x := 32
 
 ## More complicated definition to test `some` **things**
 
-```lean broken (name := demo2)
+```lean broken
 inductive GenList (f : Option Type → Type) : Type
   | sing : f none → GenList f
   | cons : (xs : GenList f) → f xs → GenList f
 ```
 
-```lean fixed (name := demo2)
-inductive GenList (f : Option Type → Type) : Type
-  | sing : f none → GenList f
-  | cons : (xs : GenList f) → GenList f
-```
-
-```output broken (name := demo2)
+```output broken
 application type mismatch
   f xs
 argument
@@ -104,17 +98,25 @@ but is expected to have type
   Option Type : Type 1
 ```
 
+```lean fixed (title := "Remove the f")
+inductive GenList (f : Option Type → Type) : Type
+  | sing : f none → GenList f
+  | cons : (xs : GenList f) → GenList f
+```
+
+```lean fixed (title := "Remove Everything")
+inductive GenList (f : Option Type → Type) : Type
+  | sing : f none → GenList f
+  | cons : GenList f
+```
+
 ## Example with multiple commands
 
-```lean broken (name := demo3)
+```lean broken
 def f (x : Nat) := x + 1
 def g (x : Nat) := f x + g x
 ```
-```lean fixed (name := demo3)
-def f (x : Nat) := x + 1
-def g (x : Nat) := f x + f x
-```
-```output broken (name := demo3)
+```output broken
 fail to show termination for
   g
 with errors
@@ -125,8 +127,12 @@ no parameters suitable for structural recursion
 
 well-founded recursion cannot be used, 'g' does not take any (non-fixed) arguments
 ```
+```lean fixed
+def f (x : Nat) := x + 1
+def g (x : Nat) := f x + f x
+```
 -/
-register_error_explanation BadDocstring2 {
+register_error_explanation Lean.BadDocstring2 {
   summary := "A docstring test."
   sinceVersion := "4.0.0"
 }
@@ -138,74 +144,120 @@ A bad import.
 
 ## Forgot import
 
-```lean broken (name := demo1)
+```lean broken
 #check Lean.MetaM
 ```
-```lean fixed (name := demo1)
+```output broken
+unknown identifier 'Lean.MetaM'
+```
+```lean fixed
 import Lean
 #check Lean.MetaM
 ```
-```output broken (name := demo1)
-unknown identifier 'Lean.MetaM'
-```
 
 ## Not actually import, but parse error
-```lean broken (name := demo5)
+```lean broken
 deffoo x := x + 32
 ```
-```lean fixed (name := demo5)
-def foo x := x + 32
-```
-```output broken (name := demo5)
+```output broken
 unexpected identifier; expected command
+```
+```lean fixed
+def foo x := x + 32
 ```
 
 ## Slightly less disastrous parse error
-```lean broken (name := demo7)
+```lean broken
 def a := 41
 deffoo x := x + 32
 def b := 49
 ```
-```lean fixed (name := demo7)
-def a := 41
-def foo x := x + 32
-def b := 49
-```
-```output broken (name := demo7)
+```output broken
 function expected at
   41
 term has type
   ?m.48
 ```
+```lean fixed
+def a := 41
+def foo x := x + 32
+def b := 49
+```
 
 ## Mistyped header
 
-```lean broken (name := demo4)
-import Wean
+-- ```lean broken
+-- import Wean
 
--- There should be a line break before and after this line
+-- -- There should be a line break before and after this line
 
-#check Lean.MetaM
-```
-```lean fixed (name := demo4)
-import Lean
+-- #check Lean.MetaM
+-- ```
+-- ```output broken
+-- unknown module prefix 'Wean'
 
--- There should be a line break before and after this line
+-- No directory 'Wean' or file 'Wean.olean' in the search path entries:
+-- ././.lake/packages/subverso/.lake/build/lib/lean
+-- ././.lake/packages/MD4Lean/.lake/build/lib/lean
+-- ././.lake/packages/verso/.lake/build/lib/lean
+-- ././.lake/build/lib/lean
+-- /Users/jrr6/.elan/toolchains/leanprover--lean4---v4.19.0-rc2/lib/lean
+-- ```
+-- ```lean fixed
+-- import Lean
 
-#check Lean.MetaM
-```
-```output broken (name := demo4)
-unknown module prefix 'Wean'
+-- -- There should be a line break before and after this line
 
-No directory 'Wean' or file 'Wean.olean' in the search path entries:
-././.lake/packages/subverso/.lake/build/lib/lean
-././.lake/packages/MD4Lean/.lake/build/lib/lean
-././.lake/packages/verso/.lake/build/lib/lean
-././.lake/build/lib/lean
-/Users/jrr6/.elan/toolchains/leanprover--lean4---v4.19.0-rc2/lib/lean
-```
+-- #check Lean.MetaM
+-- ```
 -/
-register_error_explanation BadImport {
+register_error_explanation Lean.BadImport {
   summary := "Missing import testing."
+  sinceVersion := "4.0.0"
+}
+
+/--
+This error explanation exists to test handling of removed errors.
+
+[This](lean-manual://section/tactics) should be a valid manual link.
+-/
+register_error_explanation Lean.AnOldError {
+  summary := "An error that used to be thrown but no longer is."
+  sinceVersion := "4.0.0"
+  removedVersion := "4.18.0"
+}
+
+/--
+This error occurs when a parameter of an inductive type is not uniform in an inductive declaration. The parameters of an inductive type (i.e., those that appear before the colon following the `inductive` keyword) must be identical in all occurrences of the type being defined in its constructors' types. If a parameter of an inductive type must vary between constructors, make the parameter an index by moving it to the right of the colon. See the manual section on [Inductive Types](lean-manual://section/inductive-types) for additional details.
+
+This error also occurs if the type constructor being defined is only partially applied to its parameters: for instance, if the type constructor itself is being passed as the argument to a function. In such a construction, all arguments omitted from the partial application must be indices, not parameters.
+
+Note that auto-implicit inlay hints always appear left of the colon in an inductive declaration (i.e., as parameters), even when they are actually indices. This means that double-clicking on an inlay hint to insert such parameters may result in this error. If it does, change the inserted parameters to indices.
+
+# Examples
+
+## Vector length index as a parameter
+
+```lean broken
+inductive Vec (α : Type) (n : Nat) : Type where
+  | nil  : Vec α 0
+  | cons : α → Vec α n → Vec α (n + 1)
+```
+```output broken
+inductive datatype parameter mismatch
+  0
+expected
+  n
+```
+```lean fixed
+inductive Vec (α : Type) : Nat → Type where
+  | nil  : Vec α 0
+  | cons : α → Vec α n → Vec α (n + 1)
+```
+
+The length argument `n` of the `Vec` type constructor is declared as a parameter, but other values for this argument appear in the `nil` and `cons` constructors (namely, `0` and `n + 1`). An error therefore appears at the first occurrence of such an argument. To correct this, `n` cannot be a parameter of the inductive declaration and must instead be an index, as in the corrected example. On the other hand, `α` remains unchanged throughout all occurrences of `Vec` in the declaration and so is a valid parameter.
+-/
+register_error_explanation Lean.InductiveParamMismatch {
+  summary := "Invalid parameter in an occurrence of an inductive type in one of its constructors."
   sinceVersion := "4.0.0"
 }
