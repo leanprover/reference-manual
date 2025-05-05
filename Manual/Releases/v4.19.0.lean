@@ -12,14 +12,14 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.19.0 (2025-04-02)" =>
+#doc (Manual) "Lean 4.19.0 (2025-05-01)" =>
 %%%
 tag := "release-v4.19.0"
 file := "v4.19.0"
 %%%
 
 `````markdown
-For this release, 414 changes landed. In addition to the 164 feature additions and 74 fixes listed below there were 13 refactoring changes, 29 documentation improvements, 31 performance improvements, 9 improvements to the test suite and 92 other changes.
+For this release, 420 changes landed. In addition to the 164 feature additions and 78 fixes listed below there were 13 refactoring changes, 29 documentation improvements, 31 performance improvements, 9 improvements to the test suite and 94 other changes.
 
 ## Language
 
@@ -525,6 +525,9 @@ For this release, 414 changes landed. In addition to the 164 feature additions a
   It now propagates `x = true` (`x = false`) from the disequality `x =
   false` (`x = true`). It ensures we don't have to perform case analysis
   on `x` to learn this fact. See tests.
+
+* [#8101](https://github.com/leanprover/lean4/pull/8101) fixes a parallelism regression where linters that e.g. check for
+  errors in the command would no longer find such messages.
 
 ## Library
 
@@ -1053,6 +1056,9 @@ For this release, 414 changes landed. In addition to the 164 feature additions a
 
 * [#7376](https://github.com/leanprover/lean4/pull/7376) ensures `weak` options do not have to be repeated in both Lake
   `leanOptions` and `moreServerOptions`.
+
+* [#7882](https://github.com/leanprover/lean4/pull/7882) fixes a regression where elaboration of a previous document
+  version is not cancelled on changes to the document.
 
 ## Lake
 
