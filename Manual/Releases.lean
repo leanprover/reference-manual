@@ -6,6 +6,7 @@ Author: Joachim Breitner
 
 import VersoManual
 
+import Manual.Releases.«v4.20.0»
 import Manual.Releases.«v4.19.0»
 import Manual.Releases.«v4.18.0»
 import Manual.Releases.«v4.17.0»
