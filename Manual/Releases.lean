@@ -50,6 +50,8 @@ the differences with the previous version and upgrade your projects.
 The work-in-progress release notes of a release candidate can be found [on the Lean GitHub
 releases pages](https://github.com/leanprover/lean4/releases).
 
+{include 0 Manual.Releases.«v4.20.0»}
+
 {include 0 Manual.Releases.«v4.19.0»}
 
 {include 0 Manual.Releases.«v4.18.0»}
