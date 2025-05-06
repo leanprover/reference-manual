@@ -183,6 +183,35 @@ def find_latest_version(versions_dir):
 
     return latest[0]
 
+def find_latest_stable_version(versions_dir):
+    """Find the latest stable version in the versions directory"""
+    if not os.path.exists(versions_dir):
+        return None
+
+    version_dirs = [d for d in os.listdir(versions_dir)
+                   if os.path.isdir(os.path.join(versions_dir, d)) and d != "latest"]
+
+    if not version_dirs:
+        return None
+
+    # Parse all version strings
+    parsed_versions = [(d, parse_version(d)) for d in version_dirs]
+
+    # Filter out any unparseable, nightly, or rc versions
+    valid_versions = [(d, pv) for d, pv in parsed_versions if pv is not None and pv["type"] == "semantic" and pv["rc"] is None]
+
+    if not valid_versions:
+        return None
+
+    # Find the latest stable version
+    latest = valid_versions[0]
+    for version_str, parsed_version in valid_versions[1:]:
+        comparison = compare_versions(parsed_version, latest[1])
+        if comparison == 1:  # If current version > latest so far
+            latest = (version_str, parsed_version)
+
+    return latest[0]
+
 def run_git_command(command):
     """Run a git command and return the output"""
     print(f"\tRunning {shlex.join(command)}")
@@ -249,7 +278,7 @@ def deploy_version(source_dir, version, branch):
 
             run_git_command(["git", "add", version_dir])
 
-            # Update the "latest" symlink if needed
+            # Update the "latest" pointer if needed
             latest_link = "latest"
             latest_version = find_latest_version(".")
 
@@ -263,11 +292,31 @@ def deploy_version(source_dir, version, branch):
                     shutil.rmtree(latest_link, ignore_errors=True)
 
                 # Copy the latest version (Netlify deploy doesn't work with symlinks)
-                latest_target = latest_version
                 shutil.copytree(latest_version, latest_link)
                 print(f"Updated 'latest' alias as a copy of: {latest_version}")
 
                 run_git_command(["git", "add", "latest"])
+
+
+            # Update the "stable" pointer if needed
+            stable_link = "stable"
+            latest_stable_version = find_latest_stable_version(".")
+
+            if latest_stable_version:
+                # If a symlink already exists, remove it
+                if os.path.islink(stable_link):
+                    os.unlink(stable_link)
+
+                # If it's a directory, delete it
+                if os.path.isdir(stable_link):
+                    shutil.rmtree(stable_link, ignore_errors=True)
+
+                # Copy the latest version (Netlify deploy doesn't work with symlinks)
+                shutil.copytree(latest_stable_version, stable_link)
+                print(f"Updated 'stable' alias as a copy of: {latest_stable_version}")
+
+                run_git_command(["git", "add", "stable"])
+
 
             if git_has_changes():
                 run_git_command(["git", "commit", "-m", f"Deploy {version}"])
