@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      (function(){
+  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
+  if (!(path.endsWith("/") || path.endsWith(".html"))) {
+    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+  }
+})()</script>
+    <base href="./../../"><meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Coercing to Function Types</title><link rel="stylesheet" href="book.css">
+    <script>
+      const __versoSiteRoot = document.baseURI;</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
+    <script src="static/katex/katex.min.js"></script>
+    <script src="static/math.js"></script>
+    <script src="static/search/fuzzysort.js"></script>
+    <script src="static/print.js"></script>
+    <script src="-verso-js/popper.js"></script>
+    <script src="-verso-js/tippy.js"></script>
+    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <link rel="stylesheet" href="static/colors.css">
+    <link rel="stylesheet" href="static/theme.css">
+    <link rel="stylesheet" href="static/print.css">
+    <link rel="stylesheet" href="static/search/search-box.css">
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+a.lake-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.hl.lean.tactic-view {
+  white-space: collapse;
+}
+.hl.lean.tactic-view .tactic-state {
+  display: block;
+  left: 0;
+  padding: 0;
+  border: none;
+}
+.hl.lean.tactic-view .tactic-state .goal {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+.hl.lean.tactic-view .tactic-state .goal:first-child {
+  margin-top: 0.25em;
+}
+.hl.lean.tactic-view .tactic-state .goal:last-child {
+  margin-bottom: 0.25em;
+}
+
+
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: 1.5rem;
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 1.5rem 1.5rem;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+</style><style>
+.namedocs {
+  position: relative;
+  border: solid 1px #98B2C0;
+  border-radius: .5rem;
+  padding-top: var(--verso--box-padding);
+  margin-top: var(--verso--box-vertical-margin);
+  margin-bottom: var(--verso--box-vertical-margin);
+}
+
+.namedocs .text {
+  /* Causes margins on child elements to collapse inside the element, such
+     that the margins don't extend into parent with the background color.
+     The effect is that weird borders in the definition box don't happen anymore. */
+  display: flow-root;
+  /* Add a padding. this is the same as the margin applied to the first and last child.
+     The effect is that the padding looks the same size on all sides. */
+  padding: 0 var(--verso--box-padding);
+  border-top: 1px solid #98B2C0;
+}
+
+.namedocs .text > pre {
+  overflow-x: auto;
+}
+
+.namedocs .signature {
+  font-family: var(--verso-code-font-family);
+  margin-top: 0 !important;
+  margin-left: var(--verso--box-padding) !important;
+  margin-bottom: .75rem !important;
+}
+
+.namedocs .label {
+  display: block;
+  font-size: small;
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  top: -0.65rem;
+  left: 1rem;
+  background: #fff;
+  padding: 0 .5rem .125rem;
+  border: 1px solid #98B2C0;
+  border-radius: 1rem;
+  color: #555;
+}
+
+.namedocs h1 {
+  font-size: inherit;
+  font-weight: bold
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs > .text .constructor {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.namedocs > .text .constructor::before {
+  content: '| ';
+  display: block;
+  font-family: var(--verso-code-font-family);
+  font-weight: bold;
+  float: left;
+  width: 0.5rem;
+  white-space: pre;
+}
+
+.namedocs > .text .constructor .name-and-type {
+  padding-left: 0.5rem;
+  float: left;
+  margin-top: 0;
+  max-width: calc(100% - 1rem);
+}
+.namedocs > .text .constructor .docs {
+  clear: both;
+  padding-left: 1rem;
+}
+
+/* These margins work together with the padding on .text */
+.namedocs .text > :first-child {
+  margin-top: var(--verso--box-padding);
+}
+.namedocs .text > :last-child {
+  margin-bottom: var(--verso--box-padding);
+}
+
+.namedocs .methods td, .namedocs .fields td {
+  vertical-align: top;
+}
+.namedocs .inheritance {
+  vertical-align: top;
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+}
+.namedocs .inheritance ol {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+.namedocs .inheritance ol li {
+  list-style-type: none;
+  display: inline-block;
+}
+.namedocs .inheritance ol li::after {
+  content: " > "
+}
+.namedocs .inheritance ol li:last-child::after {
+  content: "";
+}
+
+.namedocs .extends {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.namedocs .extends li {
+  list-style-type: none;
+  display: inline-block;
+}
+
+.namedocs .extends li label {
+  padding-right: 1rem;
+}
+
+.namedocs .subdocs .name-and-type {
+  font-size: 1rem;
+  margin-left: 0;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs .subdocs .docs {
+  margin-left: 1.5rem;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs:has(input[data-parent-idx]) [data-inherited-from] {
+  transition-property: opacity, display;
+  transition-duration: 0.4s;
+  transition-behavior: allow-discrete;
+  @starting-style { opacity: 0 !important; }
+}
+
+#this-page-items .tactic-name { font-weight: bold; }
+.namedocs:has(input[data-parent-idx="0"]) [data-inherited-from="0"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked):has(.inheritance[data-inherited-from="0"]:hover) [data-inherited-from]:not([data-inherited-from="0"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="1"]) [data-inherited-from="1"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked):has(.inheritance[data-inherited-from="1"]:hover) [data-inherited-from]:not([data-inherited-from="1"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="2"]) [data-inherited-from="2"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked):has(.inheritance[data-inherited-from="2"]:hover) [data-inherited-from]:not([data-inherited-from="2"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="3"]) [data-inherited-from="3"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked):has(.inheritance[data-inherited-from="3"]:hover) [data-inherited-from]:not([data-inherited-from="3"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="4"]) [data-inherited-from="4"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked):has(.inheritance[data-inherited-from="4"]:hover) [data-inherited-from]:not([data-inherited-from="4"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="5"]) [data-inherited-from="5"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked):has(.inheritance[data-inherited-from="5"]:hover) [data-inherited-from]:not([data-inherited-from="5"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="6"]) [data-inherited-from="6"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked):has(.inheritance[data-inherited-from="6"]:hover) [data-inherited-from]:not([data-inherited-from="6"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="7"]) [data-inherited-from="7"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked):has(.inheritance[data-inherited-from="7"]:hover) [data-inherited-from]:not([data-inherited-from="7"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="8"]) [data-inherited-from="8"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked):has(.inheritance[data-inherited-from="8"]:hover) [data-inherited-from]:not([data-inherited-from="8"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="9"]) [data-inherited-from="9"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked):has(.inheritance[data-inherited-from="9"]:hover) [data-inherited-from]:not([data-inherited-from="9"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="10"]) [data-inherited-from="10"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked):has(.inheritance[data-inherited-from="10"]:hover) [data-inherited-from]:not([data-inherited-from="10"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="11"]) [data-inherited-from="11"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked):has(.inheritance[data-inherited-from="11"]:hover) [data-inherited-from]:not([data-inherited-from="11"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="12"]) [data-inherited-from="12"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked):has(.inheritance[data-inherited-from="12"]:hover) [data-inherited-from]:not([data-inherited-from="12"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="13"]) [data-inherited-from="13"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked):has(.inheritance[data-inherited-from="13"]:hover) [data-inherited-from]:not([data-inherited-from="13"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="14"]) [data-inherited-from="14"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked):has(.inheritance[data-inherited-from="14"]:hover) [data-inherited-from]:not([data-inherited-from="14"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="15"]) [data-inherited-from="15"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked):has(.inheritance[data-inherited-from="15"]:hover) [data-inherited-from]:not([data-inherited-from="15"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="16"]) [data-inherited-from="16"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked):has(.inheritance[data-inherited-from="16"]:hover) [data-inherited-from]:not([data-inherited-from="16"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="17"]) [data-inherited-from="17"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked):has(.inheritance[data-inherited-from="17"]:hover) [data-inherited-from]:not([data-inherited-from="17"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="18"]) [data-inherited-from="18"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked):has(.inheritance[data-inherited-from="18"]:hover) [data-inherited-from]:not([data-inherited-from="18"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="19"]) [data-inherited-from="19"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked):has(.inheritance[data-inherited-from="19"]:hover) [data-inherited-from]:not([data-inherited-from="19"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="20"]) [data-inherited-from="20"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked):has(.inheritance[data-inherited-from="20"]:hover) [data-inherited-from]:not([data-inherited-from="20"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="21"]) [data-inherited-from="21"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked):has(.inheritance[data-inherited-from="21"]:hover) [data-inherited-from]:not([data-inherited-from="21"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="22"]) [data-inherited-from="22"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked):has(.inheritance[data-inherited-from="22"]:hover) [data-inherited-from]:not([data-inherited-from="22"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="23"]) [data-inherited-from="23"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked):has(.inheritance[data-inherited-from="23"]:hover) [data-inherited-from]:not([data-inherited-from="23"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="24"]) [data-inherited-from="24"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked):has(.inheritance[data-inherited-from="24"]:hover) [data-inherited-from]:not([data-inherited-from="24"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="25"]) [data-inherited-from="25"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked):has(.inheritance[data-inherited-from="25"]:hover) [data-inherited-from]:not([data-inherited-from="25"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="26"]) [data-inherited-from="26"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked):has(.inheritance[data-inherited-from="26"]:hover) [data-inherited-from]:not([data-inherited-from="26"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="27"]) [data-inherited-from="27"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked):has(.inheritance[data-inherited-from="27"]:hover) [data-inherited-from]:not([data-inherited-from="27"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="28"]) [data-inherited-from="28"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked):has(.inheritance[data-inherited-from="28"]:hover) [data-inherited-from]:not([data-inherited-from="28"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="29"]) [data-inherited-from="29"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked):has(.inheritance[data-inherited-from="29"]:hover) [data-inherited-from]:not([data-inherited-from="29"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="30"]) [data-inherited-from="30"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked):has(.inheritance[data-inherited-from="30"]:hover) [data-inherited-from]:not([data-inherited-from="30"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="31"]) [data-inherited-from="31"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked):has(.inheritance[data-inherited-from="31"]:hover) [data-inherited-from]:not([data-inherited-from="31"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="32"]) [data-inherited-from="32"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked):has(.inheritance[data-inherited-from="32"]:hover) [data-inherited-from]:not([data-inherited-from="32"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="33"]) [data-inherited-from="33"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked):has(.inheritance[data-inherited-from="33"]:hover) [data-inherited-from]:not([data-inherited-from="33"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="34"]) [data-inherited-from="34"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked):has(.inheritance[data-inherited-from="34"]:hover) [data-inherited-from]:not([data-inherited-from="34"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="35"]) [data-inherited-from="35"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked):has(.inheritance[data-inherited-from="35"]:hover) [data-inherited-from]:not([data-inherited-from="35"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="36"]) [data-inherited-from="36"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked):has(.inheritance[data-inherited-from="36"]:hover) [data-inherited-from]:not([data-inherited-from="36"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="37"]) [data-inherited-from="37"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked):has(.inheritance[data-inherited-from="37"]:hover) [data-inherited-from]:not([data-inherited-from="37"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="38"]) [data-inherited-from="38"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked):has(.inheritance[data-inherited-from="38"]:hover) [data-inherited-from]:not([data-inherited-from="38"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="39"]) [data-inherited-from="39"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked):has(.inheritance[data-inherited-from="39"]:hover) [data-inherited-from]:not([data-inherited-from="39"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="40"]) [data-inherited-from="40"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked):has(.inheritance[data-inherited-from="40"]:hover) [data-inherited-from]:not([data-inherited-from="40"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="41"]) [data-inherited-from="41"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked):has(.inheritance[data-inherited-from="41"]:hover) [data-inherited-from]:not([data-inherited-from="41"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="42"]) [data-inherited-from="42"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked):has(.inheritance[data-inherited-from="42"]:hover) [data-inherited-from]:not([data-inherited-from="42"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="43"]) [data-inherited-from="43"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked):has(.inheritance[data-inherited-from="43"]:hover) [data-inherited-from]:not([data-inherited-from="43"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="44"]) [data-inherited-from="44"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked):has(.inheritance[data-inherited-from="44"]:hover) [data-inherited-from]:not([data-inherited-from="44"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="45"]) [data-inherited-from="45"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked):has(.inheritance[data-inherited-from="45"]:hover) [data-inherited-from]:not([data-inherited-from="45"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="46"]) [data-inherited-from="46"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked):has(.inheritance[data-inherited-from="46"]:hover) [data-inherited-from]:not([data-inherited-from="46"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="47"]) [data-inherited-from="47"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked):has(.inheritance[data-inherited-from="47"]:hover) [data-inherited-from]:not([data-inherited-from="47"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="48"]) [data-inherited-from="48"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked):has(.inheritance[data-inherited-from="48"]:hover) [data-inherited-from]:not([data-inherited-from="48"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="49"]) [data-inherited-from="49"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
+  opacity: 0.5;
+}
+</style><style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.example-file {
+  white-space: normal;
+  font-family: var(--verso-structure-font-family);
+  margin: 1rem;
+  width: fit-content;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.example-file::before {
+  counter-reset: linenumber;
+}
+.example-file > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.example-file > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+.example-file > .line::after {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "⏎";
+  opacity: 0;
+}
+.example-file > .line:hover::after {
+  opacity: 1;
+}
+.example-file > .line:hover, .example-file > .line:hover::before {
+  background-color: #eee;
+}
+.example-file > .empty {
+  display: block;
+  white-space: pre;
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+.example-file > .empty::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "";
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.hl.lean .keyword {
+  font-weight : bold;
+}
+
+.hl.lean .var {
+  font-style: italic;
+  position: relative;
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+  font-size: inherit;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
+  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
+  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
+    display: inline-block;
+    position: absolute;
+    top: 1rem;
+    font-weight: normal;
+    font-style: normal;
+    width: min-content;
+  }
+}
+*/
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error {
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error pre {
+    color: red;
+}
+
+.hl.lean .has-info.warning {
+  text-decoration-color: var(--verso-warning-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.info {
+  text-decoration-color: blue;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.info:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.info {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: sans-serif;
+  white-space: normal;
+  max-width: 40rem;
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  left: 2rem;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+  z-index: 200;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: block;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
+    display: block;
+    position: absolute;
+    left: 0;
+    transform: translate(0.25rem, 0);
+    z-index: 250;
+  }
+}
+*/
+
+.hl.lean .tactic > label {
+  position: relative;
+  transition: all 0.5s;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover {
+    border-bottom: 1px dotted #bbbbbb;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  border-radius: 1rem;
+  height: 0.25rem;
+  vertical-align: middle;
+  width: 0.6rem;
+  margin-left: 0.1rem;
+  margin-right: 0.1rem;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5rem;
+}
+
+.hl.lean .tactic-state summary {
+  margin-left: -0.5rem;
+}
+
+.hl.lean .tactic-state details {
+  padding-left: 0.5rem;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  width: 1rem;
+  height: 1rem;
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7rem;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .tactic-state .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  margin-left: 0.5rem;
+  margin-top: 0.1rem;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .tactic-state .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .tactic-state .goal-name {
+  font-style: italic;
+  font-family: monospace;
+}
+
+.hl.lean .tactic-state .hypotheses {
+  display: table;
+}
+
+.hl.lean .tactic-state .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .tactic-state .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .tactic-state .hypotheses .colon {
+  text-align: center;
+  min-width: 1rem;
+}
+
+.hl.lean .tactic-state .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .tactic-state .hypotheses .name,
+.hl.lean .tactic-state .hypotheses .type,
+.hl.lean .tactic-state .conclusion .type {
+  font-family: monospace;
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: larger;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
+.syntax-error {
+  white-space: normal;
+}
+.syntax-error::before {
+  counter-reset: linenumber;
+}
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
+}
+
+.syntax-error .parse-message > code.hover-info {
+  display:none;
+}
+
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
+}
+</style><script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
+    <script>
+      
+window.onload = () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector("input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    function blockedByTippy(elem) {
+      // Don't show a new hover until the old ones are all closed.
+      // Scoped to the nearest "top-level block" to avoid being O(n) in the size of the document.
+      var block = elem;
+      const topLevel = new Set(["section", "body", "html", "nav", "header"]);
+      while (block.parentNode && !topLevel.has(block.parentNode.nodeName.toLowerCase())) {
+        block = block.parentNode;
+      }
+      for (const child of block.querySelectorAll(".token, .has-info")) {
+        if (child._tippy && child._tippy.state.isVisible) { return true };
+      }
+      return false;
+    }
+
+    for (const c of document.querySelectorAll(".hl.lean .token")) {
+        if (c.dataset.binding != "") {
+            c.addEventListener("mouseover", (event) => {
+                if (blockedByTactic(c)) {return;}
+                const context = c.closest(".hl.lean").dataset.leanContext;
+                for (const example of document.querySelectorAll(".hl.lean")) {
+                    if (example.dataset.leanContext == context) {
+                        for (const tok of example.querySelectorAll(".token")) {
+                            if (c.dataset.binding == tok.dataset.binding) {
+                                tok.classList.add("binding-hl");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        c.addEventListener("mouseout", (event) => {
+            for (const tok of document.querySelectorAll(".hl.lean .token")) {
+                tok.classList.remove("binding-hl");
+            }
+        });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
+    let docsJson = siteRoot + "-verso-docs.json";
+    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+
+      const defaultTippyProps = {
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        theme: "lean",
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        ignoreAttributes: true,
+        onShow(inst) {
+          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+            if (blockedByTactic(inst.reference)) { return false };
+            if (blockedByTippy(inst.reference)) { return false; }
+          } else { // Nothing to show here!
+            return false;
+          }
+        },
+        content (tgt) {
+          const content = document.createElement("span");
+          content.className = "hl lean";
+          content.style.display = "block";
+          content.style.maxHeight = "300px";
+          content.style.overflowY = "auto";
+          content.style.overflowX = "hidden";
+          const hoverId = tgt.dataset.versoHover;
+          const hoverInfo = tgt.querySelector(".hover-info");
+          if (hoverId) { // Docstrings from the table
+            // TODO stop doing an implicit conversion from string to number here
+            let data = versoDocData[hoverId];
+            if (data) {
+              const info = document.createElement("span");
+              info.className = "hover-info";
+              info.style.display = "block";
+              info.innerHTML = data;
+              content.appendChild(info);
+              /* Render docstrings - TODO server-side */
+              if ('undefined' !== typeof marked) {
+                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                      const str = d.innerText;
+                      const html = marked.parse(str);
+                      const rendered = document.createElement("div");
+                      rendered.classList.add("docstring");
+                      rendered.innerHTML = html;
+                      d.parentNode.replaceChild(rendered, d);
+                  }
+              }
+            } else {
+              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            }
+          } else if (hoverInfo) { // The inline info, still used for compiler messages
+            content.appendChild(hoverInfo.cloneNode(true));
+          }
+          return content;
+        }
+      };
+
+      const addTippy = (selector, props) => {
+        tippy(selector, Object.assign({}, defaultTippyProps, props));
+      };
+      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
+      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
+      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
+      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
+
+      tippy('.hl.lean .tactic', {
+        allowHtml: true,
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        maxWidth: "none",
+        onShow(inst) {
+          const toggle = inst.reference.querySelector("input.tactic-toggle");
+          if (toggle && toggle.checked) {
+            return false;
+          }
+          if (blockedByTippy(inst.reference)) { return false; }
+        },
+        theme: "tactic",
+        placement: 'bottom-start',
+        content (tgt) {
+          const content = document.createElement("span");
+          const state = tgt.querySelector(".tactic-state").cloneNode(true);
+          state.style.display = "block";
+          content.appendChild(state);
+          content.style.display = "block";
+          content.className = "hl lean popup";
+          return content;
+        }
+      });
+  });
+}
+</script>
+    <script type="module" src="static/search/search-init.js"></script>
+    </head>
+  <body>
+    <header>
+      <div class="header-logo-wrapper">
+        <a href="" id="logo"><img src="static/lean_logo.svg"></a></div>
+      <div class="header-title-wrapper">
+        <a href="" class="header-title"><h1>
+            The Lean Language Reference</h1>
+          </a></div>
+      </header>
+    <label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc">
+      <div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div>
+      <nav id="toc">
+        <input type="checkbox" id="toggle-toc"><div class="first">
+          <a href="" class="toc-title"><h1>
+              The Lean Language Reference</h1>
+            </a><div class="split-tocs">
+            <div class="split-toc book">
+              <div class="title">
+                <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-coercions" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-coercions" checked="checked"></label><span class="number">12.</span> <span class=""><a href="Coercions/#coercions">Coercions</a></span></div>
+              <table><tr class="numbered"><td class="num">12.1.</td><td><a href="Coercions/Coercion-Insertion/#coercion-insertion">Coercion Insertion</a></td></tr><tr class="numbered"><td class="num">12.2.</td><td><a href="Coercions/Coercing-Between-Types/#ordinary-coercion">Coercing Between Types</a></td></tr><tr class="numbered"><td class="num">12.3.</td><td><a href="Coercions/Coercing-to-Sorts/#sort-coercion">Coercing to Sorts</a></td></tr><tr class="current numbered"><td class="num">12.4.</td><td><a href="Coercions/Coercing-to-Function-Types/#fun-coercion">Coercing to Function Types</a></td></tr><tr class="numbered"><td class="num">12.5.</td><td><a href="Coercions/Implementation-Details/#coercion-impl-details">Implementation Details</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-fun-coercion" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-fun-coercion" checked="checked"></label><span class="number">12.4.</span> <span class="current"><a href="Coercions/Coercing-to-Function-Types/#fun-coercion">Coercing to Function Types</a></span></div>
+              <ol>
+                <li>
+                  <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><code>CoeFun</code></a></li>
+                <li>
+                  <a href="Coercions/Coercing-to-Function-Types/#coeFunNotation"><span class="syntax"><span class="keyword">⇑</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        <div class="last">
+          <ul id="meta-links">
+            <li>
+              <a href="https://github.com/leanprover/reference-manual">Source Code</a></li>
+            <li>
+              <a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li>
+            </ul>
+          </div>
+        </nav>
+      <main><div class="content-wrapper">
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="Coercions/Coercing-to-Sorts/#sort-coercion" rel="prev" title="12.3. Coercing to Sorts"><span class="arrow">←</span><span class="where">12.3. Coercing to Sorts</span></a><a class="local-button active" href="Coercions/Implementation-Details/#coercion-impl-details" rel="next" title="12.5. Implementation Details"><span class="where">12.5. Implementation Details</span><span class="arrow">→</span></a></nav>
+          <section>
+            <h1>
+              12.4. Coercing to Function Types<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=fun-coercion" title="Permalink">🔗</a></span></h1>
+            <p>
+              Another situation where an expected type is not generally available is the function position in a function application term.
+Dependent function types are common; together with <a class="technical-term" href="Terms/Functions/#--tech-term-implicit">implicit</a> parameters, they cause information to flow from the elaboration of one argument to the elaboration of the others.
+Attempting to deduce the type required for the function from the expected type of the entire application term and individually-inferred types of arguments will often fail.
+In these situations, Lean uses the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> type class to coerce a non-function in an application position into a function.
+Like <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Sorts/#CoeSort___mk"><span class="const token" data-binding="const-CoeSort" data-verso-hover="2096">CoeSort</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> instances do not chain with other coercions while inserting a function coercion, but they can be used as <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2040">CoeOut</span></a></code> instances during ordinary coercion insertion.</p>
+            <p>
+              The second parameter to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> is an output parameter that determines the resulting function type.
+This output parameter is function that computes the function type from the term that's being coerced, rather than the function type itself.
+Unlike <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeDep___mk"><span class="const token" data-binding="const-CoeDep" data-verso-hover="2029">CoeDep</span></a></code>, the term itself is not taken into account during instance synthesis; it can, however, be used to create dependently typed coercions where the function type is determined by the term.</p>
+            <div class="namedocs" id="CoeFun___mk">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=CoeFun.mk" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only">CoeFun.{u, v} (<span class="var token" data-binding="var-_uniq.4793" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>) (<span class="var token" data-binding="var-_uniq.4795" data-verso-hover="2127">γ</span> : <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="1536">outParam</span></a> (<span class="var token" data-binding="var-_uniq.4793" data-verso-hover="168">α</span> → <span class="sort token" data-binding="" data-verso-hover="169">Sort v</span>)) :
+  <span class="sort token" data-binding="" data-verso-hover="169">Sort (max (max 1 u) v)</span></div><div class="narrow-only">CoeFun.{u, v} (<span class="var token" data-binding="var-_uniq.4793" data-verso-hover="168">α</span> : <span class="sort token" data-binding="" data-verso-hover="169">Sort u</span>)
+  (<span class="var token" data-binding="var-_uniq.4795" data-verso-hover="2127">γ</span> : <a href="Type-Classes/Instance-Synthesis/#outParam"><span class="const token" data-binding="const-outParam" data-verso-hover="1536">outParam</span></a> (<span class="var token" data-binding="var-_uniq.4793" data-verso-hover="168">α</span> → <span class="sort token" data-binding="" data-verso-hover="169">Sort v</span>)) :
+  <span class="sort token" data-binding="" data-verso-hover="169">Sort (max (max 1 u) v)</span></div></pre><div class="text">
+                <p>
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a> <span class="var token" data-binding="var-_uniq.4227" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4228" data-verso-hover="2127">γ</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.4227" data-verso-hover="168">α</span> <span class="unknown token" data-binding="">→</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sort-23" data-verso-hover="169">Sort</span> <span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">)</span></code> is a coercion to a function. <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4228" data-verso-hover="2127">γ</span> <span class="var token" data-binding="var-_uniq.4403" data-verso-hover="46">a</span></code> should be a
+(coercion-to-)function type, and this is triggered whenever an element
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4577" data-verso-hover="46">f</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.4227" data-verso-hover="168">α</span></code> appears in an application like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4577" data-verso-hover="46">f</span> <span class="unknown token" data-binding="">x</span></code>, which would not make sense since
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4577" data-verso-hover="46">f</span></code> does not have a function type.
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> instances apply to <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2040">CoeOut</span></a></code> as well.</p>
+                <h1>
+                  Instance Constructor</h1>
+                <section class="subdocs">
+                  <pre class="name-and-type hl lean"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun.mk" data-verso-hover="2128">CoeFun.mk</span></a>.{u, v}</pre><div class="docs"></div>
+                  </section>
+                <h1>
+                  Methods</h1>
+                <section class="subdocs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeFun.coe" data-verso-hover="2129">coe</span> : (<span class="var token" data-binding="var-_uniq.4784" data-verso-hover="46">f</span> : <span class="var token" data-binding="var-_uniq.4780" data-verso-hover="168">α</span>) → <span class="var token" data-binding="var-_uniq.4781" data-verso-hover="2127">γ</span> <span class="var token" data-binding="var-_uniq.4784" data-verso-hover="46">f</span></pre><div class="docs">
+                    <p>
+                      Coerces a value <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4807" data-verso-hover="46">f</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.4800" data-verso-hover="168">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4801" data-verso-hover="2127">γ</span> <span class="var token" data-binding="var-_uniq.4807" data-verso-hover="46">f</span></code>, which should be either be a
+function type or another <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> type, in order to resolve a mistyped
+application <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4807" data-verso-hover="46">f</span> <span class="unknown token" data-binding="">x</span></code>.</p>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+              <span class="label">syntax</span><span class="title">Explicit Coercion to Functions</span><div class="text">
+                <pre class="grammar hl lean" data-lean-context="--grammar" id="coeFunNotation"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
+    <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="coeFunNotation"><code class="hover-info"><code class="docstring">`⇑ t` coerces `t` to a function. </code></code><span class="keyword">⇑</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre></div>
+              </div>
+            <details class="example"><summary class="description">Coercing Decorated Functions to Function Types</summary><div class="example-content">
+                <p>
+                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.4835" data-verso-hover="55">α</span> <span class="var token" data-binding="var-_uniq.4837" data-verso-hover="243">β</span></code> pairs a function from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.4841" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.4847" data-verso-hover="243">β</span></code> with a name.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-35127">structure</span> <span class="const token" data-binding="const-NamedFun" data-verso-hover="2130" id="NamedFun">NamedFun</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-35152" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="243">β</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-35166" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-35174">where</span>
+  <span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2131" id="NamedFun">function</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="243">β</span>
+  <span class="const token" data-binding="const-NamedFun.name" data-verso-hover="2132" id="NamedFun">name</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Existing functions can be named:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-35265">def</span> <span class="const token" data-binding="const-succ" data-verso-hover="2133" id="succ">succ</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-35293">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2134">function</span></a> <span class="var token" data-binding="var-_uniq.20" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.20" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">1</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="328">name</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2135">"succ"</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-35339">def</span> <span class="const token" data-binding="const-asString" data-verso-hover="2136" id="succ">asString</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="67">ToString</span> <span class="var token" data-binding="var-_uniq.84" data-verso-hover="55">α</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.84" data-verso-hover="55">α</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-35387">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2137">function</span></a> <span class="unknown token" data-binding="">:=</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="620">ToString.toString</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="328">name</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2138">"asString"</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-35447">def</span> <span class="const token" data-binding="const-append" data-verso-hover="2139" id="succ">append</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.84" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.84" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.84" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-35501">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2140">function</span></a> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">·</span> <span class="unknown token" data-binding="">++</span> <span class="unknown token" data-binding="">·</span><span class="unknown token" data-binding="">)</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="328">name</span></a> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="2141">"append"</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Named functions can also be composed:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-35602">def</span> <span class="const token" data-binding="const-NamedFun.comp" data-verso-hover="2142" id="NamedFun___comp">NamedFun.comp</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.14" data-verso-hover="2143">f</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="243">β</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="44">γ</span><span class="unknown token" data-binding="">)</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="2144">g</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="243">β</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span>
+    <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="44">γ</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-35691">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2145">function</span></a> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.14" data-verso-hover="2143">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2131">function</span></a> <span class="unknown token" data-binding="">∘</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="2144">g</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.function" data-verso-hover="2131">function</span></a>
+  <a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="328">name</span></a> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.14" data-verso-hover="2143">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="2132">name</span></a> <span class="unknown token" data-binding="">++</span> <span class="literal string token" data-binding="" data-verso-hover="2146">" ∘ "</span> <span class="unknown token" data-binding="">++</span> <span class="var token" data-binding="var-_uniq.18" data-verso-hover="2144">g</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="2132">name</span></a>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Unlike ordinary functions, named functions have a reasonable representation as a string:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-35878">instance</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-ToString" data-verso-hover="67">ToString</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="var token" data-binding="var-_uniq.11" data-verso-hover="44">α''</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-35917">where</span>
+  <span class="const token" data-binding="const-ToString.toString" data-verso-hover="2147">toString</span> <span class="var token" data-binding="var-_uniq.26" data-verso-hover="2148">f</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-termS!_-35939">s!</span><span class="unknown token" data-binding="">"#&lt;{</span><span class="var token" data-binding="var-_uniq.26" data-verso-hover="2148">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun.name" data-verso-hover="2132">name</span></a><span class="unknown token" data-binding="">}&gt;"</span>
+<span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">#&lt;asString ∘ succ&gt;</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-35986" data-verso-hover="6">#eval</span></a></span> <a href="Coercions/Coercing-to-Function-Types/#succ"><span class="const token" data-binding="const-asString" data-verso-hover="2136">asString</span></a><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun___comp"><span class="const token" data-binding="const-NamedFun.comp" data-verso-hover="2142">comp</span></a> <a href="Coercions/Coercing-to-Function-Types/#succ"><span class="const token" data-binding="const-succ" data-verso-hover="2133">succ</span></a>
+<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <pre>#&lt;asString ∘ succ&gt;
+</pre></div>
+                <p>
+                  A <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> instance allows them to be applied just like ordinary functions:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-36154">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#NamedFun"><span class="const token" data-binding="const-NamedFun" data-verso-hover="2130">NamedFun</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="44">α''</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-36192">fun</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="44">α''</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-36214">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun.coe" data-verso-hover="2149">coe</span></a> <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.82" data-verso-hover="2150">f</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.82" data-verso-hover="2150">f</span>
+<span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[1, 2, 3, 4, 5, 6]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-36277" data-verso-hover="6">#eval</span></a></span> <a href="Coercions/Coercing-to-Function-Types/#succ"><span class="const token" data-binding="const-append" data-verso-hover="2139">append</span></a> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">6</span><span class="unknown token" data-binding="">]</span>
+<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <pre>[1, 2, 3, 4, 5, 6]
+</pre></div>
+                </div>
+              </details><details class="example"><summary class="description">Dependent Coercion to Functions</summary><div class="example-content">
+                <p>
+                  Sometimes, the type of the resulting function depends on the specific value that is being coerced.
+A <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer" data-verso-hover="2151">Writer</span></a></code> represents a means of appending a representation of some value to a string:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-36644">structure</span> <span class="const token" data-binding="const-Writer" data-verso-hover="2151" id="Writer___write">Writer</span> <span class="keyword token" data-binding="kw-occ-null-36661">where</span>
+  <span class="const token" data-binding="const-Writer.Writes" data-verso-hover="2152" id="Writer___write">Writes</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-36678" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span>
+  <span class="const token" data-binding="const-Writer.write" data-verso-hover="2153" id="Writer___write">write</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="55">Writes</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-36725">def</span> <span class="const token" data-binding="const-natWriter" data-verso-hover="2154" id="Writer___write">natWriter</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer" data-verso-hover="2151">Writer</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-36748">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.Writes" data-verso-hover="219">Writes</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+  <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.write" data-verso-hover="2155">write</span></a> <span class="var token" data-binding="var-_uniq.421" data-verso-hover="7">n</span> <span class="var token" data-binding="var-_uniq.424" data-verso-hover="310">out</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.424" data-verso-hover="310">out</span> <span class="unknown token" data-binding="">++</span> <span class="const token" data-binding="const-ToString.toString" data-verso-hover="620">toString</span> <span class="var token" data-binding="var-_uniq.421" data-verso-hover="7">n</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-36806">def</span> <span class="const token" data-binding="const-stringWriter" data-verso-hover="2156" id="Writer___write">stringWriter</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer" data-verso-hover="2151">Writer</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-36832">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.Writes" data-verso-hover="219">Writes</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>
+  <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.write" data-verso-hover="2110">write</span></a> <span class="var token" data-binding="var-_uniq.487" data-verso-hover="310">s</span> <span class="var token" data-binding="var-_uniq.490" data-verso-hover="310">out</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.490" data-verso-hover="310">out</span> <span class="unknown token" data-binding="">++</span> <span class="var token" data-binding="var-_uniq.487" data-verso-hover="310">s</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Because the type of the parameter expected by the inner function depend on the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.Writes" data-verso-hover="2152">Writer.Writes</span></a></code> field, the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a></code> instance extracts the field:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-37052">instance</span> <span class="unknown token" data-binding="">:</span>
+    <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a> <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer" data-verso-hover="2151">Writer</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">·</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.Writes" data-verso-hover="2152">Writes</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-37115">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun.coe" data-verso-hover="2157">coe</span></a> <span class="var token" data-binding="var-_uniq.46" data-verso-hover="2158">w</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.46" data-verso-hover="2158">w</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer.write" data-verso-hover="2153">write</span></a>
+<span class="unknown token" data-binding=""></span></code><p>
+                  With this instance, concrete <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-Writer" data-verso-hover="2151">Writer</span></a></code>s can be used as functions:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"5 hello"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-37245" data-verso-hover="6">#eval</span></a></span> <span class="literal string token" data-binding="" data-verso-hover="325">""</span> <span class="unknown token" data-binding="">|&gt;</span> <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-natWriter" data-verso-hover="2154">natWriter</span></a> <span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">|&gt;</span> <a href="Coercions/Coercing-to-Function-Types/#Writer___write"><span class="const token" data-binding="const-stringWriter" data-verso-hover="2156">stringWriter</span></a> <span class="literal string token" data-binding="" data-verso-hover="2159">" hello"</span>
+<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <pre>"5 hello"
+</pre></div>
+                </div>
+              </details><details class="example"><summary class="description">Coercing to Function Types</summary><div class="example-content">
+                <p>
+                  A well-typed interpreter is an interpreter for a programming language that uses indexed families to rule out run-time type errors.
+Functions written in the interpreted language can be interpreted as Lean functions, but their underlying source code can also be inspected.</p>
+                <p>
+                  The first step in the well-typed interpreter is to select the subset of Lean types that can be used.
+These types are represented by an <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive type</a> of codes <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a></code> and a function that maps these codes to actual types.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-37903" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Ty" data-verso-hover="2160" id="Ty___interp">Ty</span> <span class="keyword token" data-binding="kw-occ-null-37916">where</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161" id="Ty___interp">nat</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162" id="Ty___interp">arr</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="2163">dom</span> <span class="var token" data-binding="var-_uniq.7" data-verso-hover="2163">cod</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a><span class="unknown token" data-binding="">)</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-37954">abbrev</span> <span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164" id="Ty___interp">Ty.interp</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <span class="var token" data-binding="var-_uniq.405" data-verso-hover="2163">t</span> <span class="var token" data-binding="var-_uniq.406" data-verso-hover="2163">t'</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.405" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.406" data-verso-hover="2163">t'</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a>
+<span class="unknown token" data-binding=""></span></code><p>
+                  The language itself is represented by an <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-indexed-families">indexed family</a> over variable contexts and result types.
+Variables are represented by <a href="https://en.wikipedia.org/wiki/De_Bruijn_index">de Bruijn indices</a>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-38256" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a> <span class="unknown token" data-binding="">→</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span> <span class="keyword token" data-binding="kw-occ-null-38295">where</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.zero" data-verso-hover="2166" id="Tm-next">zero</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2167">Γ</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.succ" data-verso-hover="2168" id="Tm-next">succ</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="2169">n</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="2167">Γ</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="2167">Γ</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.rep" data-verso-hover="2170" id="Tm-next">rep</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.36" data-verso-hover="2169">n</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.28" data-verso-hover="2167">Γ</span> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a><span class="unknown token" data-binding="">)</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.38" data-verso-hover="2171">start</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.28" data-verso-hover="2167">Γ</span> <span class="var token" data-binding="var-_uniq.34" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">)</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.40" data-verso-hover="2172">f</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.28" data-verso-hover="2167">Γ</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <span class="var token" data-binding="var-_uniq.34" data-verso-hover="2163">t</span> <span class="var token" data-binding="var-_uniq.34" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span>
+    <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.28" data-verso-hover="2167">Γ</span> <span class="var token" data-binding="var-_uniq.34" data-verso-hover="2163">t</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173" id="Tm-next">lam</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.69" data-verso-hover="2174">body</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.65" data-verso-hover="2163">t'</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="2167">Γ</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <span class="var token" data-binding="var-_uniq.53" data-verso-hover="2163">t</span> <span class="var token" data-binding="var-_uniq.65" data-verso-hover="2163">t'</span><span class="unknown token" data-binding="">)</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.app" data-verso-hover="2175" id="Tm-next">app</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="2176">f</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.78" data-verso-hover="2167">Γ</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <span class="var token" data-binding="var-_uniq.82" data-verso-hover="2163">t</span> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="2163">t'</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="2171">arg</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.78" data-verso-hover="2167">Γ</span> <span class="var token" data-binding="var-_uniq.82" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.78" data-verso-hover="2167">Γ</span> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="2163">t'</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Tm.var" data-verso-hover="2177" id="Tm-next">var</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.106" data-verso-hover="2178">i</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="2167">Γ</span> <span class="var token" data-binding="var-_uniq.103" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.106" data-verso-hover="2178">i</span><span class="unknown token" data-binding="">]</span>
+<span class="keyword token" data-binding="kw-occ-null-38616">deriving</span> <span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Because the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Literals/#OfNat___mk"><span class="const token" data-binding="const-OfNat" data-verso-hover="614">OfNat</span></a></code> instance for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a></code> requires that the upper bound be non-zero, <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.var" data-verso-hover="2177">Tm.var</span></a></code> can be inconvenient to use with numeric literals.
+The helper <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Tm___v"><span class="const token" data-binding="const-Tm.v" data-verso-hover="2179">Tm.v</span></a></code> can be used to avoid the need for type annotations in these cases.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-38894">def</span> <span class="const token" data-binding="const-Tm.v" data-verso-hover="2179" id="Tm___v">Tm.v</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="2180">i</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.105" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span>
+    <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.105" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.105" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.143" data-verso-hover="2180">i</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.var" data-verso-hover="2177">.var</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">Γ</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.875" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.876" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="var token" data-binding="var-_uniq.143" data-verso-hover="2180">i</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  A function that adds two natural numbers uses the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.rep" data-verso-hover="2170">rep</span></a></code> operation to apply the successor <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.succ" data-verso-hover="2168">Tm.succ</span></a></code> repeatedly.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39136">def</span> <span class="const token" data-binding="const-plus" data-verso-hover="2181">plus</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.arr" data-verso-hover="2162">.arr</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.nat" data-verso-hover="2161">.nat</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
+  <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173">.lam</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173">.lam</span></a> <span class="unknown token" data-binding="">&lt;|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.rep" data-verso-hover="2170">.rep</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm___v"><span class="const token" data-binding="const-Tm.v" data-verso-hover="2179">.v</span></a> <span class="typed token" data-binding="" data-verso-hover="2182">1</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm___v"><span class="const token" data-binding="const-Tm.v" data-verso-hover="2179">.v</span></a> <span class="typed token" data-binding="" data-verso-hover="2182">0</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173">.lam</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173">.lam</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.succ" data-verso-hover="2168">.succ</span></a> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercing-to-Function-Types/#Tm___v"><span class="const token" data-binding="const-Tm.v" data-verso-hover="2179">.v</span></a> <span class="typed token" data-binding="" data-verso-hover="2183">0</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Each typing context can be interpreted as a type of run-time environments that provide a value for each variable in the context:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39394">def</span> <span class="const token" data-binding="const-Env" data-verso-hover="2184" id="Env">Env</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="50">Type</span>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.37" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.38" data-verso-hover="2167">Γ</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.37" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a> <span class="unknown token" data-binding="">×</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.38" data-verso-hover="2167">Γ</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39471">def</span> <span class="const token" data-binding="const-Env.empty" data-verso-hover="2185" id="Env">Env.empty</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39501">def</span> <span class="const token" data-binding="const-Env.extend" data-verso-hover="2186" id="Env">Env.extend</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.206" data-verso-hover="2187">ρ</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.209" data-verso-hover="2188">v</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.204" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.204" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.192" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span>
+  <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.209" data-verso-hover="2188">v</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.206" data-verso-hover="2187">ρ</span><span class="unknown token" data-binding="">)</span>
+
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39575">def</span> <span class="const token" data-binding="const-Env.get" data-verso-hover="2189" id="Env">Env.get</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.278" data-verso-hover="2178">i</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="var token" data-binding="var-_uniq.275" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2187">ρ</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.275" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.275" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">[</span><span class="var token" data-binding="var-_uniq.278" data-verso-hover="2178">i</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a> <span class="unknown token" data-binding="">:=</span>
+  <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-39641" data-verso-hover="52">match</span></a> <span class="var token" data-binding="var-_uniq.731" data-verso-hover="2167">Γ</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.280" data-verso-hover="2187">ρ</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.278" data-verso-hover="2178">i</span> <a href="Terms/Pattern-Matching/#Lean___Parser___Term___match"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-39641" data-verso-hover="52">with</span></a>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">::</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.848" data-verso-hover="2190">v</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">⟨</span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.848" data-verso-hover="2190">v</span>
+  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">::</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.1039" data-verso-hover="2191">ρ'</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="7">i</span><span class="unknown token" data-binding="">+</span><span class="unknown token" data-binding="">1</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.1039" data-verso-hover="2191">ρ'</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env.get" data-verso-hover="2189">get</span></a> <span class="unknown token" data-binding="const-Fin.mk" data-verso-hover="465">⟨</span><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="7">i</span><span class="unknown token" data-binding="const-Fin.mk" data-verso-hover="465">,</span> <span class="tactic"><label for="tactic-state-1627762548276710469-39746-39748"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-39746" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1627762548276710469-39746-39748"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.731" data-verso-hover="2167">Γ</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.278" data-verso-hover="2178">i✝</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk"><span class="const token" data-binding="const-Fin" data-verso-hover="466">Fin</span></a> <span class="var token" data-binding="var-_uniq.731" data-verso-hover="2167">Γ</span>.<a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2187">ρ</span></span><span class="colon">:</span><span class="type"><a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.731" data-verso-hover="2167">Γ</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1032" data-verso-hover="2163">head✝</span></span><span class="colon">:</span><span class="type"><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1033" data-verso-hover="2167">tail✝</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty" data-verso-hover="2160">Ty</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1034" data-verso-hover="2190">fst✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.1032" data-verso-hover="2163">head✝</span>.<a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1039" data-verso-hover="2191">ρ'</span></span><span class="colon">:</span><span class="type"><a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.1033" data-verso-hover="2167">tail✝</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="7">i</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1041" data-verso-hover="2192">isLt✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="7">i</span><a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>1<a href="Type-Classes/Basic-Classes/#LT___mk"><span class="const token" data-binding="const-LT.lt" data-verso-hover="627"> &lt; </span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="403">(</span></a><span class="var token" data-binding="var-_uniq.1032" data-verso-hover="2163">head✝</span><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="403"> :: </span></a><span class="var token" data-binding="var-_uniq.1033" data-verso-hover="2167">tail✝</span><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="403">)</span></a>.<a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.1040" data-verso-hover="7">i</span><a href="Type-Classes/Basic-Classes/#LT___mk"><span class="const token" data-binding="const-LT.lt" data-verso-hover="627"> &lt; </span></a><span class="var token" data-binding="var-_uniq.1033" data-verso-hover="2167">tail✝</span>.<a href="Basic-Types/Linked-Lists/#List___length"><span class="const token" data-binding="const-List.length" data-verso-hover="1340">length</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-39749-39757"><a href="Tactic-Proofs/Tactic-Reference/#simp_all"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpAll-39749" data-verso-hover="663">simp_all</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-39749-39757"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="const-Fin.mk" data-verso-hover="465">⟩</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Finally, the interpreter is a recursive function over the term:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-39838">def</span> <span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193" id="Tm___interp">Tm.interp</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env" data-verso-hover="2184">Env</span></a> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="2167">α''</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="2167">α''</span> <span class="var token" data-binding="var-_uniq.11" data-verso-hover="2163">t</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.11" data-verso-hover="2163">t</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.zero" data-verso-hover="2166">.zero</span></a> <span class="unknown token" data-binding="">=&gt;</span> <span class="typed token" data-binding="" data-verso-hover="2195">0</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.succ" data-verso-hover="2168">.succ</span></a> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2196">n</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2196">n</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="2195">1</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.rep" data-verso-hover="2170">.rep</span></a> <span class="var token" data-binding="var-_uniq.306" data-verso-hover="2196">n</span> <span class="var token" data-binding="var-_uniq.307" data-verso-hover="2197">start</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2198">f</span> <span class="unknown token" data-binding="">=&gt;</span>
+    <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-39965" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.349" data-verso-hover="2199">f'</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2198">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span>
+    <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.306" data-verso-hover="2196">n</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="2012">fold</span></a> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-40011">fun</span> <span class="var token" data-binding="var-_uniq.394" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">_</span> <span class="var token" data-binding="var-_uniq.400" data-verso-hover="2188">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.349" data-verso-hover="2199">f'</span> <span class="var token" data-binding="var-_uniq.394" data-verso-hover="7">n</span> <span class="var token" data-binding="var-_uniq.400" data-verso-hover="2188">x</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.307" data-verso-hover="2197">start</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span><span class="unknown token" data-binding="">)</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.lam" data-verso-hover="2173">.lam</span></a> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2200">body</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-40067">fun</span> <span class="var token" data-binding="var-_uniq.525" data-verso-hover="2201">x</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2200">body</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env.extend" data-verso-hover="2186">extend</span></a> <span class="var token" data-binding="var-_uniq.525" data-verso-hover="2201">x</span><span class="unknown token" data-binding="">)</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.app" data-verso-hover="2175">.app</span></a> <span class="var token" data-binding="var-_uniq.607" data-verso-hover="2202">f</span> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2203">arg</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.607" data-verso-hover="2202">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.32" data-verso-hover="2203">arg</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span><span class="unknown token" data-binding="">)</span>
+  <span class="unknown token" data-binding="">|</span> <a href="Coercions/Coercing-to-Function-Types/#Tm-next"><span class="const token" data-binding="const-Tm.var" data-verso-hover="2177">.var</span></a> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2204">i</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.13" data-verso-hover="2194">ρ</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env.get" data-verso-hover="2189">get</span></a> <span class="var token" data-binding="var-_uniq.32" data-verso-hover="2204">i</span>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Coercing a <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span></code> to a function consists of calling the interpreter.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-40258">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun" data-verso-hover="2126">CoeFun</span></a> <span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Tm" data-verso-hover="2165">Tm</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="var token" data-binding="var-_uniq.9" data-verso-hover="2163">α''</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-40290">fun</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.9" data-verso-hover="2163">α''</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Ty___interp"><span class="const token" data-binding="const-Ty.interp" data-verso-hover="2164">interp</span></a><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-40312">where</span>
+  <a href="Coercions/Coercing-to-Function-Types/#CoeFun___mk"><span class="const token" data-binding="const-CoeFun.coe" data-verso-hover="2205">coe</span></a> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="2206">f</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.41" data-verso-hover="2206">f</span><span class="unknown token" data-binding="">.</span><a href="Coercions/Coercing-to-Function-Types/#Tm___interp"><span class="const token" data-binding="const-Tm.interp" data-verso-hover="2193">interp</span></a> <a href="Coercions/Coercing-to-Function-Types/#Env"><span class="const token" data-binding="const-Env.empty" data-verso-hover="2185">.empty</span></a>
+<span class="unknown token" data-binding=""></span></code><p>
+                  Because functions are represented by a first-order inductive type, their code can be inspected:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Tm.lam (Tm.lam (Tm.rep (Tm.var 1) (Tm.var 0) (Tm.lam (Tm.lam (Tm.succ (Tm.var 0))))))</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-40473" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-plus" data-verso-hover="2181">plus</span>
+<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <pre>Tm.lam (Tm.lam (Tm.rep (Tm.var 1) (Tm.var 0) (Tm.lam (Tm.lam (Tm.succ (Tm.var 0))))))
+</pre></div>
+                <p>
+                  At the same time, due to the coercion, they can be applied just like native Lean functions:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">8</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-40718" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-plus" data-verso-hover="2181">plus</span> <span class="typed token" data-binding="" data-verso-hover="2195">3</span> <span class="typed token" data-binding="" data-verso-hover="2195">5</span>
+<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <pre>8
+</pre></div>
+                </div>
+              </details></section>
+          <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026"><nav class="prev-next-buttons">
+            <a class="local-button active" href="Coercions/Coercing-to-Sorts/#sort-coercion" rel="prev" title="12.3. Coercing to Sorts"><span class="arrow">←</span><span class="where">12.3. Coercing to Sorts</span></a><a class="local-button active" href="Coercions/Implementation-Details/#coercion-impl-details" rel="next" title="12.5. Implementation Details"><span class="where">12.5. Implementation Details</span><span class="arrow">→</span></a></nav>
+          </div>
+        </main></div>
+    </body>
+  </html>
+
