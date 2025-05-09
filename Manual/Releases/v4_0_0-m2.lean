@@ -18,6 +18,6 @@ tag := "release-v4.0.0-m2"
 file := "v4.0.0-m2"
 %%%
 
-`````markdown
+```markdown
 This is the second milestone release of Lean 4. With too many improvements and bug fixes in almost all parts of the system to list, we would like to single out major improvements to `simp` and other built-in tactics as well as support for a goal view that make the proving experience more comfortable.
-`````
+```

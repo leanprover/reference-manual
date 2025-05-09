@@ -121,7 +121,7 @@ v : Solo
 ```
 This proof state shows the constructor using {tech}[structure instance] syntax.
 An unexpander can be used to override this choice.
-Because {name}`Solo.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(Solo.mk) ```.
+Because {name}`Solo.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}`` `(Solo.mk) ``.
 
 ```lean
 @[app_unexpander Solo.mk]

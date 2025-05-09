@@ -202,7 +202,9 @@ open B
 #eval x
 ```
 ```leanOutput ambi (whitespace := lax)
-ambiguous, possible interpretations
+Ambiguous term
+  x
+Possible interpretations:
   B.x : String
 
   A.x : String
@@ -753,7 +755,7 @@ However, {lean}`Username.validate` can't be called on {lean}`"root"` using field
 #eval "root".validate
 ```
 ```leanOutput notString
-invalid field 'validate', the environment does not contain 'String.validate'
+Invalid field `validate`: The environment does not contain `String.validate`
   "root"
 has type
   String
@@ -884,7 +886,7 @@ numerals are polymorphic in Lean, but the numeral `4` cannot be used in a contex
   Array ?m.4
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 Using pipeline field notation causes the array to be inserted at the first type-correct position:
@@ -1285,7 +1287,7 @@ $x:ident@$h:ident:$e
 
 -- Literals
 /-- error: Invalid pattern: Expected a constructor or constant marked with `[match_pattern]` -/
-#check_msgs in
+#guard_msgs in
 def foo (x : String) : String :=
   match x with
   | "abc" => ""
@@ -1321,9 +1323,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.903
+  motive (instOfNatBlah_1.f 0) : Sort ?u.1340
 but is expected to have type
-  motive n✝ : Sort ?u.903
+  motive n✝ : Sort ?u.1340
 -/
 #check_msgs in
 def defg (n : Blah) : Bool :=
@@ -1332,9 +1334,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.946
+  motive (Float.ofScientific 25 true 1) : Sort ?u.1439
 but is expected to have type
-  motive x✝ : Sort ?u.946
+  motive x✝ : Sort ?u.1439
 -/
 #check_msgs in
 def twoPointFive? : Float → Option Float
@@ -1391,7 +1393,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1743, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.2638, ok := ⋯ } : OnlyThreeOrFive
 -/
 #check_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1439,9 +1441,21 @@ This {tech}[indexed family] describes mostly-balanced trees, with the depth enco
 ```lean
 inductive BalancedTree (α : Type u) : Nat → Type u where
   | empty : BalancedTree α 0
-  | branch (left : BalancedTree α n) (val : α) (right : BalancedTree α n) : BalancedTree α (n + 1)
-  | lbranch (left : BalancedTree α (n + 1)) (val : α) (right : BalancedTree α n) : BalancedTree α (n + 2)
-  | rbranch (left : BalancedTree α n) (val : α) (right : BalancedTree α (n + 1)) : BalancedTree α (n + 2)
+  | branch
+    (left : BalancedTree α n)
+    (val : α)
+    (right : BalancedTree α n) :
+    BalancedTree α (n + 1)
+  | lbranch
+    (left : BalancedTree α (n + 1))
+    (val : α)
+    (right : BalancedTree α n) :
+    BalancedTree α (n + 2)
+  | rbranch
+    (left : BalancedTree α n)
+    (val : α)
+    (right : BalancedTree α (n + 1)) :
+    BalancedTree α (n + 2)
 ```
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
@@ -1461,7 +1475,9 @@ depth : Nat
 Matching on the expected depth and inserting holes results in an error message for each hole.
 These messages demonstrate that the expected type has been refined, with `depth` replaced by the matched values.
 ```lean (error := true) (name := fill2)
-def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth :=
+def BalancedTree.filledWith
+    (x : α) (depth : Nat) :
+    BalancedTree α depth :=
   match depth with
   | 0 => _
   | n + 1 => _
@@ -1487,7 +1503,7 @@ depth n : Nat
 
 Matching on the depth of a tree and the tree itself leads to a refinement of the tree's type according to the depth's pattern.
 This means that certain combinations are not well-typed, such as {lean}`0` and {name BalancedTree.branch}`branch`, because refining the second discriminant's type yields {lean}`BalancedTree α 0` which does not match the constructor's type.
-````lean (name := patfail) (error := true)
+```lean (name := patfail) (error := true)
 def BalancedTree.isPerfectlyBalanced
     (n : Nat) (t : BalancedTree α n) : Bool :=
   match n, t with
@@ -1496,7 +1512,7 @@ def BalancedTree.isPerfectlyBalanced
     isPerfectlyBalanced left &&
     isPerfectlyBalanced right
   | _, _ => false
-````
+```
 ```leanOutput patfail
 type mismatch
   left.branch val right
@@ -1706,9 +1722,9 @@ No {tech}[ι-reduction] is possible, because the value being matched is a variab
 In the case of {lean}`k + 1`, that is, {lean}`Nat.add k (.succ .zero)`, the second pattern matches, so it reduces to {lean}`Nat.succ (Nat.add k .zero)`.
 The second pattern now matches, yielding {lean}`Nat.succ k`, which is a valid pattern.
 :::
-````lean (show := false)
+```lean (show := false)
 end
-````
+```
 
 ::::
 

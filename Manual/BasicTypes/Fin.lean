@@ -102,7 +102,7 @@ numerals are polymorphic in Lean, but the numeral `0` cannot be used in a contex
   Fin 0
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 ```lean (error := true) (name := finK)
@@ -115,7 +115,7 @@ numerals are polymorphic in Lean, but the numeral `0` cannot be used in a contex
   Fin k
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 :::

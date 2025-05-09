@@ -366,9 +366,9 @@ tag := "inductive-types-runtime-special-support"
 
 Not every inductive type is represented as indicated here—some inductive types have special support from the Lean compiler:
 :::keepEnv
-````lean (show := false)
+```lean (show := false)
 axiom α : Prop
-````
+```
 
  * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
    Fixed-width integer types that are strictly smaller than the architecture's pointer type are stored unboxed by setting the lowest bit of a pointer to `1`.
@@ -473,7 +473,7 @@ The memory order of the fields is derived from the types and order of the fields
 * Fields of type {lean}`USize`
 * Other scalar fields, in decreasing order by size
 
-Within each group the fields are ordered in declaration order. **Warning**: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
+Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
 
 * To access fields of the first kind, use {c}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
 * To access {lean}`USize` fields, use {c}`lean_ctor_get_usize(val, n+i)` to get the {c}`i`th `USize` field and {c}`n` is the total number of fields of the first kind.
@@ -552,7 +552,9 @@ example : OddList String := .cons "x" (.cons "y" (.cons "z" .nil))
 example : OddList String := .cons "x" (.cons "y" .nil)
 ```
 ```leanOutput evenOddMut
-invalid dotted identifier notation, unknown identifier `OddList.nil` from expected type
+Unknown identifier `OddList.nil`
+
+Note: Inferred this identifier from the expected type of `.nil`:
   OddList String
 ```
 :::
@@ -582,7 +584,9 @@ mutual
   inductive FreshList (α : Type) (r : α → α → Prop) : Type where
     | nil : FreshList α r
     | cons (x : α) (xs : FreshList α r) (fresh : Fresh r x xs)
-  inductive Fresh (r : α → FreshList α → Prop) : α → FreshList α r → Prop where
+  inductive Fresh
+      (r : α → FreshList α → Prop) :
+      α → FreshList α r → Prop where
     | nil : Fresh r x .nil
     | cons : r x y → (f : Fresh r x ys) → Fresh r x (.cons y ys f)
 end
@@ -659,11 +663,16 @@ These mutually-inductive types are a somewhat complicated way to represent run-l
 mutual
   inductive RLE : List α → Type where
   | nil : RLE []
-  | run (x : α) (n : Nat) : n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
+  | run (x : α) (n : Nat) :
+    n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
 
   inductive PrefixRunOf : Nat → α → List α → List α → Type where
-  | zero (noMore : ¬∃zs, xs = x :: zs := by simp) : PrefixRunOf 0 x xs xs
-  | succ : PrefixRunOf n x xs ys → PrefixRunOf (n + 1) x (x :: xs) ys
+  | zero
+    (noMore : ¬∃zs, xs = x :: zs := by simp) :
+    PrefixRunOf 0 x xs xs
+  | succ :
+    PrefixRunOf n x xs ys →
+    PrefixRunOf (n + 1) x (x :: xs) ys
 end
 
 example : RLE [1, 1, 2, 2, 3, 1, 1, 1] :=
@@ -682,11 +691,18 @@ Specifying {name}`PrefixRunOf` as a {lean}`Prop` would be sensible, but it canno
 mutual
   inductive RLE : List α → Type where
   | nil : RLE []
-  | run (x : α) (n : Nat) : n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
+  | run
+    (x : α) (n : Nat) :
+    n ≠ 0 → PrefixRunOf n x xs ys → RLE ys →
+    RLE xs
 
   inductive PrefixRunOf : Nat → α → List α → List α → Prop where
-  | zero (noMore : ¬∃zs, xs = x :: zs := by simp) : PrefixRunOf 0 x xs xs
-  | succ : PrefixRunOf n x xs ys → PrefixRunOf (n + 1) x (x :: xs) ys
+  | zero
+    (noMore : ¬∃zs, xs = x :: zs := by simp) :
+    PrefixRunOf 0 x xs xs
+  | succ :
+    PrefixRunOf n x xs ys →
+    PrefixRunOf (n + 1) x (x :: xs) ys
 end
 ```
 ```leanOutput rleBad

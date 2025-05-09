@@ -350,20 +350,44 @@ Executables have a single `exe` facet that consists of the executable binary.
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`module.bc, `module.bc.o, `module.c, `module.c.o, `module.c.o.export, `module.c.o.noexport, `module.deps,
-  `module.dynlib, `module.ilean, `module.imports, `module.leanArts, `module.o, `module.o.export, `module.o.noexport,
-  `module.olean, `module.precompileImports, `module.transImports]
+info: module.bc
+module.bc.o
+module.c
+module.c.o
+module.c.o.export
+module.c.o.noexport
+module.deps
+module.dynlib
+module.header
+module.ilean
+module.imports
+module.input
+module.lean
+module.leanArts
+module.o
+module.o.export
+module.o.noexport
+module.olean
+module.olean.private
+module.olean.server
+module.precompileImports
+module.setup
+module.transImports
 -/
 #guard_msgs in
-#eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
+#eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString) |>.forM (IO.println)
 ```
 
 :::paragraph
 The facets available for modules are:
 
+: `lean`
+
+  The module's Lean source file.
+
 : `leanArts` (default)
 
- The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files)
+ The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
 
 : `deps`
 
@@ -371,11 +395,19 @@ The facets available for modules are:
 
 : `olean`
 
- The module's {tech}[`.olean` file]
+ The module's {tech}[`.olean` file]. {TODO}[Once module system lands fully, add docs for `olean.private` and `olean.server`]
 
 : `ilean`
 
- The module's `.ilean` file, which is metadata used by the Lean language server
+ The module's `.ilean` file, which is metadata used by the Lean language server.
+
+: `header`
+
+  The parsed module header of the module's source file.
+
+: `input`
+
+  The module's processed Lean source file. Combines tracing the file with parsing its header.
 
 : `imports`
 
@@ -389,13 +421,22 @@ The facets available for modules are:
 
   The transitive imports of the Lean module, as {tech}[`.olean` files].
 
+: `allImports`
+
+  Both the immediate and transitive imports of the Lean module.
+
+: `setup`
+
+  All of a module's dependencies: transitive local imports and shared libraries to be loaded with `--load-dynlib`.
+  Returns the list of shared libraries to load along with their search path.
+
 : `c`
 
- The C file produced by the Lean compiler
+ The C file produced by the Lean compiler.
 
 : `bc`
 
- LLVM bitcode file, produced by the Lean compiler
+ LLVM bitcode file, produced by the Lean compiler.
 
 : `c.o`
 
@@ -411,15 +452,15 @@ The facets available for modules are:
 
 : `bc.o`
 
- The compiled object file, produced from the LLVM bitcode file
+ The compiled object file, produced from the LLVM bitcode file.
 
 : `o`
 
- The compiled object file for the configured backend
+ The compiled object file for the configured backend.
 
 : `dynlib`
 
-  A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here]
+  A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here].
 
 :::
 
@@ -438,7 +479,7 @@ Because they are Lean definitions, Lake scripts can only be defined in the Lean 
 
 Restore the following once we can import enough of Lake to elaborate it
 
-`````
+````
 ```lean (show := false)
 section
 open Lake DSL
@@ -466,7 +507,7 @@ script "list-deps" := do
 ```lean (show := false)
 end
 ```
-`````
+````
 
 :::::
 
@@ -484,7 +525,7 @@ Lint drivers may be executables or scripts, which are run by {lake}`lint`.
 A test or lint driver can be configured by either setting the {tomlField Lake.PackageConfig}`testDriver` or {tomlField Lake.PackageConfig}`lintDriver` package configuration options or by tagging a script, executable, or library with the `test_driver` or `lint_driver` attribute in a Lean-format configuration file.
 A definition in a dependency can be used as a test or lint driver by using the `<pkg>/<name>` syntax for the appropriate configuration option.
 :::TODO
-Restore the ``{attr}`` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
+Restore the `{attr}` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
 :::
 
 ## GitHub Release Builds

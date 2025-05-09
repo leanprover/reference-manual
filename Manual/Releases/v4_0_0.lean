@@ -18,7 +18,7 @@ tag := "release-v4.0.0"
 file := "v4.0.0"
 %%%
 
-`````markdown
+````markdown
 * [`Lean.Meta.getConst?` has been renamed](https://github.com/leanprover/lean4/pull/2454).
   We have renamed `getConst?` to `getUnfoldableConst?` (and `getConstNoEx?` to `getUnfoldableConstNoEx?`).
   These were not intended to be part of the public API, but downstream projects had been using them
@@ -137,4 +137,4 @@ file := "v4.0.0"
 
 * Many new doc strings have been added to declarations at `Init`.
 
-`````
+````

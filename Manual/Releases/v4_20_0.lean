@@ -11,6 +11,8 @@ import Manual.Meta.Markdown
 open Manual
 open Verso.Genre
 
+-- TODO: figure out why this is needed with the new codegen
+set_option maxRecDepth 9000
 
 #doc (Manual) "Lean 4.20.0 (2025-06-02)" =>
 %%%

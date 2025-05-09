@@ -501,9 +501,9 @@ Evaluating the first field index of {name}`coords` yields the underlying {name}`
 
 The elaborator translates {lean}`coords.fst` into {lean}`coords.toPair.fst`.
 
-````lean (show := false) (keep := false)
+```lean (show := false) (keep := false)
 example (t : Triple α) : t.fst = t.toPair.fst := rfl
-````
+```
 ::::
 
 :::: example "No structure subtyping"

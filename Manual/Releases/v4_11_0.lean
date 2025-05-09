@@ -18,7 +18,7 @@ tag := "release-v4.11.0"
 file := "v4.11.0"
 %%%
 
-`````markdown
+````markdown
 ### Language features, tactics, and metaprograms
 
 * The variable inclusion mechanism has been changed. Like before, when a definition mentions a variable, Lean will add it as an argument of the definition, but now in theorem bodies, variables are not included based on usage in order to ensure that changes to the proof cannot change the statement of the overall theorem. Instead, variables are only available to the proof if they have been mentioned in the theorem header or in an **`include` command** or are instance implicit and depend only on such variables. The **`omit` command** can be used to omit included variables.
@@ -354,4 +354,4 @@ and related error handling.
 
   For porting, a new option `deprecated.oldSectionVars` is included to locally switch back to the old behavior.
 
-`````
+````

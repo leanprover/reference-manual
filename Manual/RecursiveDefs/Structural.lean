@@ -17,6 +17,8 @@ open Verso.Genre.Manual.InlineLean
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
+set_option guard_msgs.diff true
+
 #doc (Manual) "Structural Recursion" =>
 %%%
 tag := "structural-recursion"
@@ -157,7 +159,8 @@ The decreasing parameter's type must be an inductive type.
 In {lean}`notInductive`, a function is specified as the decreasing parameter:
 
 ```lean (error := true) (name := badnoindct)
-def notInductive (x : Nat → Nat) : Nat := notInductive (fun n => x (n+1))
+def notInductive (x : Nat → Nat) : Nat :=
+  notInductive (fun n => x (n+1))
 termination_by structural x
 ```
 ```leanOutput badnoindct
@@ -573,7 +576,7 @@ set_option pp.all true in
 trace: [Elab.definition.body] half : Nat → Nat :=
     fun (x : Nat) =>
       half.match_1.{1} (fun (x : Nat) => Nat) x (fun (_ : Unit) => Nat.zero) (fun (_ : Unit) => Nat.zero)
-        fun (n : Nat) => Nat.succ (half n)
+        fun (n : Nat) => Nat.succ (_root_.half n)
 -/
 #guard_msgs in
 def half : Nat → Nat
