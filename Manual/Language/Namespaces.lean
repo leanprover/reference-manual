@@ -70,7 +70,7 @@ Names that are declared within the section scope are added to the current namesp
 If the declared name has more than one component, then its namespace is nested within the current namespace; the body of the declaration's current namespace is the nested namespace.
 Section scopes also include a set of {deftech}_opened namespaces_, which are namespaces whose contents are in scope without additional qualification.
 {tech key:="resolve"}[Resolving] an identifier to a particular name takes the current namespace and opened namespaces into account.
-However, {deftech}[protected] declarations (that is, those with the {keyword}`protected` {ref "declaration-modifiers"}[modifier]) are not brought into scope their namespace is opened.
+However, {deftech}[protected] declarations (that is, those with the {keyword}`protected` {ref "declaration-modifiers"}[modifier]) are not brought into scope when their namespace is opened.
 The rules for resolving identifiers into names that take the current namespace and opened namespaces into account are described in the {ref "identifiers-and-resolution"}[section on identifiers as terms].
 
 :::example "Current Namespace"
