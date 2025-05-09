@@ -125,16 +125,16 @@ fun {α} act => liftM act : {α : Type} → BaseIO α → EIO IO.Error α
 ::::example "Lifting Transformed Monads"
 There are also instances of {name}`MonadLift` for most of the standard library's {tech}[monad transformers], so base monad actions can be used in transformed monads without additional work.
 For example, state monad actions can be lifted across reader and exception transformers, allowing compatible monads to be intermixed freely:
-````lean (keep := false)
+```lean (keep := false)
 def incrBy (n : Nat) : StateM Nat Unit := modify (· + n)
 
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
-````
+```
 
 Disabling lifting causes an error:
-````lean (name := noLift) (error := true)
+```lean (name := noLift) (error := true)
 set_option autoLift false
 
 def incrBy (n : Nat) : StateM Nat Unit := modify (. + n)
@@ -142,7 +142,7 @@ def incrBy (n : Nat) : StateM Nat Unit := modify (. + n)
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
-````
+```
 ```leanOutput noLift
 type mismatch
   incrBy __do_lift✝
@@ -212,7 +212,8 @@ def getByte (n : Nat) : Except String UInt8 :=
     pure n.toUInt8
   else throw s!"Out of range: {n}"
 
-def getBytes (input : Array Nat) : StateT (Array UInt8) (Except String) Unit := do
+def getBytes (input : Array Nat) :
+    StateT (Array UInt8) (Except String) Unit := do
   input.forM fun i =>
     liftM (Except.tryCatch (some <$> getByte i) fun _ => pure none) >>=
       fun
@@ -233,7 +234,10 @@ Ideally, state updates would be performed within the {name}`tryCatch` call direc
 
 Attempting to save bytes and handled exceptions does not work, however, because the arguments to {name}`Except.tryCatch` have type {lean}`Except String Unit`:
 ```lean (error := true) (name := getBytesErr) (keep := false)
-def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+def getBytes' (input : Array Nat) :
+    StateT (Array String)
+      (StateT (Array UInt8)
+        (Except String)) Unit := do
   input.forM fun i =>
     liftM
       (Except.tryCatch
@@ -246,7 +250,7 @@ def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) 
 failed to synthesize
   MonadStateOf (Array String) (Except String)
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 Because {name}`StateT` has a {name}`MonadControl` instance, {name}`control` can be used instead of {name}`liftM`.
@@ -254,7 +258,10 @@ It provides the inner action with an interpreter for the outer monad.
 In the case of {name}`StateT`, this interpreter expects that the inner monad returns a tuple that includes the updated state, and takes care of providing the initial state and extracting the updated state from the tuple.
 
 ```lean
-def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+def getBytes' (input : Array Nat) :
+    StateT (Array String)
+      (StateT (Array UInt8)
+        (Except String)) Unit := do
   input.forM fun i =>
     control fun run =>
       (Except.tryCatch

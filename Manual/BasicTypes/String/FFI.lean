@@ -37,17 +37,17 @@ The representation of strings in C. See {ref "string-runtime"}[the description o
 :::
 
 :::ffi "lean_is_string"
-````
+```
 bool lean_is_string(lean_object * o)
-````
+```
 
 Returns `true` if `o` is a string, or `false` otherwise.
 :::
 
 :::ffi "lean_to_string"
-````
+```
 lean_string_object * lean_to_string(lean_object * o)
-````
+```
 Performs a runtime check that `o` is indeed a string. If `o` is not a string, an assertion fails.
 :::
 

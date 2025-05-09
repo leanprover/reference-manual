@@ -915,7 +915,7 @@ def withOpenedNamespaces (nss : List Name) (act : DocElabM α) : DocElabM α :=
 
 
 inductive SearchableTag where
-  | meta
+  | metavar
   | keyword
   | literalIdent
   | ws
@@ -924,13 +924,13 @@ deriving DecidableEq, Ord, Repr
 open Lean.Syntax in
 instance : Quote SearchableTag where
   quote
-    | .meta => mkCApp ``SearchableTag.meta #[]
+    | .metavar => mkCApp ``SearchableTag.metavar #[]
     | .keyword => mkCApp ``SearchableTag.keyword #[]
     | .literalIdent => mkCApp ``SearchableTag.literalIdent #[]
     | .ws => mkCApp ``SearchableTag.ws #[]
 
 def SearchableTag.toKey : SearchableTag → String
-  | .meta => "meta"
+  | .metavar => "meta"
   | .keyword => "keyword"
   | .literalIdent => "literalIdent"
   | .ws => "ws"
@@ -941,7 +941,7 @@ instance : ToJson SearchableTag where
   toJson := SearchableTag.toJson
 
 def SearchableTag.fromJson? : Json → Except String SearchableTag
-  | .str "meta" => pure .meta
+  | .str "meta" => pure .metavar
   | .str "keyword" => pure .keyword
   | .str "literalIdent" => pure .literalIdent
   | .str "ws" => pure .ws
@@ -967,7 +967,7 @@ def searchableJson (ss : Array (SearchableTag × String)) : Json :=
 partial def searchable (cat : Name) (txt : TaggedText GrammarTag) : Array (SearchableTag × String) :=
   (go txt *> get).run' #[] |> fixup
 where
-  dots : SearchableTag × String := (.meta, "…")
+  dots : SearchableTag × String := (.metavar, "…")
   go : TaggedText GrammarTag → StateM (Array (SearchableTag × String)) String
     | .text s => do
       ws s
@@ -1007,9 +1007,9 @@ where
           if st.isEmpty then return st
         -- Don't parenthesize just "..."
         | ")" | ")?" | ")*" =>
-          if let some st' := suffixMatches #[(· == (.meta, "(")) , (· == dots)] st then return st'.push dots
+          if let some st' := suffixMatches #[(· == (.metavar, "(")) , (· == dots)] st then return st'.push dots
         | _ => pure ()
-        return st.push (.meta, s)
+        return st.push (.metavar, s)
       pure s
     | .tag other txt => do
       go txt
@@ -1019,7 +1019,7 @@ where
     | `command => Id.run do
       -- Drop leading ellipses from commands
       for h : i in [0:s.size] do
-        if s[i] ∉ [dots, (.meta, "?"), (.ws, " ")] then return s.extract i s.size
+        if s[i] ∉ [dots, (.metavar, "?"), (.ws, " ")] then return s.extract i s.size
       return s
     | _ => s
   ws (s : String) : StateM (Array (SearchableTag × String)) Unit := do
@@ -1051,7 +1051,7 @@ where
       -- Don't push ellipsis onto ellipsis
       if let some _ := suffixMatches #[(· == dots)] st then st
       -- Don't alternate ellipses
-      else if let some st' := suffixMatches #[(· == dots), (· == (.meta, "|"))] st then st'.push dots
+      else if let some st' := suffixMatches #[(· == dots), (· == (.metavar, "|"))] st then st'.push dots
       else st.push dots
 
 
@@ -1061,19 +1061,19 @@ where
 
 /-- info: some #[(Manual.SearchableTag.keyword, "aaa")] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == (.meta, "(")), (· == searchable.dots)] #[(.keyword, "aaa"),(.meta, "("), (.ws, " "),(.meta, "…")]
+#eval searchable.suffixMatches #[(· == (.metavar, "(")), (· == searchable.dots)] #[(.keyword, "aaa"),(.metavar, "("), (.ws, " "),(.metavar, "…")]
 
 /-- info: some #[(Manual.SearchableTag.keyword, "aaa")] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.keyword, "aaa"),(.meta, "…"), (.ws, " ")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.keyword, "aaa"),(.metavar, "…"), (.ws, " ")]
 
 /-- info: some #[] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.meta, "…"), (.ws, " ")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…"), (.ws, " ")]
 
 /-- info: some #[] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.meta, "…")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…")]
 
 open Manual.Meta.PPrint Grammar in
 /--

@@ -81,7 +81,7 @@ def LenList.head (xs : LenList (n + 1) α) : α :=
   xs.list.head <| by
     intro h
     cases xs
-    simp_all [List.length]
+    simp_all
     subst_eqs
 
 def LenList.tail (xs : LenList (n + 1) α) : LenList n α :=
@@ -120,7 +120,8 @@ The well-behaved {name}`Monad` instance takes the diagonal of the results of app
 
 ```lean
 @[simp]
-theorem LenList.list_length_eq (xs : LenList n α) : xs.list.length = n := by
+theorem LenList.list_length_eq (xs : LenList n α) :
+    xs.list.length = n := by
   cases xs
   simp [*]
 

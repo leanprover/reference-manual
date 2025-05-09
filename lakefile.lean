@@ -8,7 +8,7 @@ open Lake DSL
 open System (FilePath)
 
 require MD4Lean from git "https://github.com/acmepjz/md4lean"@"main"
-require verso from git "https://github.com/leanprover/verso.git"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -19,6 +19,7 @@ package "verso-manual" where
       #["-Wl,-ignore_optimization_hints"]
     else #[]
 
+  leanOptions := #[⟨`weak.verso.code.warnLineLength, .ofNat 72⟩]
 
 lean_lib Manual where
 

@@ -11,6 +11,8 @@ import Manual.Meta.Markdown
 open Manual
 open Verso.Genre
 
+-- TODO: investigate why the Markdown elaboration is taking this much stack in the new compiler
+set_option maxRecDepth 9500
 
 #doc (Manual) "Lean 4.17.0 (2025-03-03)" =>
 %%%
@@ -18,7 +20,7 @@ tag := "release-v4.17.0"
 file := "v4.17.0"
 %%%
 
-`````markdown
+````markdown
 
 For this release, 319 changes landed. In addition to the 168 feature additions and 57 fixes listed below there were 12 refactoring changes, 13 documentation improvements and 56 chores.
 
@@ -1127,4 +1129,4 @@ new `changelog-*` labels and "..." conventions.
 * [#6542](https://github.com/leanprover/lean4/pull/6542) introduces a script that automates checking whether major
 downstream repositories have been updated for a new toolchain release.
 
-`````
+````

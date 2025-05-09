@@ -18,7 +18,7 @@ tag := "release-v4.0.0-m4"
 file := "v4.0.0-m4"
 %%%
 
-`````markdown
+````markdown
 This is the fourth milestone release of Lean 4. It contains many improvements and many new features.
 We had more than 600 commits since the last milestone.
 
@@ -336,4 +336,4 @@ For example, given `f : Nat → Nat` and `g : Nat → Nat`, `f.comp g` is now no
 
   end Lean.Elab
   ```
-`````
+````

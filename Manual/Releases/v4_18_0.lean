@@ -11,6 +11,8 @@ import Manual.Meta.Markdown
 open Manual
 open Verso.Genre
 
+-- TODO: investigate why this is needed in the new compiler
+set_option maxRecDepth 9900
 
 #doc (Manual) "Lean 4.18.0 (2025-04-02)" =>
 %%%
@@ -18,7 +20,7 @@ tag := "release-v4.18.0"
 file := "v4.18.0"
 %%%
 
-`````markdown
+````markdown
 For this release, 344 changes landed. In addition to the 166 feature additions and 38 fixes listed below there were 13 refactoring changes, 10 documentation improvements, 3 performance improvements, 4 improvements to the test suite and 109 other changes.
 
 ## Highlights
@@ -154,7 +156,7 @@ Important Library updates include:
   `<` on `Option`.
 
 Significant development has been made in the verification APIs of `BitVec`
-and fixed-width integer types (`IntX`), along with ongoing work to align 
+and fixed-width integer types (`IntX`), along with ongoing work to align
 `List/Array/Vector` APIs. Several lemmas about `Int.ediv/fdiv/tdiv` have
 been strengthened.
 
@@ -208,9 +210,9 @@ _This summary of highlights was contributed by Violetta Sim._
 
 * [#6947](https://github.com/leanprover/lean4/pull/6947) adds the `binderNameHint` gadget. It can be used in rewrite and
   simp rules to preserve a user-provided name where possible.
-  
+
   The expression `binderNameHint v binder e` defined to be `e`.
-  
+
   If it is used on the right-hand side of an equation that is applied by
   a tactic like `rw` or `simp`, and `v` is a local variable, and `binder`
   is an expression that (after beta-reduction) is a binder (so `fun w => …` or `∀ w, …`),
@@ -956,7 +958,7 @@ The `grind` tactic is still is experimental and still under development. Avoid u
 
   **Breaking Change**: The semantic highlighting request handler is not a pure
   request handler anymore, but a stateful one. Notably, this means that clients
-  that extend the semantic highlighting of the Lean language server with the 
+  that extend the semantic highlighting of the Lean language server with the
   `chainLspRequestHandler` function must now use the `chainStatefulLspRequestHandler`
   function instead.
 
@@ -1131,4 +1133,4 @@ The `grind` tactic is still is experimental and still under development. Avoid u
   added this OLEAN_OUT to LEAN_PATH no oleans were found there and the
   search fell back to the stage1 installation location.
 
-`````
+````

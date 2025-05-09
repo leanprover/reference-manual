@@ -918,9 +918,9 @@ some 4
 :::example "Scoped Macros"
 Scoped macro rules are active only in their namespace.
 When the namespace `ConfusingNumbers` is open, numeric literals will be assigned an incorrect meaning.
-````lean
+```lean
 namespace ConfusingNumbers
-````
+```
 
 The following macro recognizes terms that are odd numeric literals, and replaces them with double their value.
 If it unconditionally replaced them with double their value, then macro expansion would become an infinite loop because the same rule would always match the output.
@@ -934,9 +934,9 @@ scoped macro_rules
 ```
 
 Once the namespace ends, the macro is no longer used.
-````lean
+```lean
 end ConfusingNumbers
-````
+```
 
 Without opening the namespace, numeric literals function in the usual way.
 ```lean (name := nums1)

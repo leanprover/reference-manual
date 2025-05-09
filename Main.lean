@@ -15,13 +15,10 @@ def searchModule := {{
     <script type="module" src="/static/search/search-init.js"></script>
   }}
 
-
 open Verso.Output.Html in
 def plausible := {{
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
-
-
 
 def fuzzysortLicense : LicenseInfo where
   identifier := "MIT"

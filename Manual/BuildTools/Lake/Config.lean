@@ -7,8 +7,8 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake.DSL.Syntax
 import Lake.Config.Monad
+import Lake.DSL
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
@@ -179,7 +179,8 @@ name = "example-package"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache? := none},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -194,7 +195,8 @@ name = "example-package"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -258,7 +260,8 @@ name = "Sorting"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache? := none},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -341,7 +344,8 @@ name = "Sorting"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -796,13 +800,14 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 
+
+{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 :::TODO
-It's presently impossible to import Lake.DSL.AttributesCore due to initialization changes, so `default_target` can't be rendered/checked as an attribute above. This should be fixed upstream.
+Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
-:::syntax attr (title := "Specifying Default Targets") (label := "attribute")
+:::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
 
 ```grammar
 default_target
@@ -1019,7 +1024,7 @@ Whitespace is not permitted between the name and `.*` or `.+`.
 
 
 
-{docstring Lake.LeanOption (allowMissing := true)}
+{docstring Lake.LeanOption}
 
 {docstring Lake.Backend}
 

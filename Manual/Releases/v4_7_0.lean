@@ -18,7 +18,7 @@ tag := "release-v4.7.0"
 file := "v4.7.0"
 %%%
 
-`````markdown
+````markdown
 * `simp` and `rw` now use instance arguments found by unification,
   rather than always resynthesizing. For backwards compatibility, the original behaviour is
   available via `set_option tactic.skipAssignedInstances false`.
@@ -202,4 +202,4 @@ Other improvements:
 Lake fixes:
 * Warn on fetch cloud release failure [#3401](https://github.com/leanprover/lean4/pull/3401)
 * Cloud release trace & `lake build :release` errors [#3248](https://github.com/leanprover/lean4/pull/3248)
-`````
+````
