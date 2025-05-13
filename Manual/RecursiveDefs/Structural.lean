@@ -570,7 +570,7 @@ set_option trace.Elab.definition.body true in
 set_option pp.all true in
 
 /--
-info: [Elab.definition.body] half : Nat → Nat :=
+trace: [Elab.definition.body] half : Nat → Nat :=
     fun (x : Nat) =>
       half.match_1.{1} (fun (x : Nat) => Nat) x (fun (_ : Unit) => Nat.zero) (fun (_ : Unit) => Nat.zero)
         fun (n : Nat) => Nat.succ (half n)

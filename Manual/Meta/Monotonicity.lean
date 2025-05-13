@@ -9,7 +9,6 @@ import Verso
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
-import Manual.Meta.Table
 
 open Lean Meta Elab
 open Verso Doc Elab Manual
