@@ -273,9 +273,9 @@ example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $c
 ```
 The result is two type errors like the following:
 ```leanOutput cmdQuot
-application type mismatch
+Application type mismatch: In the appplication
   cmd1.raw
-argument
+the final argument
   cmd1
 has type
   TSyntax `command : Type
@@ -602,20 +602,15 @@ The optional suffix `?` in syntax and splices correspond with each other.
 
 
 :::table (header := true)
- * ignore
-   - Syntax Repetition
+ * - Syntax Repetition
    - Splice Suffix
- * ignore
-   - `+` `*`
+ * - `+` `*`
    - `*`
- * ignore
-   - `,*` `,+` `,*,?` `,+,?`
+ * - `,*` `,+` `,*,?` `,+,?`
    - `,*`
- * ignore
-   - `sepBy(_, "S")` `sepBy1(_, "S")`
+ * - `sepBy(_, "S")` `sepBy1(_, "S")`
    - `S*`
- * ignore
-   - `?`
+ * - `?`
    - `?`
 :::
 
