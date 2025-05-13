@@ -117,9 +117,9 @@ example : LengthList String 5 :=
   ("Wrong", "number", ())
 ```
 ```leanOutput wrongNum
-application type mismatch
+Application type mismatch: In the appplication
   ("number", ())
-argument
+the final argument
   ()
 has type
   Unit : Type

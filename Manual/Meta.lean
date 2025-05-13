@@ -28,7 +28,6 @@ import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
-import Manual.Meta.Table
 import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown

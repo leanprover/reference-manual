@@ -239,10 +239,10 @@ A term followed by a sequence of items is translated to a use of {name}`bind`; i
 
 
 :::table (header := true)
-* ignored
+*
   * {keywordOf Lean.Parser.Term.do}`do` Item
   * Desugaring
-* ignored
+*
   * ```leanTerm
     do
     e1
@@ -292,10 +292,10 @@ let $v := $e:term
 {lean}`do let x := e; es` is translated to {lean}`let x := e; do es`.
 
 :::table (header := true)
-* ignored
+*
   * {keywordOf Lean.Parser.Term.do}`do` Item
   * Desugaring
-* ignored
+*
   * ```leanTerm
     do
     let x ← e1
@@ -305,7 +305,7 @@ let $v := $e:term
     e1 >>= fun x =>
       do es
     ```
-* ignored
+*
   * ```leanTerm
     do
     let some x ← e1?
@@ -318,7 +318,7 @@ let $v := $e:term
         es
       | _ => fallback
     ```
-* ignored
+*
   * ```leanTerm
     do
     let x := e
@@ -370,10 +370,10 @@ Multiple occurrences of `←` are processed from left to right, inside to outsid
 
 ::::figure "Example Nested Action Desugarings"
 :::table (header := true)
-* ignored
+*
   * Example {keywordOf Lean.Parser.Term.do}`do` Item
   * Desugaring
-* ignored
+*
   * ```leanTerm
     do
     f (← e1) (← e2)
@@ -386,7 +386,7 @@ Multiple occurrences of `←` are processed from left to right, inside to outsid
     f x y
     es
     ```
-* ignored
+*
   * ```leanTerm
     do
     let x := g (← h (← e1))
@@ -632,10 +632,10 @@ macro "…" : term => `((«<b>» : β))
 ```
 
 :::table (header := true)
-* ignored
+*
   * {keywordOf Lean.Parser.Term.do}`do` Item
   * Desugaring
-* ignored
+*
   * ```leanTerm (type := "m α")
     do
     let mut b := …
@@ -651,7 +651,7 @@ macro "…" : term => `((«<b>» : β))
       return ForInStep.yield b
     es
     ```
-* ignored
+*
   * ```leanTerm (type := "m α")
     do
     let mut b := …
@@ -668,7 +668,7 @@ macro "…" : term => `((«<b>» : β))
       return ForInStep.done b
     es
     ```
-* ignored
+*
   * ```leanTerm (type := "m α")
     do
     let mut b := …
@@ -684,7 +684,7 @@ macro "…" : term => `((«<b>» : β))
       return ForInStep.yield b
     es
     ```
-* ignored
+*
   * ```leanTerm (type := "m α")
     do
     let mut b := …

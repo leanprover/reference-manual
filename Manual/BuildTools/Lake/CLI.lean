@@ -143,19 +143,19 @@ Otherwise, the provided command is invoked in Lake's environment.
 ::::paragraph
 The following variables are set, overriding previous values:
 :::table align:=left
-* row
+*
   * {envVar def:=true}`LAKE`
   * The detected Lake executable
-* row
+*
   * {envVar}`LAKE_HOME`
   * The detected {tech}[Lake home]
-* row
+*
   * {envVar}`LEAN_SYSROOT`
   * The detected Lean {tech}[toolchain] directory
-* row
+*
  * {envVar}`LEAN_AR`
  * The detected Lean `ar` binary
-* row
+*
   * {envVar}`LEAN_CC`
   * The detected C compiler (if not using the bundled one)
 :::
@@ -164,20 +164,20 @@ The following variables are set, overriding previous values:
 ::::paragraph
 The following variables are augmented with additional information:
 :::table align:=left
-* row
+*
   * {envVar}`LEAN_PATH`
   * Lake's and the {tech}[workspace]'s Lean {tech}[library directories] are added.
-* row
+*
   * {envVar}`LEAN_SRC_PATH`
   * Lake's and the {tech}[workspace]'s {tech}[source directories] are added.
-* row
+*
   * {envVar}`PATH`
   * Lean's, Lake's, and the {tech}[workspace]'s {tech}[binary directories] are added.
     On Windows, Lean's and the {tech}[workspace]'s {tech}[library directories] are also added.
-* row
+*
   * {envVar}`DYLD_LIBRARY_PATH`
   * On macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
-* row
+*
   * {envVar}`LD_LIBRARY_PATH`
   * On platforms other than Windows and macOS, Lean's and the {tech}[workspace]'s {tech}[library directories] are added.
 :::
@@ -186,20 +186,20 @@ The following variables are augmented with additional information:
 ::::paragraph
 Lake itself can be configured with the following environment variables:
 :::table align:=left
-* row
+*
   * {envVar def:=true}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
-* row
+*
   * {envVar def:=true}`ELAN`
   * The location of the `elan` binary, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
     If it is not set, an occurrence of `elan` must exist on the {envVar}`PATH`.
 
-* row
+*
   * {envVar def:=true}`LAKE_HOME`
   * The location of the Lake installation.
     This environment variable is only consulted when Lake is unable to determine its installation path from the location of the `lake` executable that's currently running.
-* row
+*
   * {envVar def:=true}`LEAN_SYSROOT`
   * The location of the Lean installation, used to find the Lean compiler, the standard library, and other bundled tools.
     Lake first checks whether its binary is colocated with a Lean install, using that installation if so.
@@ -207,12 +207,12 @@ Lake itself can be configured with the following environment variables:
     If this is not set, Lake consults the {envVar def:=true}`LEAN` environment variable to find the Lean compiler, and attempts to find the Lean installation relative to the compiler.
     If {envVar}`LEAN` is set but empty, Lake considers Lean to be disabled.
     If {envVar}`LEAN_SYSROOT` and {envVar}`LEAN` are unset, the first occurrence of `lean` on the {envVar}`PATH` is used to find the installation.
-* row
+*
   * {envVar def:=true}`LEAN_CC` and {envVar def:=true}`LEAN_AR`
   * If {envVar}`LEAN_CC` and/or {envVar}`LEAN_AR` is set, its value is used as the C compiler or `ar` command when building libraries.
     If not, Lake will fall back to the bundled tool in the Lean installation.
     If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
-* row
+*
   * {envVar def:=true}`LAKE_NO_CACHE`
   * If true, Lake does not use cached builds from [Reservoir](https://reservoir.lean-lang.org/) or {ref "lake-github"}[GitHub].
     This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
@@ -507,25 +507,25 @@ They are listed in {ref "lake-facets"}[the section on facets].
 ::::example "Target and Facet Specifications"
 
 :::table
-* ignored
+*
   - `a`
   - The {tech}[default facet](s) of target `a`
-* ignored
+*
   - `@a`
   - The {tech}[default targets] of {tech}[package] `a`
-* ignored
+*
   - `+A`
   -  The Lean artifacts of module `A` (because the default facet of modules is `leanArts`)
-* ignored
+*
   - `@a/b`
   - The default facet of target `b` of package `a`
-* ignored
+*
   - `@a/+A:c`
   - The C file compiled from module `A` of package `a`
-* ignored
+*
   - `:foo`
   - The {tech}[root package]'s facet `foo`
-* ignored
+*
   - `A/B/C.lean:o`
   - The compiled object code for the module in the file `A/B/C.lean`
 :::

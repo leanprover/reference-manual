@@ -10,7 +10,7 @@ This new reference has been rebuilt from the ground up in Verso. This means that
 The latest release of this reference manual can be read [here](https://lean-lang.org/doc/reference/latest/).
 
 For developers:
- * The output of building the current state of the `main` branch can be read [here](https://lean-reference-manual-review.netlify.app/).
+ * The output of building the current state of the `nightly-testing` branch can be read [here](https://lean-reference-manual-review.netlify.app/).
  * Each pull request in this repository causes two separate previews to be generated, one with extra information that's only useful to those actively working on the text, such as TODO notes and symbol coverage progress bars. These are posted by a bot to the PR after the first successful build.
 
 ## Building the Reference Manual Locally

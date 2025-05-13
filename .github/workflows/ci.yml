@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - nightly-testing
   release:
     types:
       - published
@@ -220,7 +221,7 @@ jobs:
     name: Deploy preview
     runs-on: ubuntu-latest
     needs: [build]
-    if: github.event_name == 'push' && github.ref_name == 'main'
+    if: github.event_name == 'push' && github.ref_name == 'nightly-testing'
     steps:
       - name: Get generated HTML from artifact storage
         uses: actions/download-artifact@v4
