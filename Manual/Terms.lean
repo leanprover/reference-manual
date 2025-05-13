@@ -1629,9 +1629,9 @@ def boolCases (b : Bool)
 ```
 The error for the first case is typical of both:
 ```leanOutput boolCases1
-application type mismatch
+Application type mismatch: In the appplication
   ifTrue h
-argument
+the final argument
   h
 has type
   b = true : Prop

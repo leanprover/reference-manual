@@ -171,55 +171,55 @@ The name of the version with an output parameter is undecorated.
 The standard library exports a mix of operations from the `-Of` and undecorated versions of each type class, based on what has good inference behavior in typical use cases.
 
 :::table (header := true)
-  * ignored
+  *
    * Operation
    * From Class
    * Notes
-  * ignored
+  *
    * {name}`get`
    * {name}`MonadState`
    * Output parameter improves type inference
-  * ignored
+  *
    * {name}`set`
    * {name}`MonadStateOf`
    * Semi-output parameter uses type information from {name}`set`'s argument
-  * ignored
+  *
    * {name}`modify`
    * {name}`MonadState`
    * Output parameter is needed to allow functions without annotations
-  * ignored
+  *
    * {name}`modifyGet`
    * {name}`MonadState`
    * Output parameter is needed to allow functions without annotations
-  * ignored
+  *
    * {name}`read`
    * {name}`MonadReader`
    * Output parameter is needed due to lack of type information from arguments
-  * ignored
+  *
    * {name}`readThe`
    * {name}`MonadReaderOf`
    * Semi-output parameter uses the provided type to guide synthesis
-  * ignored
+  *
    * {name}`withReader`
    * {name}`MonadWithReader`
    * Output parameter avoids the need for type annotations on the function
-  * ignored
+  *
    * {name}`withTheReader`
    * {name}`MonadWithReaderOf`
    * Semi-output parameter uses provided type to guide synthesis
-  * ignored
+  *
    * {name}`throw`
    * {name}`MonadExcept`
    * Output parameter enables the use of constructor dot notation for the exception
-  * ignored
+  *
    * {name}`throwThe`
    * {name}`MonadExceptOf`
    * Semi-output parameter uses provided type to guide synthesis
-  * ignored
+  *
    * {name}`tryCatch`
    * {name}`MonadExcept`
    * Output parameter enables the use of constructor dot notation for the exception
-  * ignored
+  *
    * {name}`tryCatchThe`
    * {name}`MonadExceptOf`
    * Semi-output parameter uses provided type to guide synthesis
