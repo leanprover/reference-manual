@@ -95,24 +95,61 @@ end ErrorExplanationCodeInfo
 
 section LeanRendering
 
+/--
+A reference storing the default environment containing only `Init`.
+
+Our assumption is that the considerable majority of error explanation examples
+will not include any imports, so we can avoid repeatedly reloading the
+corresponding environment by caching it at the outset.
+-/
+-- TODO: this should be part of the monadic MD-elab state so we can destruct it
+-- at the end and avoid leaking it
+private initialize defaultEnvRef : IO.Ref (Option Environment) ← IO.mkRef none
+
 open Verso Genre Manual SubVerso Highlighting
 
-def runMWE (input : String) : MetaM (Command.State × Parser.InputContext × Array (Syntax ⊕ Substring)) := do
+-- FIXME: this is consuming absurd amounts of memory -- we must be leaking environments
+def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName   := "<input>"
   let inputCtx   := Parser.mkInputContext input fileName
   let (hdrStx, s, msgs) ← Parser.parseHeader inputCtx
-  let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
+  let (env, msgs, shouldFree) ← if (headerToImports hdrStx).isEmpty then
+    if let some defaultEnv ← defaultEnvRef.get then
+      pure (defaultEnv, msgs, false)
+    else
+      let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
+      defaultEnvRef.set (some env)
+      pure (env, msgs, false)
+  else
+    let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
+    pure (env, msgs, true)
   let cmdState := Command.mkState env msgs
 
   -- If header processing failed, don't try to elaborate the body; however, we
   -- must still parse it for the syntax highlighter
   let shouldElab := !msgs.hasErrors
   let mut (cmdState, stxs) ← processCommands inputCtx s cmdState shouldElab
-
-  -- TODO: improve efficiency
-  stxs := #[hdrStx] ++ stxs
-  let stxOrStrs ← addMissingSubstrs stxs inputCtx
-  return (cmdState, inputCtx, stxOrStrs)
+  try
+    -- TODO: improve efficiency
+    stxs := #[hdrStx] ++ stxs
+    let stxOrStrs ← addMissingSubstrs stxs inputCtx
+    let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
+    let trees := cmdState.infoState.trees
+    let hls ← mkHighlights trees nonSilentMsgs inputCtx stxOrStrs
+    let msgs ← mkMessages nonSilentMsgs
+    -- It is necessary to serialize our outputs to ensure that no references
+    -- to `cmdState.env` are leaked
+    -- TODO: find a less hacky way to do this
+    let json := ToJson.toJson (hls, msgs)
+    IO.FS.withTempDir fun dirName => do
+      let fileName := dirName / "tmp.json"
+      IO.FS.writeFile fileName json.compress
+      let readStr ← IO.FS.readFile fileName
+      let readJson := Json.parse readStr |>.toOption.get!
+      return FromJson.fromJson? readJson |>.toOption.get!
+  finally
+    if shouldFree then
+      unsafe cmdState.env.freeRegions
 where
   processCommands (inputCtx : Parser.InputContext) (s : Parser.ModuleParserState) (cmdState : Command.State) (doElab : Bool) := do
     let mut s := s
@@ -161,76 +198,86 @@ where
       last := stx.getTrailingTailPos?.getD this
     return stxOrStrs
 
+  -- TODO: process messages linearly -- calling this repeatedly for s spans with
+  -- an m-message log should be O(max(m,s)), not O(m*s)
+  findMessagesForUnparsedSpan (ictx : Parser.InputContext) (src : Substring) (msgs : Array Message) : IO Highlighted := do
+    let msgsHere := msgs.filterMap fun m =>
+      let pos := ictx.fileMap.ofPosition m.pos
+      let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
+      if src.startPos ≤ pos && pos ≤ src.stopPos then
+        some (m, pos, min src.stopPos endPos)
+      else
+        none
+
+    if msgsHere.isEmpty then
+      return .text src.toString
+
+    let mut res := #[]
+    for (msg, start, fin) in msgsHere do
+      if src.startPos < start then
+        let initialSubstr := { src with stopPos := start }
+        res := res.push (.text initialSubstr.toString)
+      let kind : Highlighted.Span.Kind :=
+        match msg.severity with
+        | .error => .error
+        | .warning => .warning
+        | .information => .info
+      let content := { src with startPos := start, stopPos := fin }
+      res := res.push (.span #[(kind, ← openUntil.contents msg)] (.text content.toString))
+      if fin < src.stopPos then
+        let finalSubstr := { src with startPos := fin }
+        res := res.push (.text finalSubstr.toString)
+    return .seq res
+
+  withNewline (str : String) :=
+    if str == "" || str.back != '\n' then str ++ "\n" else str
+
+  mkHighlights (trees : PersistentArray InfoTree) (nonSilentMsgs : Array Message) (inputCtx : Parser.InputContext) (cmds : Array (Syntax ⊕ Substring)) := do
+    let mut hls := Highlighted.empty
+    for cmd in cmds do
+      let hl ←
+        match cmd with
+        | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
+                fileMap := inputCtx.fileMap
+                fileName := inputCtx.fileName }) <|
+              highlight cmd nonSilentMsgs trees
+        | .inr cmd =>
+          findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
+      hls := hls ++ hl
+    return hls
+
+  mkMessages (nonSilentMsgs : Array Message) := do
+    let msgs ← nonSilentMsgs.mapM fun msg => do
+      let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+      let txt := withNewline <| head ++ (← msg.data.toString)
+
+      pure (msg.severity, txt)
+    let msgs : Array (MessageSeverity × String) := FromJson.fromJson? (ToJson.toJson msgs) |>.toOption.get!
+    return msgs
+
 private def abbrevFirstLine (width : Nat) (str : String) : String :=
   let str := str.trimLeft
   let short := str.take width |>.replace "\n" "⏎"
   if short == str then short else short ++ "…"
-
--- TODO: calling this repeatedly for s spans with an m-message log should be O(max(m,s)), not O(m*s)
-private def findMessagesForUnparsedSpan (ictx : Parser.InputContext) (src : Substring) (msgs : Array Message) : IO Highlighted := do
-  let msgsHere := msgs.filterMap fun m =>
-    let pos := ictx.fileMap.ofPosition m.pos
-    let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
-    if src.startPos ≤ pos && pos ≤ src.stopPos then
-      some (m, pos, min src.stopPos endPos)
-    else
-      none
-
-  if msgsHere.isEmpty then
-    return .text src.toString
-
-  let mut res := #[]
-  for (msg, start, fin) in msgsHere do
-    if src.startPos < start then
-      let initialSubstr := { src with stopPos := start }
-      res := res.push (.text initialSubstr.toString)
-    let kind : Highlighted.Span.Kind :=
-      match msg.severity with
-      | .error => .error
-      | .warning => .warning
-      | .information => .info
-    let content := { src with startPos := start, stopPos := fin }
-    res := res.push (.span #[(kind, ← openUntil.contents msg)] (.text content.toString))
-    if fin < src.stopPos then
-      let finalSubstr := { src with startPos := fin }
-      res := res.push (.text finalSubstr.toString)
-  return .seq res
 
 
 def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
+    PointOfInterest.save (← getRef) ((config.name.map toString).getD (abbrevFirstLine 20 str.getString))
+      (kind := Lsp.SymbolKind.file)
+      (detail? := some ("Lean code" ++ config.outlineMeta))
+
     let src := str.getString
-    let (cmdState, inputCtx, cmds) ← runMWE src
-    try
-      let mut hls := Highlighted.empty
-      let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
-      for cmd in cmds do
-        let hl ←
-          match cmd with
-          | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
-                  fileMap := inputCtx.fileMap
-                  fileName := inputCtx.fileName }) <|
-                highlight cmd nonSilentMsgs cmdState.infoState.trees
-          | .inr cmd =>
-            findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
-        hls := hls ++ hl
-
-      if let some name := config.name then
-        let msgs ← nonSilentMsgs.mapM fun msg => do
-
-          let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
-          let txt := withNewline <| head ++ (← msg.data.toString)
-
-          pure (msg.severity, txt)
-        saveOutputs name msgs.toList
-      let range : Option Lsp.Range := none
-      pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
-    finally
-      unsafe cmdState.env.freeRegions
-where
-  withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
+    let (hls, msgs) ← processMWE src
+    if let some name := config.name then
+      saveOutputs name msgs.toList
+    -- let myStr := toString hls.isEmpty
+    -- let myStr := "foo"
+    let range : Option Lsp.Range := none
+    pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
+    -- pure #[← ``(Block.para (Inline.text $(quote myStr)))]
 
 end LeanRendering
 
@@ -379,6 +426,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (info? lang : Option Str
       let args := #[(← `(argument| $(mkIdent name.toName):ident))]
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| leanOutput parsedArgs (quote str)
+      -- let blocks := #[← ``(Verso.Doc.Block.para #[Verso.Doc.Inline.code $(quote str)])]
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
     else if kind?.isSome then
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }

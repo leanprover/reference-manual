@@ -80,6 +80,7 @@ def error_explanation_table : BlockRoleExpander
     pure #[← ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name) $(quote alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])]
   | _, _ => throwError "unexpected syntax"
 
+set_option maxHeartbeats 0
 
 #doc (Manual) "Error Explanations" =>
 %%%
