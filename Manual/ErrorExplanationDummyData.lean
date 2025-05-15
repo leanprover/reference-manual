@@ -48,7 +48,7 @@ register_error_explanation Lean.MotiveNotTypeCorrect {
 /--
 For the sake of time, I won't even bother writing examples.
 -/
-register_error_explanation Lean.MyGreatTypeCorrectGoal {
+register_error_explanation Lean.AGreatTypeCorrectGoal {
   summary  := "Your goal was excessively type correct."
   sinceVersion := "4.0.0"
 }
@@ -184,7 +184,7 @@ def foo x := x + 32
 def b := 49
 ```
 
-## Mistyped header
+-- ## Mistyped header
 
 -- ```lean broken
 -- import Wean

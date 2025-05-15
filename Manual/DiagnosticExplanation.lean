@@ -95,12 +95,8 @@ end ErrorExplanationCodeInfo
 
 section LeanRendering
 
-
 open Verso Genre Manual SubVerso Highlighting
 
-deriving instance Repr for Parser.ModuleParserState
-
--- FIXME: this is consuming absurd amounts of memory -- we must be leaking environments
 def runMWE (input : String) : MetaM (Command.State × Parser.InputContext × Array (Syntax ⊕ Substring)) := do
   let fileName   := "<input>"
   let inputCtx   := Parser.mkInputContext input fileName
@@ -205,36 +201,34 @@ def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
-    PointOfInterest.save (← getRef) ((config.name.map toString).getD (abbrevFirstLine 20 str.getString))
-      (kind := Lsp.SymbolKind.file)
-      (detail? := some ("Lean code" ++ config.outlineMeta))
-
     let src := str.getString
     let (cmdState, inputCtx, cmds) ← runMWE src
-    let mut hls := Highlighted.empty
-    let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
-    for cmd in cmds do
-      let hl ←
-        match cmd with
-        | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
-                fileMap := inputCtx.fileMap
-                fileName := inputCtx.fileName }) <|
-              highlight cmd nonSilentMsgs cmdState.infoState.trees
-        | .inr cmd =>
-          findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
-      hls := hls ++ hl
+    try
+      let mut hls := Highlighted.empty
+      let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
+      for cmd in cmds do
+        let hl ←
+          match cmd with
+          | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
+                  fileMap := inputCtx.fileMap
+                  fileName := inputCtx.fileName }) <|
+                highlight cmd nonSilentMsgs cmdState.infoState.trees
+          | .inr cmd =>
+            findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
+        hls := hls ++ hl
 
-    -- TODO: determine an appropriate value here
-    let range : Option Lsp.Range := none
-    if let some name := config.name then
-      let msgs ← nonSilentMsgs.mapM fun msg => do
+      if let some name := config.name then
+        let msgs ← nonSilentMsgs.mapM fun msg => do
 
-        let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
-        let txt := withNewline <| head ++ (← msg.data.toString)
+          let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
+          let txt := withNewline <| head ++ (← msg.data.toString)
 
-        pure (msg.severity, txt)
-      saveOutputs name msgs.toList
-    pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
+          pure (msg.severity, txt)
+        saveOutputs name msgs.toList
+      let range : Option Lsp.Range := none
+      pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
+    finally
+      unsafe cmdState.env.freeRegions
 where
   withNewline (str : String) := if str == "" || str.back != '\n' then str ++ "\n" else str
 
