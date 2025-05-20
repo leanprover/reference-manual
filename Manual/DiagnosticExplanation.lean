@@ -8,7 +8,6 @@ import VersoManual
 
 import Verso.Doc
 import Verso.Syntax
-import MD4Lean
 import Manual.Meta
 import Std.Internal.Parsec.String
 
@@ -108,7 +107,47 @@ private initialize defaultEnvRef : IO.Ref (Option Environment) ← IO.mkRef none
 
 open Verso Genre Manual SubVerso Highlighting
 
--- FIXME: this is consuming absurd amounts of memory -- we must be leaking environments
+def processMWESubVerso (input : String) : MetaM (Highlighted × Array (MessageSeverity × String)) :=
+  IO.FS.withTempDir fun dirname => do
+    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running 'lake env which subverso-extract-mod', the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let some «subverso-extract-mod» := out.stdout.splitOn "\n" |>.head?
+      | throwError "No executable path found"
+    let «subverso-extract-mod» ← IO.FS.realPath «subverso-extract-mod»
+    let leanCodeName : String := "Main"
+    let jsonFile := s!"{leanCodeName}.json"
+    let leanFileName : System.FilePath := (leanCodeName : System.FilePath).addExtension "lean"
+    IO.FS.writeFile (dirname / leanFileName) input
+    let out ← IO.Process.output {cmd := toString «subverso-extract-mod» , args := #[leanCodeName, jsonFile], cwd := some dirname}
+    if out.exitCode != 0 then
+      throwError
+        m!"When running '{«subverso-extract-mod»} {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
+        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+    let jsonStr ← IO.FS.readFile (dirname / jsonFile)
+    let topLevelJson ← IO.ofExcept <| Json.parse jsonStr
+    let .ok (Json.arr json) := topLevelJson.getObjVal? "commands"
+      | throwError m!"Expected a JSON array, got {topLevelJson}"
+    let json ← json.mapM fun v =>
+      match v.getObjVal? "code" with
+      | .ok v => pure v
+      | .error e => throwError e
+    let hl ← json.foldlM (init := Highlighted.empty) fun hl v =>
+      match FromJson.fromJson? v with
+      | .ok v => pure <| hl ++ v
+      | .error e =>
+        throwError m!"Failed to deserialize JSON output as highlighted Lean code. Error: {indentD e}\nJSON: {Json.arr json}"
+    let .ok (Json.arr json) := topLevelJson.getObjVal? "messages"
+      | throwError m!"Expected a JSON objec with a 'messages' array, but got:\n{topLevelJson}"
+    let msgs ← json.mapM fun v => do
+      match FromJson.fromJson? (α := MessageSeverity × String) v with
+      | .ok v' => pure v'
+      | .error e => throwError m!"Failed to deserialize message log entry from JSON ouptut with error:{indentD e}\nJSON: {Json.arr json}"
+    return (hl, msgs)
+
+
 def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName   := "<input>"
   let inputCtx   := Parser.mkInputContext input fileName
@@ -265,19 +304,12 @@ def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
-    PointOfInterest.save (← getRef) ((config.name.map toString).getD (abbrevFirstLine 20 str.getString))
-      (kind := Lsp.SymbolKind.file)
-      (detail? := some ("Lean code" ++ config.outlineMeta))
-
     let src := str.getString
-    let (hls, msgs) ← processMWE src
+    let (hls, msgs) ← processMWESubVerso src
     if let some name := config.name then
       saveOutputs name msgs.toList
-    -- let myStr := toString hls.isEmpty
-    -- let myStr := "foo"
     let range : Option Lsp.Range := none
     pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
-    -- pure #[← ``(Block.para (Inline.text $(quote myStr)))]
 
 end LeanRendering
 
@@ -426,7 +458,6 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (info? lang : Option Str
       let args := #[(← `(argument| $(mkIdent name.toName):ident))]
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| leanOutput parsedArgs (quote str)
-      -- let blocks := #[← ``(Verso.Doc.Block.para #[Verso.Doc.Inline.code $(quote str)])]
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
     else if kind?.isSome then
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
