@@ -273,9 +273,9 @@ example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $c
 ```
 The result is two type errors like the following:
 ```leanOutput cmdQuot
-Application type mismatch: In the appplication
+Application type mismatch: In the application
   cmd1.raw
-the final argument
+the argument
   cmd1
 has type
   TSyntax `command : Type

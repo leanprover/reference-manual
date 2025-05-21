@@ -264,10 +264,14 @@ inductive Either' (α : Type u) (β : Type v) : Type (max u v) where
   | right : β → Either' α β
 ```
 ```leanOutput Either'
-inductive datatype parameter mismatch
+Mismatched inductive type parameter in
+  Either' α β
+The provided argument
   α
-expected
+is not definitionally equal to the expected parameter
   α✝
+
+Note: The value of parameter 'α✝' must be fixed throughout the inductive declaration. Consider making this parameter an index if it must vary.
 ```
 
 Placing the parameters after the colon results in parameters that can be instantiated by the constructors:

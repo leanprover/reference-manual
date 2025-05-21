@@ -533,9 +533,9 @@ it is a type error to apply {name}`printEven` directly to {name}`two`:
 #check printEven two
 ```
 ```leanOutput printTwo
-Application type mismatch: In the appplication
+Application type mismatch: In the application
   printEven two
-the final argument
+the argument
   two
 has type
   EvenPrime : Type
