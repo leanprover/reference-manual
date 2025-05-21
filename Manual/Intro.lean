@@ -99,9 +99,9 @@ declaration uses 'sorry'
 
 Error messages are shown like this:
 ```leanOutput output (severity := error)
-Application type mismatch: In the appplication
+Application type mismatch: In the application
   Nat.succ "two"
-the final argument
+the argument
   "two"
 has type
   String : Type

@@ -756,35 +756,36 @@ In particular, Indentation-sensitvity is specified by combining {name Lean.Parse
 :::example "Aligned Columns"
 This syntax for saving notes takes a bulleted list of items, each of which must be aligned at the same column.
 ```lean
-syntax "note " ppLine withPosition((colEq "• " str ppLine)+) : term
+syntax "note " ppLine withPosition((colEq "◦ " str ppLine)+) : term
 ```
 
 There is no elaborator or macro associated with this syntax, but the following example is accepted by the parser:
 ```lean (error := true) (name := noteEx1)
 #check
   note
-    • "One"
-    • "Two"
+    ◦ "One"
+    ◦ "Two"
 ```
 ```leanOutput noteEx1
-elaboration function for '«termNote__•__»' has not been implemented
+elaboration function for '«termNote__◦__»' has not been implemented
   note
-    • "One"
-    • "Two"
+    ◦ "One"
+    ◦ "Two"
+
 ```
 
 The syntax does not require that the list is indented with respect to the opening token, which would require an extra `withPosition` and a `colGt`.
 ```lean (error := true) (name := noteEx15)
 #check
   note
-• "One"
-• "Two"
+◦ "One"
+◦ "Two"
 ```
 ```leanOutput noteEx15
-elaboration function for '«termNote__•__»' has not been implemented
+elaboration function for '«termNote__◦__»' has not been implemented
   note
-    • "One"
-    • "Two"
+    ◦ "One"
+    ◦ "Two"
 ```
 
 
@@ -792,8 +793,8 @@ The following examples are not syntactically valid because the columns of the bu
 ```syntaxError noteEx2
 #check
   note
-    • "One"
-   • "Two"
+    ◦ "One"
+   ◦ "Two"
 ```
 ```leanOutput noteEx2
 <example>:4:3-4:4: expected end of input
@@ -802,8 +803,8 @@ The following examples are not syntactically valid because the columns of the bu
 ```syntaxError noteEx2
 #check
   note
-   • "One"
-     • "Two"
+   ◦ "One"
+     ◦ "Two"
 ```
 ```leanOutput noteEx2
 <example>:4:5-4:6: expected end of input
