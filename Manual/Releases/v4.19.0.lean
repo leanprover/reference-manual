@@ -26,6 +26,32 @@ For this release, 420 changes landed. In addition to the 164 feature additions a
 Lean v4.19.0 introduces a number of features, bug fixes, performance gains, library developments,
 along with quality-of-life improvements across documentation, the language server, and Lake.
 
+### New Decorations in VS Code
+
+Visual feedback in VS Code has been improved, with the extension now featuring:
+
+* Gutter decorations for errors and warnings. These make the full range of errors/warnings clear,
+  which is especially useful when the corresponding squigglies are small.
+* End-of-line markers for 'unsolved goals'. These are displayed at the line where
+  'unsolved goals' error ends and indicate where the proof needs to be continued.
+* 'Goals accomplished!' message. When a theorem or a `Prop`-typed `example` contains no errors or `sorry`s anymore,
+  two blue checkmarks appear next to the start of the declaration as a gutter decoration.
+  Additionally, a 'Goals accomplished!' message appears under 'Messages' in the InfoView.
+
+Gutter decorations for errors and warnings are available for all Lean 4 versions.
+Decorations for 'unsolved goals' and 'goals accomplished' rely on server-side support,
+which is added in this version via [#7366](https://github.com/leanprover/lean4/pull/7366).
+
+All of these features can be disabled, and 'Goals accomplished!' icon can be configured in VS Code extension settings.
+See [leanprover/vscode-lean4#585](https://github.com/leanprover/vscode-lean4/pull/585) for the details.
+
+### Parallel Elaboration
+
+* [#7084](https://github.com/leanprover/lean4/pull/7084) enables the elaboration of theorem bodies, i.e. proofs, to
+  happen in parallel to each other as well as to other elaboration tasks.
+
+### Language Features
+
 * [#5182](https://github.com/leanprover/lean4/pull/5182) makes functions defined by well-founded recursion use an
   `opaque` well-founded proof by default. This reliably prevents kernel
   reduction of such definitions and proofs, which tends to be
@@ -127,17 +153,9 @@ along with quality-of-life improvements across documentation, the language serve
 
 See the Library section below for details.
 
-### Other highlights
+### Other Highlights
 
 * Documentation has been significantly expanded. See the Documentation section below for details.
-
-* [#7366](https://github.com/leanprover/lean4/pull/7366) adds server-side support for dedicated 'unsolved goals' and
-  'goals accomplished' diagnostics that will have special support in the
-  Lean 4 VS Code extension. The special 'unsolved goals' diagnostic is
-  adapted from the 'unsolved goals' error diagnostic, while the 'goals
-  accomplished' diagnostic is issued when a `theorem` or `Prop`-typed
-  `example` has no errors or `sorry`s. The Lean 4 VS Code extension
-  companion PR is at [leanprover/vscode-lean4#585](https://github.com/leanprover/vscode-lean4/pull/585).
 
 * [#7185](https://github.com/leanprover/lean4/pull/7185) refactors Lake's build internals to enable the introduction of
   targets and facets beyond packages, modules, and libraries. Facets,
