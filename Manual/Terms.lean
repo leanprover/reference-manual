@@ -1284,7 +1284,7 @@ $x:ident@$h:ident:$e
 -- Check claims about patterns
 
 -- Literals
-/-- error: invalid pattern, constructor or constant marked with '[match_pattern]' expected -/
+/-- error: Invalid pattern: Expected a constructor or constant marked with `[match_pattern]` -/
 #guard_msgs in
 def foo (x : String) : String :=
   match x with
@@ -1301,7 +1301,7 @@ instance : OfNat Blah n where
   ofNat := ⟨n + 1⟩
 
 /--
-error: missing cases:
+error: Missing cases:
 (Blah.mk (Nat.succ (Nat.succ _)))
 (Blah.mk Nat.zero)
 -/
@@ -1320,10 +1320,10 @@ partial instance : OfNat Blah n where
 
 -- This shows that the partial instance was not unfolded
 /--
-error: dependent elimination failed, type mismatch when solving alternative with type
-  motive (instOfNatBlah_1.f 0)
-but expected
-  motive n✝
+error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
+  motive (instOfNatBlah_1.f 0) : Sort ?u.859
+but is expected to have type
+  motive n✝ : Sort ?u.859
 -/
 #guard_msgs in
 def defg (n : Blah) : Bool :=
@@ -1331,10 +1331,10 @@ def defg (n : Blah) : Bool :=
   | 0 => true
 
 /--
-error: dependent elimination failed, type mismatch when solving alternative with type
-  motive (Float.ofScientific 25 true 1)
-but expected
-  motive x✝
+error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
+  motive (Float.ofScientific 25 true 1) : Sort ?u.902
+but is expected to have type
+  motive x✝ : Sort ?u.902
 -/
 #guard_msgs in
 def twoPointFive? : Float → Option Float
@@ -1370,7 +1370,7 @@ def ggg : OnlyThreeOrFive → Nat
   | {val := n} => n
 
 /--
-error: missing cases:
+error: Missing cases:
 (OnlyThreeOrFive.mk _ true _)
 -/
 #guard_msgs in
@@ -1391,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1613, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1639, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1404,7 +1404,7 @@ set_option pp.mvars.anonymous false in
 /--
 info: fun y =>
   match
-    let_fun this := ⟨y * 3, ⋯⟩;
+    have this := ⟨y * 3, ⋯⟩;
     this with
   | ⟨x, z⟩ =>
     match x, z with
@@ -1559,8 +1559,8 @@ Attempting to match on a number and a proof that it is in fact {lean}`5` is an e
   | 5, rfl => "ok"
 ```
 ```leanOutput noMotive
-invalid match-expression, pattern contains metavariables
-  Eq.refl ?m.73
+Invalid match expression: This pattern contains metavariables:
+  Eq.refl ?m.76
 ```
 An explicit motive explains the relationship between the discriminants:
 ```lean (name := withMotive)
@@ -1629,9 +1629,9 @@ def boolCases (b : Bool)
 ```
 The error for the first case is typical of both:
 ```leanOutput boolCases1
-Application type mismatch: In the appplication
+Application type mismatch: In the application
   ifTrue h
-the final argument
+the argument
   h
 has type
   b = true : Prop
@@ -1689,7 +1689,7 @@ def nonzero (n : Nat) : Bool :=
 ```
 The error message on the pattern `1 + _` is:
 ```leanOutput nonPat
-invalid patterns, `k` is an explicit pattern variable, but it only occurs in positions that are inaccessible to pattern matching
+Invalid pattern(s): `k` is an explicit pattern variable, but it only occurs in positions that are inaccessible to pattern matching:
   .(Nat.add 1 k)
 ```
 
