@@ -203,7 +203,7 @@ def process' (str : String) : String × String:=
 
 The IR for {lean}`process` includes no `inc` or `dec` instructions.
 If the incoming string `x_1` is a unique reference, then it is still a unique reference when passed to {name}`String.set`, which can then use in-place modification:
-```leanOutput p1
+```leanOutput p1 (allowDiff := 5)
 [result]
 def process._closed_1 : obj :=
   let x_1 : obj := "";

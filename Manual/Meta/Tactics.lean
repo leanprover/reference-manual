@@ -11,6 +11,7 @@ import Verso.Code.Highlighted
 import Verso.Doc.ArgParse
 import Verso.Doc.Suggestion
 import SubVerso.Highlighting.Code
+import SubVerso.Examples.Messages
 import VersoManual
 
 import Manual.Meta.Basic
@@ -22,6 +23,7 @@ open Lean Elab Term Tactic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
+open SubVerso.Examples.Messages
 
 structure TacticOutputConfig where
   «show» : Bool := true
