@@ -148,9 +148,6 @@ The Lean v4.20.0 release brings multiple new features, bug fixes, improvements t
   monotone. For non-mutually recursive predicates, an appropriate
   (co)induction proof principle (given by Park induction) is generated.
 
-* [#8102](https://github.com/leanprover/lean4/pull/8102) allows ASCII `<-` in `if let` clauses, for consistency with
-  bind, where both are allowed. Fixes [#8098](https://github.com/leanprover/lean4/issues/8098).
-
 ### Library Highlights
 
 [#8004](https://github.com/leanprover/lean4/pull/8004) adds extensional hash maps and hash sets under the names
