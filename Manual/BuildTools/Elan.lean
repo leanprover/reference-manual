@@ -51,6 +51,10 @@ Channels may be:
 
   The latest stable Lean release. Elan automatically tracks stable releases and offers to upgrade when a new one is released.
 
+ : `beta`
+
+  The latest release candidate. Release candidates are builds of Lean that are intended to become the next stable release. They are made available for widespread user testing.
+
  : `nightly`
 
    The latest nightly build. Nightly builds are useful for experimenting with new Lean features to provide feedback to the developers.
