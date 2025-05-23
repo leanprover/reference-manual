@@ -51,6 +51,10 @@ Channels may be:
 
   The latest stable Lean release. Elan automatically tracks stable releases and offers to upgrade when a new one is released.
 
+ : `beta`
+
+  The latest release candidate. Release candidates are builds of Lean that are intended to become the next stable release. They are made available for widespread user testing.
+
  : `nightly`
 
    The latest nightly build. Nightly builds are useful for experimenting with new Lean features to provide feedback to the developers.
@@ -233,8 +237,8 @@ FLAGS:
     -h, --help    Prints help information
 
 ARGS:
-    <toolchain>    Toolchain name, such as 'stable', 'nightly', or '3.3.0'. For more information see `elan help
-                   toolchain`
+    <toolchain>    Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see `elan
+                   help toolchain`
 
 DISCUSSION:
     Sets the default toolchain to the one specified.
@@ -278,14 +282,14 @@ DISCUSSION:
     Many `elan` commands deal with *toolchains*, a single
     installation of the Lean theorem prover. `elan` supports multiple
     types of toolchains. The most basic track the official release
-    channels: 'stable' and 'nightly'; but `elan` can also
+    channels: 'stable', 'beta', and 'nightly'; but `elan` can also
     install toolchains from the official archives and from local builds.
 
     Standard release channel toolchain names have the following form:
 
         [<origin>:]<channel>[-<date>]
 
-        <channel>       = stable|nightly|<version>
+        <channel>       = stable|beta|nightly|<version>
         <date>          = YYYY-MM-DD
 
     'channel' is either a named release channel or an explicit version
@@ -327,8 +331,8 @@ FLAGS:
     -h, --help    Prints help information
 
 ARGS:
-    <toolchain>...    Toolchain name, such as 'stable', 'nightly', or '3.3.0'. For more information see `elan help
-                      toolchain`
+    <toolchain>...    Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see
+                      `elan help toolchain`
 ```
 
 :::elan toolchain install "toolchain"
@@ -348,8 +352,8 @@ FLAGS:
     -h, --help    Prints help information
 
 ARGS:
-    <toolchain>...    Toolchain name, such as 'stable', 'nightly', or '3.3.0'. For more information see `elan help
-                      toolchain`
+    <toolchain>...    Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see
+                      `elan help toolchain`
 ```
 
 :::elan toolchain uninstall "toolchain"
@@ -369,8 +373,8 @@ FLAGS:
     -h, --help    Prints help information
 
 ARGS:
-    <toolchain>    Toolchain name, such as 'stable', 'nightly', or '3.3.0'. For more information see `elan help
-                   toolchain`
+    <toolchain>    Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see `elan
+                   help toolchain`
     <path>
 
 DISCUSSION:
@@ -527,8 +531,8 @@ FLAGS:
         --install    Install the requested toolchain if needed
 
 ARGS:
-    <toolchain>     Toolchain name, such as 'stable', 'nightly', or '3.3.0'. For more information see `elan help
-                    toolchain`
+    <toolchain>     Toolchain name, such as 'stable', 'beta', 'nightly', or '4.3.0'. For more information see `elan
+                    help toolchain`
     <command>...
 
 DISCUSSION:
