@@ -154,7 +154,7 @@ Below is a **representative slice** of the propagators so you can see the style 
 ```lean (show := false)
 namespace ExamplePropagators
 ```
-```lean
+```lean (keep := false)
 
 /-- Propagate equalities *upwards* for conjunctions. -/
 builtin_grind_propagator propagateAndUp ↑And := fun e => do
@@ -230,7 +230,7 @@ example (a : Bool) (h : (!a) = true) : a = false := by
 
 These snippets run instantly because the relevant propagators ({lean}`propagateBoolAndUp`, {lean}`propagateIte`, {lean}`propagateBoolNotDown`) fire as soon as the hypotheses are internalised.
 
-> **Note**  If you toggle `set_option trace.grind.eqc true`, {tactic}`grind` will print a line every time two equivalence classes merge—handy for seeing propagation in action.
+> **Note** If you toggle `set_option trace.grind.eqc true`, {tactic}`grind` will print a line every time two equivalence classes merge—handy for seeing propagation in action.
 
 **Implementation tip**  {tactic}`grind` is still under active development. Until the API has stabilised we recommend **refraining from custom elaborators or satellite solvers**. If you really need a project‑local propagator, use the user‑facing `grind_propagator` command rather than `builtin_grind_propagator` (the latter is reserved for Lean’s own code). When adding new propagators keep them *small and orthogonal*—they should fire in ≤1 µs and either push one fact or close the goal. This keeps the propagation phase predictable and easy to debug.
 
@@ -244,9 +244,9 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 
 1. **Structural flags** — quick booleans that enable whole syntactic classes:
 
-   * `splitIte` (default **true**) → split every `if … then … else …` term.
+   * `splitIte` (default **true**) → split every `if … then … else …` term.
    * `splitMatch` (default **true**)→ split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
-   * `splitImp` (default **false**) → when {lean}`true` splits on any hypothesis `A → B` whose antecedent `A` is **propositional**.  Arithmetic antecedents are special‑cased: if `A` is an arithmetic literal (`≤`, `=`, `¬`, `Dvd`, …) {tactic}`grind` will split **even when `splitImp := false`** so the integer solver can propagate facts.
+   * `splitImp` (default **false**) → when {lean}`true` splits on any hypothesis `A → B` whose antecedent `A` is **propositional**.  Arithmetic antecedents are special‑cased: if `A` is an arithmetic literal (`≤`, `=`, `¬`, `Dvd`, …) {tactic}`grind` will split **even when `splitImp := false`** so the integer solver can propagate facts.
 
 👉 Shorthand toggles: `by grind -splitIte +splitImp` expands to `by grind (splitIte := false) (splitImp := true)`.
 2. **Global limit** — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
