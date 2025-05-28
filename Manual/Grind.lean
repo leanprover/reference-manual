@@ -42,19 +42,21 @@ This succeeds instantly using congruence closure.
   * *Algebraic reasoning* (commutative‑ring solver):
 
     ```lean
+    open Lean.Grind -- for the `CommRing`/`NoNatZeroDivisors` type classes
+
     example [CommRing α] [NoNatZeroDivisors α] (a b c : α)
         : a + b + c = 3 →
           a^2 + b^2 + c^2 = 5 →
           a^3 + b^3 + c^3 = 7 →
           a^4 + b^4 = 9 - c^4 := by
-      grind
+      grind +ring
     ```
 
   * *Finite‑field style reasoning* (works in `Fin 11`):
 
     ```lean
     example (x y : Fin 11) : x^2*y = 1 → x*y^2 = y → y*x = 1 := by
-      grind
+      grind +ring
     ```
 
   * *Linear integer arithmetic with case analysis*:
@@ -131,6 +133,10 @@ Constraint propagation works on the **True** and **False** buckets of the white�
 Below is a **representative slice** of the propagators so you can see the style they follow.  Each follows the same skeleton: inspect the truth‑value of sub‑expressions, push equalities (`pushEq`) or truth‑values (`pushEqTrue` / `pushEqFalse`), and optionally close the goal if a contradiction (`closeGoal`) arises.  A few high‑signal examples:
 
 ```lean
+open Lean Lean.Meta.Grind
+
+namespace ExamplePropagators
+
 /-- Propagate equalities *upwards* for conjunctions. -/
 builtin_grind_propagator propagateAndUp ↑And := fun e => do
   let_expr And a b := e | return ()
@@ -207,7 +213,9 @@ We continuously expand and refine the rule set—expect the **Info View** to s
 2\. **Global limit** — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits `grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
 3\. **Manual annotations** — you may mark *any* inductive predicate or structure with
 
-```lean
+-- Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
+-- TODO: replace this with a checkable example.
+```
 attribute [grind cases] Even Sorted
 ```
 
