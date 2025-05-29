@@ -196,13 +196,32 @@ end ExamplePropagators
 
 Other frequently‑triggered propagators follow the same pattern:
 
-| Propagator                                        | Handles                         | Notes                                          |
-| ------------------------------------------------- | ------------------------------- | ---------------------------------------------- |
-| {lean}`propagateOrUp` / {lean}`propagateOrDown`   | `a ∨ b`                         | True/False pushes for disjunctions             |
-| {lean}`propagateNotUp` / {lean}`propagateNotDown` | `¬ a`                           | Links `¬ a` with the Boolean of `a`            |
-| {lean}`propagateEqUp` / {lean}`propagateEqDown`   | `a = b`                         | Bridges Booleans, detects constructor clash    |
-| {lean}`propagateIte` / {lean}`propagateDIte`      | `ite` / `dite`                  | Replaces chosen branch once condition is fixed |
-| `propagateEtaStruct`                              | structures tagged `[grind ext]` | Generates η‑expansion `a = ⟨a.1, …⟩`           |
+:::table (header := true)
+*
+  * Propagator
+  * Handles
+  * Notes
+*
+  * {lean}`propagateOrUp` / {lean}`propagateOrDown`
+  * `a ∨ b`
+  * True/False pushes for disjunctions
+*
+  * {lean}`propagateNotUp` / {lean}`propagateNotDown`
+  * `¬ a`
+  * Links `¬ a` with the Boolean of `a`
+*
+  * {lean}`propagateEqUp` / {lean}`propagateEqDown`
+  * `a = b`
+  * Bridges Booleans, detects constructor clash
+*
+  * {lean}`propagateIte` / {lean}`propagateDIte`
+  * `ite` / `dite`
+  * Replaces chosen branch once condition is fixed
+*
+  * `propagateEtaStruct`
+  * structures tagged `[grind ext]`
+  * Generates η‑expansion `a = ⟨a.1, …⟩`
+:::
 
 -- TODO (@kim-em): we don't add the `{lean}` literal type to `propagateEtaStruct` above because it is private.
 
