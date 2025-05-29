@@ -1941,10 +1941,10 @@ example (n : Nat) := by
 ```
 ```leanOutput byBusted
 tactic 'rewrite' failed, equality or iff proof expected
-  HEq 0 n'
+  0 ≍ n'
 n' : Nat
-ih : HEq 0 n'
-⊢ HEq 0 n'.succ
+ih : 0 ≍ n'
+⊢ 0 ≍ n'.succ
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show` can be used to provide the proposition being proved.
