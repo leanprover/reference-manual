@@ -9,8 +9,15 @@ structure ErrorExplanation.Metadata where
   removedVersion : Option String := none
 deriving FromJson, ToJson
 
+structure ErrorExplanation.CodeBlockSet where
+  broken : String
+  brokenOutputs : Array String
+  fixedWithOutputs : Array (String × Array String)
+  deriving Repr
+
 structure ErrorExplanation where
   doc : String
+  codeBlocks : Array ErrorExplanation.CodeBlockSet
   metadata : ErrorExplanation.Metadata
 
 -- FIXME: `addImportedFn`
@@ -38,7 +45,7 @@ elab docStx:docComment cmd:"register_error_explanation " nm:ident t:term : comma
   let doc ← getDocStringText docStx
   if errorExplanationExt.getState (← getEnv) |>.contains name then
     throwError m!"Cannot add explanation: An error explanation already exists for '{name}'"
-  modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc }))
+  modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc, codeBlocks := #[] }))
 
 /--
 Gets an error explanation for the given name if one exists, rewriting manual links.
@@ -63,5 +70,8 @@ def getErrorExplanationsSorted [Monad m] [MonadEnv m] [MonadLiftT BaseIO m] : m 
   entries
     |>.qsort (fun e e' => (compareNamedExplanations e e').isLT)
     |>.mapM fun (n, e) => return (n, { e with doc := (← rewriteManualLinks e.doc) })
+
+def getErrorExplanationsRaw (env : Environment) : Array (Name × ErrorExplanation) :=
+  errorExplanationExt.getState env |>.toArray
 
 end Lean

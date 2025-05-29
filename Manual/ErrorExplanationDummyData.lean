@@ -54,6 +54,33 @@ register_error_explanation Lean.AGreatTypeCorrectGoal {
 }
 
 /--
+Foo.
+
+# Examples
+
+## Code in Description
+
+```lean broken
+def x := x
+```
+```output
+failed to infer definition type
+```
+```lean fixed
+def x := 0
+```
+
+```lean broken
+def f x := x
+```
+This is what might happen.
+-/
+register_error_explanation Lean.NoExamples {
+  summary := "Examples heading but no examples"
+  sinceVersion := "4.0.0"
+}
+
+/--
 
 This error appears when things go wrong.
 
@@ -189,7 +216,7 @@ def b := 49
 -- ```lean broken
 -- import Wean
 
--- -- There should be a line break before and after this line
+-- -- There should be line breaks before and after this line
 
 -- #check Lean.MetaM
 -- ```
@@ -197,11 +224,16 @@ def b := 49
 -- unknown module prefix 'Wean'
 
 -- No directory 'Wean' or file 'Wean.olean' in the search path entries:
--- ././.lake/packages/subverso/.lake/build/lib/lean
--- ././.lake/packages/MD4Lean/.lake/build/lib/lean
--- ././.lake/packages/verso/.lake/build/lib/lean
--- ././.lake/build/lib/lean
--- /Users/jrr6/.elan/toolchains/leanprover--lean4---v4.19.0-rc2/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/subverso/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/MD4Lean/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/verso/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/subverso/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/MD4Lean/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/packages/verso/.lake/build/lib/lean
+-- /Users/jrr6/LocalDocs/LeanFRO/reference-manual/.lake/build/lib/lean
+-- /Users/jrr6/.elan/toolchains/leanprover--lean4---v4.20.0-rc2/lib/lean
+-- /Users/jrr6/.elan/toolchains/leanprover--lean4---v4.20.0-rc2/lib/lean
 -- ```
 -- ```lean fixed
 -- import Lean

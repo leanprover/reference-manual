@@ -107,6 +107,7 @@ private initialize defaultEnvRef : IO.Ref (Option Environment) ← IO.mkRef none
 
 open Verso Genre Manual SubVerso Highlighting
 
+-- FIXME: this is giving back nonsense (probably a subverso issue)
 def processMWESubVerso (input : String) : MetaM (Highlighted × Array (MessageSeverity × String)) :=
   IO.FS.withTempDir fun dirname => do
     let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
@@ -146,7 +147,6 @@ def processMWESubVerso (input : String) : MetaM (Highlighted × Array (MessageSe
       | .ok v' => pure v'
       | .error e => throwError m!"Failed to deserialize message log entry from JSON ouptut with error:{indentD e}\nJSON: {Json.arr json}"
     return (hl, msgs)
-
 
 def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName   := "<input>"
@@ -294,18 +294,12 @@ where
     let msgs : Array (MessageSeverity × String) := FromJson.fromJson? (ToJson.toJson msgs) |>.toOption.get!
     return msgs
 
-private def abbrevFirstLine (width : Nat) (str : String) : String :=
-  let str := str.trimLeft
-  let short := str.take width |>.replace "\n" "⏎"
-  if short == str then short else short ++ "…"
-
-
 def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
     let src := str.getString
-    let (hls, msgs) ← processMWESubVerso src
+    let (hls, msgs) ← processMWE src
     if let some name := config.name then
       saveOutputs name msgs.toList
     let range : Option Lsp.Range := none
@@ -396,7 +390,7 @@ window.addEventListener('DOMContentLoaded', () => {
       | HtmlT.logError "Invalid titles JSON for example block"
         pure .empty
     unless titles.size == contents.size do
-      HtmlT.logError "Mismatched number of titles and contents for example block: \
+      HtmlT.logError s!"Mismatched number of titles and contents for example block: \
         Found {contents.size} tab panels but {titles.size} titles."
       return .empty
     let some (_, htmlId) := (← HtmlT.state).externalTags[id]?
@@ -436,34 +430,51 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     }}
 
-private def mkExampleName (errorName : Name) (idx : Nat) : String :=
-  s!"{errorName.toString}-block{idx}"
+private def mkExampleName (errorName : Name) (idx : Nat) : Name :=
+  errorName ++ s!"block{idx}".toName
 
-structure ExplanMDElabContext where
+structure ExplanCodeElabM.Context where
   name : Name
 
-structure ExplanMDElabState where
+structure ExplanCodeElabM.State where
   codeBlockIdx : Nat
 
-abbrev ExplanMDElabM := ReaderT ExplanMDElabContext (StateT ExplanMDElabState DocElabM)
+abbrev ExplanCodeElabM :=
+  ReaderT ExplanCodeElabM.Context (StateT ExplanCodeElabM.State DocElabM)
 
-def tryElabErrorExplanationCodeBlock (errorName : Name) (info? lang : Option String) (str : String) : ExplanMDElabM Term := do
+-- TODO: delete me
+-- deriving instance Repr for MessageSeverity
+instance : ToMessageData MessageSeverity where
+  toMessageData
+  | .error => "error"
+  | .warning => "warning"
+  | .information => "information"
+
+def tryElabErrorExplanationCodeBlock (errorName : Name)
+    (info? lang : Option String) (str : String) : ExplanCodeElabM Term := do
   if let some info := info? then
     let { lang, kind?, .. } ← match ErrorExplanationCodeInfo.parse info with
       | .ok x => pure x
       | .error e => throwError e
     if lang == "output" then
       -- TODO: unify with below case
-      let name := mkExampleName errorName (← get).codeBlockIdx
-      let args := #[(← `(argument| $(mkIdent name.toName):ident))]
+      let codeBlockIdx := (← get).codeBlockIdx
+      let name := mkExampleName errorName codeBlockIdx
+      let args := #[(← `(argument| $(mkIdent name):ident))]
       let parsedArgs ← parseArgs args
-      let blocks ← withFreshMacroScope <| leanOutput parsedArgs (quote str)
+      let blocks ← try
+        withFreshMacroScope <| leanOutput parsedArgs (quote str)
+      catch
+        | .error ref msg =>
+          let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
+          throw (.error ref m!"Invalid output for code block #{codeBlockIdx + 1}{kindStr}: {msg}")
+        | e@(.internal ..) => throw e
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
     else if kind?.isSome then
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
       let mut args := #[]
       let name := mkExampleName errorName (← get).codeBlockIdx
-      args := args.push (← `(argument| name := $(mkIdent name.toName):ident))
+      args := args.push (← `(argument| name := $(mkIdent name):ident))
       if let some kind := kind? then
         let errorVal ← if kind == .broken then `(arg_val|true) else `(arg_val|false)
         args := args.push (← `(argument| error := $errorVal))
@@ -479,13 +490,13 @@ private structure ExampleContents where
   codeBlocks : Array (Term × Option String)
   descrBlocks : Array Term
 
-structure ExplanElabContext where
+structure ExplanElabM.Context where
   /-- The blocks in the error explanation to elaborate. -/
   blocks : Array MD4Lean.Block
   /-- Name of the error described by the explanation being elaborated. -/
   name : Name
 
-structure ExplanElabState where
+structure ExplanElabM.State where
   /-- The index of the next block in the context's `blocks` to elaborate. -/
   blockIdx : Nat := 0
   /-- Active Markdown header levels that can be closed by subsequent Markdown -/
@@ -493,10 +504,10 @@ structure ExplanElabState where
   /-- The index of the current code block within this explanation. -/
   codeBlockIdx : Nat := 0
 
-abbrev ExplanElabM := ReaderT ExplanElabContext (StateT ExplanElabState PartElabM)
+abbrev ExplanElabM := ReaderT ExplanElabM.Context (StateT ExplanElabM.State PartElabM)
 
 def ExplanElabM.run (x : ExplanElabM α) (name : Name) (blocks : Array MD4Lean.Block) :
-    PartElabM (α × ExplanElabState) :=
+    PartElabM (α × ExplanElabM.State) :=
   ReaderT.run x { name, blocks } |>.run {}
 
 def ExplanElabM.nextBlock? : ExplanElabM (Option MD4Lean.Block) := do
@@ -511,15 +522,15 @@ def ExplanElabM.nextBlock? : ExplanElabM (Option MD4Lean.Block) := do
 def ExplanElabM.backtrack : ExplanElabM Unit := do
   modify fun s => { s with blockIdx := s.blockIdx - 1 }
 
-def ExplanElabM.liftExplanMDElabM (x : ExplanMDElabM α) : ExplanElabM α := do
+def ExplanElabM.liftExplanCodeElabM (x : ExplanCodeElabM α) : ExplanElabM α := do
   let { codeBlockIdx, .. } ← get
   let { name, .. } ← read
   let (res, st) ← x.run { name } { codeBlockIdx }
   modify fun s => { s with codeBlockIdx := st.codeBlockIdx }
   return res
 
-instance : MonadLift ExplanMDElabM ExplanElabM where
-  monadLift := ExplanElabM.liftExplanMDElabM
+instance : MonadLift ExplanCodeElabM ExplanElabM where
+  monadLift := ExplanElabM.liftExplanCodeElabM
 
 -- TODO: try to reduce duplication between this and the next function
 def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
@@ -566,7 +577,7 @@ def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
       let { messages, .. } ← getThe Core.State
       s.restore
       modifyThe Core.State fun s => { s with messages }
-  modifyThe ExplanElabState ({ · with levels := ls })
+  modifyThe ExplanElabM.State ({ · with levels := ls })
   -- This is necessary after state restoration so we can refer to the generated outputs
   modifyEnv (leanOutputs.setState · outputs)
 
@@ -595,7 +606,7 @@ private def expectExplanationCodeInfo
   : DocElabM Unit := do
   let { kind?, lang, .. } ← match infoOfCodeBlock b with
     | .ok x => pure x
-    | .error e => throwError e
+    | .error e => throwError  e
   unless lang == expLang do
     throwError "Expected a code block with language '{expLang}', but found '{lang}'"
   unless kind? == some expKind do
@@ -610,8 +621,6 @@ private def termsOfTexts (txts : Array MD4Lean.Text) : DocElabM (Array Term) := 
     elabBlockCode := tryElabBlockCode
   } {}
   return stxs
-
-private def examplesHeader := "Examples"
 
 private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
   if _ : txt.size = 1 then
@@ -668,13 +677,13 @@ def getBrokenTermAndTitle : ExplanElabM (Term × Option String) := do
     return (brokenTerm, title?)
 
 partial def repeatedly (x : ExplanElabM (Option α)) : ExplanElabM (Array α) :=
-  return (← go x).toArray
+  go x #[]
 where
-  go x := do
+  go x acc := do
     if let some result := (← x) then
-      return result :: (← go x)
+      go x (acc.push result)
     else
-      return []
+      return acc
 
 def getOutputTerm? : ExplanElabM (Option Term) := do
   let some block ← ExplanElabM.nextBlock?
@@ -743,7 +752,8 @@ def addExampleBlocks : ExplanElabM Unit := do
 def addExplanationBlocks : ExplanElabM Unit := do
   addNonExampleBlocks
   addExampleBlocks
-  addNonExampleBlocks (allowExamplesHeader := false)
+  -- We may want to allow some sort of addenda after examples; if so, then:
+  -- addNonExampleBlocks (allowExamplesHeader := false)
 
 def errorExplanationDomain := `Manual.errorExplanation
 
