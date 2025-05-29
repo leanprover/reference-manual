@@ -397,6 +397,21 @@ In these cases, the built-in automation has no choice but to use heterogeneous e
 
 {docstring HEq}
 
+:::syntax term (title := "Heterogeneous Equality")
+```grammar
+$_ ≍ $_
+```
+
+```lean (show := false)
+section
+variable (x : α) (y : β)
+```
+Heterogeneous equality {lean}`HEq x y` can be written {lean}`x ≍ y`.
+```lean (show := false)
+end
+```
+
+:::
 
 {docstring HEq.rfl}
 
