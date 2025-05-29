@@ -231,7 +231,7 @@ The parameter `n` is in scope in the function's body, but `k` is not.
 ```lean
 def add (n : Nat) : (k : Nat) → Nat
   | 0 => n
-  | k' + 1 => add n k'
+  | k' + 1 => 1 + add n k'
 ```
 
 Like {lean}`add`, the signature of {lean}`mustBeEqual` contains one parameter, `n`.
