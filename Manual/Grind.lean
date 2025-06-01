@@ -326,6 +326,94 @@ example (h : y = match x with | 0 => 1 | _ => 2) :
 
 # E‑matching
 
+E-matching is a mechanism used by `grind` to instantiate theorems efficiently.
+It is especially effective when combined with congruence closure, enabling
+`grind` to discover non-obvious consequences of equalities and annotated theorems
+automatically.
+
+Consider the following functions and theorems:
+```lean
+def f (a : Nat) : Nat :=
+  a + 1
+
+def g (a : Nat) : Nat :=
+  a - 1
+
+@[grind =]
+theorem gf (x : Nat) : g (f x) = x := by
+  simp [f, g]
+```
+The theorem `gf` asserts that `g (f x) = x` for all natural numbers `x`.
+The attribute `[grind =]` instructs `grind` to use the left-hand side of the equation,
+`g (f x)`, as a pattern for heuristic instantiation via E-matching.
+Suppose we now have a goal involving:
+```lean
+example (h : f b = a) : g a = b := by
+  grind
+```
+Although `g a` is not an instance of the pattern `g (f x)`,
+it becomes one modulo the equation `f b = a`.
+By substituting `a` with `f b` in `g a`, we obtain the term `g (f b)`,
+which matches the pattern `g (f x)` with the assignment `x := b`.
+Thus, the theorem `gf` is instantiated with `x := b`,
+and the new equality `g (f b) = b` is asserted.
+`grind` then uses congruence closure to derive the implied equality
+`g a = g (f b)` and completes the proof.
+
+The pattern used to instantiate theorems affects the effectiveness of `grind`.
+For example, the pattern `g (f x)` is too restrictive in the following case:
+the theorem `gf` will not be instantiated because the goal does not even
+contain the function symbol `g`.
+
+```lean (error := true)
+example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+  grind
+```
+
+You can use the command `grind_pattern` to manually select a pattern for a given theorem.
+In the following example, we instruct `grind` to use `f x` as the pattern,
+allowing it to solve the goal automatically:
+```lean
+grind_pattern gf => f x
+
+example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+  grind
+```
+You can enable the option `trace.grind.ematch.instance` to make `grind` print a
+trace message for each theorem instance it generates.
+```lean
+/--
+trace: [grind.ematch.instance] gf: g (f c) = c
+[grind.ematch.instance] gf: g (f b) = b
+-/
+#guard_msgs (trace) in
+example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+  set_option trace.grind.ematch.instance true in
+  grind
+```
+
+You can also specify a **multi-pattern** to control when `grind` should instantiate a theorem.
+A multi-pattern requires that all specified patterns are matched in the current context
+before the theorem is instantiated. This is useful for lemmas such as transitivity rules,
+where multiple premises must be simultaneously present for the rule to apply.
+The following example demonstrates this feature using a transitivity axiom for a binary relation `R`:
+```lean
+opaque R : Int → Int → Prop
+axiom Rtrans {x y z : Int} : R x y → R y z → R x z
+
+grind_pattern Rtrans => R x y, R y z
+
+example : R a b → R b c → R c d → R a d := by
+  grind
+```
+By specifying the multi-pattern `R x y, R y z`, we instruct `grind` to
+instantiate `Rtrans` only when both `R x y` and `R y z` are available in the context.
+In the example, `grind` applies `Rtrans` to derive `R a c` from `R a b` and `R b c`,
+and can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d`.
+
+
+
+
 TBD
 Pattern annotations (`[grind =]`, `[grind →]`, …), anti‑patterns, local vs global attributes, debugging with the attribute `[grind?]`. Flags: `ematch`, `instances`, `matchEqs`.
 
