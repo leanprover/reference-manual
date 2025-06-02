@@ -12,16 +12,14 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.20.0-rc5" =>
+#doc (Manual) "Lean 4.20.0 (2025-06-02)" =>
 %%%
 tag := "release-v4.20.0"
 file := "v4.20.0"
 %%%
 
 `````markdown
-(These are the preliminary release notes for `v4.20.0-rc5`.)
-
-For this release, 339 changes landed. In addition to the 108 feature additions and 79 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
+For this release, 346 changes landed. In addition to the 108 feature additions and 85 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
 
 ## Highlights
 
@@ -677,6 +675,16 @@ Other notable library developments in this release include:
   to address the **exponential worst-case complexity** often associated
   with certificate construction.
 
+* [#8231](https://github.com/leanprover/lean4/pull/8231) changes the behaviour of `apply?` so that the `sorry` it uses to
+  close the goal is non-synthetic. (Recall that correct use of synthetic
+  sorries requires that the tactic also generates an error message, which
+  we don't want to do in this situation.) Either this PR or #8230 are
+  sufficient to defend against the problem reported in #8212.
+
+* [#8254](https://github.com/leanprover/lean4/pull/8254) fixes unintended inlining of `ToJson`, `FromJson`, and `Repr`
+  instances, which was causing exponential compilation times in `deriving`
+  clauses for large structures.
+
 ## Library
 
 * [#6081](https://github.com/leanprover/lean4/pull/6081) adds an `inheritEnv` field to `IO.Process.SpawnArgs`. If
@@ -995,6 +1003,9 @@ Other notable library developments in this release include:
   erasure (erase_irrelevant assumes that any non-atomic argument is
   irrelevant).
 
+* [#8236](https://github.com/leanprover/lean4/pull/8236) fixes an issue where the combination of `extern_lib` and
+  `precompileModules` would lead to "symbol not found" errors.
+
 ## Pretty Printing
 
 * [#7805](https://github.com/leanprover/lean4/pull/7805) modifies the pretty printing of raw natural number literals; now
@@ -1053,6 +1064,9 @@ Other notable library developments in this release include:
 
 * [#7882](https://github.com/leanprover/lean4/pull/7882) fixes a regression where elaboration of a previous document
   version is not cancelled on changes to the document.
+
+* [#8242](https://github.com/leanprover/lean4/pull/8242) fixes the 'goals accomplished' diagnostics. They were
+  accidentally broken in #7902.
 
 ## Lake
 
