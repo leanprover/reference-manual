@@ -161,7 +161,7 @@ This fact is mostly an internal implementation detail; however, it is relevant t
 To enable their use in nested inductive types, the standard library provides “{deftech}[raw]” variants of each container along with separate “unbundled” versions of their invariants.
 These use the following naming convention:
  * `T.Raw` is the version of type `T` without its invariants. For example, {name}`Std.HashMap.Raw` is a version of {name}`Std.HashMap` without the embedded proofs.
- * `T.Raw.WF` is the corresponding well-formedness predicate. For example, {name}`Std.HashMap.Raw.WF` assserts that a {name}`Std.HashMap.Raw` is well-formed.
+ * `T.Raw.WF` is the corresponding well-formedness predicate. For example, {name}`Std.HashMap.Raw.WF` asserts that a {name}`Std.HashMap.Raw` is well-formed.
  * Each operation on `T`, called `T.f`, has a corresponding operation on `T.Raw` called `T.Raw.f`. For example, {name}`Std.HashMap.Raw.insert` is the version of {name}`Std.HashMap.insert` to be used with raw hash maps.
  * Each operation `T.Raw.f` has an associated well-formedness lemma `T.Raw.WF.f`. For example, {name}`Std.HashMap.Raw.WF.insert` asserts that inserting a new key-value pair into a well-formed raw hash map results in a well-formed raw hash map.
 
