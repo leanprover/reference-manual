@@ -35,6 +35,8 @@ When a type has both `BEq` and `Hashable` instances, then the hashes computed sh
 
 {docstring LawfulBEq}
 
+{docstring EquivBEq}
+
 {docstring LawfulHashable}
 
 {docstring hash_eq}
