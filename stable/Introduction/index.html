@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
 a.elan-command {
@@ -84,6 +85,16 @@ span.TODO {
 }
 
 
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
 </style><style>
 .marginalia .note {
   position: relative;
@@ -156,41 +167,6 @@ body {
   font-size: 0.7em;
   font-weight: bold;
   margin-right: 0.5em;
-}
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.75rem;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: 1.5rem;
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 1.5rem 1.5rem;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
 }
 </style><style>
 .namedocs {
@@ -1072,6 +1048,10 @@ dl.toml-table-field-spec {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
+</style><style>
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
 
 .hl.lean {
@@ -1778,16 +1758,6 @@ pre.toml {
       width: auto;
     }
     </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
 .toml-field a {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -1806,6 +1776,41 @@ pre.toml {
 
 </style><style>.plain-keyword {
   font-weight: 500;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
 }
 </style><style>
 .syntax-error {
@@ -2099,6 +2104,7 @@ window.onload = () => {
 }
 </script>
     <script type="module" src="static/search/search-init.js"></script>
+    <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
     </head>
   <body>
     <header>
@@ -2165,7 +2171,7 @@ It is a reference work in which Lean users can look up detailed information, rat
 At the moment, this reference manual is a public preview.
 For tutorials and learning materials, please visit <a href="https://lean-lang.org/documentation/">the Lean documentation page</a>.</p>
             <p>
-              This document describes version <code>4.19.0</code> of Lean.</p>
+              This document describes version <code>4.20.0</code> of Lean.</p>
             <section>
               <h2 id="history-of-lean">
                 1.1. History<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=history-of-lean" title="Permalink">🔗</a></span></h2>
@@ -2203,14 +2209,14 @@ The FRO currently has more than ten employees working to support the growth and 
                 <p>
                   This document contains many Lean code examples.
 They are formatted as follows:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4175">def</span> <span class="const token" data-binding="const-hello" data-verso-hover="2">hello</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="literal string token" data-binding="" data-verso-hover="5">"Hello, world!"</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4199">def</span> <span class="const token" data-binding="const-hello" data-verso-hover="2">hello</span> <span class="unknown token" data-binding="">:</span> <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">:=</span> <a href="IO/Console-Output/#IO___println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a> <span class="literal string token" data-binding="" data-verso-hover="5">"Hello, world!"</span>
 <span class="unknown token" data-binding=""></span></code><p>
                   Compiler output (which may be errors, warnings, or just information) is shown both in the code and separately:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"The answer is 4"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4385" data-verso-hover="6">#eval</span></a></span> <span class="keyword token" data-binding="kw-occ-termS!_-4391">s!</span><span class="unknown token" data-binding="">"The answer is {</span><span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">}"</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"The answer is 4"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4409" data-verso-hover="6">#eval</span></a></span> <span class="keyword token" data-binding="kw-occ-termS!_-4415">s!</span><span class="unknown token" data-binding="">"The answer is {</span><span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">}"</span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4418">theorem</span> <span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="message warning">declaration uses 'sorry'</code></span></span><span class="const token" data-binding="const-bogus" data-verso-hover="8" id="bogus">bogus</span></span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-17160892775212943390-4443-4445"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4443" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17160892775212943390-4443-4445"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-4446-4451"><a href="Tactic-Proofs/Tactic-Reference/#sorry"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticSorry-4446" data-verso-hover="11">sorry</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4446-4451"><span class="tactic-state">All goals completed! 🐙</span></span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4442">theorem</span> <span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="message warning">declaration uses 'sorry'</code></span></span><span class="const token" data-binding="const-bogus" data-verso-hover="8" id="bogus">bogus</span></span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-17160892775212943390-4467-4469"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4467" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17160892775212943390-4467-4469"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Propositions/Truth/#False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-4470-4475"><a href="Tactic-Proofs/Tactic-Reference/#sorry"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticSorry-4470" data-verso-hover="11">sorry</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4470-4475"><span class="tactic-state">All goals completed! 🐙</span></span>
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4453">example</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="12">Nat.succ</span></a> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">application type mismatch
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4477">example</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="12">Nat.succ</span></a> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">application type mismatch
   Nat.succ "two"
 argument
   "two"
@@ -2264,7 +2270,7 @@ but is expected to have type
 </pre></div>
                 <p>
                   The presence of tactic proof states is indicated by the presence of small lozenges that can be clicked to show the proof state, such as after <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="" data-verso-hover="14">rfl</span></a></code> below:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5146">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-8495602883594765203-5169-5171"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5169" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8495602883594765203-5169-5171"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>4</span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-5172-5175"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5172" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5172-5175"><span class="tactic-state">All goals completed! 🐙</span></span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5170">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-8495602883594765203-5193-5195"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5193" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8495602883594765203-5193-5195"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>4</span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-5196-5199"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5196" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5196-5199"><span class="tactic-state">All goals completed! 🐙</span></span>
 <span class="unknown token" data-binding=""></span></code><p>
                   Proof states may also be shown on their own.
 When attempting to prove that <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="17">2</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="18">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="19">4</span></code>, the initial proof state is:</p>
@@ -2273,7 +2279,7 @@ When attempting to prove that <code class="hl lean inline" data-lean-context="ex
                     <span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>4</span></span></span></div>
                   </div>
                 <p>
-                  After using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-7-5370-5373"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5370" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5370-5373"><span class="tactic-state">All goals completed! 🐙</span></span></code>, the resulting state is:</p>
+                  After using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-7-5394-5397"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5394" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5394-5397"><span class="tactic-state">All goals completed! 🐙</span></span></code>, the resulting state is:</p>
                 <div class="hl lean tactic-view">
                   <div class="tactic-state">
                     All goals completed! 🐙</div>
@@ -2295,9 +2301,9 @@ When attempting to prove that <code class="hl lean inline" data-lean-context="ex
                       This is an example of an example.</p>
                     <p>
                       One way to define even numbers is via an inductive predicate:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6071" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="keyword token" data-binding="kw-occ-null-6101">where</span>
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6095" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="keyword token" data-binding="kw-occ-null-6125">where</span>
   <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Even.zero" data-verso-hover="24">zero</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a> <span class="typed token" data-binding="" data-verso-hover="25">0</span>
-  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="26">plusTwo</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span>
+  <span class="unknown token" data-binding="">|</span> <span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="26">plusTwo</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a> <span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code></div>
                   </details></section>
               <section>
@@ -2316,11 +2322,11 @@ These descriptions are marked as follows:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="doc-comment token" data-binding="">/--
 Evenness: a number is even if it can be evenly divided by two.
 -/</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6790" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="keyword token" data-binding="kw-occ-null-6820">where</span>
+<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6814" data-verso-hover="20">inductive</span> <span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="keyword token" data-binding="kw-occ-null-6844">where</span>
   <span class="unknown token" data-binding="">|</span> <span class="doc-comment token" data-binding="">/-- 0 is considered even here -/</span>
     <span class="const token" data-binding="const-Even.zero" data-verso-hover="28">zero</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="typed token" data-binding="" data-verso-hover="25">0</span>
   <span class="unknown token" data-binding="">|</span> <span class="doc-comment token" data-binding="">/-- If `n` is even, then so is `n + 2`. -/</span>
-    <span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="29">plusTwo</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span>
+    <span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="29">plusTwo</span> <span class="unknown token" data-binding="">:</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">→</span> <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span>
 <span class="unknown token" data-binding=""></span></code><div class="namedocs" id="Even___zero-next-next">
                   <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Even.zero" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only">Even : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></div><div class="narrow-only">Even : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a> → <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></div></pre><div class="text">
                     <p>
@@ -2334,9 +2340,9 @@ Evenness: a number is even if it can be evenly divided by two.
                         </div>
                       </div>
                     <div class="constructor">
-                      <pre class="name-and-type hl lean">plusTwo {<span class="var token" data-binding="var-_uniq.167" data-verso-hover="7">n</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>} : <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="var token" data-binding="var-_uniq.167" data-verso-hover="7">n</span> → <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">(</span></a><span class="var token" data-binding="var-_uniq.167" data-verso-hover="7">n</span><a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>2<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">)</span></a></pre><div class="docs">
+                      <pre class="name-and-type hl lean">plusTwo {<span class="var token" data-binding="var-_uniq.192" data-verso-hover="7">n</span> : <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a>} : <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <span class="var token" data-binding="var-_uniq.192" data-verso-hover="7">n</span> → <a href="Introduction/#Even___zero-next-next"><span class="const token" data-binding="const-Even" data-verso-hover="27">Even</span></a> <a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">(</span></a><span class="var token" data-binding="var-_uniq.192" data-verso-hover="7">n</span><a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15"> + </span></a>2<a href="Type-Classes/Basic-Classes/#HAdd___mk"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">)</span></a></pre><div class="docs">
                         <p>
-                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.187" data-verso-hover="7">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.187" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span></code>.</p>
+                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.212" data-verso-hover="7">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.212" data-verso-hover="7">n</span> <span class="unknown token" data-binding="">+</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span></code>.</p>
                         </div>
                       </div>
                     </div>

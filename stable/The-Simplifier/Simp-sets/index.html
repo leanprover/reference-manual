@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
     <link rel="stylesheet" href="-verso-css/tippy-border.css">
     <style>
 a.elan-command {
@@ -84,6 +85,16 @@ span.TODO {
 }
 
 
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
 </style><style>
 .marginalia .note {
   position: relative;
@@ -156,41 +167,6 @@ body {
   font-size: 0.7em;
   font-weight: bold;
   margin-right: 0.5em;
-}
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.75rem;
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: 1.5rem;
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 1.5rem 1.5rem;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
 }
 </style><style>
 .namedocs {
@@ -1072,6 +1048,10 @@ dl.toml-table-field-spec {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
+</style><style>
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
 
 .hl.lean {
@@ -1778,16 +1758,6 @@ pre.toml {
       width: auto;
     }
     </style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: larger;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
 .toml-field a {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -1806,6 +1776,41 @@ pre.toml {
 
 </style><style>.plain-keyword {
   font-weight: 500;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
 }
 </style><style>
 .syntax-error {
@@ -2099,6 +2104,7 @@ window.onload = () => {
 }
 </script>
     <script type="module" src="static/search/search-init.js"></script>
+    <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
     </head>
   <body>
     <header>
@@ -2164,11 +2170,11 @@ window.onload = () => {
 A simp set is specified in terms of modifications from a <em>default simp set</em>.
 These modifications can include adding rules, removing rules, or adding a set of rules.
 The <code>only</code> modifier to the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> tactic causes it to start with an empty simp set, rather than the default one.
-Rules are added to the default simp set using the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1400">simp</span></code> attribute.</p>
+Rules are added to the default simp set using the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1414">simp</span></code> attribute.</p>
             <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next">
               <span class="label">attribute</span><span class="title">Registering <code class="plain-keyword">simp</code> Lemmas</span><div class="text">
                 <p>
-                  The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1400">simp</span></code> attribute adds a declaration to the default simp set.
+                  The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1414">simp</span></code> attribute adds a declaration to the default simp set.
 If the declaration is a definition, the definition is marked for unfolding; if it is a theorem, then the theorem is registered as a rewrite rule.</p>
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___simp"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Attr.simp"><code class="hover-info"><code class="docstring">Theorems tagged with the `simp` attribute are used by the simplifier
@@ -2209,7 +2215,7 @@ attribute @[simp ←] and_assoc
 ```
 
 When multiple simp theorems are applicable, the simplifier uses the one with highest priority.
-The equational theorems of function are applied at very low priority (100 and below).
+The equational theorems of functions are applied at very low priority (100 and below).
 If there are several with the same priority, it is uses the "most recent one". Example:
 ```lean
 @[simp high] theorem cond_true (a b : α) : cond true a b = a := rfl
@@ -2257,7 +2263,7 @@ attribute @[simp ←] and_assoc
 ```
 
 When multiple simp theorems are applicable, the simplifier uses the one with highest priority.
-The equational theorems of function are applied at very low priority (100 and below).
+The equational theorems of functions are applied at very low priority (100 and below).
 If there are several with the same priority, it is uses the "most recent one". Example:
 ```lean
 @[simp high] theorem cond_true (a b : α) : cond true a b = a := rfl
@@ -2306,7 +2312,7 @@ attribute @[simp ←] and_assoc
 ```
 
 When multiple simp theorems are applicable, the simplifier uses the one with highest priority.
-The equational theorems of function are applied at very low priority (100 and below).
+The equational theorems of functions are applied at very low priority (100 and below).
 If there are several with the same priority, it is uses the "most recent one". Example:
 ```lean
 @[simp high] theorem cond_true (a b : α) : cond true a b = a := rfl
@@ -2355,7 +2361,7 @@ attribute @[simp ←] and_assoc
 ```
 
 When multiple simp theorems are applicable, the simplifier uses the one with highest priority.
-The equational theorems of function are applied at very low priority (100 and below).
+The equational theorems of functions are applied at very low priority (100 and below).
 If there are several with the same priority, it is uses the "most recent one". Example:
 ```lean
 @[simp high] theorem cond_true (a b : α) : cond true a b = a := rfl
@@ -2367,24 +2373,24 @@ If there are several with the same priority, it is uses the "most recent one". E
 </code></code><span class="keyword">simp</span> <span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="prio.pseudo">prio</span></span></span></pre></div>
               </div>
             <p>
-              <span id="--tech-term-Custom-simp-sets" class="def-technical-term"><em>Custom simp sets</em></span> are created with <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___registerSimpAttr"><span class="const token" data-binding="const-Lean.Meta.registerSimpAttr" data-verso-hover="3271">registerSimpAttr</span></a></code>, which must be run during <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-initialization">initialization</a> by placing it in an <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.initialize : command</code></code><code class="kw">initialize</code></span> block.
-As a side effect, it creates a new attribute with the same interface as <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1400">simp</span></code> that adds rules to the custom simp set.
-The returned value is a <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3272">SimpExtension</span></a></code>, which can be used to programmatically access the contents of the custom simp set.
+              <span id="--tech-term-Custom-simp-sets" class="def-technical-term"><em>Custom simp sets</em></span> are created with <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___registerSimpAttr"><span class="const token" data-binding="const-Lean.Meta.registerSimpAttr" data-verso-hover="3289">registerSimpAttr</span></a></code>, which must be run during <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-initialization">initialization</a> by placing it in an <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.initialize : command</code></code><code class="kw">initialize</code></span> block.
+As a side effect, it creates a new attribute with the same interface as <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1414">simp</span></code> that adds rules to the custom simp set.
+The returned value is a <code class="hl lean inline" data-lean-context="examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3290">SimpExtension</span></a></code>, which can be used to programmatically access the contents of the custom simp set.
 The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> tactics can be instructed to use the new simp set by including its attribute name in the rule list.</p>
             <div class="namedocs" id="Lean___Meta___registerSimpAttr">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Meta.registerSimpAttr" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only">Lean.Meta.registerSimpAttr (<span class="var token" data-binding="var-_uniq.4749" data-verso-hover="3273">attrName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1482">Lean.Name</span>) (<span class="var token" data-binding="var-_uniq.4750" data-verso-hover="310">attrDescr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
-  (<span class="var token" data-binding="var-_uniq.4751" data-verso-hover="3274">ref</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1482">Lean.Name</span> := by exact decl_name%) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3272">Lean.Meta.SimpExtension</span></a></div><div class="narrow-only">Lean.Meta.registerSimpAttr
-  (<span class="var token" data-binding="var-_uniq.4749" data-verso-hover="3273">attrName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1482">Lean.Name</span>)
-  (<span class="var token" data-binding="var-_uniq.4750" data-verso-hover="310">attrDescr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
-  (<span class="var token" data-binding="var-_uniq.4751" data-verso-hover="3274">ref</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1482">Lean.Name</span> := by
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Meta.registerSimpAttr" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only">Lean.Meta.registerSimpAttr (<span class="var token" data-binding="var-_uniq.4885" data-verso-hover="3291">attrName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1496">Lean.Name</span>) (<span class="var token" data-binding="var-_uniq.4886" data-verso-hover="312">attrDescr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
+  (<span class="var token" data-binding="var-_uniq.4887" data-verso-hover="3292">ref</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1496">Lean.Name</span> := by exact decl_name%) : <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3290">Lean.Meta.SimpExtension</span></a></div><div class="narrow-only">Lean.Meta.registerSimpAttr
+  (<span class="var token" data-binding="var-_uniq.4885" data-verso-hover="3291">attrName</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1496">Lean.Name</span>)
+  (<span class="var token" data-binding="var-_uniq.4886" data-verso-hover="312">attrDescr</span> : <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>)
+  (<span class="var token" data-binding="var-_uniq.4887" data-verso-hover="3292">ref</span> : <span class="const token" data-binding="const-Lean.Name" data-verso-hover="1496">Lean.Name</span> := by
     exact decl_name%) :
-  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3272">Lean.Meta.SimpExtension</span></a></div></pre><div class="text">
+  <a href="IO/Logical-Model/#IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a> <a href="The-Simplifier/Simp-sets/#Lean___Meta___SimpExtension"><span class="const token" data-binding="const-Lean.Meta.SimpExtension" data-verso-hover="3290">Lean.Meta.SimpExtension</span></a></div></pre><div class="text">
                 <p>
                   Registers the given name as a custom simp set. Applying the name as an attribute to a name adds it
 to the simp set, and using the name as a parameter to the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> tactic causes <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-0" data-verso-hover="36">simp</span></a></code> to use the
 included lemmas.</p>
                 <p>
-                  Custom simp sets must be registered during <a href="https://lean-lang.org/doc/reference/4.19.0/find/?domain=Verso.Genre.Manual.section&name=initialization">initialization</a>.</p>
+                  Custom simp sets must be registered during <a href="https://lean-lang.org/doc/reference/4.20.0/find/?domain=Verso.Genre.Manual.section&name=initialization">initialization</a>.</p>
                 <p>
                   The description should be a short, singular noun phrase that describes the contents of the custom
 simp set.</p>
@@ -2393,10 +2399,10 @@ simp set.</p>
             <div class="namedocs" id="Lean___Meta___SimpExtension">
               <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.Meta.SimpExtension" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only">Lean.Meta.SimpExtension : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div><div class="narrow-only">Lean.Meta.SimpExtension : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div></pre><div class="text">
                 <p>
-                  The environment extension that contains a simp set, returned by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___registerSimpAttr"><span class="const token" data-binding="const-Lean.Meta.registerSimpAttr" data-verso-hover="3271">Lean.Meta.registerSimpAttr</span></a></code>.</p>
+                  The environment extension that contains a simp set, returned by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Simplifier/Simp-sets/#Lean___Meta___registerSimpAttr"><span class="const token" data-binding="const-Lean.Meta.registerSimpAttr" data-verso-hover="3289">Lean.Meta.registerSimpAttr</span></a></code>.</p>
                 <p>
-                  Use the simp set's attribute or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.addSimpTheorem" data-verso-hover="3275">Lean.Meta.addSimpTheorem</span></code> to add theorems to the simp set. Use
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.SimpExtension.getTheorems" data-verso-hover="3276">Lean.Meta.SimpExtension.getTheorems</span></code> to get the contents.</p>
+                  Use the simp set's attribute or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.addSimpTheorem" data-verso-hover="3293">Lean.Meta.addSimpTheorem</span></code> to add theorems to the simp set. Use
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Lean.Meta.SimpExtension.getTheorems" data-verso-hover="3294">Lean.Meta.SimpExtension.getTheorems</span></code> to get the contents.</p>
                 </div>
               </div>
             </section>
