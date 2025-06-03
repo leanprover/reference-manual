@@ -21,6 +21,7 @@ import Manual.BasicTypes.Empty
 import Manual.BasicTypes.Products
 import Manual.BasicTypes.Sum
 import Manual.BasicTypes.List
+import Manual.BasicTypes.Maps
 import Manual.BasicTypes.Subtype
 import Manual.BasicTypes.Thunk
 
@@ -314,6 +315,8 @@ Most comparisons on Booleans should be performed using the {inst}`DecidableEq Bo
 {include 0 Manual.BasicTypes.List}
 
 {include 0 Manual.BasicTypes.Array}
+
+{include 0 Manual.BasicTypes.Maps}
 
 {include 0 Manual.BasicTypes.Subtype}
 
