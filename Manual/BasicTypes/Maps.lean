@@ -289,9 +289,58 @@ def Maze.go? (maze : Maze) (dir : String) : Option Maze :=
       apply wfAll dir
       apply h
 ```
+:::
 
+## Suitable Operators for Uniqueness
+
+Care should be taken when working with data structures to ensure that as many references are unique as possible, which enables Lean to use destructive mutation behind the scenes while maintaining a pure functional interface.
+The map and set library provides operators that can be used to maintain uniqueness of references.
+In particular, when possible, operations such as {name Std.HashMap.alter}`alter` or {name Std.HashMap.modify}`modify` should be preferred over explicitly retrieving a value, modifying it, and reinserting it.
+These operations avoid creating a second reference to the value during modification.
+
+:::example "Modifying Values in Maps"
+
+```lean
+open Std
+```
+
+The function {name}`addAlias` is used to track aliases of a string in some data set.
+One way to add an alias is to first look up the existing aliases, defaulting to the empty array, then insert the new alias, and finally save the resulting array in the map:
+
+```lean
+def addAlias (aliases : HashMap String (Array String))
+    (key value : String) :
+    HashMap String (Array String) :=
+  let prior := aliases.getD key #[]
+  aliases.insert key (prior.push value)
+```
+
+This implementation has poor performance characteristics.
+Because the map retains a reference to the prior values, the array must be copied rather than mutated.
+A better implementation explicitly erases the prior value from the map before modifying it:
+
+```lean
+def addAlias' (aliases : HashMap String (Array String))
+    (key value : String) :
+    HashMap String (Array String) :=
+  let prior := aliases.getD key #[]
+  let aliases := aliases.erase key
+  aliases.insert key (prior.push value)
+```
+
+Using {name}`HashMap.alter` is even better.
+It removes the need to explicitly delete and re-insert the value:
+
+```lean
+def addAlias'' (aliases : HashMap String (Array String))
+    (key value : String) :
+    HashMap String (Array String) :=
+  aliases.alter key fun prior? =>
+    some ((prior?.getD #[]).push value)
+```
 
 :::
+
 
 
 # Hash Maps
