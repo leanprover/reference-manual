@@ -12,14 +12,14 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.21.0-rc1" =>
+#doc (Manual) "Lean 4.21.0-rc2" =>
 %%%
 tag := "release-v4.21.0"
 file := "v4.21.0"
 %%%
 
 `````markdown
-(These are the preliminary release notes for `v4.21.0-rc1`.)
+(These are the preliminary release notes for `v4.21.0-rc2`.)
 
 For this release, 293 changes landed. In addition to the 100 feature additions and 82 fixes listed below there were 2 refactoring changes, 4 documentation improvements, 6 performance improvements, 2 improvements to the test suite and 97 other changes.
 
