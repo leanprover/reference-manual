@@ -9,11 +9,15 @@ structure ExtractedExample where
   hash : UInt64
   deriving ToJson, FromJson
 
-def processMWE (input : String) (inputHash : UInt64) : IO ExtractedExample := do
+/-- Returns the result of processing this example as well as the environment and message log
+produced *only* by the header-processing step (which is taken to be `envWithMsgs?` if it's supplied)-/
+def processMWE (input : String) (inputHash : UInt64) (envWithMsgs? : Option (Environment × MessageLog)) :
+    IO (ExtractedExample × Environment × MessageLog) := do
   let fileName   := "<input>"
   let inputCtx   := Parser.mkInputContext input fileName
   let (hdrStx, s, msgs) ← Parser.parseHeader inputCtx
-  let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
+  let (env, msgs') ← envWithMsgs?.getDM <| processHeader hdrStx {} {} inputCtx
+  let msgs := msgs ++ msgs'
   let cmdState := Command.mkState env msgs
 
   -- If header processing failed, don't try to elaborate the body; however, we
@@ -25,11 +29,12 @@ def processMWE (input : String) (inputHash : UInt64) : IO ExtractedExample := do
   let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
   let hls ← mkHighlights cmdState nonSilentMsgs inputCtx stxWithUnparsed
   let msgs ← mkMessages nonSilentMsgs
-  return {
+  let ex := {
     highlighted := hls
     messages := msgs
     hash := inputHash
   }
+  return (ex, env, msgs')
 where
   processCommands (inputCtx : Parser.InputContext) (s : Parser.ModuleParserState) (cmdState : Command.State) (doElab : Bool) := do
     let mut s := s
@@ -74,6 +79,7 @@ where
     let msgsHere := msgs.filterMap fun m =>
       let pos := ictx.fileMap.ofPosition m.pos
       let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
+      -- FIXME: this won't work properly for messages that extend beyond this span
       if src.startPos ≤ pos && pos ≤ src.stopPos then
         some (m, pos, min src.stopPos endPos)
       else
@@ -154,30 +160,27 @@ where
     else
       loop (acc.push line)
 
-structure Result where
-  code : String
-  messages : Array String
+def writeEx (outDir : System.FilePath) (id : String) (json : String) : IO Unit := do
+  if ! (← System.FilePath.pathExists outDir) then
+    IO.FS.createDir outDir
+  let path := outDir / (id ++ ".json")
+  IO.FS.writeFile path json
 
-def hasUsableCache (path : System.FilePath) (hash : UInt64) : IO Bool := do
-  if (← System.FilePath.pathExists path) then
-    let cachedFile ← IO.FS.readFile path
-    if let .ok json := Json.parse cachedFile then
-      if let .ok ex := FromJson.fromJson? (α := ExtractedExample) json then
-        return ex.hash == hash
-  return false
-
+-- FIXME: we're getting duplicated line breaks for some reason
 unsafe def main (args : List String) : IO UInt32 := do
-  let [outputDir, mweName] := args
-    | IO.eprintln "Usage: extract_explanation_example output-directory mwe-name"
-      return 1
-  let input ← readStdin
-  let inputHash := hash input
-  let jsonPath := (outputDir : System.FilePath) / (mweName ++ ".json")
   initSearchPath (← findSysroot)
   enableInitializersExecution
-  unless (← hasUsableCache jsonPath inputHash) do
-    let ex ← processMWE input inputHash
-    let outStr := (toJson ex).compress
-    IO.FS.createDirAll outputDir
-    IO.FS.writeFile jsonPath outStr
+  let outDir :: inFiles := args |
+    throw <| IO.userError "Usage: extract_explanation_examples <out-dir> <input-files...>\n\
+      where all input files have the same import set"
+  let mut envWithMsgs? : Option (Environment × MessageLog) := none
+  for file in inFiles do
+    let input ← IO.FS.readFile file
+    let inputHash := hash input
+    let some exampleName := (file : System.FilePath).fileStem |
+      throw <| IO.userError s!"Invalid file name: {file}"
+    let (ex, env, msgs) ← processMWE input inputHash envWithMsgs?
+    envWithMsgs? := some (env, msgs)
+    let json := (toJson ex).compress
+    writeEx outDir exampleName json
   return 0

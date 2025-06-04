@@ -107,46 +107,50 @@ private initialize defaultEnvRef : IO.Ref (Option Environment) ← IO.mkRef none
 
 open Verso Genre Manual SubVerso Highlighting
 
--- FIXME: this is giving back nonsense (probably a subverso issue)
-def processMWESubVerso (input : String) : MetaM (Highlighted × Array (MessageSeverity × String)) :=
-  IO.FS.withTempDir fun dirname => do
-    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "subverso-extract-mod"]}
-    if out.exitCode != 0 then
-      throwError
-        m!"When running 'lake env which subverso-extract-mod', the exit code was {out.exitCode}\n" ++
-        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-    let some «subverso-extract-mod» := out.stdout.splitOn "\n" |>.head?
-      | throwError "No executable path found"
-    let «subverso-extract-mod» ← IO.FS.realPath «subverso-extract-mod»
-    let leanCodeName : String := "Main"
-    let jsonFile := s!"{leanCodeName}.json"
-    let leanFileName : System.FilePath := (leanCodeName : System.FilePath).addExtension "lean"
-    IO.FS.writeFile (dirname / leanFileName) input
-    let out ← IO.Process.output {cmd := toString «subverso-extract-mod» , args := #[leanCodeName, jsonFile], cwd := some dirname}
-    if out.exitCode != 0 then
-      throwError
-        m!"When running '{«subverso-extract-mod»} {leanCodeName} {jsonFile}' in {dirname}, the exit code was {out.exitCode}\n" ++
-        m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-    let jsonStr ← IO.FS.readFile (dirname / jsonFile)
-    let topLevelJson ← IO.ofExcept <| Json.parse jsonStr
-    let .ok (Json.arr json) := topLevelJson.getObjVal? "commands"
-      | throwError m!"Expected a JSON array, got {topLevelJson}"
-    let json ← json.mapM fun v =>
-      match v.getObjVal? "code" with
-      | .ok v => pure v
-      | .error e => throwError e
-    let hl ← json.foldlM (init := Highlighted.empty) fun hl v =>
-      match FromJson.fromJson? v with
-      | .ok v => pure <| hl ++ v
-      | .error e =>
-        throwError m!"Failed to deserialize JSON output as highlighted Lean code. Error: {indentD e}\nJSON: {Json.arr json}"
-    let .ok (Json.arr json) := topLevelJson.getObjVal? "messages"
-      | throwError m!"Expected a JSON objec with a 'messages' array, but got:\n{topLevelJson}"
-    let msgs ← json.mapM fun v => do
-      match FromJson.fromJson? (α := MessageSeverity × String) v with
-      | .ok v' => pure v'
-      | .error e => throwError m!"Failed to deserialize message log entry from JSON ouptut with error:{indentD e}\nJSON: {Json.arr json}"
+def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
+  if out.exitCode != 0 then
+    throw <| IO.userError <|
+      s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
+      s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+
+open IO Process in
+/-- A version of `IO.Process.output` that passes a string via stdin. -/
+def runWithStdin (args : SpawnArgs) (input : String) : IO Process.Output := do
+  let child ← spawn { args with stdout := .piped, stderr := .piped, stdin := .piped }
+  child.stdin.putStrLn input
+  child.stdin.flush
+  let (_, child) ← child.takeStdin
+  let stdout ← IO.asTask child.stdout.readToEnd Task.Priority.dedicated
+  let stderr ← child.stderr.readToEnd
+  let exitCode ← child.wait
+  let stdout ← IO.ofExcept stdout.get
+  pure { exitCode := exitCode, stdout := stdout, stderr := stderr }
+
+def processMWESubprocess (input : String) (name? : Option Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
+  let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "extract_explanation_example"]}
+  throwIfNonzeroExit out "`lake env which extract_explanation_example`"
+  let some exePath := out.stdout.splitOn "\n" |>.head?
+    | throwError "Could not find path to `extract_explanation_example` executable"
+  let exePath ← IO.FS.realPath exePath
+  let childConfig := {
+    cmd := exePath.toString
+    args := name?.map (#[toString ·]) |>.getD #[]
+    stdin := .piped, stdout := .piped, stderr := .piped
+  }
+  let out ← runWithStdin childConfig input
+  throwIfNonzeroExit out s!"extract_explanation_example"
+  let jsonResults? := do
+    let json ← Json.parse out.stdout
+    let hlJson ← json.getObjVal? "highlighted"
+    let hl ← FromJson.fromJson? (α := Highlighted) hlJson
+    let msgsJson ← json.getObjVal? "messages"
+    let msgs ← FromJson.fromJson? (α := Array (MessageSeverity × String)) msgsJson
+    pure (hl, msgs)
+  if let .ok (hl, msgs) := jsonResults? then
     return (hl, msgs)
+  else
+    throwError "Failed to parse processed JSON for example code block:\n\n\
+      JSON:\n{out.stdout}\n\nCode:\n{input}"
 
 def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName   := "<input>"
@@ -441,14 +445,6 @@ structure ExplanCodeElabM.State where
 
 abbrev ExplanCodeElabM :=
   ReaderT ExplanCodeElabM.Context (StateT ExplanCodeElabM.State DocElabM)
-
--- TODO: delete me
--- deriving instance Repr for MessageSeverity
-instance : ToMessageData MessageSeverity where
-  toMessageData
-  | .error => "error"
-  | .warning => "warning"
-  | .information => "information"
 
 def tryElabErrorExplanationCodeBlock (errorName : Name)
     (info? lang : Option String) (str : String) : ExplanCodeElabM Term := do

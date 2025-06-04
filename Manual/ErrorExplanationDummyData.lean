@@ -193,6 +193,21 @@ unexpected identifier; expected command
 def foo x := x + 32
 ```
 
+## Another parse error
+```lean broken
+def x := 0
+def
+def
+def n := 1
+```
+```output broken
+unexpected token 'def'; expected identifier
+```
+```lean fixed
+def x := 0
+def n := 1
+```
+
 ## Slightly less disastrous parse error
 ```lean broken
 def a := 41
@@ -257,6 +272,38 @@ register_error_explanation Lean.AnOldError {
   summary := "An error that used to be thrown but no longer is."
   sinceVersion := "4.0.0"
   removedVersion := "4.18.0"
+}
+
+/--
+Here is some code that does not compile:
+
+```lean broken
+def foo := x
+```
+
+Text.
+
+And now a random output block:
+```output
+unknown identifier 'x'
+```
+
+Here is some code that does compile:
+```lean
+def foo (x : Nat) := x
+```
+
+This one's labeled `fixed` and gets some output too:
+```lean fixed
+#eval 2 + 2
+```
+```output
+4
+```
+-/
+register_error_explanation Lean.ExtraCodeBlocks {
+  summary := "Testing code blocks that aren't examples."
+  sinceVersion := "4.0.0"
 }
 
 /--
