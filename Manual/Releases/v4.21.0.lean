@@ -12,16 +12,16 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.21.0-rc2" =>
+#doc (Manual) "Lean 4.21.0-rc3" =>
 %%%
 tag := "release-v4.21.0"
 file := "v4.21.0"
 %%%
 
 `````markdown
-(These are the preliminary release notes for `v4.21.0-rc2`.)
+(These are the preliminary release notes for `v4.21.0-rc3`.)
 
-For this release, 293 changes landed. In addition to the 100 feature additions and 82 fixes listed below there were 2 refactoring changes, 4 documentation improvements, 6 performance improvements, 2 improvements to the test suite and 97 other changes.
+For this release, 295 changes landed. In addition to the 100 feature additions and 83 fixes listed below there were 2 refactoring changes, 4 documentation improvements, 6 performance improvements, 2 improvements to the test suite and 98 other changes.
 
 ## Language
 
@@ -673,6 +673,12 @@ For this release, 293 changes landed. In addition to the 100 feature additions a
   `Array.iterFromIdx(M)`), infinite iterators produced by a step function
   (`Iter.repeat`), and a `ForM` instance for finite iterators that is
   implemented in terms of `ForIn`.
+
+* [#8620](https://github.com/leanprover/lean4/pull/8620) removes the `NatCast (Fin n)` global instance (both the direct
+  instance, and the indirect one via `Lean.Grind.Semiring`), as that
+  instance causes causes `x < n` (for `x : Fin k`, `n : Nat`) to be
+  elaborated as `x < ↑n` rather than `↑x < n`, which is undesirable. Note
+  however that in Mathlib this happens anyway!
 
 ## Compiler
 
