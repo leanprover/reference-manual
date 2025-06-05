@@ -113,44 +113,35 @@ def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
       s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
       s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
-open IO Process in
-/-- A version of `IO.Process.output` that passes a string via stdin. -/
-def runWithStdin (args : SpawnArgs) (input : String) : IO Process.Output := do
-  let child ← spawn { args with stdout := .piped, stderr := .piped, stdin := .piped }
-  child.stdin.putStrLn input
-  child.stdin.flush
-  let (_, child) ← child.takeStdin
-  let stdout ← IO.asTask child.stdout.readToEnd Task.Priority.dedicated
-  let stderr ← child.stderr.readToEnd
-  let exitCode ← child.wait
-  let stdout ← IO.ofExcept stdout.get
-  pure { exitCode := exitCode, stdout := stdout, stderr := stderr }
-
-def processMWESubprocess (input : String) (name? : Option Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
-  let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "extract_explanation_example"]}
-  throwIfNonzeroExit out "`lake env which extract_explanation_example`"
-  let some exePath := out.stdout.splitOn "\n" |>.head?
-    | throwError "Could not find path to `extract_explanation_example` executable"
-  let exePath ← IO.FS.realPath exePath
-  let childConfig := {
-    cmd := exePath.toString
-    args := name?.map (#[toString ·]) |>.getD #[]
-    stdin := .piped, stdout := .piped, stderr := .piped
-  }
-  let out ← runWithStdin childConfig input
-  throwIfNonzeroExit out s!"extract_explanation_example"
-  let jsonResults? := do
-    let json ← Json.parse out.stdout
-    let hlJson ← json.getObjVal? "highlighted"
-    let hl ← FromJson.fromJson? (α := Highlighted) hlJson
-    let msgsJson ← json.getObjVal? "messages"
-    let msgs ← FromJson.fromJson? (α := Array (MessageSeverity × String)) msgsJson
-    pure (hl, msgs)
-  if let .ok (hl, msgs) := jsonResults? then
-    return (hl, msgs)
-  else
-    throwError "Failed to parse processed JSON for example code block:\n\n\
-      JSON:\n{out.stdout}\n\nCode:\n{input}"
+def processMWESubprocess (input : String) (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
+  IO.FS.withTempDir fun tempDir => do
+    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "extract_explanation_example"]}
+    throwIfNonzeroExit out "`lake env which extract_explanation_example`"
+    let some exePath := out.stdout.splitOn "\n" |>.head?
+      | throwError "Could not find path to `extract_explanation_example` executable"
+    let exePath ← IO.FS.realPath exePath
+    let outPath := tempDir / (name.toString ++ ".lean")
+    IO.FS.writeFile outPath input
+    let childConfig := {
+      cmd := exePath.toString
+      args := #["explanation_examples", outPath.toString]
+      stdin := .piped, stdout := .piped, stderr := .piped
+    }
+    let out ← IO.Process.output childConfig
+    throwIfNonzeroExit out s!"extract_explanation_example"
+    let fileContents ← IO.FS.readFile ("explanation_examples" / (name.toString ++ ".json"))
+    let jsonResults? := do
+      let json ← Json.parse fileContents
+      let hlJson ← json.getObjVal? "highlighted"
+      let hl ← FromJson.fromJson? (α := Highlighted) hlJson
+      let msgsJson ← json.getObjVal? "messages"
+      let msgs ← FromJson.fromJson? (α := Array (MessageSeverity × String)) msgsJson
+      pure (hl, msgs)
+    if let .ok (hl, msgs) := jsonResults? then
+      return (hl, msgs)
+    else
+      throwError "Failed to parse processed JSON for example code block:\n\n\
+        JSON:\n{out.stdout}\n\nCode:\n{input}"
 
 def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName   := "<input>"
@@ -303,7 +294,10 @@ def leanMWE : CodeBlockExpander
     let config ← LeanBlockConfig.parse.run args
 
     let src := str.getString
-    let (hls, msgs) ← processMWE src
+    -- TODO: don't make the field an option if it isn't optional!
+    let some name := config.name | throwError "Lean MWEs must be named"
+    let (hls, msgs) ← processMWESubprocess src name
+    -- let (hls, msgs) ← processMWE src
     if let some name := config.name then
       saveOutputs name msgs.toList
     let range : Option Lsp.Range := none
@@ -446,7 +440,7 @@ structure ExplanCodeElabM.State where
 abbrev ExplanCodeElabM :=
   ReaderT ExplanCodeElabM.Context (StateT ExplanCodeElabM.State DocElabM)
 
-def tryElabErrorExplanationCodeBlock (errorName : Name)
+def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSeverity)
     (info? lang : Option String) (str : String) : ExplanCodeElabM Term := do
   if let some info := info? then
     let { lang, kind?, .. } ← match ErrorExplanationCodeInfo.parse info with
@@ -472,7 +466,10 @@ def tryElabErrorExplanationCodeBlock (errorName : Name)
       let name := mkExampleName errorName (← get).codeBlockIdx
       args := args.push (← `(argument| name := $(mkIdent name):ident))
       if let some kind := kind? then
-        let errorVal ← if kind == .broken then `(arg_val|true) else `(arg_val|false)
+        let errorVal ← if kind == .broken && errorSev == .error then
+          `(arg_val|true)
+        else
+          `(arg_val|false)
         args := args.push (← `(argument| error := $errorVal))
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| leanMWE parsedArgs (quote str)
@@ -491,6 +488,8 @@ structure ExplanElabM.Context where
   blocks : Array MD4Lean.Block
   /-- Name of the error described by the explanation being elaborated. -/
   name : Name
+  /-- Severity of error described by the explanation being elaborated. -/
+  severity : MessageSeverity
 
 structure ExplanElabM.State where
   /-- The index of the next block in the context's `blocks` to elaborate. -/
@@ -502,9 +501,10 @@ structure ExplanElabM.State where
 
 abbrev ExplanElabM := ReaderT ExplanElabM.Context (StateT ExplanElabM.State PartElabM)
 
-def ExplanElabM.run (x : ExplanElabM α) (name : Name) (blocks : Array MD4Lean.Block) :
+def ExplanElabM.run (x : ExplanElabM α) (name : Name)
+    (severity : MessageSeverity) (blocks : Array MD4Lean.Block) :
     PartElabM (α × ExplanElabM.State) :=
-  ReaderT.run x { name, blocks } |>.run {}
+  ReaderT.run x { name, blocks, severity } |>.run {}
 
 def ExplanElabM.nextBlock? : ExplanElabM (Option MD4Lean.Block) := do
   let curBlockIdx := (← get).blockIdx
@@ -530,7 +530,7 @@ instance : MonadLift ExplanCodeElabM ExplanElabM where
 
 -- TODO: try to reduce duplication between this and the next function
 def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
-  let name := (← read).name
+  let { name, severity .. } ← read
   let tactics ← Elab.Tactic.Doc.allTacticDocs
   let keywords := tactics.map (·.userName)
   let ref ← getRef
@@ -541,7 +541,8 @@ def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
         blockFromMarkdown b
           (handleHeaders := Markdown.strongEmphHeaders)
           (elabInlineCode := some fun p s => tryElabInlineCode tactics keywords p s)
-          (elabBlockCode := some fun i l s => withRef ref <| tryElabErrorExplanationCodeBlock name i l s)
+          (elabBlockCode := some fun i l s => withRef ref <|
+            tryElabErrorExplanationCodeBlock name severity i l s)
       synthesizeSyntheticMVarsUsingDefault
       pure (res, leanOutputs.getState (← getEnv))
     finally
@@ -558,14 +559,15 @@ def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
   let keywords := tactics.map (·.userName)
   let ref ← getRef
   let s ← (saveState : TermElabM _)
-  let name := (← read).name
+  let {name, severity .. } ← read
   let (ls, outputs) ←
     try
       let res ←
         addPartFromMarkdown b
           (handleHeaders := Markdown.strongEmphHeaders)
           (elabInlineCode := some fun p s => tryElabInlineCode tactics keywords p s)
-          (elabBlockCode := some fun i l s => withRef ref <| tryElabErrorExplanationCodeBlock name i l s)
+          (elabBlockCode := some fun i l s => withRef ref <|
+            tryElabErrorExplanationCodeBlock name severity i l s)
       synthesizeSyntheticMVarsUsingDefault
       pure (res, leanOutputs.getState (← getEnv))
     finally
@@ -852,7 +854,7 @@ def ExplanationConfig.parser : ArgParse.ArgParse m ExplanationConfig :=
       | other => throwError "Expected error name, got {repr other}"
   }
 
-def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
+def addExplanationBlocksFor (name : Name) (severity : MessageSeverity) : PartElabM Unit := do
   let explan? ← getErrorExplanation? name
   match explan? with
   | .none =>
@@ -863,7 +865,7 @@ def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
         | throwErrorAt (← getRef) "Failed to parse docstring as Markdown"
       addExplanationMetadata explan.metadata
       -- TODO: do we need error handling after the fact?
-      let (_, { levels, .. }) ← addExplanationBlocks.run name ast.blocks
+      let (_, { levels, .. }) ← addExplanationBlocks.run name severity ast.blocks
       for _ in levels do
         closeExplanationPart
     catch
@@ -877,7 +879,10 @@ Renders a single error explanation for `name` via `{explanation name}`.
 def explanation : PartCommand
   | `(block|block_role{explanation $args*}) => do
     let config ← ExplanationConfig.parser.run (← parseArgs args)
-    addExplanationBlocksFor config.name.getId
+    let name := config.name.getId
+    let some explan := ← getErrorExplanation? name
+      | throwError m!"Invalid error explanation name `{name}`"
+    addExplanationBlocksFor name explan.metadata.severity
   | _ => Lean.Elab.throwUnsupportedSyntax
 
 open Verso Doc Elab ArgParse in
@@ -898,6 +903,6 @@ def makeExplanations : PartCommand
         blocks := #[],
         priorParts := #[]
       }
-      addExplanationBlocksFor name
+      addExplanationBlocksFor name explan.metadata.severity
       closeExplanationPart
   | _ => throwUnsupportedSyntax
