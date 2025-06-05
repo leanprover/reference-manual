@@ -28,6 +28,8 @@ For this release, 295 changes landed. In addition to the 100 feature additions a
 * [#6973](https://github.com/leanprover/lean4/pull/6973) stops `dsimp` from visiting proof terms, which should make
   `simp` and `dsimp` more efficient.
 
+* [#7428](https://github.com/leanprover/lean4/pull/7428) adds a `dsimp` cache to `simp`. Previously each `dsimp` call from `simp` started with a fresh cache. As a result, time spent in `simp` while compiling Mathlib is reduced by over 45%, giving an overall 8% speedup to Mathlib compilation.
+
 * [#7631](https://github.com/leanprover/lean4/pull/7631) fixes `Lean.Level.mkIMaxAux` (`mk_imax` in the kernel) such that
   `imax 1 u` reduces to `u`.
 
