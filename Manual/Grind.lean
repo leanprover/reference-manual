@@ -609,7 +609,7 @@ At this point, it's worth pausing and doing at least one of the following:
 * Read Wojciech Nawrocki's [solution](https://leanprover.zulipchat.com/#narrow/channel/113488-general/topic/Rustan's.20challenge/near/398824748).
   This one uses less automation, at about 300 lines of proof work.
 
-# The solution using {tactic}`grind`
+### The solution using {tactic}`grind`
 
 Actually solving the problem is not that hard:
 we just need a recursive function that carries along a record of "already assigned variables",
