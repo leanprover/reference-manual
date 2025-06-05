@@ -107,15 +107,15 @@ def lakeOptDef.descr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun goB id data content => do
-      let .arr #[.str name, _jsonKind, meta] := data
+      let .arr #[.str name, _jsonKind, metadata] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Lake option def: {data}"; content.mapM goB
 
       let idAttr := (← read).traverseState.htmlId id
 
-      let .ok meta := FromJson.fromJson? (α := Option String) meta
-        | HtmlT.logError s!"Failed to deserialize argument metadata for Lake option def: {meta}"; content.mapM goB
+      let .ok metadata := FromJson.fromJson? (α := Option String) metadata
+        | HtmlT.logError s!"Failed to deserialize argument metadata for Lake option def: {metadata}"; content.mapM goB
 
-      if let some mv := meta then
+      if let some mv := metadata then
         pure {{<code {{idAttr}} class="lake-opt">{{name}}"="{{mv}}</code>}}
       else
         pure {{<code {{idAttr}} class="lake-opt">{{name}}</code>}}
@@ -149,7 +149,7 @@ def lakeOpt.descr : InlineDescr where
 
   toHtml :=
     open Verso.Output.Html in
-    some <| fun goB id data content => do
+    some <| fun goB _ data content => do
       let .arr #[.str name, .str original] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Lake option ref: {data}"; content.mapM goB
 
