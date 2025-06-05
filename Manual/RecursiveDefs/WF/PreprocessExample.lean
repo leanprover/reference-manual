@@ -176,7 +176,9 @@ macro "sizeOf_pair_dec" : tactic =>
     omega
     done)
 
-macro_rules | `(tactic| decreasing_trivial) => `(tactic| sizeOf_pair_dec)
+macro_rules
+  | `(tactic| decreasing_trivial) =>
+    `(tactic| sizeOf_pair_dec)
 
 def Tree.map (f : α → β) : Tree α → Tree β
   | leaf x => leaf (f x)

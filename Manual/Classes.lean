@@ -26,7 +26,6 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
-
 set_option maxRecDepth 100000
 #doc (Manual) "Type Classes" =>
 %%%
@@ -269,7 +268,7 @@ def Heap.bubbleUp [Ord α] (i : Nat) (xs : Heap α) : Heap α :=
   else
     let j := i / 2
     if Ord.compare xs.contents[i] xs.contents[j] == .lt then
-      Heap.bubbleUp j {xs with contents := xs.contents.swap i j}
+      Heap.bubbleUp j { xs with contents := xs.contents.swap i j }
     else xs
 
 def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=

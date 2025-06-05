@@ -582,7 +582,9 @@ mutual
   inductive FreshList (α : Type) (r : α → α → Prop) : Type where
     | nil : FreshList α r
     | cons (x : α) (xs : FreshList α r) (fresh : Fresh r x xs)
-  inductive Fresh (r : α → FreshList α → Prop) : α → FreshList α r → Prop where
+  inductive Fresh
+      (r : α → FreshList α → Prop) :
+      α → FreshList α r → Prop where
     | nil : Fresh r x .nil
     | cons : r x y → (f : Fresh r x ys) → Fresh r x (.cons y ys f)
 end
@@ -659,11 +661,16 @@ These mutually-inductive types are a somewhat complicated way to represent run-l
 mutual
   inductive RLE : List α → Type where
   | nil : RLE []
-  | run (x : α) (n : Nat) : n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
+  | run (x : α) (n : Nat) :
+    n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
 
   inductive PrefixRunOf : Nat → α → List α → List α → Type where
-  | zero (noMore : ¬∃zs, xs = x :: zs := by simp) : PrefixRunOf 0 x xs xs
-  | succ : PrefixRunOf n x xs ys → PrefixRunOf (n + 1) x (x :: xs) ys
+  | zero
+    (noMore : ¬∃zs, xs = x :: zs := by simp) :
+    PrefixRunOf 0 x xs xs
+  | succ :
+    PrefixRunOf n x xs ys →
+    PrefixRunOf (n + 1) x (x :: xs) ys
 end
 
 example : RLE [1, 1, 2, 2, 3, 1, 1, 1] :=
@@ -682,11 +689,18 @@ Specifying {name}`PrefixRunOf` as a {lean}`Prop` would be sensible, but it canno
 mutual
   inductive RLE : List α → Type where
   | nil : RLE []
-  | run (x : α) (n : Nat) : n ≠ 0 → PrefixRunOf n x xs ys → RLE ys → RLE xs
+  | run
+    (x : α) (n : Nat) :
+    n ≠ 0 → PrefixRunOf n x xs ys → RLE ys →
+    RLE xs
 
   inductive PrefixRunOf : Nat → α → List α → List α → Prop where
-  | zero (noMore : ¬∃zs, xs = x :: zs := by simp) : PrefixRunOf 0 x xs xs
-  | succ : PrefixRunOf n x xs ys → PrefixRunOf (n + 1) x (x :: xs) ys
+  | zero
+    (noMore : ¬∃zs, xs = x :: zs := by simp) :
+    PrefixRunOf 0 x xs xs
+  | succ :
+    PrefixRunOf n x xs ys →
+    PrefixRunOf (n + 1) x (x :: xs) ys
 end
 ```
 ```leanOutput rleBad

@@ -212,7 +212,8 @@ def getByte (n : Nat) : Except String UInt8 :=
     pure n.toUInt8
   else throw s!"Out of range: {n}"
 
-def getBytes (input : Array Nat) : StateT (Array UInt8) (Except String) Unit := do
+def getBytes (input : Array Nat) :
+    StateT (Array UInt8) (Except String) Unit := do
   input.forM fun i =>
     liftM (Except.tryCatch (some <$> getByte i) fun _ => pure none) >>=
       fun
@@ -233,7 +234,10 @@ Ideally, state updates would be performed within the {name}`tryCatch` call direc
 
 Attempting to save bytes and handled exceptions does not work, however, because the arguments to {name}`Except.tryCatch` have type {lean}`Except String Unit`:
 ```lean (error := true) (name := getBytesErr) (keep := false)
-def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+def getBytes' (input : Array Nat) :
+    StateT (Array String)
+      (StateT (Array UInt8)
+        (Except String)) Unit := do
   input.forM fun i =>
     liftM
       (Except.tryCatch
@@ -254,7 +258,10 @@ It provides the inner action with an interpreter for the outer monad.
 In the case of {name}`StateT`, this interpreter expects that the inner monad returns a tuple that includes the updated state, and takes care of providing the initial state and extracting the updated state from the tuple.
 
 ```lean
-def getBytes' (input : Array Nat) : StateT (Array String) (StateT (Array UInt8) (Except String)) Unit := do
+def getBytes' (input : Array Nat) :
+    StateT (Array String)
+      (StateT (Array UInt8)
+        (Except String)) Unit := do
   input.forM fun i =>
     control fun run =>
       (Except.tryCatch
