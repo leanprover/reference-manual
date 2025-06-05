@@ -801,6 +801,10 @@ For this release, 295 changes landed. In addition to the 100 feature additions a
 
 ## Server
 
+* [#7665](https://github.com/leanprover/lean4/pull/7665) and [#8180](https://github.com/leanprover/lean4/pull/8180) add 
+  support for code actions that resolve 'unknown identifier' errors by either importing the missing declaration or by 
+  changing the identifier to one from the environment.
+
 * [#8091](https://github.com/leanprover/lean4/pull/8091) improves the performance of the workspace symbol request.
 
 * [#8242](https://github.com/leanprover/lean4/pull/8242) fixes the 'goals accomplished' diagnostics. They were
