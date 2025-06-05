@@ -25,6 +25,8 @@ set_option linter.unusedVariables false
 -- TODO: discuss with David.
 set_option verso.code.warnLineLength 60
 
+set_option maxHeartbeats 400000 -- Needed for elaboration of the `IndexMap` example.
+
 #doc (Manual) "The `grind` tactic" =>
 %%%
 tag := "grind"
@@ -828,3 +830,337 @@ If you'd like to play around with this code,
 you can find the whole file [here](https://github.com/leanprover/lean4/blob/master/tests/lean/run/grind_ite.lean),
 or in fact [play with it with no installation](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fraw.githubusercontent.com%2Fleanprover%2Flean4%2Frefs%2Fheads%2Fmaster%2Ftests%2Flean%2Frun%2Fgrind_ite.lean)
 in the Live Lean editor.
+
+##  `IndexMap`
+
+In this section we'll build an example of a new datastructure and basic API for it, illustrating the use of {tactic}`grind`.
+
+The example will be derived from Rust's [`indexmap`](https://docs.rs/indexmap/latest/indexmap/) datastructure.
+
+`IndexMap` is intended as a replacement for `HashMap` (in particular, it has fast hash-based lookup), but allowing the user to maintain control of the order of the elements.
+We won't give a complete API, just set up some basic functions and theorems about them.
+
+The two main functions we'll implement for now are `insert` and `eraseSwap`:
+* `insert k v` checks if `k` is already in the map. If so, it replaces the value with `v`, keeping `k` in the same position in the ordering.
+  If it is not already in the map, `insert` adds `(k, v)` to the end of the map.
+* `eraseSwap k` removes the element with key `k` from the map, and swaps it with the last element of the map (or does nothing if `k` is not in the map).
+
+Our goals will be:
+* complete encapsulation: the implementation of `IndexMap` is hidden from the users, **and** the theorems about the implementation details are private.
+* to use `grind` as much as possible: we'll preferring adding a private theorem and annotating it with `@[grind]` over writing a longer proof whenever practical.
+* to use auto-parameters as much as possible, so that we don't even see the proofs, as they're mostly handled invisibly by `grind`.
+
+To begin with, we'll write out a skeleton of what we want to achieve, liberally using `sorry` as a placeholder for all proofs.
+In particular, this version makes no use of `grind`.
+
+```lean (keep := false)
+
+open Std
+
+structure IndexMap
+    (α : Type u) (β : Type v) [BEq α] [Hashable α] where
+  indices : HashMap α Nat
+  keys : Array α
+  values : Array β
+  size_keys' : keys.size = values.size
+  WF : ∀ (i : Nat) (a : α),
+    keys[i]? = some a ↔ indices[a]? = some i
+
+namespace IndexMap
+
+variable {α : Type u} {β : Type v}
+  [BEq α] [LawfulBEq α] [Hashable α] [LawfulHashable α]
+variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
+
+@[inline] def size (m : IndexMap α β) : Nat :=
+  m.values.size
+
+def emptyWithCapacity (capacity := 8) : IndexMap α β where
+  indices := HashMap.emptyWithCapacity capacity
+  keys := Array.emptyWithCapacity capacity
+  values := Array.emptyWithCapacity capacity
+  size_keys' := sorry
+  WF := sorry
+
+instance : EmptyCollection (IndexMap α β) where
+  emptyCollection := emptyWithCapacity
+
+instance : Inhabited (IndexMap α β) where
+  default := ∅
+
+@[inline] def contains (m : IndexMap α β)
+    (a : α) : Bool :=
+  m.indices.contains a
+
+instance : Membership α (IndexMap α β) where
+  mem m a := a ∈ m.indices
+
+instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
+  inferInstanceAs (Decidable (a ∈ m.indices))
+
+instance :
+    GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
+  getElem m a h :=
+    m.values[m.indices[a]'h]'(by sorry)
+  getElem? m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?))
+  getElem! m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+
+@[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
+  m.indices[a]?
+
+@[inline] def findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) : Nat :=
+  m.indices[a]
+
+@[inline] def getIdx? (m : IndexMap α β) (i : Nat) : Option β :=
+  m.values[i]?
+
+@[inline] def getIdx (m : IndexMap α β) (i : Nat)
+    (h : i < m.size := by get_elem_tactic) : β :=
+  m.values[i]
+
+instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
+  getElem?_def := sorry
+  getElem!_def := sorry
+
+@[inline] def insert (m : IndexMap α β) (a : α) (b : β) : IndexMap α β :=
+  match h : m.indices[a]? with
+  | some i =>
+    { indices := m.indices
+      keys := m.keys.set i a sorry
+      values := m.values.set i b sorry
+      size_keys' := sorry
+      WF := sorry }
+  | none =>
+    { indices := m.indices.insert a m.size
+      keys := m.keys.push a
+      values := m.values.push b
+      size_keys' := sorry
+      WF := sorry }
+
+instance : Singleton (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
+
+instance : Insert (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ s => s.insert a b⟩
+
+instance : LawfulSingleton (α × β) (IndexMap α β) :=
+  ⟨fun _ => rfl⟩
+
+/--
+Erase the key-value pair with the given key,
+moving the last pair into its place in the order.
+If the key is not present, the map is unchanged.
+-/
+@[inline] def eraseSwap (m : IndexMap α β) (a : α) :
+    IndexMap α β :=
+  match h : m.indices[a]? with
+  | some i =>
+    if w : i = m.size - 1 then
+      { indices := m.indices.erase a
+        keys := m.keys.pop
+        values := m.values.pop
+        size_keys' := sorry
+        WF := sorry }
+    else
+      let lastKey := m.keys.back sorry
+      let lastValue := m.values.back sorry
+      { indices := (m.indices.erase a).insert lastKey i
+        keys := m.keys.pop.set i lastKey sorry
+        values := m.values.pop.set i lastValue sorry
+        size_keys' := sorry
+        WF := sorry }
+  | none => m
+
+/-! ### Verification theorems -/
+
+theorem getIdx_findIdx (m : IndexMap α β) (a : α)
+    (h : a ∈ m) :
+    m.getIdx (m.findIdx a h) sorry = m[a] :=
+  sorry
+
+theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+    a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
+  sorry
+
+theorem getElem_insert
+    (m : IndexMap α β) (a a' : α) (b : β)
+    (h : a' ∈ m.insert a b) :
+    (m.insert a b)[a']'h =
+      if h' : a' == a then b else m[a']'sorry := by
+  sorry
+
+theorem findIdx_insert_self
+    (m : IndexMap α β) (a : α) (b : β) :
+    (m.insert a b).findIdx a sorry =
+      if h : a ∈ m then m.findIdx a h else m.size := by
+  sorry
+
+end IndexMap
+```
+
+FIXME (@kim-em): explanation of how we get from here to there!
+
+At the end, we reach the following result:
+
+FIXME: This example won't work until we're on nightly-2025-06-04 or later.
+-- ```lean
+-- macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| grind)
+
+-- open Std
+
+-- structure IndexMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
+--   private indices : HashMap α Nat
+--   private keys : Array α
+--   private values : Array β
+--   private size_keys' : keys.size = values.size := by grind
+--   private WF : ∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i := by grind
+
+-- namespace IndexMap
+
+-- variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
+-- variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
+
+-- @[inline] def size (m : IndexMap α β) : Nat :=
+--   m.values.size
+
+-- @[local grind =] private theorem size_keys : m.keys.size = m.size := m.size_keys'
+
+-- def emptyWithCapacity (capacity := 8) : IndexMap α β where
+--   indices := HashMap.emptyWithCapacity capacity
+--   keys := Array.emptyWithCapacity capacity
+--   values := Array.emptyWithCapacity capacity
+
+-- instance : EmptyCollection (IndexMap α β) where
+--   emptyCollection := emptyWithCapacity
+
+-- instance : Inhabited (IndexMap α β) where
+--   default := ∅
+
+-- @[inline] def contains (m : IndexMap α β)
+--     (a : α) : Bool :=
+--   m.indices.contains a
+
+-- instance : Membership α (IndexMap α β) where
+--   mem m a := a ∈ m.indices
+
+-- instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
+--   inferInstanceAs (Decidable (a ∈ m.indices))
+
+-- @[local grind] private theorem mem_indices_of_mem {m : IndexMap α β} {a : α} :
+--     a ∈ m ↔ a ∈ m.indices := Iff.rfl
+
+-- variable [LawfulBEq α] [LawfulHashable α]
+
+-- attribute [local grind _=_] IndexMap.WF
+
+-- private theorem getElem_indices_lt {h : a ∈ m} : m.indices[a] < m.size := by
+--   have : m.indices[a]? = some m.indices[a] := by grind
+--   grind
+
+-- grind_pattern getElem_indices_lt => m.indices[a]
+
+-- attribute [local grind] size
+
+-- instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
+--   getElem m a h := m.values[m.indices[a]'h]
+--   getElem? m a := m.indices[a]?.bind (fun i => (m.values[i]?))
+--   getElem! m a := m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+
+-- @[local grind] private theorem getElem_def (m : IndexMap α β) (a : α) (h : a ∈ m) : m[a] = m.values[m.indices[a]'h] := rfl
+-- @[local grind] private theorem getElem?_def (m : IndexMap α β) (a : α) :
+--     m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) := rfl
+-- @[local grind] private theorem getElem!_def [Inhabited β] (m : IndexMap α β) (a : α) :
+--     m[a]! = (m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default) := rfl
+
+-- @[local grind] private theorem WF' (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
+--     m.keys[i] = a ↔ m.indices[a] = i := by
+--   have := m.WF i a
+--   grind
+
+-- @[local grind] private theorem getElem_keys_getElem_indices
+--     {m : IndexMap α β} {a : α} {h : a ∈ m} :
+--   m.keys[m.indices[a]'h] = a := by grind
+
+-- @[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat := m.indices[a]?
+
+-- @[inline] def findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) : Nat := m.indices[a]
+
+-- @[inline] def getIdx? (m : IndexMap α β) (i : Nat) : Option β := m.values[i]?
+
+-- @[inline] def getIdx (m : IndexMap α β) (i : Nat) (h : i < m.size := by get_elem_tactic) : β :=
+--   m.values[i]
+
+-- instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
+--   getElem?_def := by grind
+--   getElem!_def := by grind
+
+-- @[inline] def insert [LawfulBEq α] (m : IndexMap α β) (a : α) (b : β) :
+--     IndexMap α β :=
+--   match h : m.indices[a]? with
+--   | some i =>
+--     { indices := m.indices
+--       keys := m.keys.set i a
+--       values := m.values.set i b }
+--   | none =>
+--     { indices := m.indices.insert a m.size
+--       keys := m.keys.push a
+--       values := m.values.push b }
+
+-- instance [LawfulBEq α] : Singleton (α × β) (IndexMap α β) :=
+--     ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
+
+-- instance [LawfulBEq α] : Insert (α × β) (IndexMap α β) :=
+--     ⟨fun ⟨a, b⟩ s => s.insert a b⟩
+
+-- instance [LawfulBEq α] : LawfulSingleton (α × β) (IndexMap α β) :=
+--     ⟨fun _ => rfl⟩
+
+-- /--
+-- Erase the key-value pair with the given key, moving the last pair into its place in the order.
+-- If the key is not present, the map is unchanged.
+-- -/
+-- @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
+--   match h : m.indices[a]? with
+--   | some i =>
+--     if w : i = m.size - 1 then
+--       { indices := m.indices.erase a
+--         keys := m.keys.pop
+--         values := m.values.pop }
+--     else
+--       let lastKey := m.keys.back
+--       let lastValue := m.values.back
+--       { indices := (m.indices.erase a).insert lastKey i
+--         keys := m.keys.pop.set i lastKey
+--         values := m.values.pop.set i lastValue }
+--   | none => m
+
+-- /-! ### Verification theorems -/
+
+-- attribute [local grind] getIdx findIdx insert
+
+-- @[grind] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+--     m.getIdx (m.findIdx a h) = m[a] := by grind
+
+-- @[grind] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+--     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
+--   grind
+
+-- @[grind] theorem getElem_insert (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
+--     (m.insert a b)[a']'h = if h' : a' == a then b else m[a'] := by
+--   grind
+
+-- @[grind] theorem findIdx_insert_self (m : IndexMap α β) (a : α) (b : β) :
+--     (m.insert a b).findIdx a (by grind) = if h : a ∈ m then m.findIdx a h else m.size := by
+--   grind
+
+-- end IndexMap
+-- ```
+
+
+A few concluding remarks:
+* the fields of `IndexMap` are all private, as these are implementation details.
+* the theorems about these fields are all private, and marked as `@[local grind]`, rather than `@[grind]`, as they won't be needed after we've set up the API.
+* the verification theorems are both marked as `@[grind]`, and proved by `grind`:
+  the annotation is necessary because we want grind to be able to prove these facts even once we're outside the current module, and the `@[local grind]` theorems are no longer available.
