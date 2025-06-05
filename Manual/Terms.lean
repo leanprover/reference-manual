@@ -1321,9 +1321,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.903
+  motive (instOfNatBlah_1.f 0) : Sort ?u.909
 but is expected to have type
-  motive n✝ : Sort ?u.903
+  motive n✝ : Sort ?u.909
 -/
 #guard_msgs in
 def defg (n : Blah) : Bool :=
@@ -1332,9 +1332,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.946
+  motive (Float.ofScientific 25 true 1) : Sort ?u.953
 but is expected to have type
-  motive x✝ : Sort ?u.946
+  motive x✝ : Sort ?u.953
 -/
 #guard_msgs in
 def twoPointFive? : Float → Option Float
@@ -1391,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1743, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1757, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1439,9 +1439,21 @@ This {tech}[indexed family] describes mostly-balanced trees, with the depth enco
 ```lean
 inductive BalancedTree (α : Type u) : Nat → Type u where
   | empty : BalancedTree α 0
-  | branch (left : BalancedTree α n) (val : α) (right : BalancedTree α n) : BalancedTree α (n + 1)
-  | lbranch (left : BalancedTree α (n + 1)) (val : α) (right : BalancedTree α n) : BalancedTree α (n + 2)
-  | rbranch (left : BalancedTree α n) (val : α) (right : BalancedTree α (n + 1)) : BalancedTree α (n + 2)
+  | branch
+    (left : BalancedTree α n)
+    (val : α)
+    (right : BalancedTree α n) :
+    BalancedTree α (n + 1)
+  | lbranch
+    (left : BalancedTree α (n + 1))
+    (val : α)
+    (right : BalancedTree α n) :
+    BalancedTree α (n + 2)
+  | rbranch
+    (left : BalancedTree α n)
+    (val : α)
+    (right : BalancedTree α (n + 1)) :
+    BalancedTree α (n + 2)
 ```
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
@@ -1461,7 +1473,9 @@ depth : Nat
 Matching on the expected depth and inserting holes results in an error message for each hole.
 These messages demonstrate that the expected type has been refined, with `depth` replaced by the matched values.
 ```lean (error := true) (name := fill2)
-def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth :=
+def BalancedTree.filledWith
+    (x : α) (depth : Nat) :
+    BalancedTree α depth :=
   match depth with
   | 0 => _
   | n + 1 => _
@@ -1941,10 +1955,10 @@ example (n : Nat) := by
 ```
 ```leanOutput byBusted
 tactic 'rewrite' failed, equality or iff proof expected
-  HEq 0 n'
+  0 ≍ n'
 n' : Nat
-ih : HEq 0 n'
-⊢ HEq 0 n'.succ
+ih : 0 ≍ n'
+⊢ 0 ≍ n'.succ
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show` can be used to provide the proposition being proved.

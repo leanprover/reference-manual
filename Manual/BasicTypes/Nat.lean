@@ -78,10 +78,12 @@ def NoConfusion : Nat → Nat → Prop
   | 0, _ + 1 | _ + 1, 0 => False
   | n + 1, k + 1 => n = k
 
-theorem noConfusionDiagonal (n : Nat) : NoConfusion n n :=
+theorem noConfusionDiagonal (n : Nat) :
+    NoConfusion n n :=
   Nat.rec True.intro (fun _ _ => rfl) n
 
-theorem noConfusion (n k : Nat) (eq : n = k) : NoConfusion n k :=
+theorem noConfusion (n k : Nat) (eq : n = k) :
+    NoConfusion n k :=
   eq ▸ noConfusionDiagonal n
 
 theorem succ_injective : n + 1 = k + 1 → n = k :=
