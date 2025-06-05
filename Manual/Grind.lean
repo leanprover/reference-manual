@@ -586,6 +586,7 @@ end IfExpr
 
 Using these we can state the problem. The challenge is to inhabit the following type (and to do so nicely!):
 
+FIXME (@david-christiansen): No long line warning here?
 ```lean
 namespace IfExpr
 
@@ -597,9 +598,10 @@ def IfNormalization : Type := { Z : IfExpr → IfExpr // ∀ e, (Z e).normalized
 At this point, it's worth pausing and doing at least one of the following:
 
 * Try to prove this yourself! It's quite challenging for a beginner!
-  You can [have a go](https://live.lean-lang.org/#project=lean-nightly&url=https://gist.github.com/kim-em/f416b31fe29de8a3f1b2b3a84e0f1793)
+  You can [have a go](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fgist.githubusercontent.com%2Fkim-em%2Ff416b31fe29de8a3f1b2b3a84e0f1793%2Fraw%2F75ca61230b50c126f8658bacd933ecf7bfcaa4b8%2Fgrind_ite.lean)
   in the Live Lean editor without any installation.
-  FIXME (@kim-em / @david-christiansen): work out how to make this a more durable link.
+
+  FIXME (@kim-em / @david-christiansen): work out how to make this a more durable link / update the code!
 * Read Chris Hughes's [solution](https://github.com/leanprover-community/mathlib4/blob/master/Archive/Examples/IfNormalization/Result.lean),
   which is included in the Mathlib Archive.
   This solution makes good use of Aesop, but is not ideal because
