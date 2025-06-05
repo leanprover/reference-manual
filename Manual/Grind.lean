@@ -790,7 +790,8 @@ In fact, it's also of no consequence to `grind` whether we use a
 we can simply switch that implementation detail out, without having to touch the proofs:
 
 FIXME: @david-christiansen: I want to "roll-back" the Lean state to what it was before we gave the first definition of `normalize`.
-```lean
+
+```lean (error := true)
 def normalize (assign : Std.TreeMap Nat Bool) :
     IfExpr → IfExpr
   | lit b => lit b
