@@ -862,7 +862,7 @@ structure IndexMap
   indices : HashMap α Nat
   keys : Array α
   values : Array β
-  size_keys' : keys.size = values.size
+  size_keys : keys.size = values.size
   WF : ∀ (i : Nat) (a : α),
     keys[i]? = some a ↔ indices[a]? = some i
 
@@ -879,7 +879,7 @@ def emptyWithCapacity (capacity := 8) : IndexMap α β where
   indices := HashMap.emptyWithCapacity capacity
   keys := Array.emptyWithCapacity capacity
   values := Array.emptyWithCapacity capacity
-  size_keys' := sorry
+  size_keys := sorry
   WF := sorry
 
 instance : EmptyCollection (IndexMap α β) where
@@ -930,13 +930,13 @@ instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
     { indices := m.indices
       keys := m.keys.set i a sorry
       values := m.values.set i b sorry
-      size_keys' := sorry
+      size_keys := sorry
       WF := sorry }
   | none =>
     { indices := m.indices.insert a m.size
       keys := m.keys.push a
       values := m.values.push b
-      size_keys' := sorry
+      size_keys := sorry
       WF := sorry }
 
 instance : Singleton (α × β) (IndexMap α β) :=
@@ -961,7 +961,7 @@ If the key is not present, the map is unchanged.
       { indices := m.indices.erase a
         keys := m.keys.pop
         values := m.values.pop
-        size_keys' := sorry
+        size_keys := sorry
         WF := sorry }
     else
       let lastKey := m.keys.back sorry
@@ -969,7 +969,7 @@ If the key is not present, the map is unchanged.
       { indices := (m.indices.erase a).insert lastKey i
         keys := m.keys.pop.set i lastKey sorry
         values := m.values.pop.set i lastValue sorry
-        size_keys' := sorry
+        size_keys := sorry
         WF := sorry }
   | none => m
 
@@ -1000,6 +1000,40 @@ theorem findIdx_insert_self
 end IndexMap
 ```
 
+Let's get started.
+We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
+so we can omit these fields whenever `grind` can prove them.
+While we're modifying the definition of `IndexMap` itself, lets make all the fields private, since we're planning on having complete encapsulation.
+
+```lean
+structure IndexMap
+    (α : Type u) (β : Type v) [BEq α] [Hashable α] where
+  private indices : HashMap α Nat
+  private keys : Array α
+  private values : Array β
+  private size_keys : keys.size = values.size := by grind
+  private WF : ∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i := by grind
+```
+
+Our first `sorry`s in the draft version are the `size_keys` and `WF` fields in our construction of `def emptyWithCapacity`.
+Surely these are trivial, and solvable by `grind`, so we simply delete those fields:
+
+FIXME (@david-christiansen): I think I'm stuck here without being able to roll back.
+In particular here, I don't want to have these `variable` and `namespace` statements repeated here.
+I can use `(show := false)`, but then I can't use `(keep := false)`, so I can't go back a modify `IndexMap` again.
+
+```lean
+namespace IndexMap
+
+variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
+variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
+
+def emptyWithCapacity (capacity := 8) : IndexMap α β where
+  indices := HashMap.emptyWithCapacity capacity
+  keys := Array.emptyWithCapacity capacity
+  values := Array.emptyWithCapacity capacity
+```
+
 FIXME (@kim-em): explanation of how we get from here to there!
 
 At the end, we reach the following result:
@@ -1009,7 +1043,8 @@ macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| grind)
 
 open Std
 
-structure IndexMap (α : Type u) (β : Type v) [BEq α] [Hashable α] where
+structure IndexMap
+    (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   private indices : HashMap α Nat
   private keys : Array α
   private values : Array β
