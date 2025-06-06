@@ -402,7 +402,7 @@ A multi-pattern requires that all specified patterns are matched in the current 
 before the theorem is instantiated. This is useful for lemmas such as transitivity rules,
 where multiple premises must be simultaneously present for the rule to apply.
 The following example demonstrates this feature using a transitivity axiom for a binary relation `R`:
-```lean
+```lean (keep := false)
 opaque R : Int → Int → Prop
 axiom Rtrans {x y z : Int} : R x y → R y z → R x z
 
@@ -443,6 +443,91 @@ TBD
 
 # Bigger Examples
 
+## Integrating `grind`'s features.
+
+This example demonstrates how the various submodules of `grind` are seamlessly integrated. In particular we can
+* instantiate theorems from the library, using custom patterns,
+* perform case splitting,
+* do linear integer arithmetic reasoning, including modularity conditions, and
+* do Grobner basis reasoning
+all without providing explicit instructions to drive the interactions between these modes of reasoning.
+
+For this example we'll being with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
+Of course, these example works without any changes using Mathlib's versions of these!
+
+```lean
+axiom R : Type
+instance : Lean.Grind.CommRing R := sorry
+
+axiom sin : R → R
+axiom cos : R → R
+axiom trig_identity : ∀ x, (cos x)^2 + (sin x)^2 = 1
+```
+
+Our first step is to tell grind to "put the trig identity on the blackboard" whenever it sees a goal involving `sin` or `cos`:
+
+```lean
+grind_pattern trig_identity => cos x
+grind_pattern trig_identity => sin x
+```
+
+Note here we use *two* different patterns for the same theorem, so the theorem is instantiated even if `grind` sees just one of these functions.
+If we preferred to more conservatively instantiate the theorem only when both `sin` and `cos` are present, we could have used a multi-pattern:
+
+```lean (keep := false)
+grind_pattern trig_identity => cos x, sin x
+```
+
+For this example, either approach will work.
+
+Because `grind` immediately notices the trig identity, we can prove goals like this:
+```lean
+example : (cos x + sin x)^2 = 2 * cos x * sin x + 1 := by
+  grind
+```
+Here `grind`:
+* Notices `cos x` and `sin x`, so instantiates the trig identity.
+* Notices that this is a polynomial in `CommRing R`, so sends it to the Grobner basis module.
+  No calculation happens at this point: it's the first polynomial relation in this ring, so the Grobner basis is updated to `(cos x)^2 + (sin x)^2 - 1`.
+* Notices that the left and right hand sides of the goal are polynomials in `CommRing R`, so sends them to the Grobner basis module for normalization.
+* Since their normal forms modulo `(cos x)^2 + (sin x)^2 = 1` are equal, their equivalence classes are merged, and the goal is solved.
+
+We can also do this sort of argument when congruence closure is needed:
+```lean
+example (f : R → Nat) :
+    f ((cos x + sin x)^2) = f (2 * cos x * sin x + 1) := by
+  grind
+```
+
+As before, `grind` instantiates the trig identity, notices that `(cos x + sin x)^2` and `2 * cos x * sin x + 1` are equal modulo `(cos x)^2 + (sin x)^2 = 1`,
+puts those algebraic expresses in the same equivalence class, and then puts the function applications `f((cos x + sin x)^2)` and `f(2 * cos x * sin x + 1)` in the same equivalence class,
+and closes the goal.
+
+Notice that I've written a function `f : R → Nat` here; let's check that `grind` can continue and use some linear integer arithmetic reasoning after the Grobner basis steps:
+```lean
+example (f : R → Nat) :
+    4 * f ((cos x + sin x)^2) ≠ 2 + f (2 * cos x * sin x + 1) := by
+  grind
+```
+
+Here `grind` first works out that this goal reduces to `4 * x ≠ 2 + x` for some `x : Nat`, and using modularity to derive a contradiction.
+Of course, this argument only works *after* `grind` has identified the two function applications.
+
+Finally, we can also mix in some case splitting:
+```
+example (f : R → Nat) : max 3 (4 * f ((cos x + sin x)^2)) ≠ 2 + f (2 * cos x * sin x + 1) := by
+  grind
+```
+As before, `grind` first does the instantiation and Grobner basis calculations required to identify the two function applications.
+However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`. However instantiating
+{lean}`Nat.max_def` which states `max n m = if n ≤ m then m else n`, we then case split on the inequality.
+In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 + x`.
+In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
+
+This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
+the central "blackboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Grobner bases),
+which can then return new facts to the blackboard.
+
 ## if-then-else normalization
 
 FIXME (@kim-em / @leodemoura): The language in this section is chatty, because it started life as a blog post. Should I rewrite?
@@ -458,6 +543,10 @@ FIXME (@david-christiansen): I'd like to be able to write ``{attr}`@[grind]` ``.
 
 This example is a showcase for the "out of the box" power of {tactic}`grind`.
 Later examples will explore adding `@[grind]` annotations as part of the development process, to make {tactic}`grind` more effective in a new domain.
+This example does not rely on any of the algebra extensions to `grind`, we're just using:
+* instantiation of annotated theorems from the library,
+* congruence closure, and
+* case splitting.
 
 The solution here builds on an earlier formalization by Chris Hughes, but with some notable improvements:
 * the verification is separate from the code,
