@@ -11,7 +11,6 @@ import Verso.Syntax
 import MD4Lean
 import Manual.Meta
 
-import Manual.ErrorExplanation
 import Manual.ErrorExplanationDummyData
 
 import Manual.DiagnosticExplanation

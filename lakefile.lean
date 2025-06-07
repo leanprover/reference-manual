@@ -178,16 +178,11 @@ def explanationExamplesJsonDir := "explanation_examples"
 
 def preprocessExplanations (exePath : FilePath) : IO Unit := do
   -- Note: we can't use `withImports` because we need initializers
-  -- let env ← importModules #[`Init] {}
-  -- let explans := getErrorExplanationsRaw? env
-  let explans : Array (Name × FakeExplanation) := #[
-    (`foo, ⟨"```lean\nimport Wean\n#check Lean.Meta.MetaM\n```\n```lean\nimport Lean\n#check Lean.Meta.MetaM\n```"⟩),
-    (`bar, ⟨"```lean\ndef x := 0\ndef\ndef\ndef n := 1\n```\n```lean\ndef x := 0\ndef n := 0\n```"⟩)
-  ]
+  let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
+  let explans := getErrorExplanationsRaw env
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
   let groups ← mkImportGroups allBlocks
-  IO.println groups
   for group in groups do
     processImportGroup group exePath explanationExamplesJsonDir
 

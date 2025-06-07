@@ -11,7 +11,6 @@ import Verso.Syntax
 import Manual.Meta
 import Std.Internal.Parsec.String
 
-import Manual.ErrorExplanation
 import Manual.ErrorExplanationDummyData
 
 open Verso.Genre.Manual.InlineLean
@@ -24,73 +23,6 @@ set_option guard_msgs.diff true
 open Std.Internal Lean Elab Term Verso Doc Elab Genre Manual Markdown
 
 namespace Manual
-
-inductive ErrorExplanationCodeInfo.Kind
-  | broken | fixed
-deriving Repr, Inhabited, BEq
-
-instance : ToString ErrorExplanationCodeInfo.Kind where
-  toString
-  | .broken => "broken"
-  | .fixed => "fixed"
-
-structure ErrorExplanationCodeInfo where
-  lang : String
-  kind? : Option ErrorExplanationCodeInfo.Kind
-  title? : Option String
-deriving Repr
-
-namespace ErrorExplanationCodeInfo
-open Parsec Parsec.String
-
-namespace Parse
-
-def word : Parser String := fun it =>
-  -- TODO: allow escaping
-  let it' := it.find fun c => c == '"'
-  .success it' (it.extract it')
-
-def languageName : Parser String := fun it =>
-  let it' := it.find fun c => !c.isAlphanum
-  .success it' (it.extract it')
-
-def snippetKind : Parser Kind := do
-  (pstring "broken" *> pure .broken)
-  <|> (pstring "fixed" *> pure .fixed)
-
-def title : Parser String :=
-  skipChar '(' *> optional ws *> skipString "title" *> ws *> skipString ":=" *> ws *> skipChar '"' *>
-  word
-  <* skipChar '"' <* optional ws <* skipChar ')'
-
-def attr : Parser (Kind ⊕ String) :=
-  .inl <$> snippetKind <|> .inr <$> title
-
-def infoString : Parser ErrorExplanationCodeInfo := do
-  let lang ← languageName
-  let attrs ← Parsec.many (ws *> attr)
-  let mut kind? := Option.none
-  let mut title? := Option.none
-  for attr in attrs do
-    match attr with
-    | .inl k =>
-      if kind?.isNone then
-        kind? := some k
-      else
-        Parsec.fail "redundant kind specifications"
-    | .inr n =>
-      if title?.isNone then
-        title? := some n
-      else
-        Parsec.fail "redundant name specifications"
-  return { lang, title?, kind? }
-
-end Parse
-
-def parse (s : String) : Except String ErrorExplanationCodeInfo :=
-  Parse.infoString.run s |>.mapError (fun s => s!"Invalid code block info string: {s}")
-
-end ErrorExplanationCodeInfo
 
 section LeanRendering
 
@@ -296,10 +228,11 @@ def leanMWE : CodeBlockExpander
     let src := str.getString
     -- TODO: don't make the field an option if it isn't optional!
     let some name := config.name | throwError "Lean MWEs must be named"
-    let (hls, msgs) ← processMWESubprocess src name
-    -- let (hls, msgs) ← processMWE src
+    -- let (hls, msgs) ← processMWESubprocess src name
+    let (hls, msgs) ← processMWE src
     if let some name := config.name then
       saveOutputs name msgs.toList
+
     let range : Option Lsp.Range := none
     pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
 
@@ -443,7 +376,7 @@ abbrev ExplanCodeElabM :=
 def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSeverity)
     (info? lang : Option String) (str : String) : ExplanCodeElabM Term := do
   if let some info := info? then
-    let { lang, kind?, .. } ← match ErrorExplanationCodeInfo.parse info with
+    let { lang, kind?, .. } ← match ErrorExplanation.CodeInfo.parse info with
       | .ok x => pure x
       | .error e => throwError e
     if lang == "output" then
@@ -460,7 +393,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
           throw (.error ref m!"Invalid output for code block #{codeBlockIdx + 1}{kindStr}: {msg}")
         | e@(.internal ..) => throw e
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
-    else if kind?.isSome then
+    else if lang == "" || lang == "lean" then
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
       let mut args := #[]
       let name := mkExampleName errorName (← get).codeBlockIdx
@@ -474,8 +407,8 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| leanMWE parsedArgs (quote str)
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
-  -- If this isn't labeled as an MWE, fall back on the usual elaborator
-  tryElabBlockCode info? lang str
+  -- If this isn't labeled as an MWE, fall back on a basic code block
+  ``(Verso.Doc.Block.code $(quote str))
 
 /-- The code contents of an example, not including any subsequent description. -/
 private structure ExampleContents where
@@ -528,7 +461,6 @@ def ExplanElabM.liftExplanCodeElabM (x : ExplanCodeElabM α) : ExplanElabM α :=
 instance : MonadLift ExplanCodeElabM ExplanElabM where
   monadLift := ExplanElabM.liftExplanCodeElabM
 
--- TODO: try to reduce duplication between this and the next function
 def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
   let { name, severity .. } ← read
   let tactics ← Elab.Tactic.Doc.allTacticDocs
@@ -546,10 +478,7 @@ def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
       synthesizeSyntheticMVarsUsingDefault
       pure (res, leanOutputs.getState (← getEnv))
     finally
-      -- TODO: this logic is now inappropriate because it's swallowing elab errors
-      let { messages, .. } ← getThe Core.State
       s.restore
-      modifyThe Core.State fun s => { s with messages }
   -- This is necessary after state restoration so we can refer to the generated outputs
   modifyEnv (leanOutputs.setState · outputs)
   return block
@@ -558,36 +487,30 @@ def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
   let tactics ← Elab.Tactic.Doc.allTacticDocs
   let keywords := tactics.map (·.userName)
   let ref ← getRef
-  let s ← (saveState : TermElabM _)
   let {name, severity .. } ← read
-  let (ls, outputs) ←
-    try
-      let res ←
-        addPartFromMarkdown b
-          (handleHeaders := Markdown.strongEmphHeaders)
-          (elabInlineCode := some fun p s => tryElabInlineCode tactics keywords p s)
-          (elabBlockCode := some fun i l s => withRef ref <|
-            tryElabErrorExplanationCodeBlock name severity i l s)
-      synthesizeSyntheticMVarsUsingDefault
-      pure (res, leanOutputs.getState (← getEnv))
-    finally
-      -- TODO: this logic is now inappropriate because it's swallowing elab errors
-      let { messages, .. } ← getThe Core.State
-      s.restore
-      modifyThe Core.State fun s => { s with messages }
+  -- Due to the new implementation of `PartElabM.addBlock`, we cannot simply
+  -- wait and revert the state after elaborating the full block as we do in
+  -- `blockFromExplanationMarkdown`, since that will erase declarations on which
+  -- the result depends
+  let ls ← addPartFromMarkdown b
+    (handleHeaders := Markdown.strongEmphHeaders)
+    (elabInlineCode := some fun p s => do
+      let b ← getThe Term.State
+      try tryElabInlineCode tactics keywords p s
+      finally set (m := TermElabM) b)
+    (elabBlockCode := some fun i l s => withRef ref <|
+      tryElabErrorExplanationCodeBlock name severity i l s)
   modifyThe ExplanElabM.State ({ · with levels := ls })
-  -- This is necessary after state restoration so we can refer to the generated outputs
-  modifyEnv (leanOutputs.setState · outputs)
 
-private def infoOfCodeBlock : MD4Lean.Block → Except String ErrorExplanationCodeInfo
+private def infoOfCodeBlock : MD4Lean.Block → Except String ErrorExplanation.CodeInfo
   | .code info _ _ _ => do
     let txt ← attr' info
-    ErrorExplanationCodeInfo.parse txt
+    ErrorExplanation.CodeInfo.parse txt
   | el => .error s!"block element is not a code block but instead:\n{repr el}"
 
 private def blockHasExplanationCodeInfo
     (b : MD4Lean.Block) (expLang : String)
-    (expKind? : Option ErrorExplanationCodeInfo.Kind := none)
+    (expKind? : Option ErrorExplanation.CodeInfo.Kind := none)
   : DocElabM Bool := do
   let { kind?, lang, .. } ← match infoOfCodeBlock b with
   | .ok x => pure x
@@ -600,7 +523,7 @@ private def blockHasExplanationCodeInfo
   return lang == expLang && optMatch expKind? kind?
 
 private def expectExplanationCodeInfo
-    (b : MD4Lean.Block) (expLang : String) (expKind : ErrorExplanationCodeInfo.Kind)
+    (b : MD4Lean.Block) (expLang : String) (expKind : ErrorExplanation.CodeInfo.Kind)
   : DocElabM Unit := do
   let { kind?, lang, .. } ← match infoOfCodeBlock b with
     | .ok x => pure x
@@ -668,11 +591,12 @@ def addNonExampleBlocks (allowExamplesHeader := true) := do
 
 def getBrokenTermAndTitle : ExplanElabM (Term × Option String) := do
   let some brokenBlock ← ExplanElabM.nextBlock?
-      | throwError "Found a header for a new example, but no following `broken` code block"
-    expectExplanationCodeInfo brokenBlock "lean" .broken
-    let brokenTerm ← blockFromExplanationMarkdown brokenBlock
-    let title? := titleOfCodeBlock? brokenBlock
-    return (brokenTerm, title?)
+    | throwError "Found a header for a new example, but no following `broken` code block"
+  -- We don't bother backtracking here since we can't recover
+  expectExplanationCodeInfo brokenBlock "lean" .broken
+  let brokenTerm ← blockFromExplanationMarkdown brokenBlock
+  let title? := titleOfCodeBlock? brokenBlock
+  return (brokenTerm, title?)
 
 partial def repeatedly (x : ExplanElabM (Option α)) : ExplanElabM (Array α) :=
   go x #[]
@@ -714,7 +638,7 @@ def getExampleDescriptionTerm? : ExplanElabM (Option Term) := do
     ExplanElabM.backtrack
     return none
   else
-    return some (← blockFromMarkdown block)
+    return some (← blockFromExplanationMarkdown block)
 
 def addExampleBlocks : ExplanElabM Unit := do
   repeat
