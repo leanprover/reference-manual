@@ -3,8 +3,7 @@ Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
--- TODO: Lean import should be deleted once explans move to Lean
-import Lean
+import Lean.Elab.Import
 import Lake
 open Lake DSL
 open System (FilePath)
@@ -28,7 +27,7 @@ lean_lib Manual where
 
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
-def codeExamplesDir : FilePath := "explanation_mwes"
+def errorExplanationExOutDir : FilePath := "error_explanation_examples"
 
 def ensureDir (dir : System.FilePath) : IO Unit := do
   if !(← dir.pathExists) then
@@ -45,8 +44,8 @@ target subversoExtractMod : FilePath := do
   exe.fetch
 
 
-lean_exe extract_explanation_example where
-  root := `ExtractExample
+lean_exe extract_explanation_examples where
+  root := `ExtractExplanationExamples
   supportInterpreter := true
 
 
@@ -86,35 +85,34 @@ target figures : Array FilePath := do
 
     pure srcInfo
 
-
--- TODO: figure out how to test this
-structure FakeExplanation where
-  doc : String
-
+section ExplanationPreprocessing
 open Lean Meta
-
-def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
-  if out.exitCode != 0 then
-    throw <| IO.userError <|
-      s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
-      s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-
 
 /- This must agree with `DiagnosticExplanation.mkExampleName`. -/
 private def mkExampleName (errorName : Name) (idx : Nat) : Name :=
   errorName ++ s!"block{idx}".toName
 
-def exDir : System.FilePath := "explanation_mwes"
-
+/--
+Returns `true` if there exists a cached elaboration result for code block `id`
+with hash `hash` on the current Lean version.
+-/
 def hasUsableCache (id : String) (hash : UInt64) : IO Bool := do
-  let path := exDir / (id ++ ".json")
+  let path := errorExplanationExOutDir / (id ++ ".json")
   unless (← System.FilePath.pathExists path) do return false
   let cacheStr ← IO.FS.readFile path
   let .ok json := Json.parse cacheStr | return false
   let .ok cacheHash := json.getObjVal? "hash" >>= FromJson.fromJson? (α := UInt64)
     | return false
-  return cacheHash == hash
+  let .ok version := json.getObjVal? "toolchain" >>= Json.getStr?
+    | return false
+  return version == Lean.versionString && cacheHash == hash
 
+/--
+Runs the explanation example extractor over every entry in `examples`,
+generating output JSON files in `explanationExamplesDir`. All entries in
+`examples` must have equivalent headers, as the same environment will be reused
+for each.
+-/
 def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) (outDir : FilePath) : IO Unit :=
   IO.FS.withTempDir fun tmpDir => do
     let examplePaths ← examples.mapM fun (name, input) => do
@@ -127,12 +125,17 @@ def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) 
       stdin := .piped, stdout := .piped, stderr := .piped
     }
     let out ← IO.Process.output childConfig
-    throwIfNonzeroExit out s!"extract_explanation_example{childConfig.args.foldl (s!"{·} \"{·}\"") ""}"
+    if out.exitCode != 0 then
+      let args := childConfig.args.foldl (s!"{·} \"{·}\"") ""
+      let cmd := s!"extract_explanation_example{args}"
+      throw <| IO.userError <|
+        s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
+        s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
-deriving instance BEq for Import
-deriving instance Hashable for Import
+deriving instance BEq, Hashable for Import
 
-def mkImportGroups (codeBlocks : Array (Name × String)) :
+/-- Generates groups from `codeBlocks` of examples with equivalent headers. -/
+def groupByImports (codeBlocks : Array (Name × String)) :
     IO (Array (Array (Name × String))) := do
   let (map : Std.HashMap (Array Import) _) ←
     codeBlocks.foldlM (init := {}) fun acc (name, block) => do
@@ -144,55 +147,57 @@ def mkImportGroups (codeBlocks : Array (Name × String)) :
       pure <| acc.modify imports fun namedBlocks => namedBlocks.push (name, block)
   return map.toArray.map Prod.snd
 
-inductive CodeBlockState where
-  | outside
-  | inside (isLean : Bool) (numTicks : Nat)
+/-- The state of a Markdown traversal: are we inside or outside a code block? -/
+inductive MDTraversalState where
+  | outsideCode
+  | insideCode (isLean : Bool) (numTicks : Nat)
 
+/--
+Extracts Lean code blocks from `input` and returns them with their indexed names.
+-/
 def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × String) := Id.run do
   let lines := input.splitOn "\n"
   let mut codeBlocks : Array (Name × String) := #[]
 
-  let mut state := CodeBlockState.outside
+  let mut state := MDTraversalState.outsideCode
   let mut acc : Array String := #[]
   let mut idx := 0
   for line in lines do
     if line.startsWith "```" then
       let numTicks := line.takeWhile (· == '`') |>.length
       match state with
-      | .outside =>
+      | .outsideCode =>
         let lang := line.drop numTicks |>.takeWhile (! ·.isWhitespace)
-        state := .inside (lang == "lean") numTicks
-      | .inside isLean expectedTicks =>
+        state := .insideCode (lang == "lean" || lang.isEmpty) numTicks
+      | .insideCode isLean expectedTicks =>
         if numTicks == expectedTicks then
-          state := .outside
+          state := .outsideCode
           if isLean then
             let code := "\n".intercalate acc.toList
             codeBlocks := codeBlocks.push (mkExampleName exampleName idx, code)
             acc := #[]
             idx := idx + 1
-    else if state matches .inside true _ then
+    else if state matches .insideCode true _ then
       acc := acc.push line
   return codeBlocks
 
-def explanationExamplesJsonDir := "explanation_examples"
-
-def preprocessExplanations (exePath : FilePath) : IO Unit := do
-  -- Note: we can't use `withImports` because we need initializers
+/-- Preprocess code examples in error explanations. -/
+target error_explanations : Array Name := Job.async do
+  let pkg ← getRootPackage
+  let .some exe := pkg.findLeanExe? `extract_explanation_examples |
+    Lake.logError "Could not find `extract_explanation_examples` executable. \
+      Run `lake build extract_explanation_examples` to build it."
+    failure
   let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
   let explans := getErrorExplanationsRaw env
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
-  let groups ← mkImportGroups allBlocks
+  let groups ← groupByImports allBlocks
   for group in groups do
-    processImportGroup group exePath explanationExamplesJsonDir
+    processImportGroup group exe.file errorExplanationExOutDir
+  return allBlocks.map (·.1)
 
-target preprocess_explanations : Unit := do
-  let pkg ← getRootPackage
-  let .some exe := pkg.findLeanExe? `extract_explanation_example
-    | failure
-  preprocessExplanations exe.file
-  -- TODO: not clear what this should actually return
-  return pure ()
+end ExplanationPreprocessing
 
 @[default_target]
 lean_exe "generate-manual" where

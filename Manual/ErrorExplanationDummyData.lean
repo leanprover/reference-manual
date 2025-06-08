@@ -7,18 +7,20 @@ Registers an error explanation.
 Note that the provided name is not relativized to the current namespace.
 -/
 elab docStx:docComment cmd:"reregister_error_explanation " nm:ident t:term : command => withRef cmd do
-  let tp := Lean.mkConst ``ErrorExplanation.Metadata []
-  let metadata ← runTermElabM <| fun _ => unsafe do
-    let e ← elabTerm t tp
-    if e.hasSyntheticSorry then throwAbortTerm
-    evalExpr ErrorExplanation.Metadata tp e
-  let name := nm.getId
-  if name.isAnonymous then throwErrorAt nm "Invalid name for error explanation: '{nm}'"
-  validateDocComment docStx
-  let doc ← getDocStringText docStx
-  unless errorExplanationExt.getState (← getEnv) |>.contains name do
-    throwError m!"Cannot update explanation: No error explanation exists for '{name}'"
-  modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc, declLoc? := none }))
+  -- TODO: re-enable once we need to override examples working again
+  pure ()
+  -- let tp := Lean.mkConst ``ErrorExplanation.Metadata []
+  -- let metadata ← runTermElabM <| fun _ => unsafe do
+  --   let e ← elabTerm t tp
+  --   if e.hasSyntheticSorry then throwAbortTerm
+  --   evalExpr ErrorExplanation.Metadata tp e
+  -- let name := nm.getId
+  -- if name.isAnonymous then throwErrorAt nm "Invalid name for error explanation: '{nm}'"
+  -- validateDocComment docStx
+  -- let doc ← getDocStringText docStx
+  -- unless errorExplanationExt.getState (← getEnv) |>.contains name do
+  --   throwError m!"Cannot update explanation: No error explanation exists for '{name}'"
+  -- modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc, declLoc? := none }))
 
 /--
 This error occurs when a parameter of an inductive type is not uniform in an inductive declaration. The parameters of an inductive type (i.e., those that appear before the colon following the `inductive` keyword) must be identical in all occurrences of the type being defined in its constructors' types. If a parameter of an inductive type must vary between constructors, make the parameter an index by moving it to the right of the colon. See the manual section on [Inductive Types](lean-manual://section/inductive-types) for additional details.

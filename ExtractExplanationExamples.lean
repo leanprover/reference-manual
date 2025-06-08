@@ -1,19 +1,28 @@
 import Lean
 import SubVerso.Highlighting
 
+/-!
+Tool for extracting rendering data from a batch of error-explanation MWEs with
+identical imports. We use this in a preprocessing step rather than during the
+manual's elaboration so that we can group MWEs with the same imports, which
+avoids the sizable performance overhead of reloading the environment for each
+example.
+-/
+
 open Lean Meta Elab Term SubVerso Highlighting
 
 structure ExtractedExample where
   highlighted : Highlighted
   messages : Array (MessageSeverity × String)
   hash : UInt64
+  version : String
   deriving ToJson, FromJson
 
 /-- Returns the result of processing this example as well as the environment and message log
-produced *only* by the header-processing step (which is taken to be `envWithMsgs?` if it's supplied)-/
+produced *only* by the header-processing step (which is taken to be `envWithMsgs?` if it's supplied) -/
 def processMWE (input : String) (inputHash : UInt64) (envWithMsgs? : Option (Environment × MessageLog)) :
     IO (ExtractedExample × Environment × MessageLog) := do
-  let fileName   := "<input>"
+  let fileName   := "Main.lean"
   let inputCtx   := Parser.mkInputContext input fileName
   let (hdrStx, s, msgs) ← Parser.parseHeader inputCtx
   let (env, msgs') ← envWithMsgs?.getDM <| processHeader hdrStx {} {} inputCtx
@@ -33,6 +42,7 @@ def processMWE (input : String) (inputHash : UInt64) (envWithMsgs? : Option (Env
     highlighted := hls
     messages := msgs
     hash := inputHash
+    version := Lean.versionString
   }
   return (ex, env, msgs')
 where
@@ -150,35 +160,24 @@ where
     | .ok res => return res
     | .error e => throw <| IO.userError (← e.toMessageData.toString)
 
-partial def readStdin : IO String :=
-  loop #[]
-where
-  loop acc := do
-    let line ← (← IO.getStdin).getLine
-    if line.isEmpty then
-      return ("\n".intercalate acc.toList)
-    else
-      loop (acc.push line)
-
 def writeEx (outDir : System.FilePath) (id : String) (json : String) : IO Unit := do
   if ! (← System.FilePath.pathExists outDir) then
     IO.FS.createDir outDir
   let path := outDir / (id ++ ".json")
   IO.FS.writeFile path json
 
--- FIXME: we're getting duplicated line breaks for some reason
 unsafe def main (args : List String) : IO UInt32 := do
   initSearchPath (← findSysroot)
   enableInitializersExecution
   let outDir :: inFiles := args |
     throw <| IO.userError "Usage: extract_explanation_examples <out-dir> <input-files...>\n\
-      where all input files have the same import set"
+      where all input files have the same imports"
   let mut envWithMsgs? : Option (Environment × MessageLog) := none
   for file in inFiles do
     let input ← IO.FS.readFile file
     let inputHash := hash input
     let some exampleName := (file : System.FilePath).fileStem |
-      throw <| IO.userError s!"Invalid file name: {file}"
+      throw <| IO.userError s!"Malformed file path: {file}"
     let (ex, env, msgs) ← processMWE input inputHash envWithMsgs?
     envWithMsgs? := some (env, msgs)
     let json := (toJson ex).compress

@@ -45,6 +45,22 @@ def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
       s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
       s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
+def processMWEPreprocessed (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
+  let outputDir : System.FilePath := "explanation_examples"
+  let fileName : String := name.toString ++ ".json"
+  let path := outputDir / fileName
+  unless (← System.FilePath.pathExists path) do
+    throwError m!"Did not find expected code block output file `{path}`. \
+      Run `lake build preprocess_explanations`."
+  let fileContents ← IO.FS.readFile path
+  let json ← ofExcept <| Json.parse fileContents
+  let hls ← ofExcept <|
+    json.getObjVal? "highlighted" >>= FromJson.fromJson? (α := Highlighted)
+  let messages ← ofExcept <|
+    json.getObjVal? "messages" >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
+  IO.println s!"For name {name}, got messages:\n{messages.map (·.2)}"
+  return (hls, messages)
+
 def processMWESubprocess (input : String) (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
   IO.FS.withTempDir fun tempDir => do
     let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "extract_explanation_example"]}
@@ -225,11 +241,12 @@ def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
-    let src := str.getString
+    -- let src := str.getString
     -- TODO: don't make the field an option if it isn't optional!
     let some name := config.name | throwError "Lean MWEs must be named"
     -- let (hls, msgs) ← processMWESubprocess src name
-    let (hls, msgs) ← processMWE src
+    -- let (hls, msgs) ← processMWE src
+    let (hls, msgs) ← processMWEPreprocessed name
     if let some name := config.name then
       saveOutputs name msgs.toList
 
