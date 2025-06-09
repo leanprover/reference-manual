@@ -55,9 +55,6 @@ _New Language Features_
   is a local definition, `subst x` substitutes `v` for `x` in the goal and
   removes `x`. Previously the tactic would throw an error.
 
-* [#7631](https://github.com/leanprover/lean4/pull/7631) fixes `Lean.Level.mkIMaxAux` (`mk_imax` in the kernel) such that
-  `imax 1 u` reduces to `u`.
-
 * [#8037](https://github.com/leanprover/lean4/pull/8037) introduces a `noConfusionType` construction that’s sub-quadratic
   in size, and reduces faster. The previous `noConfusion` construction with
   two nested `match` statements is quadratic in size and reduction behavior.
