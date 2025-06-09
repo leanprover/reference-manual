@@ -23,6 +23,112 @@ file := "v4.21.0"
 
 For this release, 295 changes landed. In addition to the 100 feature additions and 83 fixes listed below there were 2 refactoring changes, 4 documentation improvements, 6 performance improvements, 2 improvements to the test suite and 98 other changes.
 
+## Highlights
+
+_'Unknown identifier' code actions_
+
+* [#7665](https://github.com/leanprover/lean4/pull/7665) and [#8180](https://github.com/leanprover/lean4/pull/8180) add
+  support for code actions that resolve 'unknown identifier' errors by either importing the missing declaration or by
+  changing the identifier to one from the environment.
+
+_New Language Features_
+
+* [#8449](https://github.com/leanprover/lean4/pull/8449) and [#8516](https://github.com/leanprover/lean4/pull/8516)
+  upstream and extend the Mathlib `clear_value` tactic. Given a
+  local definition `x : T := v`, the tactic `clear_value x` replaces it
+  with a hypothesis `x : T`, or throws an error if the goal does not
+  depend on the value `v`. The syntax `clear_value (h : x = _)` creates a
+  hypothesis `h : x = _` before clearing the value of `x`. Any expression definitionally equal to `x`
+  can be used in place of the underscore.
+  Furthermore, `clear_value *` clears all values that can be cleared, or throws an
+  error if none can be cleared.
+
+* [#8512](https://github.com/leanprover/lean4/pull/8512) adds a `value_of% ident` term that elaborates to the value of
+  the local or global constant `ident`. This is useful for creating
+  definition hypotheses:
+  ```lean
+  let x := ... complicated expression ...
+  have hx : x = value_of% x := rfl
+  ```
+
+* [#8450](https://github.com/leanprover/lean4/pull/8450) adds a feature to the `subst` tactic so that when `x : X := v`
+  is a local definition, `subst x` substitutes `v` for `x` in the goal and
+  removes `x`. Previously the tactic would throw an error.
+
+* [#7631](https://github.com/leanprover/lean4/pull/7631) fixes `Lean.Level.mkIMaxAux` (`mk_imax` in the kernel) such that
+  `imax 1 u` reduces to `u`.
+
+* [#8037](https://github.com/leanprover/lean4/pull/8037) introduces a `noConfusionType` construction that’s sub-quadratic
+  in size, and reduces faster. The previous `noConfusion` construction with
+  two nested `match` statements is quadratic in size and reduction behavior.
+  Using some helper definitions, a linear size construction is possible.
+
+* [#8104](https://github.com/leanprover/lean4/pull/8104) makes `fun_induction` and `fun_cases` (try to) unfold the
+  function application of interest in the goal. The old behavior can be
+  enabled with `set_option tactic.fun_induction.unfolding false`. For
+  `fun_cases` this does not work yet when the function’s result type
+  depends on one of the arguments, see issue [#8296](https://github.com/leanprover/lean4/issues/8296).
+
+* [#8284](https://github.com/leanprover/lean4/pull/8284) adds a new variant of equations for matchers, namely “congruence
+  equations” that generalize the normal matcher equations. They have
+  unrestricted left-hand-sides, extra equality assumptions relating the
+  discriminants with the patterns and thus prove heterogenous equalities.
+  In that sense they combine congruence with rewriting. They can be used
+  to rewrite matcher applications where, due to dependencies, `simp` would
+  fail to rewrite the discriminants, and will be used when producing the
+  unfolding induction theorems.
+
+* [#8171](https://github.com/leanprover/lean4/pull/8171) omits cases from functional induction/cases principles that are
+  implemented `by contradiction` (or, more generally, `False.elim`,
+  `absurd` or `noConfusion). **Breaking change** in the sense that there are
+  fewer goals to prove after using functional induction.
+
+* [#8106](https://github.com/leanprover/lean4/pull/8106) adds a `register_linter_set` command for declaring linter sets.
+  The `getLinterValue` function now checks if the present linter is
+  contained in a set that has been enabled (using the `set_option` command
+  or on the command line).
+
+* [#8267](https://github.com/leanprover/lean4/pull/8267) makes `#guard_msgs` to treat `trace` messages separate from
+  `info`, `warning` and `error`. It also introduces the ability to say
+  `#guard_msgs (pass info)`, like `(drop info)` so far, and also adds
+  `(check info)` as the explicit form of `(info)`, for completeness.
+
+_Library Highlights_
+
+* [#8358](https://github.com/leanprover/lean4/pull/8358) introduces a very minimal version of the new iterator library.
+  It comes with list iterators and various consumers, namely `toArray`,
+  `toList`, `toListRev`, `ForIn`, `fold`, `foldM` and `drain`. All
+  consumers also come in a partial variant that can be used without any
+  proofs. This limited version of the iterator library generates decent
+  code, even with the old code generator.
+
+* [#7352](https://github.com/leanprover/lean4/pull/7352) reworks the `simp` set around the `Id` monad, to not elide or
+  unfold `pure` and `Id.run`
+
+* [#8313](https://github.com/leanprover/lean4/pull/8313) changes the definition of `Vector` so it no longer extends
+  `Array`. This prevents `Array` API from "leaking through".
+
+_Other Highlights_
+
+* Performance optimizations in `dsimp`:
+
+  - [#6973](https://github.com/leanprover/lean4/pull/6973) stops `dsimp` from visiting proof terms, which should make
+  `simp` and `dsimp` more efficient.
+
+  - [#7428](https://github.com/leanprover/lean4/pull/7428) adds a `dsimp` cache to `simp`. Previously each `dsimp` call from
+  `simp` started with a fresh cache. As a result, time spent in `simp` while
+  compiling Mathlib is reduced by over 45%, giving an overall 8% speedup to
+  Mathlib compilation.
+
+* [#8221](https://github.com/leanprover/lean4/pull/8221) adjusts the experimental module system to not export the bodies
+  of `def`s unless opted out by the new attribute `@[expose]` on the `def`
+  or on a surrounding `section`.
+
+* [#8559](https://github.com/leanprover/lean4/pull/8559) and [#8560](https://github.com/leanprover/lean4/pull/8560) fix an adversarial
+  soundness attack described  in [#8554](https://github.com/leanprover/lean4/pull/8554). The
+  attack exploits the fact that `assert!` no longer aborts execution, and
+  that users can redirect error messages.
+
 ## Language
 
 * [#6973](https://github.com/leanprover/lean4/pull/6973) stops `dsimp` from visiting proof terms, which should make
