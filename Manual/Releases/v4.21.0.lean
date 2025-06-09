@@ -69,15 +69,6 @@ _New Language Features_
   `fun_cases` this does not work yet when the function’s result type
   depends on one of the arguments, see issue [#8296](https://github.com/leanprover/lean4/issues/8296).
 
-* [#8284](https://github.com/leanprover/lean4/pull/8284) adds a new variant of equations for matchers, namely “congruence
-  equations” that generalize the normal matcher equations. They have
-  unrestricted left-hand-sides, extra equality assumptions relating the
-  discriminants with the patterns and thus prove heterogenous equalities.
-  In that sense they combine congruence with rewriting. They can be used
-  to rewrite matcher applications where, due to dependencies, `simp` would
-  fail to rewrite the discriminants, and will be used when producing the
-  unfolding induction theorems.
-
 * [#8171](https://github.com/leanprover/lean4/pull/8171) omits cases from functional induction/cases principles that are
   implemented `by contradiction` (or, more generally, `False.elim`,
   `absurd` or `noConfusion). **Breaking change** in the sense that there are
