@@ -46,19 +46,18 @@ def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
       s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
 def processMWEPreprocessed (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
-  let outputDir : System.FilePath := "explanation_examples"
+  let outputDir : System.FilePath := "error_explanation_examples"
   let fileName : String := name.toString ++ ".json"
   let path := outputDir / fileName
   unless (← System.FilePath.pathExists path) do
     throwError m!"Did not find expected code block output file `{path}`. \
-      Run `lake build preprocess_explanations`."
+      Run `lake build error_explanations`."
   let fileContents ← IO.FS.readFile path
   let json ← ofExcept <| Json.parse fileContents
   let hls ← ofExcept <|
     json.getObjVal? "highlighted" >>= FromJson.fromJson? (α := Highlighted)
   let messages ← ofExcept <|
     json.getObjVal? "messages" >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
-  IO.println s!"For name {name}, got messages:\n{messages.map (·.2)}"
   return (hls, messages)
 
 def processMWESubprocess (input : String) (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
@@ -397,8 +396,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
       | .ok x => pure x
       | .error e => throwError e
     if lang == "output" then
-      -- TODO: unify with below case
-      let codeBlockIdx := (← get).codeBlockIdx
+      let codeBlockIdx := (← get).codeBlockIdx - 1
       let name := mkExampleName errorName codeBlockIdx
       let args := #[(← `(argument| $(mkIdent name):ident))]
       let parsedArgs ← parseArgs args
@@ -407,11 +405,10 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
       catch
         | .error ref msg =>
           let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
-          throw (.error ref m!"Invalid output for code block #{codeBlockIdx + 1}{kindStr}: {msg}")
+          throw (.error ref m!"Invalid output for code block #{codeBlockIdx}{kindStr}: {msg}")
         | e@(.internal ..) => throw e
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
     else if lang == "" || lang == "lean" then
-      modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
       let mut args := #[]
       let name := mkExampleName errorName (← get).codeBlockIdx
       args := args.push (← `(argument| name := $(mkIdent name):ident))
@@ -423,6 +420,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
         args := args.push (← `(argument| error := $errorVal))
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| leanMWE parsedArgs (quote str)
+      modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
   -- If this isn't labeled as an MWE, fall back on a basic code block
   ``(Verso.Doc.Block.code $(quote str))
