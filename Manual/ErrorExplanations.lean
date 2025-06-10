@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella
 -/
 
-import Manual.DiagnosticExplanation
+import Manual.Meta.ErrorExplanation
 import Manual.ErrorExplanationDummyData
 
 open Lean
