@@ -6,38 +6,20 @@ Author: Joseph Rotella
 
 import VersoManual
 
-import Verso.Doc
-import Verso.Syntax
 import Manual.Meta
-import Std.Internal.Parsec.String
 
 import Manual.ErrorExplanationDummyData
 
-open Verso.Genre.Manual.InlineLean
-
-open Verso.Genre Manual
+open Lean Elab
+open Verso.ArgParse
+open Verso.Doc Elab
+open Verso.Genre.Manual Markdown InlineLean
+open SubVerso.Highlighting
 
 set_option pp.rawOnError true
 set_option guard_msgs.diff true
 
-open Std.Internal Lean Elab Term Verso Doc Elab Genre Manual Markdown
-
 namespace Manual
-
-section LeanRendering
-
-/--
-A reference storing the default environment containing only `Init`.
-
-Our assumption is that the considerable majority of error explanation examples
-will not include any imports, so we can avoid repeatedly reloading the
-corresponding environment by caching it at the outset.
--/
--- TODO: this should be part of the monadic MD-elab state so we can destruct it
--- at the end and avoid leaking it
-private initialize defaultEnvRef : IO.Ref (Option Environment) ← IO.mkRef none
-
-open Verso Genre Manual SubVerso Highlighting
 
 def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
   if out.exitCode != 0 then
@@ -60,199 +42,17 @@ def processMWEPreprocessed (name : Name) : MetaM (Highlighted × Array (MessageS
     json.getObjVal? "messages" >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
   return (hls, messages)
 
-def processMWESubprocess (input : String) (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
-  IO.FS.withTempDir fun tempDir => do
-    let out ← IO.Process.output {cmd := "lake", args := #["env", "which", "extract_explanation_example"]}
-    throwIfNonzeroExit out "`lake env which extract_explanation_example`"
-    let some exePath := out.stdout.splitOn "\n" |>.head?
-      | throwError "Could not find path to `extract_explanation_example` executable"
-    let exePath ← IO.FS.realPath exePath
-    let outPath := tempDir / (name.toString ++ ".lean")
-    IO.FS.writeFile outPath input
-    let childConfig := {
-      cmd := exePath.toString
-      args := #["explanation_examples", outPath.toString]
-      stdin := .piped, stdout := .piped, stderr := .piped
-    }
-    let out ← IO.Process.output childConfig
-    throwIfNonzeroExit out s!"extract_explanation_example"
-    let fileContents ← IO.FS.readFile ("explanation_examples" / (name.toString ++ ".json"))
-    let jsonResults? := do
-      let json ← Json.parse fileContents
-      let hlJson ← json.getObjVal? "highlighted"
-      let hl ← FromJson.fromJson? (α := Highlighted) hlJson
-      let msgsJson ← json.getObjVal? "messages"
-      let msgs ← FromJson.fromJson? (α := Array (MessageSeverity × String)) msgsJson
-      pure (hl, msgs)
-    if let .ok (hl, msgs) := jsonResults? then
-      return (hl, msgs)
-    else
-      throwError "Failed to parse processed JSON for example code block:\n\n\
-        JSON:\n{out.stdout}\n\nCode:\n{input}"
-
-def processMWE (input : String) : TermElabM (Highlighted × Array (MessageSeverity × String)) := do
-  let fileName   := "<input>"
-  let inputCtx   := Parser.mkInputContext input fileName
-  let (hdrStx, s, msgs) ← Parser.parseHeader inputCtx
-  let (env, msgs, shouldFree) ← if (headerToImports hdrStx).isEmpty then
-    if let some defaultEnv ← defaultEnvRef.get then
-      pure (defaultEnv, msgs, false)
-    else
-      let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
-      defaultEnvRef.set (some env)
-      pure (env, msgs, false)
-  else
-    let (env, msgs) ← processHeader hdrStx {} msgs inputCtx
-    pure (env, msgs, true)
-  let cmdState := Command.mkState env msgs
-
-  -- If header processing failed, don't try to elaborate the body; however, we
-  -- must still parse it for the syntax highlighter
-  let shouldElab := !msgs.hasErrors
-  let mut (cmdState, stxs) ← processCommands inputCtx s cmdState shouldElab
-  try
-    -- TODO: improve efficiency
-    stxs := #[hdrStx] ++ stxs
-    let stxOrStrs ← addMissingSubstrs stxs inputCtx
-    let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
-    let trees := cmdState.infoState.trees
-    let hls ← mkHighlights trees nonSilentMsgs inputCtx stxOrStrs
-    let msgs ← mkMessages nonSilentMsgs
-    -- It is necessary to serialize our outputs to ensure that no references
-    -- to `cmdState.env` are leaked
-    -- TODO: find a less hacky way to do this
-    let json := ToJson.toJson (hls, msgs)
-    IO.FS.withTempDir fun dirName => do
-      let fileName := dirName / "tmp.json"
-      IO.FS.writeFile fileName json.compress
-      let readStr ← IO.FS.readFile fileName
-      let readJson := Json.parse readStr |>.toOption.get!
-      return FromJson.fromJson? readJson |>.toOption.get!
-  finally
-    if shouldFree then
-      unsafe cmdState.env.freeRegions
-where
-  processCommands (inputCtx : Parser.InputContext) (s : Parser.ModuleParserState) (cmdState : Command.State) (doElab : Bool) := do
-    let mut s := s
-    let mut cmdState := cmdState
-    let mut stxs := #[]
-    repeat
-      let scope := cmdState.scopes.head!
-      let pmctx : Parser.ParserModuleContext := {
-        env := cmdState.env,
-        options := scope.opts,
-        currNamespace := scope.currNamespace,
-        openDecls := scope.openDecls
-      }
-      let (stx, s', msgs') := Parser.parseCommand inputCtx pmctx s cmdState.messages
-      s := s'
-      cmdState := {cmdState with messages := msgs'}
-      stxs := stxs.push stx
-      let cmdCtx : Command.Context := {
-        cmdPos       := s.pos
-        fileName     := inputCtx.fileName
-        fileMap      := inputCtx.fileMap
-        snap?        := none
-        cancelTk?    := none
-      }
-      if doElab then
-        try
-          (_, cmdState) ← Command.elabCommandTopLevel stx |>.run cmdCtx |>.run cmdState
-        catch e =>
-          throwError m!"Error during command elaboration: {e.toMessageData}"
-      if Parser.isTerminalCommand stx then
-        break
-    return (cmdState, stxs)
-
-  addMissingSubstrs (stxs : Array Syntax) (inputCtx : Parser.InputContext) : MetaM (Array (Syntax ⊕ Substring)) := do
-    -- HACK: fill in the (malformed) source that was skipped by the parser
-    let mut last : String.Pos := 0
-    let mut stxOrStrs : Array (Syntax ⊕ Substring) := #[]
-    for stx in stxs do
-      let some this := stx.getPos?
-        | stxOrStrs := stxOrStrs.push (.inl stx)  -- empty headers have no info
-          continue
-      if this != last then
-        let missedStr := Substring.mk inputCtx.input last this
-        stxOrStrs := stxOrStrs.push (.inr missedStr)
-      stxOrStrs := stxOrStrs.push (.inl stx)
-      last := stx.getTrailingTailPos?.getD this
-    return stxOrStrs
-
-  -- TODO: process messages linearly -- calling this repeatedly for s spans with
-  -- an m-message log should be O(max(m,s)), not O(m*s)
-  findMessagesForUnparsedSpan (ictx : Parser.InputContext) (src : Substring) (msgs : Array Message) : IO Highlighted := do
-    let msgsHere := msgs.filterMap fun m =>
-      let pos := ictx.fileMap.ofPosition m.pos
-      let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
-      if src.startPos ≤ pos && pos ≤ src.stopPos then
-        some (m, pos, min src.stopPos endPos)
-      else
-        none
-
-    if msgsHere.isEmpty then
-      return .text src.toString
-
-    let mut res := #[]
-    for (msg, start, fin) in msgsHere do
-      if src.startPos < start then
-        let initialSubstr := { src with stopPos := start }
-        res := res.push (.text initialSubstr.toString)
-      let kind : Highlighted.Span.Kind :=
-        match msg.severity with
-        | .error => .error
-        | .warning => .warning
-        | .information => .info
-      let content := { src with startPos := start, stopPos := fin }
-      res := res.push (.span #[(kind, ← openUntil.contents msg)] (.text content.toString))
-      if fin < src.stopPos then
-        let finalSubstr := { src with startPos := fin }
-        res := res.push (.text finalSubstr.toString)
-    return .seq res
-
-  withNewline (str : String) :=
-    if str == "" || str.back != '\n' then str ++ "\n" else str
-
-  mkHighlights (trees : PersistentArray InfoTree) (nonSilentMsgs : Array Message) (inputCtx : Parser.InputContext) (cmds : Array (Syntax ⊕ Substring)) := do
-    let mut hls := Highlighted.empty
-    for cmd in cmds do
-      let hl ←
-        match cmd with
-        | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
-                fileMap := inputCtx.fileMap
-                fileName := inputCtx.fileName }) <|
-              highlight cmd nonSilentMsgs trees
-        | .inr cmd =>
-          findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
-      hls := hls ++ hl
-    return hls
-
-  mkMessages (nonSilentMsgs : Array Message) := do
-    let msgs ← nonSilentMsgs.mapM fun msg => do
-      let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
-      let txt := withNewline <| head ++ (← msg.data.toString)
-
-      pure (msg.severity, txt)
-    let msgs : Array (MessageSeverity × String) := FromJson.fromJson? (ToJson.toJson msgs) |>.toOption.get!
-    return msgs
-
 def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
-    -- let src := str.getString
-    -- TODO: don't make the field an option if it isn't optional!
     let some name := config.name | throwError "Lean MWEs must be named"
-    -- let (hls, msgs) ← processMWESubprocess src name
-    -- let (hls, msgs) ← processMWE src
     let (hls, msgs) ← processMWEPreprocessed name
     if let some name := config.name then
       saveOutputs name msgs.toList
 
     let range : Option Lsp.Range := none
     pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
-
-end LeanRendering
 
 def Block.errorExample (titles : Array String) : Block where
   name := `Manual.Block.errorExample
@@ -386,11 +186,14 @@ structure ExplanCodeElabM.Context where
 structure ExplanCodeElabM.State where
   codeBlockIdx : Nat
 
+/--
+The monad in which code blocks within an error explanation are elaborated.
+-/
 abbrev ExplanCodeElabM :=
   ReaderT ExplanCodeElabM.Context (StateT ExplanCodeElabM.State DocElabM)
 
 def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSeverity)
-    (info? lang : Option String) (str : String) : ExplanCodeElabM Term := do
+    (info? _lang : Option String) (str : String) : ExplanCodeElabM Term := do
   if let some info := info? then
     let { lang, kind?, .. } ← match ErrorExplanation.CodeInfo.parse info with
       | .ok x => pure x
@@ -447,6 +250,7 @@ structure ExplanElabM.State where
   /-- The index of the current code block within this explanation. -/
   codeBlockIdx : Nat := 0
 
+/-- The monad in which error explanations are elaborated. -/
 abbrev ExplanElabM := ReaderT ExplanElabM.Context (StateT ExplanElabM.State PartElabM)
 
 def ExplanElabM.run (x : ExplanElabM α) (name : Name)
@@ -490,7 +294,7 @@ def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
           (elabInlineCode := some fun p s => tryElabInlineCode tactics keywords p s)
           (elabBlockCode := some fun i l s => withRef ref <|
             tryElabErrorExplanationCodeBlock name severity i l s)
-      synthesizeSyntheticMVarsUsingDefault
+      Term.synthesizeSyntheticMVarsUsingDefault
       pure (res, leanOutputs.getState (← getEnv))
     finally
       s.restore
@@ -706,7 +510,7 @@ def Inline.errorExplanation.descr : InlineDescr where
 
   traverse id info _ := do
     let .ok #[errorName, summary] := FromJson.fromJson? (α := Array String) info
-      | Manual.logError s!"Invalid JSON for error explanation:\n{info}"; pure none
+      | logError s!"Invalid JSON for error explanation:\n{info}"; pure none
     modify fun s =>
       s |>.saveDomainObject errorExplanationDomain errorName id
         |>.saveDomainObjectData errorExplanationDomain errorName (json%{"summary": $summary})
@@ -785,7 +589,7 @@ structure ExplanationConfig where
   name : Ident
 
 variable [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] in
-def ExplanationConfig.parser : ArgParse.ArgParse m ExplanationConfig :=
+def ExplanationConfig.parser : ArgParse m ExplanationConfig :=
   ExplanationConfig.mk <$> .positional `name {
     description := "name of error whose explanation to display",
     get := fun
@@ -827,7 +631,7 @@ def explanation : PartCommand
 open Verso Doc Elab ArgParse in
 open Lean in
 @[part_command Verso.Syntax.block_role]
-def makeExplanations : PartCommand
+def make_explanations : PartCommand
   | `(block|block_role{make_explanations}) => do
     let explans ← getErrorExplanationsSorted
     for (name, explan) in explans do
