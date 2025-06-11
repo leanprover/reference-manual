@@ -68,7 +68,8 @@ def error_explanation_table : BlockRoleExpander
   | _, _ => throwError "unexpected syntax"
 
 -- Elaborating explanations can exceed the default heartbeat maximum:
-set_option maxHeartbeats 0 in
+set_option maxHeartbeats 0
+
 #doc (Manual) "Error Explanations" =>
 %%%
 number := false
