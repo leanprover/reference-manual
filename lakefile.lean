@@ -173,10 +173,14 @@ def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × Str
         if numTicks == expectedTicks then
           state := .outsideCode
           if isLean then
+            -- Match MD4Lean by including the trailing newline:
+            acc := acc.push ""
             let code := "\n".intercalate acc.toList
             codeBlocks := codeBlocks.push (mkExampleName exampleName idx, code)
             acc := #[]
             idx := idx + 1
+        else
+          acc := acc.push line
     else if state matches .insideCode true _ then
       acc := acc.push line
   return codeBlocks

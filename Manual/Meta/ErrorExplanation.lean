@@ -27,12 +27,12 @@ def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
       s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
       s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
-def processMWEPreprocessed (name : Name) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
+def processMWEPreprocessed (name : Name) (contents : String) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
   let outputDir : System.FilePath := "error_explanation_examples"
   let fileName : String := name.toString ++ ".json"
   let path := outputDir / fileName
   unless (← System.FilePath.pathExists path) do
-    throwError m!"Did not find expected code block output file `{path}`. \
+    throwError m!"Did not find expected preprocessed code block file `{path}`. \
       Run `lake build error_explanations`."
   let fileContents ← IO.FS.readFile path
   let json ← ofExcept <| Json.parse fileContents
@@ -40,14 +40,21 @@ def processMWEPreprocessed (name : Name) : MetaM (Highlighted × Array (MessageS
     json.getObjVal? "highlighted" >>= FromJson.fromJson? (α := Highlighted)
   let messages ← ofExcept <|
     json.getObjVal? "messages" >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
+  let fileHash ← ofExcept <|
+    json.getObjVal? "hash" >>= FromJson.fromJson? (α := UInt64)
+  let fileVersion ← ofExcept <| json.getObjVal? "version" >>= Json.getStr?
+  unless fileHash == hash contents && fileVersion == Lean.versionString do
+    throwError m!"Preprocessed code block file `{path}` is out of date. \
+      Run `lake build error_explanations`."
   return (hls, messages)
 
 def leanMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
-    let some name := config.name | throwError "Lean MWEs must be named"
-    let (hls, msgs) ← processMWEPreprocessed name
+    let some name := config.name
+      | throwError "Lean MWE is missing a name"
+    let (hls, msgs) ← processMWEPreprocessed name str.getString
     if let some name := config.name then
       saveOutputs name msgs.toList
 
