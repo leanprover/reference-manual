@@ -1321,9 +1321,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.909
+  motive (instOfNatBlah_1.f 0) : Sort ?u.910
 but is expected to have type
-  motive n✝ : Sort ?u.909
+  motive n✝ : Sort ?u.910
 -/
 #guard_msgs in
 def defg (n : Blah) : Bool :=
@@ -1332,9 +1332,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.953
+  motive (Float.ofScientific 25 true 1) : Sort ?u.954
 but is expected to have type
-  motive x✝ : Sort ?u.953
+  motive x✝ : Sort ?u.954
 -/
 #guard_msgs in
 def twoPointFive? : Float → Option Float
@@ -1391,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1757, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.1765, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
