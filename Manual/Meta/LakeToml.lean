@@ -470,7 +470,7 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
                 else if type.isConstOf ``Lake.StdVer then some .version
                 else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern" none)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lean.LeanOption then some (.array (.other ``Lean.LeanOption "Lean option" none))
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option" none))
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
