@@ -360,15 +360,6 @@ private def expectExplanationCodeInfo
     let str := kind?.map toString |>.getD "unspecified"
     throwError "Expected a code block of kind '{expKind}', but found '{str}'"
 
--- TODO: do this properly
-private def termsOfTexts (txts : Array MD4Lean.Text) : DocElabM (Array Term) := do
-  let (stxs, _) ← (txts.mapM (inlineFromMarkdown ·)).run' none {
-    elabInlineCode := tryElabInlineCode #[] #[]
-    headerHandlers := ⟨Markdown.strongEmphHeaders⟩,
-    elabBlockCode := tryElabBlockCode
-  } {}
-  return stxs
-
 private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
   if _ : txt.size = 1 then
     match txt[0] with
@@ -468,22 +459,26 @@ def getExampleDescriptionTerm? : ExplanElabM (Option Term) := do
 
 def addExampleBlocks : ExplanElabM Unit := do
   repeat
-    let some (.header 2 txts) ← ExplanElabM.nextBlock?
-      | return
-    let title ← termsOfTexts txts
+    let some block@(.header 2 titleTexts) ← ExplanElabM.nextBlock? | return
+    let `(Verso.Doc.Block.other #[$titleStxs,*]) ← blockFromMarkdown block
+        [fun (stxs : Array Term) => ``(Verso.Doc.Block.other #[$stxs,*])]
+      | throwError "Unexpected output when elaborating example header"
+    let title := titleStxs.getElems
+    let titleStr := String.join
+      (titleTexts.mapM stringFromMarkdownText |>.toOption.getD #[]).toList
+
     -- Broken code and output(s)
     let (brokenCodeTerm, brokenTitle?) ← getBrokenTermAndTitle
     let brokenOutputTerms ← repeatedly getOutputTerm?
     if brokenOutputTerms.isEmpty then
-      throwError m!"Missing output for broken code snippet in example '{title}'"
-    -- TODO: parse and add titles for blocks
+      throwError m!"Missing output for broken code snippet in example '{titleStr}'"
     let brokenWithTitle :=
       (← ``(Block.concat #[$brokenCodeTerm, $brokenOutputTerms,*]), brokenTitle?)
 
     -- Fixed version(s) with optional output(s)
     let fixedTermsAndOutputs ← repeatedly getFixedTermAndOutputs?
     if fixedTermsAndOutputs.isEmpty then
-      throwError m!"Found a `broken` code block but no following `fixed` code block for example '{title}'"
+      throwError m!"Found a `broken` code block but no following `fixed` code block for example '{titleStr}'"
     let fixedWithTitles ← fixedTermsAndOutputs.mapM fun (code, outs, title?) =>
       return (← ``(Block.concat #[$code, $outs,*]), title?)
 
