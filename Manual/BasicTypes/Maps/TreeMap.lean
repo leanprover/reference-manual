@@ -11,6 +11,7 @@ import Manual.Meta
 
 import Std.Data.TreeMap
 import Std.Data.TreeMap.Raw
+import Std.Data.TreeMap.AdditionalOperations
 
 
 open Verso.Genre Manual
@@ -109,10 +110,6 @@ The declarations in this section should be imported using `import Std.TreeMap`.
 
 {docstring Std.TreeMap.getEntryLTD}
 
-{docstring Std.TreeMap.getGE}
-
-{docstring Std.TreeMap.getGT}
-
 {docstring Std.TreeMap.getKeyGE}
 
 {docstring Std.TreeMap.getKeyGE!}
@@ -144,10 +141,6 @@ The declarations in this section should be imported using `import Std.TreeMap`.
 {docstring Std.TreeMap.getKeyLT?}
 
 {docstring Std.TreeMap.getKeyLTD}
-
-{docstring Std.TreeMap.getLE}
-
-{docstring Std.TreeMap.getLT}
 
 {docstring Std.TreeMap.keyAtIdx}
 
