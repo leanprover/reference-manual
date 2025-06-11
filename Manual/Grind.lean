@@ -15,6 +15,7 @@ import Std.Data.TreeMap
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
+open Verso.Doc.Elab (CodeBlockExpander)
 
 set_option pp.rawOnError true
 
@@ -26,6 +27,8 @@ set_option linter.unusedVariables false
 set_option verso.code.warnLineLength 60
 
 set_option maxHeartbeats 400000 -- Needed for elaboration of the `IndexMap` example.
+
+open Manual (comment)
 
 #doc (Manual) "The `grind` tactic" =>
 %%%
@@ -488,7 +491,7 @@ example : (cos x + sin x)^2 = 2 * cos x * sin x + 1 := by
 Here `grind`:
 * Notices `cos x` and `sin x`, so instantiates the trig identity.
 * Notices that this is a polynomial in `CommRing R`, so sends it to the Grobner basis module.
-  No calculation happens at this point: it's the first polynomial relation in this ring, so the Grobner basis is updated to `(cos x)^2 + (sin x)^2 - 1`.
+  No calculation happens at this point: it's the first polynomial relation in this ring, so the Grobner basis is updated to `[(cos x)^2 + (sin x)^2 - 1]`.
 * Notices that the left and right hand sides of the goal are polynomials in `CommRing R`, so sends them to the Grobner basis module for normalization.
 * Since their normal forms modulo `(cos x)^2 + (sin x)^2 = 1` are equal, their equivalence classes are merged, and the goal is solved.
 
@@ -500,18 +503,18 @@ example (f : R → Nat) :
 ```
 
 As before, `grind` instantiates the trig identity, notices that `(cos x + sin x)^2` and `2 * cos x * sin x + 1` are equal modulo `(cos x)^2 + (sin x)^2 = 1`,
-puts those algebraic expresses in the same equivalence class, and then puts the function applications `f((cos x + sin x)^2)` and `f(2 * cos x * sin x + 1)` in the same equivalence class,
+puts those algebraic expressions in the same equivalence class, and then puts the function applications `f((cos x + sin x)^2)` and `f(2 * cos x * sin x + 1)` in the same equivalence class,
 and closes the goal.
 
-Notice that I've written a function `f : R → Nat` here; let's check that `grind` can continue and use some linear integer arithmetic reasoning after the Grobner basis steps:
+Notice that we've used arbitrary function `f : R → Nat` here; let's check that `grind` use some linear integer arithmetic reasoning after the Grobner basis steps:
 ```lean
 example (f : R → Nat) :
     4 * f ((cos x + sin x)^2) ≠ 2 + f (2 * cos x * sin x + 1) := by
   grind
 ```
 
-Here `grind` first works out that this goal reduces to `4 * x ≠ 2 + x` for some `x : Nat`, and using modularity to derive a contradiction.
-Of course, this argument only works *after* `grind` has identified the two function applications.
+Here `grind` first works out that this goal reduces to `4 * x ≠ 2 + x` for some `x : Nat` (i.e. by identifying the two function applications as described above),
+and then uses modularity to derive a contradiction.
 
 Finally, we can also mix in some case splitting:
 ```
@@ -519,8 +522,9 @@ example (f : R → Nat) : max 3 (4 * f ((cos x + sin x)^2)) ≠ 2 + f (2 * cos x
   grind
 ```
 As before, `grind` first does the instantiation and Grobner basis calculations required to identify the two function applications.
-However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`. However instantiating
-{lean}`Nat.max_def` which states `max n m = if n ≤ m then m else n`, we then case split on the inequality.
+However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`.
+Next, instantiating {lean}`Nat.max_def` which states `max n m = if n ≤ m then m else n`,
+we then case split on the inequality.
 In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 + x`.
 In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
@@ -933,6 +937,8 @@ The two main functions we'll implement for now are `insert` and `eraseSwap`:
 * `insert k v` checks if `k` is already in the map. If so, it replaces the value with `v`, keeping `k` in the same position in the ordering.
   If it is not already in the map, `insert` adds `(k, v)` to the end of the map.
 * `eraseSwap k` removes the element with key `k` from the map, and swaps it with the last element of the map (or does nothing if `k` is not in the map).
+  (This semantics is maybe slightly surprising: this function exists because it is an efficient way to erase element, when you don't care about the order of the remaining elements.
+  Another function, not implemented here, would preserve the order of the remaining elements, but at the cost of running in size proportional to the number of elements after the erased element.)
 
 Our goals will be:
 * complete encapsulation: the implementation of `IndexMap` is hidden from the users, **and** the theorems about the implementation details are private.
@@ -1111,17 +1117,139 @@ FIXME (@david-christiansen): I think I'm stuck here without being able to roll b
 In particular here, I don't want to have these `variable` and `namespace` statements repeated here.
 I can use `(show := false)`, but then I can't use `(keep := false)`, so I can't go back a modify `IndexMap` again.
 
-```lean
+```lean (show := false)
 namespace IndexMap
 
 variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
 variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
+```
 
+```lean (show := false)
+@[inline] def size (m : IndexMap α β) : Nat :=
+  m.values.size
+```
+```lean
 def emptyWithCapacity (capacity := 8) : IndexMap α β where
   indices := HashMap.emptyWithCapacity capacity
   keys := Array.emptyWithCapacity capacity
   values := Array.emptyWithCapacity capacity
 ```
+
+```lean (show := false)
+instance : EmptyCollection (IndexMap α β) where
+  emptyCollection := emptyWithCapacity
+
+instance : Inhabited (IndexMap α β) where
+  default := ∅
+
+@[inline] def contains (m : IndexMap α β)
+    (a : α) : Bool :=
+  m.indices.contains a
+
+instance : Membership α (IndexMap α β) where
+  mem m a := a ∈ m.indices
+
+instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
+  inferInstanceAs (Decidable (a ∈ m.indices))
+```
+
+Our next task is to deal with the `sorry` in our construction of the `GetElem?` instance:
+```lean (keep := false)
+instance :
+    GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
+  getElem m a h :=
+    m.values[m.indices[a]'h]'(by sorry)
+  getElem? m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?))
+  getElem! m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+```
+
+The goal at this sorry is
+```
+m : IndexMap α β
+a : α
+h : a ∈ m
+⊢ m.indices[a] < m.values.size
+```
+FIMXE (@kim-em): learn how to do this properly!
+
+Let's try proving this as a stand-alone theorem, via `grind`, and see where `grind` gets stuck:
+```lean (name := getElem_indices_lt_1) (keep := false) (error := true)
+theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.indices[a] < m.values.size := by
+  grind
+```
+
+This fails, and looking at the message from `grind` we see that it hasn't done much:
+:::comment
+FIXME (Q3): This needs a mechanism for keeping up to date.
+:::
+```
+[grind] Goal diagnostics ▼
+  [facts] Asserted facts ▼
+    [prop] a ∈ m
+    [prop] (values m).size ≤ (indices m)[a]
+  [eqc] True propositions ▼
+    [prop] (values m).size ≤ (indices m)[a]
+    [prop] a ∈ m
+  [eqc] Equivalence classes ▼
+    [] {Membership.mem, fun m a => a ∈ m}
+  [ematch] E-matching patterns ▼
+    [thm] DHashMap.contains_iff_mem: [@Membership.mem #5 _ _ #1 #0]
+    [thm] HashMap.contains_iff_mem: [@Membership.mem #5 (HashMap _ #4 #3 #2) _ #1 #0]
+  [cutsat] Assignment satisfying linear constraints ▼
+    [assign] (values m).size := 0
+    [assign] (indices m)[a] := 0
+```
+
+An immediate problems we can see here is that
+`grind` does not yet know that `a ∈ m` is the same as `a ∈ m.indices`.
+Let's add this fact and try again:
+
+```lean
+@[local grind] private theorem mem_indices_of_mem {m : IndexMap α β} {a : α} :
+    a ∈ m ↔ a ∈ m.indices := Iff.rfl
+```
+
+```lean (name := getElem_indices_lt_2) (error := true) (keep := false)
+theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.indices[a] < m.values.size := by
+  grind
+```
+
+FIXME: output again.
+
+However this proof is going to work, we know the following:
+* It must use the well-formedness condition of the map.
+* It can't do so without relating `m.indices[a]` and `m.indices[a]?` (because the later is what appears in the well-formedness condition).
+* The expected relationship there doesn't even hold unless the map `m.indices` satisfies `LawfulGetElem?`,
+  for which we need `[LawfulBEq α]` and `[LawfulHashable α]`.
+
+FIXME: link to the `LawfulGetElem?` instance for `HashMap`, so we can see these requirements!
+
+Let's configure things so that those are available:
+
+```lean
+variable [LawfulBEq α] [LawfulHashable α]
+
+attribute [local grind _=_] IndexMap.WF
+```
+
+and then give `grind` one manual hint, to relate `m.indices[a]` and `m.indices[a]?`:
+
+FIXME (@kim-em): why is this not working?
+
+```lean (name := getElem_indices_lt_3) (keep := false) (error := true)
+theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.indices[a] < m.values.size := by
+  have : m.indices[a]? = some m.indices[a] := by grind
+  grind
+```
+
+
+The Lean standard library use the `get_elem_tactic` tactic as an auto-parameter for the `x[i]` notation (which desugars to `GetElem.getElem`),
+and so we'd like to not only
 
 FIXME (@kim-em): explanation of how we get from here to there!
 
