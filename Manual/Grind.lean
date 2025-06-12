@@ -12,19 +12,21 @@ import Manual.Meta
 
 -- Needed for the if-then-else normalization example.
 import Std.Data.TreeMap
+import Std.Data.HashMap
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 open Verso.Doc.Elab (CodeBlockExpander)
+
+open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
 -- The verso default max line length is 60, which is very restrictive.
--- Currently we satisfy it, but you can increase it here if it becomes annoying.
 -- TODO: discuss with David.
-set_option verso.code.warnLineLength 60
+set_option verso.code.warnLineLength 72
 
 set_option maxHeartbeats 400000 -- Needed for elaboration of the `IndexMap` example.
 
@@ -869,8 +871,8 @@ example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
     (normalize assign e).normalized
       ∧ (∀ f, (normalize assign e).eval f =
           e.eval fun w => assign[w]?.getD (f w))
-      ∧ ∀ (v : Nat),
-          v ∈ vars (normalize assign e) → assign.contains v = false := by
+      ∧ ∀ (v : Nat), v ∈ vars (normalize assign e) →
+          assign.contains v = false := by
   fun_induction normalize with grind (gen := 7) (splits := 9)
 
 example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
@@ -923,6 +925,10 @@ If you'd like to play around with this code,
 you can find the whole file [here](https://github.com/leanprover/lean4/blob/master/tests/lean/run/grind_ite.lean),
 or in fact [play with it with no installation](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fraw.githubusercontent.com%2Fleanprover%2Flean4%2Frefs%2Fheads%2Fmaster%2Ftests%2Flean%2Frun%2Fgrind_ite.lean)
 in the Live Lean editor.
+
+```lean (show := false)
+end IfExpr
+```
 
 ##  `IndexMap`
 
@@ -996,11 +1002,11 @@ instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
 instance :
     GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem m a h :=
-    m.values[m.indices[a]'h]'(by sorry)
+    m.values[m.indices[a]]'(by sorry)
   getElem? m a :=
-    m.indices[a]?.bind (fun i => (m.values[i]?))
+    m.indices[a]?.bind (m.values[·]?)
   getElem! m a :=
-    m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+    m.indices[a]?.bind (m.values[·]?) |>.getD default
 
 @[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
   m.indices[a]?
@@ -1019,7 +1025,8 @@ instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem?_def := sorry
   getElem!_def := sorry
 
-@[inline] def insert (m : IndexMap α β) (a : α) (b : β) : IndexMap α β :=
+@[inline] def insert (m : IndexMap α β) (a : α) (b : β) :
+    IndexMap α β :=
   match h : m.indices[a]? with
   | some i =>
     { indices := m.indices
@@ -1095,11 +1102,16 @@ theorem findIdx_insert_self
 end IndexMap
 ```
 
+::::keepEnv
 Let's get started.
 We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
 so we can omit these fields whenever `grind` can prove them.
 While we're modifying the definition of `IndexMap` itself, lets make all the fields private, since we're planning on having complete encapsulation.
 
+:::comment
+FIXME @david-christiansen:
+Why is there no long line warning on `private WF` here?
+:::
 ```lean
 structure IndexMap
     (α : Type u) (β : Type v) [BEq α] [Hashable α] where
@@ -1110,12 +1122,6 @@ structure IndexMap
   private WF : ∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i := by grind
 ```
 
-Our first `sorry`s in the draft version are the `size_keys` and `WF` fields in our construction of `def emptyWithCapacity`.
-Surely these are trivial, and solvable by `grind`, so we simply delete those fields:
-
-FIXME (@david-christiansen): I think I'm stuck here without being able to roll back.
-In particular here, I don't want to have these `variable` and `namespace` statements repeated here.
-I can use `(show := false)`, but then I can't use `(keep := false)`, so I can't go back a modify `IndexMap` again.
 
 ```lean (show := false)
 namespace IndexMap
@@ -1124,10 +1130,18 @@ variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
 variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
 ```
 
-```lean (show := false)
+Let's give `grind` access to the definition of `size`, and `size_keys` private field:
+
+```lean
 @[inline] def size (m : IndexMap α β) : Nat :=
   m.values.size
+
+attribute [local grind] size
+attribute [local grind _=_] size_keys
 ```
+
+Our first `sorry`s in the draft version are the `size_keys` and `WF` fields in our construction of `def emptyWithCapacity`.
+Surely these are trivial, and solvable by `grind`, so we simply delete those fields:
 ```lean
 def emptyWithCapacity (capacity := 8) : IndexMap α β where
   indices := HashMap.emptyWithCapacity capacity
@@ -1158,7 +1172,7 @@ Our next task is to deal with the `sorry` in our construction of the `GetElem?` 
 instance :
     GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem m a h :=
-    m.values[m.indices[a]'h]'(by sorry)
+    m.values[m.indices[a]]'(by sorry)
   getElem? m a :=
     m.indices[a]?.bind (fun i => (m.values[i]?))
   getElem! m a :=
@@ -1172,35 +1186,45 @@ a : α
 h : a ∈ m
 ⊢ m.indices[a] < m.values.size
 ```
-FIMXE (@kim-em): learn how to do this properly!
 
-Let's try proving this as a stand-alone theorem, via `grind`, and see where `grind` gets stuck:
-```lean (name := getElem_indices_lt_1) (keep := false) (error := true)
+:::comment
+FIXME (Q3): @david-christiansen:
+We need to keep the goal display above in sync with the `sorry` in the code block before it.
+:::
+
+Let's try proving this as a stand-alone theorem, via `grind`, and see where `grind` gets stuck.
+Because we've added `grind` annotations for `size` and `size_keys` already, we can safely reformulate the goal as:
+
+```lean (name := getElem_indices_lt_1) (error := true)(keep := false)
 theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.indices[a] < m.values.size := by
+    m.indices[a] < m.size := by
   grind
 ```
 
 This fails, and looking at the message from `grind` we see that it hasn't done much:
 :::comment
-FIXME (Q3): This needs a mechanism for keeping up to date.
+FIXME (Q3): @david-christiansen:
+This needs a mechanism for keeping up to date.
 :::
 ```
 [grind] Goal diagnostics ▼
   [facts] Asserted facts ▼
     [prop] a ∈ m
-    [prop] (values m).size ≤ (indices m)[a]
+    [prop] m.size ≤ (indices m)[a]
+    [prop] m.size = (values m).size
   [eqc] True propositions ▼
-    [prop] (values m).size ≤ (indices m)[a]
+    [prop] m.size ≤ (indices m)[a]
     [prop] a ∈ m
   [eqc] Equivalence classes ▼
     [] {Membership.mem, fun m a => a ∈ m}
+    [] {m.size, (values m).size}
   [ematch] E-matching patterns ▼
-    [thm] DHashMap.contains_iff_mem: [@Membership.mem #5 _ _ #1 #0]
+    [thm] size.eq_1: [@size #4 #3 #2 #1 #0]
     [thm] HashMap.contains_iff_mem: [@Membership.mem #5 (HashMap _ #4 #3 #2) _ #1 #0]
   [cutsat] Assignment satisfying linear constraints ▼
-    [assign] (values m).size := 0
+    [assign] m.size := 0
     [assign] (indices m)[a] := 0
+    [assign] (values m).size := 0
 ```
 
 An immediate problems we can see here is that
@@ -1208,25 +1232,21 @@ An immediate problems we can see here is that
 Let's add this fact and try again:
 
 ```lean
-@[local grind] private theorem mem_indices_of_mem {m : IndexMap α β} {a : α} :
-    a ∈ m ↔ a ∈ m.indices := Iff.rfl
+@[local grind] private theorem mem_indices_of_mem
+    {m : IndexMap α β} {a : α} :
+    a ∈ m ↔ a ∈ m.indices :=
+  Iff.rfl
 ```
-
-```lean (name := getElem_indices_lt_2) (error := true) (keep := false)
-theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.indices[a] < m.values.size := by
-  grind
-```
-
-FIXME: output again.
 
 However this proof is going to work, we know the following:
 * It must use the well-formedness condition of the map.
 * It can't do so without relating `m.indices[a]` and `m.indices[a]?` (because the later is what appears in the well-formedness condition).
-* The expected relationship there doesn't even hold unless the map `m.indices` satisfies `LawfulGetElem?`,
+* The expected relationship there doesn't even hold unless the map `m.indices` satisfies {lean}`LawfulGetElem`,
   for which we need `[LawfulBEq α]` and `[LawfulHashable α]`.
 
-FIXME: link to the `LawfulGetElem?` instance for `HashMap`, so we can see these requirements!
+:::comment
+I'd like to ensure there's alink to the `LawfulGetElem` instance for `HashMap`, so we can see these requirements!
+:::
 
 Let's configure things so that those are available:
 
@@ -1238,25 +1258,70 @@ attribute [local grind _=_] IndexMap.WF
 
 and then give `grind` one manual hint, to relate `m.indices[a]` and `m.indices[a]?`:
 
-FIXME (@kim-em): why is this not working?
-
-```lean (name := getElem_indices_lt_3) (keep := false) (error := true)
+```lean (name := getElem_indices_lt_2)
 theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.indices[a] < m.values.size := by
+    m.indices[a] < m.size := by
   have : m.indices[a]? = some m.indices[a] := by grind
   grind
 ```
 
+With that theorem proved, we want to make it accessible to `grind`.
+We could either add `@[local grind]` before the theorem statement,
+or write `attribute [local grind] getElem_indices_lt` after the theorem statement.
+These will use `grind` built-in heuristics for deciding a pattern to match the theorem on.
 
-The Lean standard library use the `get_elem_tactic` tactic as an auto-parameter for the `x[i]` notation (which desugars to `GetElem.getElem`),
-and so we'd like to not only
+In this case, let's use the `grind?` attribute to see the pattern that is being generated:
+```lean (name := grind?) (keep := false)
+attribute [local grind?] getElem_indices_lt
+```
+```leanOutput grind? (whitespace := lax)
+getElem_indices_lt:
+  [@LE.le `[Nat] `[instLENat]
+    ((@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _
+      (@indices _ #7 _ _ #2) #1 #0) + 1)
+    (@size _ _ _ _ #2)]
+```
+This is not a useful pattern: it's matching on the entire conclusion of the theorem
+(in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).
+
+We want something more general: we'd like this theorem to fire whenever `grind` sees `m.indices[a]`,
+and so instead of using the attribute we write a custom pattern:
+
+```lean
+grind_pattern getElem_indices_lt => m.indices[a]
+```
+
+
+The Lean standard library uses the `get_elem_tactic` tactic as an auto-parameter for the `xs[i]` notation
+(which desugars to `GetElem.getElem xs i h`, with the proof `h` generated by `get_elem_tactic`).
+We'd like to not only have `grind` fill in these proofs, but even to be able to omit these proofs.
+To achieve this, we add the line
+```lean
+macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| grind)
+```
+(In later versions of Lean this may be part of the built-in behavior.)
+
+We can now return to constructing our `GetElem?` instance, and simply write:
+```lean
+instance :
+    GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
+  getElem m a h :=
+    m.values[m.indices[a]]
+  getElem? m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?))
+  getElem! m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+```
+with neither any `sorry`s, nor any explicitly written proofs.
 
 FIXME (@kim-em): explanation of how we get from here to there!
+
+::::
 
 At the end, we reach the following result:
 
 ```lean
-macro_rules | `(tactic| get_elem_tactic_trivial) => `(tactic| grind)
+macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| grind)
 
 open Std
 
@@ -1315,15 +1380,25 @@ grind_pattern getElem_indices_lt => m.indices[a]
 attribute [local grind] size
 
 instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
-  getElem m a h := m.values[m.indices[a]'h]
-  getElem? m a := m.indices[a]?.bind (fun i => (m.values[i]?))
-  getElem! m a := m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
+  getElem m a h :=
+    m.values[m.indices[a]]
+  getElem? m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?))
+  getElem! m a :=
+    m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
 
-@[local grind] private theorem getElem_def (m : IndexMap α β) (a : α) (h : a ∈ m) : m[a] = m.values[m.indices[a]'h] := rfl
-@[local grind] private theorem getElem?_def (m : IndexMap α β) (a : α) :
-    m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) := rfl
-@[local grind] private theorem getElem!_def [Inhabited β] (m : IndexMap α β) (a : α) :
-    m[a]! = (m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default) := rfl
+@[local grind] private theorem getElem_def
+    (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m[a] = m.values[m.indices[a]'h] :=
+  rfl
+@[local grind] private theorem getElem?_def
+    (m : IndexMap α β) (a : α) :
+    m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) :=
+  rfl
+@[local grind] private theorem getElem!_def
+    [Inhabited β] (m : IndexMap α β) (a : α) :
+    m[a]! = m.indices[a]?.bind (m.values[·]?) |>.getD default :=
+  rfl
 
 @[local grind] private theorem WF' (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
