@@ -215,7 +215,10 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
       catch
         | .error ref msg =>
           let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
-          throw (.error ref m!"Invalid output for code block #{codeBlockIdx}{kindStr}: {msg}")
+          -- Log rather than throw so we can detect all invalid outputs in a
+          -- single build
+          logErrorAt ref m!"Invalid output for {(← read).name} code block #{codeBlockIdx}{kindStr}: {msg}"
+          pure #[← ``(Verso.Doc.Block.code "<invalid output>")]
         | e@(.internal ..) => throw e
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
     else if lang == "" || lang == "lean" then
@@ -287,43 +290,36 @@ def ExplanElabM.liftExplanCodeElabM (x : ExplanCodeElabM α) : ExplanElabM α :=
 instance : MonadLift ExplanCodeElabM ExplanElabM where
   monadLift := ExplanElabM.liftExplanCodeElabM
 
+private def tryElabInlineCodeStrictRestoringState
+    (tactics : Array Tactic.Doc.TacticDoc) (keywords : Array String)
+    (prevWord? : Option String) (str : String) : ExplanElabM Term := do
+  let b ← (saveState : TermElabM _)
+  try
+    let t ← tryElabInlineCodeStrict tactics keywords prevWord? str
+    Term.synthesizeSyntheticMVarsUsingDefault
+    pure t
+  finally
+    b.restore
+
 def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
   let { name, severity .. } ← read
   let tactics ← Elab.Tactic.Doc.allTacticDocs
   let keywords := tactics.map (·.userName)
   let ref ← getRef
-  let s ← (saveState : TermElabM _)
-  let (block, outputs) ←
-    try
-      let res ←
-        blockFromMarkdown b
-          (handleHeaders := Markdown.strongEmphHeaders)
-          (elabInlineCode := some fun p s => tryElabInlineCode tactics keywords p s)
-          (elabBlockCode := some fun i l s => withRef ref <|
-            tryElabErrorExplanationCodeBlock name severity i l s)
-      Term.synthesizeSyntheticMVarsUsingDefault
-      pure (res, leanOutputs.getState (← getEnv))
-    finally
-      s.restore
-  -- This is necessary after state restoration so we can refer to the generated outputs
-  modifyEnv (leanOutputs.setState · outputs)
-  return block
+  blockFromMarkdown b
+    (handleHeaders := Markdown.strongEmphHeaders)
+    (elabInlineCode := some (tryElabInlineCodeStrictRestoringState tactics keywords))
+    (elabBlockCode := some fun i l s => withRef ref <|
+      tryElabErrorExplanationCodeBlock name severity i l s)
 
 def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
   let tactics ← Elab.Tactic.Doc.allTacticDocs
   let keywords := tactics.map (·.userName)
   let ref ← getRef
   let {name, severity .. } ← read
-  -- Due to the new implementation of `PartElabM.addBlock`, we cannot simply
-  -- wait and revert the state after elaborating the full block as we do in
-  -- `blockFromExplanationMarkdown`, since that will erase declarations on which
-  -- the result depends
   let ls ← addPartFromMarkdown b
     (handleHeaders := Markdown.strongEmphHeaders)
-    (elabInlineCode := some fun p s => do
-      let b ← getThe Term.State
-      try tryElabInlineCode tactics keywords p s
-      finally set (m := TermElabM) b)
+    (elabInlineCode := some (tryElabInlineCodeStrictRestoringState tactics keywords))
     (elabBlockCode := some fun i l s => withRef ref <|
       tryElabErrorExplanationCodeBlock name severity i l s)
   modifyThe ExplanElabM.State ({ · with levels := ls })
