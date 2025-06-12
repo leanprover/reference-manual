@@ -8,19 +8,33 @@ Note that the provided name is not relativized to the current namespace.
 -/
 elab docStx:docComment cmd:"reregister_error_explanation " nm:ident t:term : command => withRef cmd do
   -- TODO: re-enable once we need to override examples working again
-  pure ()
-  -- let tp := Lean.mkConst ``ErrorExplanation.Metadata []
-  -- let metadata ← runTermElabM <| fun _ => unsafe do
-  --   let e ← elabTerm t tp
-  --   if e.hasSyntheticSorry then throwAbortTerm
-  --   evalExpr ErrorExplanation.Metadata tp e
-  -- let name := nm.getId
-  -- if name.isAnonymous then throwErrorAt nm "Invalid name for error explanation: '{nm}'"
-  -- validateDocComment docStx
-  -- let doc ← getDocStringText docStx
+  -- pure ()
+  let tp := Lean.mkConst ``ErrorExplanation.Metadata []
+  let metadata ← runTermElabM <| fun _ => unsafe do
+    let e ← elabTerm t tp
+    if e.hasSyntheticSorry then throwAbortTerm
+    evalExpr ErrorExplanation.Metadata tp e
+  let name := nm.getId
+  if name.isAnonymous then throwErrorAt nm "Invalid name for error explanation: '{nm}'"
+  validateDocComment docStx
+  let doc ← getDocStringText docStx
   -- unless errorExplanationExt.getState (← getEnv) |>.contains name do
   --   throwError m!"Cannot update explanation: No error explanation exists for '{name}'"
-  -- modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc, declLoc? := none }))
+  modifyEnv (errorExplanationExt.addEntry · (name, { metadata, doc, declLoc? := none }))
+
+/--
+This is some text with `inline code` where a `Nat` is a `Nat` but `xs` is not
+`xs`.
+
+The issue is that if we write `xs : Vector Nat` we'll get nothing because `xs`
+isn't defined.
+-/
+reregister_error_explanation Lean.Test {
+  summary := "Test Example Titles"
+  sinceVersion := "0.0.0"
+}
+
+#exit
 
 /--
 This error occurs when a parameter of an inductive type is not uniform in an inductive declaration. The parameters of an inductive type (i.e., those that appear before the colon following the `inductive` keyword) must be identical in all occurrences of the type being defined in its constructors' types. If a parameter of an inductive type must vary between constructors, make the parameter an index by moving it to the right of the colon. See the manual section on [Inductive Types](lean-manual://section/inductive-types) for additional details.
@@ -38,14 +52,14 @@ Notice that `foo` has type `Nat`.
 
 # Examples
 
-## Vector length index as a parameter
+## `Vector` length **index** as a *parameter*
 
 ```lean broken
 inductive Vec (α : Type) (n : Nat) : Type where
   | nil  : Vec α 0
   | cons : α → Vec α n → Vec α (n + 1)
 ```
-```output broken
+```output
 Mismatched inductive type parameter in
   Vec α 0
 The provided argument
@@ -208,7 +222,7 @@ parentheses, the first is taken to be the name of the field and all subsequent o
 as binders. To prevent this behavior, either list each field on a separate line, or enclose the line
 specifying multiple field names in parentheses.
 -/
-reregister_error_explanation Lean.InferBinderTypeFailed {
+register_error_explanation Lean.InferBinderTypeFailed {
   summary := "The type of a binder could not be inferred."
   sinceVersion := "4.21.0"
 }
@@ -288,7 +302,7 @@ Lean is unable to synthesize the appropriate argument to `IO`. However, the type
 is fully inferrable from its body; therefore, removing the type annotation entirely allows the
 correct type to be inferred.
 -/
-reregister_error_explanation Lean.InferDefTypeFailed {
+register_error_explanation Lean.InferDefTypeFailed {
   summary := "The type of a definition was not fully provided and could not be inferred."
   sinceVersion := "4.21.0"
 }
