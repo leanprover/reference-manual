@@ -186,20 +186,17 @@ def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × Str
   return codeBlocks
 
 /-- Preprocess code examples in error explanations. -/
-target error_explanations : Array Name := Job.async do
-  let pkg ← getRootPackage
-  let .some exe := pkg.findLeanExe? `extract_explanation_examples |
-    Lake.logError "Could not find `extract_explanation_examples` executable. \
-      Run `lake build extract_explanation_examples` to build it."
-    failure
-  let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
-  let explans := getErrorExplanationsRaw env
-  let allBlocks := explans.flatMap fun (name, explan) =>
-    extractCodeBlocks name explan.doc
-  let groups ← groupByImports allBlocks
-  for group in groups do
-    processImportGroup group exe.file errorExplanationExOutDir
-  return allBlocks.map (·.1)
+target error_explanations : Array Name := do
+  let exeJob ← extract_explanation_examples.fetch
+  exeJob.bindM fun exe => Job.async do
+    let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
+    let explans := getErrorExplanationsRaw env
+    let allBlocks := explans.flatMap fun (name, explan) =>
+      extractCodeBlocks name explan.doc
+    let groups ← groupByImports allBlocks
+    for group in groups do
+      processImportGroup group exe errorExplanationExOutDir
+    return allBlocks.map (·.1)
 
 end ExplanationPreprocessing
 
