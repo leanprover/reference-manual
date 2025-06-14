@@ -89,9 +89,8 @@ where
     let msgsHere := msgs.filterMap fun m =>
       let pos := ictx.fileMap.ofPosition m.pos
       let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
-      -- FIXME: this won't work properly for messages that extend beyond this span
-      if src.startPos ≤ pos && pos ≤ src.stopPos then
-        some (m, pos, min src.stopPos endPos)
+      if src.startPos ≤ pos || pos ≤ src.stopPos then
+        some (m, max src.startPos pos, min src.stopPos endPos)
       else
         none
 
@@ -109,7 +108,8 @@ where
         | .warning => .warning
         | .information => .info
       let content := { src with startPos := start, stopPos := fin }
-      res := res.push (.span #[(kind, ← openUntil.contents msg)] (.text content.toString))
+      let msgStr := (if msg.caption != "" then msg.caption ++ ":\n" else "") ++ (← msg.toString)
+      res := res.push (.span #[(kind, msgStr)] (.text content.toString))
       if fin < src.stopPos then
         let finalSubstr := { src with startPos := fin }
         res := res.push (.text finalSubstr.toString)
