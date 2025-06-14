@@ -5,7 +5,6 @@ Author: Joseph Rotella
 -/
 
 import Manual.Meta.ErrorExplanation
-import Manual.ErrorExplanationDummyData
 
 open Lean
 open Verso Doc Elab Genre Manual

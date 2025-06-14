@@ -8,8 +8,6 @@ import VersoManual
 
 import Manual.Meta
 
-import Manual.ErrorExplanationDummyData
-
 open Lean Elab
 open Verso.ArgParse
 open Verso.Doc Elab
