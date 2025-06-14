@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 import Lean.Elab.Import
+import Lean.ErrorExplanations
 import Lake
 open Lake DSL
 open System (FilePath)
@@ -103,7 +104,7 @@ def hasUsableCache (id : String) (hash : UInt64) : IO Bool := do
   let .ok json := Json.parse cacheStr | return false
   let .ok cacheHash := json.getObjVal? "hash" >>= FromJson.fromJson? (α := UInt64)
     | return false
-  let .ok version := json.getObjVal? "toolchain" >>= Json.getStr?
+  let .ok version := json.getObjVal? "version" >>= Json.getStr?
     | return false
   return version == Lean.versionString && cacheHash == hash
 
