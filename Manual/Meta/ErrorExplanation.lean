@@ -21,52 +21,62 @@ set_option guard_msgs.diff true
 
 namespace Manual
 
-def throwIfNonzeroExit (out : IO.Process.Output) (cmd : String) : IO Unit := do
-  if out.exitCode != 0 then
-    throw <| IO.userError <|
-      s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
-      s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+/--
+The directory in which MWE JSON files are written in the preprocessing step.
+-/
+private def exampleJSONDirectory : System.FilePath :=
+  "error_explanation_examples"
 
-def processMWEPreprocessed (name : Name) (contents : String) : MetaM (Highlighted × Array (MessageSeverity × String)) := do
-  let outputDir : System.FilePath := "error_explanation_examples"
+/-- Loads the JSON data file for the preprocessed MWE code block `name`. -/
+def loadPreprocessedMWE (name : Name) (contents : String)
+    : MetaM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName : String := name.toString ++ ".json"
-  let path := outputDir / fileName
+  let path := exampleJSONDirectory / fileName
   unless (← System.FilePath.pathExists path) do
     throwError m!"Did not find expected preprocessed code block file `{path}`. \
       Run `lake build error_explanations`."
   let fileContents ← IO.FS.readFile path
   let json ← ofExcept <| Json.parse fileContents
-  let hls ← ofExcept <|
-    json.getObjVal? "highlighted" >>= FromJson.fromJson? (α := Highlighted)
-  let messages ← ofExcept <|
-    json.getObjVal? "messages" >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
-  let fileHash ← ofExcept <|
-    json.getObjVal? "hash" >>= FromJson.fromJson? (α := UInt64)
+  let hls ← ofExcept <| json.getObjVal? "highlighted"
+    >>= FromJson.fromJson? (α := Highlighted)
+  let messages ← ofExcept <| json.getObjVal? "messages"
+    >>= FromJson.fromJson? (α := Array (MessageSeverity × String))
+  let fileHash ← ofExcept <| json.getObjVal? "hash"
+    >>= FromJson.fromJson? (α := UInt64)
   let fileVersion ← ofExcept <| json.getObjVal? "version" >>= Json.getStr?
   unless fileHash == hash contents && fileVersion == Lean.versionString do
-    throwError m!"Preprocessed code block file `{path}` is out of date. \
+    throwError m!"Preprocessed code block data file `{path}` is out of date. \
       Run `lake build error_explanations`."
   return (hls, messages)
 
-def leanMWE : CodeBlockExpander
+/--
+A modified version of `Verso.Genre.Manual.InlineLean.lean` for rendering an MWE
+in an error explanation.
+-/
+def explanationMWE : CodeBlockExpander
   | args, str => Manual.withoutAsync <| do
     let config ← LeanBlockConfig.parse.run args
 
     let some name := config.name
-      | throwError "Lean MWE is missing a name"
-    let (hls, msgs) ← processMWEPreprocessed name str.getString
-    if let some name := config.name then
-      saveOutputs name msgs.toList
+      | throwError "Explanation MWE is missing a name"
+    let (hls, msgs) ← loadPreprocessedMWE name str.getString
+    saveOutputs name msgs.toList
 
     let range : Option Lsp.Range := none
-    pure #[← ``(Block.other (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range)) #[Block.code $(quote str.getString)])]
+    pure #[← ``(Block.other
+      (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range))
+      #[Block.code $str])]
 
-def Block.errorExample (titles : Array String) : Block where
-  name := `Manual.Block.errorExample
+/--
+A tabbed container for MWEs in an error explanation example. Must satisfy the
+invariant that `titles.size` is equal to the number of children of this block.
+-/
+def Block.tabbedMWEs (titles : Array String) : Block where
+  name := `Manual.Block.tabbedMWEs
   data := toJson titles
 
-@[block_extension Block.errorExample]
-def Block.errorExample.descr : BlockDescr where
+@[block_extension Block.tabbedMWEs]
+def Block.tabbedMWEs.descr : BlockDescr where
   traverse id data _blocks := do
     let name :=
       match FromJson.fromJson? (α := Option String) data with
@@ -184,6 +194,11 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
     }}
 
+/--
+Given the name of the explanation in which it occurs and its index among all
+code blocks therein, generates a name for a code block in an error explanation.
+This is used for output tracking and to locate its corresponding JSON file.
+-/
 private def mkExampleName (errorName : Name) (idx : Nat) : Name :=
   errorName ++ s!"block{idx}".toName
 
@@ -217,7 +232,8 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
           let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
           -- Log rather than throw so we can detect all invalid outputs in a
           -- single build
-          logErrorAt ref m!"Invalid output for {(← read).name} code block #{codeBlockIdx}{kindStr}: {msg}"
+          logErrorAt ref m!"Invalid output for {(← read).name} code block \
+            #{codeBlockIdx}{kindStr}: {msg}"
           pure #[← ``(Verso.Doc.Block.code "<invalid output>")]
         | e@(.internal ..) => throw e
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
@@ -232,7 +248,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
           `(arg_val|false)
         args := args.push (← `(argument| error := $errorVal))
       let parsedArgs ← parseArgs args
-      let blocks ← withFreshMacroScope <| leanMWE parsedArgs (quote str)
+      let blocks ← withFreshMacroScope <| explanationMWE parsedArgs (quote str)
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
       return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
   -- If this isn't labeled as an MWE, fall back on a basic code block
@@ -328,12 +344,12 @@ private def infoOfCodeBlock : MD4Lean.Block → Except String ErrorExplanation.C
   | .code info _ _ _ => do
     let txt ← attr' info
     ErrorExplanation.CodeInfo.parse txt
-  | el => .error s!"block element is not a code block but instead:\n{repr el}"
+  | el => .error s!"Cannot get code block info from non-code block element:\n{repr el}"
 
 private def blockHasExplanationCodeInfo
     (b : MD4Lean.Block) (expLang : String)
     (expKind? : Option ErrorExplanation.CodeInfo.Kind := none)
-  : DocElabM Bool := do
+    : DocElabM Bool := do
   let { kind?, lang, .. } ← match infoOfCodeBlock b with
   | .ok x => pure x
   | .error _ => return false
@@ -346,15 +362,15 @@ private def blockHasExplanationCodeInfo
 
 private def expectExplanationCodeInfo
     (b : MD4Lean.Block) (expLang : String) (expKind : ErrorExplanation.CodeInfo.Kind)
-  : DocElabM Unit := do
+    : DocElabM Unit := do
   let { kind?, lang, .. } ← match infoOfCodeBlock b with
     | .ok x => pure x
     | .error e => throwError  e
   unless lang == expLang do
-    throwError "Expected a code block with language '{expLang}', but found '{lang}'"
+    throwError "Expected a code block with language `{expLang}`, but found `{lang}`"
   unless kind? == some expKind do
     let str := kind?.map toString |>.getD "unspecified"
-    throwError "Expected a code block of kind '{expKind}', but found '{str}'"
+    throwError "Expected a code block of kind `{expKind}`, but found `{str}`"
 
 private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
   if _ : txt.size = 1 then
@@ -375,16 +391,17 @@ private def makeExample (contents : ExampleContents) : DocElabM Term := do
         s!"Fixed {i}"
     title?.getD fallback
   let codeBlocks := codeBlocks.map Prod.fst
-  let codeExample ← ``(Block.other (Block.errorExample $(quote titles)) #[$codeBlocks,*])
+  let codeExample ←
+    ``(Block.other (Block.tabbedMWEs $(quote titles)) #[$codeBlocks,*])
   ``(Block.other (Block.example none (opened := true))
-            #[Block.para #[$title,*], $codeExample, $descrBlocks,*])
+      #[Block.para #[$title,*], $codeExample, $descrBlocks,*])
 
-def titleOfCodeBlock? (b : MD4Lean.Block) : Option String := do
+private def titleOfCodeBlock? (b : MD4Lean.Block) : Option String := do
   let info ← infoOfCodeBlock b |>.toOption
   info.title?
 
 def closeExplanationPart : PartElabM Unit := do
-  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then -- TODO: source position!
+  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then -- TODO: source position
     modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
   else
     throwError m!"Failed to close the last-opened explanation part"
@@ -492,39 +509,7 @@ def addExplanationBlocks : ExplanElabM Unit := do
   addNonExampleBlocks
   addExampleBlocks
 
-def errorExplanationDomain := `Manual.errorExplanation
-
-def Inline.errorExplanation (errorName : Name) (summary : String) : Inline where
-  name := `Manual.Inline.errorExplanation
-  data := toJson #[errorName.toString, summary]
-
-@[inline_extension Inline.errorExplanation]
-def Inline.errorExplanation.descr : InlineDescr where
-  init st := st
-    |>.setDomainTitle errorExplanationDomain "Error Explanations"
-    |>.setDomainDescription errorExplanationDomain "Explanations of error messages and warnings produced during compilation"
-
-  traverse id info _ := do
-    let .ok #[errorName, summary] := FromJson.fromJson? (α := Array String) info
-      | logError s!"Invalid JSON for error explanation:\n{info}"; pure none
-    modify fun s =>
-      s |>.saveDomainObject errorExplanationDomain errorName id
-        |>.saveDomainObjectData errorExplanationDomain errorName (json%{"summary": $summary})
-    let path ← (·.path) <$> read
-    discard <| Verso.Genre.Manual.externalTag id path errorName
-    pure none
-
-  toTeX := none
-  toHtml := some fun go id _info contents =>
-    open Verso.Doc.Html in
-    open Verso.Output Html in do
-    let xref ← HtmlT.state
-    let idAttr := xref.htmlId id
-    return {{
-      <span {{idAttr}}>
-        {{← contents.mapM go}}
-      </span>
-    }}
+deriving instance Quote for ErrorExplanation.Metadata
 
 def Block.errorExplanationMetadata (metadata : ErrorExplanation.Metadata) : Block where
   name := `Manual.Block.errorExplanationMetadata
@@ -555,7 +540,7 @@ def Block.errorExplanationMetadata.descr : BlockDescr where
     let deprecatedWarning :=
       if metadata.removedVersion.isSome then
         {{ <div class="error-explanation-removed-warning">
-             <p><strong>"Note: "</strong> "This diagnostic is no longer produced by the compiler."</p>
+             <p><strong>"Note: "</strong> "This diagnostic is no longer produced."</p>
            </div> }}
       else
         .empty
@@ -576,11 +561,62 @@ def Block.errorExplanationMetadata.descr : BlockDescr where
       </div>
     }}
 
-deriving instance Quote for ErrorExplanation.Metadata
-
 def addExplanationMetadata (metadata : ErrorExplanation.Metadata) : PartElabM Unit := do
   PartElabM.addBlock (← ``(Block.other (Block.errorExplanationMetadata $(quote metadata)) #[]))
 
+def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
+  let explan? ← getErrorExplanation? name
+  match explan? with
+  | .none =>
+    throwError m!"Adding explanation blocks failed: Could not find explanation for {name}"
+  | some explan =>
+    try
+      let some ast := MD4Lean.parse explan.doc
+        | throwErrorAt (← getRef) "Failed to parse docstring as Markdown"
+      addExplanationMetadata explan.metadata
+      let (_, { levels, .. }) ← addExplanationBlocks.run name explan.metadata.severity ast.blocks
+      for _ in levels do
+        closeExplanationPart
+    catch
+      | .error ref msg => throw <| .error ref m!"Failed to process explanation for {name}: {msg}"
+      | e => throw e
+
+def errorExplanationDomain := `Manual.errorExplanation
+
+def Inline.errorExplanation (errorName : Name) (summary : String) : Inline where
+  name := `Manual.Inline.errorExplanation
+  data := toJson #[errorName.toString, summary]
+
+@[inline_extension Inline.errorExplanation]
+def Inline.errorExplanation.descr : InlineDescr where
+  init st := st
+    |>.setDomainTitle errorExplanationDomain "Error Explanations"
+    |>.setDomainDescription errorExplanationDomain
+        "Explanations of error messages and warnings produced during compilation"
+
+  traverse id info _ := do
+    let .ok #[errorName, summary] := FromJson.fromJson? (α := Array String) info
+      | logError s!"Invalid JSON for error explanation:\n{info}"; pure none
+    modify fun s =>
+      s |>.saveDomainObject errorExplanationDomain errorName id
+        |>.saveDomainObjectData errorExplanationDomain errorName (json%{"summary": $summary})
+    let path ← (·.path) <$> read
+    discard <| Verso.Genre.Manual.externalTag id path errorName
+    pure none
+
+  toTeX := none
+  toHtml := some fun go id _info contents =>
+    open Verso.Doc.Html in
+    open Verso.Output Html in do
+    let xref ← HtmlT.state
+    let idAttr := xref.htmlId id
+    return {{
+      <span {{idAttr}}>
+        {{← contents.mapM go}}
+      </span>
+    }}
+
+/-- Configuration for an `explanation` block. -/
 structure ExplanationConfig where
   name : Ident
 
@@ -593,24 +629,6 @@ def ExplanationConfig.parser : ArgParse m ExplanationConfig :=
       | other => throwError "Expected error name, got {repr other}"
   }
 
-def addExplanationBlocksFor (name : Name) (severity : MessageSeverity) : PartElabM Unit := do
-  let explan? ← getErrorExplanation? name
-  match explan? with
-  | .none =>
-    throwError m!"Adding explanation blocks failed: Could not find explanation for {name}"
-  | some explan =>
-    try
-      let some ast := MD4Lean.parse explan.doc
-        | throwErrorAt (← getRef) "Failed to parse docstring as Markdown"
-      addExplanationMetadata explan.metadata
-      -- TODO: do we need error handling after the fact?
-      let (_, { levels, .. }) ← addExplanationBlocks.run name severity ast.blocks
-      for _ in levels do
-        closeExplanationPart
-    catch
-      | .error ref msg => throw <| .error ref m!"Failed to process explanation for {name}: {msg}"
-      | e => throw e
-
 /--
 Renders a single error explanation for `name` via `{explanation name}`.
 -/
@@ -618,10 +636,7 @@ Renders a single error explanation for `name` via `{explanation name}`.
 def explanation : PartCommand
   | `(block|block_role{explanation $args*}) => do
     let config ← ExplanationConfig.parser.run (← parseArgs args)
-    let name := config.name.getId
-    let some explan := ← getErrorExplanation? name
-      | throwError m!"Invalid error explanation name `{name}`"
-    addExplanationBlocksFor name explan.metadata.severity
+    addExplanationBlocksFor config.name.getId
   | _ => Lean.Elab.throwUnsupportedSyntax
 
 open Verso Doc Elab ArgParse in
@@ -642,6 +657,6 @@ def make_explanations : PartCommand
         blocks := #[],
         priorParts := #[]
       }
-      addExplanationBlocksFor name explan.metadata.severity
+      addExplanationBlocksFor name
       closeExplanationPart
   | _ => throwUnsupportedSyntax
