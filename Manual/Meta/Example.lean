@@ -104,7 +104,7 @@ def example.descr : BlockDescr where
           | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
         let opened ←
           match FromJson.fromJson? data (α := Option String × Option Bool × Option Tag) with
-          | .error e => HtmlT.logError s!"Error deserializing table data: {e}"; pure false
+          | .error e => HtmlT.logError s!"Error deserializing example data: {e}"; pure false
           | .ok (_, opened?, _) => pure <| opened?.getD false
         let xref ← HtmlT.state
         let mut attrs := xref.htmlId id
