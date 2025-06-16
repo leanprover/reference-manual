@@ -37,10 +37,6 @@ open Manual (comment)
 tag := "grind"
 %%%
 
--- TODO: remove this code block once the warning is removed.
-```lean (show := false)
-set_option grind.warning false
-```
 -- Open some namespaces for the examples.
 ```lean (show := false)
 open Lean Lean.Grind Lean.Meta.Grind
@@ -469,7 +465,7 @@ axiom cos : R → R
 axiom trig_identity : ∀ x, (cos x)^2 + (sin x)^2 = 1
 ```
 
-Our first step is to tell grind to "put the trig identity on the blackboard" whenever it sees a goal involving `sin` or `cos`:
+Our first step is to tell grind to "put the trig identity on the whiteboard" whenever it sees a goal involving `sin` or `cos`:
 
 ```lean
 grind_pattern trig_identity => cos x
@@ -531,7 +527,7 @@ In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 
 In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
 This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
-the central "blackboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Grobner bases),
+the central "whiteboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Grobner bases),
 which can then return new facts to the blackboard.
 
 ## if-then-else normalization
