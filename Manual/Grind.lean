@@ -37,10 +37,6 @@ open Manual (comment)
 tag := "grind"
 %%%
 
--- TODO: remove this code block once the warning is removed.
-```lean (show := false)
-set_option grind.warning false
-```
 -- Open some namespaces for the examples.
 ```lean (show := false)
 open Lean Lean.Grind Lean.Meta.Grind
