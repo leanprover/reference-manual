@@ -185,7 +185,7 @@ example (b : B) : ⟨b.1, b.2⟩ = b := rfl
 error: type mismatch
   rfl
 has type
-  ?m.854 = ?m.854 : Prop
+  ?m.858 = ?m.858 : Prop
 but is expected to have type
   e1 = e2 : Prop
 -/
