@@ -140,12 +140,14 @@ def groupByImports (codeBlocks : Array (Name × String)) :
     IO (Array (Array (Name × String))) := do
   let (map : Std.HashMap (Array Import) _) ←
     codeBlocks.foldlM (init := {}) fun acc (name, block) => do
-      if (← hasUsableCache name.toString (hash block)) then pure ()
-      let inputCtx := Parser.mkInputContext block "<input>"
-      let (header, _, _) ← Parser.parseHeader inputCtx
-      let imports := Elab.headerToImports header
-      let acc := if acc.contains imports then acc else acc.insert imports #[]
-      pure <| acc.modify imports fun namedBlocks => namedBlocks.push (name, block)
+      if (← hasUsableCache name.toString (hash block)) then
+        pure acc
+      else
+        let inputCtx := Parser.mkInputContext block "Main.lean"
+        let (header, _, _) ← Parser.parseHeader inputCtx
+        let imports := Elab.headerToImports header
+        let acc := if acc.contains imports then acc else acc.insert imports #[]
+        pure <| acc.modify imports fun namedBlocks => namedBlocks.push (name, block)
   return map.toArray.map Prod.snd
 
 /-- The state of a Markdown traversal: are we inside or outside a code block? -/
@@ -197,7 +199,15 @@ target error_explanations : Array Name := do
     let groups ← groupByImports allBlocks
     for group in groups do
       processImportGroup group exe errorExplanationExOutDir
-    return allBlocks.map (·.1)
+    -- If we changed the cached files, we need to be sure that they get reloaded
+    -- on the next manual build
+    if groups.size > 0 then
+      let ws ← getWorkspace
+      -- TODO: error messages
+      let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
+        error "Could not find module `Manual.ErrorExplanations"
+      IO.FS.removeFile mod.oleanFile
+    return groups.flatten.map (·.1)
 
 end ExplanationPreprocessing
 
