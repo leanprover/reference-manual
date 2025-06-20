@@ -88,7 +88,7 @@ def countdown' (n : Nat) : List Nat :=
 ```
 
 Here, Lean's automation automatically constructs a termination proof from facts about propositional equality and subtraction.
-It uses well-founded recursion rather than structure recursion behind the scenes.
+It uses well-founded recursion rather than structural recursion behind the scenes.
 :::
 ```lean (show := false)
 end
