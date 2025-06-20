@@ -155,8 +155,7 @@ def lakeOpt.descr : InlineDescr where
 
       if let some obj := (← read).traverseState.getDomainObject? lakeOptDomain name then
         for id in obj.ids do
-          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-            let url := path.link (some slug.toString)
-            return {{<code class="lake-opt"><a href={{url}} class="lake-command">{{name}}</a>{{original.drop name.length}}</code>}}
+          if let some dest := (← read).traverseState.externalTags[id]? then
+            return {{<code class="lake-opt"><a href={{dest.link}} class="lake-command">{{name}}</a>{{original.drop name.length}}</code>}}
 
       pure {{<code class="lake-opt">{{original}}</code>}}

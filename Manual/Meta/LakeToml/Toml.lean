@@ -13,7 +13,7 @@ import Lake.Toml.Decode
 import Lake.Load.Toml
 
 open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets Multi
 open SubVerso.Highlighting Highlighted
 
 
@@ -354,14 +354,14 @@ def Inline.toml (highlighted : Toml.Highlighted) : Inline where
 
 open Verso.Output Html in
 def htmlLink (state : TraverseState) (id : InternalId) (html : Html) : Html :=
-  if let some (path, htmlId) := state.externalTags[id]? then
-    {{<a href={{path.link htmlId.toString}}>{{html}}</a>}}
+  if let some dest := state.externalTags[id]? then
+    {{<a href={{dest.link}}>{{html}}</a>}}
   else html
 
 open Verso.Output Html in
 def htmlDest (state : TraverseState) (id : InternalId) : Option String :=
-  if let some (path, htmlId) := state.externalTags[id]? then
-    some <| path.link htmlId.toString
+  if let some dest := state.externalTags[id]? then
+    some <| dest.link
   else none
 
 -- TODO upstream
@@ -374,13 +374,13 @@ defmethod Object.getId (obj : Object) : Option InternalId := do
 
 def Toml.fieldLink (xref : Genre.Manual.TraverseState) (inTable fieldName : Name) : Option String := do
   let obj ← xref.getDomainObject? tomlFieldDomain s!"{inTable} {fieldName}"
-  let (path, htmlId) ← xref.externalTags[← obj.getId]?
-  return path.link htmlId.toString
+  let dest← xref.externalTags[← obj.getId]?
+  return dest.link
 
 def Toml.tableLink (xref : Genre.Manual.TraverseState) (table : Name) : Option String := do
   let obj ← xref.getDomainObject? tomlTableDomain table.toString
-  let (path, htmlId) ← xref.externalTags[← obj.getId]?
-  return path.link htmlId.toString
+  let dest ← xref.externalTags[← obj.getId]?
+  return dest.link
 
 open Lean.Parser in
 def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do

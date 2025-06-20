@@ -30,7 +30,7 @@ If the strings don't match, then a diff is displayed as an error, and a code act
 expected string with the actual one is offered. Strings are compared one line at a time, and only
 strings that match `useLine` are considered (by default, all are considered). Lines are compared
 modulo `preEq`. The parameter `what` is used in the error message header, in a context "Mismatched
-`what` output:".
+`what`:".
 
 Errors are logged, not thrown; the returned `Bool` indicates whether an error was logged.
 -/
@@ -42,7 +42,7 @@ def expectString (what : String) (expected : StrLit) (actual : String)
 
   unless expectedLines.map preEq == actualLines.map preEq do
     let diff := Diff.diff expectedLines actualLines
-    logErrorAt expected m!"Mismatched {what} output:\n{Diff.linesToString diff}"
+    logErrorAt expected m!"Mismatched {what}:\n{Diff.linesToString diff}"
     Suggestion.saveSuggestion expected (abbreviateString actual) actual
     return false
 

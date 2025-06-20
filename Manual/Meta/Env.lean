@@ -87,14 +87,14 @@ r#"
 
       if let some dest := (← read).traverseState.getDomainObject? envVarDomain var then
         for id in dest.ids do
-          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
+          if let some dest := (← read).traverseState.externalTags[id]? then
             if isDef then
               -- TODO find an inline permalink widget that doesn't mess up text flow
               return {{
-                  <code class="env-var" id={{slug.toString}}>s!"{var}"</code>
+                  <code class="env-var" id={{dest.htmlId.toString}}>s!"{var}"</code>
               }}
             else
-              let url := path.link (some slug.toString)
+              let url := dest.link
               return {{<code class="env-var"><a href={{url}}>s!"{var}"</a></code>}}
 
       return {{<code class="env-var">s!"{var}"</code>}}
