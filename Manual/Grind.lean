@@ -46,7 +46,7 @@ open Lean Lean.Grind Lean.Meta.Grind
 
 * **Availability** – {tactic}`grind` ships with Lean 4 (no extra installation) and is usable in any Lean file—just write `by grind`. No extra `import` is required beyond what your own definitions already need.
 
-* **Library support** – Lean’s standard library is already annotated with `[grind]` attributes, so common lemmas are discovered automatically. Mathlib will be annotated gradually, starting with its most frequently used theories.
+* **Library support** – Lean’s standard library is already annotated with `@[grind]` attributes, so common lemmas are discovered automatically. Mathlib will be annotated gradually, starting with its most frequently used theories.
 
 * **First proof**
 
@@ -68,7 +68,7 @@ This succeeds instantly using congruence closure.
           a^2 + b^2 + c^2 = 5 →
           a^3 + b^3 + c^3 = 7 →
           a^4 + b^4 = 9 - c^4 := by
-      grind +ring
+      grind
     ```
 
   * *Finite‑field style reasoning* (works in {lean}`Fin 11`):
@@ -76,7 +76,7 @@ This succeeds instantly using congruence closure.
     ```lean
     example (x y : Fin 11) :
         x^2*y = 1 → x*y^2 = y → y*x = 1 := by
-      grind +ring
+      grind
     ```
 
   * *Linear integer arithmetic with case analysis*:
@@ -131,14 +131,14 @@ This makes congruence closure especially robust in the presence of symmetrical r
 example {α} (f g : α → α) (x y : α)
     (h₁ : x = y) (h₂ : f y = g y) :
     f x = g x := by
-  -- After h₁, x and y share a class,
-  -- h₂ adds f y = g y, and
-  -- closure bridges to f x = g x
+  -- After `h₁`, `x` and `y` share a class,
+  -- `h₂` adds `f y = g y`, and
+  -- closure bridges to `f x = g x`
   grind
 
 example (a b c : Nat) (h : a = b) : (a, c) = (b, c) := by
   -- Pair constructor obeys congruence,
-  -- so once a = b the tuples are equal
+  -- so once `a = b` the tuples are equal
   grind
 ```
 
@@ -272,7 +272,7 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 1. **Structural flags** — quick booleans that enable whole syntactic classes:
 
    * `splitIte` (default **true**) → split every `if … then … else …` term.
-   * `splitMatch` (default **true**)→ split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
+   * `splitMatch` (default **true**) → split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
    * `splitImp` (default **false**) → when {lean}`true` splits on any hypothesis `A → B` whose antecedent `A` is **propositional**.  Arithmetic antecedents are special‑cased: if `A` is an arithmetic literal (`≤`, `=`, `¬`, `Dvd`, …) {tactic}`grind` will split **even when `splitImp := false`** so the integer solver can propagate facts.
 
 👉 Shorthand toggles: `by grind -splitIte +splitImp` expands to `by grind (splitIte := false) (splitImp := true)`.
@@ -421,11 +421,93 @@ instantiate `Rtrans` only when both `R x y` and `R y z` are available in the con
 In the example, `grind` applies `Rtrans` to derive `R a c` from `R a b` and `R b c`,
 and can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d`.
 
+Instead of using `grind_pattern` to explicitly specify a pattern,
+you can use the `@[grind]` attribute or one of its variants, which will use a heuristic to generate a (multi-)pattern.
+The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpfully for debugging!
+
+* `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).
+  In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable (i.e. has a constant as its head) subexpression which "covers" (i.e. fixes the value of) an argument which was not previously covered, it will add that subexpression as a pattern, until all arguments have been covered. This rule is described in more detail below.
+* `@[grind ←]` will select a multi-pattern from the conclusion of theorem (i.e. it will use the theorem for backwards reasoning).
+  This may fail if not all the arguments to the theorem appear in the conclusion.
+* `@[grind]` will traverse the conclusion and then the hypotheses left-to-right, adding patterns as they increase the coverage, stopping when all arguments are covered.
+* `@[grind =]` checks that the conclusion of the theorem is an equality, and then uses the left-hand-side of the equality as a pattern.
+  This may fail if not all of the arguments appear in the left-hand-side.
+* `@[grind =_]` is like `@[grind =]`, but using the right-hand-side of the equality.
+* `@[grind _=_]` acts like a macro which expands to `@[grind =, grind =_]` (i.e. it will add *two* multipatterns, allowing the equality theorem to trigger in either direction).
+
+Although it is tempting to just use `@[grind]` by default, we recommend that when one of the other forms achieves the desired effect, you use those.
+In every case, it is worthwhile to verify the chosen pattern using `@[grind?]` (which accepts all of these modifiers).
+
+There are also three less commonly used modifiers:
+
+* `@[grind =>]` traverses all the hypotheses left-to-right and then the conclusion.
+* `@[grind <=]` traverses the conclusion and then all hypotheses right-to-left.
+* `@[grind ←=]` is unlike the others, and it used specifically for backwards reasoning on equality. As an example, suppose we have a theorem
+```lean (keep := false)
+theorem inv_eq [One α] [Mul α] [Inv α] {a b : α} (w : a * b = 1) : a⁻¹ = b := sorry
+```
+  Adding `@[grind ←=]` will cause this theorem to be instantiated whenever we are trying to prove `a⁻¹ = b`, i.e. whenever we have the disequality `a⁻¹ ≠ b` (recall `grind` proves goals by contradiction).
+  Without special support via `←=` this instantiation would be not possible as `grind` does not consider the `=` symbol while generating patterns.
 
 
+The rule for selecting patterns from subexpressions of the hypotheses and conclusion as described above is subtle, so we'll give some examples.
+
+```lean
+axiom p : Nat → Nat
+axiom q : Nat → Nat
+
+/-- info: h₁: [q #1] -/
+#guard_msgs (info) in
+@[grind? →] theorem h₁ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+```
+
+First, to understand the output we need to recall that the `#n` appearing in patterns are arguments of the theorem, numbered as de-Bruijn variables, i.e. in reverse order (so `#0` would be `w : p (q x) = 7`, while `#1` is the implicit argument `x`).
+
+Why was `q #1` selected when we use `@[grind →]`? The attribute `@[grind →]` instructed grind to find patterns by traversing the hypotheses from left-to-right.
+In this case, there's only the one hypothesis `p (q x) = 7`. The heuristic described above says that `grind` will search for a minimal indexable subexprsesion which covers a previously uncovered argument.
+There's just one uncovered argument, `x`, so we're looking for a minimal expression containing that.
+We can't take the whole `p (q x) = 7` because `grind` will not index on equality. The left-hand-side `7` is not helpful, because it doesn't determine the value of `x`.
+We don't take `p (q x)` because it is not minimal: it has `q x` inside of it, which is indexable (its head is the constant `q`),
+and it determines the value of `x`. The expression `q x` itself is minimal, because `x` is not indexable.
+
+Let's see some more examples:
+```lean
+/-- info: h₂: [p (#1 + 1)] -/
+#guard_msgs (info) in
+@[grind? ←] theorem h₂ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+
+/--
+info: h₃: [p (#1 + 1)]
+---
+info: h₃: [q #1]
+-/
+#guard_msgs (info) in
+@[grind? _=_] theorem h₃ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+
+/-- info: h₄: [p (#2 + 2), q #1] -/
+#guard_msgs (info) in
+@[grind?] theorem h₄ (w : p x = q y) : p (x + 2) = 7 := sorry
+
+/--
+error: `@[grind ←] theorem h₅` failed to
+find patterns in the theorem's conclusion,
+consider using different options or the `grind_pattern` command
+-/
+#guard_msgs (error) in
+@[grind? ←] theorem h₅ (w : p x = q y) : p (x + 2) = 7 := sorry
+
+/-- info: h₆: [q (#3 + 2), p (#2 + 2)] -/
+#guard_msgs (info) in
+@[grind? =>] theorem h₆ (_ : q (y + 2) = q y) (_ : q (y + 1) = q y) : p (x + 2) = 7 := sorry
+```
+
+If you're planning to do substantial annotation work, you should study these examples are verify that the follow the rules described above.
 
 TBD
-Pattern annotations (`[grind =]`, `[grind →]`, …), anti‑patterns, local vs global attributes, debugging with the attribute `[grind?]`. Flags: `ematch`, `instances`, `matchEqs`.
+* anti‑patterns
+* local vs global attributes
+* Flags: `ematch`, `instances`, `matchEqs`.
+* `gen` modifier?
 
 # Linear Integer Arithmetic Solver
 TBD
