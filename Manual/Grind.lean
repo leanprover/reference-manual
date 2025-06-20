@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: David Thrane Christiansen
+Author: Leo de Moura, Kim Morrison
 -/
 
 import VersoManual
@@ -37,8 +37,8 @@ open Manual (comment)
 tag := "grind"
 %%%
 
--- Open some namespaces for the examples.
 ```lean (show := false)
+-- Open some namespaces for the examples.
 open Lean Lean.Grind Lean.Meta.Grind
 ```
 
@@ -229,7 +229,9 @@ Other frequently‑triggered propagators follow the same pattern:
   * Generates η‑expansion `a = ⟨a.1, …⟩`
 :::
 
--- TODO (@kim-em): we don't add the `{lean}` literal type to `propagateEtaStruct` above because it is private.
+::comment
+TODO (@kim-em): we don't add the `{lean}` literal type to `propagateEtaStruct` above because it is private.
+::comment
 
 Many specialised variants for {lean}`Bool` mirror these rules exactly (e.g. {lean}`propagateBoolAndUp`).
 
@@ -277,8 +279,10 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 2. **Global limit** — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
 3. **Manual annotations** — you may mark *any* inductive predicate or structure with
 
--- Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
--- TODO: replace this with a checkable example.
+::comment
+Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
+TODO: replace this with a checkable example.
+::
 ```
 attribute [grind cases] Even Sorted
 ```
@@ -854,10 +858,8 @@ theorem normalize_spec
           e.eval fun w => assign[w]?.getD (f w))
       ∧ ∀ (v : Nat),
           v ∈ vars (normalize assign e) → ¬ v ∈ assign := by
-  fun_induction normalize with grind (gen := 6) (splits := 9)
+  fun_induction normalize with grind
 ```
-
-FIXME (@kim-em): increase the `gen` default to at least 8.
 
 The fact that the {tactic}`fun_induction` plus {tactic}`grind` combination just works here is sort of astonishing.
 We're really excited about this, and we're hoping to see a lot more proofs in this style!
@@ -875,7 +877,7 @@ example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
           e.eval fun w => assign[w]?.getD (f w))
       ∧ ∀ (v : Nat), v ∈ vars (normalize assign e) →
           assign.contains v = false := by
-  fun_induction normalize with grind (gen := 7) (splits := 9)
+  fun_induction normalize with grind
 
 example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
     (normalize assign e).normalized
@@ -883,7 +885,7 @@ example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
           e.eval fun w => assign[w]?.getD (f w))
       ∧ ∀ (v : Nat),
           v ∈ vars (normalize assign e) → assign[v]? = none := by
-  fun_induction normalize with grind (gen := 8) (splits := 9)
+  fun_induction normalize with grind
 ```
 
 In fact, it's also of no consequence to `grind` whether we use a
@@ -918,7 +920,7 @@ theorem normalize_spec
           e.eval fun w => assign[w]?.getD (f w))
       ∧ ∀ (v : Nat),
           v ∈ vars (normalize assign e) → ¬ v ∈ assign := by
-  fun_induction normalize with grind (gen := 7) (splits := 9)
+  fun_induction normalize with grind
 ```
 
 If you'd like to play around with this code,
@@ -1108,10 +1110,6 @@ We'll aspire to never writing a proof by hand, and the first step of that is to 
 so we can omit these fields whenever `grind` can prove them.
 While we're modifying the definition of `IndexMap` itself, lets make all the fields private, since we're planning on having complete encapsulation.
 
-:::comment
-FIXME @david-christiansen:
-Why is there no long line warning on `private WF` here?
-:::
 ```lean
 structure IndexMap
     (α : Type u) (β : Type v) [BEq α] [Hashable α] where
@@ -1120,7 +1118,7 @@ structure IndexMap
   private values : Array β
   private size_keys : keys.size = values.size := by grind
   private WF : ∀ (i : Nat) (a : α),
-    keys[i]? = some a ↔ indices[a]? = some i := by grind (splits := 10) (gen := 10)
+    keys[i]? = some a ↔ indices[a]? = some i := by grind
 ```
 
 
@@ -1422,7 +1420,9 @@ Let's look at the model produced by `cutsat` and see if we can see what's going 
   [assign] (indices m_1)[(keys m_1)[i_2]] := 1
   [assign] (indices m_1)[(keys m_1)[i_2]] := 1
 ```
+::comment
 FIXME (@kim-em / @leodemoura): there is some repeated output here.
+::comment
 
 This model consists of an `IndexMap` of size `3`,
 with keys `a_1`, `a_2` and the otherwise unnamed `(keys m_1).back ⋯`.

@@ -350,10 +350,10 @@ Executables have a single `exe` facet that consists of the executable binary.
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`module.allImports, `module.bc, `module.bc.o, `module.c, `module.c.o, `module.c.o.export, `module.c.o.noexport,
-  `module.deps, `module.dynlib, `module.header, `module.ilean, `module.imports, `module.leanArts, `module.o,
-  `module.o.export, `module.o.noexport, `module.olean, `module.olean.private, `module.olean.server,
-  `module.precompileImports, `module.setup, `module.src, `module.transImports]
+info: #[`module.bc, `module.bc.o, `module.c, `module.c.o, `module.c.o.export, `module.c.o.noexport, `module.deps,
+  `module.dynlib, `module.header, `module.ilean, `module.imports, `module.input, `module.lean, `module.leanArts,
+  `module.o, `module.o.export, `module.o.noexport, `module.olean, `module.olean.private, `module.olean.server,
+  `module.precompileImports, `module.setup, `module.transImports]
 -/
 #guard_msgs in
 #eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
