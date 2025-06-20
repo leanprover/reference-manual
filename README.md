@@ -13,6 +13,19 @@ For developers:
  * The output of building the current state of the `nightly-testing` branch can be read [here](https://lean-reference-manual-review.netlify.app/).
  * Each pull request in this repository causes two separate previews to be generated, one with extra information that's only useful to those actively working on the text, such as TODO notes and symbol coverage progress bars. These are posted by a bot to the PR after the first successful build.
 
+## Branches and Development
+
+The two most important branches are:
+ * `main` tracks the latest Lean release or release candidate
+ * `nightly-testing` tracks the latest Lean nightlies
+
+New content that addresses in-development features of Lean will be
+written on `nightly-testing`, while updates to existing content may be
+written either on `main` or `nightly-testing`, as appropriate. From
+time to time, `main` will be merged into `nightly-testing`; when Lean
+is released, the commits in `nightly-testing` are rebased onto `main`
+to achieve a clean history.
+
 ## Building the Reference Manual Locally
 
 This reference manual contains figures that are built from LaTeX sources. To build them, you'll need the following:
