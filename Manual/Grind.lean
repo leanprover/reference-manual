@@ -532,16 +532,13 @@ which can then return new facts to the blackboard.
 
 ## if-then-else normalization
 
-FIXME (@kim-em / @leodemoura): The language in this section is chatty, because it started life as a blog post. Should I rewrite?
-
-FIXME (@david-christiansen): I can't use `leanSection` with section titles inside?
--- ::::: leanSection
-
 ```lean (show := false)
 open Std
 ```
 
+:comment
 FIXME (@david-christiansen): I'd like to be able to write ``{attr}`@[grind]` ``.
+:
 
 This example is a showcase for the "out of the box" power of {tactic}`grind`.
 Later examples will explore adding `@[grind]` annotations as part of the development process, to make {tactic}`grind` more effective in a new domain.
@@ -572,7 +569,9 @@ Here is Rustan Leino's original description of the problem, as [posted by Leo](h
 
 ### The formal statement
 
+:comment
 FIXME: @david-christiansen: can I give `IfExpr` a hover/linkify even though it is a forward reference? Similarly `eval` below?
+:
 
 To formalize the statement in Lean, we use an inductive type `IfExpr`:
 
@@ -679,22 +678,27 @@ end IfExpr
 
 Using these we can state the problem. The challenge is to inhabit the following type (and to do so nicely!):
 
+:comment
 FIXME (@david-christiansen): No long line warning here?
+:comment
 ```lean
 namespace IfExpr
 
-def IfNormalization : Type := { Z : IfExpr → IfExpr // ∀ e, (Z e).normalized ∧ (Z e).eval = e.eval }
+def IfNormalization : Type :=
+  { Z : IfExpr → IfExpr // ∀ e, (Z e).normalized ∧ (Z e).eval = e.eval }
 ```
 
 ### Other solutions
 
 At this point, it's worth pausing and doing at least one of the following:
 
+::comment
+TODO (@david-christiansen): We include a link here to live-lean and an externally hosted blob of code. There's no way to keep this in sync. :-(
+::
+
 * Try to prove this yourself! It's quite challenging for a beginner!
   You can [have a go](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fgist.githubusercontent.com%2Fkim-em%2Ff416b31fe29de8a3f1b2b3a84e0f1793%2Fraw%2F75ca61230b50c126f8658bacd933ecf7bfcaa4b8%2Fgrind_ite.lean)
   in the Live Lean editor without any installation.
-
-  FIXME (@kim-em / @david-christiansen): work out how to make this a more durable link / update the code!
 * Read Chris Hughes's [solution](https://github.com/leanprover-community/mathlib4/blob/master/Archive/Examples/IfNormalization/Result.lean),
   which is included in the Mathlib Archive.
   This solution makes good use of Aesop, but is not ideal because
@@ -712,7 +716,9 @@ and then, whenever performing a branch on a variable, adding a new assignment in
 It also needs to flatten nested if-then-else expressions which have another if-then-else in the "condition" position.
 (This is extracted from Chris Hughes's solution, but without the subtyping.)
 
+::comment
 FIXME: @david-christiansen: the long line linter complains in the next code block, but I can't wrap the options.
+::comment
 
 ```lean (error := true) (name := failed_to_show_termination) (keep := false)
 def normalize (assign : Std.HashMap Nat Bool) :
@@ -883,8 +889,6 @@ example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
 In fact, it's also of no consequence to `grind` whether we use a
 {name}`HashMap` or a {name}`TreeMap` to store the assignments,
 we can simply switch that implementation detail out, without having to touch the proofs:
-
-FIXME: @david-christiansen: I want to "roll-back" the Lean state to what it was before we gave the first definition of `normalize`.
 
 ```lean (error := true)
 def normalize (assign : Std.TreeMap Nat Bool) :
@@ -1115,7 +1119,8 @@ structure IndexMap
   private keys : Array α
   private values : Array β
   private size_keys : keys.size = values.size := by grind
-  private WF : ∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i := by grind (splits := 10) (gen := 10)
+  private WF : ∀ (i : Nat) (a : α),
+    keys[i]? = some a ↔ indices[a]? = some i := by grind (splits := 10) (gen := 10)
 ```
 
 
@@ -1254,7 +1259,7 @@ However this proof is going to work, we know the following:
   for which we need `[LawfulBEq α]` and `[LawfulHashable α]`.
 
 :::comment
-I'd like to ensure there's a link to the `LawfulGetElem` instance for `HashMap`, so we can see these requirements!
+TODO: I'd like to ensure there's a link to the `LawfulGetElem` instance for `HashMap`, so we can see these requirements!
 :::
 
 Let's configure things so that those are available:
@@ -1305,7 +1310,7 @@ The Lean standard library uses the `get_elem_tactic` tactic as an auto-parameter
 We'd like to not only have `grind` fill in these proofs, but even to be able to omit these proofs.
 To achieve this, we add the line
 ```lean (show := false)
--- This block is just here as a guard: once the global `get_elem_tactic` uses grind, this will fail,
+-- This block is just here as a guard: when/if the global `get_elem_tactic` uses grind, this will fail,
 -- prompting us to update the sentence about "later versions of Lean" below.
 example (m : HashMap Nat Nat) : (m.insert 1 2).size ≤ m.size + 1 := by
   fail_if_success get_elem_tactic
