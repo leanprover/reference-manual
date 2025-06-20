@@ -12,16 +12,232 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.20.0-rc3" =>
+#doc (Manual) "Lean 4.20.0 (2025-06-02)" =>
 %%%
 tag := "release-v4.20.0"
 file := "v4.20.0"
 %%%
 
 `````markdown
-(These are the preliminary release notes for `v4.20.0-rc3`.)
+For this release, 346 changes landed. In addition to the 108 feature additions and 85 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
 
-For this release, 339 changes landed. In addition to the 108 feature additions and 79 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
+## Highlights
+
+The Lean v4.20.0 release brings multiple new features, bug fixes, improvements to Lake, and groundwork for the module system.
+
+### Language Features
+
+* [#6432](https://github.com/leanprover/lean4/pull/6432) implements tactics called `extract_lets` and `lift_lets` that
+  manipulate `let`/`let_fun` expressions. The `extract_lets` tactic
+  creates new local declarations extracted from any `let` and `let_fun`
+  expressions in the main goal. For top-level lets in the target, it is
+  like the `intros` tactic, but in general it can extract lets from deeper
+  subexpressions as well. The `lift_lets` tactic moves `let` and `let_fun`
+  expressions as far out of an expression as possible, but it does not
+  extract any new local declarations. The option `extract_lets +lift`
+  combines these behaviors.
+
+* [#7806](https://github.com/leanprover/lean4/pull/7806) modifies the syntaxes of the `ext`, `intro` and `enter` conv
+  tactics to accept `_`. The introduced binder is an inaccessible name.
+
+* [#7830](https://github.com/leanprover/lean4/pull/7830) modifies the syntax of `induction`, `cases`, and other tactics
+  that use `Lean.Parser.Tactic.inductionAlts`. If a case omits `=> ...`
+  then it is assumed to be `=> ?_`. Example:
+  ```lean
+  example (p : Nat × Nat) : p.1 = p.1 := by
+    cases p with | _ p1 p2
+    /-
+    case mk
+    p1 p2 : Nat
+    ⊢ (p1, p2).fst = (p1, p2).fst
+    -/
+  ```
+  This works with multiple cases as well. Example:
+  ```lean
+  example (n : Nat) : n + 1 = 1 + n := by
+    induction n with | zero | succ n ih
+    /-
+    case zero
+    ⊢ 0 + 1 = 1 + 0
+
+    case succ
+    n : Nat
+    ih : n + 1 = 1 + n
+    ⊢ n + 1 + 1 = 1 + (n + 1)
+    -/
+  ```
+  The `induction n with | zero | succ n ih` is short for `induction n with
+  | zero | succ n ih => ?_`, which is short for `induction n with | zero
+  => ?_ | succ n ih => ?_`. Note that a consequence of parsing is that
+  only the last alternative can omit `=>`. Any `=>`-free alternatives
+  before an alternative with `=>` will be a part of that alternative.
+
+* [#7831](https://github.com/leanprover/lean4/pull/7831) adds extensibility to the `evalAndSuggest` procedure used to
+  implement `try?`. Users can now implement their own handlers for any
+  tactic.
+  ```lean
+  -- Install a `TryTactic` handler for `assumption`
+  @[try_tactic assumption]
+  def evalTryApply : TryTactic := fun tac => do
+    -- We just use the default implementation, but return a different tactic.
+    evalAssumption tac
+    `(tactic| (trace "worked"; assumption))
+
+  /-- info: Try this: · trace "worked"; assumption -/
+  #guard_msgs (info) in
+  example (h : False) : False := by
+    try? (max := 1) -- at most one solution
+
+  -- `try?` uses `evalAndSuggest` the attribute `[try_tactic]` is used to extend `evalAndSuggest`.
+  -- Let's define our own `try?` that uses `evalAndSuggest`
+  elab stx:"my_try?" : tactic => do
+    -- Things to try
+    let toTry ← `(tactic| attempt_all | assumption | apply True | rfl)
+    evalAndSuggest stx toTry
+
+  /--
+  info: Try these:
+  • · trace "worked"; assumption
+  • rfl
+  -/
+  #guard_msgs (info) in
+  example (a : Nat) (h : a = a) : a = a := by
+    my_try?
+  ```
+
+* [#8055](https://github.com/leanprover/lean4/pull/8055) adds an implementation of an async IO multiplexing framework as
+  well as an implementation of it for the `Timer` API in order to
+  demonstrate it.
+
+* [#8088](https://github.com/leanprover/lean4/pull/8088) adds the “unfolding” variant of the functional induction and
+  functional cases principles, under the name `foo.induct_unfolding` resp.
+  `foo.fun_cases_unfolding`. These theorems combine induction over the
+  structure of a recursive function with the unfolding of that function,
+  and should be more reliable, easier to use and more efficient than just
+  case-splitting and then rewriting with equational theorems.
+
+  For example instead of
+
+  ```
+  ackermann.induct
+    (motive : Nat → Nat → Prop)
+    (case1 : ∀ (m : Nat), motive 0 m)
+    (case2 : ∀ (n : Nat), motive n 1 → motive (Nat.succ n) 0)
+    (case3 : ∀ (n m : Nat), motive (n + 1) m → motive n (ackermann (n + 1) m) → motive (Nat.succ n) (Nat.succ m))
+    (x x : Nat) : motive x x
+  ```
+
+  one gets
+
+  ```
+  ackermann.fun_cases_unfolding
+    (motive : Nat → Nat → Nat → Prop)
+    (case1 : ∀ (m : Nat), motive 0 m (m + 1))
+    (case2 : ∀ (n : Nat), motive n.succ 0 (ackermann n 1))
+    (case3 : ∀ (n m : Nat), motive n.succ m.succ (ackermann n (ackermann (n + 1) m)))
+    (x✝ x✝¹ : Nat) : motive x✝ x✝¹ (ackermann x✝ x✝¹)
+  ```
+
+* [#8097](https://github.com/leanprover/lean4/pull/8097) adds support for inductive and coinductive predicates defined
+  using lattice theoretic structures on `Prop`. These are syntactically
+  defined using `greatest_fixpoint` or `least_fixpoint` termination
+  clauses for recursive `Prop`-valued functions. The functionality relies
+  on `partial_fixpoint` machinery and requires function definitions to be
+  monotone. For non-mutually recursive predicates, an appropriate
+  (co)induction proof principle (given by Park induction) is generated.
+
+### Library Highlights
+
+[#8004](https://github.com/leanprover/lean4/pull/8004) adds extensional hash maps and hash sets under the names
+  `Std.ExtDHashMap`, `Std.ExtHashMap` and `Std.ExtHashSet`. Extensional
+  hash maps work like regular hash maps, except that they have
+  extensionality lemmas which make them easier to use in proofs. This
+  however makes it also impossible to regularly iterate over its entries.
+
+Other notable library developments in this release include:
+- Updates to the `Option` API,
+- Async runtime developments: added support for multiplexing via UDP and TCP sockets, as well as channels,
+- New `BitVec` definitions related to overflow handling,
+- New lemmas for `Nat.lcm`, and `Int` variants for `Nat.gcd` and `Nat.lcm`,
+- Upstreams from Mathlib related to `Nat` and `Int`,
+- Additions to numeric types APIs, such as `UIntX.ofInt`, `Fin.ofNat'_mul` and `Fin.mul_ofNat'`, `Int.toNat_sub''`,
+- Updates to `Perm` API in `Array`, `List`, and added support for `Vector`,
+- Additional lemmas for `Array`/`List`/`Vector`.
+
+### Lake
+
+* [#7909](https://github.com/leanprover/lean4/pull/7909) adds Lake support for building modules given their source file
+  path. This is made use of in both the CLI and the server.
+
+### Breaking Changes
+
+* [#7474](https://github.com/leanprover/lean4/pull/7474) updates `rw?`, `show_term`, and other tactic-suggesting tactics
+  to suggest `expose_names` when necessary and validate tactics prior to
+  suggesting them, as `exact?` already did, and it also ensures all such
+  tactics produce hover info in the messages showing tactic suggestions.
+
+  This introduces a **breaking change** in the `TryThis` API: the `type?` parameter
+  of `addRewriteSuggestion` is now an `LOption`, not an `Option`, to obviate the need
+  for a hack we previously used to indicate that a rewrite closed the goal.
+
+* [#7789](https://github.com/leanprover/lean4/pull/7789) fixes `lean` potentially changing or interpreting arguments
+  after `--run`.
+
+  **Breaking change**: The Lean file to run must now be passed directly
+  after `--run`, which accidentally was not enforced before.
+
+* [#7813](https://github.com/leanprover/lean4/pull/7813) fixes an issue where `let n : Nat := sorry` in the Infoview
+  pretty prints as ``n : ℕ := sorry `«Foo:17:17»``. This was caused by
+  top-level expressions being pretty printed with the same rules as
+  Infoview hovers. Closes [#6715](https://github.com/leanprover/lean4/issues/6715). Refactors `Lean.Widget.ppExprTagged`; now
+  it takes a delaborator, and downstream users should configure their own
+  pretty printer option overrides if necessary if they used the `explicit`
+  argument (see `Lean.Widget.makePopup.ppExprForPopup` for an example).
+  **Breaking change:** `ppExprTagged` does not set `pp.proofs` on the root
+  expression.
+
+* [#7855](https://github.com/leanprover/lean4/pull/7855) moves `ReflBEq` to `Init.Core` and changes `LawfulBEq` to extend
+  `ReflBEq`.
+
+  **Breaking changes:**
+  - The `refl` field of `ReflBEq` has been renamed to `rfl` to match
+  `LawfulBEq`
+  - `LawfulBEq` extends `ReflBEq`, so in particular `LawfulBEq.rfl` is no
+  longer valid
+
+* [#7873](https://github.com/leanprover/lean4/pull/7873) fixes a number of bugs related to the handling of the source
+  search path in the language server, where deleting files could cause
+  several features to stop functioning and both untitled files and files
+  that don't exist on disc could have conflicting module names.
+
+  See the PR description for the details on changes in URI <-> module name conversion.
+
+  **Breaking changes:**
+  - `Server.documentUriFromModule` has been renamed to
+  `Server.documentUriFromModule?` and doesn't take a `SearchPath` argument
+  anymore, as the `SearchPath` is now computed from the `LEAN_SRC_PATH`
+  environment variable. It has also been moved from `Lean.Server.GoTo` to
+  `Lean.Server.Utils`.
+  - `Server.moduleFromDocumentUri` does not take a `SearchPath` argument
+  anymore and won't return an `Option` anymore. It has also been moved
+  from `Lean.Server.GoTo` to `Lean.Server.Utils`.
+  - The `System.SearchPath.searchModuleNameOfUri` function has been
+  removed. It is recommended to use `Server.moduleFromDocumentUri`
+  instead.
+  - The `initSrcSearchPath` function has been renamed to
+  `getSrcSearchPath` and has been moved from `Lean.Util.Paths` to
+  `Lean.Util.Path`. It also doesn't need to take a `pkgSearchPath`
+  argument anymore.
+
+* [#7967](https://github.com/leanprover/lean4/pull/7967) adds a `bootstrap` option to Lake which is used to identify the
+  core Lean package. This enables Lake to use the current stage's include
+  directory rather than the Lean toolchains when compiling Lean with Lean
+  in core.
+
+  **Breaking change:** The Lean library directory is no longer part of
+  `getLeanLinkSharedFlags`. FFI users should provide this option
+  separately when linking to Lean (e.g.. via `s!"-L{(←getLeanLibDir).toString}"`).
+  See the FFI example for a demonstration.
 
 ## Language
 
@@ -459,6 +675,16 @@ For this release, 339 changes landed. In addition to the 108 feature additions a
   to address the **exponential worst-case complexity** often associated
   with certificate construction.
 
+* [#8231](https://github.com/leanprover/lean4/pull/8231) changes the behaviour of `apply?` so that the `sorry` it uses to
+  close the goal is non-synthetic. (Recall that correct use of synthetic
+  sorries requires that the tactic also generates an error message, which
+  we don't want to do in this situation.) Either this PR or #8230 are
+  sufficient to defend against the problem reported in #8212.
+
+* [#8254](https://github.com/leanprover/lean4/pull/8254) fixes unintended inlining of `ToJson`, `FromJson`, and `Repr`
+  instances, which was causing exponential compilation times in `deriving`
+  clauses for large structures.
+
 ## Library
 
 * [#6081](https://github.com/leanprover/lean4/pull/6081) adds an `inheritEnv` field to `IO.Process.SpawnArgs`. If
@@ -777,6 +1003,9 @@ For this release, 339 changes landed. In addition to the 108 feature additions a
   erasure (erase_irrelevant assumes that any non-atomic argument is
   irrelevant).
 
+* [#8236](https://github.com/leanprover/lean4/pull/8236) fixes an issue where the combination of `extern_lib` and
+  `precompileModules` would lead to "symbol not found" errors.
+
 ## Pretty Printing
 
 * [#7805](https://github.com/leanprover/lean4/pull/7805) modifies the pretty printing of raw natural number literals; now
@@ -835,6 +1064,9 @@ For this release, 339 changes landed. In addition to the 108 feature additions a
 
 * [#7882](https://github.com/leanprover/lean4/pull/7882) fixes a regression where elaboration of a previous document
   version is not cancelled on changes to the document.
+
+* [#8242](https://github.com/leanprover/lean4/pull/8242) fixes the 'goals accomplished' diagnostics. They were
+  accidentally broken in #7902.
 
 ## Lake
 
