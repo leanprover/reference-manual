@@ -405,6 +405,10 @@ The facets available for modules are:
 
   The parsed module header of the module's source file.
 
+: `input`
+
+  The module's processed Lean source file. Combines tracing the file with parsing its header.
+
 : `imports`
 
   The immediate imports of the Lean module, but not the full set of transitive imports.
@@ -457,10 +461,6 @@ The facets available for modules are:
 : `dynlib`
 
   A shared library (e.g., for the Lean option `--load-dynlib`){TODO}[Document Lean command line options, and cross-reference from here].
-
-: `input`
-
-  TODO
 
 :::
 
