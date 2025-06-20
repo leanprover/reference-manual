@@ -97,12 +97,12 @@ where
       "/static/print.js"
     ],
     extraHead := #[searchModule, plausible],
-    extraContents := #[scarfPixel]
+    extraContents := #[scarfPixel],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover/reference-manual",
-    issueLink := some "https://github.com/leanprover/reference-manual/issues"
+    issueLink := some "https://github.com/leanprover/reference-manual/issues",
     -- Licenses for the search box
     licenseInfo := [fuzzysortLicense, w3ComboboxLicense]
   }
