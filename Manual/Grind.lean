@@ -229,9 +229,9 @@ Other frequently‑triggered propagators follow the same pattern:
   * Generates η‑expansion `a = ⟨a.1, …⟩`
 :::
 
-::comment
+:::comment
 TODO (@kim-em): we don't add the `{lean}` literal type to `propagateEtaStruct` above because it is private.
-::comment
+:::
 
 Many specialised variants for {lean}`Bool` mirror these rules exactly (e.g. {lean}`propagateBoolAndUp`).
 
@@ -269,7 +269,7 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 
 {tactic}`grind` decides which sub‑term to split on by combining three sources of signal:
 
-1. **Structural flags** — quick booleans that enable whole syntactic classes:
+1. **Structural flags** — quick Booleans that enable whole syntactic classes:
 
    * `splitIte` (default **true**) → split every `if … then … else …` term.
    * `splitMatch` (default **true**) → split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
@@ -279,10 +279,10 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 2. **Global limit** — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
 3. **Manual annotations** — you may mark *any* inductive predicate or structure with
 
-::comment
+:::comment
 Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
 TODO: replace this with a checkable example.
-::
+:::
 ```
 attribute [grind cases] Even Sorted
 ```
@@ -515,7 +515,7 @@ Model‑building CutSAT‑style procedure, model‑based theory combination. Fla
 
 # Algebraic Solver (Commutative Rings, Fields)
 TBD
-Grobner‑style basis construction, class parameters ({lean}`IsCharP`, {lean}`NoNatZeroDivisors`), step budget `algSteps`.
+Gröbner‑style basis construction, class parameters ({lean}`IsCharP`, {lean}`NoNatZeroDivisors`), step budget `algSteps`.
 
 The numeric types built-in to the standard library (namely `Nat`, `Int`, `Fin n`, `UIntX`, `IntX`, and `BitVec`) are already configured for use with these algebraic solvers.
 
@@ -569,7 +569,7 @@ This example demonstrates how the various submodules of `grind` are seamlessly i
 * instantiate theorems from the library, using custom patterns,
 * perform case splitting,
 * do linear integer arithmetic reasoning, including modularity conditions, and
-* do Grobner basis reasoning
+* do Gröbner basis reasoning
 all without providing explicit instructions to drive the interactions between these modes of reasoning.
 
 For this example we'll being with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
@@ -609,9 +609,9 @@ example : (cos x + sin x)^2 = 2 * cos x * sin x + 1 := by
 ```
 Here `grind`:
 * Notices `cos x` and `sin x`, so instantiates the trig identity.
-* Notices that this is a polynomial in `CommRing R`, so sends it to the Grobner basis module.
-  No calculation happens at this point: it's the first polynomial relation in this ring, so the Grobner basis is updated to `[(cos x)^2 + (sin x)^2 - 1]`.
-* Notices that the left and right hand sides of the goal are polynomials in `CommRing R`, so sends them to the Grobner basis module for normalization.
+* Notices that this is a polynomial in `CommRing R`, so sends it to the Gröbner basis module.
+  No calculation happens at this point: it's the first polynomial relation in this ring, so the Gröbner basis is updated to `[(cos x)^2 + (sin x)^2 - 1]`.
+* Notices that the left and right hand sides of the goal are polynomials in `CommRing R`, so sends them to the Gröbner basis module for normalization.
 * Since their normal forms modulo `(cos x)^2 + (sin x)^2 = 1` are equal, their equivalence classes are merged, and the goal is solved.
 
 We can also do this sort of argument when congruence closure is needed:
@@ -625,7 +625,7 @@ As before, `grind` instantiates the trig identity, notices that `(cos x + sin x)
 puts those algebraic expressions in the same equivalence class, and then puts the function applications `f((cos x + sin x)^2)` and `f(2 * cos x * sin x + 1)` in the same equivalence class,
 and closes the goal.
 
-Notice that we've used arbitrary function `f : R → Nat` here; let's check that `grind` use some linear integer arithmetic reasoning after the Grobner basis steps:
+Notice that we've used arbitrary function `f : R → Nat` here; let's check that `grind` use some linear integer arithmetic reasoning after the Gröbner basis steps:
 ```lean
 example (f : R → Nat) :
     4 * f ((cos x + sin x)^2) ≠ 2 + f (2 * cos x * sin x + 1) := by
@@ -640,7 +640,7 @@ Finally, we can also mix in some case splitting:
 example (f : R → Nat) : max 3 (4 * f ((cos x + sin x)^2)) ≠ 2 + f (2 * cos x * sin x + 1) := by
   grind
 ```
-As before, `grind` first does the instantiation and Grobner basis calculations required to identify the two function applications.
+As before, `grind` first does the instantiation and Gröbner basis calculations required to identify the two function applications.
 However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`.
 Next, instantiating {lean}`Nat.max_def` which states `max n m = if n ≤ m then m else n`,
 we then case split on the inequality.
@@ -648,7 +648,7 @@ In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 
 In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
 This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
-the central "whiteboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Grobner bases),
+the central "whiteboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Gröbner bases),
 which can then return new facts to the blackboard.
 
 ## if-then-else normalization
@@ -678,7 +678,7 @@ The solution here builds on an earlier formalization by Chris Hughes, but with s
 
 Here is Rustan Leino's original description of the problem, as [posted by Leo](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Rustan's.20challenge) on the Lean Zulip:
 
-> The data structure is an expression with boolean literals, variables, and if-then-else expressions.
+> The data structure is an expression with Boolean literals, variables, and if-then-else expressions.
 >
 > The goal is to normalize such expressions into a form where:
 > a) No nested ifs: the condition part of an if-expression is not itself an if-expression
@@ -813,9 +813,9 @@ def IfNormalization : Type :=
 
 At this point, it's worth pausing and doing at least one of the following:
 
-::comment
+:::comment
 TODO (@david-christiansen): We include a link here to live-lean and an externally hosted blob of code. There's no way to keep this in sync. :-(
-::
+:::
 
 * Try to prove this yourself! It's quite challenging for a beginner!
   You can [have a go](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fgist.githubusercontent.com%2Fkim-em%2Ff416b31fe29de8a3f1b2b3a84e0f1793%2Fraw%2F75ca61230b50c126f8658bacd933ecf7bfcaa4b8%2Fgrind_ite.lean)
@@ -837,9 +837,9 @@ and then, whenever performing a branch on a variable, adding a new assignment in
 It also needs to flatten nested if-then-else expressions which have another if-then-else in the "condition" position.
 (This is extracted from Chris Hughes's solution, but without the subtyping.)
 
-::comment
+:::comment
 FIXME: @david-christiansen: the long line linter complains in the next code block, but I can't wrap the options.
-::comment
+:::
 
 ```lean (error := true) (name := failed_to_show_termination) (keep := false)
 def normalize (assign : Std.HashMap Nat Bool) :
@@ -1480,7 +1480,7 @@ instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
 
 Success!
 
-Let's press onwards, and see if we can define `insert` without having to write any proofs:
+Let's press onward, and see if we can define `insert` without having to write any proofs:
 ```lean
 
 @[inline] def insert [LawfulBEq α] (m : IndexMap α β) (a : α) (b : β) :
@@ -1537,9 +1537,9 @@ Let's look at the model produced by `cutsat` and see if we can see what's going 
   [assign] (indices m_1)[(keys m_1)[i_2]] := 1
   [assign] (indices m_1)[(keys m_1)[i_2]] := 1
 ```
-::comment
+:::comment
 FIXME (@kim-em / @leodemoura): there is some repeated output here.
-::comment
+:::
 
 This model consists of an `IndexMap` of size `3`,
 with keys `a_1`, `a_2` and the otherwise unnamed `(keys m_1).back ⋯`.
