@@ -657,9 +657,9 @@ which can then return new facts to the blackboard.
 open Std
 ```
 
-:comment
+:::comment
 FIXME (@david-christiansen): I'd like to be able to write ``{attr}`@[grind]` ``.
-:
+:::
 
 This example is a showcase for the "out of the box" power of {tactic}`grind`.
 Later examples will explore adding `@[grind]` annotations as part of the development process, to make {tactic}`grind` more effective in a new domain.
@@ -690,9 +690,9 @@ Here is Rustan Leino's original description of the problem, as [posted by Leo](h
 
 ### The formal statement
 
-:comment
+:::comment
 FIXME: @david-christiansen: can I give `IfExpr` a hover/linkify even though it is a forward reference? Similarly `eval` below?
-:
+:::
 
 To formalize the statement in Lean, we use an inductive type `IfExpr`:
 
@@ -799,9 +799,9 @@ end IfExpr
 
 Using these we can state the problem. The challenge is to inhabit the following type (and to do so nicely!):
 
-:comment
+:::comment
 FIXME (@david-christiansen): No long line warning here?
-:comment
+:::
 ```lean
 namespace IfExpr
 
