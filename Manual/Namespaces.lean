@@ -144,7 +144,10 @@ The section's name must be used to close it.
 end
 ```
 ```leanOutput english4
-invalid 'end', name is missing (expected Greetings)
+Missing name after `end`: Expected the current scope name `Greetings`
+
+Hint: To end the current scope `Greetings`, specify its name:
+  end ̲G̲r̲e̲e̲t̲i̲n̲g̲s̲
 ```
 
 ```lean
@@ -216,7 +219,7 @@ An {keywordOf Lean.Parser.Command.end}`end` command cannot close all three due t
 end A.D.E
 ```
 ```leanOutput endADE
-invalid 'end', name mismatch (expected «».D.E)
+Invalid name after `end`: Expected `D.E`, but found `A.D.E`
 ```
 Instead, namespaces and sections must be ended separately.
 ```lean
