@@ -625,7 +625,7 @@ As before, `grind` instantiates the trig identity, notices that `(cos x + sin x)
 puts those algebraic expressions in the same equivalence class, and then puts the function applications `f((cos x + sin x)^2)` and `f(2 * cos x * sin x + 1)` in the same equivalence class,
 and closes the goal.
 
-Notice that we've used arbitrary function `f : R → Nat` here; let's check that `grind` use some linear integer arithmetic reasoning after the Gröbner basis steps:
+Notice that we've used arbitrary function `f : R → Nat` here; let's check that `grind` can use some linear integer arithmetic reasoning after the Gröbner basis steps:
 ```lean
 example (f : R → Nat) :
     4 * f ((cos x + sin x)^2) ≠ 2 + f (2 * cos x * sin x + 1) := by
@@ -642,14 +642,14 @@ example (f : R → Nat) : max 3 (4 * f ((cos x + sin x)^2)) ≠ 2 + f (2 * cos x
 ```
 As before, `grind` first does the instantiation and Gröbner basis calculations required to identify the two function applications.
 However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`.
-Next, instantiating {lean}`Nat.max_def` which states `max n m = if n ≤ m then m else n`,
+Next, instantiating {lean}`Nat.max_def` (automatically, because of an annotation in the standard library) which states `max n m = if n ≤ m then m else n`,
 we then case split on the inequality.
 In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 + x`.
 In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
 This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
 the central "whiteboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Gröbner bases),
-which can then return new facts to the blackboard.
+which can then return new facts to the whiteboard.
 
 ## if-then-else normalization
 
@@ -676,7 +676,7 @@ The solution here builds on an earlier formalization by Chris Hughes, but with s
 
 ### The problem
 
-Here is Rustan Leino's original description of the problem, as [posted by Leo](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Rustan's.20challenge) on the Lean Zulip:
+Here is Rustan Leino's original description of the problem, as [posted by Leonardo de Moura](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Rustan's.20challenge) on the Lean Zulip:
 
 > The data structure is an expression with Boolean literals, variables, and if-then-else expressions.
 >
@@ -803,8 +803,6 @@ Using these we can state the problem. The challenge is to inhabit the following 
 FIXME (@david-christiansen): No long line warning here?
 :::
 ```lean
-namespace IfExpr
-
 def IfNormalization : Type :=
   { Z : IfExpr → IfExpr // ∀ e, (Z e).normalized ∧ (Z e).eval = e.eval }
 ```
@@ -840,6 +838,11 @@ It also needs to flatten nested if-then-else expressions which have another if-t
 :::comment
 FIXME: @david-christiansen: the long line linter complains in the next code block, but I can't wrap the options.
 :::
+
+Let's work inside the `IfExpr` namespace.
+```lean
+namespace IfExpr
+```
 
 ```lean (error := true) (name := failed_to_show_termination) (keep := false)
 def normalize (assign : Std.HashMap Nat Bool) :
@@ -915,6 +918,7 @@ We've annotated the definition with `@[simp]` so Lean's automated termination ch
 
 With this in place, the definition goes through using the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause:
 
+:::keepEnv
 ```lean
 def normalize (assign : Std.HashMap Nat Bool) :
     IfExpr → IfExpr
@@ -987,6 +991,7 @@ without changing the proof at all! As examples, the particular way that we asser
 could be stated in many different ways (although not omitted!). The variations really don't matter,
 and {tactic}`grind` can both prove, and use, any of them:
 
+Here we use `assign.contains v = false`:
 ```lean
 example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
     (normalize assign e).normalized
@@ -995,7 +1000,11 @@ example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
       ∧ ∀ (v : Nat), v ∈ vars (normalize assign e) →
           assign.contains v = false := by
   fun_induction normalize with grind
+```
 
+and here we use `assign[v]? = none`:
+
+```lean
 example (assign : Std.HashMap Nat Bool) (e : IfExpr) :
     (normalize assign e).normalized
       ∧ (∀ f, (normalize assign e).eval f =
@@ -1009,7 +1018,16 @@ In fact, it's also of no consequence to `grind` whether we use a
 {name}`HashMap` or a {name}`TreeMap` to store the assignments,
 we can simply switch that implementation detail out, without having to touch the proofs:
 
-```lean (error := true)
+:::
+
+
+```lean (show := false)
+-- We have to repeat these annotations because we've rolled back the environment to before we defined `normalize`.
+attribute [local grind]
+  normalized hasNestedIf hasConstantIf hasRedundantIf
+  disjoint vars eval List.disjoint
+```
+```lean
 def normalize (assign : Std.TreeMap Nat Bool) :
     IfExpr → IfExpr
   | lit b => lit b
@@ -1039,6 +1057,8 @@ theorem normalize_spec
           v ∈ vars (normalize assign e) → ¬ v ∈ assign := by
   fun_induction normalize with grind
 ```
+
+(The fact that we can do this relies on the fact that all the lemmas for both `HashMap` and for `TreeMap` that `grind` needs have already be annotated in the standard library.)
 
 If you'd like to play around with this code,
 you can find the whole file [here](https://github.com/leanprover/lean4/blob/master/tests/lean/run/grind_ite.lean),
