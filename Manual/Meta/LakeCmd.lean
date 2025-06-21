@@ -376,9 +376,8 @@ a.lake-command:hover {
       if let some n := name then
         if let some dest := (← read).traverseState.getDomainObject? lakeCommandDomain n then
           for id in dest.ids do
-            if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-              let url := path.link (some slug.toString)
-              return {{<a href={{url}} class="lake-command"><code>s!"lake {n}"</code></a>}}
+            if let some dest := (← read).traverseState.externalTags[id]? then
+              return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
 
       HtmlT.logError "No name for lake command"
       is.mapM goI

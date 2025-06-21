@@ -577,7 +577,9 @@ Of course, this example works [without any changes](https://github.com/leanprove
 
 ```lean
 axiom R : Type
-instance : Lean.Grind.CommRing R := sorry
+
+-- TODO: a `sorry` here was causing a run-time crash. It's unclear why.
+@[instance] axiom instCommRingR : Lean.Grind.CommRing R
 
 axiom sin : R → R
 axiom cos : R → R

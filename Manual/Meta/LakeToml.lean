@@ -796,7 +796,7 @@ def lakeToml : DirectiveExpander
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        discard <| expectString "elaborated configuration" expectedStr v (useLine := (·.any (!·.isWhitespace)))
+        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (!·.isWhitespace)))
 
         contents.mapM (elabBlock ⟨·⟩)
 
@@ -839,9 +839,8 @@ r#"
 
       if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
         for id in obj.ids do
-          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-            let url := path.link (some slug.toString)
-            return {{<code class="toml-field"><a href={{url}}>{{fieldName.toString}}</a></code>}}
+          if let some dest := (← read).traverseState.externalTags[id]? then
+            return {{<code class="toml-field"><a href={{dest.link}}>{{fieldName.toString}}</a></code>}}
       else
         HtmlT.logError s!"No link destination for TOML field {tableName}:{fieldName}"
 

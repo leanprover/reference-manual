@@ -350,25 +350,44 @@ Executables have a single `exe` facet that consists of the executable binary.
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`module.bc, `module.bc.o, `module.c, `module.c.o, `module.c.o.export, `module.c.o.noexport, `module.deps,
-  `module.dynlib, `module.header, `module.ilean, `module.imports, `module.input, `module.lean, `module.leanArts,
-  `module.o, `module.o.export, `module.o.noexport, `module.olean, `module.olean.private, `module.olean.server,
-  `module.precompileImports, `module.setup, `module.transImports]
+info: module.bc
+module.bc.o
+module.c
+module.c.o
+module.c.o.export
+module.c.o.noexport
+module.deps
+module.dynlib
+module.header
+module.ilean
+module.imports
+module.input
+module.lean
+module.leanArts
+module.o
+module.o.export
+module.o.noexport
+module.olean
+module.olean.private
+module.olean.server
+module.precompileImports
+module.setup
+module.transImports
 -/
 #guard_msgs in
-#eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString)
+#eval Lake.initModuleFacetConfigs.toList.toArray.map (·.1) |>.qsort (·.toString < ·.toString) |>.forM (IO.println)
 ```
 
 :::paragraph
 The facets available for modules are:
 
+: `lean`
+
+  The module's Lean source file.
+
 : `leanArts` (default)
 
  The module's Lean artifacts (`*.olean`, `*.ilean`, `*.c` files).
-
-: `src`
-
-  The module's Lean source file.
 
 : `deps`
 
@@ -385,6 +404,10 @@ The facets available for modules are:
 : `header`
 
   The parsed module header of the module's source file.
+
+: `input`
+
+  The module's processed Lean source file. Combines tracing the file with parsing its header.
 
 : `imports`
 

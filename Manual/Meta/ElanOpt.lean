@@ -157,8 +157,7 @@ def elanOpt.descr : InlineDescr where
 
       if let some obj := (← read).traverseState.getDomainObject? elanOptDomain name then
         for id in obj.ids do
-          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-            let url := path.link (some slug.toString)
-            return {{<code class="elan-opt"><a href={{url}} class="elan-command">{{name}}</a>{{original.drop name.length}}</code>}}
+          if let some dest := (← read).traverseState.externalTags[id]? then
+            return {{<code class="elan-opt"><a href={{dest.link}} class="elan-command">{{name}}</a>{{original.drop name.length}}</code>}}
 
       pure {{<code class="elan-opt">{{original}}</code>}}

@@ -15,6 +15,10 @@ def searchModule := {{
     <script type="module" src="/static/search/search-init.js"></script>
   }}
 
+open Verso.Output.Html in
+def plausible := {{
+    <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+  }}
 
 def fuzzysortLicense : LicenseInfo where
   identifier := "MIT"
@@ -92,13 +96,13 @@ where
       -- Print stylesheet improvements
       "/static/print.js"
     ],
-    extraHead := #[searchModule],
-    extraContents := #[scarfPixel]
+    extraHead := #[searchModule, plausible],
+    extraContents := #[scarfPixel],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover/reference-manual",
-    issueLink := some "https://github.com/leanprover/reference-manual/issues"
+    issueLink := some "https://github.com/leanprover/reference-manual/issues",
     -- Licenses for the search box
     licenseInfo := [fuzzysortLicense, w3ComboboxLicense]
   }

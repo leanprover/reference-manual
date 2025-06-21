@@ -37,7 +37,7 @@ For example, given two assumptions of a given type, a program must be carefully 
 
 Tactics are imperative programs that modify a {deftech}_proof state_.{index}[proof state]
 A proof state consists of an ordered sequence of {deftech}_goals_, which are contexts of local assumptions together with types to be inhabited; a tactic may either _succeed_ with a possibly-empty sequence of further goals (called {deftech}_subgoals_) or _fail_ if it cannot make progress.
-If tactic succeeds with no subgoals, then the proof is complete.
+If a tactic succeeds with no subgoals, then the proof is complete.
 If it succeeds with one or more subgoals, then its goal or goals will be proved when those subgoals have been proved.
 The first goal in the proof state is called the {deftech}_main goal_.{index subterm:="main"}[goal]{index}[main goal]
 While most tactics affect only the main goal, operators such as {tactic}`<;>` and {tactic}`all_goals` can be used to apply a tactic to many goals, and operators such as bullets, {tactic}`next` or {tactic}`case` can narrow the focus of subsequent tactics to only a single goal in the proof state.

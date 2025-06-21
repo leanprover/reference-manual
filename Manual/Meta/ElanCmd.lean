@@ -263,9 +263,8 @@ a.elan-command:hover {
       if let some n := name then
         if let some dest := (← read).traverseState.getDomainObject? elanCommandDomain n then
           for id in dest.ids do
-            if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-              let url := path.link (some slug.toString)
-              return {{<a href={{url}} class="elan-command"><code>s!"elan {n}"</code></a>}}
+            if let some dest := (← read).traverseState.externalTags[id]? then
+              return {{<a href={{dest.link}} class="elan-command"><code>s!"elan {n}"</code></a>}}
 
       HtmlT.logError s!"No name/dest for elan command {name}"
       is.mapM goI
