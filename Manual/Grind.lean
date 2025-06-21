@@ -501,7 +501,7 @@ consider using different options or the `grind_pattern` command
 @[grind? =>] theorem h₆ (_ : q (y + 2) = q y) (_ : q (y + 1) = q y) : p (x + 2) = 7 := sorry
 ```
 
-If you're planning to do substantial annotation work, you should study these examples are verify that the follow the rules described above.
+If you're planning to do substantial annotation work, you should study these examples and verify that they follow the rules described above.
 
 TBD
 * anti‑patterns
@@ -516,6 +516,39 @@ Model‑building CutSAT‑style procedure, model‑based theory combination. Fla
 # Algebraic Solver (Commutative Rings, Fields)
 TBD
 Grobner‑style basis construction, class parameters ({lean}`IsCharP`, {lean}`NoNatZeroDivisors`), step budget `algSteps`.
+
+The numeric types built-in to the standard library (namely `Nat`, `Int`, `Fin n`, `UIntX`, `IntX`, and `BitVec`) are already configured for use with these algebraic solvers.
+
+Users can enable these solvers for their own types by providing instances of the following typeclasses, all in the `Lean.Grind` namespace.
+The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
+The capabilities of the algebraic solvers will of course degrade when some are not available.
+
+:::comment
+Uncomment these once doc-strings have landed.
+
+{docstring Lean.Grind.NatModule}
+
+{docstring Lean.Grind.IntModule}
+
+{docstring Lean.Grind.Semiring}
+
+{docstring Lean.Grind.Ring}
+
+{docstring Lean.Grind.CommSemiring}
+
+{docstring Lean.Grind.CommRing}
+
+{docstring Lean.Grind.IsCharP}
+
+{docstring Lean.Grind.NoNatZeroDivisors}
+
+{docstring Lean.Grind.NatModule.IsOrdered}
+
+{docstring Lean.Grind.IntModule.IsOrdered}
+
+{docstring Lean.Grind.Ring.IsOrdered}
+
+:::
 
 # Normalizer / Pre‑processor
 TBD
@@ -1016,9 +1049,9 @@ end IfExpr
 
 ##  `IndexMap`
 
-In this section we'll build an example of a new datastructure and basic API for it, illustrating the use of {tactic}`grind`.
+In this section we'll build an example of a new data structure and basic API for it, illustrating the use of {tactic}`grind`.
 
-The example will be derived from Rust's [`indexmap`](https://docs.rs/indexmap/latest/indexmap/) datastructure.
+The example will be derived from Rust's [`indexmap`](https://docs.rs/indexmap/latest/indexmap/) data structure.
 
 `IndexMap` is intended as a replacement for `HashMap` (in particular, it has fast hash-based lookup), but allowing the user to maintain control of the order of the elements.
 We won't give a complete API, just set up some basic functions and theorems about them.
