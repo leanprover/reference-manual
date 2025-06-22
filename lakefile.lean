@@ -130,7 +130,7 @@ def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) 
       let args := childConfig.args.foldl (s!"{·} \"{·}\"") ""
       let cmd := s!"extract_explanation_example{args}"
       throw <| IO.userError <|
-        s!"When running `{cmd}`, the exit code was {out.exitCode}\n" ++
+        s!"Nonzero exit code {out.exitCode} when running `{cmd}`\n" ++
         s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
 
 deriving instance BEq, Hashable for Import
