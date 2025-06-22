@@ -1083,7 +1083,7 @@ The two main functions we'll implement for now are `insert` and `eraseSwap`:
   If it is not already in the map, `insert` adds `(k, v)` to the end of the map.
 * `eraseSwap k` removes the element with key `k` from the map, and swaps it with the last element of the map (or does nothing if `k` is not in the map).
   (This semantics is maybe slightly surprising: this function exists because it is an efficient way to erase element, when you don't care about the order of the remaining elements.
-  Another function, not implemented here, would preserve the order of the remaining elements, but at the cost of running in size proportional to the number of elements after the erased element.)
+  Another function, not implemented here, would preserve the order of the remaining elements, but at the cost of running in time proportional to the number of elements after the erased element.)
 
 Our goals will be:
 * complete encapsulation: the implementation of `IndexMap` is hidden from the users, **and** the theorems about the implementation details are private.
