@@ -34,9 +34,8 @@ def processMWE (input : String) (inputHash : UInt64) (envWithMsgs? : Option (Env
   let shouldElab := !msgs.hasErrors
   let mut (cmdState, stxs) ← processCommands inputCtx s cmdState shouldElab
   stxs := #[hdrStx] ++ stxs
-  let stxWithUnparsed := addMissingSubstrs stxs inputCtx
   let nonSilentMsgs := cmdState.messages.toArray.filter (!·.isSilent)
-  let hls ← mkHighlights cmdState nonSilentMsgs inputCtx stxWithUnparsed
+  let hls ← mkHighlights cmdState nonSilentMsgs inputCtx stxs
   let msgs ← mkMessages nonSilentMsgs
   let ex := {
     highlighted := hls
@@ -68,82 +67,27 @@ where
         break
     return (cmdState, stxs)
 
-  addMissingSubstrs (stxs : Array Syntax) (inputCtx : Parser.InputContext) : Array (Syntax ⊕ Substring) := Id.run do
-    -- Fill in the (malformed) source that was skipped by the parser
-    let mut last : String.Pos := 0
-    let mut stxOrStrs : Array (Syntax ⊕ Substring) := #[]
-    for stx in stxs do
-      let some this := stx.getPos?
-        | stxOrStrs := stxOrStrs.push (.inl stx)  -- empty headers have no info
-          continue
-      if this != last then
-        let missedStr := Substring.mk inputCtx.input last this
-        stxOrStrs := stxOrStrs.push (.inr missedStr)
-      stxOrStrs := stxOrStrs.push (.inl stx)
-      last := stx.getTrailingTailPos?.getD this
-    return stxOrStrs
-
-  -- TODO: process messages linearly -- calling this repeatedly for s spans with
-  -- an m-message log should be O(max(m,s)), not O(m*s)
-  findMessagesForUnparsedSpan (ictx : Parser.InputContext) (src : Substring) (msgs : Array Message) : IO Highlighted := do
-    let msgsHere := msgs.filterMap fun m =>
-      let pos := ictx.fileMap.ofPosition m.pos
-      let endPos := ictx.fileMap.ofPosition (m.endPos.getD m.pos)
-      if src.startPos ≤ pos || pos ≤ src.stopPos then
-        some (m, max src.startPos pos, min src.stopPos endPos)
-      else
-        none
-
-    if msgsHere.isEmpty then
-      return .text src.toString
-
-    let mut res := #[]
-    for (msg, start, fin) in msgsHere do
-      if src.startPos < start then
-        let initialSubstr := { src with stopPos := start }
-        res := res.push (.text initialSubstr.toString)
-      let kind : Highlighted.Span.Kind :=
-        match msg.severity with
-        | .error => .error
-        | .warning => .warning
-        | .information => .info
-      let content := { src with startPos := start, stopPos := fin }
-      let msgStr := (if msg.caption != "" then msg.caption ++ ":\n" else "") ++ (← msg.toString)
-      res := res.push (.span #[(kind, msgStr)] (.text content.toString))
-      if fin < src.stopPos then
-        let finalSubstr := { src with startPos := fin }
-        res := res.push (.text finalSubstr.toString)
-    return .seq res
-
   withNewline (str : String) :=
     if str == "" || str.back != '\n' then str ++ "\n" else str
 
   mkHighlights (cmdState : Command.State) (nonSilentMsgs : Array Message)
-      (inputCtx : Parser.InputContext) (cmds : Array (Syntax ⊕ Substring)) :
+      (inputCtx : Parser.InputContext) (cmds : Array Syntax) :
       IO Highlighted :=
     let termElab : TermElabM Highlighted := do
       let mut hls := Highlighted.empty
+      let mut lastPos : String.Pos := 0
       for cmd in cmds do
-        let hl ←
-          match cmd with
-          | .inl cmd => withTheReader Core.Context (fun ctx => { ctx with
-                  fileMap := inputCtx.fileMap
-                  fileName := inputCtx.fileName }) <|
-                highlight cmd nonSilentMsgs cmdState.infoState.trees
-          | .inr cmd =>
-            findMessagesForUnparsedSpan inputCtx cmd nonSilentMsgs
+        let hl ← highlightIncludingUnparsed cmd nonSilentMsgs cmdState.infoState.trees [] lastPos
         hls := hls ++ hl
+        lastPos := (cmd.getTrailingTailPos?).getD lastPos
       return hls
     Prod.fst <$> runCommandElabM (Command.liftTermElabM termElab) inputCtx cmdState
 
   mkMessages (nonSilentMsgs : Array Message) := do
-    let msgs ← nonSilentMsgs.mapM fun msg => do
+    nonSilentMsgs.mapM fun msg => do
       let head := if msg.caption != "" then msg.caption ++ ":\n" else ""
       let txt := withNewline <| head ++ (← msg.data.toString)
-
       pure (msg.severity, txt)
-    let msgs : Array (MessageSeverity × String) := FromJson.fromJson? (ToJson.toJson msgs) |>.toOption.get!
-    return msgs
 
   runCommandElabM {α} (x : Command.CommandElabM α) (ictx : Parser.InputContext)
       (cmdState : Command.State) (s? : Option Parser.ModuleParserState := none) :
