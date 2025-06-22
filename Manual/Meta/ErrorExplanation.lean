@@ -62,9 +62,8 @@ def explanationMWE : CodeBlockExpander
     let (hls, msgs) ← loadPreprocessedMWE name str.getString
     saveOutputs name msgs.toList
 
-    let range : Option Lsp.Range := none
     pure #[← ``(Block.other
-      (Block.lean $(quote hls) (some $(quote (← getFileName))) $(quote range))
+      (Block.lean $(quote hls) (some $(quote (← getFileName))) none)
       #[Block.code $str])]
 
 /--
@@ -108,8 +107,7 @@ def Block.tabbedMWEs.descr : BlockDescr where
   border-bottom: 1px solid gray;
 }
   "#]
-  extraJs := [
-r#"
+  extraJs := [r#"
 window.addEventListener('DOMContentLoaded', () => {
   const tabLists = document.querySelectorAll('.error-example-tab-list')
   tabLists.forEach(tabList => {
@@ -214,6 +212,12 @@ The monad in which code blocks within an error explanation are elaborated.
 abbrev ExplanCodeElabM :=
   ReaderT ExplanCodeElabM.Context (StateT ExplanCodeElabM.State DocElabM)
 
+/--
+Attempts to elaborate block code in an error explanation: Lean (and unlabeled)
+blocks should have a corresponding preprocessing cache file, output blocks are
+checked against their corresponding Lean block's output, and all other code
+blocks are rendered using the default Verso code element.
+-/
 def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSeverity)
     (info? _lang : Option String) (str : String) : ExplanCodeElabM Term := do
   if let some info := info? then
@@ -306,6 +310,13 @@ def ExplanElabM.liftExplanCodeElabM (x : ExplanCodeElabM α) : ExplanElabM α :=
 instance : MonadLift ExplanCodeElabM ExplanElabM where
   monadLift := ExplanElabM.liftExplanCodeElabM
 
+/--
+Elaborates inline code in strict mode, restoring the state afterward.
+
+We have to do state restoration after each inline elaboration because the block
+elaborator needs to have its `TermElabM` state changes persisted, as the part
+elaborator modifies this state during elaboration.
+-/
 private def tryElabInlineCodeStrictRestoringState
     (tactics : Array Tactic.Doc.TacticDoc) (keywords : Array String)
     (prevWord? : Option String) (str : String) : ExplanElabM Term := do
@@ -317,6 +328,7 @@ private def tryElabInlineCodeStrictRestoringState
   finally
     b.restore
 
+/-- Returns a Verso term corresponding to `b`. -/
 def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
   let { name, severity .. } ← read
   let tactics ← Elab.Tactic.Doc.allTacticDocs
@@ -328,7 +340,8 @@ def blockFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Term := do
     (elabBlockCode := some fun i l s => withRef ref <|
       tryElabErrorExplanationCodeBlock name severity i l s)
 
-def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
+/-- Add block(s) corresponding to `b` to the current document part. -/
+def addPartFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
   let tactics ← Elab.Tactic.Doc.allTacticDocs
   let keywords := tactics.map (·.userName)
   let ref ← getRef
@@ -340,12 +353,17 @@ def partFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
       tryElabErrorExplanationCodeBlock name severity i l s)
   modifyThe ExplanElabM.State ({ · with levels := ls })
 
+/-- Extracts and parses the info string of a code block. -/
 private def infoOfCodeBlock : MD4Lean.Block → Except String ErrorExplanation.CodeInfo
   | .code info _ _ _ => do
     let txt ← attr' info
     ErrorExplanation.CodeInfo.parse txt
   | el => .error s!"Cannot get code block info from non-code block element:\n{repr el}"
 
+/--
+Returns `true` if `b` is a block with language `expLang` and, if
+`expKind? = some expKind`, kind `expKind`.
+-/
 private def blockHasExplanationCodeInfo
     (b : MD4Lean.Block) (expLang : String)
     (expKind? : Option ErrorExplanation.CodeInfo.Kind := none)
@@ -360,6 +378,7 @@ private def blockHasExplanationCodeInfo
       true
   return lang == expLang && optMatch expKind? kind?
 
+/-- Throws an error if `b` is not a code block with language `expLang` and kind `expKind`. -/
 private def expectExplanationCodeInfo
     (b : MD4Lean.Block) (expLang : String) (expKind : ErrorExplanation.CodeInfo.Kind)
     : DocElabM Unit := do
@@ -372,6 +391,7 @@ private def expectExplanationCodeInfo
     let str := kind?.map toString |>.getD "unspecified"
     throwError "Expected a code block of kind `{expKind}`, but found `{str}`"
 
+/-- Returns `true` if `txt` is the "Examples" header text. -/
 private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
   if _ : txt.size = 1 then
     match txt[0] with
@@ -379,6 +399,7 @@ private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
     | _ => false
   else false
 
+/-- Convert the accumulated contents of an example into a Verso block term. -/
 private def makeExample (contents : ExampleContents) : DocElabM Term := do
   let {title, codeBlocks, descrBlocks } := contents
   let titles := codeBlocks.mapIdx fun i (_, title?) =>
@@ -400,25 +421,32 @@ private def titleOfCodeBlock? (b : MD4Lean.Block) : Option String := do
   let info ← infoOfCodeBlock b |>.toOption
   info.title?
 
-def closeExplanationPart : PartElabM Unit := do
-  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then -- TODO: source position
+/-- Closes the last-opened section, throwing an error on failure. -/
+def closeEnclosingSection : PartElabM Unit := do
+  -- We use `default` as the source position because the Markdown doesn't have one
+  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then
     modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
   else
     throwError m!"Failed to close the last-opened explanation part"
 
-def addNonExampleBlocks (allowExamplesHeader := true) := do
+/-- Adds explanation blocks until the "Examples" header is reached. -/
+def addNonExampleBlocks := do
   repeat
     let some block ← ExplanElabM.nextBlock?
       | return
     if let MD4Lean.Block.header 1 txt := block then
       if isExamplesHeaderText txt then
-        if allowExamplesHeader then
-          partFromExplanationMarkdown block
-          break
-        else
-          throwError "Found multiple 'Examples' headers in the same explanation"
-    partFromExplanationMarkdown block
+        addPartFromExplanationMarkdown block
+        break
+    addPartFromExplanationMarkdown block
 
+/--
+Get the next code block if it's a broken Lean block along with its title.
+
+Note that this function errors on failure, since we never backtrack if a broken
+code block is missing, and doing so allows us to provide more granular error
+messages.
+-/
 def getBrokenTermAndTitle : ExplanElabM (Term × Option String) := do
   let some brokenBlock ← ExplanElabM.nextBlock?
     | throwError "Found a header for a new example, but no following `broken` code block"
@@ -428,6 +456,7 @@ def getBrokenTermAndTitle : ExplanElabM (Term × Option String) := do
   let title? := titleOfCodeBlock? brokenBlock
   return (brokenTerm, title?)
 
+/-- Execute `x` until it returns `none`. -/
 partial def repeatedly (x : ExplanElabM (Option α)) : ExplanElabM (Array α) :=
   go x #[]
 where
@@ -437,6 +466,7 @@ where
     else
       return acc
 
+/-- Get the next block if it is an output code block. -/
 def getOutputTerm? : ExplanElabM (Option Term) := do
   let some block ← ExplanElabM.nextBlock?
     | return none
@@ -446,6 +476,7 @@ def getOutputTerm? : ExplanElabM (Option Term) := do
     ExplanElabM.backtrack
     return none
 
+/-- Get the next code block if it is a fixed Lean block, and, if so, its title if it has one. -/
 def getFixedTermAndTitle? : ExplanElabM (Option (Term × Option String)) := do
   let some block ← ExplanElabM.nextBlock?
     | return none
@@ -456,20 +487,28 @@ def getFixedTermAndTitle? : ExplanElabM (Option (Term × Option String)) := do
     ExplanElabM.backtrack
     return none
 
+/-- Get the next block(s) if they are a fixed code block with zero or more outputs. -/
 def getFixedTermAndOutputs? : ExplanElabM (Option (Term × Array Term × Option String)) := do
   let some (fixedTerm, fixedTitle?) ← getFixedTermAndTitle? | return none
   let outputs ← repeatedly getOutputTerm?
   return some (fixedTerm, outputs, fixedTitle?)
 
+/-- Get the next block to elaborate if it's not an example-terminating header. -/
 def getExampleDescriptionTerm? : ExplanElabM (Option Term) := do
   let some block ← ExplanElabM.nextBlock?
     | return none
-  if block matches .header 2 _ then
+  if block matches .header 1 _ | .header 2 _ then
     ExplanElabM.backtrack
     return none
   else
     return some (← blockFromExplanationMarkdown block)
 
+/--
+Add blocks corresponding to the "Examples" section of the explanation. Assumes
+that the "Examples" header itself has already been added, and will repeatedly
+add examples beginning with a level-2 header, followed by broken and fixed code
+blocks with outputs, and descriptions thereof.
+-/
 def addExampleBlocks : ExplanElabM Unit := do
   repeat
     let some block@(.header 2 titleTexts) ← ExplanElabM.nextBlock? | return
@@ -505,7 +544,11 @@ def addExampleBlocks : ExplanElabM Unit := do
     let ex ← makeExample exampleInfo
     PartElabM.addBlock ex
 
-def addExplanationBlocks : ExplanElabM Unit := do
+/--
+Adds blocks constituting the explanation body to the document. The topmost
+routine for rendering an explanation in `ExplanElabM`.
+-/
+def addExplanationBodyBlocks : ExplanElabM Unit := do
   addNonExampleBlocks
   addExampleBlocks
 
@@ -561,9 +604,11 @@ def Block.errorExplanationMetadata.descr : BlockDescr where
       </div>
     }}
 
+/-- Adds the specified explanation metadata to the document. -/
 def addExplanationMetadata (metadata : ErrorExplanation.Metadata) : PartElabM Unit := do
   PartElabM.addBlock (← ``(Block.other (Block.errorExplanationMetadata $(quote metadata)) #[]))
 
+/-- Adds the metadata and bofy of the explanation with name `name` to the document. -/
 def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
   let explan? ← getErrorExplanation? name
   match explan? with
@@ -574,9 +619,9 @@ def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
       let some ast := MD4Lean.parse explan.doc
         | throwErrorAt (← getRef) "Failed to parse docstring as Markdown"
       addExplanationMetadata explan.metadata
-      let (_, { levels, .. }) ← addExplanationBlocks.run name explan.metadata.severity ast.blocks
+      let (_, { levels, .. }) ← addExplanationBodyBlocks.run name explan.metadata.severity ast.blocks
       for _ in levels do
-        closeExplanationPart
+        closeEnclosingSection
     catch
       | .error ref msg => throw <| .error ref m!"Failed to process explanation for {name}: {msg}"
       | e => throw e
@@ -620,8 +665,7 @@ def Inline.errorExplanation.descr : InlineDescr where
 structure ExplanationConfig where
   name : Ident
 
-variable [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] in
-def ExplanationConfig.parser : ArgParse m ExplanationConfig :=
+def ExplanationConfig.parser [Monad m] [MonadError m] : ArgParse m ExplanationConfig :=
   ExplanationConfig.mk <$> .positional `name {
     description := "name of error whose explanation to display",
     get := fun
@@ -629,9 +673,7 @@ def ExplanationConfig.parser : ArgParse m ExplanationConfig :=
       | other => throwError "Expected error name, got {repr other}"
   }
 
-/--
-Renders a single error explanation for `name` via `{explanation name}`.
--/
+/-- Renders the error explanation for `name` via `{explanation name}`. -/
 @[part_command Verso.Syntax.block_role]
 def explanation : PartCommand
   | `(block|block_role{explanation $args*}) => do
@@ -641,6 +683,7 @@ def explanation : PartCommand
 
 open Verso Doc Elab ArgParse in
 open Lean in
+/-- Renders all error explanations as parts of the current page. -/
 @[part_command Verso.Syntax.block_role]
 def make_explanations : PartCommand
   | `(block|block_role{make_explanations}) => do
@@ -658,5 +701,5 @@ def make_explanations : PartCommand
         priorParts := #[]
       }
       addExplanationBlocksFor name
-      closeExplanationPart
+      closeEnclosingSection
   | _ => throwUnsupportedSyntax
