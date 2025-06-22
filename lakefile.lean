@@ -191,22 +191,24 @@ def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × Str
 /-- Preprocess code examples in error explanations. -/
 target error_explanations : Array Name := do
   let exeJob ← extract_explanation_examples.fetch
+  -- We must compute groups when fetching jobs because olean deletion (if
+  -- necessary) must happen in advance so that, if this is part of a full manual
+  -- build, that module will be rebuilt
+  let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
+  let explans := getErrorExplanationsRaw env
+  let allBlocks := explans.flatMap fun (name, explan) =>
+    extractCodeBlocks name explan.doc
+  let groups ← groupByImports allBlocks
+  -- If we will change the cached files, we need to be sure that they get
+  -- reloaded on the next manual build
+  if groups.size > 0 then
+    let ws ← getWorkspace
+    let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
+      error "Could not find module `Manual.ErrorExplanations"
+    IO.FS.removeFile mod.oleanFile
   exeJob.bindM fun exe => Job.async do
-    let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
-    let explans := getErrorExplanationsRaw env
-    let allBlocks := explans.flatMap fun (name, explan) =>
-      extractCodeBlocks name explan.doc
-    let groups ← groupByImports allBlocks
     for group in groups do
       processImportGroup group exe errorExplanationExOutDir
-    -- If we changed the cached files, we need to be sure that they get reloaded
-    -- on the next manual build
-    if groups.size > 0 then
-      let ws ← getWorkspace
-      -- TODO: error messages
-      let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
-        error "Could not find module `Manual.ErrorExplanations"
-      IO.FS.removeFile mod.oleanFile
     return groups.flatten.map (·.1)
 
 end ExplanationPreprocessing
