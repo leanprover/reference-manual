@@ -128,7 +128,7 @@ def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) 
     let out ← IO.Process.output childConfig
     if out.exitCode != 0 then
       let args := childConfig.args.foldl (s!"{·} \"{·}\"") ""
-      let cmd := s!"extract_explanation_example{args}"
+      let cmd := s!"extract_explanation_examples{args}"
       throw <| IO.userError <|
         s!"Nonzero exit code {out.exitCode} when running `{cmd}`\n" ++
         s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
@@ -215,5 +215,5 @@ end ExplanationPreprocessing
 
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/extract_explanation_example, `@/figures, `@/subversoExtractMod]
+  needs := #[`@/extract_explanation_examples, `@/error_explanations, `@/figures, `@/subversoExtractMod]
   root := `Main
