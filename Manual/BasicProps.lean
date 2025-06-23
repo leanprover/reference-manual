@@ -418,9 +418,9 @@ end
 
 :::::leanSection
 ::::example "Heterogeneous Equality"
-````lean (show := false)
+```lean (show := false)
 variable {α : Type u} {n k l₁ l₂ l₃ : Nat}
-````
+```
 
 The type {lean}`Vector α n` is wrapper around an {lean}`Array α` that includes a proof that the array has size {lean}`n`.
 Appending {name}`Vector`s is associative, but this fact cannot be straightforwardly stated using ordinary propositional equality:

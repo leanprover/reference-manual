@@ -125,16 +125,16 @@ fun {α} act => liftM act : {α : Type} → BaseIO α → EIO IO.Error α
 ::::example "Lifting Transformed Monads"
 There are also instances of {name}`MonadLift` for most of the standard library's {tech}[monad transformers], so base monad actions can be used in transformed monads without additional work.
 For example, state monad actions can be lifted across reader and exception transformers, allowing compatible monads to be intermixed freely:
-````lean (keep := false)
+```lean (keep := false)
 def incrBy (n : Nat) : StateM Nat Unit := modify (· + n)
 
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
-````
+```
 
 Disabling lifting causes an error:
-````lean (name := noLift) (error := true)
+```lean (name := noLift) (error := true)
 set_option autoLift false
 
 def incrBy (n : Nat) : StateM Nat Unit := modify (. + n)
@@ -142,7 +142,7 @@ def incrBy (n : Nat) : StateM Nat Unit := modify (. + n)
 def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
   if (← read) > 5 then throw "Too much!"
   incrBy (← read)
-````
+```
 ```leanOutput noLift
 type mismatch
   incrBy __do_lift✝

@@ -18,7 +18,7 @@ tag := "release-v4.6.0"
 file := "v4.6.0"
 %%%
 
-`````markdown
+````markdown
 * Add custom simplification procedures (aka `simproc`s) to `simp`. Simprocs can be triggered by the simplifier on a specified term-pattern. Here is an small example:
   ```lean
   import Lean.Meta.Tactic.Simp.BuiltinSimprocs.Nat
@@ -246,4 +246,4 @@ Other improvements:
 * fix `deriving` only deriving the first declaration for some handlers [#3058](https://github.com/leanprover/lean4/pull/3058), fixing [#3057](https://github.com/leanprover/lean4/issues/3057)
 * do not instantiate metavariables in kabstract/rw for disallowed occurrences [#2539](https://github.com/leanprover/lean4/pull/2539), fixing [#2538](https://github.com/leanprover/lean4/issues/2538)
 * hover info for `cases h : ...` [#3084](https://github.com/leanprover/lean4/pull/3084)
-`````
+````

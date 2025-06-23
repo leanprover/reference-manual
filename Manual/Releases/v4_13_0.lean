@@ -18,7 +18,7 @@ tag := "release-v4.13.0"
 file := "v4.13.0"
 %%%
 
-`````markdown
+```markdown
 **Full Changelog**: https://github.com/leanprover/lean4/compare/v4.12.0...v4.13.0
 
 ### Language features, tactics, and metaprograms
@@ -329,4 +329,4 @@ file := "v4.13.0"
 * [#5489](https://github.com/leanprover/lean4/pull/5489) commit `lake-manifest.json` when updating `lean-pr-testing` branches
 * [#5490](https://github.com/leanprover/lean4/pull/5490) use separate secrets for commenting and branching in `pr-release.yml`
 
-`````
+```

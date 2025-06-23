@@ -479,7 +479,7 @@ Because they are Lean definitions, Lake scripts can only be defined in the Lean 
 
 Restore the following once we can import enough of Lake to elaborate it
 
-`````
+````
 ```lean (show := false)
 section
 open Lake DSL
@@ -507,7 +507,7 @@ script "list-deps" := do
 ```lean (show := false)
 end
 ```
-`````
+````
 
 :::::
 
@@ -525,7 +525,7 @@ Lint drivers may be executables or scripts, which are run by {lake}`lint`.
 A test or lint driver can be configured by either setting the {tomlField Lake.PackageConfig}`testDriver` or {tomlField Lake.PackageConfig}`lintDriver` package configuration options or by tagging a script, executable, or library with the `test_driver` or `lint_driver` attribute in a Lean-format configuration file.
 A definition in a dependency can be used as a test or lint driver by using the `<pkg>/<name>` syntax for the appropriate configuration option.
 :::TODO
-Restore the ``{attr}`` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
+Restore the `{attr}` role for `test_driver` and `lint_driver` above. Right now, importing the attributes crashes the compiler.
 :::
 
 ## GitHub Release Builds

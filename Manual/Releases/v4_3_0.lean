@@ -18,7 +18,7 @@ tag := "release-v4.3.0"
 file := "v4.3.0"
 %%%
 
-`````markdown
+```markdown
 * `simp [f]` does not unfold partial applications of `f` anymore. See issue [#2042](https://github.com/leanprover/lean4/issues/2042).
   To fix proofs affected by this change, use `unfold f` or `simp (config := { unfoldPartialApp := true }) [f]`.
 * By default, `simp` will no longer try to use Decidable instances to rewrite terms. In particular, not all decidable goals will be closed by `simp`, and the `decide` tactic may be useful in such cases. The `decide` simp configuration option can be used to locally restore the old `simp` behavior, as in `simp (config := {decide := true})`; this includes using Decidable instances to verify side goals such as numeric inequalities.
@@ -54,4 +54,4 @@ file := "v4.3.0"
 * Deprecate the `manifestFile` field of a package configuration.
 * There is now a more rigorous check on `lakefile.olean` compatibility (see [#2842](https://github.com/leanprover/lean4/pull/2842) for more details).
 
-`````
+```
