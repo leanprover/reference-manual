@@ -11,6 +11,8 @@ import Manual.Meta.Markdown
 open Manual
 open Verso.Genre
 
+-- TODO: figure out why this is needed with the new compiler
+set_option maxRecDepth 11000
 
 #doc (Manual) "Lean 4.19.0 (2025-05-01)" =>
 %%%
@@ -18,7 +20,7 @@ tag := "release-v4.19.0"
 file := "v4.19.0"
 %%%
 
-`````markdown
+````markdown
 For this release, 420 changes landed. In addition to the 164 feature additions and 78 fixes listed below there were 13 refactoring changes, 29 documentation improvements, 31 performance improvements, 9 improvements to the test suite and 94 other changes.
 
 ## Highlights
@@ -1303,4 +1305,4 @@ See the Library section below for details.
   `merge_remote.py` and `release_steps.py` scripts when needed.
 
 
-`````
+````

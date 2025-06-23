@@ -18,7 +18,7 @@ tag := "release-v4.15.0"
 file := "v4.15.0"
 %%%
 
-`````markdown
+````markdown
 
 ## Language
 
@@ -662,4 +662,4 @@ profiler output.
 
 - [#6259](https://github.com/leanprover/lean4/pull/6259) ensures that nesting trace nodes are annotated with timing
 information iff `trace.profiler` is active.
-`````
+````

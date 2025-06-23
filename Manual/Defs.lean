@@ -345,9 +345,9 @@ def map {α β} (f : α → β) :
 :::::example "Iterated Automatic Implicit Parameters"
 
 :::leanSection
-````lean (show := false)
+```lean (show := false)
 variable (i : Fin n)
-````
+```
 Given a number bounded by {lean}`n`, represented by the type `Fin n`, an {lean}`AtLeast i` is a natural number paired with a proof that it is at least as large as as `i`.
 :::
 ```lean
@@ -368,9 +368,9 @@ def AtLeast.add (x y : AtLeast i) : AtLeast i :=
 
 ::::paragraph
 :::leanSection
-````lean (show := false)
+```lean (show := false)
 variable (i : Fin n)
-````
+```
 The signature of {lean}`AtLeast.add` requires multiple rounds of automatic implicit parameter insertion.
 First, {lean}`i` is inserted; but its type depends on the upper bound {lean}`n` of {lean}`Fin n`.
 In the second round, {lean}`n` is inserted, using a machine-chosen name.
@@ -468,9 +468,9 @@ def select (choices : α × α × α) : Answer →  α
   | .maybe => choices.2.1
   | .no => choices.2.2
 ```
-````leanOutput noauto
+```leanOutput noauto
 unknown identifier 'α'
-````
+```
 :::
 ::::
 

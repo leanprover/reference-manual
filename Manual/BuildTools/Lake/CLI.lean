@@ -918,7 +918,7 @@ Other hosts are not yet supported.
 
 ## Cached Cloud Builds
 
-**These commands are still experimental.**
+*These commands are still experimental.*
 They are likely change in future versions of Lake based on user feedback.
 Packages that use Reservoir cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
 

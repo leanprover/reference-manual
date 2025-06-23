@@ -73,7 +73,7 @@ tag := "wf-rel"
 
 A relation `≺` is a {deftech}_well-founded relation_ if there exists no infinitely descending chain
 
-$$`` x_0 ≻ x_1 ≻ \cdots``
+$$` x_0 ≻ x_1 ≻ \cdots`
 
 In Lean, types that are equipped with a canonical well-founded relation are instances of the {name}`WellFoundedRelation` type class.
 

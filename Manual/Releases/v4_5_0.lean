@@ -18,7 +18,7 @@ tag := "release-v4.5.0"
 file := "v4.5.0"
 %%%
 
-`````markdown
+````markdown
 * Modify the lexical syntax of string literals to have string gaps, which are escape sequences of the form `"\" newline whitespace*`.
   These have the interpretation of an empty string and allow a string to flow across multiple lines without introducing additional whitespace.
   The following is equivalent to `"this is a string"`.
@@ -94,4 +94,4 @@ Improve [short-circuiting behavior](https://github.com/leanprover/lean4/pull/297
 
 Several Lake bug fixes: [#3036](https://github.com/leanprover/lean4/issues/3036), [#3064](https://github.com/leanprover/lean4/issues/3064), [#3069](https://github.com/leanprover/lean4/issues/3069).
 
-`````
+````

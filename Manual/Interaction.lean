@@ -466,7 +466,7 @@ $c:command
 
 The {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command can ensure that a set of test cases pass:
 
-````lean
+```lean
 def reverse : List α → List α := helper []
 where
   helper acc
@@ -480,7 +480,7 @@ where
 /-- info: ['c', 'b', 'a'] -/
 #guard_msgs in
 #eval reverse "abc".toList
-````
+```
 
 :::
 
@@ -554,9 +554,10 @@ Leading and trailing whitespace is always ignored when comparing messages. On to
 :::
 
 The option {option}`guard_msgs.diff` controls the content of the error message that {keywordOf Lean.guardMsgsCmd}`#guard_msgs` produces when the expected message doesn't match the produced message.
-By default, the error message shows the produced message, which can be compared with the expected message in the source file.
-When messages are large and only differ by a small amount, it can be difficult to spot the difference.
-Setting {option}`guard_msgs.diff` to `true` causes {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to instead show a line-by-line difference, with a leading `+` used to indicate lines from the produced message and a leading `-` used to indicate lines from the expected message.
+By default, {keywordOf Lean.guardMsgsCmd}`#guard_msgs` shows a line-by-line difference, with a leading `+` used to indicate lines from the produced message and a leading `-` used to indicate lines from the expected message.
+When messages are large and only differ by a small amount, this can make it easier to notice where they differ.
+Setting {option}`guard_msgs.diff` to `false` causes {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to instead show just the produced message, which can be compared with the expected message in the source file.
+This can be convenient if the difference between the message is confusing or overwhelming.
 
 {optionDocs guard_msgs.diff}
 
@@ -576,6 +577,7 @@ def Tree.big (n : Nat) : Tree Nat :=
 
 However, it can be difficult to spot where test failures come from when the output is large:
 ```lean (error := true) (name := bigMsg)
+set_option guard_msgs.diff false
 /--
 info: Tree.branches
   [Tree.branches
@@ -599,7 +601,7 @@ Tree.branches
       Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
 ```
 
-while the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command reports this error:
+Without {option}`guard_msgs.diff`, the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command reports this error:
 ```leanOutput bigMsg (severity := error)
 ❌️ Docstring on `#guard_msgs` does not match generated message:
 

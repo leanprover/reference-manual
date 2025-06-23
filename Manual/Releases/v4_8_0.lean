@@ -18,7 +18,7 @@ tag := "release-v4.8.0"
 file := "v4.8.0"
 %%%
 
-`````markdown
+````markdown
 ### Language features, tactics, and metaprograms
 
 * **Functional induction principles.**
@@ -511,4 +511,4 @@ fact.eq_def :
 
 * `Option.toMonad` has been renamed to `Option.getM` and the unneeded `[Monad m]` instance argument has been removed.
 
-`````
+````

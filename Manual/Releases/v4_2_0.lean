@@ -18,7 +18,7 @@ tag := "release-v4.2.0"
 file := "v4.2.0"
 %%%
 
-`````markdown
+```markdown
 * [isDefEq cache for terms not containing metavariables.](https://github.com/leanprover/lean4/pull/2644).
 * Make [`Environment.mk`](https://github.com/leanprover/lean4/pull/2604) and [`Environment.add`](https://github.com/leanprover/lean4/pull/2642) private, and add [`replay`](https://github.com/leanprover/lean4/pull/2617) as a safer alternative.
 * `IO.Process.output` no longer inherits the standard input of the caller.
@@ -33,4 +33,4 @@ file := "v4.2.0"
   * This is accomplished via changes to `withCollectingNewGoalsFrom`, which also affects `elabTermWithHoles`, `refine'`, `calc` (tactic), and `specialize`. Likewise, all of these now only include newly-created metavariables in their output.
   * Previously, both newly-created and pre-existing metavariables occurring in `e` were returned inconsistently in different edge cases, causing duplicated goals in the infoview (issue [#2495](https://github.com/leanprover/lean4/issues/2495)), erroneously closed goals (issue [#2434](https://github.com/leanprover/lean4/issues/2434)), and unintuitive behavior due to `refine e` capturing previously-created goals appearing unexpectedly in `e` (no issue; see PR).
 
-`````
+```

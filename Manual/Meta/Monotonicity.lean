@@ -36,15 +36,62 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
     let blocks : Array Term :=
       #[ ← ``(Inline.text "Theorem"), ← ``(Inline.text "Pattern") ] ++
       rows.flatten
+
+    -- The new compiler has a stack overflow when compiling the table unless we split it up. This
+    -- section is an elaborator to get good control over which parts of the table end up in their
+    -- own defs.
+    let arr1 ← mkFreshUserName `monoBlocks1
+    let arr2 ← mkFreshUserName `monoBlocks2
+    let blockName ← mkFreshUserName `block
+
+    let blockType : Expr := .app (.const ``Doc.Block []) (.const ``Verso.Genre.Manual [])
+    let listItemBlockType : Expr := .app (.const ``ListItem [0]) blockType
+    let inlineType : Expr := .app (.const ``Doc.Inline []) (.const ``Verso.Genre.Manual [])
+    let listItemInlineType : Expr := .app (.const ``ListItem [0]) inlineType
+    let arrListItemBlockType : Expr := .app (.const ``Array [0]) listItemBlockType
+
+    let elabCell (blk : Syntax) : TermElabM Expr := do
+      let blk ← Term.elabTerm blk (some inlineType)
+      let blk := mkApp2 (.const ``Block.para [])  (.const ``Verso.Genre.Manual []) (← mkArrayLit inlineType [blk])
+      let blk := mkApp2 (.const ``ListItem.mk [0]) blockType (← mkArrayLit blockType [blk])
+      Term.synthesizeSyntheticMVarsNoPostponing
+      instantiateMVars blk
+
+    let blks1 ← blocks.take 70 |>.mapM elabCell
+    let blks2 ← blocks.drop 70 |>.mapM elabCell
+
+    let v1 ← mkArrayLit listItemBlockType blks1.toList
+    addAndCompile <| .defnDecl {
+      name := arr1, levelParams := [], type := arrListItemBlockType, value := v1, hints := .opaque, safety := .safe
+    }
+
+    let v1' ← mkArrayLit listItemBlockType blks2.toList
+    addAndCompile <| .defnDecl {
+      name := arr2, levelParams := [], type := arrListItemBlockType, value := v1', hints := .opaque, safety := .safe
+    }
+
     -- The tag down here is relying on the coercion from `String` to `Tag`
-    ``(Block.other (Block.table $(quote columns) (header := true) Option.none Option.none (tag := $(quote tag)))
-        #[Block.ul #[$[Verso.Doc.ListItem.mk #[Block.para #[$blocks]]],*]])
+    let stx ← ``(Block.other (Block.table $(quote columns) (header := true) Option.none Option.none (tag := $(quote tag)))
+        #[Block.ul ($(mkIdent arr1) ++ $(mkIdent arr2))])
+    let v2 ← Term.elabTerm stx (some blockType)
+    Term.synthesizeSyntheticMVarsNoPostponing
+    let v2 ← instantiateMVars v2
+
+    addAndCompile <| .defnDecl {
+      name := blockName, levelParams := [], type := blockType, value := v2, hints := .opaque, safety := .safe
+    }
+
+    if ((← getEnv).find? blockName).isSome then
+      return mkIdent blockName
+    else
+      throwError "Failed to construct monotonicity lemma table"
+
 
 
 section delabhelpers
 
 /-!
-To format the monotonicy lemma patterns, I’d like to clearly mark the monotone arguments from
+To format the monotonicity lemma patterns, I’d like to clearly mark the monotone arguments from
 the other arguments. So I define two gadgets with custom delaborators.
 -/
 
@@ -105,7 +152,6 @@ def monotonicityLemmas : BlockRoleExpander
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
       pure #[nameStx, patternStx]
-
     let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
     return #[extraCss, tableStx]

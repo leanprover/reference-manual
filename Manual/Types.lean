@@ -104,12 +104,12 @@ def LengthList (α : Type u) : Nat → Type u
 ```
 
 Because Lean's tuples nest to the right, multiple nested parentheses are not needed:
-````lean
+```lean
 example : LengthList Int 0 := ()
 
 example : LengthList String 2 :=
   ("Hello", "there", ())
-````
+```
 
 If the length does not match the number of entries, then the computed type will not match the term:
 ```lean error:=true name:=wrongNum
@@ -398,18 +398,18 @@ tag := "level-expressions"
 Levels that occur in a definition are not restricted to just variables and addition of constants.
 More complex relationships between universes can be defined using level expressions.
 
-````
+```
 Level ::= 0 | 1 | 2 | ...  -- Concrete levels
         | u, v             -- Variables
         | Level + n        -- Addition of constants
         | max Level Level  -- Least upper bound
         | imax Level Level -- Impredicative LUB
-````
+```
 
 Given an assignment of level variables to concrete numbers, evaluating these expressions follows the usual rules of arithmetic.
 The `imax` operation is defined as follows:
 
-$$``\mathtt{imax}\ u\ v = \begin{cases}0 & \mathrm{when\ }v = 0\\\mathtt{max}\ u\ v&\mathrm{otherwise}\end{cases}``
+$$`\mathtt{imax}\ u\ v = \begin{cases}0 & \mathrm{when\ }v = 0\\\mathtt{max}\ u\ v&\mathrm{otherwise}\end{cases}`
 
 `imax` is used to implement {tech}[impredicative] quantification for {lean}`Prop`.
 In particular, if `A : Sort u` and `B : Sort v`, then `(x : A) → B : Sort (imax u v)`.

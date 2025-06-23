@@ -354,7 +354,7 @@ def tomorrow : Later String :=
 section
 variable {α : Type u}
 ```
-:::example "Duplicate Evaluation in Coercions"
+::::example "Duplicate Evaluation in Coercions"
 Because the contents of {lean}`Coe` instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
 This can be done by using a helper function that is not part of the instance, or by using {keywordOf Lean.Parser.Term.let}`let` to evaluate the coerced term and then re-use its resulting value.
 
@@ -378,15 +378,18 @@ def twice (x : α) : Twice α where
 instance : Coe α (Twice α) := ⟨twice⟩
 ```
 When the {name}`Coe` instance is unfolded, the call to {name}`twice` remains, which causes its argument to be evaluated before the body of the function is executed.
-As a result, the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace` executes just once:
+As a result, the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace` is included in the resulting term just once:
 ```lean (name := eval1)
-#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
+:::comment
+This used to demonstrate the effect:
 ```leanOutput eval1
 hello
 ```
+:::
 ```leanOutput eval1
-{ first := 5, second := 5, first_eq_second := _ }
+↑(dbgTrace (toString "hello") fun x => 5) : Twice Nat
 ```
 
 Inlining the helper into the {name}`Coe` instance results in a term that duplicates the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace`:
@@ -394,31 +397,39 @@ Inlining the helper into the {name}`Coe` instance results in a term that duplica
 instance : Coe α (Twice α) where
   coe x := ⟨x, x, rfl⟩
 
-#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
+:::comment
+This used to check the effects, but can't in the new codegen
 ```leanOutput eval2
 hello
 hello
 ```
+:::
 ```leanOutput eval2
-{ first := 5, second := 5, first_eq_second := _ }
+{ first := dbgTrace (toString "hello") fun x => 5, second := dbgTrace (toString "hello") fun x => 5,
+  first_eq_second := ⋯ } : Twice Nat
 ```
 
-Introducing an intermediate name for the result of the evaluation prevents the duplicated work:
+Introducing an intermediate name for the result of the evaluation prevents the duplication of {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace`:
 ```lean (name := eval3)
 instance : Coe α (Twice α) where
   coe x := let y := x; ⟨y, y, rfl⟩
 
-#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
+:::comment
+This also checked the effects
 ```leanOutput eval3
 hello
 ```
+:::
 ```leanOutput eval3
-{ first := 5, second := 5, first_eq_second := _ }
+let y := dbgTrace (toString "hello") fun x => 5;
+{ first := y, second := y, first_eq_second := ⋯ } : Twice Nat
 ```
 
-:::
+::::
 ```lean (show := false)
 end
 ```
@@ -485,12 +496,12 @@ Non-dependent coercions are used whenever all values of the inferred type can be
 
 :::example "Defining Dependent Coercions"
 The string "four" can be coerced into the natural number {lean type:="Nat"}`4` with this instance declaration:
-````lean (name := fourCoe)
+```lean (name := fourCoe)
 instance : CoeDep String "four" Nat where
   coe := 4
 
 #eval ("four" : Nat)
-````
+```
 ```leanOutput fourCoe
 4
 ```

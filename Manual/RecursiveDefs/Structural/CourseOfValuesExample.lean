@@ -29,7 +29,7 @@ def List.below' {α : Type u} {motive : List α → Sort u} :
 ```lean (show := false)
 theorem List.below_eq_below' : @List.below = @List.below' := by
   funext α motive xs
-  induction xs <;> simp [List.below, below']
+  induction xs <;> simp [below']
   congr
 ```
 
@@ -58,9 +58,9 @@ theorem Tree.below_eq_below' : @Tree.below = @Tree.below' := by
   funext α motive t
   induction t
   next =>
-    simp [Tree.below, Tree.below']
+    simp [Tree.below']
   next ihl ihr =>
-    simp [Tree.below, Tree.below', ihl, ihr]
+    simp [Tree.below', ihl, ihr]
 
 ```
 
