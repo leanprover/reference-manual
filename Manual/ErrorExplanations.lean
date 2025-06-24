@@ -35,7 +35,7 @@ def Inline.errorExplanationLink.descr : InlineDescr where
     let some id := obj.getId
       | logError s!"Could not find retrieve ID from explanation domain entry for name '{name}'"
         content.mapM go
-    if let some (path, htmlId) := xref.externalTags.get? id then
+    if let some { path, htmlId } := xref.externalTags.get? id then
       let addr := path.link (some htmlId.toString)
       pure {{<a class="technical-term" href={{addr}}>{{← content.mapM go}}</a>}}
     else

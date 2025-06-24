@@ -155,7 +155,7 @@ window.addEventListener('DOMContentLoaded', () => {
       HtmlT.logError s!"Mismatched number of titles and contents for example block: \
         Found {contents.size} tab panels but {titles.size} titles."
       return .empty
-    let some (_, htmlId) := (← HtmlT.state).externalTags[id]?
+    let some { htmlId, .. } := (← HtmlT.state).externalTags[id]?
       | HtmlT.logError "Could not find tag for error example"
         pure .empty
     let buttons ← titles.mapIdxM fun i (title : String) => do
@@ -581,7 +581,7 @@ def Block.errorExplanationMetadata.descr : BlockDescr where
       | HtmlT.logError "Failed to parse info for error explanation metadata block:\n{metadata}"
         pure .empty
     let deprecatedWarning :=
-      if metadata.removedVersion.isSome then
+      if metadata.removedVersion?.isSome then
         {{ <div class="error-explanation-removed-warning">
              <p><strong>"Note: "</strong> "This diagnostic is no longer produced."</p>
            </div> }}
@@ -589,7 +589,7 @@ def Block.errorExplanationMetadata.descr : BlockDescr where
         .empty
     let sevText := if metadata.severity matches .warning then "Warning" else "Error"
     let entries := #[("Severity", sevText), ("Since", metadata.sinceVersion)]
-      ++ (metadata.removedVersion.map fun v => #[("Removed", v)]).getD #[]
+      ++ (metadata.removedVersion?.map fun v => #[("Removed", v)]).getD #[]
     let entries := entries.map fun (label, data) =>
       {{ <span class="error-explanation-metadatum">
            <strong>{{Html.text true label}}": "</strong>
