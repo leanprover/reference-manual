@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
 import Lean.Elab.Import
-import Lean.ErrorExplanations
 import Lake
 open Lake DSL
 open System (FilePath)
@@ -205,7 +204,8 @@ target error_explanations : Array Name := do
     let ws ← getWorkspace
     let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
       error "Could not find module `Manual.ErrorExplanations"
-    IO.FS.removeFile mod.oleanFile
+    if (← System.FilePath.pathExists mod.oleanFile) then
+      IO.FS.removeFile mod.oleanFile
   exeJob.bindM fun exe => Job.async do
     for group in groups do
       processImportGroup group exe errorExplanationExOutDir
