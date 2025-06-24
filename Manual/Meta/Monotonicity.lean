@@ -147,7 +147,7 @@ def monotonicityLemmas : BlockRoleExpander
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged none fmt ⟨{}, false, false, []⟩
+              renderTagged none fmt ⟨{}, false, []⟩
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
