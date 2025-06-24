@@ -16,19 +16,23 @@ open Lean Elab
 
 namespace Manual
 
-def Block.example (name : Option String) : Block where
+def Block.example (name : Option String) (opened : Option Bool) : Block where
   name := `Manual.example
-  data := ToJson.toJson (name, (none : Option Tag))
+  data := ToJson.toJson (name, opened, (none : Option Tag))
 
 structure ExampleConfig where
   description : FileMap × TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
+  opened : Bool := false
 
 
 def ExampleConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m ExampleConfig :=
-  ExampleConfig.mk <$> .positional `description .inlinesString <*> .named `tag .string true <*> (.named `keep .bool true <&> (·.getD false))
+  ExampleConfig.mk <$> .positional `description .inlinesString
+                   <*> .named `tag .string true
+                   <*> (.named `keep .bool true <&> (·.getD false))
+                   <*> (.named `opened .bool true <&> (·.getD false))
 
 def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) (xs : Array α) : m (Array β) := do
   let mut out := #[]
@@ -70,19 +74,20 @@ def «example» : DirectiveExpander
         withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote cfg.tag)) #[Block.para #[$description,*], $blocks,*])]
+    pure #[← ``(Block.other (Block.example $(quote cfg.tag) (opened := $(quote cfg.opened)))
+                #[Block.para #[$description,*], $blocks,*])]
 
 @[block_extension «example»]
 def example.descr : BlockDescr where
   traverse id data contents := do
-    match FromJson.fromJson? data (α := Option String × Option Tag) with
+    match FromJson.fromJson? data (α := Option String × Option Bool × Option Tag) with
     | .error e => logError s!"Error deserializing example tag: {e}"; pure none
-    | .ok (none, _) => pure none
-    | .ok (some x, none) =>
+    | .ok (none, _, _) => pure none
+    | .ok (some x, opened?, none) =>
       let path ← (·.path) <$> read
       let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.example none with id := some id, data := toJson (some x, some tag)} contents
-    | .ok (some _, some _) => pure none
+      pure <| some <| Block.other {Block.example none none with id := some id, data := toJson (some x, opened?, some tag)} contents
+    | .ok (some _, _, some _) => pure none
   toTeX :=
     some <| fun _ go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
@@ -90,15 +95,21 @@ def example.descr : BlockDescr where
   toHtml :=
     open Verso.Doc.Html in
     open Verso.Output.Html in
-    some <| fun goI goB id _data blocks => do
+    some <| fun goI goB id data blocks => do
       if h : blocks.size < 1 then
         HtmlT.logError "Malformed example"
         pure .empty
       else
         let .para description := blocks[0]
           | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
+        let opened ←
+          match FromJson.fromJson? data (α := Option String × Option Bool × Option Tag) with
+          | .error e => HtmlT.logError s!"Error deserializing example data: {e}"; pure false
+          | .ok (_, opened?, _) => pure <| opened?.getD false
         let xref ← HtmlT.state
-        let attrs := xref.htmlId id
+        let mut attrs := xref.htmlId id
+        if opened then
+          attrs := attrs.push ("open", "")
         pure {{
           <details class="example" {{attrs}}>
             <summary class="description">{{← description.mapM goI}}</summary>
