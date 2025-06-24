@@ -187,14 +187,21 @@ def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × Str
       acc := acc.push line
   return codeBlocks
 
+deriving instance ToExpr for MessageSeverity
+deriving instance ToExpr for ErrorExplanation.Metadata
+deriving instance ToExpr for DeclarationLocation
+deriving instance ToExpr for ErrorExplanation
+
+elab "all_error_explanations%" : term =>
+  return toExpr <| getErrorExplanationsRaw (← getEnv)
+
 /-- Preprocess code examples in error explanations. -/
 target error_explanations : Array Name := do
   let exeJob ← extract_explanation_examples.fetch
   -- We must compute groups when fetching jobs because olean deletion (if
   -- necessary) must happen in advance so that, if this is part of a full manual
   -- build, that module will be rebuilt
-  let env ← importModules #[`Lean.ErrorExplanations] {} (loadExts := true)
-  let explans := getErrorExplanationsRaw env
+  let explans := all_error_explanations%
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
   let groups ← groupByImports allBlocks
