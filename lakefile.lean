@@ -3,6 +3,7 @@ Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
+import Lean.Elab.Import
 import Lake
 open Lake DSL
 open System (FilePath)
@@ -26,6 +27,7 @@ lean_lib Manual where
 
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
+def errorExplanationExOutDir : FilePath := "error_explanation_examples"
 
 def ensureDir (dir : System.FilePath) : IO Unit := do
   if !(← dir.pathExists) then
@@ -41,6 +43,10 @@ target subversoExtractMod : FilePath := do
     | failure
   exe.fetch
 
+
+lean_exe extract_explanation_examples where
+  root := `ExtractExplanationExamples
+  supportInterpreter := true
 
 
 target figures : Array FilePath := do
@@ -79,7 +85,142 @@ target figures : Array FilePath := do
 
     pure srcInfo
 
+section ExplanationPreprocessing
+open Lean Meta
+
+/- This must agree with `mkExampleName` in `Manual.ErrorExplanation`. -/
+private def mkExampleName (errorName : Name) (idx : Nat) : Name :=
+  errorName ++ s!"block{idx}".toName
+
+/--
+Returns `true` if there exists a cached elaboration result for code block `id`
+with hash `hash` on the current Lean version.
+-/
+def hasUsableCache (id : String) (hash : UInt64) : IO Bool := do
+  let path := errorExplanationExOutDir / (id ++ ".json")
+  unless (← System.FilePath.pathExists path) do return false
+  let cacheStr ← IO.FS.readFile path
+  let .ok json := Json.parse cacheStr | return false
+  let .ok cacheHash := json.getObjVal? "hash" >>= FromJson.fromJson? (α := UInt64)
+    | return false
+  let .ok version := json.getObjVal? "version" >>= Json.getStr?
+    | return false
+  return version == Lean.versionString && cacheHash == hash
+
+/--
+Runs the explanation example extractor over every entry in `examples`,
+generating output JSON files in `explanationExamplesDir`. All entries in
+`examples` must have equivalent headers, as the same environment will be reused
+for each.
+-/
+def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) (outDir : FilePath) : IO Unit :=
+  IO.FS.withTempDir fun tmpDir => do
+    let examplePaths ← examples.mapM fun (name, input) => do
+      let path := tmpDir / (name.toString ++ ".lean")
+      IO.FS.writeFile path input
+      pure path.toString
+    let childConfig := {
+      cmd := exePath.toString
+      args := #[outDir.toString] ++ examplePaths
+      stdin := .piped, stdout := .piped, stderr := .piped
+    }
+    let out ← IO.Process.output childConfig
+    if out.exitCode != 0 then
+      let args := childConfig.args.foldl (s!"{·} \"{·}\"") ""
+      let cmd := s!"extract_explanation_examples{args}"
+      throw <| IO.userError <|
+        s!"Nonzero exit code {out.exitCode} when running `{cmd}`\n" ++
+        s!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
+
+deriving instance BEq, Hashable for Import
+
+/-- Generates groups from `codeBlocks` of examples with equivalent headers. -/
+def groupByImports (codeBlocks : Array (Name × String)) :
+    IO (Array (Array (Name × String))) := do
+  let (map : Std.HashMap (Array Import) _) ←
+    codeBlocks.foldlM (init := {}) fun acc (name, block) => do
+      if (← hasUsableCache name.toString (hash block)) then
+        pure acc
+      else
+        let inputCtx := Parser.mkInputContext block "Main.lean"
+        let (header, _, _) ← Parser.parseHeader inputCtx
+        let imports := Elab.headerToImports header
+        let acc := if acc.contains imports then acc else acc.insert imports #[]
+        pure <| acc.modify imports fun namedBlocks => namedBlocks.push (name, block)
+  return map.toArray.map Prod.snd
+
+/-- The state of a Markdown traversal: are we inside or outside a code block? -/
+inductive MDTraversalState where
+  | outsideCode
+  | insideCode (isLean : Bool) (numTicks : Nat)
+
+/--
+Extracts Lean code blocks from `input` and returns them with their indexed names.
+-/
+def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × String) := Id.run do
+  let lines := input.splitOn "\n"
+  let mut codeBlocks : Array (Name × String) := #[]
+
+  let mut state := MDTraversalState.outsideCode
+  let mut acc : Array String := #[]
+  let mut idx := 0
+  for line in lines do
+    if line.startsWith "```" then
+      let numTicks := line.takeWhile (· == '`') |>.length
+      match state with
+      | .outsideCode =>
+        let lang := line.drop numTicks |>.takeWhile (! ·.isWhitespace)
+        state := .insideCode (lang == "lean" || lang.isEmpty) numTicks
+      | .insideCode isLean expectedTicks =>
+        if numTicks == expectedTicks then
+          state := .outsideCode
+          if isLean then
+            -- Match MD4Lean by including the trailing newline:
+            acc := acc.push ""
+            let code := "\n".intercalate acc.toList
+            codeBlocks := codeBlocks.push (mkExampleName exampleName idx, code)
+            acc := #[]
+            idx := idx + 1
+        else
+          acc := acc.push line
+    else if state matches .insideCode true _ then
+      acc := acc.push line
+  return codeBlocks
+
+deriving instance ToExpr for MessageSeverity
+deriving instance ToExpr for ErrorExplanation.Metadata
+deriving instance ToExpr for DeclarationLocation
+deriving instance ToExpr for ErrorExplanation
+
+elab "all_error_explanations%" : term =>
+  return toExpr <| getErrorExplanationsRaw (← getEnv)
+
+/-- Preprocess code examples in error explanations. -/
+target error_explanations : Array Name := do
+  let exeJob ← extract_explanation_examples.fetch
+  -- We must compute groups when fetching jobs because olean deletion (if
+  -- necessary) must happen in advance so that, if this is part of a full manual
+  -- build, that module will be rebuilt
+  let explans := all_error_explanations%
+  let allBlocks := explans.flatMap fun (name, explan) =>
+    extractCodeBlocks name explan.doc
+  let groups ← groupByImports allBlocks
+  -- If we will change the cached files, we need to be sure that they get
+  -- reloaded on the next manual build
+  if groups.size > 0 then
+    let ws ← getWorkspace
+    let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
+      error "Could not find module `Manual.ErrorExplanations"
+    if (← System.FilePath.pathExists mod.oleanFile) then
+      IO.FS.removeFile mod.oleanFile
+  exeJob.bindM fun exe => Job.async do
+    for group in groups do
+      processImportGroup group exe errorExplanationExOutDir
+    return groups.flatten.map (·.1)
+
+end ExplanationPreprocessing
+
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/figures, `@/subversoExtractMod]
+  needs := #[`@/extract_explanation_examples, `@/error_explanations, `@/figures, `@/subversoExtractMod]
   root := `Main
