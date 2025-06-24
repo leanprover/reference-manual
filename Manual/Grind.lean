@@ -233,7 +233,7 @@ Other frequently‑triggered propagators follow the same pattern:
 TODO (@kim-em): we don't add the `{lean}` literal type to `propagateEtaStruct` above because it is private.
 :::
 
-Many specialised variants for {lean}`Bool` mirror these rules exactly (e.g. {lean}`propagateBoolAndUp`).
+Many specialized variants for {lean}`Bool` mirror these rules exactly (e.g. {lean}`propagateBoolAndUp`).
 
 ## Propagation‑only examples
 
@@ -255,11 +255,11 @@ example (a : Bool) (h : (!a) = true) : a = false := by
   grind
 ```
 
-These snippets run instantly because the relevant propagators ({lean}`propagateBoolAndUp`, {lean}`propagateIte`, {lean}`propagateBoolNotDown`) fire as soon as the hypotheses are internalised.
+These snippets run instantly because the relevant propagators ({lean}`propagateBoolAndUp`, {lean}`propagateIte`, {lean}`propagateBoolNotDown`) fire as soon as the hypotheses are internalized.
 
 > **Note** If you toggle `set_option trace.grind.eqc true`, {tactic}`grind` will print a line every time two equivalence classes merge—handy for seeing propagation in action.
 
-**Implementation tip**  {tactic}`grind` is still under active development. Until the API has stabilised we recommend **refraining from custom elaborators or satellite solvers**. If you really need a project‑local propagator, use the user‑facing `grind_propagator` command rather than `builtin_grind_propagator` (the latter is reserved for Lean’s own code). When adding new propagators keep them *small and orthogonal*—they should fire in ≤1 µs and either push one fact or close the goal. This keeps the propagation phase predictable and easy to debug.
+**Implementation tip**  {tactic}`grind` is still under active development. Until the API has stabilized we recommend **refraining from custom elaborators or satellite solvers**. If you really need a project‑local propagator, use the user‑facing `grind_propagator` command rather than `builtin_grind_propagator` (the latter is reserved for Lean’s own code). When adding new propagators keep them *small and orthogonal*—they should fire in ≤1 µs and either push one fact or close the goal. This keeps the propagation phase predictable and easy to debug.
 
 We continuously expand and refine the rule set—expect the **Info View** to show increasingly rich {lean}`True`/{lean}`False` buckets over time. The full equivalence classes are displayed automatically **only when {tactic}`grind` fails**, and only for the first subgoal it could not close—use this output to inspect missing facts and understand why the subgoal remains open.
 
@@ -358,7 +358,7 @@ The attribute `[grind =]` instructs `grind` to use the left-hand side of the equ
 `g (f x)`, as a pattern for heuristic instantiation via E-matching.
 Suppose we now have a goal involving:
 ```lean
-example (h : f b = a) : g a = b := by
+example {a b} (h : f b = a) : g a = b := by
   grind
 ```
 Although `g a` is not an instance of the pattern `g (f x)`,
@@ -386,7 +386,7 @@ allowing it to solve the goal automatically:
 ```lean
 grind_pattern gf => f x
 
-example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
+example {a b c} (h₁ : f b = a) (h₂ : f c = a) : b = c := by
   grind
 ```
 You can enable the option `trace.grind.ematch.instance` to make `grind` print a
@@ -413,7 +413,7 @@ axiom Rtrans {x y z : Int} : R x y → R y z → R x z
 
 grind_pattern Rtrans => R x y, R y z
 
-example : R a b → R b c → R c d → R a d := by
+example {a b c d} : R a b → R b c → R c d → R a d := by
   grind
 ```
 By specifying the multi-pattern `R x y, R y z`, we instruct `grind` to
@@ -501,40 +501,230 @@ consider using different options or the `grind_pattern` command
 @[grind? =>] theorem h₆ (_ : q (y + 2) = q y) (_ : q (y + 1) = q y) : p (x + 2) = 7 := sorry
 ```
 
-If you're planning to do substantial annotation work, you should study these examples and verify that they follow the rules described above.
+If you're planning to do substantial annotation work, you should study these examples and verify that
+they follow the rules described above.
+
+E-matching can generate too many theorem instances. Some patterns may even generate an unbounded
+number of instances. For example, consider the pattern `s x` in the following example.
+
+```lean (error := true)
+def s (x : Nat) := 0
+
+@[grind =] theorem s_eq (x : Nat) : s x = s (x + 1) :=
+  rfl
+
+example : s 0 > 0 := by
+  grind
+```
+
+In the example above, `grind` instantiates `s_eq` with `x := 0` which generates the term
+`s 1` with is then used to instantiate `s_eq` with `x := 1` which generates the term `s 2`
+and so on. The instantiation process is interrupted using the `generation` threshold.
+Terms occurring in the input goal have `generation` zero. When `grind` instantiates
+a theorem using terms with generation `≤ n`, the new generated terms have generation `n+1`.
+You can set the maximum generation using the option `grind (gen := <num>)`.
+You can also control the number of E-matching rounds using the option `grind (ematch := <num>)`.
+In the following example, we prove that `(iota 20).length > 10` by instantiating `iota_succ`
+and `List.length_cons`
+
+```lean
+def iota : Nat → List Nat
+  | 0 => []
+  | n+1 => n :: iota n
+
+@[grind =] theorem iota_succ : iota (n+1) = n :: iota n :=
+  rfl
+
+example : (iota 20).length > 10 := by
+  grind (gen := 20) (ematch := 20)
+```
+
+You can set the option `set_option diagnostics true` to obtain the number of
+theorem instances generated by `grind` per theorem. This is useful to detect
+theorems that contain patterns that are triggering too many instances.
+
+```lean
+set_option diagnostics true in
+example : (iota 20).length > 10 := by
+  grind (gen := 20) (ematch := 20)
+```
+
+By default, `grind` uses that automatically generated equations for `match`-expressions as E-matching theorems.
+
+```lean
+example (x y : Nat)
+    : x = y + 1 →
+      0 < match x with
+          | 0 => 0
+          | _+1 => 1 := by
+  grind
+```
+
+You can disable this feature by using `grind -matchEqs`
+
+```lean (error := true)
+example (x y : Nat)
+    : x = y + 1 →
+      0 < match x with
+          | 0 => 0
+          | _+1 => 1 := by
+  grind -matchEqs
+```
+
 
 TBD
 * anti‑patterns
 * local vs global attributes
-* Flags: `ematch`, `instances`, `matchEqs`.
 * `gen` modifier?
 
 # Linear Integer Arithmetic Solver
-TBD
-Model‑building CutSAT‑style procedure, model‑based theory combination. Flags: `+qlia`, `-mbtc`.
+
+The linear integer arithmetic solver, `cutsat`, implements a model-based decision procedure for linear integer arithmetic,
+inspired by Section 4 of "Cutting to the Chase: Solving Linear Integer Arithmetic".
+The implementation in `grind` includes several enhancements and modifications such as
+
+- Extended constraint support (equality and disequality).
+- Optimized encoding of the `Cooper-Left` rule using a "big"-disjunction instead of fresh variables.
+- Decision variable tracking for case splits (disequalities, `Cooper-Left`, `Cooper-Right`).
+
+The solver can process four categories of linear polynomial constraints (where `p` is a linear polynomial):
+1. Equality:     `p = 0`
+2. Divisibility: `d ∣ p`
+3. Inequality:   `p ≤ 0`
+4. Disequality:  `p ≠ 0`
+
+The procedure builds a model incrementally, resolving conflicts through constraint generation.
+For example, given a partial model `{x := 1}` and constraint `3 ∣ 3*y + x + 1`:
+- The solve cannot extend the model to `y` because `3 ∣ 3*y + 2` is unsatisfiable.
+- Thus, it resolves the conflict by generating the implied constraint `3 ∣ x + 1`.
+- The new constraint forces the solver to find a new assignment for `x`.
+
+When assigning a variable `y`, the solver considers:
+- The best upper and lower bounds (inequalities).
+- A divisibility constraint.
+- All disequality constraints where `y` is the maximal variable.
+
+The `Cooper-Left` and `Cooper-Right` rules handle the combination of inequalities and divisibility.
+For unsatisfiable disequalities `p ≠ 0`, the solver generates the case split: `p + 1 ≤ 0 ∨ -p + 1 ≤ 0`.
+
+The following examples demonstrate goals that can be decide by `cutsat`.
+
+```lean
+-- The left-hand-side is a multiple of 2.
+example {x y : Int} : 2 * x + 4 * y ≠ 5 := by
+  grind
+
+-- Mixing equalities and inequalities.
+example {x y : Int} : 2 * x + 3 * y = 0 → 1 ≤ x → y < 1 := by
+  grind
+
+-- Linear divisibility constraints.
+example (a b : Int) : 2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2*a := by
+  grind
+```
+
+You can disable this solver using the option  `grind -cutsat`.
+
+```lean (error := true)
+example (a b : Int) : 2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2*a := by
+  grind -cutsat
+```
+
+The solver is complete for linear integer arithmetic.
+The following example has a rational solution, but does not have integer ones.
+
+```lean
+-- The following example has rational solutions, but no integer one.
+example {x y : Int}
+    : 27 ≤ 13*x + 11*y → 13*x + 11*y ≤ 30 →
+      -10 ≤ 9*x - 7*y → 9*x - 7*y > 4 := by
+  grind
+```
+
+The search can become vast with very few constraints, but `cutsat` was
+not designed to perform massive case-analysis. You can reduce the search
+space by instructing `cutsat` to accept rational solutions using the option
+`grind +qlia`.
+
+```lean (error := true)
+example {x y : Int}
+    : 27 ≤ 13*x + 11*y → 13*x + 11*y ≤ 30 →
+      -10 ≤ 9*x - 7*y → 9*x - 7*y > 4 := by
+  grind +qlia
+```
+
+In the example above, you can inspect the rational model constructed by `cutsat`
+by expanding the section "Assignment satisfying linear constraints" in the goal
+diagnostics.
+
+The solver currently does not have support for nonlinear constraints, and treats
+nonlinear terms such as `x*x` as variables. Thus, it fails to solve the following goal.
+You can use the option `trace.grind.cutsat.assert` to trace all constraints processed
+by `cutsat`. Note that the term `x*x` is "quoted" in `「x * x」 + 1 ≤ 0` to indicate
+that `x*x` is treated as a variable.
+
+```lean (error := true)
+example (x : Int) : x*x ≥ 0 := by
+  set_option trace.grind.cutsat.assert true in
+  grind
+```
+
+The solver also implements model-based theory combination. This is a mechanism for
+propagating equalities back to the core module that might trigger new congruences.
+
+```lean
+example (f : Int → Int) (x y : Int)
+    : f x = 0 → 0 ≤ y → y ≤ 1 → y ≠ 1 →
+      f (x + y) = 0 := by
+  grind
+```
+
+In the example above, the linear inequalities and disequalities imply `y = 0`,
+and consequently `x = x + y`, and `f x = f (x + y)` by congruence.
+Model-based theory combination increases the size of the search space, and you
+can disable it using the option `grind -mbtc`
+
+```lean (error := true)
+example (f : Int → Int) (x y : Int)
+    : f x = 0 → 0 ≤ y → y ≤ 1 → y ≠ 1 →
+      f (x + y) = 0 := by
+  grind -mbtc
+```
+
+The `cutsat` solver can also process linear constraints containing natural numbers.
+It converts them into integer constraints by using `Int.ofNat`.
+
+```lean
+example (x y z : Nat) : x < y + z → y + 1 < z → z + x < 3*z := by
+  grind
+```
+
+The solver also supports linear division and modulo operations.
+
+```lean
+example (x y : Int) : x = y / 2 → y % 2 = 0 → y - 2*x = 0 := by
+  grind
+```
+
+Planned future features: improved constraint propagation.
 
 # Algebraic Solver (Commutative Rings, Fields)
-TBD
-Gröbner‑style basis construction, class parameters ({lean}`IsCharP`, {lean}`NoNatZeroDivisors`), step budget `algSteps`.
 
-The numeric types built-in to the standard library (namely `Nat`, `Int`, `Fin n`, `UIntX`, `IntX`, and `BitVec`) are already configured for use with these algebraic solvers.
-
-Users can enable these solvers for their own types by providing instances of the following typeclasses, all in the `Lean.Grind` namespace.
+The `ring` solver is inspired by Gröbner basis computation procedures and term rewriting completion.
+It views multivariate polynomials as rewriting rules. For example, the polynomial equality `x*y + x - 2 = 0`
+is treated as a rewriting rule `x*y ↦ -x + 2`. It uses superposition to ensure the rewriting system is
+confluent. Users can enable the `ring` solver for their own types by providing instances of
+the following type classes, all in the `Lean.Grind` namespace.
 The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
 The capabilities of the algebraic solvers will of course degrade when some are not available.
+
 
 :::comment
 Uncomment these once doc-strings have landed.
 
-{docstring Lean.Grind.NatModule}
-
-{docstring Lean.Grind.IntModule}
-
-{docstring Lean.Grind.Semiring}
-
-{docstring Lean.Grind.Ring}
-
 {docstring Lean.Grind.CommSemiring}
+
+{docstring Lean.Grind.AddRightCancel}
 
 {docstring Lean.Grind.CommRing}
 
@@ -542,17 +732,187 @@ Uncomment these once doc-strings have landed.
 
 {docstring Lean.Grind.NoNatZeroDivisors}
 
-{docstring Lean.Grind.NatModule.IsOrdered}
-
-{docstring Lean.Grind.IntModule.IsOrdered}
-
-{docstring Lean.Grind.Ring.IsOrdered}
-
+{docstring Lean.Grind.Field}
 :::
 
-# Normalizer / Pre‑processor
-TBD
-Canonicalization pass; extending with `[grind norm]` (expert only).
+The Lean standard library contains the applicable instances for the types defined in core.
+Mathlib is also pre-configured. For example, the Mathlib `CommRing` type class implements
+the `Lean.Grind.CommRing α` to ensure the `ring` solver works out-of-the-box.
+
+The following examples demonstrate goals that can be decided by the `ring` solver.
+
+```lean
+open Lean Grind
+
+example [CommRing α] (x : α) : (x + 1)*(x - 1) = x^2 - 1 := by
+  grind
+
+-- The solver "knows" that `16*16 = 0` because the
+-- ring characteristic is `256`.
+example [CommRing α] [IsCharP α 256] (x : α)
+    : (x + 16)*(x - 16) = x^2 := by
+  grind
+
+-- Types in the std library implement the appropriate type classes.
+-- `UInt8` is a commutative ring with characteristic `256`.
+example (x : UInt8) : (x + 16)*(x - 16) = x^2 := by
+  grind
+
+example [CommRing α] (a b c : α)
+    : a + b + c = 3 →
+      a^2 + b^2 + c^2 = 5 →
+      a^3 + b^3 + c^3 = 7 →
+      a^4 + b^4 = 9 - c^4 := by
+  grind
+
+example [CommRing α] (x y : α)
+    : x^2*y = 1 → x*y^2 = y → y*x = 1 := by
+  grind
+
+-- `ring` proves that `a + 1 = 2 + a` is unsatisfiable because
+-- the characteristic is known.
+example [CommRing α] [IsCharP α 0] (a : α)
+    : a + 1 = 2 + a → False := by
+  grind
+```
+
+The class `NoNatZeroDivisors` is used to control coefficient growth.
+For example, the polynomial `2*x*y + 4*z = 0` is simplified to `x*y + 2*z = 0`.
+It also used when processing disequalities. In the following example,
+if you remove the local instance `[NoNatZeroDivisors α]`, the goal will not be solved.
+
+```lean
+example [CommRing α] [NoNatZeroDivisors α] (a b : α)
+    : 2*a + 2*b = 0 → b ≠ -a → False := by
+  grind
+```
+
+The `ring` solver also has support for `[Field α]`. During preprocessing,
+it rewrites the term `a/b` as `a*b⁻¹`. It also rewrites every disequality
+`p ≠ 0` as the equality `p * p⁻¹ = 1`. This transformation is essential to
+prove the following example:
+
+```lean
+example [Field α] (a : α)
+    : a^2 = 0 → a = 0 := by
+  grind
+```
+
+The `ring` module also performs case-analysis for terms `a⁻¹` on whether `a` is zero or not.
+In the following example, if `2*a` is zero, then `a` is also zero since
+we have`NoNatZeroDivisors α`, and all terms are zero and the equality hold. Otherwise,
+`ring` adds the equalities `a*a⁻¹ = 1` and `2*a*(2*a)⁻¹ = 1`, and closes the goal.
+
+```lean
+example [Field α] [NoNatZeroDivisors α] (a : α)
+    : 1 / a + 1 / (2 * a) = 3 / (2 * a) := by
+  grind
+```
+
+In the following example, `ring` does not need to perform any case split because
+the goal contains the disequalities `y ≠ 0` and `w ≠ 0`.
+
+```lean
+example [Field α] {x y z w : α}
+    : x / y = z / w → y ≠ 0 → w ≠ 0 → x * w = z * y := by
+  grind (splits := 0)
+```
+
+You can disable the `ring` solver using the option `grind -ring`.
+
+```lean (error := true)
+example [CommRing α] (x y : α)
+    : x^2*y = 1 → x*y^2 = y → y*x = 1 := by
+  grind -ring
+```
+
+The `ring` solver embeds `CommSemiring`s into a `CommRing` envelop. However, the embedding
+is injective only when the `CommSemiring` implements the type class `AddRightCancel`.
+Given a commutative semiring `α`, its envelop is called `Lean.Grind.Ring.OfSemiring.Q α`.
+The type `Nat` is a commutative semiring and implements `AddRightCancel`.
+
+--- TODO: remove error after we update Lean
+```lean (error := true)
+example (x y : Nat)
+    : x^2*y = 1 → x*y^2 = y → y*x = 1 := by
+  grind
+```
+
+Gröbner basis computation can be very expensive. You can limit the number of steps performed by
+the `ring` solver using the option `grind (ringSteps := <num>)`
+
+```lean (error := true)
+example {α} [CommRing α] [IsCharP α 0] (d t c : α) (d_inv PSO3_inv : α)
+    : d^2 * (d + t - d * t - 2) * (d + t + d * t) = 0 →
+     -d^4 * (d + t - d * t - 2) *
+     (2 * d + 2 * d * t - 4 * d * t^2 + 2 * d * t^4 +
+      2 * d^2 * t^4 - c * (d + t + d * t)) = 0 →
+     d * d_inv = 1 →
+     (d + t - d * t - 2) * PSO3_inv = 1 →
+     t^2 = t + 1 := by
+  -- This example cannot be solved by performing at most 100 steps
+  grind (ringSteps := 100)
+```
+
+The `ring` solver propagate equalities back to the `grind` core by normalizing terms using the
+computed Gröbner basis. In the following example, the equations `x^2*y = 1` and `x*y^2 = y` imply the equalities
+`x = 1` and `y = 1`. Thus, the terms `x*y` and `1` are equal, and consequently `some (x*y) = some 1`
+by congruence.
+
+```lean
+example (x y : Int)
+    : x^2*y = 1 → x*y^2 = y → some (y*x) = some 1 := by
+  grind
+```
+
+Planned future features: support for noncommutative rings and semirings.
+
+# Linear Arithmetic Solver
+
+`grind` also contains a linear arithmetic `linarith` solver parametrized by type classes.
+It self-configures depending on the availability of these type classes, so not all need to be provided.
+The capabilities of the `linarith` solver will of course degrade when some are not available.
+The solver ignores any type supported by `cutsat`. This modulo is useful for reasoning about `Real`,
+ordered vector spaces, etc.
+
+:::comment
+Uncomment these once doc-strings have landed.
+
+{docstring Lean.Grind.IntModule}
+
+{docstring Lean.Grind.Ring}
+
+{docstring Lean.Grind.CommRing}
+
+{docstring Lean.Grind.Preorder}
+
+{docstring Lean.Grind.PartialOrder}
+
+{docstring Lean.Grind.LinearOrder}
+
+{docstring Lean.Grind.OrderedAdd}
+
+{docstring Lean.Grind.OrderedRing}
+
+{docstring Lean.Grind.IsCharP}
+
+{docstring Lean.Grind.NoNatZeroDivisors}
+:::
+
+The following examples demonstrate goals that can be decided by the `linarith` solver.
+
+-- TODO update
+```lean (error := true)
+example [IntModule α] [LinearOrder α] [OrderedAdd α] (a b : α)
+    : 2*a + b ≥ b + a + a := by
+  grind
+```
+
+You can disable this solver using the option `grind -linarith`.
+
+Planned future features: support for `NatModule`, and better communication
+between the `ring` and `linarith` solvers. There is currently very little
+communication between these two solvers.
 
 # Diagnostics
 TBD
