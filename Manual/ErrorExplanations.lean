@@ -15,12 +15,8 @@ set_option pp.rawOnError true
 set_option guard_msgs.diff true
 
 
-def Inline.errorExplanationLink (errorName : Name) : Manual.Inline where
-  name := `Manual.Inline.errorExplanationLink
+inline_extension Inline.errorExplanationLink (errorName : Name) where
   data := toJson errorName
-
-@[inline_extension Inline.errorExplanationLink]
-def Inline.errorExplanationLink.descr : InlineDescr where
   traverse := fun _ _ _ => pure none
   toTeX  := none
   toHtml := some fun go _ data content =>
