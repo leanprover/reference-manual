@@ -863,22 +863,22 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::tactic "have"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticHaveI_
+:::tactic Lean.Parser.Tactic.tacticHave__
 :::
 
-:::tactic Lean.Parser.Tactic.tacticHave'_
+:::tactic Lean.Parser.Tactic.tacticHave'
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLet_ show:="let"
+:::tactic Lean.Parser.Tactic.tacticLet__ show:="let"
 :::
 
 :::tactic Lean.Parser.Tactic.letrec show:="let rec"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLetI_
+:::tactic Lean.Parser.Tactic.tacticLetI__
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLet'_
+:::tactic Lean.Parser.Tactic.tacticLet'__
 :::
 
 ## Configuration
