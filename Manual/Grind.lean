@@ -50,13 +50,13 @@ open Lean Lean.Grind Lean.Meta.Grind
 
 * *First proof*
 
-```lean
-example (a b c : Nat) (h₁ : a = b) (h₂ : b = c) :
-    a = c := by
-  grind
-```
+  ```lean
+  example (a b c : Nat) (h₁ : a = b) (h₂ : b = c) :
+      a = c := by
+    grind
+  ```
 
-This succeeds instantly using congruence closure.
+  This succeeds instantly using congruence closure.
 
 * *Power examples* – showcasing {tactic}`grind`'s satellite solvers:
 
@@ -96,14 +96,23 @@ This succeeds instantly using congruence closure.
 
 # What is {tactic}`grind`?
 
-A proof‑automation tactic inspired by modern SMT solvers. *Picture a virtual white‑board:* every time {tactic}`grind` discovers a new equality, inequality, or Boolean literal it writes that fact on the board, merges equivalent terms into buckets, and invites each engine to read from—and add back to—the same workspace. The cooperating engines are: congruence closure, constraint propagation, E‑matching, guided case analysis, and a suite of satellite theory solvers (linear integer arithmetic, commutative rings, …). Lean supports dependent types and a powerful type‑class system, and {tactic}`grind` produces ordinary Lean proof terms for every fact it adds.
+A proof‑automation tactic inspired by modern SMT solvers.
+
+*Picture a virtual white‑board:* every time {tactic}`grind` discovers a new equality, inequality, or Boolean literal it writes that fact on the board, merges equivalent terms into buckets, and invites each engine to read from—and add back to—the shared white-board. The cooperating engines are:
+* congruence closure,
+* constraint propagation,
+* E‑matching,
+* guided case analysis, and
+* a suite of satellite theory solvers (linear integer arithmetic, commutative rings, …).
+
+Lean supports dependent types and a powerful type‑class system, and {tactic}`grind` produces ordinary Lean proof terms for every fact it adds.
 
 # What {tactic}`grind` is *not*.
 
 {tactic}`grind` is *not* designed for goals whose search space explodes combinatorially—think large‑`n` pigeonhole instances, graph‑coloring reductions, high‑order N‑queens boards, or a 200‑variable Sudoku encoded as Boolean constraints.  Such encodings require thousands (or millions) of case‑splits that overwhelm {tactic}`grind`’s branching search.
 
 * *Bit‑level or pure Boolean combinatorial problems* → use {tactic}`bv_decide`.
-  {tactic}`bv_decide` calls a state‑of‑the‑art SAT solver (e.g. CaDiCaL or Kissat) and then returns a *compact, machine‑checkable certificate*.  All heavy search happens outside Lean; the certificate is replayed and verified inside Lean, so trust is preserved (verification time scales with certificate size).
+  The {tactic}`bv_decide` tactic calls a state‑of‑the‑art SAT solver (e.g. CaDiCaL or Kissat) and then returns a *compact, machine‑checkable certificate*.  All heavy search happens outside Lean; the certificate is replayed and verified inside Lean, so trust is preserved (verification time scales with certificate size).
 * *Full SMT problems that need substantial case analysis across multiple theories* (arrays, bit‑vectors, rich arithmetic, quantifiers, …) → use the forthcoming *`lean‑smt`* tactic—a tight Lean front‑end for CVC5 that replays unsat cores or models inside Lean.
 
 # Congruence Closure
@@ -150,8 +159,8 @@ When {tactic}`grind` *fails* it prints the remaining subgoal *followed by all eq
 
 Constraint propagation works on the *True* and *False* buckets of the white‑board.  Whenever a literal is added to one of those buckets, {tactic}`grind` fires dozens of small _forward rules_ to push its logical consequences:
 
-* Boolean connectives — e.g. if `A` is {lean}`True`, mark `A ∨ B` {lean}`True`; if `A ∧ B` is {lean}`True`, mark both `A` and `B` {lean}`True`; if `A ∧ B` is {lean}`False`, at least one of `A`, `B` becomes {lean}`False`.
-* Inductive datatypes — two different constructors (`none` vs `some _`) collapsing into the same class yield contradiction; equal tuples yield equal components.
+* Boolean connectives — e.g. if `A` is {lean}`True`, mark `A ∨ B` as {lean}`True`; if `A ∧ B` is {lean}`True`, mark both `A` and `B` as {lean}`True`; if `A ∧ B` is {lean}`False`, at least one of `A`, `B` becomes {lean}`False`.
+* Inductive datatypes — two different constructors (`none` vs `some _`) collapsing into the same class yields a contradiction; equal tuples yield equal components.
 * Projections and casts — from `h : (x, y) = (x', y')` we derive `x = x'` and `y = y'`; any term `cast h a` is merged with `a` immediately (using a heterogeneous equality) so both live in the same class.
 * Structural eta and definitional equalities — `⟨a, b⟩.1` propagates to `a`, etc.
 
@@ -279,15 +288,15 @@ We continuously expand and refine the rule set—expect the *Info View* to show 
 2. *Global limit* — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
 3. *Manual annotations* — you may mark *any* inductive predicate or structure with
 
-:::comment
-Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
-TODO: replace this with a checkable example.
-:::
-```
-attribute [grind cases] Even Sorted
-```
+  :::comment
+  Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
+  TODO: replace this with a checkable example.
+  :::
+  ```
+  attribute [grind cases] Even Sorted
+  ```
 
-and {tactic}`grind` will treat every instance of that predicate as a split candidate.
+  and {tactic}`grind` will treat every instance of that predicate as a candidate for splitting.
 
 ## Examples
 
@@ -443,9 +452,9 @@ There are also three less commonly used modifiers:
 * `@[grind =>]` traverses all the hypotheses left-to-right and then the conclusion.
 * `@[grind <=]` traverses the conclusion and then all hypotheses right-to-left.
 * `@[grind ←=]` is unlike the others, and it used specifically for backwards reasoning on equality. As an example, suppose we have a theorem
-```lean (keep := false)
-theorem inv_eq [One α] [Mul α] [Inv α] {a b : α} (w : a * b = 1) : a⁻¹ = b := sorry
-```
+  ```lean (keep := false)
+  theorem inv_eq [One α] [Mul α] [Inv α] {a b : α} (w : a * b = 1) : a⁻¹ = b := sorry
+  ```
   Adding `@[grind ←=]` will cause this theorem to be instantiated whenever we are trying to prove `a⁻¹ = b`, i.e. whenever we have the disequality `a⁻¹ ≠ b` (recall `grind` proves goals by contradiction).
   Without special support via `←=` this instantiation would be not possible as `grind` does not consider the `=` symbol while generating patterns.
 
@@ -464,11 +473,11 @@ axiom q : Nat → Nat
 First, to understand the output we need to recall that the `#n` appearing in patterns are arguments of the theorem, numbered as de-Bruijn variables, i.e. in reverse order (so `#0` would be `w : p (q x) = 7`, while `#1` is the implicit argument `x`).
 
 Why was `q #1` selected when we use `@[grind →]`? The attribute `@[grind →]` instructed grind to find patterns by traversing the hypotheses from left-to-right.
-In this case, there's only the one hypothesis `p (q x) = 7`. The heuristic described above says that `grind` will search for a minimal indexable subexprsesion which covers a previously uncovered argument.
+In this case, there's only the one hypothesis `p (q x) = 7`. The heuristic described above says that `grind` will search for a minimal indexable subexpression which covers a previously uncovered argument.
 There's just one uncovered argument, `x`, so we're looking for a minimal expression containing that.
-We can't take the whole `p (q x) = 7` because `grind` will not index on equality. The left-hand-side `7` is not helpful, because it doesn't determine the value of `x`.
+We can't take the whole `p (q x) = 7` because `grind` will not index on equality. The right-hand-side `7` is not helpful, because it doesn't determine the value of `x`.
 We don't take `p (q x)` because it is not minimal: it has `q x` inside of it, which is indexable (its head is the constant `q`),
-and it determines the value of `x`. The expression `q x` itself is minimal, because `x` is not indexable.
+and it determines the value of `x`. The expression `q x` itself is minimal, because `x` is not indexable. Thus {tactic}`grind` selects `q x` as the pattern.
 
 Let's see some more examples:
 ```lean
@@ -543,6 +552,9 @@ You can set the option `set_option diagnostics true` to obtain the number of
 theorem instances generated by `grind` per theorem. This is useful to detect
 theorems that contain patterns that are triggering too many instances.
 
+:::comment
+FIXME: the relevant grind diagnostic hover doesn't show up in the docs, it's obscured by generic diagnostics.
+:::
 ```lean
 set_option diagnostics true in
 example : (iota 20).length > 10 := by
@@ -1233,12 +1245,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1205:27-45  =  <
-2) 1206:27-45  =  <
-3) 1208:4-52   =  ?
-4) 1212:16-50  ?  _
-5) 1213:16-51  _  _
-6) 1215:16-50  _  _
+1) 1217:27-45  =  <
+2) 1218:27-45  =  <
+3) 1220:4-52   =  ?
+4) 1224:16-50  ?  _
+5) 1225:16-51  _  _
+6) 1227:16-50  _  _
 
 #1: assign
 
