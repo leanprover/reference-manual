@@ -62,16 +62,12 @@ def explanationMWE : CodeBlockExpander
       (Block.lean $(quote hls) (some $(quote (← getFileName))) none)
       #[Block.code $str])]
 
-/--
+/-
 A tabbed container for MWEs in an error explanation example. Must satisfy the
 invariant that `titles.size` is equal to the number of children of this block.
 -/
-def Block.tabbedMWEs (titles : Array String) : Block where
-  name := `Manual.Block.tabbedMWEs
+block_extension Block.tabbedMWEs (titles : Array String) where
   data := toJson titles
-
-@[block_extension Block.tabbedMWEs]
-def Block.tabbedMWEs.descr : BlockDescr where
   traverse id data _blocks := do
     let name :=
       match FromJson.fromJson? (α := Option String) data with
@@ -550,12 +546,8 @@ def addExplanationBodyBlocks : ExplanElabM Unit := do
 
 deriving instance Quote for ErrorExplanation.Metadata
 
-def Block.errorExplanationMetadata (metadata : ErrorExplanation.Metadata) : Block where
-  name := `Manual.Block.errorExplanationMetadata
+block_extension Block.errorExplanationMetadata (metadata : ErrorExplanation.Metadata) where
   data := toJson metadata
-
-@[block_extension Block.errorExplanationMetadata]
-def Block.errorExplanationMetadata.descr : BlockDescr where
   traverse _ _ _ := pure none
   toTeX := none
   extraCss := ["
