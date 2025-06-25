@@ -44,11 +44,11 @@ open Lean Lean.Grind Lean.Meta.Grind
 
 # Quick Start
 
-* **Availability** – {tactic}`grind` ships with Lean 4 (no extra installation) and is usable in any Lean file—just write `by grind`. No extra `import` is required beyond what your own definitions already need.
+* *Availability* – {tactic}`grind` ships with Lean 4 (no extra installation) and is usable in any Lean file—just write `by grind`. No extra `import` is required beyond what your own definitions already need.
 
-* **Library support** – Lean’s standard library is already annotated with `@[grind]` attributes, so common lemmas are discovered automatically. Mathlib will be annotated gradually, starting with its most frequently used theories.
+* *Library support* – Lean’s standard library is already annotated with `@[grind]` attributes, so common lemmas are discovered automatically. Mathlib will be annotated gradually, starting with its most frequently used theories.
 
-* **First proof**
+* *First proof*
 
 ```lean
 example (a b c : Nat) (h₁ : a = b) (h₂ : b = c) :
@@ -58,7 +58,7 @@ example (a b c : Nat) (h₁ : a = b) (h₂ : b = c) :
 
 This succeeds instantly using congruence closure.
 
-* **Power examples** – showcasing {tactic}`grind`'s satellite solvers:
+* *Power examples* – showcasing {tactic}`grind`'s satellite solvers:
 
   * *Algebraic reasoning* (commutative‑ring solver):
 
@@ -90,38 +90,38 @@ This succeeds instantly using congruence closure.
       grind
     ```
 
-* **Useful flags**
+* *Useful flags*
 
   * `by grind (splits := 3) (ematch := 2)` – limit case splits / E‑matching rounds.
 
 # What is {tactic}`grind`?
 
-A proof‑automation tactic inspired by modern SMT solvers. **Picture a virtual white‑board:** every time {tactic}`grind` discovers a new equality, inequality, or Boolean literal it writes that fact on the board, merges equivalent terms into buckets, and invites each engine to read from—and add back to—the same workspace. The cooperating engines are: congruence closure, constraint propagation, E‑matching, guided case analysis, and a suite of satellite theory solvers (linear integer arithmetic, commutative rings, …). Lean supports dependent types and a powerful type‑class system, and {tactic}`grind` produces ordinary Lean proof terms for every fact it adds.
+A proof‑automation tactic inspired by modern SMT solvers. *Picture a virtual white‑board:* every time {tactic}`grind` discovers a new equality, inequality, or Boolean literal it writes that fact on the board, merges equivalent terms into buckets, and invites each engine to read from—and add back to—the same workspace. The cooperating engines are: congruence closure, constraint propagation, E‑matching, guided case analysis, and a suite of satellite theory solvers (linear integer arithmetic, commutative rings, …). Lean supports dependent types and a powerful type‑class system, and {tactic}`grind` produces ordinary Lean proof terms for every fact it adds.
 
 # What {tactic}`grind` is *not*.
 
 {tactic}`grind` is *not* designed for goals whose search space explodes combinatorially—think large‑`n` pigeonhole instances, graph‑coloring reductions, high‑order N‑queens boards, or a 200‑variable Sudoku encoded as Boolean constraints.  Such encodings require thousands (or millions) of case‑splits that overwhelm {tactic}`grind`’s branching search.
 
-* **Bit‑level or pure Boolean combinatorial problems** → use **{tactic}`bv_decide`**.
+* *Bit‑level or pure Boolean combinatorial problems* → use {tactic}`bv_decide`.
   {tactic}`bv_decide` calls a state‑of‑the‑art SAT solver (e.g. CaDiCaL or Kissat) and then returns a *compact, machine‑checkable certificate*.  All heavy search happens outside Lean; the certificate is replayed and verified inside Lean, so trust is preserved (verification time scales with certificate size).
-* **Full SMT problems that need substantial case analysis across multiple theories** (arrays, bit‑vectors, rich arithmetic, quantifiers, …) → use the forthcoming **`lean‑smt`** tactic—a tight Lean front‑end for CVC5 that replays unsat cores or models inside Lean.
+* *Full SMT problems that need substantial case analysis across multiple theories* (arrays, bit‑vectors, rich arithmetic, quantifiers, …) → use the forthcoming *`lean‑smt`* tactic—a tight Lean front‑end for CVC5 that replays unsat cores or models inside Lean.
 
 # Congruence Closure
 
 ## What is congruence closure?
 
-Congruence closure maintains **equivalence classes of terms** under the reflexive–symmetric–transitive closure of "is equal to" *and* the rule that equal arguments yield equal function results.  Formally, if `a = a'` and `b = b'`, then `f a b = f a' b'` is added.  The algorithm merges classes until a fixed point is reached.
+Congruence closure maintains *equivalence classes of terms* under the reflexive–symmetric–transitive closure of "is equal to" _and_ the rule that equal arguments yield equal function results.  Formally, if `a = a'` and `b = b'`, then `f a b = f a' b'` is added.  The algorithm merges classes until a fixed point is reached.
 
-Think of a **shared white‑board**:
+Think of a *shared white‑board*:
 
 1. Every hypothesis `h : t₁ = t₂` writes a line connecting `t₁` and `t₂`.
 2. Each merge paints both terms the same color.  Soon whole constellations (`f a`, `g (f a)`, …) share the color.
-3. If {lean}`True` and {lean}`False` ever land in the same color—or likewise two different constructors of the **same inductive type** such as {lean}`none` and {lean}`some 1`—the goal is closed by contradiction.
+3. If {lean}`True` and {lean}`False` ever land in the same color—or likewise two different constructors of the _same inductive type_ such as {lean}`none` and {lean}`some 1`—the goal is closed by contradiction.
 
 ## How it differs from {tactic}`simp`
 
-* {tactic}`simp` **rewrites** a goal, replacing occurrences of `t₁` with `t₂` as soon as it sees `h : t₁ = t₂`.  The rewrite is directional and destructive.
-* {tactic}`grind` **accumulates** equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines (E‑matching, theory solvers, propagation) can query these classes and add new facts, then the closure updates incrementally.
+* {tactic}`simp` _rewrites_ a goal, replacing occurrences of `t₁` with `t₂` as soon as it sees `h : t₁ = t₂`.  The rewrite is directional and destructive.
+* {tactic}`grind` _accumulates_ equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines (E‑matching, theory solvers, propagation) can query these classes and add new facts, then the closure updates incrementally.
 
 This makes congruence closure especially robust in the presence of symmetrical reasoning, mutual recursion, and large nestings of constructors where rewriting would duplicate work.
 
@@ -144,18 +144,18 @@ example (a b c : Nat) (h : a = b) : (a, c) = (b, c) := by
 
 # Debugging tip
 
-When {tactic}`grind` *fails* it prints the remaining subgoal **followed by all equivalence classes**.  The two largest classes are shown as **True propositions** and **False propositions**, listing every literal currently known to be provable or refutable.  Inspect these lists to spot missing facts or contradictory assumptions.
+When {tactic}`grind` *fails* it prints the remaining subgoal *followed by all equivalence classes*.  The two largest classes are shown as *True propositions* and *False propositions*, listing every literal currently known to be provable or refutable.  Inspect these lists to spot missing facts or contradictory assumptions.
 
 # Constraint Propagation
 
-Constraint propagation works on the **True** and **False** buckets of the white‑board.  Whenever a literal is added to one of those buckets, {tactic}`grind` fires dozens of small *forward rules* to push its logical consequences:
+Constraint propagation works on the *True* and *False* buckets of the white‑board.  Whenever a literal is added to one of those buckets, {tactic}`grind` fires dozens of small _forward rules_ to push its logical consequences:
 
-* Boolean connectives — e.g. if `A` is **True**, mark `A ∨ B` **True**; if `A ∧ B` is **True**, mark both `A` and `B` **True**; if `A ∧ B` is **False**, at least one of `A`, `B` becomes **False**.
+* Boolean connectives — e.g. if `A` is {lean}`True`, mark `A ∨ B` {lean}`True`; if `A ∧ B` is {lean}`True`, mark both `A` and `B` {lean}`True`; if `A ∧ B` is {lean}`False`, at least one of `A`, `B` becomes {lean}`False`.
 * Inductive datatypes — two different constructors (`none` vs `some _`) collapsing into the same class yield contradiction; equal tuples yield equal components.
 * Projections and casts — from `h : (x, y) = (x', y')` we derive `x = x'` and `y = y'`; any term `cast h a` is merged with `a` immediately (using a heterogeneous equality) so both live in the same class.
 * Structural eta and definitional equalities — `⟨a, b⟩.1` propagates to `a`, etc.
 
-Below is a **representative slice** of the propagators so you can see the style they follow.  Each follows the same skeleton: inspect the truth‑value of sub‑expressions, push equalities ({lean}`pushEq`) or truth‑values ({lean}`pushEqTrue` / {lean}`pushEqFalse`), and optionally close the goal if a contradiction ({lean}`closeGoal`) arises.  A few high‑signal examples:
+Below is a _representative slice_ of the propagators so you can see the style they follow.  Each follows the same skeleton: inspect the truth‑value of sub‑expressions, push equalities ({lean}`pushEq`) or truth‑values ({lean}`pushEqTrue` / {lean}`pushEqFalse`), and optionally close the goal if a contradiction ({lean}`closeGoal`) arises.  A few high‑signal examples:
 
 ```lean (show := false)
 namespace ExamplePropagators
@@ -257,11 +257,11 @@ example (a : Bool) (h : (!a) = true) : a = false := by
 
 These snippets run instantly because the relevant propagators ({lean}`propagateBoolAndUp`, {lean}`propagateIte`, {lean}`propagateBoolNotDown`) fire as soon as the hypotheses are internalized.
 
-> **Note** If you toggle `set_option trace.grind.eqc true`, {tactic}`grind` will print a line every time two equivalence classes merge—handy for seeing propagation in action.
+> *Note* If you toggle `set_option trace.grind.eqc true`, {tactic}`grind` will print a line every time two equivalence classes merge—handy for seeing propagation in action.
 
-**Implementation tip**  {tactic}`grind` is still under active development. Until the API has stabilized we recommend **refraining from custom elaborators or satellite solvers**. If you really need a project‑local propagator, use the user‑facing `grind_propagator` command rather than `builtin_grind_propagator` (the latter is reserved for Lean’s own code). When adding new propagators keep them *small and orthogonal*—they should fire in ≤1 µs and either push one fact or close the goal. This keeps the propagation phase predictable and easy to debug.
+*Implementation tip*  {tactic}`grind` is still under active development. Until the API has stabilized we recommend _refraining from custom elaborators or satellite solvers_. If you really need a project‑local propagator, use the user‑facing `grind_propagator` command rather than `builtin_grind_propagator` (the latter is reserved for Lean’s own code). When adding new propagators keep them *small and orthogonal*—they should fire in ≤1 µs and either push one fact or close the goal. This keeps the propagation phase predictable and easy to debug.
 
-We continuously expand and refine the rule set—expect the **Info View** to show increasingly rich {lean}`True`/{lean}`False` buckets over time. The full equivalence classes are displayed automatically **only when {tactic}`grind` fails**, and only for the first subgoal it could not close—use this output to inspect missing facts and understand why the subgoal remains open.
+We continuously expand and refine the rule set—expect the *Info View* to show increasingly rich {lean}`True`/{lean}`False` buckets over time. The full equivalence classes are displayed automatically _only when {tactic}`grind` fails_, and only for the first subgoal it could not close—use this output to inspect missing facts and understand why the subgoal remains open.
 
 # Case Analysis
 
@@ -269,15 +269,15 @@ We continuously expand and refine the rule set—expect the **Info View** to sho
 
 {tactic}`grind` decides which sub‑term to split on by combining three sources of signal:
 
-1. **Structural flags** — quick Booleans that enable whole syntactic classes:
+1. *Structural flags* — quick Booleans that enable whole syntactic classes:
 
-   * `splitIte` (default **true**) → split every `if … then … else …` term.
-   * `splitMatch` (default **true**) → split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
-   * `splitImp` (default **false**) → when {lean}`true` splits on any hypothesis `A → B` whose antecedent `A` is **propositional**.  Arithmetic antecedents are special‑cased: if `A` is an arithmetic literal (`≤`, `=`, `¬`, `Dvd`, …) {tactic}`grind` will split **even when `splitImp := false`** so the integer solver can propagate facts.
+   * `splitIte` (default {lean}`true`) → split every `if … then … else …` term.
+   * `splitMatch` (default {lean}`true`) → split on all `match` expressions (the {tactic}`grind` analogue of Lean’s {tactic}`split` tactic, just like `splitIte`).
+   * `splitImp` (default {lean}`false`) → when {lean}`true` splits on any hypothesis `A → B` whose antecedent `A` is *propositional*.  Arithmetic antecedents are special‑cased: if `A` is an arithmetic literal (`≤`, `=`, `¬`, `Dvd`, …) {tactic}`grind` will split _even when `splitImp := false`_ so the integer solver can propagate facts.
 
 👉 Shorthand toggles: `by grind -splitIte +splitImp` expands to `by grind (splitIte := false) (splitImp := true)`.
-2. **Global limit** — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
-3. **Manual annotations** — you may mark *any* inductive predicate or structure with
+2. *Global limit* — `splits := n` caps the *depth* of the search tree.  Once a branch performs `n` splits {tactic}`grind` stops splitting further in that branch; if the branch cannot be closed it reports that the split threshold has been reached.
+3. *Manual annotations* — you may mark *any* inductive predicate or structure with
 
 :::comment
 Note this *not* a lean code block, because `Even` and `Sorted` do not exist.
@@ -402,7 +402,7 @@ example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
   grind
 ```
 
-You can also specify a **multi-pattern** to control when `grind` should instantiate a theorem.
+You can also specify a *multi-pattern* to control when `grind` should instantiate a theorem.
 A multi-pattern requires that all specified patterns are matched in the current context
 before the theorem is instantiated. This is useful for lemmas such as transitivity rules,
 where multiple premises must be simultaneously present for the rule to apply.
@@ -718,17 +718,16 @@ the following type classes, all in the `Lean.Grind` namespace.
 The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
 The capabilities of the algebraic solvers will of course degrade when some are not available.
 
-
-:::comment
-Uncomment these once doc-strings have landed.
-
 {docstring Lean.Grind.CommSemiring}
-
-{docstring Lean.Grind.AddRightCancel}
 
 {docstring Lean.Grind.CommRing}
 
 {docstring Lean.Grind.IsCharP}
+
+:::comment
+Uncomment these once doc-strings have landed.
+
+{docstring Lean.Grind.AddRightCancel}
 
 {docstring Lean.Grind.NoNatZeroDivisors}
 
@@ -831,8 +830,7 @@ is injective only when the `CommSemiring` implements the type class `AddRightCan
 Given a commutative semiring `α`, its envelop is called `Lean.Grind.Ring.OfSemiring.Q α`.
 The type `Nat` is a commutative semiring and implements `AddRightCancel`.
 
---- TODO: remove error after we update Lean
-```lean (error := true)
+```lean
 example (x y : Nat)
     : x^2*y = 1 → x*y^2 = y → y*x = 1 := by
   grind
@@ -875,8 +873,6 @@ The capabilities of the `linarith` solver will of course degrade when some are n
 The solver ignores any type supported by `cutsat`. This modulo is useful for reasoning about `Real`,
 ordered vector spaces, etc.
 
-:::comment
-Uncomment these once doc-strings have landed.
 
 {docstring Lean.Grind.IntModule}
 
@@ -896,13 +892,15 @@ Uncomment these once doc-strings have landed.
 
 {docstring Lean.Grind.IsCharP}
 
+:::comment
+Uncomment these once doc-strings have landed.
+
 {docstring Lean.Grind.NoNatZeroDivisors}
 :::
 
 The following examples demonstrate goals that can be decided by the `linarith` solver.
 
--- TODO update
-```lean (error := true)
+```lean
 example [IntModule α] [LinearOrder α] [OrderedAdd α] (a b : α)
     : 2*a + b ≥ b + a + a := by
   grind
@@ -1239,14 +1237,20 @@ Cannot use parameter #2:
     normalize assign (a.ite (b.ite t e) (c.ite t e))
 
 
-failed to prove termination, possible solutions:
-  - Use `have`-expressions to prove the remaining goals
-  - Use `termination_by` to specify a different well-founded relation
-  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
-assign : HashMap Nat Bool
-a b c t e : IfExpr
-⊢ 1 + sizeOf a + (1 + sizeOf b + sizeOf t + sizeOf e) + (1 + sizeOf c + sizeOf t + sizeOf e) <
-    1 + (1 + sizeOf a + sizeOf b + sizeOf c) + sizeOf t + sizeOf e
+Could not find a decreasing measure.
+The basic measures relate at each recursive call as follows:
+(<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
+              #1 x2
+1) 1213:27-45  =  <
+2) 1214:27-45  =  <
+3) 1216:4-52   =  ?
+4) 1220:16-50  ?  _
+5) 1221:16-51  _  _
+6) 1223:16-50  _  _
+
+#1: assign
+
+Please use `termination_by` to specify a decreasing measure.
 ```
 
 
@@ -1446,7 +1450,7 @@ The two main functions we'll implement for now are `insert` and `eraseSwap`:
   Another function, not implemented here, would preserve the order of the remaining elements, but at the cost of running in time proportional to the number of elements after the erased element.)
 
 Our goals will be:
-* complete encapsulation: the implementation of `IndexMap` is hidden from the users, **and** the theorems about the implementation details are private.
+* complete encapsulation: the implementation of `IndexMap` is hidden from the users, *and* the theorems about the implementation details are private.
 * to use `grind` as much as possible: we'll preferring adding a private theorem and annotating it with `@[grind]` over writing a longer proof whenever practical.
 * to use auto-parameters as much as possible, so that we don't even see the proofs, as they're mostly handled invisibly by `grind`.
 
