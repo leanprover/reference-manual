@@ -724,15 +724,11 @@ The capabilities of the algebraic solvers will of course degrade when some are n
 
 {docstring Lean.Grind.IsCharP}
 
-:::comment
-Uncomment these once doc-strings have landed.
-
 {docstring Lean.Grind.AddRightCancel}
 
 {docstring Lean.Grind.NoNatZeroDivisors}
 
 {docstring Lean.Grind.Field}
-:::
 
 The Lean standard library contains the applicable instances for the types defined in core.
 Mathlib is also pre-configured. For example, the Mathlib `CommRing` type class implements
@@ -892,11 +888,7 @@ ordered vector spaces, etc.
 
 {docstring Lean.Grind.IsCharP}
 
-:::comment
-Uncomment these once doc-strings have landed.
-
 {docstring Lean.Grind.NoNatZeroDivisors}
-:::
 
 The following examples demonstrate goals that can be decided by the `linarith` solver.
 
