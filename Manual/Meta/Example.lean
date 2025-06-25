@@ -45,13 +45,13 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
 
 def isLeanBlock : TSyntax `block → CoreM Bool
   | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
-    let name ← realizeGlobalConstNoOverloadWithInfo nameStx
+    let name ← realizeGlobalConstNoOverload nameStx
     return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
 
-@[directive_expander «example»]
-def «example» : DirectiveExpander
+@[directive_elab «example»]
+def «example» : DirectiveElab
   | args, contents => do
     let cfg ← ExampleConfig.parse.run args
 
@@ -65,12 +65,23 @@ def «example» : DirectiveExpander
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     let blocks ←
       if cfg.keep then
-        prioritizedElab (isLeanBlock ·) elabBlock contents
+        prioritizedElab (isLeanBlock ·) elabBlock' contents
       else
-        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
+        InlineLean.withIsolatedExamplesEnv <| prioritizedElab (isLeanBlock ·) elabBlock' contents
+
+    let it ← DocElabM.inlineType
+    let bt ← DocElabM.blockType
+
+    let description ← description.mapM (Term.elabTerm · (some it))
+
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote cfg.tag)) #[Block.para #[$description,*], $blocks,*])]
+    let g ← DocElabM.genreExpr
+    let exampleBlock : Expr := .app (.const ``Block.example []) (toExpr cfg.tag)
+    let descr : Expr := mkApp2 (.const ``Block.para []) g (← Meta.mkArrayLit it description.toList)
+    let blocks := #[descr] ++ blocks
+    return mkApp3 (.const ``Block.other []) g exampleBlock (← Meta.mkArrayLit bt blocks.toList)
+
 
 @[block_extension «example»]
 def example.descr : BlockDescr where
@@ -147,16 +158,14 @@ r#".example {
   ]
 
 
-def Block.keepEnv : Block where
-  name := `Manual.example
-
 -- TODO rename to `withoutModifyingEnv` or something more clear
 @[directive_expander keepEnv]
 def keepEnv : DirectiveExpander
   | args, contents => do
     let () ← ArgParse.done.run args
     PointOfInterest.save (← getRef) "keepEnv" (kind := .package)
-    withoutModifyingEnv <| withSaveInfoContext <| contents.mapM elabBlock
+    InlineLean.withIsolatedExamplesEnv <|
+      withSaveInfoContext <| contents.mapM elabBlock
 
 
 @[block_extension keepEnv]

@@ -491,8 +491,8 @@ Try this: exact Nat.lt_trans h1 h2
 ```
 
 ```post (show := false)
-
 ```
+
 :::
 
 

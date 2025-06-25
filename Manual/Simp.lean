@@ -433,10 +433,12 @@ Try this: simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.z
 ```
 which results in the more maintainable proof:
 ```lean
-example (xs : Array Unit) : xs.size = 2 → xs = #[(), ()] := by
+example (xs : Array Unit) :
+    xs.size = 2 → xs = #[(), ()] := by
   intros
   ext
-  simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
+  simp only [List.size_toArray, List.length_cons,
+    List.length_nil, Nat.zero_add, Nat.reduceAdd]
   assumption
 ```
 

@@ -95,7 +95,7 @@ Registers an unexpander of type {name}`Unexpander` for applications of a constan
 
 
 :::::example "Custom Unit Type"
-::::keepEnv
+:::keepEnv
 A type equivalent to {lean}`Unit`, but with its own notation, can be defined as a zero-field structure and a macro:
 ```lean
 structure Solo where
@@ -121,7 +121,7 @@ v : Solo
 ```
 This proof state shows the constructor using {tech}[structure instance] syntax.
 An unexpander can be used to override this choice.
-Because {name}`Solo.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}``` `(Solo.mk) ```.
+Because {name}`Solo.mk` cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be {lean (type := "UnexpandM Syntax")}`` `(Solo.mk) ``.
 
 ```lean
 @[app_unexpander Solo.mk]
@@ -139,7 +139,7 @@ v : Solo
 -/
 ```
 
-::::
+:::
 :::::
 
 :::::example "Unexpansion and Arguments"

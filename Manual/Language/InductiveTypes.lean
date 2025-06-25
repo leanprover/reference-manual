@@ -305,12 +305,13 @@ Constructors can be invoked anonymously by enclosing their explicit arguments in
 
 ::::example "Anonymous constructors"
 
-:::keepEnv
+
 ```lean (show:=false)
-axiom α : Type
+variable {α : Type u}
 ```
+
 The type {lean}`AtLeastOne α` is similar to `List α`, except there's always at least one element present:
-:::
+
 
 ```lean
 inductive AtLeastOne (α : Type u) : Type u where
@@ -366,9 +367,9 @@ tag := "inductive-types-runtime-special-support"
 
 Not every inductive type is represented as indicated here—some inductive types have special support from the Lean compiler:
 :::keepEnv
-````lean (show := false)
+```lean (show := false)
 axiom α : Prop
-````
+```
 
  * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
    Fixed-width integer types that are strictly smaller than the architecture's pointer type are stored unboxed by setting the lowest bit of a pointer to `1`.
@@ -473,7 +474,7 @@ The memory order of the fields is derived from the types and order of the fields
 * Fields of type {lean}`USize`
 * Other scalar fields, in decreasing order by size
 
-Within each group the fields are ordered in declaration order. **Warning**: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
+Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
 
 * To access fields of the first kind, use {c}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
 * To access {lean}`USize` fields, use {c}`lean_ctor_get_usize(val, n+i)` to get the {c}`i`th `USize` field and {c}`n` is the total number of fields of the first kind.

@@ -159,7 +159,7 @@ use the command `set_option checkBinderAnnotations false` to disable the check
 
 ::::example "Class vs Structure Constructors"
 A very small algebraic hierarchy can be represented either as structures ({name}`S.Magma`, {name}`S.Semigroup`, and {name}`S.Monoid` below), a mix of structures and classes ({name}`C1.Monoid`), or only using classes ({name}`C2.Magma`, {name}`C2.Semigroup`, and {name}`C2.Monoid`):
-````lean
+```lean
 namespace S
 structure Magma (α : Type u) where
   op : α → α → α
@@ -192,7 +192,7 @@ class Monoid (α : Type u) extends Semigroup α where
   ident_left : ∀ x, op ident x = x
   ident_right : ∀ x, op x ident = x
 end C2
-````
+```
 
 
 {name}`S.Monoid.mk` and {name}`C1.Monoid.mk` have identical signatures, because the parent of the class {name}`C1.Monoid` is not itself a class:
@@ -258,7 +258,7 @@ Two instances of the same class with the same parameters are not necessarily ide
 ::::example "Instances are Not Unique"
 
 This implementation of binary heap insertion is buggy:
-````lean
+```lean
 structure Heap (α : Type u) where
   contents : Array α
 deriving Repr
@@ -275,7 +275,7 @@ def Heap.bubbleUp [Ord α] (i : Nat) (xs : Heap α) : Heap α :=
 def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=
   let i := xs.contents.size
   {xs with contents := xs.contents.push x}.bubbleUp i
-````
+```
 
 The problem is that a heap constructed with one {name}`Ord` instance may later be used with another, leading to the breaking of the heap invariant.
 

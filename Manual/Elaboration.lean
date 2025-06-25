@@ -139,10 +139,10 @@ When interacting with Lean code, much more information is needed than when simpl
 For example, Lean's interactive environment can be used to view the types of selected expressions, to step through all the intermediate states of a proof, to view documentation, and highlight all occurrences of a bound variable.
 The information necessary to use Lean interactively is stored in a side table called the  {deftech}_info trees_ during elaboration.
 
-````lean (show := false)
+```lean (show := false)
 open Lean.Elab (Info)
 deriving instance TypeName for Unit
-````
+```
 
 
 Info trees relate metadata to the user's original syntax.

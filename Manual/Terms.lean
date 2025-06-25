@@ -85,7 +85,6 @@ If an identifier resolves to multiple names, then the elaborator attempts to use
 If exactly one of them succeeds, then it is used as the meaning of the identifier.
 It is an error if more than one succeed or if all fail.
 
-::::keepEnv
 :::example "Local Names Take Precedence"
 Local bindings take precedence over global bindings:
 ```lean (name := localOverGlobal)
@@ -109,9 +108,8 @@ The innermost local binding of a name takes precedence over others:
 "inner"
 ```
 :::
-::::
 
-::::keepEnv
+
 :::example "Longer Prefixes of Current Namespace Take Precedence"
 The  namespaces `A`, `B`, and `C` are nested, and `A` and `C` each contain a definition of `x`.
 ```lean (name := NS)
@@ -138,9 +136,8 @@ end C
 "A.x"
 ```
 :::
-::::
 
-::::keepEnv
+
 :::example "Longer Identifier Prefixes Take Precedence"
 When an identifier could refer to different projections from names, the one with the longest name takes precedence:
 ```lean
@@ -164,9 +161,8 @@ It refers to the {name A.y}`y` field of {name}`y.y`, because the name {name}`y.y
 "longer"
 ```
 :::
-::::
 
-::::keepEnv
+
 :::example "Current Namespace Contents Take Precedence Over Opened Namespaces"
 When an identifier could refer either to a name defined in a prefix of the current namespace or to an opened namespace, the former takes precedence.
 ```lean
@@ -188,7 +184,6 @@ Even though `A` was opened more recently than the declaration of {name}`B.x`, th
 "B.x"
 ```
 :::
-::::
 
 
 :::example "Ambiguous Identifiers"
@@ -716,9 +711,9 @@ When a function is found, the term before the dot becomes an argument to the fun
 Specifically, it becomes the first explicit argument that would not be a type error.
 Aside from that, the application is elaborated as usual.
 
-::::keepEnv
+
+::::leanSection
 ```lean (show := false)
-section
 variable (name : Username)
 ```
 :::example "Generalized Field Notation"
@@ -767,9 +762,7 @@ has type
 Except.ok ()
 ```
 :::
-```lean (show := false)
-end
-```
+
 ::::
 
 {optionDocs pp.fieldNotation}
@@ -1429,11 +1422,10 @@ To support dependent types, matching a discriminant against a pattern refines th
 In both subsequent patterns in the same match alternative and the right-hand side's type, occurrences of the discriminant are replaced by the pattern that it was matched against.
 
 
-::::keepEnv
+::::leanSection
 ```lean (show := false)
 variable {α : Type u}
 ```
-
 :::example "Type Refinement"
 This {tech}[indexed family] describes mostly-balanced trees, with the depth encoded in the type.
 ```lean
@@ -1487,7 +1479,7 @@ depth n : Nat
 
 Matching on the depth of a tree and the tree itself leads to a refinement of the tree's type according to the depth's pattern.
 This means that certain combinations are not well-typed, such as {lean}`0` and {name BalancedTree.branch}`branch`, because refining the second discriminant's type yields {lean}`BalancedTree α 0` which does not match the constructor's type.
-````lean (name := patfail) (error := true)
+```lean (name := patfail) (error := true)
 def BalancedTree.isPerfectlyBalanced
     (n : Nat) (t : BalancedTree α n) : Bool :=
   match n, t with
@@ -1496,7 +1488,7 @@ def BalancedTree.isPerfectlyBalanced
     isPerfectlyBalanced left &&
     isPerfectlyBalanced right
   | _, _ => false
-````
+```
 ```leanOutput patfail
 type mismatch
   left.branch val right
@@ -1507,6 +1499,7 @@ but is expected to have type
 ```
 :::
 ::::
+
 
 ### Pattern Equality Proofs
 
@@ -1674,9 +1667,8 @@ match_pattern
 ```
 :::
 
-::::keepEnv
+::::leanSection
 ```lean (show := false)
-section
 variable {k : Nat}
 ```
 :::example "Match Patterns Follow Reduction"
@@ -1706,11 +1698,8 @@ No {tech}[ι-reduction] is possible, because the value being matched is a variab
 In the case of {lean}`k + 1`, that is, {lean}`Nat.add k (.succ .zero)`, the second pattern matches, so it reduces to {lean}`Nat.succ (Nat.add k .zero)`.
 The second pattern now matches, yielding {lean}`Nat.succ k`, which is a valid pattern.
 :::
-````lean (show := false)
-end
-````
-
 ::::
+
 
 
 ```lean (show := false)

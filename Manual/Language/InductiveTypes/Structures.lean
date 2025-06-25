@@ -507,7 +507,6 @@ example (t : Triple α) : t.fst = t.toPair.fst := rfl
 ::::
 
 :::: example "No structure subtyping"
-:::keepEnv
 Given these definitions of even numbers, even prime numbers, and a concrete even prime:
 ```lean
 structure EvenNumber where
@@ -543,7 +542,6 @@ but is expected to have type
   EvenNumber : Type
 ```
 because values of type {name}`EvenPrime` are not also values of type {name}`EvenNumber`.
-:::
 ::::
 
 
