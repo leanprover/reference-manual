@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Interaction.FormatRepr
 
 open Lean.MessageSeverity
 
@@ -640,3 +641,5 @@ info: Tree.branches
         Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
 ```
 :::
+
+{include 1 Manual.Interaction.FormatRepr}
