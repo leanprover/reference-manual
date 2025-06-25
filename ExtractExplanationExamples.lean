@@ -81,10 +81,11 @@ where
       IO Highlighted :=
     let termElab : TermElabM Highlighted := do
       let mut hls := Highlighted.empty
-      -- TODO(jrr6): switch to using `highlightIncludingUnparsed`
+      let mut lastPos : String.Pos := 0
       for cmd in cmds do
-        let hl ← highlight cmd nonSilentMsgs cmdState.infoState.trees []
+        let hl ← highlightIncludingUnparsed cmd nonSilentMsgs cmdState.infoState.trees [] lastPos
         hls := hls ++ hl
+        lastPos := (cmd.getTrailingTailPos?).getD lastPos
       return hls
     Prod.fst <$> runCommandElabM (Command.liftTermElabM termElab) inputCtx cmdState
 
