@@ -105,3 +105,10 @@ def wadlerBlott89 : InProceedings where
   authors := #[inlines!"Philip Wadler", inlines!"Stephen Blott"]
   year := 1980
   booktitle := inlines!"Proceedings of the 16th Symposium on Principles of Programming Languages"
+
+def wadler2003 : InProceedings where
+  title := inlines!"A Prettier Printer"
+  authors := #[inlines!"Philip Wadler"]
+  year := 2003
+  booktitle := inlines!"The Fun of Programming, A symposium in honour of Professor Richard Bird's 60th birthday"
+  url := "https://homepages.inf.ed.ac.uk/wadler/papers/prettier/prettier.pdf"
