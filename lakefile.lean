@@ -113,7 +113,7 @@ generating output JSON files in `explanationExamplesDir`. All entries in
 `examples` must have equivalent headers, as the same environment will be reused
 for each.
 -/
-def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) (outDir : FilePath) : IO Unit :=
+def preprocessGroup (examples : Array (Name × String)) (exePath : FilePath) (outDir : FilePath) : IO Unit :=
   IO.FS.withTempDir fun tmpDir => do
     let examplePaths ← examples.mapM fun (name, input) => do
       let path := tmpDir / (name.toString ++ ".lean")
@@ -134,8 +134,11 @@ def processImportGroup (examples : Array (Name × String)) (exePath : FilePath) 
 
 deriving instance BEq, Hashable for Import
 
-/-- Generates groups from `codeBlocks` of examples with equivalent headers. -/
-def groupByImports (codeBlocks : Array (Name × String)) :
+/--
+Generates groups from `codeBlocks` of examples with equivalent headers,
+discarding those that already have a valid cache.
+-/
+def mkPreprocessingGroups (codeBlocks : Array (Name × String)) :
     IO (Array (Array (Name × String))) := do
   let (map : Std.HashMap (Array Import) _) ←
     codeBlocks.foldlM (init := {}) fun acc (name, block) => do
@@ -204,7 +207,7 @@ target error_explanations : Array Name := do
   let explans := all_error_explanations%
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
-  let groups ← groupByImports allBlocks
+  let groups ← mkPreprocessingGroups allBlocks
   -- If we will change the cached files, we need to be sure that they get
   -- reloaded on the next manual build
   if groups.size > 0 then
@@ -215,7 +218,7 @@ target error_explanations : Array Name := do
       IO.FS.removeFile mod.oleanFile
   exeJob.bindM fun exe => Job.async do
     for group in groups do
-      processImportGroup group exe errorExplanationExOutDir
+      preprocessGroup group exe errorExplanationExOutDir
     return groups.flatten.map (·.1)
 
 end ExplanationPreprocessing
