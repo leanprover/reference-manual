@@ -103,7 +103,7 @@ def Permissions.decode (i : UInt8) : Permissions :=
 theorem Permissions.decode_encode (p : Permissions) : p = .decode (p.encode) := by
   let ⟨r, w, x⟩ := p
   cases r <;> cases w <;> cases x <;>
-  simp +decide [encode, decode]
+  simp +decide [decode]
 ```
 :::
 

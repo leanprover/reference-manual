@@ -98,7 +98,7 @@ Letters are English letters, upper- or lowercase, and the letter-like characters
 Identifier continuation characters consist of letters, letter-like characters, underscores (`'_'`), exclamation marks (`!`), question marks (`?`), subscripts, and single quotes (`'`).
 As an exception, underscore alone is not a valid identifier.
 
-````lean (show := false)
+```lean (show := false)
 def validIdentifier (str : String) : IO String :=
   Lean.Parser.identFn.test str
 
@@ -153,7 +153,7 @@ info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemai
 #guard_msgs in
 #eval validIdentifier "переклад"
 
-````
+```
 
 Identifiers components may also be surrounded by double {deftech}[guillemets] (`'«'` and `'»'`).
 Such identifier components may contain any character at all aside from `'»'`, even `'«'`, `'.'`, and newlines.

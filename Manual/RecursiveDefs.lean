@@ -221,7 +221,7 @@ The recursive function {name}`nextPrime` inefficiently computes the next prime n
 Because there are infinitely many prime numbers, it always terminates; however, formulating this proof would be nontrivial.
 It is thus marked {keyword}`partial`.
 
-````lean
+```lean
 def isPrime (n : Nat) : Bool := Id.run do
   for i in [2:n] do
     if i * i > n then return true
@@ -231,7 +231,7 @@ def isPrime (n : Nat) : Bool := Id.run do
 partial def nextPrime (n : Nat) : Nat :=
   let n := n + 1
   if isPrime n then n else nextPrime n
-````
+```
 
 It is nonetheless possible to prove that the following two functions are equal:
 ```lean

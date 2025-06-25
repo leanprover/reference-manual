@@ -147,7 +147,7 @@ partial def List.length' : List α → Nat
   | _ :: xs => xs.length' + 1
 ```
 ```leanOutput otherZero2
-failed to compile definition, consider marking it as 'noncomputable' because it depends on 'Nat.otherZero', and it does not have executable code
+axiom 'Nat.otherZero' not supported by code generator; consider marking definition as 'noncomputable'
 ```
 
 Axioms used in proofs rather than programs do not prevent a function from being compiled.

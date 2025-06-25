@@ -18,7 +18,7 @@ tag := "release-v4.9.0"
 file := "v4.9.0"
 %%%
 
-`````markdown
+````markdown
 ### Language features, tactics, and metaprograms
 
 * **Definition transparency**
@@ -339,4 +339,4 @@ While most changes could be considered to be a breaking change, this section mak
   * The `MessageData.ofFormat` constructor has been turned into a function.
     If you need to inspect `MessageData`, you can pattern-match on `MessageData.ofFormatWithInfos`.
 
-`````
+````

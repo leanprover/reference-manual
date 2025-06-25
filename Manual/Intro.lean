@@ -73,19 +73,19 @@ tag := "code-samples"
 This document contains many Lean code examples.
 They are formatted as follows:
 
-````lean
+```lean
 def hello : IO Unit := IO.println "Hello, world!"
-````
+```
 
 Compiler output (which may be errors, warnings, or just information) is shown both in the code and separately:
 
-````lean (name := output) (error := true)
+```lean (name := output) (error := true)
 #eval s!"The answer is {2 + 2}"
 
 theorem bogus : False := by sorry
 
 example := Nat.succ "two"
-````
+```
 
 Informative output, such as the result of {keywordOf Lean.Parser.Command.eval}`#eval`, is shown like this:
 ```leanOutput output (severity := information)

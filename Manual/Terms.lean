@@ -1321,9 +1321,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.910
+  motive (instOfNatBlah_1.f 0) : Sort ?u.1340
 but is expected to have type
-  motive n✝ : Sort ?u.910
+  motive n✝ : Sort ?u.1340
 -/
 #guard_msgs in
 def defg (n : Blah) : Bool :=
@@ -1332,9 +1332,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.954
+  motive (Float.ofScientific 25 true 1) : Sort ?u.1439
 but is expected to have type
-  motive x✝ : Sort ?u.954
+  motive x✝ : Sort ?u.1439
 -/
 #guard_msgs in
 def twoPointFive? : Float → Option Float
@@ -1391,7 +1391,7 @@ is not definitionally equal to the right-hand side
   3 = 5
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.1765, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.2638, ok := ⋯ } : OnlyThreeOrFive
 -/
 #guard_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1501,7 +1501,7 @@ depth n : Nat
 
 Matching on the depth of a tree and the tree itself leads to a refinement of the tree's type according to the depth's pattern.
 This means that certain combinations are not well-typed, such as {lean}`0` and {name BalancedTree.branch}`branch`, because refining the second discriminant's type yields {lean}`BalancedTree α 0` which does not match the constructor's type.
-````lean (name := patfail) (error := true)
+```lean (name := patfail) (error := true)
 def BalancedTree.isPerfectlyBalanced
     (n : Nat) (t : BalancedTree α n) : Bool :=
   match n, t with
@@ -1510,7 +1510,7 @@ def BalancedTree.isPerfectlyBalanced
     isPerfectlyBalanced left &&
     isPerfectlyBalanced right
   | _, _ => false
-````
+```
 ```leanOutput patfail
 type mismatch
   left.branch val right
@@ -1720,9 +1720,9 @@ No {tech}[ι-reduction] is possible, because the value being matched is a variab
 In the case of {lean}`k + 1`, that is, {lean}`Nat.add k (.succ .zero)`, the second pattern matches, so it reduces to {lean}`Nat.succ (Nat.add k .zero)`.
 The second pattern now matches, yielding {lean}`Nat.succ k`, which is a valid pattern.
 :::
-````lean (show := false)
+```lean (show := false)
 end
-````
+```
 
 ::::
 

@@ -18,7 +18,7 @@ tag := "release-v4.1.0"
 file := "v4.1.0"
 %%%
 
-`````markdown
+```markdown
 * The error positioning on missing tokens has been [improved](https://github.com/leanprover/lean4/pull/2393). In particular, this should make it easier to spot errors in incomplete tactic proofs.
 
 * After elaborating a configuration file, Lake will now cache the configuration to a `lakefile.olean`. Subsequent runs of Lake will import this OLean instead of elaborating the configuration file. This provides a significant performance improvement (benchmarks indicate that using the OLean cuts Lake's startup time in half), but there are some important details to keep in mind:
@@ -37,4 +37,4 @@ file := "v4.1.0"
   and this has been removed in favour of an additional field of `Rewrite.Config`.
   It was not previously accessible from user tactics.
 
-`````
+```

@@ -18,7 +18,7 @@ tag := "release-v4.14.0"
 file := "v4.14.0"
 %%%
 
-`````markdown
+````markdown
 
 **Full Changelog**: https://github.com/leanprover/lean4/compare/v4.13.0...v4.14.0
 
@@ -299,4 +299,4 @@ file := "v4.14.0"
 * The `--lean` CLI option for `lake` was removed. Use the `LEAN` environment variable instead. ([#5684](https://github.com/leanprover/lean4/pull/5684))
 * The `inductive ... :=`, `structure ... :=`, and `class ... :=` syntaxes have been deprecated in favor of the `... where` variants. The old syntax produces a warning, controlled by the `linter.deprecated` option. ([#5542](https://github.com/leanprover/lean4/pull/5542))
 * The generated tactic configuration elaborators now land in `TacticM` to make use of the current recovery state. Commands that wish to elaborate configurations should now use `declare_command_config_elab` instead of `declare_config_elab` to get an elaborator landing in `CommandElabM`. Syntaxes should migrate to `optConfig` instead of `(config)?`, but the elaborators are reverse compatible. ([#5883](https://github.com/leanprover/lean4/pull/5883))
-`````
+````

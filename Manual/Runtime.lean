@@ -204,30 +204,30 @@ def process' (str : String) : String × String:=
 The IR for {lean}`process` includes no `inc` or `dec` instructions.
 If the incoming string `x_1` is a unique reference, then it is still a unique reference when passed to {name}`String.set`, which can then use in-place modification:
 ```leanOutput p1 (allowDiff := 5)
-[result]
-def process._closed_1 : obj :=
-  let x_1 : obj := "";
-  ret x_1
-def process (x_1 : obj) : obj :=
-  let x_2 : u32 := 32;
-  let x_3 : obj := 0;
-  let x_4 : obj := String.set x_1 x_3 x_2;
-  let x_5 : obj := process._closed_1;
-  let x_6 : obj := ctor_0[Prod.mk] x_4 x_5;
-  ret x_6
+[Compiler.IR] [result]
+    def process._closed_0 : obj :=
+      let x_1 : obj := "";
+      ret x_1
+    def process (x_1 : obj) : obj :=
+      let x_2 : obj := 0;
+      let x_3 : u32 := 32;
+      let x_4 : obj := String.set x_1 x_2 x_3;
+      let x_5 : obj := process._closed_0;
+      let x_6 : obj := ctor_0[Prod.mk] x_4 x_5;
+      ret x_6
 ```
 
 The IR for {lean}`process'`, on the other hand, increments the reference count of the string just before calling {name}`String.set`.
-Thus, the modified string `x_4` is a copy, regardless of whether the reference to `x_1` is unique:
+Thus, the modified string `x_4` is a copy, regardless of whether the original reference to `x_1` is unique:
 ```leanOutput p2
-[result]
-def process' (x_1 : obj) : obj :=
-  let x_2 : u32 := 32;
-  let x_3 : obj := 0;
-  inc x_1;
-  let x_4 : obj := String.set x_1 x_3 x_2;
-  let x_5 : obj := ctor_0[Prod.mk] x_4 x_1;
-  ret x_5
+[Compiler.IR] [result]
+    def process' (x_1 : obj) : obj :=
+      let x_2 : obj := 0;
+      let x_3 : u32 := 32;
+      inc x_1;
+      let x_4 : obj := String.set x_1 x_2 x_3;
+      let x_5 : obj := ctor_0[Prod.mk] x_4 x_1;
+      ret x_5
 ```
 :::
 
@@ -246,35 +246,35 @@ def discardElems : List α → List Unit
 This emits the following IR:
 
 ```leanOutput discardElems
-[result]
-def discardElems._rarg (x_1 : obj) : obj :=
-  case x_1 : obj of
-  List.nil →
-    let x_2 : obj := ctor_0[List.nil];
-    ret x_2
-  List.cons →
-    let x_3 : u8 := isShared x_1;
-    case x_3 : u8 of
-    Bool.false →
-      let x_4 : obj := proj[1] x_1;
-      let x_5 : obj := proj[0] x_1;
-      dec x_5;
-      let x_6 : obj := discardElems._rarg x_4;
-      let x_7 : obj := ctor_0[PUnit.unit];
-      set x_1[1] := x_6;
-      set x_1[0] := x_7;
-      ret x_1
-    Bool.true →
-      let x_8 : obj := proj[1] x_1;
-      inc x_8;
-      dec x_1;
-      let x_9 : obj := discardElems._rarg x_8;
-      let x_10 : obj := ctor_0[PUnit.unit];
-      let x_11 : obj := ctor_1[List.cons] x_10 x_9;
-      ret x_11
-def discardElems (x_1 : ◾) : obj :=
-  let x_2 : obj := pap discardElems._rarg;
-  ret x_2
+[Compiler.IR] [result]
+    def discardElems._redArg (x_1 : obj) : obj :=
+      case x_1 : obj of
+      List.nil →
+        let x_2 : obj := ctor_0[List.nil];
+        ret x_2
+      List.cons →
+        let x_3 : u8 := isShared x_1;
+        case x_3 : u8 of
+        Bool.false →
+          let x_4 : obj := proj[1] x_1;
+          let x_5 : obj := proj[0] x_1;
+          dec x_5;
+          let x_6 : obj := ctor_0[PUnit.unit];
+          let x_7 : obj := discardElems._redArg x_4;
+          set x_1[1] := x_7;
+          set x_1[0] := x_6;
+          ret x_1
+        Bool.true →
+          let x_8 : obj := proj[1] x_1;
+          inc x_8;
+          dec x_1;
+          let x_9 : obj := ctor_0[PUnit.unit];
+          let x_10 : obj := discardElems._redArg x_8;
+          let x_11 : obj := ctor_1[List.cons] x_9 x_10;
+          ret x_11
+    def discardElems (x_1 : ◾) (x_2 : obj) : obj :=
+      let x_3 : obj := discardElems._redArg x_2;
+      ret x_3
 ```
 
 In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether it's reference count is greater than one).
@@ -310,7 +310,7 @@ tag := "ffi"
 %%%
 
 
-**The current interface was designed for internal use in Lean and should be considered unstable**.
+*The current interface was designed for internal use in Lean and should be considered unstable*.
 It will be refined and extended in the future.
 
 Lean offers efficient interoperability with any language that supports the C ABI.

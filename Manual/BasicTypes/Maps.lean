@@ -195,7 +195,12 @@ structure Maze where
 This definition is rejected:
 
 ```leanOutput badNesting
-(kernel) arg #1 of '_nested.Std.HashMap_1.mk' contains a non valid occurrence of the datatypes being declared
+(kernel) application type mismatch
+  DHashMap.Raw.WF inner
+argument has type
+  _nested.Std.DHashMap.Raw_3
+but function has type
+  (DHashMap.Raw String fun x => Maze) → Prop
 ```
 
 Making this work requires separating the well-formedness predicates from the structure.

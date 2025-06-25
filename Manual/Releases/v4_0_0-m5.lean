@@ -18,7 +18,7 @@ tag := "release-v4.0.0-m5"
 file := "v4.0.0-m5"
 %%%
 
-`````markdown
+````markdown
 This is the fifth milestone release of Lean 4. It contains many improvements and many new features.
  We had  1495 commits since the last milestone.
 
@@ -775,4 +775,4 @@ For example, the goal
 
 * [Add tutorial-like examples to our documentation](https://github.com/leanprover/lean4/tree/master/doc/examples), rendered using LeanInk+Alectryon.
 
-`````
+````

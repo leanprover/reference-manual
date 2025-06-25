@@ -18,7 +18,7 @@ tag := "release-v4.16.0"
 file := "v4.16.0"
 %%%
 
-`````markdown
+````markdown
 ## Highlights
 
 ### Unique `sorry`s
@@ -583,4 +583,4 @@ the universe parameter.
 * [#6363](https://github.com/leanprover/lean4/pull/6363) fixes errors at load time in the comparison mode of the Firefox
 profiler.
 
-`````
+````

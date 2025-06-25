@@ -18,7 +18,7 @@ tag := "release-v4.10.0"
 file := "v4.10.0"
 %%%
 
-`````markdown
+````markdown
 ### Language features, tactics, and metaprograms
 
 * `split` tactic:
@@ -298,4 +298,4 @@ file := "v4.10.0"
 * Sometimes terms created via a sequence of unifications will be more eta reduced than before and proofs will require adaptation ([#4387](https://github.com/leanprover/lean4/pull/4387)).
 * The `GetElem` class has been split into two; see the docstrings for `GetElem` and `GetElem?` for more information ([#4560](https://github.com/leanprover/lean4/pull/4560)).
 
-`````
+````

@@ -11,6 +11,7 @@ import Manual.Meta.Markdown
 open Manual
 open Verso.Genre
 
+set_option linter.verso.markup.codeBlock false
 
 #doc (Manual) "Lean 4.0.0-m3 (2022-01-31)" =>
 %%%
@@ -18,7 +19,7 @@ tag := "release-v4.0.0-m3"
 file := "v4.0.0-m3"
 %%%
 
-`````markdown
+````markdown
 This is the third milestone release of Lean 4, and the last planned milestone before an official
 release. With almost 3000 commits improving and extending many parts of the system since the last
 milestone, we are now close to completing all main features we have envisioned for Lean 4.
@@ -73,4 +74,4 @@ $ git shortlog -s -n v4.0.0-m2..v4.0.0-m3
      1  zygi
      1  Бакиновский Максим
 ```
-`````
+````
