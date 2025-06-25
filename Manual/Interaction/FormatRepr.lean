@@ -476,6 +476,13 @@ There are two ways to render a document:
 
 {docstring Std.Format.MonadPrettyFormat}
 
+## The `ToFormat` Class
+
+The {name}`Std.ToFormat` class is used to provide a standard means to format a value, with no expectation that this formatting be valid Lean syntax.
+These instances are used in error messages and by some of the {ref "format-join"}[sequence concatenation operators].
+
+{docstring Std.ToFormat}
+
 # `Repr`
 %%%
 tag := "repr"
@@ -486,6 +493,10 @@ Because they should emit valid Lean syntax, these instances need to take {tech}[
 Inserting the maximal number of parentheses would work, but it makes it more difficult for humans to read the resulting output.
 
 {docstring Repr}
+
+{docstring repr}
+
+{docstring reprStr}
 
 :::example "Maximal Parentheses"
 The type {name}`NatOrInt` can contain a {name}`Nat` or an {name}`Int`:
