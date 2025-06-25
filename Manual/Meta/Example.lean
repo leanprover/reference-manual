@@ -32,7 +32,7 @@ def ExampleConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadE
   ExampleConfig.mk <$> .positional `description .inlinesString
                    <*> .named `tag .string true
                    <*> (.named `keep .bool true <&> (·.getD false))
-                   <*> (.named `opened .bool true <&> (·.getD false))
+                   <*> (.named `open .bool true <&> (·.getD false))
 
 def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) (xs : Array α) : m (Array β) := do
   let mut out := #[]
