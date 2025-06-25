@@ -1233,12 +1233,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1213:27-45  =  <
-2) 1214:27-45  =  <
-3) 1216:4-52   =  ?
-4) 1220:16-50  ?  _
-5) 1221:16-51  _  _
-6) 1223:16-50  _  _
+1) 1205:27-45  =  <
+2) 1206:27-45  =  <
+3) 1208:4-52   =  ?
+4) 1212:16-50  ?  _
+5) 1213:16-51  _  _
+6) 1215:16-50  _  _
 
 #1: assign
 
