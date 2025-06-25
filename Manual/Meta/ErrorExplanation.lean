@@ -10,6 +10,8 @@ import Manual.Meta
 
 import Lean.ErrorExplanations
 
+import PreprocessedExplanations
+
 open Lean Elab
 open Verso.ArgParse
 open Verso.Doc Elab
@@ -21,17 +23,11 @@ set_option guard_msgs.diff true
 
 namespace Manual
 
-/--
-The directory in which MWE JSON files are written in the preprocessing step.
--/
-private def exampleJSONDirectory : System.FilePath :=
-  "error_explanation_examples"
-
 /-- Loads the JSON data file for the preprocessed MWE code block `name`. -/
 def loadPreprocessedMWE (name : Name) (contents : String)
     : MetaM (Highlighted × Array (MessageSeverity × String)) := do
   let fileName : String := name.toString ++ ".json"
-  let path := exampleJSONDirectory / fileName
+  let path := preprocessedExplanationsRoot / fileName
   unless (← System.FilePath.pathExists path) do
     throwError m!"Did not find expected preprocessed code block file `{path}`. \
       Run `lake build error_explanations`."
