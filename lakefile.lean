@@ -86,7 +86,33 @@ target figures : Array FilePath := do
 
     pure srcInfo
 
+/-
+This section contains infrastructure for preprocessing code blocks in error explanations. Error
+explanation code blocks must be allowed to contain imports, so we must run the full frontend over
+each one. To improve efficiency, we do this in a preprocessing step in which code blocks with the
+same imports are grouped together, avoiding the need to repeatedly import the same modules anew.
+
+Preprocessing proceeds as follows:
+
+1. Error explanations are extracted from the elaboration environment of this Lakefile (which
+   matches the Lean version used to elaborate these examples in the manual itself) using the
+   `all_error_explanations%` macro; we then extract any Lean code blocks these contain.
+2. We group the extracted code blocks by their headers (`mkPreprocessingGroups`). We skip any code
+   blocks for which there already exists a valid JSON file in the preprocessing output directory
+   (determined by `hasUsableCache` by source hash and the Lean version used to generate the JSON).
+3. The code blocks in each group are written to Lean modules in a temporary directory and
+   preprocessed by the `extract_explanation_examples` tool (see `preprocessGroup`). Note that while
+   we call this tool once for each preprocessing group, each code block gets a separate JSON output
+   file (allowing us to cache on a per-code-block, rather than per-group, basis; this is especially
+   important because the majority of the code blocks have no imports and thus belong to the same
+   group).
+
+To depend on the preprocessed JSON, modules can import `PreprocessedExplanations`, which depends on
+this preprocessing target and exposes a constant `preprocessedExplanationsRoot` that gives the file
+path to the directory to which the JSON files are written.
+-/
 section ExplanationPreprocessing
+
 open Lean Meta
 
 /- This must agree with `mkExampleName` in `Manual.ErrorExplanation`. -/
@@ -206,9 +232,6 @@ elab "all_error_explanations%" : term =>
 /-- Preprocess code examples in error explanations. -/
 target preprocess_explanations_async : Unit := do
   let exeJob ← extract_explanation_examples.fetch
-  -- We must compute groups when fetching jobs because olean deletion (if
-  -- necessary) must happen in advance so that, if this is part of a full manual
-  -- build, that module will be rebuilt
   let explans := all_error_explanations%
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
