@@ -27,7 +27,8 @@ lean_lib Manual where
 
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
-def errorExplanationExOutDir : FilePath := "error_explanation_examples"
+def errorExplanationExOutDir : FilePath :=
+  defaultBuildDir / "error_explanation_examples"
 
 def ensureDir (dir : System.FilePath) : IO Unit := do
   if !(← dir.pathExists) then
@@ -113,7 +114,7 @@ generating output JSON files in `explanationExamplesDir`. All entries in
 `examples` must have equivalent headers, as the same environment will be reused
 for each.
 -/
-def preprocessGroup (examples : Array (Name × String)) (exePath : FilePath) (outDir : FilePath) : IO Unit :=
+def preprocessGroup (examples : Array (Name × String)) (exePath : FilePath) : IO Unit :=
   IO.FS.withTempDir fun tmpDir => do
     let examplePaths ← examples.mapM fun (name, input) => do
       let path := tmpDir / (name.toString ++ ".lean")
@@ -121,7 +122,7 @@ def preprocessGroup (examples : Array (Name × String)) (exePath : FilePath) (ou
       pure path.toString
     let childConfig := {
       cmd := exePath.toString
-      args := #[outDir.toString] ++ examplePaths
+      args := #[errorExplanationExOutDir.toString] ++ examplePaths
       stdin := .piped, stdout := .piped, stderr := .piped
     }
     let out ← IO.Process.output childConfig
@@ -195,11 +196,15 @@ deriving instance ToExpr for ErrorExplanation.Metadata
 deriving instance ToExpr for DeclarationLocation
 deriving instance ToExpr for ErrorExplanation
 
+/--
+Elaborates to an expression containing all error explanation entries. This
+provides access to error explanations outside of the metaprogramming monads.
+-/
 elab "all_error_explanations%" : term =>
   return toExpr <| getErrorExplanationsRaw (← getEnv)
 
 /-- Preprocess code examples in error explanations. -/
-target error_explanations : Array Name := do
+target preprocess_explanations_async : Unit := do
   let exeJob ← extract_explanation_examples.fetch
   -- We must compute groups when fetching jobs because olean deletion (if
   -- necessary) must happen in advance so that, if this is part of a full manual
@@ -208,22 +213,39 @@ target error_explanations : Array Name := do
   let allBlocks := explans.flatMap fun (name, explan) =>
     extractCodeBlocks name explan.doc
   let groups ← mkPreprocessingGroups allBlocks
-  -- If we will change the cached files, we need to be sure that they get
-  -- reloaded on the next manual build
-  if groups.size > 0 then
-    let ws ← getWorkspace
-    let some mod := ws.findTargetModule? `Manual.ErrorExplanations |
-      error "Could not find module `Manual.ErrorExplanations"
-    if (← System.FilePath.pathExists mod.oleanFile) then
-      IO.FS.removeFile mod.oleanFile
-  exeJob.bindM fun exe => Job.async do
-    for group in groups do
-      preprocessGroup group exe errorExplanationExOutDir
-    return groups.flatten.map (·.1)
+
+  let writeModuleJob ← Job.async do
+    let moduleSrc := s!"def preprocessedExplanationsRoot : System.FilePath :=\n  \
+      \"{errorExplanationExOutDir}\"\n"
+    let some mod ← findModule? `PreprocessedExplanations |
+      error s!"Module `PreprocessedExplanations is missing from the Lake configuration"
+    buildFileUnlessUpToDate' mod.leanFile do
+      createParentDirs mod.leanFile
+      IO.FS.writeFile mod.leanFile moduleSrc
+      liftM (m := IO) <| try IO.FS.removeFile mod.oleanFile catch
+        | .noFileOrDirectory .. => pure ()
+        | e => throw e
+
+  let preprocessJob ← exeJob.bindM fun exe => do
+    let groupJobs ← groups.mapM (Job.async do preprocessGroup · exe)
+    return Job.mixArray groupJobs
+
+  return preprocessJob.mix writeModuleJob
+
+/--
+A blocking version of `preprocess_explanations_async`. Ensures that all required
+files have been generated when `PreprocessedExplanations` is imported.
+-/
+target preprocess_explanations_sync : Unit := do
+  .pure <$> (← preprocess_explanations_async.fetch).await
+
+lean_lib PreprocessedExplanations where
+  needs := #[preprocess_explanations_sync]
+  srcDir := defaultBuildDir / "src"
 
 end ExplanationPreprocessing
 
 @[default_target]
 lean_exe "generate-manual" where
-  needs := #[`@/extract_explanation_examples, `@/error_explanations, `@/figures, `@/subversoExtractMod]
+  needs := #[`@/figures, `@/subversoExtractMod]
   root := `Main
