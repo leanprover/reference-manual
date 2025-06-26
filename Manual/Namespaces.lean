@@ -218,7 +218,7 @@ end A.D.E
 ```leanOutput endADE
 invalid 'end', name mismatch (expected «».D.E)
 ```
-Instead, namespaces nd sections must be ended separately.
+Instead, namespaces and sections must be ended separately.
 ```lean
 end D.E
 end
