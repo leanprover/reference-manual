@@ -629,12 +629,8 @@ def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
 
 def errorExplanationDomain := `Manual.errorExplanation
 
-def Inline.errorExplanation (errorName : Name) (summary : String) : Inline where
-  name := `Manual.Inline.errorExplanation
+inline_extension Inline.errorExplanation (errorName : Name) (summary : String) where
   data := toJson #[errorName.toString, summary]
-
-@[inline_extension Inline.errorExplanation]
-def Inline.errorExplanation.descr : InlineDescr where
   init st := st
     |>.setDomainTitle errorExplanationDomain "Error Explanations"
     |>.setDomainDescription errorExplanationDomain
