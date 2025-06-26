@@ -30,6 +30,13 @@ def process_html_file(filepath, output_filepath):
         elif code_tag.attrs and 'class' in code_tag.attrs and 'hl' in code_tag['class'] and 'lean' in code_tag['class']:
             code_tag.decompose()
 
+    # Delete all content in error explanation pages. This comes from the lean4 repo
+    # and shouldn't be linted here.
+    for element in soup.find_all(class_='error-example-container'):
+        in_sections = element.find_parents('section')
+        if in_sections:
+            in_sections[-1].decompose()
+
     # Delete docstring content (for now)
     for element in soup.find_all(class_="namedocs"):
         element.decompose()
