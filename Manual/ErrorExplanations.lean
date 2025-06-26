@@ -44,7 +44,7 @@ def error_explanation_table : BlockRoleExpander
     let entries ← getErrorExplanationsSorted
     let columns := 4
     let header := true
-    let name := "diagnostic-table"
+    let name := "error-explanation-table"
     let alignment : Option TableConfig.Alignment := none
     let headers ← #["Name", "Summary", "Severity", "Since"]
       |>.mapM fun s => ``(Verso.Doc.Block.para #[Doc.Inline.text $(quote s)])
@@ -53,7 +53,7 @@ def error_explanation_table : BlockRoleExpander
         if explan.metadata.severity == .warning then "Warning" else "Error"
       let sev ← ``(Doc.Inline.text $sev)
       let nameStr := toString name
-      let nameLink ← ``(Doc.Inline.other (Inline.errorExplanationLink $(quote name)) #[Doc.Inline.text $(quote nameStr)])
+      let nameLink ← ``(Doc.Inline.other (Inline.errorExplanationLink $(quote name)) #[Doc.Inline.code $(quote nameStr)])
       let summary ← ``(Doc.Inline.text $(quote explan.metadata.summary))
       let since ← ``(Doc.Inline.text $(quote explan.metadata.sinceVersion))
       #[nameLink, summary, sev, since]
