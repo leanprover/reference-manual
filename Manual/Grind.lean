@@ -730,6 +730,10 @@ the following type classes, all in the `Lean.Grind` namespace.
 The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
 The capabilities of the algebraic solvers will of course degrade when some are not available.
 
+{docstring Lean.Grind.Semiring}
+
+{docstring Lean.Grind.Ring}
+
 {docstring Lean.Grind.CommSemiring}
 
 {docstring Lean.Grind.CommRing}
@@ -833,10 +837,9 @@ example [CommRing α] (x y : α)
   grind -ring
 ```
 
-The `ring` solver embeds `CommSemiring`s into a `CommRing` envelop. However, the embedding
-is injective only when the `CommSemiring` implements the type class `AddRightCancel`.
-Given a commutative semiring `α`, its envelop is called `Lean.Grind.Ring.OfSemiring.Q α`.
-The type `Nat` is a commutative semiring and implements `AddRightCancel`.
+The `ring` solver automatically embeds `CommSemiring`s into a `CommRing` envelope (using the construction `Lean.Grind.Ring.OfSemiring.Q`).
+However, the embedding is injective only when the `CommSemiring` implements the type class `AddRightCancel`.
+The type `Nat` is an example of such a commutative semiring implementing `AddRightCancel`.
 
 ```lean
 example (x y : Nat)
@@ -881,12 +884,12 @@ The capabilities of the `linarith` solver will of course degrade when some are n
 The solver ignores any type supported by `cutsat`. This modulo is useful for reasoning about `Real`,
 ordered vector spaces, etc.
 
+The main type classes for module structures are `NatModule` (every `Semiring` is a `NatModule`) and `IntModule` (every `Ring` is an `IntModule`).
+These may interact with the three order classes `Preorder`, `PartialOrder`, and `LinearOrder`. To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the typeclass `OrderedRing`.
+
+{docstring Lean.Grind.NatModule}
 
 {docstring Lean.Grind.IntModule}
-
-{docstring Lean.Grind.Ring}
-
-{docstring Lean.Grind.CommRing}
 
 {docstring Lean.Grind.Preorder}
 
@@ -897,10 +900,6 @@ ordered vector spaces, etc.
 {docstring Lean.Grind.OrderedAdd}
 
 {docstring Lean.Grind.OrderedRing}
-
-{docstring Lean.Grind.IsCharP}
-
-{docstring Lean.Grind.NoNatZeroDivisors}
 
 The following examples demonstrate goals that can be decided by the `linarith` solver.
 
@@ -1245,12 +1244,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1217:27-45  =  <
-2) 1218:27-45  =  <
-3) 1220:4-52   =  ?
-4) 1224:16-50  ?  _
-5) 1225:16-51  _  _
-6) 1227:16-50  _  _
+1) 1216:27-45  =  <
+2) 1217:27-45  =  <
+3) 1219:4-52   =  ?
+4) 1223:16-50  ?  _
+5) 1224:16-51  _  _
+6) 1226:16-50  _  _
 
 #1: assign
 
