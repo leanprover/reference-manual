@@ -693,7 +693,7 @@ def make_explanations : PartCommand
       let titleString := name.toString
       let titleBits := #[← ``(Inline.other
         (Inline.errorExplanation $(quote name) $(quote explan.metadata.summary))
-        #[Inline.text $(quote titleString)])]
+        #[Inline.code $(quote titleString)])]
       PartElabM.push {
         titleSyntax := quote (k := `str) titleString,
         expandedTitle := some (titleString, titleBits),
