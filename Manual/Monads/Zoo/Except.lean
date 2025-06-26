@@ -113,7 +113,7 @@ Exception monads in continuation passing style have different performance charac
 
 ```lean (show := false)
 /-- info: (β : Type u) → (α → m β) → (ε → m β) → m β -/
-#guard_msgs in
+#check_msgs in
 #reduce (types := true) ExceptCpsT ε m α
 ```
 

@@ -1285,7 +1285,7 @@ $x:ident@$h:ident:$e
 
 -- Literals
 /-- error: Invalid pattern: Expected a constructor or constant marked with `[match_pattern]` -/
-#guard_msgs in
+#check_msgs in
 def foo (x : String) : String :=
   match x with
   | "abc" => ""
@@ -1305,7 +1305,7 @@ error: Missing cases:
 (Blah.mk (Nat.succ (Nat.succ _)))
 (Blah.mk Nat.zero)
 -/
-#guard_msgs in
+#check_msgs in
 def abc (n : Blah) : Bool :=
   match n with
   | 0 => true
@@ -1325,7 +1325,7 @@ error: Dependent elimination failed: Type mismatch when solving this alternative
 but is expected to have type
   motive n✝ : Sort ?u.903
 -/
-#guard_msgs in
+#check_msgs in
 def defg (n : Blah) : Bool :=
   match n with
   | 0 => true
@@ -1336,7 +1336,7 @@ error: Dependent elimination failed: Type mismatch when solving this alternative
 but is expected to have type
   motive x✝ : Sort ?u.946
 -/
-#guard_msgs in
+#check_msgs in
 def twoPointFive? : Float → Option Float
   | 2.5 => some 2.5
   | _ => none
@@ -1345,7 +1345,7 @@ def twoPointFive? : Float → Option Float
 info: @Neg.neg.{0} Float instNegFloat
   (@OfScientific.ofScientific.{0} Float instOfScientificFloat (nat_lit 320) Bool.true (nat_lit 1)) : Float
 -/
-#guard_msgs in
+#check_msgs in
 set_option pp.all true in
 #check -32.0
 
@@ -1365,7 +1365,7 @@ x✝ : OnlyThreeOrFive
 n : Nat
 ⊢ n = 3 ∨ n = 5
 -/
-#guard_msgs in
+#check_msgs in
 def ggg : OnlyThreeOrFive → Nat
   | {val := n} => n
 
@@ -1373,7 +1373,7 @@ def ggg : OnlyThreeOrFive → Nat
 error: Missing cases:
 (OnlyThreeOrFive.mk _ true _)
 -/
-#guard_msgs in
+#check_msgs in
 def hhh : OnlyThreeOrFive → Nat
   | {val := n, ok := p} => n
 
@@ -1393,11 +1393,11 @@ is not definitionally equal to the right-hand side
 ---
 info: { val := 3, val2 := ?m.1743, ok := ⋯ } : OnlyThreeOrFive
 -/
-#guard_msgs in
+#check_msgs in
 #check OnlyThreeOrFive.mk 3 ..
 
 /-- info: { val := 3, val2 := ?_, ok := ⋯ } : OnlyThreeOrFive -/
-#guard_msgs in
+#check_msgs in
 set_option pp.mvars.anonymous false in
 #check OnlyThreeOrFive.mk 3 (ok := .inl rfl) ..
 
@@ -1410,7 +1410,7 @@ info: fun y =>
     match x, z with
     | .(y * 3), ⋯ => () : Nat → Unit
 -/
-#guard_msgs in
+#check_msgs in
 #check fun (y : Nat) => match show {n : Nat// n = y * 3} from ⟨y*3, rfl⟩ with
   | ⟨x, z⟩ =>
     match x, z with
@@ -1797,7 +1797,7 @@ info: match 4 with
 | n.succ => true
 | x => false : Bool
 -/
-#guard_msgs in
+#check_msgs in
 #check 4 matches (n + 1)
 ```
 
