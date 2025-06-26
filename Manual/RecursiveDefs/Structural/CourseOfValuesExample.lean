@@ -139,7 +139,7 @@ info: fun motive x y z step =>
     ⟨step [y, z] ⟨step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩,
       step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩
 -/
-#guard_msgs in
+#check_msgs in
 #reduce fun motive x y z step => List.brecOn' (motive := motive) [x, y, z] step
 
 /--
@@ -148,7 +148,7 @@ info: fun motive x y z step =>
     ⟨step [y, z] ⟨step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩,
       step [z] ⟨step [] PUnit.unit, PUnit.unit⟩, step [] PUnit.unit, PUnit.unit⟩
 -/
-#guard_msgs in
+#check_msgs in
 #reduce fun motive x y z step => List.brecOn (motive := motive) [x, y, z] step
 
 /--
@@ -159,7 +159,7 @@ info: fun motive x z step =>
         ⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
       step Tree.leaf PUnit.unit, PUnit.unit⟩
 -/
-#guard_msgs in
+#check_msgs in
 #reduce fun motive x z step => Tree.brecOn' (motive := motive) (.branch (.branch .leaf x .leaf) z .leaf) step
 
 /--
@@ -170,7 +170,7 @@ info: fun motive x z step =>
         ⟨step Tree.leaf PUnit.unit, PUnit.unit⟩, step Tree.leaf PUnit.unit, PUnit.unit⟩,
       step Tree.leaf PUnit.unit, PUnit.unit⟩
 -/
-#guard_msgs in
+#check_msgs in
 #reduce fun motive x z step => Tree.brecOn (motive := motive) (.branch (.branch .leaf x .leaf) z .leaf) step
 ```
 

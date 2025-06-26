@@ -29,7 +29,9 @@ Nested recursive occurrences must satisfy the following requirements:
 * They must be nested _directly_ under an inductive type's type constructor.
   Terms that reduce to such nested occurrences are not accepted.
 * Local variables such as the constructor's parameters may not occur in the arguments to the nested occurrence.
-* The nested occurrences must occur strictly positively.
+* The nested occurrences must occur strictly positively. They must occur strictly positively in the position in which they are nested, and the type constructor in which they are nested must itself occur in a strictly positive position.
+* Constructor parameters whose types include nested occurrences may not be used in ways that rely on the specific choice of outer type constructor. The translated version will not be usable in those contexts.
+* Nested occurrences may not be used as parameters to the outer type constructor that occur in the types of the outer type's indices.
 :::
 
 :::example "Nested Inductive Types"
@@ -90,6 +92,49 @@ inductive WithCheck where
 (kernel) arg #1 of 'WithCheck.check' has a non positive occurrence of the datatypes being declared
 ```
 
+:::paragraph
+This rose tree has a branching factor that's limited by its parameter:
+```lean (error := true) (name := brtree)
+inductive BRTree (branches : Nat) (α : Type u) : Type u where
+  | mk :
+    (children : List (BRTree branches α)) →
+    children.length < branches →
+    BRTree branches α
+```
+Only nested inductive types that can be translated to mutual inductive types are allowed.
+However, translating this type would require a translation of {name}`List.length` to the translated types, but function definitions may not occur in mutual blocks with inductive types.
+The resulting error message shows that the function was not translated, but was applied to a term of the translated type:
+```leanOutput brtree
+(kernel) application type mismatch
+  List.length children
+argument has type
+  @_nested.List_1 branches α
+but function has type
+  List (@BRTree branches α) → Nat
+```
+It is acceptable to use the parameter with the nested occurrence with fully polymorphic functions, such as {name}`id`:
+```lean (name := nondep)
+inductive RTree'' (α : Type u) : Type u where
+  | mk :
+    (children : List (BRTree branches α)) →
+    id children = children →
+    BRTree branches α
+```
+In this case, the function applies equally well to the translated version as it does to the original.
+:::
+
+:::paragraph
+A _palindrome_ is a list that is the same when reversed:
+```lean
+inductive Palindrome (α : Type) : List α → Prop where
+  | nil : Palindrome α []
+  | single : Palindrome α [x]
+  | cons (x : α) (p : Palindrome α xs) : Palindrome α (x :: xs ++ [x])
+```
+In this predicate, the list is an index whose type depends on the parameter, which is explicit for clarity.
+This means it cannot be used
+
+:::
 :::::
 
 The translation from nested inductive types to mutual inductive types proceeds as follows:

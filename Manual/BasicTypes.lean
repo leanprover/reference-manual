@@ -192,7 +192,7 @@ section BoolProp
 axiom b : Bool
 
 /-- info: b = true : Prop -/
-#guard_msgs in
+#check_msgs in
 #check (b : Prop)
 
 example : (true = true) = True := by simp
@@ -213,7 +213,7 @@ This function is also a coercion from decidable propositions to {lean}`Bool`, so
 
 ```lean (show := false)
 /-- info: true -/
-#guard_msgs in
+#check_msgs in
 #eval (2 = 2 : Bool)
 end BoolProp
 ```

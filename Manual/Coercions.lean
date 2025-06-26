@@ -93,11 +93,11 @@ end
 ```lean (show := false)
 -- Test comment about field notation
 /-- error: unknown constant 'Nat.bdiv' -/
-#guard_msgs in
+#check_msgs in
 #check Nat.bdiv
 
 /-- info: Int.bdiv (x : Int) (m : Nat) : Int -/
-#guard_msgs in
+#check_msgs in
 #check Int.bdiv
 
 /--
@@ -106,10 +106,10 @@ error: invalid field 'bdiv', the environment does not contain 'Nat.bdiv'
 has type
   Nat
 -/
-#guard_msgs in
+#check_msgs in
 example (n : Nat) := n.bdiv 2
 
-#guard_msgs in
+#check_msgs in
 example (n : Nat) := (n : Int).bdiv 2
 ```
 
@@ -171,7 +171,7 @@ def Bin.ofNat (n : Nat) : Bin :=
 ```lean (show := false)
 --- Internal tests
 /-- info: [0, 1, 10, 11, 100, 101, 110, 111, 1000] -/
-#guard_msgs in
+#check_msgs in
 #eval [
   Bin.done,
   Bin.done.succ,

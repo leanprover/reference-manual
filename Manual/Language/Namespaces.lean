@@ -237,7 +237,7 @@ end B
 open A
 -- test claim in preceding box
 /-- error: ambiguous namespace 'B', possible interpretations: '[B, A.B]' -/
-#guard_msgs in
+#check_msgs in
 open B hiding x
 ```
 
@@ -262,10 +262,10 @@ end B
 open A
 -- test claim in preceding box
 /-- error: ambiguous namespace 'B', possible interpretations: '[B, A.B]' -/
-#guard_msgs in
+#check_msgs in
 open B renaming x → y
 /-- error: ambiguous namespace 'B', possible interpretations: '[B, A.B]' -/
-#guard_msgs in
+#check_msgs in
 open B renaming x -> y
 ```
 
@@ -291,7 +291,7 @@ open A
 -- test claim in preceding box
 -- TODO the reality is a bit more subtle - the name should be accessible by only one path. This should be clarified.
 /-- error: ambiguous identifier 'y', possible interpretations: [B.y, B.y] -/
-#guard_msgs in
+#check_msgs in
 open B (y)
 ```
 

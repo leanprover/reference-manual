@@ -189,7 +189,7 @@ has type
 but is expected to have type
   e1 = e2 : Prop
 -/
-#guard_msgs in
+#check_msgs in
 example (e1 e2 : Empty) : e1 = e2 := rfl
 ```
 
@@ -231,7 +231,7 @@ set_option pp.match false
 info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
   third_of_five x✝ = third_of_five.match_1 (fun x => Option α) x✝ (fun head head x head head => some x) fun x => none
 -/
-#guard_msgs in
+#check_msgs in
 #check third_of_five.eq_def
 /--
 info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
@@ -248,7 +248,7 @@ fun {α} motive x h_1 h_2 =>
             List.casesOn tail (h_1 head head_1 head_2 head_3 head_4) fun head_5 tail =>
               h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: head_5 :: tail)
 -/
-#guard_msgs in
+#check_msgs in
 #print third_of_five.match_1
 ```
 
