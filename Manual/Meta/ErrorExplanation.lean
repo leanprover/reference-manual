@@ -77,9 +77,6 @@ block_extension Block.tabbedMWEs (titles : Array String) where
     pure none
   toTeX := none
   extraCss := [r#"
-.error-example-tabpanel-hidden {
-  display: none;
-}
 .error-example-container:not(:last-child) {
   border-bottom: 1px solid gray;
   padding-bottom: var(--verso--box-padding);
@@ -97,6 +94,22 @@ block_extension Block.tabbedMWEs (titles : Array String) where
 }
 .error-example-tab-list [role="tab"][aria-selected="true"] {
   border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
 }
   "#]
   extraJs := [r#"
@@ -163,7 +176,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </button>
       }}
     let panels ← contents.mapIdxM fun i b => do
-      let className := if i == 0 then "" else "error-example-tabpanel-hidden"
+      let className := "error-example-tabpanel" ++ if i == 0 then "" else " error-example-tabpanel-hidden"
       let idxStr := toString i
       return {{
         <div role="tabpanel"
