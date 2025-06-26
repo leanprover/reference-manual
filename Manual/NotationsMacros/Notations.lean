@@ -103,11 +103,11 @@ elab "#parse_test " "[" e:term "]"  : command => do
 -- Here, takesMax vs takesLead distinguishes the notations
 
 /-- info: («term_<#_» (termTakesMax_ "takesMax" (num "1")) "<#" (num "2")) -/
-#guard_msgs in
+#check_msgs in
 #parse_test [ takesMax 1 <# 2 ]
 
 /-- info: (termTakesLead_ "takesLead" («term_<#_» (num "1") "<#" (num "2"))) -/
-#guard_msgs in
+#check_msgs in
 #parse_test [ takesLead 1 <# 2 ]
 
 
@@ -116,13 +116,13 @@ elab "#parse_test " "[" e:term "]"  : command => do
 /--
 info: (termTakesMax_ "takesMax" («term<<<<<_<<#_>>>>>» "<<<<<" (num "1") "<<#" (num "2") ">>>>>"))
 -/
-#guard_msgs in
+#check_msgs in
 #parse_test [ takesMax <<<<< 1 <<# 2 >>>>> ]
 
 /--
 info: (termTakesLead_ "takesLead" («term<<<<<_<<#_>>>>>» "<<<<<" (num "1") "<<#" (num "2") ">>>>>"))
 -/
-#guard_msgs in
+#check_msgs in
 #parse_test [ takesLead <<<<< 1 <<# 2 >>>>> ]
 ```
 

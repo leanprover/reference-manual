@@ -102,13 +102,13 @@ partial def noInfo : Syntax → Syntax
 /--
 info: Lean.Syntax.node (Lean.SourceInfo.none) `num #[Lean.Syntax.atom (Lean.SourceInfo.none) "0xabc123"]
 -/
-#guard_msgs in
+#check_msgs in
 #eval noInfo <$> `(term|0xabc123)
 
 /--
 info: Lean.Syntax.node (Lean.SourceInfo.none) `str #[Lean.Syntax.atom (Lean.SourceInfo.none) "\"ab\\tc\""]
 -/
-#guard_msgs in
+#check_msgs in
 #eval noInfo <$> `(term|"ab\tc")
 ```
 
@@ -374,7 +374,7 @@ Additionally, many helper functions that are only valid on some syntactic catego
 
 ```lean (show := false)
 /-- info: instCoeHTCTOfCoeHTC -/
-#guard_msgs in
+#check_msgs in
 open Lean in
 #synth CoeHTCT (TSyntax `str) (TSyntax `term)
 ```
@@ -515,7 +515,7 @@ It is an error to declare a syntax rule in a nonexistent category.
 ```lean (show := false)
 -- verify preceding para
 /-- error: unknown category 'nuhUh' -/
-#guard_msgs in
+#check_msgs in
 syntax "blah" : nuhUh
 ```
 

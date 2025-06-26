@@ -244,6 +244,7 @@ Std.Channel
 Std.Channel.Sync
 Std.CloseableChannel
 Std.Condvar
+Std.Format
 Unit
 PUnit
 Bool
@@ -281,6 +282,7 @@ Sum
 PSum
 Sigma
 Subtype
+Repr
 Thunk
 _root_
 BitVec
