@@ -51,6 +51,8 @@ the differences with the previous version and upgrade your projects.
 
 {include 0 Manual.Releases.«v4.21.0»}
 
+{include 0 Manual.Releases.«v4.20.1»}
+
 {include 0 Manual.Releases.«v4.20.0»}
 
 {include 0 Manual.Releases.«v4.19.0»}
