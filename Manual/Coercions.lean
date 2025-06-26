@@ -380,16 +380,11 @@ instance : Coe α (Twice α) := ⟨twice⟩
 When the {name}`Coe` instance is unfolded, the call to {name}`twice` remains, which causes its argument to be evaluated before the body of the function is executed.
 As a result, the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace` is included in the resulting term just once:
 ```lean (name := eval1)
-#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
-:::comment
 This used to demonstrate the effect:
 ```leanOutput eval1
 hello
-```
-:::
-```leanOutput eval1
-↑(dbgTrace (toString "hello") fun x => 5) : Twice Nat
 ```
 
 Inlining the helper into the {name}`Coe` instance results in a term that duplicates the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace`:
@@ -397,18 +392,11 @@ Inlining the helper into the {name}`Coe` instance results in a term that duplica
 instance : Coe α (Twice α) where
   coe x := ⟨x, x, rfl⟩
 
-#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
-:::comment
-This used to check the effects, but can't in the new codegen
 ```leanOutput eval2
 hello
 hello
-```
-:::
-```leanOutput eval2
-{ first := dbgTrace (toString "hello") fun x => 5, second := dbgTrace (toString "hello") fun x => 5,
-  first_eq_second := ⋯ } : Twice Nat
 ```
 
 Introducing an intermediate name for the result of the evaluation prevents the duplication of {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace`:
@@ -416,17 +404,10 @@ Introducing an intermediate name for the result of the evaluation prevents the d
 instance : Coe α (Twice α) where
   coe x := let y := x; ⟨y, y, rfl⟩
 
-#check ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
+#eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
-:::comment
-This also checked the effects
 ```leanOutput eval3
 hello
-```
-:::
-```leanOutput eval3
-let y := dbgTrace (toString "hello") fun x => 5;
-{ first := y, second := y, first_eq_second := ⋯ } : Twice Nat
 ```
 
 ::::
