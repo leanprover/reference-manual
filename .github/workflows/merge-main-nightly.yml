@@ -1,6 +1,6 @@
 # This job merges every commit to `main` into `nightly-testing`, resolving merge conflicts in favor of `nightly-testing`.
 
-name: Merge master to nightly
+name: Merge main to nightly
 
 on:
   schedule:
@@ -95,7 +95,7 @@ jobs:
       - name: Commit and push
         run: |
           git add .
-          # If there's nothing to do (because there are no new commits from master),
+          # If there's nothing to do (because there are no new commits from main),
           # that's okay, hence the '|| true'.
           git commit -m "chore: merge main into ${{ env.TARGET_BRANCH }}" || true
           git push origin ${{ env.TARGET_BRANCH }}
