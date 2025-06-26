@@ -264,7 +264,7 @@ error: invalid atom
 ---
 error: invalid syntax node kind '«term_<<<<_>>>>_»'
 -/
-#guard_msgs in
+#check_msgs in
 infix:99 " <<<< >>>> " => Nat.add
 
 
@@ -274,7 +274,7 @@ error: invalid atom
 ---
 error: invalid syntax node kind 'bogus'
 -/
-#guard_msgs in
+#check_msgs in
 infix:9 (name := bogus) "" => Nat.mul
 
 
@@ -283,11 +283,11 @@ error: invalid atom
 ---
 error: invalid syntax node kind 'alsobogus'
 -/
-#guard_msgs in
+#check_msgs in
 infix:9 (name := alsobogus) " ` " => Nat.mul
 
 -- this one's OK
-#guard_msgs in
+#check_msgs in
 infix:9 (name := nonbogus) " `` " => Nat.mul
 
 /--
@@ -295,7 +295,7 @@ error: invalid atom
 ---
 error: invalid syntax node kind 'bogus'
 -/
-#guard_msgs in
+#check_msgs in
 infix:9 (name := bogus) "`a" => Nat.mul
 
 ```

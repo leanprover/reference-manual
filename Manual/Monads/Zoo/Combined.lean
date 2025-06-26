@@ -34,11 +34,11 @@ In compiled code, this representation removes one level of indirection from each
 
 ```lean (show := false)
 /-- info: σ → Except ε α × σ -/
-#guard_msgs in
+#check_msgs in
 #reduce (types := true) ExceptT ε (StateM σ) α
 
 /-- info: σ → EStateM.Result ε σ α -/
-#guard_msgs in
+#check_msgs in
 #reduce (types := true) EStateM ε σ α
 ```
 

@@ -379,13 +379,13 @@ partial def count [Monad m] (p : α → Bool) (act : m α) : m Nat := do
 
 ```lean (show := false)
 /-- info: Nat : Type -/
-#guard_msgs in
+#check_msgs in
 #check Nat
 
 /--
 info: count.{u_1} {m : Type → Type u_1} {α : Type} [Monad m] (p : α → Bool) (act : m α) : m Nat
 -/
-#guard_msgs in
+#check_msgs in
 #check count
 ```
 :::

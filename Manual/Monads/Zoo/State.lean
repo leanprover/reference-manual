@@ -93,7 +93,7 @@ State monads in continuation passing style have different performance characteri
 
 ```lean (show := false)
 /-- info: (δ : Type u) → σ → (α → σ → Id δ) → δ -/
-#guard_msgs in
+#check_msgs in
 #reduce (types := true) StateCpsT σ Id α
 ```
 {docstring StateCpsT}

@@ -602,7 +602,7 @@ r✝ : Array Nat
 out : Array Nat := r✝
 ⊢ i < xs.size
 -/
-#guard_msgs in
+#check_msgs in
 def satisfyingIndices (p : α → Prop) [DecidablePred p] (xs : Array α) : Array Nat := Id.run do
   let mut out := #[]
   for i in [0:xs.size] do
@@ -806,7 +806,7 @@ The rules are as follows:
 -- Test nested `do` rules
 
 /-- info: ((), 6) -/
-#guard_msgs in
+#check_msgs in
 #eval (·.run 0) <| show StateM Nat Unit from do
   set 5
   do
@@ -814,7 +814,7 @@ The rules are as follows:
     return
 
 /-- error: must be last element in a `do` sequence -/
-#guard_msgs in
+#check_msgs in
 #eval (·.run 0) <| show StateM Nat Unit from do
   set 5
   do
@@ -824,7 +824,7 @@ The rules are as follows:
   return
 
 /-- info: ((), 6) -/
-#guard_msgs in
+#check_msgs in
 #eval (·.run 0) <| show StateM Nat Unit from do
   set 5
   if true then
@@ -868,13 +868,13 @@ set_option pp.all true
 /--
 info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) Unit α e1 fun (x : PUnit.{1}) => es : m α
 -/
-#guard_msgs in
+#check_msgs in
 #check do e1; es
 
 section
 variable {e1 : m β}
 /-- info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) β α e1 fun (x : β) => es : m α -/
-#guard_msgs in
+#check_msgs in
 #check do let x ← e1; es
 end
 
@@ -882,7 +882,7 @@ end
 info: let x : β := e;
 es : m α
 -/
-#guard_msgs in
+#check_msgs in
 #check do let x := e; es
 
 variable {e1 : m β} {e2 : m γ} {f : β → γ → m Unit} {g : γ → α} {h : β → m γ}
@@ -892,7 +892,7 @@ info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) β α e1 fun (__do_li
   @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) γ α e2 fun (__do_lift_1 : γ) =>
     @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) Unit α (f __do_lift __do_lift_1) fun (x : PUnit.{1}) => es : m α
 -/
-#guard_msgs in
+#check_msgs in
 #check do f (← e1) (← e2); es
 
 /--
@@ -901,7 +901,7 @@ info: @Bind.bind.{0, 0} m (@Monad.toBind.{0, 0} m inst✝) β α e1 fun (__do_li
     let x : α := g __do_lift;
     es : m α
 -/
-#guard_msgs in
+#check_msgs in
 #check do let x := g (← h (← e1)); es
 
 end

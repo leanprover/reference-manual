@@ -18,6 +18,7 @@ import SubVerso.Examples
 
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
+import Manual.Meta.CheckMessages
 import Manual.Meta.CustomStyle
 import Manual.Meta.Env
 import Manual.Meta.Example

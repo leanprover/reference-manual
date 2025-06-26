@@ -103,54 +103,54 @@ def validIdentifier (str : String) : IO String :=
   Lean.Parser.identFn.test str
 
 /-- info: "Success! Final stack:\n  `ℕ\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "ℕ"
 
 /-- info: "Failure @0 (⟨1, 0⟩): expected identifier\nFinal stack:\n  <missing>\nRemaining: \"?\"" -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "?"
 
 /-- info: "Success! Final stack:\n  `ℕ?\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "ℕ?"
 
 /-- info: "Failure @0 (⟨1, 0⟩): expected identifier\nFinal stack:\n  <missing>\nRemaining: \"_\"" -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "_"
 
 /-- info: "Success! Final stack:\n  `_3\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "_3"
 
 /-- info: "Success! Final stack:\n  `_.a\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "_.a"
 
 /-- info: "Success! Final stack:\n  `αποδεικνύοντας\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "αποδεικνύοντας"
 
 
 /- Here's some things that probably should be identifiers but aren't at the time of writing -/
 
 /-- info: "Success! Final stack:\n  `κύκ\nRemaining:\n\"λος\"" -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "κύκλος"
 
 /-- info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"øvelse\"" -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "øvelse"
 
 /--
 info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"Übersetzung\""
 -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "Übersetzung"
 
 /--
 info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"переклад\""
 -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "переклад"
 
 ````
@@ -165,19 +165,19 @@ The guillemets are not part of the resulting identifier component, so `«x»` an
 
 ```lean (show := false)
 /-- info: "Success! Final stack:\n  `«\n  »\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "«\n»"
 
 /-- info: "Success! Final stack:\n  `««one line\n  and another»\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "««one line\nand another»"
 
 /-- info: "Success! Final stack:\n  `«one line\x00and another»\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "«one line\x00and another»"
 
 /-- info: "Success! Final stack:\n  `«one line\x0band another»\nAll input consumed." -/
-#guard_msgs in
+#check_msgs in
 #eval validIdentifier "«one line\x0Band another»"
 ```
 

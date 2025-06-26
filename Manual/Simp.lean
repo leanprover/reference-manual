@@ -235,12 +235,12 @@ error: unsolved goals
 x y : α✝
 ⊢ x = y ∧ y = x
 -/
-#guard_msgs in
+#check_msgs in
 example : foo (x, y) = (y, x) := by
   simp [foo]
 
 /-- error: simp made no progress -/
-#guard_msgs in
+#check_msgs in
 example : foo (x, y) = (y, x) := by
   simp
 
@@ -250,12 +250,12 @@ error: unsolved goals
 x y : α✝
 ⊢ x = y ∧ y = x
 -/
-#guard_msgs in
+#check_msgs in
 example : foo' (x, y) = (y, x) := by
   simp [foo']
 
 /-- error: simp made no progress -/
-#guard_msgs in
+#check_msgs in
 example : foo' (x, y) = (y, x) := by
   simp
 
@@ -265,7 +265,7 @@ error: unsolved goals
 x y : α✝
 ⊢ x = y ∧ y = x
 -/
-#guard_msgs in
+#check_msgs in
 example : foo'' (x, y) = (y, x) := by
   simp [foo'']
 
@@ -275,7 +275,7 @@ error: unsolved goals
 x y : α✝
 ⊢ x = y ∧ y = x
 -/
-#guard_msgs in
+#check_msgs in
 example : foo'' (x, y) = (y, x) := by
   simp
 
@@ -361,7 +361,7 @@ simp $p:prio
 ```lean (show := false)
 -- Check above claim about default priority
 /-- info: 1000 -/
-#guard_msgs in
+#check_msgs in
 #eval eval_prio default
 ```
 :::

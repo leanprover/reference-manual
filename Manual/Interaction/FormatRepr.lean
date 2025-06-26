@@ -115,7 +115,7 @@ where nums := [1, 2, 3, 4, 5].map (text s!"{·}")
 ```lean show := false
 -- check statement in next paragraph
 /-- info: 120 -/
-#guard_msgs in
+#check_msgs in
 #eval defWidth
 ```
 
@@ -562,7 +562,7 @@ In some cases, however, it's necessary to write an instance by hand:
 
 ```lean (show := false)
 /-- info: Std.HashSet.ofList [0, 3, 5] -/
-#guard_msgs in
+#check_msgs in
 #eval IO.println <| repr (({} : Std.HashSet Nat).insert 3 |>.insert 5 |>.insert 0)
 ```
 ```lean (show := false) (keep := false)
@@ -571,7 +571,7 @@ structure S where
   y : Nat
 deriving Repr
 /-- info: { x := 2, y := 3 } -/
-#guard_msgs in
+#check_msgs in
 #eval IO.println <| repr <| S.mk 2 3
 ```
 
@@ -749,7 +749,7 @@ info: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 
     10 +
   11 : Nat
 -/
-#guard_msgs in
+#check_msgs in
 #check 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11
 
 /--
@@ -759,7 +759,7 @@ info: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 
     10 +
   11
 -/
-#guard_msgs in
+#check_msgs in
 #eval (1 : AddExpr) + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11
 
 ```
