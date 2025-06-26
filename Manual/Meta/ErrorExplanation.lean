@@ -678,6 +678,22 @@ def explanation : PartCommand
     addExplanationBlocksFor config.name.getId
   | _ => Lean.Elab.throwUnsupportedSyntax
 
+/--
+Returns the suffix of `name` as a string containing soft-hyphen characters at reasonable split points.
+-/
+def getBreakableSuffix (name : Name) : Option String := do
+  let suffix ← match name with
+    | .str _ s => s
+    | .num _ n => toString n
+    | .anonymous => none
+  let breakableHtml := softHyphenateIdentifiers.rwText (.text false suffix)
+  htmlText breakableHtml
+where
+  htmlText : Verso.Output.Html → String
+    | .text _ txt => txt
+    | .seq elts => elts.foldl (· ++ htmlText ·) ""
+    | .tag _nm _attrs children => htmlText children
+
 open Verso Doc Elab ArgParse in
 open Lean in
 /-- Renders all error explanations as parts of the current page. -/
@@ -690,10 +706,12 @@ def make_explanations : PartCommand
       let titleBits := #[← ``(Inline.other
         (Inline.errorExplanation $(quote name) $(quote explan.metadata.summary))
         #[Inline.code $(quote titleString)])]
+      let some shortTitleString := getBreakableSuffix name
+        | throwError m!"Found invalid explanation name `{name}` when generating explanations section"
       PartElabM.push {
         titleSyntax := quote (k := `str) titleString,
         expandedTitle := some (titleString, titleBits),
-        metadata := none,
+        metadata := some (← `({ shortTitle := $(quote shortTitleString) })),
         blocks := #[],
         priorParts := #[]
       }

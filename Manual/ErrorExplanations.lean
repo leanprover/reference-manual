@@ -38,6 +38,20 @@ inline_extension Inline.errorExplanationLink (errorName : Name) where
       logError s!"Could not find external tag for error explanation '{name}' corresponding to ID '{id}'"
       content.mapM go
 
+/- Renders the suffix of an error explanation, allowing line breaks before capital letters. -/
+inline_extension Inline.errorExplanationShortName (errorName : Name) where
+  data := toJson (getBreakableSuffix errorName)
+  traverse := fun _ _ _ => pure none
+  extraCss := [".error-explanation-short-name { hyphenate-character: ''; }"]
+  toTeX := none
+  toHtml := some fun _go _id info _content =>
+    open Verso.Output Html in do
+    let .ok (some errorName) := fromJson? (α := Option String) info
+      | HtmlT.logError "Invalid data for explanation name element"
+        pure .empty
+    let html := {{ <code class="error-explanation-short-name">{{errorName}}</code> }}
+    return html
+
 @[block_role_expander error_explanation_table]
 def error_explanation_table : BlockRoleExpander
   | #[], #[] => do
@@ -49,11 +63,10 @@ def error_explanation_table : BlockRoleExpander
     let headers ← #["Name", "Summary", "Severity", "Since"]
       |>.mapM fun s => ``(Verso.Doc.Block.para #[Doc.Inline.text $(quote s)])
     let vals ← entries.flatMapM fun (name, explan) => do
-      let sev := quote <|
-        if explan.metadata.severity == .warning then "Warning" else "Error"
+      let sev := quote <| if explan.metadata.severity == .warning then "Warning" else "Error"
       let sev ← ``(Doc.Inline.text $sev)
-      let nameStr := toString name
-      let nameLink ← ``(Doc.Inline.other (Inline.errorExplanationLink $(quote name)) #[Doc.Inline.code $(quote nameStr)])
+      let nameLink ← ``(Doc.Inline.other (Inline.errorExplanationLink $(quote name))
+        #[Doc.Inline.other (Inline.errorExplanationShortName $(quote name)) #[]])
       let summary ← ``(Doc.Inline.text $(quote explan.metadata.summary))
       let since ← ``(Doc.Inline.text $(quote explan.metadata.sinceVersion))
       #[nameLink, summary, sev, since]
@@ -72,7 +85,8 @@ htmlToc := false
 %%%
 
 This section provides explanations of errors and warnings that may be generated
-by Lean when processing a source file.
+by Lean when processing a source file. All error names listed below have the
+`lean` package prefix.
 
 {error_explanation_table}
 
