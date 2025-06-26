@@ -12,16 +12,14 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.20.1 (2025-06-04)" =>
+#doc (Manual) "Lean 4.20.0 (2025-06-02)" =>
 %%%
 tag := "release-v4.20.0"
 file := "v4.20.0"
 %%%
 
 `````markdown
-For this release, 347 changes landed. In addition to the 108 feature additions and 86 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
-
-The 4.20.1 point release addresses a metaprogramming regression in `Lean.Environment.addDeclCore` ([#8610](https://github.com/leanprover/lean4/pull/8610)).
+For this release, 346 changes landed. In addition to the 108 feature additions and 85 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
 
 ## Highlights
 
@@ -686,8 +684,6 @@ Other notable library developments in this release include:
 * [#8254](https://github.com/leanprover/lean4/pull/8254) fixes unintended inlining of `ToJson`, `FromJson`, and `Repr`
   instances, which was causing exponential compilation times in `deriving`
   clauses for large structures.
-
-* [#8610](https://github.com/leanprover/lean4/pull/8610) addresses a metaprogramming regression in `Lean.Environment.addDeclCore`.
 
 ## Library
 
