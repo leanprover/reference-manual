@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 env:
-  TARGET_BRANCH: nightly-testing-test
+  TARGET_BRANCH: nightly-testing
 
 jobs:
   merge-to-nightly:
@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
@@ -32,7 +33,14 @@ jobs:
         run: |
           git checkout ${{ env.TARGET_BRANCH }}
           # If the merge goes badly, we proceed anyway via '|| true'.
-          git merge main --strategy-option ours --no-commit --allow-unrelated-histories || true
+          git merge origin/main --strategy-option ours --no-commit --allow-unrelated-histories || true
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       - name: Update dependencies
         run: |
@@ -72,13 +80,6 @@ jobs:
         run: |
           lualatex --version
 
-      - name: Install elan
-        run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
       - name: Build figures
         run: |
           lake build figures
@@ -88,7 +89,6 @@ jobs:
           lake build
 
       - name: Generate HTML
-        if: steps.check-update.outputs.update-needed == 'true'
         run: |
           lake exe generate-manual --depth 2 --without-html-single
 
