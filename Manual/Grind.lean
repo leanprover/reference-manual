@@ -886,7 +886,9 @@ The solver ignores any type supported by `cutsat`. This modulo is useful for rea
 ordered vector spaces, etc.
 
 The main type classes for module structures are `NatModule` (every `Semiring` is a `NatModule`) and `IntModule` (every `Ring` is an `IntModule`).
-These may interact with the three order classes `Preorder`, `PartialOrder`, and `LinearOrder`. To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the typeclass `OrderedRing`.
+These may interact with the three order classes `Preorder`, `PartialOrder`, and `LinearOrder`.
+(Typically a `Preorder` is enough when the context already includes a contradiction, but to prove linear inequality goals you will need a `LinearOrder`.)
+To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the typeclass `OrderedRing`.
 
 {docstring Lean.Grind.NatModule}
 
@@ -902,26 +904,67 @@ These may interact with the three order classes `Preorder`, `PartialOrder`, and 
 
 {docstring Lean.Grind.OrderedRing}
 
+The core functionality of `linarith` is a model based solver for linear inequalities with integer coefficients.
+You can disable this solver using the option `grind -linarith`.
+
 The following examples demonstrate goals that can be decided by the `linarith` solver.
 
 ```lean
-example [IntModule α] [LinearOrder α] [OrderedAdd α] (a b : α)
-    : 2*a + b ≥ b + a + a := by
+section
+```
+```lean
+variable [IntModule α] [LinearOrder α] [OrderedAdd α]
+
+example (a b : α) : 2*a + b ≥ b + a + a := by grind
+example (a b : α) (h : a ≤ b) : 3 * a + b ≤ 4 * b := by grind
+example (a b c : α) (_ : a = b + c) (_ : 2 * b ≤ c) :
+    2 * a ≤ 3 * c := by grind
+
+example (a b c d e : α) :
+    2*a + b ≥ 0 → b ≥ 0 → c ≥ 0 → d ≥ 0 → e ≥ 0
+    → a ≥ 3*c → c ≥ 6*e → d - 5*e ≥ 0
+    → a + b + 3*c + d + 2*e < 0 → False := by
   grind
 ```
+```lean
+end
+```
 
-You can disable this solver using the option `grind -linarith`.
+```lean
+section
+```
+At present we only use the `CommRing` structure to do basic normalization (e.g. identifying linear atoms `a * b` and `b * a`),
+and to allow constants (with the fact `0 < 1`) and scalar multiplication on both sides.
 
-Planned future features: support for `NatModule`, and better communication
-between the `ring` and `linarith` solvers. There is currently very little
-communication between these two solvers.
+```lean
+variable [CommRing R] [LinearOrder R] [OrderedRing R]
 
+example (a b : R) (h : a * b ≤ 1) : b * 3 * a + 1 ≤ 4 := by grind
+
+example (a b c d e f : R) :
+    2*a + b ≥ 1 → b ≥ 0 → c ≥ 0 → d ≥ 0 → e*f ≥ 0
+    → a ≥ 3*c → c ≥ 6*e*f → d - f*e*5 ≥ 0
+    → a + b + 3*c + d + 2*e*f < 0 → False := by
+  grind
+```
+```lean
+end
+```
+
+Planned future features
+* Support for `NatModule` (by embedding in the Grothendieck envelope, as we already do for semirings),
+* Better communication between the `ring` and `linarith` solvers.
+  There is currently very little communication between these two solvers.
+* Non-linear arithmetic over ordered rings.
+
+:::comment
 # Diagnostics
 TBD
 Threshold notices, learned equivalence classes, integer assignments, algebraic basis, performed splits, instance statistics.
 
 # Troubleshooting & FAQ
 TBD
+:::
 
 # Bigger Examples
 
@@ -1245,12 +1288,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1216:27-45  =  <
-2) 1217:27-45  =  <
-3) 1219:4-52   =  ?
-4) 1223:16-50  ?  _
-5) 1224:16-51  _  _
-6) 1226:16-50  _  _
+1) 1258:27-45  =  <
+2) 1259:27-45  =  <
+3) 1261:4-52   =  ?
+4) 1265:16-50  ?  _
+5) 1266:16-51  _  _
+6) 1268:16-50  _  _
 
 #1: assign
 
