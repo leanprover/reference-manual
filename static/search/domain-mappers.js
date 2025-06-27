@@ -225,6 +225,22 @@ const lakeTomlTableMapper = {
   displayName: "Lake TOML Table",
 };
 
+/**
+ * @type {DomainMapper}
+ */
+const errorExplanationMapper = {
+  dataToSearchables: (domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => {
+      return {
+        searchKey: key,
+        address: `${value[0].address}#${value[0].id}`,
+        domainId: "Manual.errorExplanation",
+        ref: value,
+      }}),
+  className: "error-explanation-domain",
+  displayName: "Error Explanation",
+};
+
 export const domainMappers = {
   "Verso.Genre.Manual.doc": docDomainMapper,
   "Verso.Genre.Manual.doc.option": docOptionDomainMapper,
@@ -240,4 +256,5 @@ export const domainMappers = {
   "Manual.lakeTomlField": lakeTomlFieldMapper,
   "Manual.elanCommand": elanCommandMapper,
   "Manual.elanOpt": elanOptMapper,
+  "Manual.errorExplanation": errorExplanationMapper
 };
