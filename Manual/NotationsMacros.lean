@@ -136,21 +136,21 @@ macro_rules
   | `(term|doubled $_) => Lean.Macro.throwUnsupported
 
 /-- info: 10 -/
-#guard_msgs in
+#check_msgs in
 #eval doubled 5
 
 /--
 error: elaboration function for 'termDoubled_' has not been implemented
   doubled (5 + 2)
 -/
-#guard_msgs in
+#check_msgs in
 #eval doubled (5 + 2)
 
 elab_rules : term
   | `(term|doubled $e:term) => Lean.Elab.Term.elabTerm e none
 
 /-- info: 7 -/
-#guard_msgs in
+#check_msgs in
 #eval doubled (5 + 2)
 ```
 
@@ -307,7 +307,7 @@ info: do
   let _ ← Lean.getMainModule
   pure { raw := { raw := Syntax.missing }.raw } : MacroM (Lean.TSyntax `term)
 -/
-#guard_msgs in
+#check_msgs in
 #check (`($(⟨.missing⟩)) : MacroM _)
 /--
 info: do
@@ -320,7 +320,7 @@ info: do
           Syntax.node2 info `Lean.Parser.Term.app { raw := Syntax.missing }.raw
             (Syntax.node1 info `null { raw := Syntax.missing }.raw) } : MacroM (Lean.TSyntax `term)
 -/
-#guard_msgs in
+#check_msgs in
 #check (`($(⟨.missing⟩) $(⟨.missing⟩)) : MacroM _)
 /--
 info: do
@@ -333,7 +333,7 @@ info: do
           Syntax.node2 info `null { raw := Syntax.missing }.raw
             { raw := Syntax.missing }.raw } : MacroM (Lean.TSyntax `command)
 -/
-#guard_msgs in
+#check_msgs in
 #check (`($(⟨.missing⟩):command $(⟨.missing⟩)) : MacroM _)
 
 /--
@@ -343,7 +343,7 @@ info: do
   let _ ← Lean.getMainModule
   pure { raw := { raw := Syntax.missing }.raw } : MacroM (Lean.TSyntax `tactic)
 -/
-#guard_msgs in
+#check_msgs in
 #check (`(tactic| $(⟨.missing⟩):tactic) : MacroM _)
 
 /--
@@ -358,7 +358,7 @@ info: do
             (Syntax.node3 info `null { raw := Syntax.missing }.raw (Syntax.atom info ";")
               { raw := Syntax.missing }.raw) } : MacroM (Lean.TSyntax `tactic.seq)
 -/
-#guard_msgs in
+#check_msgs in
 #check (`(tactic|
           $(⟨.missing⟩):tactic; $(⟨.missing⟩)) : MacroM _)
 ```
@@ -739,19 +739,19 @@ variable {k k' : SyntaxNodeKinds} {sep : String} [Coe (TSyntax k) (TSyntax k')]
 -- Demonstrate the coercions between different kinds of repeated syntax
 
 /-- info: instCoeHTCTOfCoeHTC -/
-#guard_msgs in
+#check_msgs in
 #synth CoeHTCT (TSyntaxArray k) (TSepArray k sep)
 
 /-- info: instCoeHTCTOfCoeHTC -/
-#guard_msgs in
+#check_msgs in
 #synth CoeHTCT (TSyntaxArray k) (TSepArray k' sep)
 
 /-- info: instCoeHTCTOfCoeHTC -/
-#guard_msgs in
+#check_msgs in
 #synth CoeHTCT (Array (TSyntax k)) (TSepArray k sep)
 
 /-- info: instCoeHTCTOfCoeHTC -/
-#guard_msgs in
+#check_msgs in
 #synth CoeHTCT (TSepArray k sep) (TSyntaxArray k)
 
 end
@@ -1118,7 +1118,7 @@ info: TSyntax Name.anonymous
 ---
 info: Syntax.TSepArray `num ","
 -/
-#guard_msgs in
+#check_msgs in
 macro "gah!" thing:str other:(str <|> num) arg:num,* : term => do
   dbg_type thing; pure ()
   dbg_type other; pure ()
@@ -1126,7 +1126,7 @@ macro "gah!" thing:str other:(str <|> num) arg:num,* : term => do
   return quote s!"{thing.raw} ||| {other.raw} ||| {arg.getElems}"
 
 /-- info: "(str \"\\\"one\\\"\") ||| (num \"44\") ||| #[(num \"2\"), (num \"3\")]" : String -/
-#guard_msgs in
+#check_msgs in
 #check gah! "one" 44 2,3
 
 ```

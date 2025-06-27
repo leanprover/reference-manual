@@ -279,14 +279,11 @@ draft := true
 %%%
 
 :::planned 135
-
- * How to write a correct {name}`Repr` instance
- * {name}`ReprAtom`
- * Useful helpers, like {name}`Repr.addAppParen` and {name}`reprArg`
+ * ToString
+ * xref to Repr section
  * When to use {name}`Repr` vs {name}`ToString`
 :::
 
-{docstring Repr}
 
 {docstring ToString (allowMissing := true)}
 

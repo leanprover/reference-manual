@@ -1,0 +1,101 @@
+# This job merges every commit to `main` into `nightly-testing`, resolving merge conflicts in favor of `nightly-testing`.
+
+name: Merge main to nightly
+
+on:
+  schedule:
+    - cron: '30 9/6 * * *'
+    # Run every six hours, starting at 10:30AM CET/1:30AM PT.
+    # This is 30 minutes prior to attempting to update the toolchain.
+  workflow_dispatch:
+
+env:
+  TARGET_BRANCH: nightly-testing
+
+jobs:
+  merge-to-nightly:
+    runs-on: ubuntu-latest
+    if: github.repository == 'leanprover/reference-manual'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main, favoring nightly changes
+        run: |
+          git checkout ${{ env.TARGET_BRANCH }}
+          # If the merge goes badly, we proceed anyway via '|| true'.
+          git merge origin/main --strategy-option ours --no-commit --allow-unrelated-histories || true
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Update dependencies
+        run: |
+          lake --keep-toolchain update
+
+      - name: Install deps for figures (OS packages)
+        run: |
+          sudo apt update && sudo apt install -y poppler-utils
+
+      - name: Install deps for figures (TeX)
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          version: 2024
+          packages: |
+            scheme-small
+            latex-bin
+            fontspec
+            standalone
+            pgf
+            pdftexcmds
+            luatex85
+            lualatex-math
+            infwarerr
+            ltxcmds
+            xcolor
+            fontawesome
+            spath3
+            inter
+            epstopdf-pkg
+            tex-gyre
+            tex-gyre-math
+            unicode-math
+            amsmath
+            sourcecodepro
+
+      - name: Do we have lualatex?
+        run: |
+          lualatex --version
+
+      - name: Build figures
+        run: |
+          lake build figures
+
+      - name: Build
+        run: |
+          lake build
+
+      - name: Generate HTML
+        run: |
+          lake exe generate-manual --depth 2 --without-html-single
+
+      - name: Commit and push
+        run: |
+          git add .
+          # If there's nothing to do (because there are no new commits from main),
+          # that's okay, hence the '|| true'.
+          git commit -m "chore: merge main into ${{ env.TARGET_BRANCH }}" || true
+          git push origin ${{ env.TARGET_BRANCH }}

@@ -982,17 +982,17 @@ section
 example : Lake.Glob := `n
 
 /-- info: instCoeNameGlob -/
-#guard_msgs in
+#check_msgs in
 #synth Coe Lean.Name Lake.Glob
 
 open Lake DSL
 
 /-- info: Lake.Glob.andSubmodules `n -/
-#guard_msgs in
+#check_msgs in
 #eval show Lake.Glob from `n.*
 
 /-- info: Lake.Glob.submodules `n -/
-#guard_msgs in
+#check_msgs in
 #eval show Lake.Glob from `n.+
 
 end

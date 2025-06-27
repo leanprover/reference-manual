@@ -109,7 +109,7 @@ This instance cannot be used to prove that a function terminates using well-foun
 example {α} (x : α) : sizeOf x = 0 := by rfl
 
 /-- info: instSizeOfDefault.{u} (α : Sort u) : SizeOf α -/
-#guard_msgs in
+#check_msgs in
 #check instSizeOfDefault
 
 ```
