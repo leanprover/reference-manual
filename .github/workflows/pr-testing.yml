@@ -1,0 +1,104 @@
+on:
+  push:
+    branches:
+      - main
+      - 'lean-pr-testing-*'
+
+name: "Report PR testing status to the lean4 repository"
+
+jobs:
+  build:
+    name: Build site and generate HTML
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install deps for figures (OS packages)
+        run: |
+          sudo apt update && sudo apt install -y poppler-utils
+
+      - name: Install deps for figures (TeX)
+        uses: teatimeguest/setup-texlive-action@v3
+        with:
+          version: 2024
+          packages: |
+            scheme-small
+            latex-bin
+            fontspec
+            standalone
+            pgf
+            pdftexcmds
+            luatex85
+            lualatex-math
+            infwarerr
+            ltxcmds
+            xcolor
+            fontawesome
+            spath3
+            inter
+            epstopdf-pkg
+            tex-gyre
+            tex-gyre-math
+            unicode-math
+            amsmath
+            sourcecodepro
+
+      - name: Do we have lualatex?
+        run: |
+          lualatex --version
+
+      - name: Install elan
+        run: |
+          set -o pipefail
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/checkout@v4
+
+      - name: Lean Version
+        run: |
+          lean --version
+
+      - name: Cache .lake
+        uses: actions/cache/restore@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
+
+      - name: Build figures
+        run: |
+          lake build figures
+
+      - name: Build
+        id: build
+        run: |
+          lake build
+
+      - name: Save cache for .lake
+        uses: actions/cache/save@v4
+        with:
+          path: .lake
+          key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+
+      - name: Generate HTML (non-release)
+        id: generate
+        run: |
+          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+
+      - name: Report status to Lean PR
+        if: always() && github.repository == 'leanprover/reference-manual'
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.LEAN_PR_TESTING }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          GENERATE_OUTCOME: ${{ steps.generate.outcome }}
+          NIGHTLY_TESTING_REPO: leanprover-community/mathlib4-nightly-testing
+        run: |
+         scripts/lean-pr-testing-comments.sh lean
