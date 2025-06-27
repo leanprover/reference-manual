@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - main
-      - 'lean-pr-testing-*'
   pull_request:
     branches:
       - main
@@ -95,7 +94,6 @@ jobs:
 
       - name: Generate HTML (non-release)
         if: github.event_name != 'release'
-        id: generate
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
 
@@ -108,19 +106,6 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
-
-      - name: Report status to Lean PR
-        if: always() && github.repository == 'leanprover/reference-manual'
-        shell: bash
-        env:
-          TOKEN: ${{ secrets.LEAN_PR_TESTING }}
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          BUILD_OUTCOME: ${{ steps.build.outcome }}
-          GENERATE_OUTCOME: ${{ steps.generate.outcome }}
-          NIGHTLY_TESTING_REPO: leanprover-community/mathlib4-nightly-testing
-        run: |
-         scripts/lean-pr-testing-comments.sh lean
 
       - name: Save generated HTML to artifact storage
         uses: actions/upload-artifact@v4
@@ -143,7 +128,6 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat words.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
 
       - name: Set up Python for link checker
         if: github.event_name == 'push' || github.event_name == 'pull_request'
