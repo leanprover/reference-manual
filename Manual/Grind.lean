@@ -583,11 +583,12 @@ example (x y : Nat)
   grind -matchEqs
 ```
 
-
+:::comment
 TBD
 * anti‑patterns
 * local vs global attributes
 * `gen` modifier?
+:::
 
 # Linear Integer Arithmetic Solver
 
