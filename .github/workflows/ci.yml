@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+      - 'lean-pr-testing-*'
   pull_request:
     branches:
       - main
@@ -82,6 +83,7 @@ jobs:
           lake build figures
 
       - name: Build
+        id: build
         run: |
           lake build
 
@@ -103,8 +105,22 @@ jobs:
 
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
+        id: generate
         run: |
           lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
+
+      - name: Report status to Lean PR
+        if: always() && github.repository == 'leanprover/reference-manual'
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.LEAN_PR_TESTING }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          GENERATE_OUTCOME: ${{ steps.generate.outcome }}
+          NIGHTLY_TESTING_REPO: leanprover-community/mathlib4-nightly-testing
+        run: |
+         scripts/lean-pr-testing-comments.sh lean
 
       - name: Save generated HTML to artifact storage
         uses: actions/upload-artifact@v4
