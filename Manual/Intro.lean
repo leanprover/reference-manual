@@ -160,7 +160,7 @@ One way to define even numbers is via an inductive predicate:
 ```lean
 inductive Even : Nat → Prop where
   | zero : Even 0
-  | plusTwo : Even n → Even (n + 2)
+  | plusTwo n : Even n → Even (n + 2)
 ```
 :::
 ::::
@@ -192,7 +192,7 @@ inductive Even : Nat → Prop where
   | /-- 0 is considered even here -/
     zero : Even 0
   | /-- If `n` is even, then so is `n + 2`. -/
-    plusTwo : Even n → Even (n + 2)
+    plusTwo n : Even n → Even (n + 2)
 ```
 
 {docstring Even}
