@@ -564,6 +564,10 @@ block_extension Block.errorExplanationMetadata (metadata : ErrorExplanation.Meta
   traverse _ _ _ := pure none
   toTeX := none
   extraCss := ["
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
   .error-explanation-metadatum:not(:last-child):after {
     content: '|';
     margin: 0 10px;
@@ -601,7 +605,6 @@ block_extension Block.errorExplanationMetadata (metadata : ErrorExplanation.Meta
         {{deprecatedWarning}}
         <p><em>{{metadata.summary}}</em></p>
         <p>{{entries}}</p>
-        <hr />
       </div>
     }}
 
