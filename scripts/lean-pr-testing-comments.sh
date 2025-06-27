@@ -154,4 +154,6 @@ if [[ "$branch_name" =~ ^$branch_prefix-([0-9]+)$ ]]; then
         "$repo_url/issues/comments/$existing_comment_id"
     fi
   fi
+else
+    echo "Not reporting status because branch name '$branch_name' doesn't match ^$branch_prefix-([0-9]+)$"
 fi
