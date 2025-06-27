@@ -435,7 +435,7 @@ def closeEnclosingSection : PartElabM Unit := do
     throwError m!"Failed to close the last-opened explanation part"
 
 /-- Adds explanation blocks until the "Examples" header is reached. -/
-def addNonExampleBlocks := do
+def addNonExampleBlocks : ExplanElabM Unit := do
   repeat
     let some block ← ExplanElabM.nextBlock?
       | return
