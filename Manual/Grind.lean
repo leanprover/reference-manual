@@ -864,7 +864,7 @@ example {α} [CommRing α] [IsCharP α 0] (d t c : α) (d_inv PSO3_inv : α)
   grind (ringSteps := 100)
 ```
 
-The `ring` solver propagate equalities back to the `grind` core by normalizing terms using the
+The `ring` solver propagates equalities back to the `grind` core by normalizing terms using the
 computed Gröbner basis. In the following example, the equations `x^2*y = 1` and `x*y^2 = y` imply the equalities
 `x = 1` and `y = 1`. Thus, the terms `x*y` and `1` are equal, and consequently `some (x*y) = some 1`
 by congruence.
@@ -882,7 +882,7 @@ Planned future features: support for noncommutative rings and semirings.
 `grind` also contains a linear arithmetic `linarith` solver parametrized by type classes.
 It self-configures depending on the availability of these type classes, so not all need to be provided.
 The capabilities of the `linarith` solver will of course degrade when some are not available.
-The solver ignores any type supported by `cutsat`. This modulo is useful for reasoning about `Real`,
+The solver ignores any type supported by `cutsat`. This module is useful for reasoning about `Real`,
 ordered vector spaces, etc.
 
 The main type classes for module structures are `NatModule` (every `Semiring` is a `NatModule`) and `IntModule` (every `Ring` is an `IntModule`).
@@ -909,7 +909,7 @@ You can disable this solver using the option `grind -linarith`.
 
 The following examples demonstrate goals that can be decided by the `linarith` solver.
 
-```lean
+```lean (show := false)
 section
 ```
 ```lean
@@ -926,11 +926,11 @@ example (a b c d e : α) :
     → a + b + 3*c + d + 2*e < 0 → False := by
   grind
 ```
-```lean
+```lean (show := false)
 end
 ```
 
-```lean
+```lean (show := false)
 section
 ```
 At present we only use the `CommRing` structure to do basic normalization (e.g. identifying linear atoms `a * b` and `b * a`),
@@ -947,7 +947,7 @@ example (a b c d e f : R) :
     → a + b + 3*c + d + 2*e*f < 0 → False := by
   grind
 ```
-```lean
+```lean (show := false)
 end
 ```
 
