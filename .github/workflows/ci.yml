@@ -95,6 +95,7 @@ jobs:
 
       - name: Generate HTML (non-release)
         if: github.event_name != 'release'
+        id: generate
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
 
@@ -105,7 +106,6 @@ jobs:
 
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
-        id: generate
         run: |
           lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
 
