@@ -7,9 +7,8 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake.DSL.Syntax
 import Lake.Config.Monad
-import Lake.DSL.AttributesCore
+import Lake.DSL
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
