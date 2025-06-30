@@ -272,7 +272,7 @@ This can be used to refer to local lemmas by their theorem statement rather than
 ::::example "Assumptions by Type"
 
 :::keepEnv
-```lean
+```lean (show := false)
 variable (n : Nat)
 ```
 In the following proof, {tactic}`cases` is repeatedly used to analyze a number.

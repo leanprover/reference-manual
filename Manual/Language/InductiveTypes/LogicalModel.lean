@@ -38,7 +38,7 @@ tag := "recursor-types"
 The recursor takes the following parameters:
 : The inductive type's {tech}[parameters]
 
-  Because parameters are consistent, they can be abstracted over the entire recursor
+  Because parameters are consistent, they can be abstracted over the entire recursor.
 
 : The {deftech}_motive_
 
@@ -48,23 +48,23 @@ The recursor takes the following parameters:
 
   For each constructor, the recursor expects a function that satisfies the motive for an arbitrary application of the constructor.
   Each minor premise abstracts over all of the constructor's parameters.
-  If the constructor's parameter's type is the inductive type itself, then the case additionally takes a parameter whose type is the motive applied to that parameter's value—this will receive the result of recursively processing the recursive parameter.
+  If the constructor's parameter's type is the inductive type itself, then the minor premise additionally takes a parameter whose type is the motive applied to that parameter's value—this will receive the result of recursively processing the recursive parameter.
 
 : The {deftech}_major premise_, or target
 
   Finally, the recursor takes an instance of the type as an argument, along with any index values.
 
-The result type of the recursor is the motive applied to these indices and the target.
+The result type of the recursor is the motive applied to these indices and the major premise.
 :::
 
 :::example "The recursor for {lean}`Bool`"
 {lean}`Bool`'s recursor {name}`Bool.rec` has the following parameters:
 
  * The motive computes a type in any universe, given a {lean}`Bool`.
- * There are cases for both constructors, in which the motive is satisfied for both {lean}`false` and {lean}`true`.
- * The target is some {lean}`Bool`.
+ * There are minor premises for both constructors, in which the motive is satisfied for both {lean}`false` and {lean}`true`.
+ * The major premise is some {lean}`Bool`.
 
-The return type is the motive applied to the target.
+The return type is the motive applied to the major premise.
 
 ```signature
 Bool.rec.{u} {motive : Bool → Sort u}
@@ -82,15 +82,15 @@ Bool.rec.{u} {motive : Bool → Sort u}
 axiom α.{u} : Type u
 ```
 
- * The parameter {lean}`α` comes first, because the parameter and the cases need to refer to it
+ * The parameter {lean}`α` comes first, because the motive, minor premises, and major premise need to refer to it.
  * The motive computes a type in any universe, given a {lean}`List α`. There is no connection between the universe levels `u` and `v`.
- * There are cases for both constructors:
+ * There are minor premises for both constructors:
     - The motive is satisfied for {name}`List.nil`
     - The motive should be satisfiable for any application of {name}`List.cons`, given that it is satisfiable for the tail. The extra parameter `motive tail` is because `tail`'s type is a recursive occurrence of {name}`List`.
- * The target is some {lean}`List α`.
+ * The major premise is some {lean}`List α`.
 :::
 
-Once again, the return type is the motive applied to the target.
+Once again, the return type is the motive applied to the major premise.
 
 ```signature
 List.rec.{u, v} {α : Type v} {motive : List α → Sort u}
@@ -114,9 +114,9 @@ inductive EvenOddList (α : Type u) : Bool → Type u where
 The recursor {name}`EvenOddList.rec` is very similar to that for `List`.
 The difference comes from the presence of the index:
  * The motive now abstracts over any arbitrary choice of index.
- * The case for {name EvenOddList.nil}`nil` applies the motive to {name EvenOddList.nil}`nil`'s index value `true`.
- * The case for {name EvenOddList.cons}`cons` abstracts over the index value used in its recursive occurrence, and instantiates the motive with its negation.
- * The target additionally abstracts over an arbitrary choice of index.
+ * The minor premise for {name EvenOddList.nil}`nil` applies the motive to {name EvenOddList.nil}`nil`'s index value `true`.
+ * The minor premise {name EvenOddList.cons}`cons` abstracts over the index value used in its recursive occurrence, and instantiates the motive with its negation.
+ * The major premise additionally abstracts over an arbitrary choice of index.
 
 ```signature
 EvenOddList.rec.{u, v} {α : Type v}
@@ -132,7 +132,7 @@ EvenOddList.rec.{u, v} {α : Type v}
 :::::
 
 When using a predicate (that is, a function that returns a {lean}`Prop`) for the motive, recursors express induction.
-The cases for non-recursive constructors are the base cases, and the additional arguments supplied to constructors with recursive arguments are the induction hypotheses.
+The minor premises for non-recursive constructors are the base cases, and the additional arguments supplied to minor premises for constructors with recursive arguments are the induction hypotheses.
 
 ### Subsingleton Elimination
 %%%
@@ -218,11 +218,11 @@ tag := "iota-reduction"
 
 
 In addition to adding new constants to the logic, inductive type declarations also add new reduction rules.
-These rules govern the interaction between recursors and constructors; specifically recursors that have constructors as their targets.
+These rules govern the interaction between recursors and constructors; specifically recursors that have constructors as their major premise.
 This form of reduction is called {deftech}_ι-reduction_ (iota reduction){index}[ι-reduction]{index (subterm:="ι (iota)")}[reduction].
 
-When the recursor's target is a constructor with no recursive parameters, the recursor application reduces to an application of the constructor's case to the constructor's arguments.
-If there are recursive parameters, then these arguments to the case are found by applying the recursor to the recursive occurrence.
+When the recursor's major premise is a constructor with no recursive parameters, the recursor application reduces to an application of the constructor's minor premise to the constructor's arguments.
+If there are recursive parameters, then these arguments to the minor premise are found by applying the recursor to the recursive occurrence.
 
 # Well-Formedness Requirements
 %%%
@@ -367,9 +367,9 @@ tag := "recursor-elaboration-helpers"
 
 In addition to the type constructor, constructors, and recursors that Lean's core type theory prescribes for inductive types, Lean constructs a number of useful helpers.
 First, the equation compiler (which translates recursive functions with pattern matching in to applications of recursors) makes use of these additional constructs:
- * `recOn` is a version of the recursor in which the target is prior to the cases for each constructor.
- * `casesOn` is a version of the recursor in which the target is prior to the cases for each constructor, and recursive arguments do not yield induction hypotheses. It expresses case analysis rather than primitive recursion.
- * `below` computes a type that, for some motive, expresses that _all_ inhabitants of the inductive type that are subtrees of the target satisfy the motive. It transforms a motive for induction or primitive recursion into a motive for strong recursion or strong induction.
+ * `recOn` is a version of the recursor in which the major premise is prior to the minor premise for each constructor.
+ * `casesOn` is a version of the recursor in which the major premise is prior to the minor premise for each constructor, and recursive arguments do not yield induction hypotheses. It expresses case analysis rather than primitive recursion.
+ * `below` computes a type that, for some motive, expresses that _all_ inhabitants of the inductive type that are subtrees of the major premise satisfy the motive. It transforms a motive for induction or primitive recursion into a motive for strong recursion or strong induction.
  * `brecOn` is a version of the recursor in which `below` is used to provide access to all subtrees, rather than just immediate recursive parameters. It represents strong induction.
  * `noConfusion` is a general statement from which injectivity and disjointness of constructors can be derived.
  * `noConfusionType` is the motive used for `noConfusion` that determines what the consequences of two constructors being equal would be. For separate constructors, this is {lean}`False`; if both constructors are the same, then the consequence is the equality of their respective parameters.
