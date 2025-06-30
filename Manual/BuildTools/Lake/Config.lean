@@ -800,12 +800,11 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-:::leanSection
-```lean (show := false)
-open Lake DSL
-```
 
-{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+
+{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
+:::TODO
+Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
