@@ -563,7 +563,9 @@ When iterating over multiple collections, iteration stops when any of the collec
 
 When iterating over the valid indices for an array with {keywordOf Lean.Parser.Term.doFor}`for`, naming the membership proof allows the tactic that searches for proofs that array indices are in bounds to succeed.
 ```lean (keep := false)
-def satisfyingIndices (p : α → Prop) [DecidablePred p] (xs : Array α) : Array Nat := Id.run do
+def satisfyingIndices
+    (p : α → Prop) [DecidablePred p]
+    (xs : Array α) : Array Nat := Id.run do
   let mut out := #[]
   for h : i in [0:xs.size] do
     if p xs[i] then out := out.push i

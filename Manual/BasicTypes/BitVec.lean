@@ -297,13 +297,13 @@ These operations treat bitvectors as sequences of bits, rather than as encodings
 
 {docstring BitVec.getMsbD}
 
-{docstring BitVec.getMsb'}
+{docstring BitVec.getMsb}
 
 {docstring BitVec.getMsb?}
 
 {docstring BitVec.getLsbD}
 
-{docstring BitVec.getLsb'}
+{docstring BitVec.getLsb}
 
 {docstring BitVec.getLsb?}
 

@@ -14,8 +14,10 @@ import Manual.Defs
 import Manual.Classes
 import Manual.Axioms
 import Manual.Terms
+import Manual.ErrorExplanations
 import Manual.Tactics
 import Manual.Simp
+import Manual.Grind
 import Manual.BasicTypes
 import Manual.BasicProps
 import Manual.NotationsMacros
@@ -92,6 +94,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.Simp}
 
+{include 0 Manual.Grind}
+
 {include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
@@ -128,6 +132,8 @@ Overview of the standard library, including types from the prelude and those tha
 
 
 {include 0 Manual.BuildTools}
+
+{include 0 Manual.ErrorExplanations}
 
 {include 0 Manual.Releases}
 
@@ -323,21 +329,6 @@ Std.TreeMap
 Std.DTreeMap
 Std.TreeSet
 ```
-
-
-```exceptions
-Std.Format.defUnicode
-Std.Format.format.indent
-Std.Format.format.unicode
-Std.Format.format.width
-Std.Format.getIndent
-Std.Format.getUnicode
-Std.Format.getWidth
-Std.Format.noConfusionType.withCtor
-Std.Format.noConfusionType.withCtorType
-Std.Format.pretty'
-```
-
 
 ```exceptions
 Std.HashMap.all

@@ -152,7 +152,7 @@ example : Nat ⊕ String := panic! "Cant' find it"
 failed to synthesize
   Inhabited (Nat ⊕ String)
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 The desired instance can be made available to instance synthesis using {keywordOf Lean.Parser.Term.have}`have`:

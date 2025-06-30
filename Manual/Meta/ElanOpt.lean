@@ -109,15 +109,15 @@ def elanOptDef.descr : InlineDescr where
   toHtml :=
     open Verso.Output.Html in
     some <| fun goB id data content => do
-      let .arr #[.str name, _jsonKind, meta] := data
+      let .arr #[.str name, _jsonKind, metadata] := data
         | HtmlT.logError s!"Failed to deserialize metadata for Elan option def: {data}"; content.mapM goB
 
       let idAttr := (← read).traverseState.htmlId id
 
-      let .ok meta := FromJson.fromJson? (α := Option String) meta
-        | HtmlT.logError s!"Failed to deserialize argument metadata for Elan option def: {meta}"; content.mapM goB
+      let .ok metadata := FromJson.fromJson? (α := Option String) metadata
+        | HtmlT.logError s!"Failed to deserialize argument metadata for Elan option def: {metadata}"; content.mapM goB
 
-      if let some mv := meta then
+      if let some mv := metadata then
         pure {{<code {{idAttr}} class="elan-opt">{{name}}" "{{mv}}</code>}}
       else
         pure {{<code {{idAttr}} class="elan-opt">{{name}}</code>}}

@@ -175,8 +175,10 @@ The error message on the recursive call is:
 ```leanOutput nonTailPos
 Could not prove 'List.findIndex' to be monotone in its recursive calls:
   Cannot eliminate recursive call `List.findIndex ys p` enclosed in
-    have r := ys✝.findIndex p;
-    if r = -1 then -1 else r + 1
+    if ys✝.findIndex p = -1 then -1 else ys✝.findIndex p + 1
+  Tried to apply 'monotone_ite', but failed.
+  Possible cause: A missing `MonoBind` instance.
+  Use `set_option trace.Elab.Tactic.monotonicity true` to debug.
 ```
 
 :::

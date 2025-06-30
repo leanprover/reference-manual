@@ -56,11 +56,15 @@ tag := "TreeSet"
 
 {docstring Std.TreeSet.atIdxD}
 
+{docstring Std.TreeSet.getGE}
+
 {docstring Std.TreeSet.getGE!}
 
 {docstring Std.TreeSet.getGE?}
 
 {docstring Std.TreeSet.getGED}
+
+{docstring Std.TreeSet.getGT}
 
 {docstring Std.TreeSet.getGT!}
 
@@ -68,11 +72,15 @@ tag := "TreeSet"
 
 {docstring Std.TreeSet.getGTD}
 
+{docstring Std.TreeSet.getLE}
+
 {docstring Std.TreeSet.getLE!}
 
 {docstring Std.TreeSet.getLE?}
 
 {docstring Std.TreeSet.getLED}
+
+{docstring Std.TreeSet.getLT}
 
 {docstring Std.TreeSet.getLT!}
 

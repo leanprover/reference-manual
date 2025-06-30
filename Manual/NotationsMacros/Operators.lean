@@ -196,7 +196,7 @@ However, because the new operator is not associative, the {tech}[local longest-m
 failed to synthesize
   HAdd Prop Prop ?m.38
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 :::
@@ -223,7 +223,7 @@ numerals are polymorphic in Lean, but the numeral `2` cannot be used in a contex
   Prop
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 The new operator is not associative, so the {tech}[local longest-match rule] means that only {name}`HAdd.hAdd` applies to the three-argument version:
@@ -234,7 +234,7 @@ The new operator is not associative, so the {tech}[local longest-match rule] mea
 failed to synthesize
   HAdd Prop Prop ?m.20
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 :::
 

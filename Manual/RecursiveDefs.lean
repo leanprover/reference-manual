@@ -221,7 +221,7 @@ The recursive function {name}`nextPrime` inefficiently computes the next prime n
 Because there are infinitely many prime numbers, it always terminates; however, formulating this proof would be nontrivial.
 It is thus marked {keyword}`partial`.
 
-````lean
+```lean
 def isPrime (n : Nat) : Bool := Id.run do
   for i in [2:n] do
     if i * i > n then return true
@@ -231,7 +231,7 @@ def isPrime (n : Nat) : Bool := Id.run do
 partial def nextPrime (n : Nat) : Nat :=
   let n := n + 1
   if isPrime n then n else nextPrime n
-````
+```
 
 It is nonetheless possible to prove that the following two functions are equal:
 ```lean
@@ -440,7 +440,7 @@ However, {lean}`Clause` is semireducible, so the {inst}`ToString String` instanc
 failed to synthesize
   ToString Clause
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 The instance can be explicitly enabled by creating a {lean}`ToString Clause` instance that reduces to the {lean}`ToString String` instance.
@@ -471,7 +471,7 @@ attribute [irreducible] Sequence
 #check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
 ```
 ```leanOutput irredSeq
-invalid field 'reverse', the environment does not contain 'Sequence.reverse'
+Invalid field `reverse`: The environment does not contain `Sequence.reverse`
   xs
 has type
   Sequence Nat

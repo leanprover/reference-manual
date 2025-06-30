@@ -94,11 +94,11 @@ tag := "keywords-and-identifiers"
 An {tech}[identifier] consists of one or more identifier components, separated by `'.'`.{index}[identifier]
 
 {deftech}[Identifier components] consist of a letter or letter-like character or an underscore (`'_'`), followed by zero or more identifier continuation characters.
-Letters are English letters, upper- or lowercase, and the letter-like characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, as well as the members of the Unicode letter-like symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations.
+Letters are English letters, upper- or lowercase, and the letter-like characters include a range of non-English alphabetic scripts, including the Greek script which is widely used in Lean, the Coptic script, the members of the Unicode letter-like symbol block, which contains a number of double-struck characters (including `ℕ` and `ℤ`) and abbreviations, the Latin-1 supplemental letters (with the exception of `×` and `÷`), and the Latin Extended-A block.
 Identifier continuation characters consist of letters, letter-like characters, underscores (`'_'`), exclamation marks (`!`), question marks (`?`), subscripts, and single quotes (`'`).
 As an exception, underscore alone is not a valid identifier.
 
-````lean (show := false)
+```lean (show := false)
 def validIdentifier (str : String) : IO String :=
   Lean.Parser.identFn.test str
 
@@ -130,22 +130,19 @@ def validIdentifier (str : String) : IO String :=
 #check_msgs in
 #eval validIdentifier "αποδεικνύοντας"
 
-
-/- Here's some things that probably should be identifiers but aren't at the time of writing -/
-
 /-- info: "Success! Final stack:\n  `κύκ\nRemaining:\n\"λος\"" -/
 #check_msgs in
 #eval validIdentifier "κύκλος"
 
-/-- info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"øvelse\"" -/
+/-- info: "Success! Final stack:\n  `øvelse\nAll input consumed." -/
 #check_msgs in
 #eval validIdentifier "øvelse"
 
-/--
-info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"Übersetzung\""
--/
+/-- info: "Success! Final stack:\n  `Übersetzung\nAll input consumed." -/
 #check_msgs in
 #eval validIdentifier "Übersetzung"
+
+/- Here's some things that probably should be identifiers but aren't at the time of writing -/
 
 /--
 info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"переклад\""
@@ -153,7 +150,12 @@ info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemai
 #check_msgs in
 #eval validIdentifier "переклад"
 
-````
+/-- info: "Failure @0 (⟨1, 0⟩): expected token\nFinal stack:\n  <missing>\nRemaining: \"汉语\"" -/
+#check_msgs in
+#eval validIdentifier "汉语"
+
+
+```
 
 Identifiers components may also be surrounded by double {deftech}[guillemets] (`'«'` and `'»'`).
 Such identifier components may contain any character at all aside from `'»'`, even `'«'`, `'.'`, and newlines.
