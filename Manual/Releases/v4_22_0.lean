@@ -122,10 +122,7 @@ For this release, 468 changes landed. In addition to the 185 feature additions a
 
 * [#8625](https://github.com/leanprover/lean4/pull/8625) improves the diagnostic information produced by `grind` when it
   succeeds. We now include the list of case-splits performed, and the
-  number of application per function symbol. Example:
-
-
-  ![image](https://github.com/user-attachments/assets/109f3f80-85a1-4368-8958-fdf56707ea7d)
+  number of application per function symbol.
 
 * [#8633](https://github.com/leanprover/lean4/pull/8633) implements case-split tracking in `grind`. The information is
   displayed when `grind` fails or diagnostic information is requested.
