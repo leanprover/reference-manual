@@ -776,6 +776,9 @@ For this release, 468 changes landed. In addition to the 185 feature additions a
 * [#9087](https://github.com/leanprover/lean4/pull/9087) removes the `irreducible` attribute from `letFun`, which is one
   step toward removing special `letFun` support; part of #9086.
 
+````
+````markdown
+
 ## Library
 
 * [#8003](https://github.com/leanprover/lean4/pull/8003) adds a new monadic interface for `Async` operations.
