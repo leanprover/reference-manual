@@ -18,6 +18,6 @@ tag := "release-v4.20.1"
 file := "v4.20.1"
 %%%
 
-`````markdown
+```markdown
 The 4.20.1 point release addresses a metaprogramming regression in `Lean.Environment.addDeclCore` ([#8610](https://github.com/leanprover/lean4/pull/8610)).
-`````
+```

@@ -18,7 +18,7 @@ tag := "release-v4.20.0"
 file := "v4.20.0"
 %%%
 
-`````markdown
+````markdown
 For this release, 346 changes landed. In addition to the 108 feature additions and 85 fixes listed below there were 6 refactoring changes, 7 documentation improvements, 8 performance improvements, 4 improvements to the test suite and 126 other changes.
 
 ## Highlights
@@ -1140,4 +1140,4 @@ Other notable library developments in this release include:
   the missing check.
 
 
-`````
+````
