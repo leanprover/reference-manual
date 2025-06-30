@@ -202,7 +202,9 @@ open B
 #eval x
 ```
 ```leanOutput ambi (whitespace := lax)
-ambiguous, possible interpretations
+Ambiguous term
+  x
+Possible interpretations:
   B.x : String
 
   A.x : String
@@ -753,7 +755,7 @@ However, {lean}`Username.validate` can't be called on {lean}`"root"` using field
 #eval "root".validate
 ```
 ```leanOutput notString
-invalid field 'validate', the environment does not contain 'String.validate'
+Invalid field `validate`: The environment does not contain `String.validate`
   "root"
 has type
   String
@@ -884,7 +886,7 @@ numerals are polymorphic in Lean, but the numeral `4` cannot be used in a contex
   Array ?m.4
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 Using pipeline field notation causes the array to be inserted at the first type-correct position:

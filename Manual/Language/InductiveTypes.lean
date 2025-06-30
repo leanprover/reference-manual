@@ -552,7 +552,9 @@ example : OddList String := .cons "x" (.cons "y" (.cons "z" .nil))
 example : OddList String := .cons "x" (.cons "y" .nil)
 ```
 ```leanOutput evenOddMut
-invalid dotted identifier notation, unknown identifier `OddList.nil` from expected type
+Unknown identifier `OddList.nil`
+
+Note: Inferred this identifier from the expected type of `.nil`:
   OddList String
 ```
 :::

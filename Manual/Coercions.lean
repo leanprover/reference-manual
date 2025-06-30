@@ -101,7 +101,7 @@ end
 #check Int.bdiv
 
 /--
-error: invalid field 'bdiv', the environment does not contain 'Nat.bdiv'
+error: Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
   n
 has type
   Nat
@@ -122,7 +122,7 @@ The coercion from {lean}`Nat` to {lean}`Int` is not considered when looking up t
 example (n : Nat) := n.bdiv 2
 ```
 ```leanOutput natBdiv
-invalid field 'bdiv', the environment does not contain 'Nat.bdiv'
+Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
   n
 has type
   Nat
@@ -221,7 +221,7 @@ numerals are polymorphic in Lean, but the numeral `9` cannot be used in a contex
   Bin
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 This is because coercions are inserted in response to mismatched types, but a failure to synthesize an {name}`OfNat` instance is not a type mismatch.
 

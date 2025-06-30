@@ -263,7 +263,7 @@ Only the outermost may be used, because the type of the state is an output param
 failed to synthesize
   MonadState String M
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 Providing the state type explicitly using {name}`getThe` from {name}`MonadStateOf` allows both states to be read.

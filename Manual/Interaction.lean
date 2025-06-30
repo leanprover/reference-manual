@@ -251,7 +251,7 @@ Attempting to add a string to a natural number fails, as expected:
 failed to synthesize
   HAdd String Nat ?m.32
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 Nonetheless, a partially-elaborated term is available:
 ```leanOutput oneOne

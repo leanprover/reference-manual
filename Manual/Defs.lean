@@ -418,8 +418,9 @@ def select (choices : α × α × α) : Asnwer →  α
 ```
 The resulting error message states that the argument's type is not a constant, so dot notation cannot be used in the pattern:
 ```leanOutput asnwer
-invalid dotted identifier notation, expected type is not of the form (... → C ...) where C is a constant
+Invalid dotted identifier notation: The expected type of `.yes`
   Asnwer
+is not of the form `C ...` or `... → C ...` where C is a constant
 ```
 This is because the signature is:
 ```signature

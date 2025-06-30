@@ -151,7 +151,8 @@ def f [n : Nat] : n = n := rfl
 ```leanOutput notClass
 invalid binder annotation, type is not a class instance
   Nat
-use the command `set_option checkBinderAnnotations false` to disable the check
+
+Note: Use the command `set_option checkBinderAnnotations false` to disable the check
 ```
 
 :::
@@ -369,7 +370,7 @@ However, {name}`plusTimes2` fails, because there is no {lean}`AddMul' Nat` insta
 failed to synthesize
   AddMul' ?m.22
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 Declaring an very general instance takes care of the problem for {lean}`Nat` and every other type:
 ```lean (name := plusTimes2b)
