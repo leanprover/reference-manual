@@ -632,11 +632,30 @@ instance : Test (Lake.ConfigType kind pkg name) where
     | .anonymous => fun (x : Lake.OpaqueTargetConfig pkg name) => Test.toString x
     | _ => fun _ => "Impossible!"
 
+instance : Test Lake.CacheRef where
+  toString _ := "#<cacheref>"
+
+private def contains (fmt : Format) (c : Char) : Bool :=
+  match fmt with
+  | .text s => s.contains c
+  | .tag _ x | .group x .. | .nest _ x => contains x c
+  | .append x y => contains x c || contains y c
+  | .align .. | .line | .nil => false
+
+instance [Test α] : Test (Option α) where
+  toString
+    | none => "none"
+    | some x =>
+      let s := Test.toString x
+      let s := if contains s '(' || contains s ' ' then "(" ++ s ++ ")" else s
+      s!"some " ++ s
 
 deriving instance Test for Lake.ConfigDecl
 deriving instance Test for Lake.PConfigDecl
 deriving instance Test for Lake.NConfigDecl
+
 deriving instance Test for Lake.Package
+
 
 
 open Lake Toml in

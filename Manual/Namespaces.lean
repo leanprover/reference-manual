@@ -356,7 +356,8 @@ automatically included section variable(s) unused in theorem 'p_all':
   pFifteen
 consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
   omit pFifteen in theorem ...
-note: this linter can be disabled with `set_option linter.unusedSectionVars false`
+
+Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
 ```
 
 This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:

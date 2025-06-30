@@ -261,7 +261,7 @@ numerals are polymorphic in Lean, but the numeral `5` cannot be used in a contex
   Int → Int
 due to the absence of the instance above
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 :::

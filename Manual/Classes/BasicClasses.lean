@@ -246,7 +246,7 @@ example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 failed to synthesize
   Decidable (f = g)
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.

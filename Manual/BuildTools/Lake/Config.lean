@@ -9,6 +9,7 @@ import VersoManual
 import Lean.Parser.Command
 import Lake.DSL.Syntax
 import Lake.Config.Monad
+import Lake
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
@@ -179,7 +180,8 @@ name = "example-package"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -194,7 +196,8 @@ name = "example-package"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -258,7 +261,8 @@ name = "Sorting"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -341,7 +345,8 @@ name = "Sorting"
   postUpdateHooks := #[],
   buildArchive := ELIDED,
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -796,7 +801,7 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
+{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
 
 :::TODO
 It's presently impossible to import Lake.DSL.AttributesCore due to initialization changes, so `default_target` can't be rendered/checked as an attribute above. This should be fixed upstream.

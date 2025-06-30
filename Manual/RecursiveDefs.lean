@@ -440,7 +440,7 @@ However, {lean}`Clause` is semireducible, so the {inst}`ToString String` instanc
 failed to synthesize
   ToString Clause
 
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
 The instance can be explicitly enabled by creating a {lean}`ToString Clause` instance that reduces to the {lean}`ToString String` instance.
@@ -471,7 +471,7 @@ attribute [irreducible] Sequence
 #check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
 ```
 ```leanOutput irredSeq
-invalid field 'reverse', the environment does not contain 'Sequence.reverse'
+Invalid field `reverse`: The environment does not contain `Sequence.reverse`
   xs
 has type
   Sequence Nat
