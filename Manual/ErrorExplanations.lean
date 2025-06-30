@@ -14,6 +14,7 @@ namespace Manual
 set_option pp.rawOnError true
 set_option guard_msgs.diff true
 
+set_option manual.requireErrorExplanations true
 
 inline_extension Inline.errorExplanationLink (errorName : Name) where
   data := toJson errorName

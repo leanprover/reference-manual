@@ -23,6 +23,11 @@ set_option guard_msgs.diff true
 
 namespace Manual
 
+register_option manual.requireErrorExplanations : Bool := {
+  defValue := true,
+  descr := "Whether to fail or warn when error explanations don't match. Must be `true` for releases."
+}
+
 /-- Loads the JSON data file for the preprocessed MWE code block `name`. -/
 def loadPreprocessedMWE (name : Name) (contents : String)
     : MetaM (Highlighted × Array (MessageSeverity × String)) := do
@@ -241,7 +246,10 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
           let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
           -- Log rather than throw so we can detect all invalid outputs in a
           -- single build
-          logErrorAt ref m!"Invalid output for {(← read).name} code block \
+          let logFailure :=
+            if manual.requireErrorExplanations.get (← getOptions) then logErrorAt
+            else logWarningAt
+          logFailure ref m!"Invalid output for {(← read).name} code block \
             #{codeBlockIdx}{kindStr}: {msg}"
           pure #[← ``(Verso.Doc.Block.code "<invalid output>")]
         | e@(.internal ..) => throw e
