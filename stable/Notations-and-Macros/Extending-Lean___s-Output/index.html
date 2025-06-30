@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2166,7 +2186,7 @@ window.onload = () => {
             <a class="local-button active" href="Notations-and-Macros/Elaborators/#elaborators" rel="prev" title="19.6. Elaborators"><span class="arrow">←</span><span class="where">19.6. Elaborators</span></a><a class="local-button active" href="Run-Time-Code/#runtime" rel="next" title="20. Run-Time Code"><span class="where">20. Run-Time Code</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              19.7. Extending Lean's Output<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=unexpand-and-delab" title="Permalink">🔗</a></span></h1>
+              19.7. Extending Lean's Output<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=unexpand-and-delab" title="Permalink">🔗</a></span></h1>
             <p>
               Extending Lean with new syntax and implementing the new syntax with macros and elaborators allows users to express ideas to Lean more conveniently.
 However, Lean is an <em>interactive</em> theorem prover: it is also important that the feedback it provides can be readily understood.
@@ -2177,19 +2197,19 @@ Syntax extensions should be used in <em>output</em> as well as in <em>input</em>
               <dl><dt> Unexpanders</dt><dd><p>
                     Unexpanders are the inverse of <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-Macros">macros</a>.
   Macros implement new syntax in terms of the old syntax by translation, <em>expanding</em> the new feature into encodings in pre-existing features.
-  Like macros, <span id="--tech-term-unexpanders" class="def-technical-term"><em>unexpanders</em></span> translate <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a></code> into <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a></code>; unlike macros, they transform the encodings into the new extensions.</p>
+  Like macros, <span id="--tech-term-unexpanders" class="def-technical-term"><em>unexpanders</em></span> translate <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a></code> into <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a></code>; unlike macros, they transform the encodings into the new extensions.</p>
                   </dd><dt> Delaborators</dt><dd><p>
                     Delaborators are the inverse of <a class="technical-term" href="Notations-and-Macros/Elaborators/#--tech-term-elaborators">elaborators</a>.
-  While elaborators translate <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a></code> into the core type theory's <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code>, <span id="--tech-term-delaborators" class="def-technical-term"><em>delaborators</em></span> translate <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code>s into <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a></code>.</p>
+  While elaborators translate <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a></code> into the core type theory's <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code>, <span id="--tech-term-delaborators" class="def-technical-term"><em>delaborators</em></span> translate <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code>s into <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a></code>.</p>
                   </dd></dl></div>
             <p>
-              Before an <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code> is displayed, it is first delaborated and then unexpanded.
-The delaborator tracks the position in the original <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code> that its output originated from; this position is encoded in the resulting syntax's <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___SourceInfo___original"><span class="const token" data-binding="const-Lean.SourceInfo" data-verso-hover="32">SourceInfo</span></a></code>.
-Just as macro expansion automatically annotates the resulting syntax with synthetic source information that correspond to the original syntax's position, the unexpansion mechanism preserves the resulting syntax's association with the underlying <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code>.
+              Before an <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code> is displayed, it is first delaborated and then unexpanded.
+The delaborator tracks the position in the original <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code> that its output originated from; this position is encoded in the resulting syntax's <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___SourceInfo___original" title="Documentation for Lean.SourceInfo"><span class="const token" data-binding="const-Lean.SourceInfo" data-verso-hover="31">SourceInfo</span></a></code>.
+Just as macro expansion automatically annotates the resulting syntax with synthetic source information that correspond to the original syntax's position, the unexpansion mechanism preserves the resulting syntax's association with the underlying <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code>.
 This association enables Lean's interactive features that provide information about the resulting syntax when it is shown in <a class="technical-term" href="Tactic-Proofs/#--tech-term-proof-state">proof states</a> and diagnostics.</p>
             <section>
               <h2 id="Unexpanders">
-                19.7.1. Unexpanders<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=Unexpanders" title="Permalink">🔗</a></span></h2>
+                19.7.1. Unexpanders<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=Unexpanders" title="Permalink">🔗</a></span></h2>
               <p>
                 Just as macros are registered in a table that maps <a class="technical-term" href="Notations-and-Macros/Defining-New-Syntax/#--tech-term-syntax-kind">syntax kinds</a> to macro implementations, unexpanders are registered in a table that maps the names of constants to unexpander implementations.
 Before Lean displays syntax to users, it attempts to rewrite each application of a constant in the syntax according to this table.
@@ -2197,17 +2217,17 @@ Occurrences of the context that are not applications are treated as applications
               <p>
                 Unexpansion proceeds from the inside out.
 The unexpander is passed the syntax of the application, with implicit arguments hidden, after the arguments have been unexpanded.
-If the option <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-pp.explicit" data-verso-hover="1676">pp.explicit</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.true" data-verso-hover="41">true</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-pp.notation" data-verso-hover="4930">pp.notation</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="40">false</span></a></code>, then unexpanders are not used.</p>
+If the option <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-pp.explicit" data-verso-hover="1802">pp.explicit</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="40">true</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><span class="option token" data-binding="option-pp.notation" data-verso-hover="5295">pp.notation</span></code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="39">false</span></a></code>, then unexpanders are not used.</p>
               <p>
-                An unexpander has type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="4931">Lean.PrettyPrinter.Unexpander</span></a></code>, which is an abbreviation for <code>Syntax → Lean.PrettyPrinter.UnexpandM Syntax</code>.
-In the remainder of this section, the names <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="4931">Unexpander</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span class="const token" data-binding="const-Lean.PrettyPrinter.UnexpandM" data-verso-hover="4932">UnexpandM</span></a></code> are used unqualified.
-<code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM"><span class="const token" data-binding="const-Lean.PrettyPrinter.UnexpandM" data-verso-hover="4932">UnexpandM</span></a></code> is a monad that supports quotation and failure via its <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadQuotation" data-verso-hover="4839">MonadQuotation</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk"><span class="const token" data-binding="const-MonadExcept" data-verso-hover="2837">MonadExcept</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> instances.</p>
+                An unexpander has type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander" title="Documentation for Lean.PrettyPrinter.Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="5296">Lean.PrettyPrinter.Unexpander</span></a></code>, which is an abbreviation for <code>Syntax → Lean.PrettyPrinter.UnexpandM Syntax</code>.
+In the remainder of this section, the names <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander" title="Documentation for Lean.PrettyPrinter.Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="5296">Unexpander</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM" title="Documentation for Lean.PrettyPrinter.UnexpandM"><span class="const token" data-binding="const-Lean.PrettyPrinter.UnexpandM" data-verso-hover="5297">UnexpandM</span></a></code> are used unqualified.
+<code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___UnexpandM" title="Documentation for Lean.PrettyPrinter.UnexpandM"><span class="const token" data-binding="const-Lean.PrettyPrinter.UnexpandM" data-verso-hover="5297">UnexpandM</span></a></code> is a monad that supports quotation and failure via its <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.MonadQuotation" data-verso-hover="5204">MonadQuotation</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept"><span class="const token" data-binding="const-MonadExcept" data-verso-hover="2961">MonadExcept</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> instances.</p>
               <p>
-                An unexpander should either return unexpanded syntax or fail using <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1457">throw</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code>.
+                An unexpander should either return unexpanded syntax or fail using <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1585">throw</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code>.
 If the unexpander succeeds, then the resulting syntax is unexpanded again; if it fails, then the next unexpander is tried.
 When no unexpander succeeds for the syntax, its child nodes are unexpanded until all opportunities for unexpansion are exhausted.</p>
               <div class="namedocs" id="Lean___PrettyPrinter___Unexpander">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.PrettyPrinter.Unexpander" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only">Lean.PrettyPrinter.Unexpander : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div><div class="narrow-only">Lean.PrettyPrinter.Unexpander : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Lean.PrettyPrinter.Unexpander" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Lean.PrettyPrinter.Unexpander</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Lean.PrettyPrinter.Unexpander</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span></div></pre><div class="text">
                   <p>
                     Function that tries to reverse macro expansions as a post-processing step of delaboration.
 While less general than an arbitrary delaborator, it can be declared without importing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Lean</span></code>.
@@ -2215,136 +2235,136 @@ Used by the <code class="hl lean inline" data-lean-context="docstring-examples">
                   </div>
                 </div>
               <div class="namedocs" id="Lean___PrettyPrinter___UnexpandM">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=Lean.PrettyPrinter.UnexpandM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only">Lean.PrettyPrinter.UnexpandM (<span class="var token" data-binding="var-_uniq.131" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>) : <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div><div class="narrow-only">Lean.PrettyPrinter.UnexpandM (<span class="var token" data-binding="var-_uniq.131" data-verso-hover="162">α</span> : <span class="sort token" data-binding="" data-verso-hover="50">Type</span>) :
-  <span class="sort token" data-binding="" data-verso-hover="50">Type</span></div></pre><div class="text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Lean.PrettyPrinter.UnexpandM" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Lean.PrettyPrinter.UnexpandM</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1498" data-verso-hover="289">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Lean.PrettyPrinter.UnexpandM</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1498" data-verso-hover="289">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span></div></pre><div class="text">
                   <p>
-                    The unexpander monad, essentially <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="var token" data-binding="var-_uniq.121" data-verso-hover="162">α</span></code>. The <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="30">Syntax</span></a></code> is the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.ref" data-verso-hover="4836">ref</span></code>,
+                    The unexpander monad, essentially <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="44">Option</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1494" data-verso-hover="289">α</span></code>. The <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Syntax</span></a></code> is the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-Verso.Genre.Manual.ref" data-verso-hover="5201">ref</span></code>,
 and it has the possibility of failure without an error message.</p>
                   </div>
                 </div>
               <p>
-                An unexpander for a constant is registered by applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4933">app_unexpander</span></code> attribute.
+                An unexpander for a constant is registered by applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5298">app_unexpander</span></code> attribute.
 <a href="Notations-and-Macros/Custom-Operators/#operators">Custom operators</a> and <a href="Notations-and-Macros/Notations/#notations">notations</a> automatically create unexpanders for the syntax that they introduce.</p>
               <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
                 <span class="label">attribute</span><span class="title">Unexpander Registration</span><div class="text">
                   <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="keyword">app_unexpander</span> <span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="ident">ident</span></span></pre><p>
-                    Registers an unexpander of type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="4931">Unexpander</span></a></code> for applications of a constant.</p>
+                    Registers an unexpander of type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander" title="Documentation for Lean.PrettyPrinter.Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="5296">Unexpander</span></a></code> for applications of a constant.</p>
                   </div>
                 </div>
               <details class="example"><summary class="description">Custom Unit Type</summary><div class="example-content">
                   <p>
-                    A type equivalent to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, but with its own notation, can be defined as a zero-field structure and a macro:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4554">structure</span> <span class="const token" data-binding="const-Solo" data-verso-hover="269">Solo</span> <span class="keyword token" data-binding="kw-occ-null-4569">where</span>
-  <span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934" id="Solo-next">mk</span> <span class="unknown token" data-binding="">::</span>
+                    A type equivalent to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, but with its own notation, can be defined as a zero-field structure and a macro:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4554">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Solo" data-verso-hover="399">Solo</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4569">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299" id="Solo-next">mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text">
 
-<a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4584">syntax</span></a> <span class="literal string token" data-binding="" data-verso-hover="4935">"‹"</span> <span class="literal string token" data-binding="" data-verso-hover="4936">"›"</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="4802">term</span>
+</span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4584">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5300">"‹"</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5301">"›"</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="5167">term</span><span class="inter-text">
 
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4611">macro_rules</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(</span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="4802">term</span><span class="unknown token" data-binding="">|</span><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">`</span><span class="unknown token" data-binding="">`(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">Solo.mk</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><p>
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4611">macro_rules</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="5167">term</span><span class="unknown token" data-binding="">|</span><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`</span><span class="unknown token" data-binding="">`(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">Solo.mk</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                     While the new notation can be used to write theorem statements, it does not appear in proof states.
-For example, when proving that all values of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Solo" data-verso-hover="269">Solo</span></code> are equal to <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span></code>, the initial proof state is:</p>
+For example, when proving that all values of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Solo" data-verso-hover="399">Solo</span></code> are equal to <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span></code>, the initial proof state is:</p>
                   <div class="hl lean tactic-view">
                     <div class="tactic-state">
-                      <span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.139" data-verso-hover="4937">v</span></span><span class="colon">:</span><span class="type"><span class="const token" data-binding="const-Solo" data-verso-hover="269">Solo</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.139" data-verso-hover="4937">v</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">{</span></a><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934"> }</span></a></span></span></span></div>
+                      <span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1506" data-verso-hover="5302">v</span></span><span class="colon">:</span><span class="type"><span class="const token" data-binding="const-Solo" data-verso-hover="399">Solo</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.1506" data-verso-hover="5302">v</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">{</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">}</span></a></span></span></span></div>
                     </div>
                   <p>
                     This proof state shows the constructor using <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-structure-instance">structure instance</a> syntax.
 An unexpander can be used to override this choice.
-Because <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">Solo.mk</span></a></code> cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">Solo.mk</span><span class="unknown token" data-binding="">)</span></code>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">app_unexpander</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">Solo.mk</span></a><span class="unknown token" data-binding="">]</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5308">def</span> <span class="const token" data-binding="const-unexpandSolo" data-verso-hover="4938" id="unexpandSolo">unexpandSolo</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="4931">Lean.PrettyPrinter.Unexpander</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><p>
+Because <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">Solo.mk</span></a></code> cannot be applied to any arguments, the unexpander is free to ignore the syntax, which will always be <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">Solo.mk</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">app_unexpander</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">Solo.mk</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5308">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-unexpandSolo" data-verso-hover="5303" id="unexpandSolo">unexpandSolo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander" title="Documentation for Lean.PrettyPrinter.Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="5296">Lean.PrettyPrinter.Unexpander</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">‹</span><span class="unknown token" data-binding="">›</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                     With this unexpander, the initial state of the proof now renders with the correct syntax:</p>
                   <div class="hl lean tactic-view">
                     <div class="tactic-state">
-                      <span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.658" data-verso-hover="4937">v</span></span><span class="colon">:</span><span class="type"><span class="const token" data-binding="const-Solo" data-verso-hover="269">Solo</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.658" data-verso-hover="4937">v</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">‹</span></a><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="4934">›</span></a></span></span></span></div>
+                      <span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2025" data-verso-hover="5302">v</span></span><span class="colon">:</span><span class="type"><span class="const token" data-binding="const-Solo" data-verso-hover="399">Solo</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.2025" data-verso-hover="5302">v</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">‹</span></a><a href="Notations-and-Macros/Extending-Lean___s-Output/#Solo-next" title="Definition of example Solo.mk"><span class="const token" data-binding="const-Solo.mk" data-verso-hover="5299">›</span></a></span></span></span></div>
                     </div>
                   </div>
                 </details><details class="example"><summary class="description">Unexpansion and Arguments</summary><div class="example-content">
                   <p>
-                    A <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a></code> represents a position in a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a></code>.
-<code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor.before" data-verso-hover="4940">ListCursor.before</span></a></code> contains the reversed list of elements prior to the position, and <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor.after" data-verso-hover="4941">ListCursor.after</span></a></code> contains the elements after the position.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-5836">structure</span> <span class="const token" data-binding="const-ListCursor" data-verso-hover="4939" id="ListCursor___after">ListCursor</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-5862">where</span>
-  <span class="const token" data-binding="const-ListCursor.before" data-verso-hover="4940" id="ListCursor___after">before</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="44">α</span>
-  <span class="const token" data-binding="const-ListCursor.after" data-verso-hover="4941" id="ListCursor___after">after</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="44">α</span>
-<span class="keyword token" data-binding="kw-occ-null-5905">deriving</span> <span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span>
-<span class="unknown token" data-binding=""></span></code><p>
+                    A <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a></code> represents a position in a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a></code>.
+<code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor.before"><span class="const token" data-binding="const-ListCursor.before" data-verso-hover="5305">ListCursor.before</span></a></code> contains the reversed list of elements prior to the position, and <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor.after"><span class="const token" data-binding="const-ListCursor.after" data-verso-hover="5306">ListCursor.after</span></a></code> contains the elements after the position.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-5836">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304" id="ListCursor___after">ListCursor</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-5862">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-ListCursor.before" data-verso-hover="5305" id="ListCursor___after">before</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="43">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-ListCursor.after" data-verso-hover="5306" id="ListCursor___after">after</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="43">α</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-null-5905">deriving</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="67">Repr</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                     List cursors can be moved to the left or to the right:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5987">def</span> <span class="const token" data-binding="const-ListCursor.left" data-verso-hover="4942" id="ListCursor___left">ListCursor.left</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="unknown token" data-binding="">(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.71" data-verso-hover="46">l</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.72" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.73" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟨</span><span class="var token" data-binding="var-_uniq.72" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">,</span> <span class="var token" data-binding="var-_uniq.71" data-verso-hover="46">l</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.73" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟩</span>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5987">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor.left" data-verso-hover="5307" id="ListCursor___left">ListCursor.left</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="44">Option</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.none"><span class="const token" data-binding="const-Option.none" data-verso-hover="47">none</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="45">l</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.74" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.75" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="46">some</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟨</span><span class="var token" data-binding="var-_uniq.74" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="45">l</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.75" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟩</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6123">def</span> <span class="const token" data-binding="const-ListCursor.right" data-verso-hover="4944" id="ListCursor___left">ListCursor.right</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.184" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option" data-verso-hover="45">Option</span></a> <span class="unknown token" data-binding="">(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.184" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.none" data-verso-hover="48">none</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.248" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.249" data-verso-hover="46">r</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.250" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Basic-Types/Optional-Values/#Option___none"><span class="const token" data-binding="const-Option.some" data-verso-hover="47">some</span></a> <span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟨</span><span class="var token" data-binding="var-_uniq.249" data-verso-hover="46">r</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.248" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">,</span> <span class="var token" data-binding="var-_uniq.250" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟩</span>
-<span class="unknown token" data-binding=""></span></code><p>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6123">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor.right" data-verso-hover="5309" id="ListCursor___left">ListCursor.right</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.186" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="44">Option</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.186" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.none"><span class="const token" data-binding="const-Option.none" data-verso-hover="47">none</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.252" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.253" data-verso-hover="45">r</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.254" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="46">some</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟨</span><span class="var token" data-binding="var-_uniq.253" data-verso-hover="45">r</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.252" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.254" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟩</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                     They can also be moved all the way to the left or all the way to the right:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6348">def</span> <span class="const token" data-binding="const-ListCursor.rewind" data-verso-hover="4945" id="ListCursor___fastForward">ListCursor.rewind</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span>
-  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4946">xs</span><span class="unknown token" data-binding="">@</span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.59" data-verso-hover="4946">xs</span>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.89" data-verso-hover="46">l</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.90" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.91" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___fastForward"><span class="const token" data-binding="const-ListCursor.rewind" data-verso-hover="4945">rewind</span></a> <span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟨</span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">,</span> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="46">l</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.91" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟩</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Termination.terminationBy-6479" data-verso-hover="894">termination_by</span> <span class="var token" data-binding="var-_uniq.204" data-verso-hover="4946">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.204" data-verso-hover="4946">xs</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor.before" data-verso-hover="4940">before</span></a>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6348">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor.rewind" data-verso-hover="5310" id="ListCursor___fastForward">ListCursor.rewind</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="5311">xs</span><span class="unknown token" data-binding="">@</span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.61" data-verso-hover="5311">xs</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="45">l</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___fastForward" title="Definition of example ListCursor.rewind"><span class="const token" data-binding="const-ListCursor.rewind" data-verso-hover="5310">rewind</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟨</span><span class="var token" data-binding="var-_uniq.92" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.91" data-verso-hover="45">l</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Termination.terminationBy-6479" data-verso-hover="1027">termination_by</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.206" data-verso-hover="5311">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.206" data-verso-hover="5311">xs</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor.before"><span class="const token" data-binding="const-ListCursor.before" data-verso-hover="5305">before</span></a><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6511">def</span> <span class="const token" data-binding="const-ListCursor.fastForward" data-verso-hover="4947" id="ListCursor___fastForward">ListCursor.fastForward</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.3061" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">→</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor" data-verso-hover="4939">ListCursor</span></a> <span class="var token" data-binding="var-_uniq.3061" data-verso-hover="44">α</span>
-  <span class="unknown token" data-binding="">|</span> <span class="var token" data-binding="var-_uniq.3113" data-verso-hover="4946">xs</span><span class="unknown token" data-binding="">@</span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.3113" data-verso-hover="4946">xs</span>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.3143" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span> <span class="var token" data-binding="var-_uniq.3144" data-verso-hover="46">r</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.3145" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___fastForward"><span class="const token" data-binding="const-ListCursor.fastForward" data-verso-hover="4947">fastForward</span></a> <span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟨</span><span class="var token" data-binding="var-_uniq.3144" data-verso-hover="46">r</span> <span class="unknown token" data-binding="">::</span> <span class="var token" data-binding="var-_uniq.3143" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">,</span> <span class="var token" data-binding="var-_uniq.3145" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="4943">⟩</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Termination.terminationBy-6652" data-verso-hover="894">termination_by</span> <span class="var token" data-binding="var-_uniq.3258" data-verso-hover="4946">xs</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.3258" data-verso-hover="4946">xs</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after"><span class="const token" data-binding="const-ListCursor.after" data-verso-hover="4941">after</span></a>
-<span class="unknown token" data-binding=""></span></code><p>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6511">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor.fastForward" data-verso-hover="5312" id="ListCursor___fastForward">ListCursor.fastForward</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3064" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor"><span class="const token" data-binding="const-ListCursor" data-verso-hover="5304">ListCursor</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3064" data-verso-hover="43">α</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3118" data-verso-hover="5311">xs</span><span class="unknown token" data-binding="">@</span><span class="unknown token" data-binding="">⟨</span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3118" data-verso-hover="5311">xs</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="var token" data-binding="var-_uniq.3148" data-verso-hover="51">ls</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3149" data-verso-hover="45">r</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3150" data-verso-hover="51">rs</span><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___fastForward" title="Definition of example ListCursor.fastForward"><span class="const token" data-binding="const-ListCursor.fastForward" data-verso-hover="5312">fastForward</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟨</span><span class="var token" data-binding="var-_uniq.3149" data-verso-hover="45">r</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3148" data-verso-hover="51">ls</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3150" data-verso-hover="51">rs</span><span class="unknown token" data-binding="const-ListCursor.mk" data-verso-hover="5308">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Termination.terminationBy-6652" data-verso-hover="1027">termination_by</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3263" data-verso-hover="5311">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3263" data-verso-hover="5311">xs</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___after" title="Definition of example ListCursor.after"><span class="const token" data-binding="const-ListCursor.after" data-verso-hover="5306">after</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                     However, the need to reverse the list of previous elements can make list cursors difficult to understand.
 A cursor can be given a notation in which a flag (<code>🚩</code>) marks the cursor's location in a list:</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-7175">syntax</span></a> <span class="literal string token" data-binding="" data-verso-hover="4798">"["</span> <span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="4802">term</span><span class="unknown token" data-binding="">,*</span> <span class="literal string token" data-binding="" data-verso-hover="4948">" 🚩 "</span> <span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="4802">term</span><span class="unknown token" data-binding="">,*</span> <span class="literal string token" data-binding="" data-verso-hover="4799">"]"</span><span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="4802">term</span>
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-7219">macro_rules</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="4855">ls</span><span class="unknown token" data-binding="">,*</span> <span class="unknown token" data-binding="">🚩</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="4855">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span>
-    <span class="unknown token" data-binding="">`</span><span class="unknown token" data-binding="">`(</span><span class="const token" data-binding="const-ListCursor.mk" data-verso-hover="4943">ListCursor.mk</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="4855">ls</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="1988">Lean.Term</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1470">reverse</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="4855">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                    In the macro, the sequences of elements have type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___TSepArray___mk"><span class="const token" data-binding="const-Lean.Syntax.TSepArray" data-verso-hover="4949">Syntax.TSepArray</span></a> <span class="unknown token" data-binding="">`term</span> <span class="literal string token" data-binding="" data-verso-hover="4950">","</span></code>.
-The type annotation as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="1988">Lean.Term</span></a></code> causes a coercion to fire so that <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1470">Array.reverse</span></a></code> can be applied, and a similar coercion reinserts the separating commas.
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-7175">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="191">"["</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="5167">term</span><span class="unknown token" data-binding="">,*</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5313">" 🚩 "</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="5167">term</span><span class="unknown token" data-binding="">,*</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="192">"]"</span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.term" data-verso-hover="5167">term</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-7219">macro_rules</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="5220">ls</span><span class="unknown token" data-binding="">,*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="5220">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">`</span><span class="unknown token" data-binding="">`(</span><span class="const token" data-binding="const-ListCursor.mk" data-verso-hover="5308">ListCursor.mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="5220">ls</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="2118">Lean.Term</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1598">reverse</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.97" data-verso-hover="5220">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                    In the macro, the sequences of elements have type <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___TSepArray___mk" title="Documentation for Lean.Syntax.TSepArray"><span class="const token" data-binding="const-Lean.Syntax.TSepArray" data-verso-hover="5314">Syntax.TSepArray</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">`term</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5315">","</span></code>.
+The type annotation as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="2118">Lean.Term</span></a></code> causes a coercion to fire so that <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1598">Array.reverse</span></a></code> can be applied, and a similar coercion reinserts the separating commas.
 These coercions are described in the section on <a href="Notations-and-Macros/Defining-New-Syntax/#typed-syntax">typed syntax</a>.</p>
                   <p>
                     While the syntax works, it is not used in Lean's output:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ before := [3, 2, 1], after := [4, 5] } : ListCursor Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-7765">#check</span></a></span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">🚩</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ before := [3, 2, 1], after := [4, 5] } : ListCursor Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-7765">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>{ before := [3, 2, 1], after := [4, 5] } : ListCursor Nat
 </pre></div>
                   <p>
                     An unexpander solves this problem.
 The unexpander relies on the built-in unexpanders for list literals already having rewritten the two lists:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">app_unexpander</span> <span class="const token" data-binding="const-ListCursor.mk" data-verso-hover="4943">ListCursor.mk</span><span class="unknown token" data-binding="">]</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8063">def</span> <span class="const token" data-binding="const-unexpandListCursor" data-verso-hover="4951" id="unexpandListCursor">unexpandListCursor</span> <span class="unknown token" data-binding="">:</span> <a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="4931">Lean.PrettyPrinter.Unexpander</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.124" data-verso-hover="4855">ls</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.117" data-verso-hover="4855">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span>
-    <span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.124" data-verso-hover="4855">ls</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="1988">Lean.Term</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1470">reverse</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,*</span> <span class="unknown token" data-binding="">🚩</span> <span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.117" data-verso-hover="4855">rs</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1457">throw</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[1, 2, 3 🚩 4, 5] : ListCursor Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-8254">#check</span></a></span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">🚩</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><span class="unknown token" data-binding="">app_unexpander</span><span class="inter-text"> </span><span class="const token" data-binding="const-ListCursor.mk" data-verso-hover="5308">ListCursor.mk</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8063">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-unexpandListCursor" data-verso-hover="5316" id="unexpandListCursor">unexpandListCursor</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Extending-Lean___s-Output/#Lean___PrettyPrinter___Unexpander" title="Documentation for Lean.PrettyPrinter.Unexpander"><span class="const token" data-binding="const-Lean.PrettyPrinter.Unexpander" data-verso-hover="5296">Lean.PrettyPrinter.Unexpander</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="5220">ls</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="5220">rs</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">`(</span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.127" data-verso-hover="5220">ls</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="2118">Lean.Term</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1598">reverse</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="5220">rs</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,*</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1585">throw</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[1, 2, 3 🚩 4, 5] : ListCursor Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-8254">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>[1, 2, 3 🚩 4, 5] : ListCursor Nat
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">some [1, 2, 3, 4 🚩 5]</code></span></span><a href="Interacting-with-Lean/#Lean___reduceCmd"><span class="keyword token" data-binding="kw-occ-Lean.reduceCmd-8376" data-verso-hover="99">#reduce</span></a></span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">🚩</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left"><span class="const token" data-binding="const-ListCursor.right" data-verso-hover="4944">right</span></a>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">some [1, 2, 3, 4 🚩 5]</code></span></span><a href="Interacting-with-Lean/#Lean___reduceCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.reduceCmd-8376" data-verso-hover="100">#reduce</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left" title="Definition of example ListCursor.right"><span class="const token" data-binding="const-ListCursor.right" data-verso-hover="5309">right</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>some [1, 2, 3, 4 🚩 5]
 </pre></div>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">some [1 🚩 2, 3, 4, 5]</code></span></span><a href="Interacting-with-Lean/#Lean___reduceCmd"><span class="keyword token" data-binding="kw-occ-Lean.reduceCmd-8494" data-verso-hover="99">#reduce</span></a></span> <span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="1389">3</span> <span class="unknown token" data-binding="">🚩</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left"><span class="const token" data-binding="const-ListCursor.left" data-verso-hover="4942">left</span></a> <span class="unknown token" data-binding="">&gt;&gt;=</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">·</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left"><span class="const token" data-binding="const-ListCursor.left" data-verso-hover="4942">left</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">some [1 🚩 2, 3, 4, 5]</code></span></span><a href="Interacting-with-Lean/#Lean___reduceCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.reduceCmd-8494" data-verso-hover="100">#reduce</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">🚩</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="unknown token" data-binding="">]</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left" title="Definition of example ListCursor.left"><span class="const token" data-binding="const-ListCursor.left" data-verso-hover="5307">left</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&gt;&gt;=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">·</span><span class="unknown token" data-binding="">.</span><a href="Notations-and-Macros/Extending-Lean___s-Output/#ListCursor___left" title="Definition of example ListCursor.left"><span class="const token" data-binding="const-ListCursor.left" data-verso-hover="5307">left</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>some [1 🚩 2, 3, 4, 5]
 </pre></div>
                   </div>
                 </details></section>
             <section>
               <h2 id="delaborators">
-                19.7.2. Delaborators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=delaborators" title="Permalink">🔗</a></span></h2>
+                19.7.2. Delaborators<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=delaborators" title="Permalink">🔗</a></span></h2>
               <p>
-                A delaborator is function of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.Delab" data-verso-hover="4952">Lean.PrettyPrinter.Delaborator.Delab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="4953">Lean.PrettyPrinter.Delaborator.DelabM</span> <a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="1988">Term</span></a></code>.
+                A delaborator is function of type <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.Delab" data-verso-hover="5317">Lean.PrettyPrinter.Delaborator.Delab</span></code>, which is an abbreviation for <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="5318">Lean.PrettyPrinter.Delaborator.DelabM</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="2118">Term</span></a></code>.
 Unlike unexpanders, delaborators are not implemented as functions.
-This is to make it easier to implement them correctly: the monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="4953">DelabM</span></code> tracks the current position in the expression that's being delaborated so the delaboration mechanism can annotate the resulting syntax.</p>
+This is to make it easier to implement them correctly: the monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="5318">DelabM</span></code> tracks the current position in the expression that's being delaborated so the delaboration mechanism can annotate the resulting syntax.</p>
               <p>
-                Delaborators are registered with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4954">delab</span></code> attribute.
-An internal table maps the names of the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code> (without namespaces) to delaborators.
-Additionally, the name <code>app.</code>﻿<code class="math inline">c</code> is consulted to find delaborators for applications of the constant <code class="math inline">c</code>, and the name <code>mdata.</code>﻿<code class="math inline">k</code> is consulted to find delaborators for <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr.mdata" data-verso-hover="4955">Expr.mdata</span></code> constructors with a single key <code class="math inline">k</code> in their metadata.</p>
+                Delaborators are registered with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5319">delab</span></code> attribute.
+An internal table maps the names of the constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code> (without namespaces) to delaborators.
+Additionally, the name <code>app.</code>﻿<code class="math inline">c</code> is consulted to find delaborators for applications of the constant <code class="math inline">c</code>, and the name <code>mdata.</code>﻿<code class="math inline">k</code> is consulted to find delaborators for <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr.mdata" data-verso-hover="5320">Expr.mdata</span></code> constructors with a single key <code class="math inline">k</code> in their metadata.</p>
               <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
                 <span class="label">attribute</span><span class="title">Delaborator Registration</span><div class="text">
                   <p>
-                    The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4954">delab</span></code> attribute registers a delaborator for the indicated constructor or metadata key of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code>.</p>
+                    The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5319">delab</span></code> attribute registers a delaborator for the indicated constructor or metadata key of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code>.</p>
                   <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="keyword">delab</span> <span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="ident">ident</span></span></pre><p>
                     The <code class="plain-keyword">app_delab </code> attribute registers a delaborator for applications of the indicated constant after <a class="technical-term" href="IO/Tasks-and-Threads/#--tech-term-resolving-next">resolving</a> it in the current <a class="technical-term" href="Namespaces-and-Sections/#--tech-term-section-scope">scope</a>.</p>
@@ -2360,33 +2380,33 @@ as `@[app_delab c]` first performs name resolution on `c` in the current scope.
                 </div>
               <div class="paragraph">
                 <p>
-                  The monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="4953">DelabM</span></code> is a <a class="technical-term" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#--tech-term-Reader-monads">reader monad</a> that includes access to the current position in the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code>.
+                  The monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.DelabM" data-verso-hover="5318">DelabM</span></code> is a <a class="technical-term" href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#--tech-term-Reader-monads">reader monad</a> that includes access to the current position in the <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code>.
 Recursive delaboration is performed by adjusting the reader monad's tracked position, rather than by explicitly passing a subexpression to another function.
 The most important functions for working with subexpressions in delaborators are in the namespace <code>Lean.PrettyPrinter.Delaborator.SubExp</code>:</p>
                 <ul>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.getExpr" data-verso-hover="4956">getExpr</span></code> retrieves the current expression for analysis.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.getExpr" data-verso-hover="5321">getExpr</span></code> retrieves the current expression for analysis.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppFn" data-verso-hover="4957">withAppFn</span></code> adjusts the current position to be that of the function in an application.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppFn" data-verso-hover="5322">withAppFn</span></code> adjusts the current position to be that of the function in an application.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppArg" data-verso-hover="4958">withAppArg</span></code> adjusts the current position to be that of the argument in an application</p>
+                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppArg" data-verso-hover="5323">withAppArg</span></code> adjusts the current position to be that of the argument in an application</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppFnArgs" data-verso-hover="4959">withAppFnArgs</span></code> decomposes the current expression into a non-application function and its arguments, focusing on each.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withAppFnArgs" data-verso-hover="5324">withAppFnArgs</span></code> decomposes the current expression into a non-application function and its arguments, focusing on each.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withBindingBody" data-verso-hover="4960">withBindingBody</span></code> descends into the body of a function or function type.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.PrettyPrinter.Delaborator.SubExpr.withBindingBody" data-verso-hover="5325">withBindingBody</span></code> descends into the body of a function or function type.</p>
                     </li>
                   </ul>
                 <p>
-                  Further functions to descend into the remaining constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="4889">Expr</span></code> are available.</p>
+                  Further functions to descend into the remaining constructors of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Expr" data-verso-hover="5254">Expr</span></code> are available.</p>
                 </div>
               </section>
             </section>

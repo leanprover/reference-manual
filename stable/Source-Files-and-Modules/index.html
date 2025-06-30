@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2174,7 +2194,7 @@ window.onload = () => {
             <a class="local-button active" href="The-Type-System/Quotients/#quotients" rel="prev" title="4.5. Quotients"><span class="arrow">←</span><span class="where">4.5. Quotients</span></a><a class="local-button active" href="Namespaces-and-Sections/#namespaces-sections" rel="next" title="6. Namespaces and Sections"><span class="where">6. Namespaces and Sections</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              5. Source Files and Modules<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=files" title="Permalink">🔗</a></span></h1>
+              5. Source Files and Modules<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=files" title="Permalink">🔗</a></span></h1>
             <p>
               The smallest unit of compilation in Lean is a single <span id="--tech-term-module" class="def-technical-term">module</span>.
 Modules correspond to source files, and are imported into other modules based on their filenames.
@@ -2185,7 +2205,7 @@ A module's name is derived from a combination of its filename and the way in whi
 For example, if Lean is invoked with <code>Projects/MyLib/src</code> as its root, the file <code>Projects/MyLib/src/Literature/Novel/SciFi.lean</code> would contain a module named <code>Literature.Novel.SciFi</code>.</p>
             <section>
               <h2 id="module-encoding">
-                5.1. Encoding and Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=module-encoding" title="Permalink">🔗</a></span></h2>
+                5.1. Encoding and Representation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=module-encoding" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean modules are Unicode text files encoded in UTF-8. 
 Lines may end either with newline characters (<code>"\n"</code>, Unicode <code>'LINE FEED (LF)' (U+000A)</code>) or with a form feed and newline sequence (<code>"\r\n"</code>, Unicode <code>'CARRIAGE RETURN (CR)' (U+000D)</code> followed by <code>'LINE FEED (LF)' (U+000A)</code>).
@@ -2193,14 +2213,14 @@ However, Lean normalizes line endings when parsing or comparing files, so all fi
               </section>
             <section>
               <h2 id="module-syntax">
-                5.2. Concrete Syntax<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=module-syntax" title="Permalink">🔗</a></span></h2>
+                5.2. Concrete Syntax<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=module-syntax" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean's concrete syntax is <a href="Notations-and-Macros/#language-extension">extensible</a>.
 In a language like Lean, it's not possible to completely describe the syntax once and for all, because libraries may define syntax in addition to new constants or <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive types</a>.
 Rather than completely describing the language here, the overall framework is described, while the syntax of each language construct is documented in the section to which it belongs.</p>
               <section>
                 <h3 id="whitespace">
-                  5.2.1. Whitespace<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=whitespace" title="Permalink">🔗</a></span></h3>
+                  5.2.1. Whitespace<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=whitespace" title="Permalink">🔗</a></span></h3>
                 <p>
                   Tokens in Lean may be separated by any number of <span id="--tech-term-whitespace" class="def-technical-term"><em>whitespace</em></span> character sequences.
 Whitespace may be a space (<code>" "</code>, Unicode <code>'SPACE (SP)' (U+0020)</code>), a valid newline sequence, or a comment. 
@@ -2208,7 +2228,7 @@ Neither tab characters nor carriage returns not followed by newlines are valid w
                 </section>
               <section>
                 <h3 id="comments">
-                  5.2.2. Comments<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=comments" title="Permalink">🔗</a></span></h3>
+                  5.2.2. Comments<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=comments" title="Permalink">🔗</a></span></h3>
                 <p>
                   Comments are stretches of the file that, despite not being whitespace, are treated as such.
 Lean has two syntaxes for comments:</p>
@@ -2224,7 +2244,7 @@ Even though documentation resembles comments, they are their own syntactic categ
                 </section>
               <section>
                 <h3 id="keywords-and-identifiers">
-                  5.2.3. Keywords and Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=keywords-and-identifiers" title="Permalink">🔗</a></span></h3>
+                  5.2.3. Keywords and Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=keywords-and-identifiers" title="Permalink">🔗</a></span></h3>
                 <p>
                   An <a class="technical-term" href="Notations-and-Macros/Defining-New-Syntax/#--tech-term-Identifiers">identifier</a> consists of one or more identifier components, separated by <code>'.'</code>.<span id="--index--next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next"></span></p>
                 <p>
@@ -2249,10 +2269,10 @@ Hierarchical identifiers are used to represent both module names and names in a 
               </section>
             <section>
               <h2 id="module-structure">
-                5.3. Structure<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=module-structure" title="Permalink">🔗</a></span></h2>
+                5.3. Structure<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=module-structure" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="Lean___Parser___Module___module">
                 <span class="label">syntax</span><span class="title">Modules</span><div class="text">
-                  <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___module-next"><a href="Source-Files-and-Modules#Lean___Parser___Module___module-next"><span class="nonterminal documented" data-kind="Lean.Parser.Module.module"><code class="hover-info"><code class="docstring">Parser for a Lean module. We never actually run this parser but instead use the imperative definitions below that
+                  <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___module-next"><a href="Source-Files-and-Modules/#Lean___Parser___Module___module-next"><span class="nonterminal documented" data-kind="Lean.Parser.Module.module"><code class="hover-info"><code class="docstring">Parser for a Lean module. We never actually run this parser but instead use the imperative definitions below that
 return the same syntax tree structure, but add error recovery. Still, it is helpful to have a `Parser` definition
 for it in order to auto-generate helpers such as the pretty printer. </code></code>module</span></a> <span class="bnf">::=</span>
     <span class="from-nonterminal documented" data-kind="Lean.Parser.Module.module"><code class="hover-info"><code class="docstring">Parser for a Lean module. We never actually run this parser but instead use the imperative definitions below that
@@ -2263,7 +2283,7 @@ for it in order to auto-generate helpers such as the pretty printer. </code></co
                 </div>
               <section>
                 <h3 id="module-headers">
-                  5.3.1. Module Headers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=module-headers" title="Permalink">🔗</a></span></h3>
+                  5.3.1. Module Headers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=module-headers" title="Permalink">🔗</a></span></h3>
                 <p>
                   Module headers list the modules that should be elaborated prior to the current module.
 Their declarations are visible in the current module.</p>
@@ -2272,22 +2292,22 @@ Their declarations are visible in the current module.</p>
                     <p>
                       The module header consists of a sequence of <span id="--tech-term-import-statements" class="def-technical-term"><code>import</code> statements</span>:</p>
                     <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___header-next"><span class="nonterminal" data-kind="Lean.Parser.Module.header">header</span> <span class="bnf">::=</span>
-    <span class="from-nonterminal" data-kind="Lean.Parser.Module.header"><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"><a href="Source-Files-and-Modules#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a><span class="bnf">*</span></span></span></pre><p>
+    <span class="from-nonterminal" data-kind="Lean.Parser.Module.header"><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"><a href="Source-Files-and-Modules/#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a><span class="bnf">*</span></span></span></pre><p>
                       The optional <code class="plain-keyword">prelude</code> keyword should only be used in Lean's source code:</p>
                     <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___header-next-next"><span class="nonterminal" data-kind="Lean.Parser.Module.header">header</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Module.header"><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Module.prelude"><a href="Source-Files-and-Modules/#Lean___Parser___Module___prelude-next"><span class="keyword">prelude</span></a>
-      </span></span><span class="from-nonterminal" data-kind="null"><a href="Source-Files-and-Modules#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a><span class="bnf">*</span></span></span></pre></div>
+      </span></span><span class="from-nonterminal" data-kind="null"><a href="Source-Files-and-Modules/#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a><span class="bnf">*</span></span></span></pre></div>
                   </div>
                 <p>
                   If present, the <code class="plain-keyword">prelude</code> keyword indicates that the module is part of the implementation of the Lean <span id="--tech-term-prelude" class="def-technical-term"><em>prelude</em></span>, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.</p>
                 <div class="namedocs" id="Lean___Parser___Module___prelude">
                   <span class="label">syntax</span><span class="title">Prelude Modules</span><div class="text">
-                    <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___prelude-next"><a href="Source-Files-and-Modules#Lean___Parser___Module___prelude-next"><span class="nonterminal" data-kind="Lean.Parser.Module.prelude">prelude</span></a> <span class="bnf">::=</span>
+                    <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___prelude-next"><a href="Source-Files-and-Modules/#Lean___Parser___Module___prelude-next"><span class="nonterminal" data-kind="Lean.Parser.Module.prelude">prelude</span></a> <span class="bnf">::=</span>
     <span class="from-nonterminal" data-kind="Lean.Parser.Module.prelude"><span class="keyword">prelude</span></span></pre></div>
                   </div>
                 <div class="namedocs" id="Lean___Parser___Module___import">
                   <span class="label">syntax</span><span class="title">Imports</span><div class="text">
-                    <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___import-next"><a href="Source-Files-and-Modules#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a> <span class="bnf">::=</span> ...
+                    <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Module___import-next"><a href="Source-Files-and-Modules/#Lean___Parser___Module___import-next"><span class="nonterminal" data-kind="Lean.Parser.Module.import">import</span></a> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Module.import"><span class="from-nonterminal" data-kind="null"></span><span class="keyword">import</span> <span class="from-nonterminal" data-kind="null"></span><span class="nonterminal" data-kind="ident">ident</span><span class="from-nonterminal" data-kind="null"></span></span></pre><p>
                       Imports the module.
 Importing a module makes its contents available in the current module, as well as those from modules transitively imported by its imports.</p>
@@ -2302,7 +2322,7 @@ Lean searches its include path for the corresponding intermediate build product 
                 </section>
               <section>
                 <h3 id="commands">
-                  5.3.2. Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=commands" title="Permalink">🔗</a></span></h3>
+                  5.3.2. Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=commands" title="Permalink">🔗</a></span></h3>
                 <p>
                   <a class="technical-term" href="Source-Files-and-Modules/#--tech-term-commands">Commands</a> are top-level statements in Lean.
 Some examples are inductive type declarations, theorems, function definitions, namespace modifiers like <code>open</code> or <code>variable</code>, and interactive queries such as <code>#check</code>.
@@ -2312,7 +2332,7 @@ Specific Lean commands are documented in the corresponding chapters of this manu
               </section>
             <section>
               <h2 id="module-contents">
-                5.4. Elaborated Modules<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=module-contents" title="Permalink">🔗</a></span></h2>
+                5.4. Elaborated Modules<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=module-contents" title="Permalink">🔗</a></span></h2>
               <p>
                 When Lean elaborates a module, the result is an  environment.
 The environment includes the constants, <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-Inductive-types">inductive types</a>, <a class="technical-term" href="Definitions/Theorems/#--tech-term-theorems">theorems</a>, <a class="technical-term" href="Type-Classes/#--tech-term-type-class">type classes</a>, <a class="technical-term" href="Type-Classes/#--tech-term-instances">instances</a>, and everything else declared in the module, along with side tables that track data as diverse as <a class="technical-term" href="The-Simplifier/Simp-sets/#--tech-term-simp-set">simp sets</a>, namespace aliases, and <a class="technical-term" href="Definitions/Modifiers/#--tech-term-Documentation-comments">documentation comments</a>.</p>
@@ -2323,7 +2343,7 @@ This means that an imported module can be loaded without re-executing all of its
               </section>
             <section>
               <h2 id="code-distribution">
-                5.5. Packages, Libraries, and Targets<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=code-distribution" title="Permalink">🔗</a></span></h2>
+                5.5. Packages, Libraries, and Targets<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=code-distribution" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean modules are organized into <span id="--tech-term-packages" class="def-technical-term"><em>packages</em></span>, which are units of code distribution.
 A <a class="technical-term" href="Build-Tools-and-Distribution/Lake/#--tech-term-package">package</a> may contain multiple libraries or executables.</p>

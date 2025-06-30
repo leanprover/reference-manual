@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2168,7 +2188,7 @@ window.onload = () => {
             <a class="local-button active" href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution" rel="prev" title="20.2. Multi-Threaded Execution"><span class="arrow">←</span><span class="where">20.2. Multi-Threaded Execution</span></a><a class="local-button active" href="Build-Tools-and-Distribution/#build-tools-and-distribution" rel="next" title="21. Build Tools and Distribution"><span class="where">21. Build Tools and Distribution</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              20.3. Foreign Function Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=ffi" title="Permalink">🔗</a></span></h1>
+              20.3. Foreign Function Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi" title="Permalink">🔗</a></span></h1>
             <p>
               <strong>The current interface was designed for internal use in Lean and should be considered unstable</strong>.
 It will be refined and extended in the future.</p>
@@ -2206,49 +2226,49 @@ This support is, however, currently limited to transferring Lean data types; in 
               <p>
                 The Lean <span id="--tech-term-Application-Binary-Interface" class="def-technical-term"><em>Application Binary Interface</em></span> (ABI) describes how the signature of a Lean declaration is encoded in the platform-native calling convention.
 It is based on the standard C ABI and calling convention of the target platform.
-Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4970">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
+Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5335">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
               <p>
                 In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
-Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.83" data-verso-hover="4971">α₁</span> <span class="unknown token" data-binding="">→</span> <span class="unknown token" data-binding="">...</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.86" data-verso-hover="4972">αₙ</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.89" data-verso-hover="4973">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
+Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5154" data-verso-hover="5336">α₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5157" data-verso-hover="5337">αₙ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5160" data-verso-hover="5338">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
 If <code>n</code> is 0, the corresponding C declaration is</p>
               <pre class="c"><span class="kw">extern</span> <span class="name">s</span> <span class="name">sym</span>;
 </pre><p>
-                where <code class="c"><span class="name">s</span></code> is the C translation of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.111" data-verso-hover="4974">β</span></code> as specified in <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-types">the next section</a>.
-In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
+                where <code class="c"><span class="name">s</span></code> is the C translation of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5182" data-verso-hover="5339">β</span></code> as specified in <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-types">the next section</a>.
+In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
 The section on <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-initialization">initialization</a> describes initializers in greater detail.</p>
               <p>
                 If <code>n</code> is greater than 0, the corresponding C declaration is</p>
               <pre class="c"><span class="name">s</span> <span class="name">sym</span><span class="brack">(</span><span class="name">t</span>₁, ..., <span class="name">t</span>ₙ<span class="brack">)</span>;
 </pre><p>
-                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.126" data-verso-hover="4975">αᵢ</span></code>.
-In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
+                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5197" data-verso-hover="5340">αᵢ</span></code>.
+In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
               <section>
                 <h3 id="ffi-types">
-                  20.3.1.1. Translating Types from Lean to C<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=ffi-types" title="Permalink">🔗</a></span></h3>
+                  20.3.1.1. Translating Types from Lean to C<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-types" title="Permalink">🔗</a></span></h3>
                 <p>
                   In the <a class="technical-term" href="Run-Time-Code/Foreign-Function-Interface/#--tech-term-Application-Binary-Interface">ABI</a>, Lean types are translated to C types as follows:</p>
                 <ul>
                   <li>
                     <p>
-                      The integer types <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec"><span class="const token" data-binding="const-UInt8" data-verso-hover="460">UInt8</span></a></code>, …, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofBitVec"><span class="const token" data-binding="const-UInt64" data-verso-hover="461">UInt64</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec"><span class="const token" data-binding="const-USize" data-verso-hover="464">USize</span></a></code> are represented by the C types <code class="c"><span class="type">uint8_t</span></code>, ..., <code class="c"><span class="type">uint64_t</span></code>, <code class="c"><span class="type">size_t</span></code>, respectively.
+                      The integer types <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="258">UInt8</span></a></code>, …, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofBitVec" title="Documentation for UInt64"><span class="const token" data-binding="const-UInt64" data-verso-hover="587">UInt64</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="590">USize</span></a></code> are represented by the C types <code class="c"><span class="type">uint8_t</span></code>, ..., <code class="c"><span class="type">uint64_t</span></code>, <code class="c"><span class="type">size_t</span></code>, respectively.
   If their <a href="Basic-Types/Fixed-Precision-Integers/#fixed-int-runtime">run-time representation</a> requires boxing, then they are unboxed at the FFI boundary.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk"><span class="const token" data-binding="const-Char" data-verso-hover="176">Char</span></a></code> is represented by <code class="c"><span class="type">uint32_t</span></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="259">Char</span></a></code> is represented by <code class="c"><span class="type">uint32_t</span></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float-next"><span class="const token" data-binding="const-Float" data-verso-hover="342">Float</span></a></code> is represented by <code class="c"><span class="type">double</span></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float-next" title="Documentation for Float"><span class="const token" data-binding="const-Float" data-verso-hover="470">Float</span></a></code> is represented by <code class="c"><span class="type">double</span></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat"><span class="const token" data-binding="const-Int" data-verso-hover="146">Int</span></a></code> are represented by <code class="c"><span class="type">lean_object *</span></code>.
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="187">Int</span></a></code> are represented by <code class="c"><span class="type">lean_object *</span></code>.
   Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 (<code class="c"><span class="name">lean_is_scalar</span></code>), an encoded unboxed natural number or integer (<code class="c"><span class="name">lean_box</span></code>/<code class="c"><span class="name">lean_unbox</span></code>).</p>
                     </li>
                   <li>
                     <p>
-                      A universe <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sort-16185" data-verso-hover="169">Sort</span> <span class="unknown token" data-binding="">u</span></code>, type constructor <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">...</span> <span class="unknown token" data-binding="">→</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.sort-16226" data-verso-hover="169">Sort</span> <span class="unknown token" data-binding="">u</span></code>, or proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.150" data-verso-hover="204">p</span></code>​<code> :</code><code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> and is either statically erased (see above) or represented as a <code class="c"><span class="type">lean_object *</span></code> with the runtime value <code class="c"><span class="name">lean_box</span><span class="brack">(</span>0<span class="brack">)</span></code></p>
+                      A universe <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span></code>, type constructor <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span></code>, or proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.6373" data-verso-hover="327">p</span></code>​<code> :</code><code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span></code> is <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> and is either statically erased (see above) or represented as a <code class="c"><span class="type">lean_object *</span></code> with the runtime value <code class="c"><span class="name">lean_box</span><span class="brack">(</span>0<span class="brack">)</span></code></p>
                     </li>
                   <li>
                     <p>
@@ -2259,14 +2279,14 @@ In the case of <code class="hl lean inline" data-lean-context="examples"><span c
                   </ul>
                 <details class="example"><summary class="description"><code>Unit</code> in the ABI</summary><div class="example-content">
                     <p>
-                      The runtime value of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.156" data-verso-hover="1389">u</span></code>​<code>:</code><code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> is always <code>lean_box(0)</code>.</p>
+                      The runtime value of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.7382" data-verso-hover="1518">u</span></code>​<code>:</code><code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> is always <code>lean_box(0)</code>.</p>
                     </div>
                   </details></section>
               <section>
                 <h3 id="ffi-borrowing">
-                  20.3.1.2. Borrowing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=ffi-borrowing" title="Permalink">🔗</a></span></h3>
+                  20.3.1.2. Borrowing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-borrowing" title="Permalink">🔗</a></span></h3>
                 <p>
-                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
+                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
 The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via <code class="c"><span class="name">lean_dec</span></code>.
 To reduce reference counting overhead, parameters can be marked as <span id="--tech-term-borrowed" class="def-technical-term"><em>borrowed</em></span> by prefixing their type with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.borrowed : term</code><span class="sep"></span><code class="docstring">Indicates that an argument to a function marked `@[extern]` is borrowed.
 
@@ -2279,7 +2299,7 @@ Please see https://lean-lang.org/lean4/doc/dev/ffi.html#borrowing for a complete
 Borrowed objects must only be passed to other non-consuming functions (arbitrarily often) or converted to owned values using <code class="c"><span class="name">lean_inc</span></code>.
 In <code>lean.h</code>, the <code class="c"><span class="type">lean_object *</span></code> aliases <code class="c"><span class="type">lean_obj_arg</span></code> and <code class="c"><span class="type">b_lean_obj_arg</span></code> are used to mark this difference on the C side.
 Return values and <code>@[export]</code> parameters are always owned at the moment.</p>
-                <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
                   <span class="label">syntax</span><span class="title">Borrowed Parameters</span><div class="text">
                     <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___borrowed"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Term.borrowed"><code class="hover-info"><code class="docstring">Indicates that an argument to a function marked `@[extern]` is borrowed.
@@ -2297,7 +2317,7 @@ Please see https://lean-lang.org/lean4/doc/dev/ffi.html#borrowing for a complete
               </section>
             <section>
               <h2 id="ffi-initialization">
-                20.3.2. Initialization<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=ffi-initialization" title="Permalink">🔗</a></span></h2>
+                20.3.2. Initialization<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-initialization" title="Permalink">🔗</a></span></h2>
               <p>
                 When including Lean code in a larger program, modules must be <span id="--tech-term-initialized" class="def-technical-term"><em>initialized</em></span> before accessing any of their declarations.
 Module initialization entails:</p>
@@ -2308,17 +2328,17 @@ Module initialization entails:</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4976">init</span></code> attribute, and</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5341">init</span></code> attribute, and</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4976">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5341">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
                   </li>
                 </ul>
               <p>
                 The module initializer is automatically run with the <code>builtin</code> flag for executables compiled from Lean code and for “plugins” loaded with <code>lean --plugin</code>.
 For all other modules imported by <code>lean</code>, the initializer is run without <code>builtin</code>.
-In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4976">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4976">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
+In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5341">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5341">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.</p>
               <p>
                 The initializer for module <code>A.B</code> is called <code class="c"><span class="name">initialize_A_B</span></code> and will automatically initialize any imported modules.
@@ -2365,7 +2385,7 @@ Together with initialization of the Lean runtime, code like the following should
               <h2 id="The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--____LSQ_extern_RSQ_--in-the-Interpreter">
                 20.3.3. <code>@[extern]</code> in the Interpreter</h2>
               <p>
-                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code>.
+                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code>.
 To run this code (e.g. with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling and evaluating it.
 
 * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
@@ -2400,8 +2420,8 @@ See also: `#reduce e` for evaluation by term reduction.
                   </li>
                 </ol>
               <p>
-                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code> declaration.
-Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4969">extern</span></code> declaration in the same file.
+                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code> declaration.
+Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5334">extern</span></code> declaration in the same file.
 The Lean source repository contains an example of this usage in <a href="https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/"><code>tests/compiler/foreign</code></a>.
 </p>
               </section>

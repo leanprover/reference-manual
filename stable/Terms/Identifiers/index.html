@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2150,7 +2170,7 @@ window.onload = () => {
             <a class="local-button active" href="Terms/#terms" rel="prev" title="10. Terms"><span class="arrow">←</span><span class="where">10. Terms</span></a><a class="local-button active" href="Terms/Function-Types/#function-types" rel="next" title="10.2. Function Types"><span class="where">10.2. Function Types</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              10.1. Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=identifiers-and-resolution" title="Permalink">🔗</a></span></h1>
+              10.1. Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=identifiers-and-resolution" title="Permalink">🔗</a></span></h1>
             <div class="namedocs" id="term-next-next-next-next">
               <span class="label">syntax</span><span class="title">Identifiers</span><div class="text">
                 <pre>$x:ident
@@ -2403,99 +2423,99 @@ It is an error if more than one succeed or if all fail.</p>
             <details class="example"><summary class="description">Local Names Take Precedence</summary><div class="example-content">
                 <p>
                   Local bindings take precedence over global bindings:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5332">def</span> <span class="const token" data-binding="const-x" data-verso-hover="1416">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1417">"global"</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5332">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-x" data-verso-hover="1545">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1546">"global"</span><span class="inter-text">
 
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"local"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5351" data-verso-hover="6">#eval</span></a></span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5359" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1418">"local"</span>
-  <span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">x</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"local"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5351" data-verso-hover="6">#eval</span></a></span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5359" data-verso-hover="109">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="144">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1547">"local"</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="144">x</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"local"
 </pre></div>
                 <p>
                   The innermost local binding of a name takes precedence over others:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"inner"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5527" data-verso-hover="6">#eval</span></a></span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5535" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="312">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1419">"outer"</span>
-  <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5554" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1420">"inner"</span>
-  <span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">x</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"inner"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-5527" data-verso-hover="6">#eval</span></a></span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5535" data-verso-hover="109">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="144">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1548">"outer"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-5554" data-verso-hover="109">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="144">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1549">"inner"</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="144">x</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"inner"
 </pre></div>
                 </div>
               </details><details class="example"><summary class="description">Longer Prefixes of Current Namespace Take Precedence</summary><div class="example-content">
                 <p>
                   The  namespaces <code>A</code>, <code>B</code>, and <code>C</code> are nested, and <code>A</code> and <code>C</code> each contain a definition of <code>x</code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5825" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">A</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5837">def</span> <span class="const token" data-binding="const-A.x" data-verso-hover="1421">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1422">"A.x"</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5852" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">B</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5864" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">C</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5876">def</span> <span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1423" id="A___x">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1424">"A.B.C.x"</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  When the current namespace is <code>A.B.C</code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1421">x</span></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#A___x"><span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1423">A.B.C.x</span></a></code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"A.B.C.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6000" data-verso-hover="6">#eval</span></a></span> <a href="Terms/Identifiers/#A___x"><span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1423">x</span></a>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                <code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5825" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5837">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="1550">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1551">"A.x"</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5852" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">B</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-5864" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5876">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1552" id="A___x">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1553">"A.B.C.x"</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  When the current namespace is <code>A.B.C</code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1550">x</span></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#A___x" title="Definition of example A.B.C.x"><span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1552">A.B.C.x</span></a></code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"A.B.C.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6000" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><a href="Terms/Identifiers/#A___x" title="Definition of example A.B.C.x"><span class="const token" data-binding="const-A.B.C.x" data-verso-hover="1552">x</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"A.B.C.x"
 </pre></div>
                 <p>
-                  When the current namespace is <code>A.B</code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1421">x</span></code> resolves to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1421">A.x</span></code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-6138" data-verso-hover="124">end</span> <span class="unknown token" data-binding="">C</span>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"A.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6144" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-A.x" data-verso-hover="1421">x</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                  When the current namespace is <code>A.B</code>, <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1550">x</span></code> resolves to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1550">A.x</span></code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-6138" data-verso-hover="125">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span><span class="inter-text">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"A.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6144" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="1550">x</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"A.x"
 </pre></div>
                 </div>
               </details><details class="example"><summary class="description">Longer Identifier Prefixes Take Precedence</summary><div class="example-content">
                 <p>
                   When an identifier could refer to different projections from names, the one with the longest name takes precedence:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6386">structure</span> <span class="const token" data-binding="const-A" data-verso-hover="1425">A</span> <span class="keyword token" data-binding="kw-occ-null-6398">where</span>
-  <span class="const token" data-binding="const-A.y" data-verso-hover="1426" id="B">y</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a>
-<span class="keyword token" data-binding="kw-occ-null-6417">deriving</span> <span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6386">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-A" data-verso-hover="1554">A</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6398">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-A.y" data-verso-hover="1555" id="B">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-null-6417">deriving</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="67">Repr</span></a><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6432">structure</span> <span class="const token" data-binding="const-B" data-verso-hover="1427">B</span> <span class="keyword token" data-binding="kw-occ-null-6444">where</span>
-  <span class="const token" data-binding="const-B.y" data-verso-hover="1428" id="B">y</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-A" data-verso-hover="1425">A</span>
-<span class="keyword token" data-binding="kw-occ-null-6458">deriving</span> <span class="const token" data-binding="const-Repr" data-verso-hover="66">Repr</span>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-6432">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-B" data-verso-hover="1556">B</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6444">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-B.y" data-verso-hover="1557" id="B">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-A" data-verso-hover="1554">A</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-null-6458">deriving</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Repr___mk" title="Documentation for Repr"><span class="const token" data-binding="const-Repr" data-verso-hover="67">Repr</span></a><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6473">def</span> <span class="const token" data-binding="const-y" data-verso-hover="1429">y</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-B" data-verso-hover="1427">B</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-B.mk" data-verso-hover="1430">⟨</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1431">⟨</span><span class="literal string token" data-binding="" data-verso-hover="1432">"shorter"</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1431">⟩</span><span class="unknown token" data-binding="const-B.mk" data-verso-hover="1430">⟩</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6508">def</span> <span class="const token" data-binding="const-y.y" data-verso-hover="1433" id="B">y.y</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-A" data-verso-hover="1425">A</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-A.mk" data-verso-hover="1431">⟨</span><span class="literal string token" data-binding="" data-verso-hover="1434">"longer"</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1431">⟩</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  Given the above declarations, <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-y.y" data-verso-hover="1433">y.y</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-A.y" data-verso-hover="1426">y</span></a></code> could in principle refer either to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-A.y" data-verso-hover="1426">y</span></a></code> field of the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-B.y" data-verso-hover="1428">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-y" data-verso-hover="1429">y</span></code>, or to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-A.y" data-verso-hover="1426">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-y.y" data-verso-hover="1433">y.y</span></a></code>.
-It refers to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-A.y" data-verso-hover="1426">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-y.y" data-verso-hover="1433">y.y</span></a></code>, because the name <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-y.y" data-verso-hover="1433">y.y</span></a></code> is a longer prefix of <code>y.y.y</code> than the name <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-y" data-verso-hover="1429">y</span></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"longer"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6891" data-verso-hover="6">#eval</span></a></span> <a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-y.y" data-verso-hover="1433">y.y</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Identifiers/#B"><span class="const token" data-binding="const-A.y" data-verso-hover="1426">y</span></a>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6473">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-y" data-verso-hover="1558">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-B" data-verso-hover="1556">B</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-B.mk" data-verso-hover="1559">⟨</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1560">⟨</span><span class="literal string token" data-binding="" data-verso-hover="1561">"shorter"</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1560">⟩</span><span class="unknown token" data-binding="const-B.mk" data-verso-hover="1559">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-6508">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-y.y" data-verso-hover="1562" id="B">y.y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-A" data-verso-hover="1554">A</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1560">⟨</span><span class="literal string token" data-binding="" data-verso-hover="1563">"longer"</span><span class="unknown token" data-binding="const-A.mk" data-verso-hover="1560">⟩</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  Given the above declarations, <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example y.y"><span class="const token" data-binding="const-y.y" data-verso-hover="1562">y.y</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Identifiers/#B" title="Definition of example A.y"><span class="const token" data-binding="const-A.y" data-verso-hover="1555">y</span></a></code> could in principle refer either to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example A.y"><span class="const token" data-binding="const-A.y" data-verso-hover="1555">y</span></a></code> field of the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example B.y"><span class="const token" data-binding="const-B.y" data-verso-hover="1557">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-y" data-verso-hover="1558">y</span></code>, or to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example A.y"><span class="const token" data-binding="const-A.y" data-verso-hover="1555">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example y.y"><span class="const token" data-binding="const-y.y" data-verso-hover="1562">y.y</span></a></code>.
+It refers to the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example A.y"><span class="const token" data-binding="const-A.y" data-verso-hover="1555">y</span></a></code> field of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example y.y"><span class="const token" data-binding="const-y.y" data-verso-hover="1562">y.y</span></a></code>, because the name <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#B" title="Definition of example y.y"><span class="const token" data-binding="const-y.y" data-verso-hover="1562">y.y</span></a></code> is a longer prefix of <code>y.y.y</code> than the name <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-y" data-verso-hover="1558">y</span></code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"longer"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6891" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><a href="Terms/Identifiers/#B" title="Definition of example y.y"><span class="const token" data-binding="const-y.y" data-verso-hover="1562">y.y</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Identifiers/#B" title="Definition of example A.y"><span class="const token" data-binding="const-A.y" data-verso-hover="1555">y</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"longer"
 </pre></div>
                 </div>
               </details><details class="example"><summary class="description">Current Namespace Contents Take Precedence Over Opened Namespaces</summary><div class="example-content">
                 <p>
                   When an identifier could refer either to a name defined in a prefix of the current namespace or to an opened namespace, the former takes precedence.</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7196" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">A</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7208">def</span> <span class="const token" data-binding="const-A.x" data-verso-hover="1421">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1422">"A.x"</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-7223" data-verso-hover="124">end</span> <span class="unknown token" data-binding="">A</span>
+                <code class="hl lean block" data-lean-context="examples"><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7196" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7208">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="1550">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1551">"A.x"</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.end-7223" data-verso-hover="125">end</span><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
 
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7230" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">B</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7242">def</span> <span class="const token" data-binding="const-B.x" data-verso-hover="1435">x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1436">"B.x"</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7257" data-verso-hover="120">namespace</span></a> <span class="unknown token" data-binding="">C</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___open"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7269" data-verso-hover="119">open</span></a> <span class="unknown token" data-binding="">A</span>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"B.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7276" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-B.x" data-verso-hover="1435">x</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  Even though <code>A</code> was opened more recently than the declaration of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1435">B.x</span></code>, the identifier <code>x</code> resolves to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1435">B.x</span></code> rather than <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1421">A.x</span></code> because <code>B</code> is a prefix of the current namespace <code>B.C</code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"B.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7520" data-verso-hover="6">#eval</span></a></span> <span class="const token" data-binding="const-B.x" data-verso-hover="1435">x</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7230" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">B</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7242">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-B.x" data-verso-hover="1564">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1565">"B.x"</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___namespace" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namespace-7257" data-verso-hover="121">namespace</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7269" data-verso-hover="120">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"B.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7276" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-B.x" data-verso-hover="1564">x</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  Even though <code>A</code> was opened more recently than the declaration of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1564">B.x</span></code>, the identifier <code>x</code> resolves to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1564">B.x</span></code> rather than <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1550">A.x</span></code> because <code>B</code> is a prefix of the current namespace <code>B.C</code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"B.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7520" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-B.x" data-verso-hover="1564">x</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"B.x"
 </pre></div>
                 </div>
               </details><details class="example"><summary class="description">Ambiguous Identifiers</summary><div class="example-content">
                 <p>
-                  In this example, <code>x</code> could refer either to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1421">A.x</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1435">B.x</span></code>, and neither takes precedence.
+                  In this example, <code>x</code> could refer either to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-A.x" data-verso-hover="1550">A.x</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-B.x" data-verso-hover="1564">B.x</span></code>, and neither takes precedence.
 Because both have the same type, it is an error.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7804">def</span> <span class="const token" data-binding="const-A.x" data-verso-hover="1421">A.x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1422">"A.x"</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7821">def</span> <span class="const token" data-binding="const-B.x" data-verso-hover="1435">B.x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1436">"B.x"</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___open"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7838" data-verso-hover="119">open</span></a> <span class="unknown token" data-binding="">A</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___open"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7845" data-verso-hover="119">open</span></a> <span class="unknown token" data-binding="">B</span>
-<a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7852" data-verso-hover="6">#eval</span></a> <span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">ambiguous, possible interpretations 
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7804">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-A.x" data-verso-hover="1550">A.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1551">"A.x"</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7821">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-B.x" data-verso-hover="1564">B.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1565">"B.x"</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7838" data-verso-hover="120">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">A</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-7845" data-verso-hover="120">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">B</span><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7852" data-verso-hover="6">#eval</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">ambiguous, possible interpretations 
   B.x : String
   
-  A.x : String</code></span></span><span class="unknown token" data-binding="">x</span></span>
-<span class="unknown token" data-binding=""></span></code><div class="error">
+  A.x : String</code></span></span><span class="unknown token" data-binding="">x</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="error">
                   <pre>ambiguous, possible interpretations 
   B.x : String
   
@@ -2505,12 +2525,12 @@ Because both have the same type, it is an error.</p>
               </details><details class="example"><summary class="description">Disambiguation via Typing</summary><div class="example-content">
                 <p>
                   When otherwise-ambiguous names have different types, the types are used to disambiguate:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8133">def</span> <span class="const token" data-binding="const-C.x" data-verso-hover="1437" id="D___x">C.x</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="1438">"C.x"</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8150">def</span> <span class="const token" data-binding="const-D.x" data-verso-hover="1439" id="D___x">D.x</span> <span class="unknown token" data-binding="">:=</span> <span class="typed token" data-binding="" data-verso-hover="7">3</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___open"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-8163" data-verso-hover="119">open</span></a> <span class="unknown token" data-binding="">C</span>
-<a href="Namespaces-and-Sections/#Lean___Parser___Command___open"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-8170" data-verso-hover="119">open</span></a> <span class="unknown token" data-binding="">D</span>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"C.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8177" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">(</span><a href="Terms/Identifiers/#D___x"><span class="const token" data-binding="const-C.x" data-verso-hover="1437">x</span></a> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8133">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-C.x" data-verso-hover="1566" id="D___x">C.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1567">"C.x"</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8150">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-D.x" data-verso-hover="1568" id="D___x">D.x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-8163" data-verso-hover="120">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">C</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-8170" data-verso-hover="120">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">D</span><span class="inter-text">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"C.x"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8177" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Terms/Identifiers/#D___x" title="Definition of example C.x"><span class="const token" data-binding="const-C.x" data-verso-hover="1566">x</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>"C.x"
 </pre></div>
                 </div>
@@ -2529,21 +2549,21 @@ If the type is not an application of a constant (e.g., a function, a metavariabl
 This process is repeated until something other than an application of a constant is encountered, or until the constant can't be unfolded.</p>
               <details class="example"><summary class="description">Leading <code>.</code></summary><div class="example-content">
                   <p>
-                    The expected type for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a></code> is <code>List Unit</code>.
-This type's namespace is <code>List</code>, so <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">List.replicate</span></a></code>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[(), (), ()]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9557" data-verso-hover="6">#eval</span></a></span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.show-9563">show</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fromTerm-9578">from</span> <a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+                    The expected type for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a></code> is <code>List Unit</code>.
+This type's namespace is <code>List</code>, so <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">List.replicate</span></a></code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[(), (), ()]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-9557" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.show-9563">show</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fromTerm-9578">from</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>[(), (), ()]
 </pre></div>
                   </div>
                 </details><details class="example"><summary class="description">Leading <code>.</code> and Unfolding Definitions</summary><div class="example-content">
                   <p>
-                    The expected type for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a></code> is <code>MyList Unit</code>.
+                    The expected type for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a></code> is <code>MyList Unit</code>.
 This type's namespace is <code>MyList</code>, but there is no definition <code>MyList.replicate</code>.
-Unfolding <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#MyList"><span class="const token" data-binding="const-MyList" data-verso-hover="1440">MyList</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> yields <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, so <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">List.replicate</span></a></code>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10022">def</span> <span class="const token" data-binding="const-MyList" data-verso-hover="1440" id="MyList">MyList</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="44">α</span>
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[(), (), ()]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-10047" data-verso-hover="6">#eval</span></a></span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.show-10053">show</span> <a href="Terms/Identifiers/#MyList"><span class="const token" data-binding="const-MyList" data-verso-hover="1440">MyList</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fromTerm-10070">from</span> <a href="Basic-Types/Linked-Lists/#List___replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="520">.replicate</span></a> <span class="typed token" data-binding="" data-verso-hover="7">3</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+Unfolding <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Identifiers/#MyList" title="Definition of example MyList"><span class="const token" data-binding="const-MyList" data-verso-hover="1569">MyList</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code> yields <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></code>, so <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a></code> resolves to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">List.replicate</span></a></code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10022">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-MyList" data-verso-hover="1569" id="MyList">MyList</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="43">α</span><span class="inter-text">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">[(), (), ()]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-10047" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.show-10053">show</span><span class="inter-text"> </span><a href="Terms/Identifiers/#MyList" title="Definition of example MyList"><span class="const token" data-binding="const-MyList" data-verso-hover="1569">MyList</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fromTerm-10070">from</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___replicate" title="Documentation for List.replicate"><span class="const token" data-binding="const-List.replicate" data-verso-hover="646">.replicate</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                     <pre>[(), (), ()]
 </pre></div>
                   </div>

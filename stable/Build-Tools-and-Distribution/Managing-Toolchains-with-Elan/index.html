@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2228,7 +2248,7 @@ window.onload = () => {
             <a class="local-button active" href="Build-Tools-and-Distribution/Lake/#lake" rel="prev" title="21.1. Lake"><span class="arrow">←</span><span class="where">21.1. Lake</span></a><a class="local-button active" href="releases/#release-notes" rel="next" title="Release Notes"><span class="where">Release Notes</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              21.2. Managing Toolchains with Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan" title="Permalink">🔗</a></span></h1>
+              21.2. Managing Toolchains with Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan" title="Permalink">🔗</a></span></h1>
             <p>
               Elan is the Lean toolchain manager.
 It is responsible both for installing <a class="technical-term" href="Build-Tools-and-Distribution/#--tech-term-toolchain">toolchains</a> and for running their constituent programs.
@@ -2236,19 +2256,21 @@ Elan makes it possible to seamlessly work on a variety of projects, each of whic
 Each project is typically configured to use a particular version, which is transparently installed as needed, and changes to the Lean version are tracked automatically.</p>
             <section>
               <h2 id="elan-toolchain-versions">
-                21.2.1. Selecting Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-toolchain-versions" title="Permalink">🔗</a></span></h2>
+                21.2.1. Selecting Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-versions" title="Permalink">🔗</a></span></h2>
               <p>
                 When using Elan, the version of each tool on the <code class="env-var">PATH</code> is a proxy that invokes the correct version.
 The proxy determines the appropriate toolchain version for the current context, ensures that it is installed, and then invokes the underlying tool in the appropriate toolchain installation.
 These proxies can be instructed to use a specific version by passing it as an argument prefixed with <code>+</code>, so <code>lake +4.0.0</code> invokes <code>lake</code> version <code>4.0.0</code>, after installing it if necessary.</p>
               <section>
                 <h3 id="elan-channels">
-                  21.2.1.1. Toolchain Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-channels" title="Permalink">🔗</a></span></h3>
+                  21.2.1.1. Toolchain Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-channels" title="Permalink">🔗</a></span></h3>
                 <p>
                   Toolchains are specified by providing a toolchain identifier that is either a <span id="--tech-term-channel" class="def-technical-term"><em>channel</em></span>, which identifies a particular type of Lean release, and optionally an origin, or a <span id="--tech-term-custom-toolchain-name" class="def-technical-term"><em>custom toolchain name</em></span> established by <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-link" class="elan-command"><code>elan toolchain link</code></a>.
 Channels may be:</p>
                 <dl><dt> <code>stable</code></dt><dd><p>
                       The latest stable Lean release. Elan automatically tracks stable releases and offers to upgrade when a new one is released.</p>
+                    </dd><dt> <code>beta</code></dt><dd><p>
+                      The latest release candidate. Release candidates are builds of Lean that are intended to become the next stable release. They are made available for widespread user testing.</p>
                     </dd><dt> <code>nightly</code></dt><dd><p>
                       The latest nightly build. Nightly builds are useful for experimenting with new Lean features to provide feedback to the developers.</p>
                     </dd><dt> A version number or specific nightly release</dt><dd><p>
@@ -2269,7 +2291,7 @@ Origins are not used for custom toolchain names.</p>
                 </section>
               <section>
                 <h3 id="elan-toolchain-config">
-                  21.2.1.2. Determining the Current Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-toolchain-config" title="Permalink">🔗</a></span></h3>
+                  21.2.1.2. Determining the Current Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-config" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan associates toolchains with directories, and uses the toolchain of the most recent parent directory of the current working directory that has a configured toolchain.
 A directory's toolchain may result from a toolchain file or from an override configured with <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-override"><code>elan override</code></a>.</p>
@@ -2292,15 +2314,15 @@ They are typically used when a specific local configuration is required that doe
               </section>
             <section>
               <h2 id="elan-dir">
-                21.2.2. Toolchain Locations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-dir" title="Permalink">🔗</a></span></h2>
+                21.2.2. Toolchain Locations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-dir" title="Permalink">🔗</a></span></h2>
               <p>
                 By default, Elan stores installed toolchains in <code>.elan/toolchains</code> in the user's home directory, and its proxies are kept in <code>.elan/bin</code>, which is added to the path when Elan is installed.
-The environment variable <code class="env-var" id="ELAN_HOME-next">ELAN_HOME</code> can be used to change this location.
+The environment variable <code class="env-var" id="ELAN_HOME">ELAN_HOME</code> can be used to change this location.
 It should be set both prior to installing Elan and in all sessions that use Lean in order to ensure that Elan's files are found.</p>
               </section>
             <section>
               <h2 id="elan-cli">
-                21.2.3. Command-Line Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-cli" title="Permalink">🔗</a></span></h2>
+                21.2.3. Command-Line Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-cli" title="Permalink">🔗</a></span></h2>
               <p>
                 In addition to the proxies that automatically select, install, and invoke the correct versions of Lean tools, Elan provides a command-line interface for querying and configuring its settings.
 This tool is called <code>elan</code>.
@@ -2315,11 +2337,11 @@ Like <a href="Build-Tools-and-Distribution/Lake/#lake">Lake</a>, its command-lin
                     Displays the Elan version.</p>
                   </dd></dl><section>
                 <h3 id="elan-show">
-                  21.2.3.1. Querying Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-show" title="Permalink">🔗</a></span></h3>
+                  21.2.3.1. Querying Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-show" title="Permalink">🔗</a></span></h3>
                 <p>
                   The <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#show-next" class="elan-command"><code>elan show</code></a> command displays the current toolchain (as determined by the current directory) and lists all installed toolchains.</p>
                 <div class="namedocs" id="show-next">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=show" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="show"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">show</span> </pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=show" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="show"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">show</span><span class="inter-text"> </span></pre><div class="text">
                     <p>
                       Shows the name of the active toolchain and the version of <code>lean</code>.</p>
                     <p>
@@ -2348,20 +2370,20 @@ In this case, the toolchain was selected due to a <code>lean-toolchain</code> fi
                 </section>
               <section>
                 <h3 id="elan-default">
-                  21.2.3.2. Setting the Default Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-default" title="Permalink">🔗</a></span></h3>
+                  21.2.3.2. Setting the Default Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-default" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan's configuration file specifies a <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-default-toolchain">default toolchain</a> to be used when there is no <code>lean-toolchain</code> file or <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-toolchain-override">toolchain override</a> for the current directory.
 Rather than manually editing the file, this value is typically changed using the <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#default" class="elan-command"><code>elan default</code></a> command.</p>
                 <div class="namedocs" id="default">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">default</span> <span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">default</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
                     <p>
-                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
+                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-toolchain">
-                  21.2.3.3. Managing Installed Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-toolchain" title="Permalink">🔗</a></span></h3>
+                  21.2.3.3. Managing Installed Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain" title="Permalink">🔗</a></span></h3>
                 <p>
                   The <code>elan toolchain</code> family of subcommands is used to manage the installed toolchains.
 Toolchains are stored in Elan's <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-dir">toolchain directory</a>.</p>
@@ -2370,34 +2392,34 @@ Toolchains are stored in Elan's <a href="Build-Tools-and-Distribution/Managing-T
 Elan tracks the Lean projects in which it is invoked, saving a list.
 This list of projects can be used to determine which toolchains are in active use and automatically delete unused toolchain versions with <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-gc" class="elan-command"><code>elan toolchain gc</code></a>.</p>
                 <div class="namedocs" id="toolchain-list">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=toolchain list" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~list"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">toolchain list</span> </pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain list" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~list"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain list</span><span class="inter-text"> </span></pre><div class="text">
                     <p>
                       Lists the currently-installed toolchains. This is a subset of the output of <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#show-next" class="elan-command"><code>elan show</code></a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-install">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">toolchain install</span> <span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain install</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
                     <p>
-                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></code>.
+                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>.
 The toolchain's name should be <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">an identifier that's suitable for inclusion in a <code>lean-toolchain</code> file</a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-uninstall">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">toolchain uninstall</span> <span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain uninstall</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
                     <p>
-                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></code>.
+                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>.
 The toolchain's name should the name of an installed toolchain.
 Use <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-list" class="elan-command"><code>elan toolchain list</code></a> to see the installed toolchains with their names.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-link">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">toolchain link</span> <span class="var token" data-binding="var-[anonymous]" data-verso-hover="5061">local-name</span> <span class="var token" data-binding="var-path" data-verso-hover="5062">path</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain link</span><span class="inter-text"> </span><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5426">local-name</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></pre><div class="text">
                     <p>
-                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5061">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="5062">path</span></code>.</p>
+                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5426">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></code>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-gc">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=toolchain gc" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~gc"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">toolchain gc</span> <span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--delete</span><span class="keyword token" data-binding="">]</span> <span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--json</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain gc" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~gc"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain gc</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--delete</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--json</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
                     <p>
                       This command is still considered experimental.</p>
                     <p>
@@ -2428,40 +2450,40 @@ The <code id="elan-flag--json" class="elan-opt">--json</code> flag causes <a hre
                 </section>
               <section>
                 <h3 id="elan-override">
-                  21.2.3.4. Managing Directory Overrides<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-override" title="Permalink">🔗</a></span></h3>
+                  21.2.3.4. Managing Directory Overrides<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-override" title="Permalink">🔗</a></span></h3>
                 <p>
                   Directory-specific <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-toolchain-override">toolchain overrides</a> are a local configuration that takes precedence over <code>lean-toolchain</code> files.
 The <code>elan override</code> commands manage overrides.</p>
                 <div class="namedocs" id="override-list">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=override list" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~list"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">override list</span> </pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override list" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~list"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override list</span><span class="inter-text"> </span></pre><div class="text">
                     <p>
                       Lists all the currently configured directory overrides in two columns.
 The left column contains the directories in which the Lean version is overridden, and the right column lists the toolchain version.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="override-set">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">override set</span> <span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override set</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
                     <p>
-                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span></code> as an override for the current directory.</p>
+                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code> as an override for the current directory.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="override-unset">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">override unset</span> <span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span> <span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span> <span class="var token" data-binding="var-path" data-verso-hover="5062">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override unset</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
                     <p>
                       If <code id="elan-flag--nonexistent" class="elan-opt">--nonexistent</code> flag is provided, all overrides that are configured for directories that don't currently exist are removed.
-If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="5062">path</span></code> is removed.
+If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></code> is removed.
 Otherwise, the override for the current directory is removed.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-run">
-                  21.2.3.5. Running Tools and Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-run" title="Permalink">🔗</a></span></h3>
+                  21.2.3.5. Running Tools and Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-run" title="Permalink">🔗</a></span></h3>
                 <p>
                   The commands in this section provide the ability to run a command in a specific toolchain and to locate a tool from a particular toolchain on disk.
 This can be useful when experimenting with different Lean versions, for cross-version testing, and for integrating Elan with other tools.</p>
                 <div class="namedocs" id="run">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">run</span> <span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span> <span class="var token" data-binding="var-toolchain" data-verso-hover="5060">toolchain</span> <span class="var token" data-binding="var-command" data-verso-hover="5063">command</span> <span class="unknown token" data-binding="">...</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">run</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span></pre><div class="text">
                     <p>
                       Configures an environment to use the given toolchain and then runs the specified program.
 The toolchain will be installed if the <code id="elan-flag--install" class="elan-opt">--install</code> flag is provided.
@@ -2470,32 +2492,32 @@ This can be used for testing arbitrary toolchains without setting an override.</
                     </div>
                   </div>
                 <div class="namedocs" id="which">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">which</span> <span class="var token" data-binding="var-command" data-verso-hover="5063">command</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">which</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span></pre><div class="text">
                     <p>
-                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="5063">command</span></code>.</p>
+                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span></code>.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-self">
-                  21.2.3.6. Managing Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=elan-self" title="Permalink">🔗</a></span></h3>
+                  21.2.3.6. Managing Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-self" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan can manage its own installation.
 It can upgrade itself, remove itself, and help configure tab completion for many popular shells.</p>
                 <div class="namedocs" id="self-update">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=self update" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="self~~update"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">self update</span> </pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=self update" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="self~~update"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">self update</span><span class="inter-text"> </span></pre><div class="text">
                     <p>
                       Downloads and installs updates to Elan itself.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="self-uninstall">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=self uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="self~~uninstall"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">self uninstall</span> </pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=self uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="self~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">self uninstall</span><span class="inter-text"> </span></pre><div class="text">
                     <p>
                       Uninstalls Elan.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="completions">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span> <span class="keyword token" data-binding="">completions</span> <span class="var token" data-binding="var-shell" data-verso-hover="5064">shell</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">completions</span><span class="inter-text"> </span><span class="var token" data-binding="var-shell" data-verso-hover="5429">shell</span></pre><div class="text">
                     <p>
                       Generates shell completion scripts for Elan, enabling tab completion for Elan commands in a variety of shells.
 See the output of <code>elan help completions</code> for a description of how to install them.</p>

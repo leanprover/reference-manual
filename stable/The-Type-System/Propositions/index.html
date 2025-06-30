@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2154,11 +2174,11 @@ window.onload = () => {
             <a class="local-button active" href="The-Type-System/Functions/#functions" rel="prev" title="4.1. Functions"><span class="arrow">←</span><span class="where">4.1. Functions</span></a><a class="local-button active" href="The-Type-System/Universes/#The-Lean-Language-Reference--The-Type-System--Universes" rel="next" title="4.3. Universes"><span class="where">4.3. Universes</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              4.2. Propositions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=propositions" title="Permalink">🔗</a></span></h1>
+              4.2. Propositions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=propositions" title="Permalink">🔗</a></span></h1>
             <p>
               <span id="--tech-term-Propositions" class="def-technical-term">Propositions</span> are meaningful statements that admit proof. <span id="--index-"></span>
 Nonsensical statements are not propositions, but false statements are.
-All propositions are classified by <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code>.</p>
+All propositions are classified by <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span></code>.</p>
             <p>
               Propositions have the following properties:</p>
             <dl><dt> Definitional proof irrelevance</dt><dd><p>
@@ -2170,25 +2190,25 @@ All propositions are classified by <code class="hl lean inline" data-lean-contex
                 </dd><dt> Restricted Elimination</dt><dd><p>
                   With the exception of <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-subsingleton">subsingletons</a>, propositions cannot be eliminated into non-proposition types.</p>
                 </dd><dt> <span id="--tech-term-Extensionality" class="def-technical-term">Extensionality</span> <span id="--index--next"></span></dt><dd><p>
-                  Any two logically equivalent propositions can be proven to be equal with the <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext"><span class="const token" data-binding="const-propext" data-verso-hover="203">propext</span></a></code> axiom.</p>
+                  Any two logically equivalent propositions can be proven to be equal with the <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="326">propext</span></a></code> axiom.</p>
                 </dd></dl><div class="namedocs" id="propext">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&name=propext" title="Permalink">🔗</a></span><span class="label">axiom</span><pre class="signature hl lean block"><div class="wide-only">propext {<span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a </span><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span> : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} : <a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205">(</span></a><span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205"> ↔ </span></a><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205">)</span></a> → <span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span></div><div class="narrow-only">propext {<span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a </span><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span> : <span class="sort token" data-binding="" data-verso-hover="23">Prop</span>} : <a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205">(</span></a><span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205"> ↔ </span></a><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro"><span class="const token" data-binding="const-Iff" data-verso-hover="205">)</span></a> → <span class="var token" data-binding="var-_uniq.386" data-verso-hover="204">a</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><span class="var token" data-binding="var-_uniq.387" data-verso-hover="204">b</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=propext" title="Permalink">🔗</a></span><span class="label">axiom</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">propext</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">(</span></a><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">↔</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">)</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span></div><div class="narrow-only"><span class="unknown token" data-binding="">propext</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">(</span></a><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">↔</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="328">)</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4763" data-verso-hover="327">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4764" data-verso-hover="327">b</span></div></pre><div class="text">
                 <p>
                   The axiom of <strong>propositional extensionality</strong>. It asserts that if propositions
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="204">a</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20" data-verso-hover="204">b</span></code> are logically equivalent (i.e. we can prove <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="204">a</span></code> from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20" data-verso-hover="204">b</span></code> and vice versa),
-then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="204">a</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20" data-verso-hover="204">b</span></code> are <em>equal</em>, meaning that we can replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="204">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20" data-verso-hover="204">b</span></code> in all
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4396" data-verso-hover="327">a</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4397" data-verso-hover="327">b</span></code> are logically equivalent (i.e. we can prove <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4396" data-verso-hover="327">a</span></code> from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4397" data-verso-hover="327">b</span></code> and vice versa),
+then <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4396" data-verso-hover="327">a</span></code> and <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4397" data-verso-hover="327">b</span></code> are <em>equal</em>, meaning that we can replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4396" data-verso-hover="327">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4397" data-verso-hover="327">b</span></code> in all
 contexts.</p>
                 <p>
-                  For simple expressions like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.22" data-verso-hover="204">a</span> <span class="unknown token" data-binding="">∧</span> <span class="const token" data-binding="const-Manual.c" data-verso-hover="206">c</span> <span class="unknown token" data-binding="">∨</span> <span class="var token" data-binding="var-_uniq.208" data-verso-hover="204">d</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.238" data-verso-hover="207">e</span></code> we can prove that because all the logical
-connectives respect logical equivalence, we can replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.22" data-verso-hover="204">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.23" data-verso-hover="204">b</span></code> in this expression
-without using <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Propositions/#propext"><span class="const token" data-binding="const-propext" data-verso-hover="203">propext</span></a></code>. However, for higher order expressions like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">P</span> <span class="unknown token" data-binding="">a</span></code> where
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.287" data-verso-hover="208">P</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="unknown token" data-binding="">→</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span></code> is unknown, or indeed for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.22" data-verso-hover="204">a</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.23" data-verso-hover="204">b</span></code> itself, we cannot replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.22" data-verso-hover="204">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.23" data-verso-hover="204">b</span></code>
+                  For simple expressions like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4399" data-verso-hover="327">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∧</span><span class="inter-text"> </span><span class="const token" data-binding="const-Manual.c" data-verso-hover="329">c</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∨</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4577" data-verso-hover="327">d</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4609" data-verso-hover="330">e</span></code> we can prove that because all the logical
+connectives respect logical equivalence, we can replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4399" data-verso-hover="327">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4400" data-verso-hover="327">b</span></code> in this expression
+without using <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="326">propext</span></a></code>. However, for higher order expressions like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">a</span></code> where
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4661" data-verso-hover="331">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span></code> is unknown, or indeed for <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4399" data-verso-hover="327">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4400" data-verso-hover="327">b</span></code> itself, we cannot replace <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4399" data-verso-hover="327">a</span></code> with <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.4400" data-verso-hover="327">b</span></code>
 without an axiom which says exactly this.</p>
                 <p>
                   This is a relatively uncontroversial axiom, which is intuitionistically valid.
 It does however block computation when using <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">#reduce</span></code> to reduce proofs directly
 (which is not recommended), meaning that canonicity,
-the property that all closed terms of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> normalize to numerals,
+the property that all closed terms of type <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> normalize to numerals,
 fails to hold when this (or any) axiom is used:</p>
                 <pre>set_option pp.proofs true
 
@@ -2203,7 +2223,7 @@ def foo : Nat := by
 #eval foo -- 2
 </pre><p>
                   <code class="hl lean inline" data-lean-context="docstring-examples"><span class="keyword token" data-binding="kw-occ-null-0">#eval</span></code> can evaluate it to a numeral because the compiler erases casts and
-does not evaluate proofs, so <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Propositions/#propext"><span class="const token" data-binding="const-propext" data-verso-hover="203">propext</span></a></code>, whose return type is a proposition,
+does not evaluate proofs, so <code class="hl lean inline" data-lean-context="docstring-examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="326">propext</span></a></code>, whose return type is a proposition,
 can never block it.</p>
                 </div>
               </div>

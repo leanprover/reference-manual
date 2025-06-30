@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2150,7 +2170,7 @@ window.onload = () => {
             <a class="local-button active" href="Coercions/#coercions" rel="prev" title="12. Coercions"><span class="arrow">←</span><span class="where">12. Coercions</span></a><a class="local-button active" href="Coercions/Coercing-Between-Types/#ordinary-coercion" rel="next" title="12.2. Coercing Between Types"><span class="where">12.2. Coercing Between Types</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              12.1. Coercion Insertion<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=coercion-insertion" title="Permalink">🔗</a></span></h1>
+              12.1. Coercion Insertion<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=coercion-insertion" title="Permalink">🔗</a></span></h1>
             <div class="paragraph">
               <p>
                 The process of searching for a coercion from one type to another is called <span id="--tech-term-coercion-insertion" class="def-technical-term"><em>coercion insertion</em></span>.
@@ -2175,40 +2195,40 @@ Each situation in which coercions may be inserted has a corresponding prefix ope
               </div>
             <p>
               Because coercions are inserted automatically, nested <a class="technical-term" href="Terms/Type-Ascription/#--tech-term-Type-ascriptions">type ascriptions</a> provide a way to precisely control the types involved in a coercion.
-If <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.459" data-verso-hover="55">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.479" data-verso-hover="55">β</span></code> are not the same type, <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.505" data-verso-hover="46">e</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.491" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.495" data-verso-hover="55">β</span><span class="unknown token" data-binding="">)</span></code> arranges for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.633" data-verso-hover="46">e</span></code> to have type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.635" data-verso-hover="55">α</span></code> and then inserts a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.651" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.671" data-verso-hover="55">β</span></code>.</p>
+If <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5343" data-verso-hover="55">α</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5363" data-verso-hover="55">β</span></code> are not the same type, <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5389" data-verso-hover="45">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5375" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5379" data-verso-hover="55">β</span><span class="unknown token" data-binding="">)</span></code> arranges for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5517" data-verso-hover="45">e</span></code> to have type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5519" data-verso-hover="55">α</span></code> and then inserts a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5535" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.5555" data-verso-hover="55">β</span></code>.</p>
             <p>
               When a coercion is discovered, the instances used to find it are unfolded and removed from the resulting term.
-To the extent possible, calls to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2018">Coe.coe</span></a></code> and related functions do not occur in the final term.
+To the extent possible, calls to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2148">Coe.coe</span></a></code> and related functions do not occur in the final term.
 This process of unfolding makes terms more readable.
 Even more importantly, it means that coercions can control the evaluation of the coerced terms by wrapping them in functions.</p>
             <details class="example"><summary class="description">Controlling Evaluation with Coercions</summary><div class="example-content">
                 <p>
-                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Later___get"><span class="const token" data-binding="const-Later" data-verso-hover="2019">Later</span></a></code> represents a term that can be evaluated in the future, by calling the contained function.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-10171">structure</span> <span class="const token" data-binding="const-Later" data-verso-hover="2019" id="Later___get">Later</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-10193" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-10201">where</span>
-  <span class="const token" data-binding="const-Later.get" data-verso-hover="2020" id="Later___get">get</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span>
-<span class="unknown token" data-binding=""></span></code><p>
+                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Later___get" title="Definition of example Later"><span class="const token" data-binding="const-Later" data-verso-hover="2149">Later</span></a></code> represents a term that can be evaluated in the future, by calling the contained function.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-10171">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Later" data-verso-hover="2149" id="Later___get">Later</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-10201">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Later.get" data-verso-hover="2150" id="Later___get">get</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                   A coercion from any value to a later value is performed by creating a function that wraps it.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-10334">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercing-Between-Types/#CoeTail___mk"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2021">CoeTail</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Later___get"><span class="const token" data-binding="const-Later" data-verso-hover="2019">Later</span></a> <span class="var token" data-binding="var-_uniq.6" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-10367">where</span>
-  <a href="Coercions/Coercing-Between-Types/#CoeTail___mk"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2022">coe</span></a> <span class="var token" data-binding="var-_uniq.24" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="">{</span> <a href="Coercions/Coercion-Insertion/#Later___get"><span class="const token" data-binding="const-Later.get" data-verso-hover="2023">get</span></a> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-10393">fun</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.24" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">}</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  However, if coercion insertion resulted in an application of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2024">CoeTail.coe</span></a></code>, then this coercion would not have the desired effect at runtime, because the coerced value would be evaluated and then saved in the function's closure.
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-10334">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2151">CoeTail</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Later___get" title="Definition of example Later"><span class="const token" data-binding="const-Later" data-verso-hover="2149">Later</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-10367">where</span><span class="inter-text">
+  </span><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2152">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="45">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get" title="Definition of example Later.get"><span class="const token" data-binding="const-Later.get" data-verso-hover="2153">get</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-10393">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="45">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  However, if coercion insertion resulted in an application of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail.coe"><span class="const token" data-binding="const-CoeTail.coe" data-verso-hover="2154">CoeTail.coe</span></a></code>, then this coercion would not have the desired effect at runtime, because the coerced value would be evaluated and then saved in the function's closure.
 Because coercion implementations are unfolded, this instance is nonetheless useful.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10739">def</span> <span class="const token" data-binding="const-tomorrow" data-verso-hover="2025" id="tomorrow">tomorrow</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercion-Insertion/#Later___get"><span class="const token" data-binding="const-Later" data-verso-hover="2019">Later</span></a> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a> <span class="unknown token" data-binding="">:=</span>
-  <span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="2026">Nat.fold</span></a> <span class="typed token" data-binding="" data-verso-hover="7">10000</span>
-    <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span> <span class="unknown token" data-binding="">:=</span> <span class="literal string token" data-binding="" data-verso-hover="327">""</span><span class="unknown token" data-binding="">)</span>
-    <span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-10810">fun</span> <span class="unknown token" data-binding="">_</span> <span class="unknown token" data-binding="">_</span> <span class="var token" data-binding="var-_uniq.30" data-verso-hover="312">s</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="var token" data-binding="var-_uniq.30" data-verso-hover="312">s</span> <span class="unknown token" data-binding="">++</span> <span class="literal string token" data-binding="" data-verso-hover="2027">"tomorrow"</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Strings/#String___mk"><span class="const token" data-binding="const-String" data-verso-hover="147">String</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10739">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-tomorrow" data-verso-hover="2155" id="tomorrow">tomorrow</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Later___get" title="Definition of example Later"><span class="const token" data-binding="const-Later" data-verso-hover="2149">Later</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Natural-Numbers/#Nat___fold" title="Documentation for Nat.fold"><span class="const token" data-binding="const-Nat.fold" data-verso-hover="170">Nat.fold</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">10000</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="199">""</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-10810">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30" data-verso-hover="144">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30" data-verso-hover="144">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2156">"tomorrow"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                   Printing the resulting definition shows that the computation is inside the function's body:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">def tomorrow : Later String :=
-{ get := fun x =&gt; Nat.fold 10000 (fun x x s =&gt; s ++ "tomorrow") "" }</code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-10973">#print</span></span> <a href="Coercions/Coercion-Insertion/#tomorrow"><span class="const token" data-binding="const-tomorrow" data-verso-hover="2025">tomorrow</span></a>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+{ get := fun x =&gt; Nat.fold 10000 (fun x x s =&gt; s ++ "tomorrow") "" }</code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-10973">#print</span></span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#tomorrow" title="Definition of example tomorrow"><span class="const token" data-binding="const-tomorrow" data-verso-hover="2155">tomorrow</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>def tomorrow : Later String :=
 { get := fun x =&gt; Nat.fold 10000 (fun x x s =&gt; s ++ "tomorrow") "" }
 </pre></div>
                 </div>
               </details><details class="example"><summary class="description">Duplicate Evaluation in Coercions</summary><div class="example-content">
                 <p>
-                  Because the contents of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a></code> instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
+                  Because the contents of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a></code> instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
 This can be done by using a helper function that is not part of the instance, or by using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.let : term</code><span class="sep"></span><code class="docstring">`let` is used to declare a local definition. Example:
 ```
 let x := 1
@@ -2230,45 +2250,45 @@ x + y
 ```
 </code></code><code class="kw">let</code></span> to evaluate the coerced term and then re-use its resulting value.</p>
                 <p>
-                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a></code> requires that both fields have the same value:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-11706">structure</span> <span class="const token" data-binding="const-Twice" data-verso-hover="2028" id="Twice">Twice</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-11728" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-null-11736">where</span>
-  <span class="const token" data-binding="const-Twice.first" data-verso-hover="2029" id="Twice">first</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span>
-  <span class="const token" data-binding="const-Twice.second" data-verso-hover="2030" id="Twice">second</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span>
-  <span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2031" id="Twice">first_eq_second</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.10" data-verso-hover="46">first</span> <span class="unknown token" data-binding="">=</span> <span class="var token" data-binding="var-_uniq.12" data-verso-hover="46">second</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  One way to define a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.703" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <span class="var token" data-binding="var-_uniq.705" data-verso-hover="55">α</span></code> is with a helper function <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice"><span class="const token" data-binding="const-twice" data-verso-hover="2032">twice</span></a></code>.
-The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2003">coe</span></code> attribute marks it as a coercion so it can be shown correctly in proof goals and error messages.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-12038" data-verso-hover="2000">coe</span></a><span class="unknown token" data-binding="">]</span>
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12043">def</span> <span class="const token" data-binding="const-twice" data-verso-hover="2032" id="twice">twice</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12073">where</span>
-  <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice.first" data-verso-hover="1098">first</span></a> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="46">x</span>
-  <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice.second" data-verso-hover="1098">second</span></a> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.4" data-verso-hover="46">x</span>
-  <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2033">first_eq_second</span></a> <span class="unknown token" data-binding="">:=</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a>
+                  The structure <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a></code> requires that both fields have the same value:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-11706">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Twice" data-verso-hover="2157" id="Twice">Twice</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-11736">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.first" data-verso-hover="2158" id="Twice">first</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.second" data-verso-hover="2159" id="Twice">second</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="55">α</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2160" id="Twice">first_eq_second</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="45">first</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="45">second</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  One way to define a coercion from <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.6618" data-verso-hover="55">α</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6620" data-verso-hover="55">α</span></code> is with a helper function <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice" title="Definition of example twice"><span class="const token" data-binding="const-twice" data-verso-hover="2161">twice</span></a></code>.
+The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2133">coe</span></code> attribute marks it as a coercion so it can be shown correctly in proof goals and error messages.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-12038" data-verso-hover="2130">coe</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-12043">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-twice" data-verso-hover="2161" id="twice">twice</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="45">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12073">where</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice.first"><span class="const token" data-binding="const-Twice.first" data-verso-hover="1227">first</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="45">x</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice.second"><span class="const token" data-binding="const-Twice.second" data-verso-hover="1227">second</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="45">x</span><span class="inter-text">
+  </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice.first_eq_second"><span class="const token" data-binding="const-Twice.first_eq_second" data-verso-hover="2162">first_eq_second</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="283">rfl</span></a><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12132">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-Coe.mk" data-verso-hover="2016">⟨</span><a href="Coercions/Coercion-Insertion/#twice"><span class="const token" data-binding="const-twice" data-verso-hover="2032">twice</span></a><span class="unknown token" data-binding="const-Coe.mk" data-verso-hover="2016">⟩</span>
-<span class="unknown token" data-binding=""></span></code><p>
-                  When the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a></code> instance is unfolded, the call to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice"><span class="const token" data-binding="const-twice" data-verso-hover="2032">twice</span></a></code> remains, which causes its argument to be evaluated before the body of the function is executed.
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12132">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-Coe.mk" data-verso-hover="2146">⟨</span><a href="Coercions/Coercion-Insertion/#twice" title="Definition of example twice"><span class="const token" data-binding="const-twice" data-verso-hover="2161">twice</span></a><span class="unknown token" data-binding="const-Coe.mk" data-verso-hover="2146">⟩</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                  When the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a></code> instance is unfolded, the call to <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercion-Insertion/#twice" title="Definition of example twice"><span class="const token" data-binding="const-twice" data-verso-hover="2161">twice</span></a></code> remains, which causes its argument to be evaluated before the body of the function is executed.
 As a result, the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span> executes just once:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ first := 5, second := 5, first_eq_second := _ }</code><code class="message info">hello
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-12455" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-12463" data-verso-hover="2034">dbg_trace</span> <span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-12455" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-12463" data-verso-hover="2163">dbg_trace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>hello
 </pre></div>
                 <div class="information">
                   <pre>{ first := 5, second := 5, first_eq_second := _ }
 </pre></div>
                 <p>
-                  Inlining the helper into the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a></code> instance results in a term that duplicates the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
+                  Inlining the helper into the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a></code> instance results in a term that duplicates the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.dbgTrace : term</code><span class="sep"></span><code class="docstring">`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an
 interpolated string literal) to stderr. It should only be used for debugging.
 </code></code><code class="kw">dbg_trace</code></span>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12775">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12804">where</span>
-  <a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2035">coe</span></a> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:=</span> <span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">⟨</span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="46">x</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">,</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="46">x</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">,</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">⟩</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-12775">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-12804">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2164">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="45">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">⟨</span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="45">x</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="45">x</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="283">rfl</span></a><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">⟩</span><span class="inter-text">
 
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ first := 5, second := 5, first_eq_second := _ }</code><code class="message info">hello
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ first := 5, second := 5, first_eq_second := _ }</code><code class="message info">hello
 hello
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-12838" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-12846" data-verso-hover="2034">dbg_trace</span> <span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-12838" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-12846" data-verso-hover="2163">dbg_trace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>hello
 hello
 </pre></div>
@@ -2277,12 +2297,12 @@ hello
 </pre></div>
                 <p>
                   Introducing an intermediate name for the result of the evaluation prevents the duplicated work:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13122">instance</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe" data-verso-hover="1548">Coe</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13151">where</span>
-  <a href="Coercions/#Coe___mk"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2035">coe</span></a> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="46">x</span> <span class="unknown token" data-binding="">:=</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-13168" data-verso-hover="108">let</span> <span class="var token" data-binding="var-_uniq.22" data-verso-hover="46">y</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.19" data-verso-hover="46">x</span><span class="unknown token" data-binding="">;</span> <span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">⟨</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="46">y</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">,</span> <span class="var token" data-binding="var-_uniq.22" data-verso-hover="46">y</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">,</span> <a href="Basic-Propositions/Propositional-Equality/#rfl-next"><span class="const token" data-binding="const-rfl" data-verso-hover="156">rfl</span></a><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2036">⟩</span>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-13122">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1674">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-13151">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2164">coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="45">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.let-13168" data-verso-hover="109">let</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="45">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="45">x</span><span class="unknown token" data-binding="">;</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">⟨</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="45">y</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="45">y</span><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">,</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="283">rfl</span></a><span class="unknown token" data-binding="const-Twice.mk" data-verso-hover="2165">⟩</span><span class="inter-text">
 
-<span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ first := 5, second := 5, first_eq_second := _ }</code><code class="message info">hello
-</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-13197" data-verso-hover="6">#eval</span></a></span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-13205" data-verso-hover="2034">dbg_trace</span> <span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span> <span class="typed token" data-binding="" data-verso-hover="7">5</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Coercions/Coercion-Insertion/#Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2028">Twice</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___zero"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span>
-<span class="unknown token" data-binding=""></span></code><div class="information">
+</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">{ first := 5, second := 5, first_eq_second := _ }</code><code class="message info">hello
+</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-13197" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.dbgTrace-13205" data-verso-hover="2163">dbg_trace</span><span class="inter-text"> </span><span class="unknown token" data-binding="">"hello"</span><span class="unknown token" data-binding="">;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/Coercion-Insertion/#Twice" title="Definition of example Twice"><span class="const token" data-binding="const-Twice" data-verso-hover="2157">Twice</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="information">
                   <pre>hello
 </pre></div>
                 <div class="information">

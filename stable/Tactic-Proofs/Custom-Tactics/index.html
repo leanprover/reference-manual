@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2129,7 +2149,7 @@ window.onload = () => {
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-tactics" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-tactics" checked="checked"></label><span class="number">13.</span> <span class=""><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></span></div>
-              <table><tr class="numbered"><td class="num">13.1.</td><td><a href="Tactic-Proofs/Running-Tactics/#by">Running Tactics</a></td></tr><tr class="numbered"><td class="num">13.2.</td><td><a href="Tactic-Proofs/Reading-Proof-States/#proof-states">Reading Proof States</a></td></tr><tr class="numbered"><td class="num">13.3.</td><td><a href="Tactic-Proofs/The-Tactic-Language/#tactic-language">The Tactic Language</a></td></tr><tr class="numbered"><td class="num">13.4.</td><td><a href="Tactic-Proofs/Options/#tactic-language-options">Options</a></td></tr><tr class="numbered"><td class="num">13.5.</td><td><a href="Tactic-Proofs/Tactic-Reference/#tactic-ref">Tactic Reference</a></td></tr><tr class="numbered"><td class="num">13.6.</td><td><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv">Targeted Rewriting with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv-next"><span class="keyword token" data-binding="" data-verso-hover="0">conv</span></a></code></a></td></tr><tr class="numbered"><td class="num">13.7.</td><td><a href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints">Naming Bound Variables</a></td></tr><tr class="current numbered"><td class="num">13.8.</td><td><a href="Tactic-Proofs/Custom-Tactics/#custom-tactics">Custom Tactics</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">13.1.</td><td><a href="Tactic-Proofs/Running-Tactics/#by">Running Tactics</a></td></tr><tr class="numbered"><td class="num">13.2.</td><td><a href="Tactic-Proofs/Reading-Proof-States/#proof-states">Reading Proof States</a></td></tr><tr class="numbered"><td class="num">13.3.</td><td><a href="Tactic-Proofs/The-Tactic-Language/#tactic-language">The Tactic Language</a></td></tr><tr class="numbered"><td class="num">13.4.</td><td><a href="Tactic-Proofs/Options/#tactic-language-options">Options</a></td></tr><tr class="numbered"><td class="num">13.5.</td><td><a href="Tactic-Proofs/Tactic-Reference/#tactic-ref">Tactic Reference</a></td></tr><tr class="numbered"><td class="num">13.6.</td><td><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv">Targeted Rewriting with <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Targeted-Rewriting-with--conv/#conv-next" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="0">conv</span></a></code></a></td></tr><tr class="numbered"><td class="num">13.7.</td><td><a href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints">Naming Bound Variables</a></td></tr><tr class="current numbered"><td class="num">13.8.</td><td><a href="Tactic-Proofs/Custom-Tactics/#custom-tactics">Custom Tactics</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-custom-tactics" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-custom-tactics" checked="checked"></label><span class="number">13.8.</span> <span class="current"><a href="Tactic-Proofs/Custom-Tactics/#custom-tactics">Custom Tactics</a></span></div>
@@ -2150,10 +2170,10 @@ window.onload = () => {
             <a class="local-button active" href="Tactic-Proofs/Naming-Bound-Variables/#bound-variable-name-hints" rel="prev" title="13.7. Naming Bound Variables"><span class="arrow">←</span><span class="where">13.7. Naming Bound Variables</span></a><a class="local-button active" href="Functors___-Monads-and--do--Notation/#monads-and-do" rel="next" title="14. Functors, Monads and do-Notation"><span class="where">14. Functors, Monads and do-Notation</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              13.8. Custom Tactics<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=custom-tactics" title="Permalink">🔗</a></span></h1>
+              13.8. Custom Tactics<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=custom-tactics" title="Permalink">🔗</a></span></h1>
             <p>
               Tactics are productions in the syntax category <code>tactic</code>. 
-Given the syntax of a tactic, the tactic interpreter is responsible for carrying out actions in the tactic monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="2574">TacticM</span></code>, which is a wrapper around Lean's term elaborator that keeps track of the additional state needed to execute tactics.
+Given the syntax of a tactic, the tactic interpreter is responsible for carrying out actions in the tactic monad <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="2698">TacticM</span></code>, which is a wrapper around Lean's term elaborator that keeps track of the additional state needed to execute tactics.
 A custom tactic consists of an extension to the <code>tactic</code> category along with either:</p>
             <ul>
               <li>
@@ -2162,12 +2182,12 @@ A custom tactic consists of an extension to the <code>tactic</code> category alo
                 </li>
               <li>
                 <p>
-                  an elaborator that carries out <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="2574">TacticM</span></code> actions to implement the tactic.</p>
+                  an elaborator that carries out <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Lean.Elab.Tactic.TacticM" data-verso-hover="2698">TacticM</span></code> actions to implement the tactic.</p>
                 </li>
               </ul>
             <section>
               <h2 id="tactic-macros">
-                13.8.1. Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=tactic-macros" title="Permalink">🔗</a></span></h2>
+                13.8.1. Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=tactic-macros" title="Permalink">🔗</a></span></h2>
               <p>
                 The easiest way to define a new tactic is as a <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-Macros">macro</a> that expands into already-existing tactics.
 Macro expansion is interleaved with tactic execution.
@@ -2175,20 +2195,20 @@ The tactic interpreter first expands tactic macros just before they are to be in
 Because tactic macros are not fully expanded prior to running a tactic script, they can use recursion; as long as the recursive occurrence of the macro syntax is beneath a tactic that can be executed, there will not be an infinite chain of expansion.</p>
               <details class="example"><summary class="description">Recursive tactic macro</summary><div class="example-content">
                   <p>
-                    This recursive implementation of a tactic akin to <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#repeat"><span class="keyword token" data-binding="" data-verso-hover="2292">repeat</span></a></code> is defined via macro expansion.
+                    This recursive implementation of a tactic akin to <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#repeat" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2420">repeat</span></a></code> is defined via macro expansion.
 When the argument <code>$t</code> fails, the recursive occurrence of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="">rep</span></code> is never invoked, and is thus never macro expanded.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-2008">syntax</span></a> <span class="literal string token" data-binding="" data-verso-hover="2575">"rep"</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2576">tactic</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2576">tactic</span>
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-2037">macro_rules</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="keyword token" data-binding="kw-occ-tacticRep_-2062">rep</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2577">t</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span>
-  <span class="unknown token" data-binding="">`(tactic|</span>
-    <a href="Tactic-Proofs/The-Tactic-Language/#first"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.first-2089" data-verso-hover="2267">first</span></a>
-      <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2577">t</span><span class="unknown token" data-binding="">;</span> <span class="keyword token" data-binding="kw-occ-tacticRep_-2107">rep</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2577">t</span>
-      <span class="unknown token" data-binding="">|</span> <a href="Tactic-Proofs/Tactic-Reference/#skip"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.skip-2122" data-verso-hover="1007">skip</span></a><span class="unknown token" data-binding="">)</span>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-2008">syntax</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2699">"rep"</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2700">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2700">tactic</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-2037">macro_rules</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(tactic|</span><span class="keyword token" data-binding="kw-occ-tacticRep_-2062">rep</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2701">t</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">`(tactic|</span><span class="inter-text">
+    </span><a href="Tactic-Proofs/The-Tactic-Language/#first" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.first-2089" data-verso-hover="2395">first</span></a><span class="inter-text">
+      </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2701">t</span><span class="unknown token" data-binding="">;</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-tacticRep_-2107">rep</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.66" data-verso-hover="2701">t</span><span class="inter-text">
+      </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#skip" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.skip-2122" data-verso-hover="1138">skip</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2129">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">0</span> <span class="unknown token" data-binding="">≤</span> <span class="typed token" data-binding="" data-verso-hover="7">4</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-2869965795596119961-2150-2152"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2150" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2869965795596119961-2150-2152"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">0<a href="Type-Classes/Basic-Classes/#LE___mk"><span class="const token" data-binding="const-LE.le" data-verso-hover="376"> ≤ </span></a>4</span></span></span></span></span>
-  <span class="keyword token" data-binding="kw-occ-tacticRep_-2155">rep</span> <span class="unknown token" data-binding="">(</span><span class="tactic"><label for="tactic-state-12557583533483920571-2160-2177"><a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2160" data-verso-hover="692">apply</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le.step" data-verso-hover="2578">Nat.le.step</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12557583533483920571-2160-2177"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-383" checked="checked"><span for="--verso-unique-383" class="goal-name">a.a.a.a</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le" data-verso-hover="2579">Nat.le</span></a> 0 0</span></span></span></span></span></span><span class="unknown token" data-binding="">)</span>
-  <span class="tactic"><label for="tactic-state-7-2181-2198"><a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2181" data-verso-hover="692">apply</span></a> <a href="Basic-Types/Natural-Numbers/#Nat___le___refl"><span class="const token" data-binding="const-Nat.le.refl" data-verso-hover="2580">Nat.le.refl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2181-2198"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></div>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2129">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≤</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-10089572728732151943-2150-2152-804"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2150" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10089572728732151943-2150-2152-804"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">0</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#LE___mk" title="Documentation for LE.le"><span class="const token" data-binding="const-LE.le" data-verso-hover="504">≤</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-tacticRep_-2155">rep</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="tactic"><label for="tactic-state-15920807623544668357-2160-2177-806"><a href="Tactic-Proofs/Tactic-Reference/#apply" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2160" data-verso-hover="824">apply</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___le___refl" title="Documentation for Nat.le.step"><span class="const token" data-binding="const-Nat.le.step" data-verso-hover="2702">Nat.le.step</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-15920807623544668357-2160-2177-806"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-807" checked="checked"><span for="--verso-unique-807" class="goal-name">a.a.a.a</span></label><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___le___refl" title="Documentation for Nat.le"><span class="const token" data-binding="const-Nat.le" data-verso-hover="2703">Nat.le</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></span></span></span></span></span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-2181-2198-808"><a href="Tactic-Proofs/Tactic-Reference/#apply" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-2181" data-verso-hover="824">apply</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___le___refl" title="Documentation for Nat.le.refl"><span class="const token" data-binding="const-Nat.le.refl" data-verso-hover="2704">Nat.le.refl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2181-2198-808"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code></div>
                 </details><p>
                 Like other Lean macros, tactic macros are <a class="technical-term" href="Notations-and-Macros/Macros/#--tech-term-hygienic">hygienic</a>.
 References to global names are resolved when the macro is defined, and names introduced by the tactic macro cannot capture names from its invocation site.</p>
@@ -2197,47 +2217,47 @@ References to global names are resolved when the macro is defined, and names int
 Otherwise, the syntax will be interpreted as that of a term, which will match against or construct an incorrect AST for tactics.</p>
               <section>
                 <h3 id="tactic-macro-extension">
-                  13.8.1.1. Extensible Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=tactic-macro-extension" title="Permalink">🔗</a></span></h3>
+                  13.8.1.1. Extensible Tactic Macros<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=tactic-macro-extension" title="Permalink">🔗</a></span></h3>
                 <p>
                   Because macro expansion can fail,  multiple macros can match the same syntax, allowing backtracking.
 Tactic macros take this further: even if a tactic macro expands successfully, if the expansion fails when interpreted, the tactic interpreter will attempt the next expansion.
 This is used to make a number of Lean's built-in tactics extensible—new behavior can be added to a tactic by adding a <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declaration.</p>
-                <details class="example"><summary class="description">Extending <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="258">trivial</span></a></code></summary><div class="example-content">
+                <details class="example"><summary class="description">Extending <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="387">trivial</span></a></code></summary><div class="example-content">
                     <p>
-                      The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="258">trivial</span></a></code>, which is used by many other tactics to quickly dispatch subgoals that are not worth bothering the user with, is designed to be extended through new macro expansions.
-Lean's default <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-trivial" data-verso-hover="2319">trivial</span></code> can't solve <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span></code> goals:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3597">def</span> <span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581" id="IsEmpty">IsEmpty</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List" data-verso-hover="43">List</span></a> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="sort token" data-binding="" data-verso-hover="23">Prop</span> <span class="unknown token" data-binding="">:=</span>
-  <span class="unknown token" data-binding="">¬</span> <span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span> <span class="unknown token" data-binding="">≠</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span>
+                      The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="387">trivial</span></a></code>, which is used by many other tactics to quickly dispatch subgoals that are not worth bothering the user with, is designed to be extended through new macro expansions.
+Lean's default <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-trivial" data-verso-hover="2447">trivial</span></code> can't solve <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span></code> goals:</p>
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3597">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705" id="IsEmpty">IsEmpty</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="42">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">¬</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="51">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3650">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-3664" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-4562394008649919575-3699-3701"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3699" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-4562394008649919575-3699-3701"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">]</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-4562394008649919575-3702-3709"><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">tactic 'assumption' failed
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3650">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2022149001950386694-3699-3701-809"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3699" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2022149001950386694-3699-3701-809"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type u</span><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">]</span></a></span></span></span></span></span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">tactic 'assumption' failed
 α : Type u
-⊢ IsEmpty []</code></span></span><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3702" data-verso-hover="258">trivial</span></a></span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-4562394008649919575-3702-3709"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">]</span></a></span></span></span></span></span>
-<span class="unknown token" data-binding=""></span></code><p>
-                      The error message is an artifact of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="258">trivial</span></a></code> trying <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#assumption"><span class="keyword token" data-binding="" data-verso-hover="1029">assumption</span></a></code> last.
-Adding another expansion allows <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="" data-verso-hover="258">trivial</span></a></code> to take care of these goals:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3890">def</span> <span class="const token" data-binding="const-emptyIsEmpty" data-verso-hover="2582" id="emptyIsEmpty">emptyIsEmpty</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.5" data-verso-hover="44">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-7125603140277119478-3934-3936"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3934" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7125603140277119478-3934-3936"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.13" data-verso-hover="44">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u_1</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">]</span></a></span></span></span></span></span> <span class="tactic"><label for="tactic-state-7-3937-3951"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-3937" data-verso-hover="36">simp</span></a> <span class="unknown token" data-binding="">[</span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3937-3951"><span class="tactic-state">All goals completed! 🐙</span></span>
+⊢ IsEmpty []</code></span></span><span class="tactic"><label for="tactic-state-2022149001950386694-3702-3709-811"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3702" data-verso-hover="387">trivial</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2022149001950386694-3702-3709-811"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.21" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type u</span><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">]</span></a></span></span></span></span></span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
+                      The error message is an artifact of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="387">trivial</span></a></code> trying <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#assumption" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="1160">assumption</span></a></code> last.
+Adding another expansion allows <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="387">trivial</span></a></code> to take care of these goals:</p>
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3890">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-emptyIsEmpty" data-verso-hover="2706" id="emptyIsEmpty">emptyIsEmpty</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="43">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7759884091593055688-3934-3936-813"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3934" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7759884091593055688-3934-3936-813"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.13" data-verso-hover="43">α</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type u_1</span><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">]</span></a></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-3937-3951-815"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-3937" data-verso-hover="35">simp</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3937-3951-815"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-3953">macro_rules</span></a> <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3976" data-verso-hover="258">trivial</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#exact"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.exact-3997" data-verso-hover="765">exact</span></a> <span class="unknown token" data-binding="">emptyIsEmpty</span><span class="unknown token" data-binding="">)</span>
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-3953">macro_rules</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-3976" data-verso-hover="387">trivial</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(tactic|</span><a href="Tactic-Proofs/Tactic-Reference/#exact" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.exact-3997" data-verso-hover="897">exact</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">emptyIsEmpty</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4018">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span> <span class="unknown token" data-binding="">:</span> <span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.type-4032" data-verso-hover="50">Type</span> <span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span> <span class="unknown token" data-binding="">:=</span> <span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-12303369234326817065-4067-4069"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4067" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12303369234326817065-4067-4069"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="sort token" data-binding="" data-verso-hover="50">Type u</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2581">IsEmpty</span></a> <a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="404">]</span></a></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-4072-4079"><a href="Tactic-Proofs/Tactic-Reference/#trivial"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-4072" data-verso-hover="258">trivial</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4072-4079"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></div>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4018">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="56">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-10400097345576286614-4067-4069-816"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4067" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10400097345576286614-4067-4069-816"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.1007" data-verso-hover="55">α</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="49">Type u</span><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Tactic-Proofs/Custom-Tactics/#IsEmpty" title="Definition of example IsEmpty"><span class="const token" data-binding="const-IsEmpty" data-verso-hover="2705">IsEmpty</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="531">]</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-4072-4079-818"><a href="Tactic-Proofs/Tactic-Reference/#trivial" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticTrivial-4072" data-verso-hover="387">trivial</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4072-4079-818"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code></div>
                   </details><details class="example"><summary class="description">Expansion Backtracking</summary><div class="example-content">
                     <p>
                       Macro expansion can induce backtracking when the failure arises from any part of the expanded syntax.
-An infix version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#first"><span class="keyword token" data-binding="" data-verso-hover="2267">first</span></a></code> can be defined by providing multiple expansions in separate <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations:</p>
-                    <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4419">syntax</span></a> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2576">tactic</span> <span class="literal string token" data-binding="" data-verso-hover="2583">"&lt;|||&gt;"</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2576">tactic</span> <span class="unknown token" data-binding="">:</span> <span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2576">tactic</span>
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4457">macro_rules</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.85" data-verso-hover="2577">t1</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.78" data-verso-hover="2577">t2</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/#Pure___mk"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1015">pure</span></a> <span class="var token" data-binding="var-_uniq.85" data-verso-hover="2577">t1</span>
-<a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4508">macro_rules</span></a>
-  <span class="unknown token" data-binding="">|</span> <span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.443" data-verso-hover="2577">t1</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.436" data-verso-hover="2577">t2</span><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">=&gt;</span> <a href="Functors___-Monads-and--do--Notation/#Pure___mk"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1015">pure</span></a> <span class="var token" data-binding="var-_uniq.436" data-verso-hover="2577">t2</span>
+An infix version of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/The-Tactic-Language/#first" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2395">first</span></a></code> can be defined by providing multiple expansions in separate <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations:</p>
+                    <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Parser___Command___syntax" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.syntax-4419">syntax</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2700">tactic</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2707">"&lt;|||&gt;"</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2700">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-Lean.Parser.Category.tactic" data-verso-hover="2700">tactic</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4457">macro_rules</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.85" data-verso-hover="2701">t1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|||&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.78" data-verso-hover="2701">t2</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1146">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.85" data-verso-hover="2701">t1</span><span class="inter-text">
+</span><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.macro_rules-4508">macro_rules</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">`(tactic|</span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.443" data-verso-hover="2701">t1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|||&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">$</span><span class="var token" data-binding="var-_uniq.436" data-verso-hover="2701">t2</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="1146">pure</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.436" data-verso-hover="2701">t2</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4560">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1112723314391947637-4579-4581"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4579" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1112723314391947637-4579-4581"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-4584-4587"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4584" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4584-4587"><span class="tactic-state">All goals completed! 🐙</span></span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4594" data-verso-hover="692">apply</span></a> <span class="unknown token" data-binding="">And.intro</span>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4560">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-9628023700056066464-4579-4581-819"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4579" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9628023700056066464-4579-4581-819"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-4584-4587-821"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4584" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4584-4587-821"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|||&gt;</span><span class="inter-text"> </span><a href="Tactic-Proofs/Tactic-Reference/#apply" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4594" data-verso-hover="824">apply</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">And.intro</span><span class="inter-text">
 
-<span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4611">example</span> <span class="unknown token" data-binding="">:</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-1112723314391947637-4630-4632"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4630" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1112723314391947637-4630-4632"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type">2<a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span>
-  <a href="Tactic-Proofs/Tactic-Reference/#apply"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4635" data-verso-hover="692">apply</span></a> <span class="unknown token" data-binding="">And.intro</span> <span class="unknown token" data-binding="">&lt;|||&gt;</span> <span class="tactic"><label for="tactic-state-7-4657-4660"><a href="Tactic-Proofs/Tactic-Reference/#rfl"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4657" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4657-4660"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code><p>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4611">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-9628023700056066464-4630-4632-822"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4630" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9628023700056066464-4630-4632-822"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span></span></span><span class="inter-text">
+  </span><a href="Tactic-Proofs/Tactic-Reference/#apply" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.apply-4635" data-verso-hover="824">apply</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">And.intro</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|||&gt;</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-4657-4660-824"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-4657" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4657-4660-824"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                       Multiple <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations are needed because each defines a pattern-matching function that will always take the first matching alternative.
 Backtracking is at the granularity of <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.macro_rules : command</code></code><a href="Notations-and-Macros/Macros/#Lean___Parser___Command___macro_rules"><code class="kw">macro_rules</code></a></span> declarations, not their individual cases.</p>
                     </div>

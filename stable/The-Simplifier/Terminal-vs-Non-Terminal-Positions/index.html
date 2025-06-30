@@ -14,13 +14,12 @@
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/katex/katex.min.js"></script>
-    <script src="static/math.js"></script>
     <script src="static/search/fuzzysort.js"></script>
     <script src="static/print.js"></script>
-    <script src="-verso-js/popper.js"></script>
-    <script src="-verso-js/tippy.js"></script>
-    <link rel="stylesheet" href="static/katex/katex.min.css">
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
@@ -29,7 +28,8 @@
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
-    <link rel="stylesheet" href="-verso-css/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
   color: inherit;
@@ -1053,6 +1053,90 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
 
 .hl.lean {
   white-space: pre;
@@ -1130,22 +1214,6 @@ dl.toml-table-field-spec {
   margin-top: 0rem;
 }
 
-/*
-@media (hover: hover) {
-  .hl.lean .has-info:hover > .hover-container > .hover-info:not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .has-info:hover > .hover-container > .hover-info,
-  .hl.lean .token:hover > .hover-container > .hover-info:not(.has-info *):not(.tactic *),
-  .hl.lean .tactic:has(> .tactic-toggle:checked) .token:hover > .hover-container > .hover-info:not(.has-info *) {
-    display: inline-block;
-    position: absolute;
-    top: 1rem;
-    font-weight: normal;
-    font-style: normal;
-    width: min-content;
-  }
-}
-*/
-
 .hl.lean.block {
   display: block;
 }
@@ -1168,10 +1236,11 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info {
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
   text-decoration-style: wavy;
   text-decoration-line: underline;
   text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
 }
 
 .hl.lean .has-info .hover-info {
@@ -1184,7 +1253,7 @@ dl.toml-table-field-spec {
   text-align: left;
 }
 
-.hl.lean .has-info.error {
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
   text-decoration-color: red;
 }
 
@@ -1208,7 +1277,7 @@ dl.toml-table-field-spec {
     color: red;
 }
 
-.hl.lean .has-info.warning {
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: var(--verso-warning-color);
 }
 
@@ -1233,7 +1302,7 @@ dl.toml-table-field-spec {
 }
 
 
-.hl.lean .has-info.info {
+.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
   text-decoration-color: blue;
 }
 
@@ -1288,14 +1357,12 @@ dl.toml-table-field-spec {
 .hl.lean .tactic-state {
   display: none;
   position: relative;
-  left: 2rem;
   width: fit-content;
   border: 1px solid #888888;
   border-radius: 0.1rem;
   padding: 0.5rem;
   font-family: sans-serif;
   background-color: #ffffff;
-  z-index: 200;
 }
 
 .hl.lean.popup .tactic-state {
@@ -1311,32 +1378,26 @@ dl.toml-table-field-spec {
 
 .hl.lean .tactic {
   position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  vertical-align: top;
 }
 
 .hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
 }
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic:hover > .tactic-toggle:not(:checked) ~ .tactic-state {
-    display: block;
-    position: absolute;
-    left: 0;
-    transform: translate(0.25rem, 0);
-    z-index: 250;
-  }
-}
-*/
 
 .hl.lean .tactic > label {
   position: relative;
-  transition: all 0.5s;
+  grid-row: 1;
 }
 
 @media (hover: hover) {
-  .hl.lean .tactic > label:hover {
-    border-bottom: 1px dotted #bbbbbb;
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
   }
 }
 
@@ -1555,8 +1616,6 @@ dl.toml-table-field-spec {
   border: 3px solid #99b3c2;
 }
 
-
-
 .tippy-box[data-theme~='tactic'] {
   background-color: white;
   color: black;
@@ -1575,89 +1634,20 @@ dl.toml-table-field-spec {
   border-right-color: white;
 }
 
-</style><style>
-table.tabular {
-  margin: auto;
-  border-spacing: 1rem;
-}
-table.tabular.left-align {
-  margin-right: auto;
+.extra-doc-links {
+  list-style-type: none;
   margin-left: 0;
-}
-table.tabular.center-align {
-  margin: auto;
-}
-table.tabular.right-align {
-  margin-left auto;
-  margin-right: 0;
-}
-table.tabular td, table.tabular th {
-  text-align: left;
-  vertical-align: top;
-}
-table.tabular td > p:first-child, table.tabular th > p:first-child {
-  margin-top: 0;
-}
-table.tabular td > p:last-child, table.tabular th > p:first-child {
-  margin-bottom: 0;
-}
-</style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
-  font-family: var(--verso-code-font-family);
+  padding: 0;
 }
 
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.extra-doc-links > li {
+  display: inline-block;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
-}
-
-.toml .table-header .key {
-    color: #3030c0;
-}
-
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -2008,19 +1998,42 @@ window.onload = () => {
     let docsJson = siteRoot + "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
       const defaultTippyProps = {
         /* DEBUG -- remove the space: * /
         onHide(any) { return false; },
         trigger: "click",
         // */
-        theme: "lean",
+        /* theme: "lean", */
         maxWidth: "none",
         appendTo: () => document.body,
         interactive: true,
         delay: [100, null],
-        ignoreAttributes: true,
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
         onShow(inst) {
-          if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
             if (blockedByTactic(inst.reference)) { return false };
             if (blockedByTippy(inst.reference)) { return false; }
           } else { // Nothing to show here!
@@ -2029,77 +2042,84 @@ window.onload = () => {
         },
         content (tgt) {
           const content = document.createElement("span");
-          content.className = "hl lean";
-          content.style.display = "block";
-          content.style.maxHeight = "300px";
-          content.style.overflowY = "auto";
-          content.style.overflowX = "hidden";
-          const hoverId = tgt.dataset.versoHover;
-          const hoverInfo = tgt.querySelector(".hover-info");
-          if (hoverId) { // Docstrings from the table
-            // TODO stop doing an implicit conversion from string to number here
-            let data = versoDocData[hoverId];
-            if (data) {
-              const info = document.createElement("span");
-              info.className = "hover-info";
-              info.style.display = "block";
-              info.innerHTML = data;
-              content.appendChild(info);
-              /* Render docstrings - TODO server-side */
-              if ('undefined' !== typeof marked) {
-                  for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-                      const str = d.innerText;
-                      const html = marked.parse(str);
-                      const rendered = document.createElement("div");
-                      rendered.classList.add("docstring");
-                      rendered.innerHTML = html;
-                      d.parentNode.replaceChild(rendered, d);
-                  }
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
               }
-            } else {
-              content.innerHTML = "Failed to load doc ID: " + hoverId;
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
             }
-          } else if (hoverInfo) { // The inline info, still used for compiler messages
-            content.appendChild(hoverInfo.cloneNode(true));
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
           }
           return content;
         }
       };
 
-      const addTippy = (selector, props) => {
-        tippy(selector, Object.assign({}, defaultTippyProps, props));
-      };
-      addTippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token', {theme: 'lean'});
-      addTippy('.hl.lean .has-info.warning', {theme: 'warning message'});
-      addTippy('.hl.lean .has-info.info', {theme: 'info message'});
-      addTippy('.hl.lean .has-info.error', {theme: 'error message'});
 
-      tippy('.hl.lean .tactic', {
-        allowHtml: true,
-        /* DEBUG -- remove the space: * /
-        onHide(any) { return false; },
-        trigger: "click",
-        // */
-        maxWidth: "none",
-        onShow(inst) {
-          const toggle = inst.reference.querySelector("input.tactic-toggle");
-          if (toggle && toggle.checked) {
-            return false;
-          }
-          if (blockedByTippy(inst.reference)) { return false; }
-        },
-        theme: "tactic",
-        placement: 'bottom-start',
-        content (tgt) {
-          const content = document.createElement("span");
-          const state = tgt.querySelector(".tactic-state").cloneNode(true);
-          state.style.display = "block";
-          content.appendChild(state);
-          content.style.display = "block";
-          content.className = "hl lean popup";
-          return content;
-        }
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
       });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
   });
 }
 </script>
@@ -2150,9 +2170,9 @@ window.onload = () => {
             <a class="local-button active" href="The-Simplifier/Simp-Normal-Forms/#simp-normal-forms" rel="prev" title="16.4. Simp Normal Forms"><span class="arrow">←</span><span class="where">16.4. Simp Normal Forms</span></a><a class="local-button active" href="The-Simplifier/Configuring-Simplification/#simp-config" rel="next" title="16.6. Configuring Simplification"><span class="where">16.6. Configuring Simplification</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              16.5. Terminal vs Non-Terminal Positions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&name=terminal-simp" title="Permalink">🔗</a></span></h1>
+              16.5. Terminal vs Non-Terminal Positions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=terminal-simp" title="Permalink">🔗</a></span></h1>
             <p>
-              To write maintainable proofs, avoid using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> without <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
+              To write maintainable proofs, avoid using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> without <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
 - `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged
@@ -2171,8 +2191,8 @@ non-dependent hypotheses. It has many variants:
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
   other hypotheses.
 </code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span> unless it closes the goal.
-Such uses of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> that do not close a goal are referred to as <span id="--tech-term-non-terminal-simps" class="def-technical-term"><em>non-terminal simps</em></span>.
-This is because additions to the default simp set may make <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> more powerful or just cause it to select a different sequence of rewrites and arrive at a different simp normal form.
+Such uses of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> that do not close a goal are referred to as <span id="--tech-term-non-terminal-simps" class="def-technical-term"><em>non-terminal simps</em></span>.
+This is because additions to the default simp set may make <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> more powerful or just cause it to select a different sequence of rewrites and arrive at a different simp normal form.
 When <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
@@ -2192,9 +2212,9 @@ non-dependent hypotheses. It has many variants:
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
   other hypotheses.
 </code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span> is specified, additional lemmas will not affect that invocation of the tactic.
-In practice, terminal uses of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> are not nearly as likely to be broken by the addition of new simp lemmas, and when they are, it's easier to understand the issue and fix it.</p>
+In practice, terminal uses of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> are not nearly as likely to be broken by the addition of new simp lemmas, and when they are, it's easier to understand the issue and fix it.</p>
             <p>
-              When working in non-terminal positions, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next"><span class="keyword token" data-binding="" data-verso-hover="2407">simp?</span></a></code> (or one of the other simplification tactics with <code>?</code> in their names) can be used to generate an appropriate invocation with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
+              When working in non-terminal positions, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2534">simp?</span></a></code> (or one of the other simplification tactics with <code>?</code> in their names) can be used to generate an appropriate invocation with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
 - `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged
@@ -2213,10 +2233,10 @@ non-dependent hypotheses. It has many variants:
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
   other hypotheses.
 </code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span>.
-Just as <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#apply___"><span class="keyword token" data-binding="" data-verso-hover="2478">apply?</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rw___"><span class="keyword token" data-binding="" data-verso-hover="2479">rw?</span></a></code> suggest the use of relevant lemmas, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next"><span class="keyword token" data-binding="" data-verso-hover="2407">simp?</span></a></code> suggests an invocation of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> with a minimal simp set that was used to reach the normal form.</p>
-            <details class="example"><summary class="description">Using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next"><span class="keyword token" data-binding="" data-verso-hover="2407">simp?</span></a></code></summary><div class="example-content">
+Just as <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#apply___" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2604">apply?</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rw___" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2605">rw?</span></a></code> suggest the use of relevant lemmas, <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2534">simp?</span></a></code> suggests an invocation of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> with a minimal simp set that was used to reach the normal form.</p>
+            <details class="example"><summary class="description">Using <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2534">simp?</span></a></code></summary><div class="example-content">
                 <p>
-                  The non-terminal <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next"><span class="keyword token" data-binding="" data-verso-hover="2407">simp?</span></a></code> in this proof suggests a smaller <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="" data-verso-hover="36">simp</span></a></code> with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
+                  The non-terminal <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2534">simp?</span></a></code> in this proof suggests a smaller <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="" data-verso-hover="35">simp</span></a></code> with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Tactic.simp : tactic</code><span class="sep"></span><code class="docstring">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or
 non-dependent hypotheses. It has many variants:
 - `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.
 - `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged
@@ -2235,24 +2255,24 @@ non-dependent hypotheses. It has many variants:
 - `simp [*] at *` simplifies target and all (propositional) hypotheses using the
   other hypotheses.
 </code></code><a href="Tactic-Proofs/Tactic-Reference/#simp"><code class="kw">only</code></a></span>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-15567">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span> <span class="unknown token" data-binding="">=</span> <span class="unknown token" data-binding="">#[</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-9081434193760746260-15629-15631"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-15629" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9081434193760746260-15629-15631"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2 → <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-16939045931581636127-15634-15640"><a href="Tactic-Proofs/Tactic-Reference/#intros"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.intros-15634" data-verso-hover="379">intros</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16939045931581636127-15634-15640"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-9358845546368622892-15643-15646"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-15643" data-verso-hover="167">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9358845546368622892-15643-15646"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-417" checked="checked"><span for="--verso-unique-417" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a></span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-17957572035843798968-15649-15654"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Try this: simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]</code></span></span><a href="Tactic-Proofs/Tactic-Reference/#simp___-next"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpTrace-15649" data-verso-hover="2407">simp?</span></a></span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17957572035843798968-15649-15654"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-418" checked="checked"><span for="--verso-unique-418" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-15657-15667"><a href="Tactic-Proofs/Tactic-Reference/#assumption"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.assumption-15657" data-verso-hover="1029">assumption</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-15657-15667"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code><p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-15567">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7558413483750948214-15629-15631-874"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-15629" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7558413483750948214-15629-15631-874"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-16801403635868453360-15634-15640-876"><a href="Tactic-Proofs/Tactic-Reference/#intros" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.intros-15634" data-verso-hover="507">intros</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16801403635868453360-15634-15640-876"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-8446870072469588405-15643-15646-878"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-15643" data-verso-hover="294">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8446870072469588405-15643-15646-878"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-879" checked="checked"><span for="--verso-unique-879" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Try this: simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]</code></span></span><span class="tactic"><label for="tactic-state-10224601564140969551-15649-15654-880"><a href="Tactic-Proofs/Tactic-Reference/#simp___-next" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simpTrace-15649" data-verso-hover="2534">simp?</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10224601564140969551-15649-15654-880"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-881" checked="checked"><span for="--verso-unique-881" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-15657-15667-882"><a href="Tactic-Proofs/Tactic-Reference/#assumption" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.assumption-15657" data-verso-hover="1160">assumption</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-15657-15667-882"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><p>
                   The suggested rewrite is:</p>
                 <div class="information">
                   <pre>Try this: simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
 </pre></div>
                 <p>
                   which results in the more maintainable proof:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-15886">example</span> <span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span> <span class="unknown token" data-binding="">:</span> <a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span> <span class="unknown token" data-binding="">:</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a> <span class="unknown token" data-binding="">=</span> <span class="typed token" data-binding="" data-verso-hover="7">2</span> <span class="unknown token" data-binding="">→</span> <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span> <span class="unknown token" data-binding="">=</span> <span class="unknown token" data-binding="">#[</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span> <span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span> <span class="unknown token" data-binding="">:=</span> <span class="tactic"><label for="tactic-state-9081434193760746260-15948-15950"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-15948" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9081434193760746260-15948-15950"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2 → <span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-16939045931581636127-15953-15959"><a href="Tactic-Proofs/Tactic-Reference/#intros"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.intros-15953" data-verso-hover="379">intros</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16939045931581636127-15953-15959"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-9358845546368622892-15962-15965"><a href="Tactic-Proofs/Tactic-Reference/#ext"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-15962" data-verso-hover="167">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9358845546368622892-15962-15965"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-421" checked="checked"><span for="--verso-unique-421" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil"><span class="const token" data-binding="const-List.cons" data-verso-hover="405">, </span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1395">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3296">]</span></a>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a></span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-17957572035843798968-15968-16061"><a href="Tactic-Proofs/Tactic-Reference/#simp"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-15968" data-verso-hover="36">simp</span></a> <span class="keyword token" data-binding="kw-occ-null-15973">only</span> <span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-List.size_toArray" data-verso-hover="3298">List.size_toArray</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-List.length_cons" data-verso-hover="3299">List.length_cons</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-List.length_nil" data-verso-hover="3300">List.length_nil</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-Nat.zero_add" data-verso-hover="3301">Nat.zero_add</span><span class="unknown token" data-binding="">,</span> <span class="const token" data-binding="const-Nat.reduceAdd" data-verso-hover="3302">Nat.reduceAdd</span><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-17957572035843798968-15968-16061"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-422" checked="checked"><span for="--verso-unique-422" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span></span><span class="colon">:</span><span class="type"><a href="Basic-Types/Arrays/#Array___mk"><span class="const token" data-binding="const-Array" data-verso-hover="159">Array</span></a> <a href="Basic-Types/The-Unit-Type/#Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3297">a✝</span></span><span class="colon">:</span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3295">xs</span>.<a href="Basic-Types/Arrays/#Array___size"><span class="const token" data-binding="const-Array.size" data-verso-hover="161">size</span></a><a href="Basic-Propositions/Propositional-Equality/#Eq___refl"><span class="const token" data-binding="const-Eq" data-verso-hover="16"> = </span></a>2</span></span></span></span></span></span>
-  <span class="tactic"><label for="tactic-state-7-16064-16074"><a href="Tactic-Proofs/Tactic-Reference/#assumption"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.assumption-16064" data-verso-hover="1029">assumption</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-16064-16074"><span class="tactic-state">All goals completed! 🐙</span></span>
-<span class="unknown token" data-binding=""></span></code></div>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-15886">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7558413483750948214-15948-15950-883"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-15948" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7558413483750948214-15948-15950-883"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-16801403635868453360-15953-15959-885"><a href="Tactic-Proofs/Tactic-Reference/#intros" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.intros-15953" data-verso-hover="507">intros</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-16801403635868453360-15953-15959-885"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-8446870072469588405-15962-15965-887"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-15962" data-verso-hover="294">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-8446870072469588405-15962-15965-887"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-888" checked="checked"><span for="--verso-unique-888" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">#[</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="532">,</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">(</span></a><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="1524">)</span></a><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="3419">]</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-10224601564140969551-15968-16061-889"><a href="Tactic-Proofs/Tactic-Reference/#simp" title="Documentation for tactic" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for tactic&quot;,&quot;href&quot;:&quot;/Tactic-Proofs/Tactic-Reference/#simp&quot;},{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for syntax&quot;,&quot;href&quot;:&quot;/The-Simplifier/Invoking-the-Simplifier/#Lean___Parser___Tactic___simp&quot;}]"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.simp-15968" data-verso-hover="35">simp</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-15973">only</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-List.size_toArray" data-verso-hover="3421">List.size_toArray</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.length_cons" data-verso-hover="3422">List.length_cons</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-List.length_nil" data-verso-hover="3423">List.length_nil</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-Nat.zero_add" data-verso-hover="3424">Nat.zero_add</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-Nat.reduceAdd" data-verso-hover="3425">Nat.reduceAdd</span><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10224601564140969551-15968-16061-889"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-890" checked="checked"><span for="--verso-unique-890" class="goal-name">h₁</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="286">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.50" data-verso-hover="3420">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="3418">xs</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="288">size</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-16064-16074-891"><a href="Tactic-Proofs/Tactic-Reference/#assumption" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.assumption-16064" data-verso-hover="1160">assumption</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-16064-16074-891"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code></div>
               </details></section>
           <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026"><nav class="prev-next-buttons">
             <a class="local-button active" href="The-Simplifier/Simp-Normal-Forms/#simp-normal-forms" rel="prev" title="16.4. Simp Normal Forms"><span class="arrow">←</span><span class="where">16.4. Simp Normal Forms</span></a><a class="local-button active" href="The-Simplifier/Configuring-Simplification/#simp-config" rel="next" title="16.6. Configuring Simplification"><span class="where">16.6. Configuring Simplification</span><span class="arrow">→</span></a></nav>
