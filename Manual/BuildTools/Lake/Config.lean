@@ -800,9 +800,15 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+:::leanSection
+```lean (show := false)
+open Lake DSL
+```
 
-:::syntax attr (title := "Specifying Default Targets") (label := "attribute")
+{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+:::
+
+:::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
 
 ```grammar
 default_target
