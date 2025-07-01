@@ -432,7 +432,7 @@ and can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d
 
 Instead of using `grind_pattern` to explicitly specify a pattern,
 you can use the `@[grind]` attribute or one of its variants, which will use a heuristic to generate a (multi-)pattern.
-The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpfully for debugging!
+The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpful for debugging!
 
 * `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).
   In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable (i.e. has a constant as its head) subexpression which "covers" (i.e. fixes the value of) an argument which was not previously covered, it will add that subexpression as a pattern, until all arguments have been covered. This rule is described in more detail below.
@@ -719,6 +719,26 @@ example (x y : Int) : x = y / 2 → y % 2 = 0 → y - 2*x = 0 := by
   grind
 ```
 
+The `cutsat` solver normalizes commutative (semi)ring expressions, so can solve goals like
+```lean
+example (a b : Nat) (h₁ : a + 1 ≠ a * b * a) (h₂ : a * a * b ≤ a + 1) : b * a^2 < a + 1 := by
+  grind
+```
+
+There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` typeclass to tell cutsat that a type embeds in the integers.
+Using this, we can solve goals such as:
+
+```lean
+example (a b c : Fin 11) : a ≤ 2 → b ≤ 3 → c = a + b → c ≤ 5 := by
+  grind
+
+example (a : Fin 2) : a ≠ 0 → a ≠ 1 → False := by
+  grind
+
+example (a b c : UInt64) : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := by
+  grind
+```
+
 Planned future features: improved constraint propagation.
 
 # Algebraic Solver (Commutative Rings, Fields)
@@ -788,6 +808,14 @@ example [CommRing α] [IsCharP α 0] (a : α)
   grind
 ```
 
+Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the charactistic:
+```lean
+example [CommRing α] (a b c : α)
+    (h₁ : a + 6 = a) (h₂ : c = c + 9) (h : b + 3*c = 0) :
+    27*a + b = 0 := by
+  grind
+```
+
 The class `NoNatZeroDivisors` is used to control coefficient growth.
 For example, the polynomial `2*x*y + 4*z = 0` is simplified to `x*y + 2*z = 0`.
 It also used when processing disequalities. In the following example,
@@ -819,6 +847,11 @@ we have`NoNatZeroDivisors α`, and all terms are zero and the equality hold. Oth
 example [Field α] [NoNatZeroDivisors α] (a : α)
     : 1 / a + 1 / (2 * a) = 3 / (2 * a) := by
   grind
+```
+
+Without `NoNatZeroDivisors`, `grind` will perform case splits on numerals being zero as needed:
+```lean
+example [Field α] (a : α) : (2 * a)⁻¹ = a⁻¹ / 2 := by grind
 ```
 
 In the following example, `ring` does not need to perform any case split because
@@ -1272,6 +1305,11 @@ def normalize (assign : Std.HashMap Nat Bool) :
 
 This is pretty straightforward, but it immediately runs into a problem:
 
+:::comment
+This output is extremely fragile, because it includes line numbers.
+I would like to stop at "Could not find a decreasing measure."
+but for this we need support for showing subsets of the output.
+:::
 ```leanOutput failed_to_show_termination
 fail to show termination for
   IfExpr.normalize
@@ -1288,12 +1326,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1260:27-45  =  <
-2) 1261:27-45  =  <
-3) 1263:4-52   =  ?
-4) 1267:16-50  ?  _
-5) 1268:16-51  _  _
-6) 1270:16-50  _  _
+1) 1293:27-45  =  <
+2) 1294:27-45  =  <
+3) 1296:4-52   =  ?
+4) 1300:16-50  ?  _
+5) 1301:16-51  _  _
+6) 1303:16-50  _  _
 
 #1: assign
 
