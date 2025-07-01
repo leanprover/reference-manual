@@ -432,7 +432,7 @@ and can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d
 
 Instead of using `grind_pattern` to explicitly specify a pattern,
 you can use the `@[grind]` attribute or one of its variants, which will use a heuristic to generate a (multi-)pattern.
-The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpfully for debugging!
+The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpful for debugging!
 
 * `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).
   In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable (i.e. has a constant as its head) subexpression which "covers" (i.e. fixes the value of) an argument which was not previously covered, it will add that subexpression as a pattern, until all arguments have been covered. This rule is described in more detail below.
