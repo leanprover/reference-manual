@@ -28,6 +28,7 @@ import Manual.BuildTools
 import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
+import Manual.ModuleSystem
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
