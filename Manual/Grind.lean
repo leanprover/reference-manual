@@ -467,7 +467,7 @@ axiom q : Nat → Nat
 
 /-- info: h₁: [q #1] -/
 #guard_msgs (info) in
-@[grind? →] theorem h₁ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+@[grind? →] theorem h₁ (w : p (q x) = 7) : p (x + 1) = q x := sorry
 ```
 
 First, to understand the output we need to recall that the `#n` appearing in patterns are arguments of the theorem, numbered as de-Bruijn variables, i.e. in reverse order (so `#0` would be `w : p (q x) = 7`, while `#1` is the implicit argument `x`).
