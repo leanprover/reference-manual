@@ -46,6 +46,24 @@ These services include:
 There are many primitive operators.
 They are described in their respective sections under {ref "basic-types"}[Basic Types].
 
+# Boxing
+%%%
+tag := "boxing"
+%%%
+
+:::paragraph
+Lean values may be represented at runtime in two ways:
+* {deftech}_Boxed_ values may be pointers to heap values or require shifting and masking.
+* {deftech}_Unboxed_ values are immediately available.
+:::
+
+Boxed values are either a pointer to an object, in which case the lowest-order bit is 0, or an immediate value, in which case the lowest-order bit is 1 and the value is found by shifting the representation to the right by one bit.
+
+Types with an unboxed representation, such as {name}`UInt8` and {tech}[enum inductive] types, are represented as the corresponding C types in contexts where the compiler can be sure that the value has said type.
+In some contexts, such as generic container types like {name}`Array`, otherwise-unboxed values must be boxed prior to storage.
+In other words, {name}`Bool.not` is called with and returns unboxed `uint8_t` values because the {tech}[enum inductive] type {name}`Bool` has an unboxed representation, but the individual {name}`Bool` values in an {lean}`Array Bool` are boxed.
+A field of type {lean}`Bool` in an inductive type's constructor is represented unboxed, while {lean}`Bool`s stored in polymorphic fields that are instantiated as {lean}`Bool` are boxed.
+
 
 # Reference Counting
 %%%
@@ -385,15 +403,15 @@ local macro "..." : term => ``(«...»)
 In the {tech key:="application binary interface"}[ABI], Lean types are translated to C types as follows:
 
 * The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively.
-  If their {ref "fixed-int-runtime"}[run-time representation] requires boxing, then they are unboxed at the FFI boundary.
+  If their {ref "fixed-int-runtime"}[run-time representation] requires {tech key:="boxed"}[boxing], then they are unboxed at the FFI boundary.
 * {lean}`Char` is represented by {c}`uint32_t`.
 * {lean}`Float` is represented by {c}`double`.
 * {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
-  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 ({c}`lean_is_scalar`), an encoded unboxed natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
+  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
 * A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {c}`lean_object *` with the runtime value {c}`lean_box(0)`
 * The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
-  Its runtime value is a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or the unboxed value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
+  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
   ```lean (show := false)
   variable (u : Unit)
