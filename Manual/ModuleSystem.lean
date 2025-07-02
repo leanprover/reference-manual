@@ -133,6 +133,11 @@ The following list contains common errors one might encounter when using the mod
   If so, you might want to make the current declaration private as well or otherwise enter the private scope such as through `private` on a field or `by` for a proof.
   TODO: improve error message.
 
+  If the message is prefixed with `(interpreter)`, this suggests a missing `meta import`.
+  The new import should be placed in the file defining the metaprogram depending on the missing constant, which is not necessarily the file triggering the error.
+  Note that the language server always does `meta import`s for the benefit of `#eval` etc., so the error might only occur in a cmdline build.
+  TODO: better, static `meta` checking.
+
 : Definitional equality errors, especially after porting
 
   You are likely missing an {attr}`expose` attribute on a definition or alternatively, if imported, an `import all`.
