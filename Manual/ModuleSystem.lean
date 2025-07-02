@@ -126,10 +126,13 @@ local elab "my_elab" : command => do
 The following list contains common errors one might encounter when using the module system and especially porting existing files to the module system.
 
 : Unknown constant
+
   Check whether you might be trying to access a private definition in the public scope.
   If so, you might want to make the current declaration private as well or otherwise enter the private scope such as through `private` on a field or `by` for a proof.
   TODO: improve error message.
+
 : Definitional equality errors, especially after porting
+
   You are likely missing an {attr}`expose` attribute on a definition or alternatively, if imported, an `import all`.
   Prefer the former if anyone outside your library might feasible require the same access.
   {keywordOf Lean.reduceCmd}`#reduce` and/or {option}`trace.Meta.isDefEq` can help with finding the blocking definition.
