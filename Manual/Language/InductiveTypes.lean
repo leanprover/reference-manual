@@ -371,11 +371,7 @@ axiom α : Prop
 ```
 
  * The representation of the fixed-width integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`Int8`, …, {lean}`Int64`, and {lean}`USize` depends on the whether the code is compiled for a 32- or 64-bit architecture.
-   Fixed-width integer types that are strictly smaller than the architecture's pointer type are stored unboxed by setting the lowest bit of a pointer to `1`.
-   Integer types that are at least as large as the architecture's pointer type may be boxed or unboxed, depending on whether a concrete value fits in one fewer bits than the pointer type.
-   If so, it is encoded by setting the lowest bit of the value to `1` (checked by {c}`lean_is_scalar`).
-   Otherwise, the value is represented is a pointer to a fixed-size Lean object on the heap.
-   In the C FFI, these values are marshalled into the appropriate C types {c}`uint8_t`, …, {c}`uint64_t`, and {c}`size_t`, respectively.{margin}[Fixed-width signed integer types are also represented as unsigned C integers in the FFI.]
+  Their representation is described {ref "fixed-int-runtime"}[in a dedicated section].
 
  * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
 
@@ -386,7 +382,7 @@ axiom α : Prop
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
  * {lean}`Nat` and {lean}`Int` are represented by {c}`lean_object *`.
-   A run-time {lean}`Nat` or {lean}`Int` value is either a pointer to an opaque arbitrary-precision integer object or, if the lowest bit of the “pointer” is `1` (checked by {c}`lean_is_scalar`), an encoded unboxed natural number or integer ({c}`lean_box`/{c}`lean_unbox`). {TODO}[Move these to FFI section or Nat chapter]
+  Their representations are described in more detail in {ref "nat-runtime"}[the section on natural numbers] and {ref "int-runtime"}[the section on integers].
 
 :::
 
