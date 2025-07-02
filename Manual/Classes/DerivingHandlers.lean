@@ -21,10 +21,26 @@ open Lean Elab Command
 set_option maxRecDepth 1024
 set_option maxHeartbeats 650_000
 
-def derivableClasses : IO (Array Name) := do
+/-- Classes that are part of the manual, not to be shown -/
+private def hiddenDerivable : Array Name := #[``Manual.Toml.Test]
+
+private def derivableClasses : IO (Array Name) := do
   let handlers ← derivingHandlersRef.get
-  let derivable := handlers.toList.map (·.fst) |>.toArray |>.qsort (·.toString < ·.toString)
+  let derivable :=
+    handlers.toList.map (·.fst)
+      |>.toArray
+      |>.filter (fun x => !hiddenDerivable.contains x && !(`Lean).isPrefixOf x)
+      |>.qsort (·.toString < ·.toString)
   pure derivable
+
+
+-- When new deriving handlers are added, check that they should actually appear in the manual and
+-- then update either `hiddenDerivable` or this `#guard_msgs`:
+/--
+info: #[`BEq, `DecidableEq, `Hashable, `Inhabited, `Nonempty, `Ord, `Repr, `SizeOf, `TypeName]
+-/
+#guard_msgs in
+#eval derivableClasses
 
 open Verso Doc Elab ArgParse in
 open SubVerso Highlighting in
@@ -35,7 +51,7 @@ def derivableClassList : DirectiveExpander
     ArgParse.done.run args
     if contents.size > 0 then throwError "Expected empty directive"
     let classNames ← derivableClasses
-    let itemStx ← classNames.filter (!(`Lean).isPrefixOf ·) |>.mapM fun n => do
+    let itemStx ← classNames.mapM fun n => do
       let hl : Highlighted ← constTok n n.toString
       `(Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote n.toString)])
     let theList ← `(Verso.Doc.Block.ul #[$[⟨#[Verso.Doc.Block.para #[$itemStx]]⟩],*])
@@ -54,6 +70,7 @@ They are provided with all of the names in the mutual block for which the instan
 When a handler returns {lean}`true`, no further handlers are called.
 
 Lean includes deriving handlers for the following classes:
+
 :::derivableClassList
 :::
 
