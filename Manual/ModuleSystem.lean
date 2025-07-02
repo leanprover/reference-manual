@@ -19,10 +19,9 @@ The module system is an experimental feature that allows for more fine-grained c
 This can improve build times, reduce the sizes of compiled executables, provide more API design options, and more.
 
 The module system is activated by prefixing a Lean file with the `module` keyword.
-At the time of writing, it is additionally guarded by the `experimental
-.module` option that has to be set to `true` in the project's Lake configuration file.
+At the time of writing, it is additionally guarded by the `experimental.module` option that has to be set to `true` in the project's Lake configuration file.
 `module`s can only import other `module`s so adoption has to be done top-down.
-Non-`module`s can import `module`s and will ignore all module system-specific annotations.
+Non-`module`s can import `module`s and will ignore all module-system-specific annotations.
 
 # Visibility
 
