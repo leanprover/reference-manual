@@ -1825,7 +1825,7 @@ This needs a mechanism for keeping up to date.
     [assign] (values m).size := 0
 ```
 
-An immediate problems we can see here is that
+An immediate problem we can see here is that
 `grind` does not yet know that `a ∈ m` is the same as `a ∈ m.indices`.
 Let's add this fact:
 

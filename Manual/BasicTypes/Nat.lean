@@ -22,7 +22,7 @@ The {deftech}[natural numbers] are nonnegative integers.
 Logically, they are the numbers 0, 1, 2, 3, …, generated from the constructors {lean}`Nat.zero` and {lean}`Nat.succ`.
 Lean imposes no upper bound on the representation of natural numbers other than physical constraints imposed by the available memory of the computer.
 
-Because the natural numbers are fundamental to both mathematical reasoning and programming, they are specially supported by Lean's implementation. The logical model of the natural numbers is as an {tech}[inductive type], and arithmetic operations are specified using this model. In Lean's kernel, the interpreter, and compiled code, closed natural numbers are represented as efficient arbitrary-precision integers. Sufficiently small numbers are unboxed values that don't require indirection through a pointer. Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
+Because the natural numbers are fundamental to both mathematical reasoning and programming, they are specially supported by Lean's implementation. The logical model of the natural numbers is as an {tech}[inductive type], and arithmetic operations are specified using this model. In Lean's kernel, the interpreter, and compiled code, closed natural numbers are represented as efficient arbitrary-precision integers. Sufficiently small numbers are values that don't require indirection through a pointer. Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
 
 # Logical Model
 %%%
@@ -107,10 +107,10 @@ In the kernel, there are special `Nat` literal values that use a widely-trusted,
 Basic functions such as addition are overridden by primitives that use this representation.
 Because they are part of the kernel, if these primitives did not correspond to their definitions as Lean functions, it could undermine soundness.
 
-In compiled code, sufficiently-small natural numbers are represented as unboxed values: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer, and the remaining bits are used to store the number.
-31 bits are available on 32-bits architectures for unboxed {lean}`Nat`s, while 63 bits are available on 64-bit architectures.
+In compiled code, sufficiently-small natural numbers are represented without pointer indirections: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer, and the remaining bits are used to store the number.
+31 bits are available on 32-bits architectures for pointer-free {lean}`Nat`s, while 63 bits are available on 64-bit architectures.
 In other words, natural numbers smaller than $`2^{31} = 2,147,483,648` or $`2^{63} = 9,223,372,036,854,775,808` do not require allocations.
-If an natural number is too large for the unboxed representation, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer value.
+If an natural number is too large for this representation, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer value.
 
 ## Performance Notes
 %%%

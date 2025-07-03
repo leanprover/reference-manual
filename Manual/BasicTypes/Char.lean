@@ -44,7 +44,7 @@ tag := "char-runtime"
 As a {ref "inductive-types-trivial-wrappers"}[trivial wrapper], characters are represented identically to {lean}`UInt32`.
 In particular, characters are represented as 32-bit immediate values in monomorphic contexts.
 In other words, a field of a constructor or structure of type {lean}`Char` does not require indirection to access.
-In polymorphic contexts, characters are boxed.
+In polymorphic contexts, characters are {tech}[boxed].
 
 
 # Syntax

@@ -25,7 +25,7 @@ Integers are specially supported by Lean's implementation.
 The logical model of the integers is based on the natural numbers: each integer is modeled as either a natural number or the negative successor of a natural number.
 Operations on the integers are specified using this model, which is used in the kernel and in interpreted code.
 In these contexts, integer code inherits the performance benefits of the natural numbers' special support.
-In compiled code, integers are represented as efficient arbitrary-precision integers, and sufficiently small numbers are stored as unboxed values that don't require indirection through a pointer.
+In compiled code, integers are represented as efficient arbitrary-precision integers, and sufficiently small numbers are stored as values that don't require indirection through a pointer.
 Arithmetic operations are implemented by primitives that take advantage of the efficient representations.
 
 # Logical Model
@@ -46,7 +46,7 @@ Integers can also be represented as a pair of natural numbers in which one is su
 tag := "int-runtime"
 %%%
 
-Like {ref "nat-runtime"}[natural numbers], sufficiently-small integers are represented as unboxed values: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer.
+Like {ref "nat-runtime"}[natural numbers], sufficiently-small integers are represented without pointers: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer.
 If an integer is too large to fit in the remaining bits, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer.
 
 # Syntax
