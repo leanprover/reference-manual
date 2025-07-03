@@ -78,13 +78,14 @@ def scarfPixel := {{
 def main :=
   manualMain (%doc Manual) (config := config)
 where
-  config := Config.addKaTeX {
+  config := Config.addSearch <| Config.addKaTeX {
     extraFiles := [("static", "static")],
     extraCss := [
       "/static/colors.css",
       "/static/theme.css",
       "/static/print.css",
       "/static/search/search-box.css",
+      "/static/search/search-highlight.css",
       "/static/fonts/source-serif/source-serif-text.css",
       "/static/fonts/source-code-pro/source-code-pro.css",
       "/static/fonts/source-sans/source-sans-3.css",
@@ -92,9 +93,10 @@ where
     ],
     extraJs := [
       -- Search box
-      "/static/search/fuzzysort.js",
+      {filename := "/static/search/fuzzysort.js"},
+      {filename := "/static/search/search-highlight.js"},
       -- Print stylesheet improvements
-      "/static/print.js"
+      {filename := "/static/print.js"}
     ],
     extraHead := #[searchModule, plausible],
     extraContents := #[scarfPixel],
