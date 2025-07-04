@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Releases.«v4_22_0»
 import Manual.Releases.«v4_21_0»
+import Manual.Releases.«v4_20_1»
 import Manual.Releases.«v4_20_0»
 import Manual.Releases.«v4_19_0»
 import Manual.Releases.«v4_18_0»
@@ -52,6 +53,8 @@ the differences with the previous version and upgrade your projects.
 {include 0 Manual.Releases.«v4_22_0»}
 
 {include 0 Manual.Releases.«v4_21_0»}
+
+{include 0 Manual.Releases.«v4_20_1»}
 
 {include 0 Manual.Releases.«v4_20_0»}
 
