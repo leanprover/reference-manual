@@ -88,7 +88,9 @@ function highlightSearchTerms() {
       // Skip script, style, and already highlighted elements
       if (node.tagName &&
           !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName.toUpperCase()) &&
-          !node.classList.contains('text-search-results')) {
+          !node.classList.contains('text-search-results') &&
+          // Don't highlight search terms in invisible hovers
+          !node.classList.contains('hover-info')) {
         
         // Process child nodes (in reverse order to handle DOM changes)
         const children = Array.from(node.childNodes);
@@ -100,7 +102,7 @@ function highlightSearchTerms() {
   }
   
   // Start traversal from <main>
-  document.querySelectorAll('main').forEach(traverseNodes);
+  document.querySelectorAll('main section').forEach(traverseNodes);
   
   // Update highlights array after highlighting
   updateHighlightsArray();
@@ -158,14 +160,17 @@ function prevHighlight() {
  */
 function scrollToHighlight(index) {
   if (index >= 0 && index < allHighlights.length) {
-    // Remove previous active highlight
-    document.querySelectorAll('span.text-search-results.active').forEach(span => {
-      span.classList.remove('active');
-    });
-    
-    // Add active class to current highlight
-    allHighlights[index].classList.add('active');
-    
+    // Ensure visibility by opening collapsed examples
+    let here = allHighlights[index];
+    if (here) {
+      while (here = here.parentElement) {
+        if (here.nodeName.toLowerCase() == "details") {
+          here.setAttribute('open', 'open');
+          break;
+        }
+      }
+    }
+
     // Scroll to it
     allHighlights[index].scrollIntoView({
       behavior: 'smooth',
@@ -182,6 +187,7 @@ function updateNavigationState() {
   const prevBtn = document.getElementById('highlight-prev');
   const nextBtn = document.getElementById('highlight-next');
   const countSpan = document.getElementById('highlight-count');
+  const currentSpan = document.getElementById('highlight-current');
   
   if (prevBtn && nextBtn && countSpan) {
     const hasHighlights = allHighlights.length > 0;
@@ -190,6 +196,8 @@ function updateNavigationState() {
     
     if (hasHighlights && currentHighlightIndex >= 0) {
       countSpan.textContent = `${currentHighlightIndex + 1}/${allHighlights.length}`;
+      currentSpan.textContent = allHighlights[currentHighlightIndex].textContent;
+      currentSpan.title = 'Search term: “' + allHighlights[currentHighlightIndex].title + '”';
       document.querySelectorAll('.text-search-results').forEach((e) => e.classList.remove('focused'));
       let here = allHighlights[currentHighlightIndex];
       here.classList.add('focused');
@@ -201,6 +209,8 @@ function updateNavigationState() {
       }
     } else {
       countSpan.textContent = hasHighlights ? `0/${allHighlights.length}` : '0/0';
+      currentSpan.textContent = '';
+      currentSpan.title = '';
     }
   }
 }
@@ -270,85 +280,46 @@ function createControlButtons() {
   }
   
   const container = document.createElement('div');
-  container.style.cssText = `
-    position: fixed;
-    top: 50px;
-    right: 10px;
-    z-index: 9999;
-    display: flex;
-    gap: 4px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    font-size: 12px;
-    font-family: system-ui, sans-serif;
-  `;
+  container.id = 'highlight-controls';
   
   // Previous button
   const prevBtn = document.createElement('button');
   prevBtn.id = 'highlight-prev';
   prevBtn.textContent = '◀';
   prevBtn.title = 'Previous match';
-  prevBtn.style.cssText = `
-    padding: 6px 8px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    cursor: pointer;
-    font-size: 12px;
-  `;
   prevBtn.addEventListener('click', prevHighlight);
   
+  const currentSpan = document.createElement('span');
+  currentSpan.id = 'highlight-current';
+
   // Count display
   const countSpan = document.createElement('span');
   countSpan.id = 'highlight-count';
   countSpan.textContent = '0/0';
-  countSpan.style.cssText = `
-    padding: 6px 8px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    min-width: 40px;
-    text-align: center;
-    font-size: 12px;
-  `;
+
+  const currentCount = document.createElement('span');
+  currentCount.id = 'highlight-current-count';
+  currentCount.appendChild(currentSpan);
+  currentCount.appendChild(countSpan);
+  currentCount.addEventListener('click', () => scrollToHighlight(currentHighlightIndex));
   
   // Next button
   const nextBtn = document.createElement('button');
   nextBtn.id = 'highlight-next';
   nextBtn.textContent = '▶';
   nextBtn.title = 'Next match';
-  nextBtn.style.cssText = `
-    padding: 6px 8px;
-    background: #f8f9fa;
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    cursor: pointer;
-    font-size: 12px;
-  `;
   nextBtn.addEventListener('click', nextHighlight);
   
   // Toggle button
   const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'highlight-close';
   toggleBtn.textContent = '×';
   toggleBtn.title = 'Close search';
-  toggleBtn.style.cssText = `
-    padding: 6px 8px;
-    background: #dc3545;
-    color: white;
-    border: 1px solid #dc3545;
-    border-radius: 2px;
-    cursor: pointer;
-    font-size: 12px;
-    margin-left: 4px;
-  `;
   toggleBtn.addEventListener('click', toggleHighlights);
   toggleBtn.addEventListener('click', () => container.remove());
   
   container.appendChild(prevBtn);
-  container.appendChild(countSpan);
+  container.appendChild(currentCount);
   container.appendChild(nextBtn);
   container.appendChild(toggleBtn);
   
@@ -360,6 +331,7 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', function() {
     highlightSearchTerms();
     createControlButtons();
+    updateHighlightsArray();
     
     // Check for hash in URL and scroll to first highlight after it
     if (window.location.hash) {
@@ -372,6 +344,7 @@ if (document.readyState === 'loading') {
 } else {
   highlightSearchTerms();
   createControlButtons();
+  updateHighlightsArray();
   
   // Check for hash in URL and scroll to first highlight after it
   if (window.location.hash) {
