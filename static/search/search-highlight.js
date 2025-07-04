@@ -7,6 +7,12 @@
  * @typedef {{original: string, stem: string, start: number, end: number}} TextToken
  */
 
+/** Whether to search word prefixes or whole words in full-text searches. Should match the setting in search-box.js.
+ * @type {boolean}
+ */
+const expandHlMatches = true;
+
+
 const searchIndex = /** @type {{searchIndex: TextSearchIndex}} */ (
   /** @type {unknown} */ (window)
 ).searchIndex;
@@ -60,9 +66,22 @@ function highlightSearchTerms() {
 
     const toks = tokenizeText(text);
     for (const t of toks.reverse()) {
-        if (searchTerms.hasOwnProperty(t.stem)) {
-            text = text.slice(0, t.start) + `<span class="text-search-results" title="Search term: “${searchTerms[t.stem]}”">${text.slice(t.start, t.end)}</span>` + text.slice(t.end);
+      if (expandHlMatches) {
+        // We're doing full-text search with matching prefixes. Find the longest matching stem in the results and use it.
+        let bestStem = "";
+        for (termStem in searchTerms) {
+          if (termStem.length <= bestStem.length) continue;
+          if (t.stem.startsWith(termStem)) bestStem = termStem;
         }
+        if (bestStem.length > 0) {
+          text = text.slice(0, t.start) + `<span class="text-search-results" title="Result for “${searchTerms[bestStem]}”">${text.slice(t.start, t.end)}</span>` + text.slice(t.end);
+        }
+      } else {
+        // We're doing full-text search with whole words only. Look the stem up directly.
+        if (searchTerms.hasOwnProperty(t.stem)) {
+          text = text.slice(0, t.start) + `<span class="text-search-results" title="Result for “${searchTerms[t.stem]}”">${text.slice(t.start, t.end)}</span>` + text.slice(t.end);
+        }
+      }
     }
         
     // Create a temporary container
@@ -78,7 +97,7 @@ function highlightSearchTerms() {
     const parent = textNode.parentNode;
     parent.replaceChild(fragment, textNode);
     parent.querySelectorAll('.text-search-results').forEach((e) => {
-      e.addEventListener('click', (event) => {
+      e.addEventListener('click', () => {
         const i = allHighlights.indexOf(e);
         if (i >= 0) {
           currentHighlightIndex = i;
@@ -200,6 +219,7 @@ function updateNavigationState() {
   const nextBtn = document.getElementById('highlight-next');
   const countSpan = document.getElementById('highlight-count');
   const currentSpan = document.getElementById('highlight-current');
+  const currentCount = document.getElementById('highlight-current-count');
   
   if (prevBtn && nextBtn && countSpan) {
     const hasHighlights = allHighlights.length > 0;
@@ -209,7 +229,9 @@ function updateNavigationState() {
     if (hasHighlights && currentHighlightIndex >= 0) {
       countSpan.textContent = `${currentHighlightIndex + 1}/${allHighlights.length}`;
       currentSpan.textContent = allHighlights[currentHighlightIndex].textContent;
-      currentSpan.title = 'Search term: “' + allHighlights[currentHighlightIndex].title + '”';
+      let resName = allHighlights[currentHighlightIndex].title;
+      resName = resName.charAt(0).toLowerCase() + resName.slice(1);
+      currentCount.title = 'Go to ' + resName;
       document.querySelectorAll('.text-search-results').forEach((e) => e.classList.remove('focused'));
       let here = allHighlights[currentHighlightIndex];
       here.classList.add('focused');
@@ -222,7 +244,7 @@ function updateNavigationState() {
     } else {
       countSpan.textContent = hasHighlights ? `0/${allHighlights.length}` : '0/0';
       currentSpan.textContent = '';
-      currentSpan.title = '';
+      currentCount.title = '';
     }
   }
 }
@@ -303,7 +325,6 @@ function createControlButtons() {
   
   const currentSpan = document.createElement('span');
   currentSpan.id = 'highlight-current';
-  currentSpan.addEventListener('click', () => scrollToHighlight(currentHighlightIndex));
 
   // Count display
   const countSpan = document.createElement('span');
@@ -314,6 +335,7 @@ function createControlButtons() {
   currentCount.id = 'highlight-current-count';
   currentCount.appendChild(currentSpan);
   currentCount.appendChild(countSpan);
+  currentCount.addEventListener('click', () => scrollToHighlight(currentHighlightIndex));
   
   // Next button
   const nextBtn = document.createElement('button');

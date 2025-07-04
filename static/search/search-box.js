@@ -23,6 +23,11 @@ const searchIndex = /** @type {{searchIndex: TextSearchIndex}} */ (
 ).searchIndex;
 
 
+/** Whether to search word prefixes or whole words in full-text searches. Should match the setting in search-highlight.js.
+ * @type {boolean}
+ */
+const expandMatches = true;
+
 /**
  * Type definitions to help if you have typescript enabled.
  *
@@ -35,7 +40,7 @@ const searchIndex = /** @type {{searchIndex: TextSearchIndex}} */ (
  * @typedef {{ref: string, score: number, doc: {id: string, header: string, context: string, contents: string}}} TextMatch
  * @typedef {{item: Searchable, fuzzysortResult: Fuzzysort.Result, htmlItem: HTMLLIElement}|{terms: string, textItem: TextMatch, htmlItem: HTMLLIElement}} SearchResult
  * @typedef {{run: (tokens: string[]) => string[]}} ElasticLunrPipeline
- * @typedef {{bool?: "AND"|"OR", fields?:Record<string, {boost?: number}>}} SearchConfig
+ * @typedef {{bool?: "AND"|"OR", fields?:Record<string, {boost?: number}>, expand?: boolean}} SearchConfig
  * @typedef {{search: ((term: string, config: SearchConfig) => TextMatch[]), pipeline: ElasticLunrPipeline}|undefined|null} TextSearchIndex
  * @typedef {{original: string, stem: string, start: number, end: number}} TextToken
  * @typedef {{start: number, end: number, index: number, matches: TextToken[]}} TextSnippet
@@ -133,7 +138,7 @@ const highlightTextResult = (text, query, options = {}) => {
 
   const terms = searchIndex.pipeline.run(query.trim().toLowerCase().split(/\s+/).filter(term => term.length > 0));
   const toks = tokenizeText(text);
-  const matches = toks.filter(t => terms.includes(t.stem));
+  const matches = expandMatches ? toks.filter(t => terms.some(tm => t.stem.startsWith(tm))) : toks.filter(t => terms.includes(t.stem));
 
   if (matches.length === 0) {
     return null; // No matches found
@@ -296,7 +301,6 @@ const textResultToHtml = (
   li.title = "Full-text search result"
   // DEBUG:
   // li.title = `Full-text search result (${match.score}) (${match.ref})`;
-
   
   const searchTerm = document.createElement("p");
   let inHeader = true;
@@ -654,7 +658,7 @@ class SearchBox {
       threshold: 0.25,
     });
 
-    const textResults = searchIndex ? searchIndex.search(filter, {bool: "AND", fields: {header: {boost: 1.25}, contents: {boost: 1}, context: {boost: 0.1} }}) : [];
+    const textResults = searchIndex ? searchIndex.search(filter, {expand: expandMatches, bool: "AND", fields: {header: {boost: 1.25}, contents: {boost: 1}, context: {boost: 0.1} }}) : [];
 
     // Normalize the scores for text results by capping at a threshold, to better integrate with fuzzysearch results
     const bestPossibleText = 0.8;
