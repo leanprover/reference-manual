@@ -21,20 +21,20 @@ The main benefits of doing so are:
 
 : Average build times
 
-  Changes to files that affect only non-exported information will not trigger rebuilds outside of these files.
+  Changes to files that affect only non-exported information (e.g. proofs) will not trigger rebuilds outside of these files.
   Even when dependent files have to be rebuilt, those files that cannot be affected according to the `import` annotations can be skipped.
 
-: API design
+: API evolution
 
   Library authors can trust that changes to non-exported information will not affect downstream users of their library.
 
 : Avoiding accidental unfolding
 
-  Limiting the scope in which definitions can be unfolded allows for avoiding both reductions that should be replaced by application of more specific theorems as well as unproductive reductions that are then backtracked.
+  Limiting the scope in which definitions can be unfolded allows for avoiding both reductions that should be replaced by application of more specific theorems as well as unproductive reductions that were not in fact necessary.
 
 : Smaller executables
 
-  Separation of compile-time and run-time code allows for more aggressive dead code elimination.
+  Separating compile-time and run-time code allows for more aggressive dead code elimination.
 
 The module system is activated by prefixing a Lean file with the `module` keyword.
 `module`s can only import other `module`s so adoption has to be done top-down.
