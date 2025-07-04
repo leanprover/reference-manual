@@ -941,7 +941,7 @@ example : StringMonoid := "hello"
 
 :::example "Sort Coercions as Ordinary Coercions"
 The {tech}[inductive type] {name}`NatOrBool` represents the types {name}`Nat` and {name}`Bool`.
-The can be coerced to the actual types {name}`Nat` and {name}`Bool`:
+They can be coerced to the actual types {name}`Nat` and {name}`Bool`:
 ```lean
 inductive NatOrBool where
   | nat | bool
