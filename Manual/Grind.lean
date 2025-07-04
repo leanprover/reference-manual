@@ -22,6 +22,9 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 set_option pp.rawOnError true
 
+-- TODO (@kim-em): `Lean.Grind.AddCommMonoid` and `Lean.Grind.AddCommGroup` are not yet documented.
+set_option verso.docstring.allowMissing true
+
 set_option linter.unusedVariables false
 
 -- The verso default max line length is 60, which is very restrictive.
@@ -1326,12 +1329,12 @@ Could not find a decreasing measure.
 The basic measures relate at each recursive call as follows:
 (<, ≤, =: relation proved, ? all proofs failed, _: no proof attempted)
               #1 x2
-1) 1293:27-45  =  <
-2) 1294:27-45  =  <
-3) 1296:4-52   =  ?
-4) 1300:16-50  ?  _
-5) 1301:16-51  _  _
-6) 1303:16-50  _  _
+1) 1296:27-45  =  <
+2) 1297:27-45  =  <
+3) 1299:4-52   =  ?
+4) 1303:16-50  ?  _
+5) 1304:16-51  _  _
+6) 1306:16-50  _  _
 
 #1: assign
 
