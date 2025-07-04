@@ -199,6 +199,11 @@ inductive Even : Nat → Prop where
 
 ::::
 
+# How to Cite This Work
+
+In formal citations, please cite this work as _The Lean Language Reference_ by The Lean Developers.
+Additionally, please include the corresponding version of Lean in the citation, which is {versionString}[].
+
 # Open-Source Licenses
 %%%
 tag := "dependency-licenses"

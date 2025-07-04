@@ -28,6 +28,7 @@ import Manual.BuildTools
 import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
+import Manual.ModuleSystem
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -38,6 +39,7 @@ set_option maxRecDepth 1024
 #doc (Manual) "The Lean Language Reference" =>
 %%%
 tag := "lean-language-reference"
+shortContextTitle := "Lean Reference"
 %%%
 
 This is the _Lean Language Reference_.
@@ -134,6 +136,8 @@ Overview of the standard library, including types from the prelude and those tha
 {include 0 Manual.BuildTools}
 
 {include 0 Manual.ErrorExplanations}
+
+{include 0 Manual.ModuleSystem}
 
 {include 0 Manual.Releases}
 

@@ -138,8 +138,9 @@ def lexedText := ()
 def c : CodeBlockExpander
   | args, str => do
     ArgParse.done.run args
-    let toks ← LexedText.highlight hlC str.getString
-    pure #[← ``(Block.other (Block.c $(quote toks)) #[])]
+    let codeStr := str.getString
+    let toks ← LexedText.highlight hlC codeStr
+    pure #[← ``(Block.other (Block.c $(quote toks)) #[Block.code $(quote codeStr)])]
 
 open Verso.Output Html in
 open Verso.Doc.Html in
@@ -173,5 +174,6 @@ def cInline : RoleExpander
       | throwError "Expected exactly one parameter"
     let `(inline|code($str)) := x
       | throwError "Expected exactly one code item"
-    let toks ← LexedText.highlight hlC str.getString
-    pure #[← ``(Inline.other (Inline.c $(quote toks)) #[])]
+    let codeStr := str.getString
+    let toks ← LexedText.highlight hlC codeStr
+    pure #[← ``(Inline.other (Inline.c $(quote toks)) #[Inline.code $(quote codeStr)])]

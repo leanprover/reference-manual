@@ -209,7 +209,7 @@ window.addEventListener("load", () => {
 });
 "#
   ]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
 
 @[role_expander keyword]
@@ -1440,7 +1440,7 @@ partial def grammar.descr : BlockDescr where
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   localContentItem _ json _ := open Verso.Output.Html in do
     if let .arr #[_, .arr #[_, .arr toks]] := json then
@@ -1536,7 +1536,7 @@ def syntaxKind.inlinedescr : InlineDescr where
         pure <| .seq #[← go b, .raw "\n"]
   extraCss := [grammarCss]
   extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
