@@ -18,7 +18,7 @@ const searchIndex = /** @type {{searchIndex: TextSearchIndex}} */ (
  */
 const tokenizeText = (text) => {
   const toks = [];
-  const regex = /[^\s(),."“”—]+/g;
+  const regex = /[^\s(),."“”—:]+/g;
   let match;
   while ((match = regex.exec(text)) !== null) {
     let stems = searchIndex.pipeline.run([match[0]]);
@@ -61,7 +61,7 @@ function highlightSearchTerms() {
     const toks = tokenizeText(text);
     for (const t of toks.reverse()) {
         if (searchTerms.hasOwnProperty(t.stem)) {
-            text = text.slice(0, t.start) + `<span class="text-search-results" title="${searchTerms[t.stem]}">${text.slice(t.start, t.end)}</span>` + text.slice(t.end);
+            text = text.slice(0, t.start) + `<span class="text-search-results" title="Search term: “${searchTerms[t.stem]}”">${text.slice(t.start, t.end)}</span>` + text.slice(t.end);
         }
     }
         
@@ -73,9 +73,19 @@ function highlightSearchTerms() {
     const fragment = document.createDocumentFragment();
     while (tempDiv.firstChild) {
       fragment.appendChild(tempDiv.firstChild);
+
     }
-    
-    textNode.parentNode.replaceChild(fragment, textNode);
+    const parent = textNode.parentNode;
+    parent.replaceChild(fragment, textNode);
+    parent.querySelectorAll('.text-search-results').forEach((e) => {
+      e.addEventListener('click', (event) => {
+        const i = allHighlights.indexOf(e);
+        if (i >= 0) {
+          currentHighlightIndex = i;
+          updateNavigationState();
+        }
+      });
+    });
   }
   
   /** Function to traverse DOM and find text nodes
@@ -315,7 +325,7 @@ function createControlButtons() {
   // Toggle button
   const toggleBtn = document.createElement('button');
   toggleBtn.id = 'highlight-close';
-  toggleBtn.textContent = '×';
+  toggleBtn.textContent = '✖';
   toggleBtn.title = 'Close search';
   toggleBtn.addEventListener('click', toggleHighlights);
   toggleBtn.addEventListener('click', () => container.remove());

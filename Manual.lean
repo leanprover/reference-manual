@@ -38,6 +38,7 @@ set_option maxRecDepth 1024
 #doc (Manual) "The Lean Language Reference" =>
 %%%
 tag := "lean-language-reference"
+shortContextTitle := "Lean Reference"
 %%%
 
 This is the _Lean Language Reference_.

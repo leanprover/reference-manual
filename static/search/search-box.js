@@ -89,6 +89,37 @@ const tokenizeText = (text) => {
 }
 
 /**
+ * @type {RegExp}
+ */
+const wordChar = /\p{L}/u
+
+/**
+ * @param {string} text
+ * @param {number} i
+ * @return {number}
+ */
+const wordStartBefore = (text, i) => {
+  while (i > 0) {
+    if (!wordChar.test(text[i])) return i + 1; /* Adjust due to start indices being inclusive */
+    i--;
+  }
+  return i;
+}
+
+/**
+ * @param {string} text
+ * @param {number} i
+ * @return {number}
+ */
+const wordEndAfter = (text, i) => {
+  while (i < text.length) {
+    if (!wordChar.test(text[i])) return i; /* This is used as the (exclusive) end index in a slice, so one greater is correct */
+    i++;
+  }
+  return i;
+}
+
+/**
  * @param {string} text
  * @param {string} query
  * @param {{contextLength?: number, maxSnippets?: number}} options
@@ -116,15 +147,15 @@ const highlightTextResult = (text, query, options = {}) => {
     if (!currentSnippet || match.start > currentSnippet.end + contextLength * 2) {
       // Start new snippet
       currentSnippet = {
-        start: Math.max(0, match.start - contextLength),
-        end: Math.min(text.length, match.end + contextLength),
+        start: wordStartBefore(text, Math.max(0, match.start - contextLength)),
+        end: wordEndAfter(text, Math.min(text.length, match.end + contextLength)),
         index: snippets.length,
         matches: [match]
       };
       snippets.push(currentSnippet);
     } else {
       // Extend current snippet
-      currentSnippet.end = Math.min(text.length, match.end + contextLength);
+      currentSnippet.end = wordEndAfter(text, Math.min(text.length, match.end + contextLength));
       currentSnippet.matches.push(match);
     }
   }
@@ -156,8 +187,8 @@ const highlightTextResult = (text, query, options = {}) => {
     }
     
     // Add ellipses
-    const prefix = snippet.start > 0 ? '...' : '';
-    const suffix = snippet.end < text.length ? '...' : '';
+    const prefix = snippet.start > 0 ? ' …' : '';
+    const suffix = snippet.end < text.length ? '… ' : '';
     
     const elem = document.createElement("span");
     elem.appendChild(document.createTextNode(prefix));
@@ -262,11 +293,14 @@ const textResultToHtml = (
   const li = document.createElement("li");
   li.role = "option";
   li.className = `search-result full-text`;
-  li.title = `Full-text search result (${match.score}) (${match.ref})`;
+  li.title = "Full-text search result"
+  // DEBUG:
+  // li.title = `Full-text search result (${match.score}) (${match.ref})`;
+
   
   const searchTerm = document.createElement("p");
   let inHeader = true;
-  let headerHl = highlightTextResult(match.doc.header, term, {contextLength: 15});
+  let headerHl = highlightTextResult(match.doc.header, term, {contextLength: 30}); // Only abbreviate huge headers
   if (!headerHl) {
     inHeader = false;
     headerHl = document.createElement("span");
@@ -298,19 +332,11 @@ const textResultToHtml = (
   domainName.className = "domain";
   if (match.doc.context.trim() == "") {
     domainName.textContent = "Full-text search";
-  }{
+  } else {
     // This is a slight abuse of "domain", but it seems to work well
-    let contextElements = match.doc.context.split("\t");
-    if (contextElements.length > 3) { contextElements = contextElements.slice(1); }
-    for (const s of contextElements) {
-      let hl = highlightTextResult(s, term, {contextLength: 100}); // in practice, no abbreviation
-      if (!hl) {
-        hl = document.createElement("span");
-        hl.append(document.createTextNode(s))
-      }
-      hl.className = "context-elem";
-      domainName.append(hl);
-    }
+    let context = match.doc.context.replaceAll("\t", " » ");
+    domainName.append(document.createTextNode(context));
+    domainName.classList.add('text-context');
   }
 
   return li;
@@ -550,7 +576,6 @@ class SearchBox {
     itemAddress = id? addr + query + '#' + id : addr + query;
 
     const base = document.querySelector('base');
-    console.log("confirm", "addr", base?.href, "itemaddr", itemAddress, "q", query);
     if (base) {
       let baseNoSlash = base.href.endsWith("/") ? base.href.slice(0, -1) : base.href;
       let itemAddressNoSlash = itemAddress.startsWith("/") ? itemAddress.slice(1) : itemAddress;
@@ -567,7 +592,6 @@ class SearchBox {
     this.filter = value;
     this.comboboxNode.textContent = this.filter;
     this.imeRewriter.setSelections([new Range(this.filter.length, 0)]);
-    this.filterOptions();
   }
 
   /**
@@ -663,6 +687,9 @@ class SearchBox {
     allResults.sort((x, y) => y.score - x.score);
     allResults = allResults.slice(0, 30);
 
+    this.filteredOptions = [];
+    this.firstOption = null;
+    this.lastOption = null;
     for (let i = 0; i < allResults.length; i++) {
       const result = allResults[i];
       if ("target" in result) {
@@ -681,7 +708,7 @@ class SearchBox {
               ),
             document
           );
-          option.title = option.title + ` (${result.score})`;
+          option.title = option.title; // DEBUG: show scores + ` (${result.score})`;
           /** @type {SearchResult} */
           const searchResult = {
             item: searchable,
@@ -750,6 +777,9 @@ class SearchBox {
 
     if (newCurrentOption) {
       this.currentOption = newCurrentOption;
+    }
+    if (!this.currentOption) {
+      this.currentOption = this.firstOption;
     }
 
     return newCurrentOption ?? this.firstOption;
