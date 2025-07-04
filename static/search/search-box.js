@@ -262,7 +262,7 @@ const textResultToHtml = (
   const li = document.createElement("li");
   li.role = "option";
   li.className = `search-result full-text`;
-  li.title = `Full-text search result (${match.score})`;
+  li.title = `Full-text search result (${match.score}) (${match.ref})`;
   
   const searchTerm = document.createElement("p");
   let inHeader = true;
@@ -324,7 +324,7 @@ const resultToText = (result) => {
   if ("fuzzysortResult" in result) {
     return result.fuzzysortResult.target;
    } else {
-    return result.textItem.doc.id;
+    return result.terms;
    }
 }
 
@@ -455,6 +455,12 @@ class SearchBox {
       comboboxNode
     );
 
+    // Initialize with a full-text result's query, if one is being presented
+    const query = new URLSearchParams(window.location.search).get('terms')?.trim();
+    comboboxNode.textContent = query ? query : "";
+
+
+
     this.comboboxHasVisualFocus = false;
     this.listboxHasVisualFocus = false;
 
@@ -509,7 +515,7 @@ class SearchBox {
     // TODO more work on the domain filters
     // this.domainFilters.push(docDomainFilter);
 
-    this.filterOptions();
+    this.setValue(query ? query : "");
 
     // Open Button
 
@@ -544,7 +550,7 @@ class SearchBox {
     itemAddress = id? addr + query + '#' + id : addr + query;
 
     const base = document.querySelector('base');
-
+    console.log("confirm", "addr", base?.href, "itemaddr", itemAddress, "q", query);
     if (base) {
       let baseNoSlash = base.href.endsWith("/") ? base.href.slice(0, -1) : base.href;
       let itemAddressNoSlash = itemAddress.startsWith("/") ? itemAddress.slice(1) : itemAddress;

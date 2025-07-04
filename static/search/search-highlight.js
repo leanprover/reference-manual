@@ -293,6 +293,7 @@ function createControlButtons() {
   
   const currentSpan = document.createElement('span');
   currentSpan.id = 'highlight-current';
+  currentSpan.addEventListener('click', () => scrollToHighlight(currentHighlightIndex));
 
   // Count display
   const countSpan = document.createElement('span');
@@ -303,7 +304,6 @@ function createControlButtons() {
   currentCount.id = 'highlight-current-count';
   currentCount.appendChild(currentSpan);
   currentCount.appendChild(countSpan);
-  currentCount.addEventListener('click', () => scrollToHighlight(currentHighlightIndex));
   
   // Next button
   const nextBtn = document.createElement('button');
