@@ -24,6 +24,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 #doc (Manual) "Build Tools and Distribution" =>
 %%%
 tag := "build-tools-and-distribution"
+shortContextTitle := "Build Tools"
 %%%
 
 :::paragraph

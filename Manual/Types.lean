@@ -20,6 +20,7 @@ set_option maxRecDepth 800
 #doc (Manual) "The Type System" =>
 %%%
 tag := "type-system"
+shortContextTitle := "Type System"
 %%%
 
 {deftech}_Terms_, also known as {deftech}_expressions_, are the fundamental units of meaning in Lean's core language.

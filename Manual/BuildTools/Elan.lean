@@ -22,6 +22,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 #doc (Manual) "Managing Toolchains with Elan" =>
 %%%
 tag := "elan"
+shortContextTitle := "Elan"
 %%%
 
 Elan is the Lean toolchain manager.
