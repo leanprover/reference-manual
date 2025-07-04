@@ -44,7 +44,7 @@
   outline: none;
   font-size: .9rem;
   padding: .3rem .5rem;
-  font-family: sans-serif;
+  font-family: system-ui, sans-serif;
   /* Fix firefox eating spaces in textContent */
   white-space: -moz-pre-space;
 }
@@ -125,6 +125,19 @@
   font-family: var(--verso-code-font-family);
 }
 
+#search-wrapper .search-result.full-text  {
+  font-family: var(--verso-text-font-family);
+}
+#search-wrapper .search-result.full-text .header {
+  display: block;
+}
+#search-wrapper .search-result.full-text .header,
+#search-wrapper .search-result.full-text .header em {
+  font-style: normal;
+  font-family: var(--verso-structure-font-family);
+  font-weight: bold;
+}
+
 #search-wrapper .search-result.tactic-domain,
 #search-wrapper .search-result.conv-tactic-domain {
   font-family: var(--verso-code-font-family);
@@ -171,6 +184,10 @@
   text-decoration: underline;
 }
 
+#search-wrapper .search-result .domain em {
+  font-style: italic;
+}
+
 #search-wrapper .search-result .domain {
   text-align: right;
   color: #777;
@@ -178,6 +195,23 @@
   font-family: var(--verso-structure-font-family);
   font-weight: normal;
   font-size: .7rem;
+}
+
+#search-wrapper .search-result .domain.text-context {
+  /* For full-text search results, truncate on the left with an ellipsis */
+  text-overflow: ellipsis;
+  direction: rtl;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#search-wrapper .search-result .domain .context-elem {
+  display: inline-block;
+}
+
+#search-wrapper .search-result .domain .context-elem:not(:last-child)::after {
+  content: "»";
+  margin: 0 0.25em;
 }
 
 /* Couple the domain tighter with the search term on smaller screens,
