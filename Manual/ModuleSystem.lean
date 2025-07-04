@@ -16,12 +16,33 @@ number := false
 %%%
 
 The module system is an experimental feature that allows for more fine-grained control over what information is exported from, and imported into, modules.
-This can improve build times, reduce the sizes of compiled executables, provide more API design options, and more.
+
+The main benefits of doing so are:
+
+: Average build times
+
+  Changes to files that affect only non-exported information will not trigger rebuilds outside of these files.
+  Even when dependent files have to be rebuilt, those files that cannot be affected according to the `import` annotations can be skipped.
+
+: API design
+
+  Library authors can trust that changes to non-exported information will not affect downstream users of their library.
+
+: Avoiding accidental unfolding
+
+  Limiting the scope in which definitions can be unfolded allows for avoiding both reductions that should be replaced by application of more specific theorems as well as unproductive reductions that are then backtracked.
+
+: Smaller executables
+
+  Separation of compile-time and run-time code allows for more aggressive dead code elimination.
 
 The module system is activated by prefixing a Lean file with the `module` keyword.
-At the time of writing, it is additionally guarded by the `experimental.module` option that has to be set to `true` in the project's Lake configuration file.
 `module`s can only import other `module`s so adoption has to be done top-down.
 Non-`module`s can import `module`s and will ignore all module-system-specific annotations.
+
+At the time of writing, the module system is considered experimental and additionally guarded by the `experimental.module` option that has to be set to `true` in the project's Lake configuration file.
+Of libraries shipped with Lean, only `Init` is currently fully ported.
+The language semantics described below are close to final, but not all benefits described above are implemented yet.
 
 # Visibility
 
