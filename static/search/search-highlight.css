@@ -8,7 +8,6 @@
 
 #highlight-controls {
     position: fixed;
-    /* top: var(--verso-header-height, 50px);*/
     bottom: 10px;
     right: 10px;
     z-index: 99; /* The search box dropdown is 100, and should cover this */
@@ -19,15 +18,34 @@
     border-radius: 4px;
     padding: 4px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;
     font-size: 12px;
     font-family: system-ui, sans-serif;
 }
+
+@media screen and (max-width: 700px) {
+    #highlight-controls {
+        width: 100%;
+        bottom: 0px;
+        right: 0px;
+        display: flex;
+    }
+}
+
 
 #highlight-prev, #highlight-next, #highlight-close {
     padding: 6px 8px;
     border-radius: 2px;
     cursor: pointer;
     font-size: 12px;
+}
+
+@media screen and (max-width: 700px) {
+    /* Touch-friendly sizing */
+    #highlight-prev, #highlight-next, #highlight-close {
+        min-width: var(--verso-burger-width, 1.5rem);
+        min-height: var(--verso-burger-height, 1.5rem);
+    }
 }
 
 #highlight-prev, #highlight-next {
@@ -50,6 +68,12 @@
     min-width: 40px;
     text-align: center;
     font-size: 12px;
+}
+
+@media screen and (max-width: 700px) {
+    #highlight-current-count {
+        flex: 1 1 100%;
+    }
 }
 
 #highlight-current:not(:empty) {

@@ -18,7 +18,7 @@ const searchIndex = /** @type {{searchIndex: TextSearchIndex}} */ (
  */
 const tokenizeText = (text) => {
   const toks = [];
-  const regex = /\S+/g;
+  const regex = /[^\s(),."“”—]+/g;
   let match;
   while ((match = regex.exec(text)) !== null) {
     let stems = searchIndex.pipeline.run([match[0]]);
