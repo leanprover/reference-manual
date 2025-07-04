@@ -94,7 +94,7 @@ where
     extraJs := [
       -- Search box
       {filename := "/static/search/fuzzysort.js"},
-      {filename := "/static/search/search-highlight.js"},
+      {filename := "/static/search/search-highlight.js", after := #["searchIndex.js"], defer := true},
       -- Print stylesheet improvements
       {filename := "/static/print.js"}
     ],
