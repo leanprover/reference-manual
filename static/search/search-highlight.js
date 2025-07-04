@@ -90,7 +90,9 @@ function highlightSearchTerms() {
           !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName.toUpperCase()) &&
           !node.classList.contains('text-search-results') &&
           // Don't highlight search terms in invisible hovers
-          !node.classList.contains('hover-info')) {
+          !node.classList.contains('hover-info') &&
+          // Don't highlight search terms in doc box labels
+          !(node.classList.contains('label') && node.parentNode && node.parentNode.classList.contains('namedocs'))) {
         
         // Process child nodes (in reverse order to handle DOM changes)
         const children = Array.from(node.childNodes);
