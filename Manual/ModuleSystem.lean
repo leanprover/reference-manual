@@ -13,6 +13,7 @@ open Verso.Genre.Manual.InlineLean
 #doc (Manual) "The Module System" =>
 %%%
 number := false
+tag := "module-system"
 %%%
 
 The module system is an experimental feature that allows for more fine-grained control over what information is exported from, and imported into, modules.

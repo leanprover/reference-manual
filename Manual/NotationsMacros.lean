@@ -278,9 +278,9 @@ Application type mismatch: In the application
 the argument
   cmd1
 has type
-  TSyntax `command : Type
+  TSyntax `command
 but is expected to have type
-  TSyntax `term : Type
+  TSyntax `term
 ```
 
 The type of the quotation ({lean}``MacroM (TSyntax `command)``) is not used to select a result because syntax priorities are applied prior to elaboration.

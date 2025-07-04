@@ -362,6 +362,7 @@ module.header
 module.ilean
 module.imports
 module.input
+module.ir
 module.lean
 module.leanArts
 module.o
@@ -429,6 +430,10 @@ The facets available for modules are:
 
   All of a module's dependencies: transitive local imports and shared libraries to be loaded with `--load-dynlib`.
   Returns the list of shared libraries to load along with their search path.
+
+: `ir`
+
+  The `.ir` file produced by `lean` (with the {ref "module-system"}[experimental module system] enabled).
 
 : `c`
 

@@ -438,9 +438,9 @@ The problem is that the associativity of addition of natural numbers holds propo
 type mismatch
   xs ++ ys ++ zs
 has type
-  Vector α (l₁ + l₂ + l₃) : outParam (Type u)
+  Vector α (l₁ + l₂ + l₃)
 but is expected to have type
-  Vector α (l₁ + (l₂ + l₃)) : outParam (Type u)
+  Vector α (l₁ + (l₂ + l₃))
 ```
 
 :::paragraph

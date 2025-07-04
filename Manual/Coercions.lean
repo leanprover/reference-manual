@@ -495,9 +495,9 @@ Ordinary type errors are produced for other strings:
 type mismatch
   "three"
 has type
-  String : Type
+  String
 but is expected to have type
-  Nat : Type
+  Nat
 ```
 
 :::
@@ -691,9 +691,9 @@ When coercion insertion fails, the original type error is reported:
 type mismatch
   ys
 has type
-  List Nat : Type
+  List Nat
 but is expected to have type
-  NonEmptyList Nat : Type
+  NonEmptyList Nat
 ```
 
 :::

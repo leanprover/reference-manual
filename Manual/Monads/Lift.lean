@@ -147,9 +147,9 @@ def incrOrFail : ReaderT Nat (ExceptT String (StateM Nat)) Unit := do
 type mismatch
   incrBy __do_lift✝
 has type
-  StateM Nat Unit : Type
+  StateM Nat Unit
 but is expected to have type
-  ReaderT Nat (ExceptT String (StateM Nat)) Unit : Type
+  ReaderT Nat (ExceptT String (StateM Nat)) Unit
 ```
 
 ::::

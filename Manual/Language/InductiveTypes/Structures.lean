@@ -538,9 +538,9 @@ Application type mismatch: In the application
 the argument
   two
 has type
-  EvenPrime : Type
+  EvenPrime
 but is expected to have type
-  EvenNumber : Type
+  EvenNumber
 ```
 because values of type {name}`EvenPrime` are not also values of type {name}`EvenNumber`.
 :::
@@ -570,9 +570,9 @@ def someC : C where
 error: type mismatch
   someC
 has type
-  C : Type
+  C
 but is expected to have type
-  A : Type
+  A
 -/
 #check_msgs in
 #check (someC : A)
@@ -590,9 +590,9 @@ structure E extends A, B where
 #check E.mk
 /--
 error: field type mismatch, field 'x' from parent 'A'' has type
-  Int : Type
+  Int
 but is expected to have type
-  Nat : Type
+  Nat
 -/
 #check_msgs in
 structure F extends A, A' where
