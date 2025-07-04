@@ -19,7 +19,7 @@ const searchHTML = `<div id="search-wrapper">
         class="cb_edit"
         contenteditable="true"
         role="searchbox"
-        placeholder="Jump to..."
+        placeholder="${window.searchIndex ? 'Search...' : 'Jump to...'}"
         aria-autocomplete="list"
         aria-expanded="false"
         aria-controls="cb1-listbox"
