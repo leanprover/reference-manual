@@ -104,9 +104,9 @@ Application type mismatch: In the application
 the argument
   "two"
 has type
-  String : Type
+  String
 but is expected to have type
-  Nat : Type
+  Nat
 ```
 
 

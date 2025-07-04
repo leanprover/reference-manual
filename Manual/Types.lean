@@ -123,9 +123,9 @@ Application type mismatch: In the application
 the argument
   ()
 has type
-  Unit : Type
+  Unit
 but is expected to have type
-  LengthList String 3 : Type
+  LengthList String 3
 ```
 :::
 ::::
@@ -194,9 +194,10 @@ example : Sort 5 := Sort 3
 type mismatch
   Type 2
 has type
-  Type 3 : Type 4
-but is expected to have type
-  Type 4 : Type 5
+  Type 3
+of sort `Type 4` but is expected to have type
+  Type 4
+of sort `Type 5`
 ```
 
 Similarly, because {lean}`Unit` is in {lean}`Sort 1`, it is not in {lean}`Sort 2`:
@@ -211,9 +212,10 @@ example : Sort 2 := Unit
 type mismatch
   Unit
 has type
-  Type : Type 1
-but is expected to have type
-  Type 1 : Type 2
+  Type
+of sort `Type 1` but is expected to have type
+  Type 1
+of sort `Type 2`
 ```
 
 Because propositions and data are used differently and are governed by different rules, the abbreviations {lean}`Type` and {lean}`Prop` are provided to make the distinction more convenient.  {index}[`Type`] {index}[`Prop`]
@@ -263,9 +265,10 @@ example (α : Type 2) (β : Type 1) : Type 1 := α → β
 type mismatch
   α → β
 has type
-  Type 2 : Type 3
-but is expected to have type
-  Type 1 : Type 2
+  Type 2
+of sort `Type 3` but is expected to have type
+  Type 1
+of sort `Type 2`
 ```
 :::
 
@@ -281,9 +284,10 @@ example (α : Type 2) (β : Type 1) : Type 3 := α → β
 type mismatch
   α → β
 has type
-  Type 2 : Type 3
-but is expected to have type
-  Type 3 : Type 4
+  Type 2
+of sort `Type 3` but is expected to have type
+  Type 3
+of sort `Type 4`
 ```
 :::
 
@@ -349,11 +353,11 @@ def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
 type mismatch
-  rfl.{?u.29}
+  rfl.{?u.46}
 has type
-  Eq.{?u.29} ?m.31 ?m.31 : Prop
+  Eq.{?u.46} ?m.48 ?m.48
 but is expected to have type
-  Eq.{1} (T.{u} 0) (T.{v} 0) : Prop
+  Eq.{1} (T.{u} 0) (T.{v} 0)
 ```
 :::
 ::::

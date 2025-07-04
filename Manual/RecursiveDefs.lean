@@ -422,9 +422,9 @@ def goodEvening : Utterance := "Good evening"
 type mismatch
   "Good evening"
 has type
-  String : Type
+  String
 but is expected to have type
-  Utterance : Type
+  Utterance
 ```
 
 Because {lean}`Phrase` is reducible, the {inst}`ToString String` instance can be used as a {inst}`ToString Phrase` instance:

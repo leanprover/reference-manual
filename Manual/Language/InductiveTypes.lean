@@ -215,9 +215,9 @@ example : EvenOddList String true :=
 type mismatch
   EvenOddList.cons "a" (EvenOddList.cons "b" (EvenOddList.cons "c" EvenOddList.nil))
 has type
-  EvenOddList String !!!true : Type
+  EvenOddList String !!!true
 but is expected to have type
-  EvenOddList String true : Type
+  EvenOddList String true
 ```
 
 :::keepEnv
@@ -637,9 +637,10 @@ end
 ```
 ```leanOutput manyOptional
 invalid mutually inductive types, parameter 'α' has type
-  Type u : Type (u + 1)
-but is expected to have type
-  Type : Type 1
+  Type u
+of sort `Type (u + 1)` but is expected to have type
+  Type
+of sort `Type 1`
 ```
 :::
 ::::

@@ -1323,9 +1323,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.1340
+  motive (instOfNatBlah_1.f 0)
 but is expected to have type
-  motive n✝ : Sort ?u.1340
+  motive n✝
 -/
 #check_msgs in
 def defg (n : Blah) : Bool :=
@@ -1334,9 +1334,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.1439
+  motive (Float.ofScientific 25 true 1)
 but is expected to have type
-  motive x✝ : Sort ?u.1439
+  motive x✝
 -/
 #check_msgs in
 def twoPointFive? : Float → Option Float
@@ -1517,9 +1517,9 @@ def BalancedTree.isPerfectlyBalanced
 type mismatch
   left.branch val right
 has type
-  BalancedTree ?m.54 (?m.51 + 1) : Type ?u.47
+  BalancedTree ?m.54 (?m.51 + 1)
 but is expected to have type
-  BalancedTree α 0 : Type u
+  BalancedTree α 0
 ```
 :::
 ::::
@@ -1650,9 +1650,9 @@ Application type mismatch: In the application
 the argument
   h
 has type
-  b = true : Prop
+  b = true
 but is expected to have type
-  true = true : Prop
+  true = true
 ```
 Turning off generalization allows type checking to succeed, because {lean}`b` remains in the types of {lean}`ifTrue` and {lean}`ifFalse`.
 ```lean
