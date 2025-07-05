@@ -124,10 +124,8 @@ Thus another use case of `import all` is to make declarations available that nee
 # The `meta` Phase
 
 When it comes to actual code execution, there is no point to a definition without a body.
-Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier[^meta3].
+Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier.
 This is automatically done in built-in metaprogramming syntax such as `syntax`, `macro`, and `elab` but may need to be done explicitly when manually applying metaprogramming attributes such as `@[app_delab]`.
-
-[^meta3]: Semantically unrelated to the modifier of the same name in Lean 3.
 
 A `meta` definition may access (and thus invoke) any `meta` or non-`meta` definition of the current module.
 For accessing imported definitions, the definition must either have been marked as `meta` when it was declared or the import must be marked as such (`meta import` when the accessing definition is in the private scope and `public meta import` otherwise).
