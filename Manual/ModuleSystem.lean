@@ -15,7 +15,7 @@ open Verso.Genre.Manual.InlineLean
 number := false
 %%%
 
-The module system is an experimental feature that allows for more fine-grained control over what information is exported from, and imported into, modules.
+The module system is an experimental feature that allows for more fine-grained control over what information is exported from, and imported into, Lean files.
 
 The main benefits of doing so are:
 
