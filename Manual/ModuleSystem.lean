@@ -127,8 +127,6 @@ When it comes to actual code execution, there is no point to a definition withou
 Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier[^meta3].
 This is automatically done in built-in metaprogramming syntax such as `syntax`, `macro`, and `elab` but may need to be done explicitly when manually applying metaprogramming attributes such as `@[app_delab]`.
 
-[^meta3]: Semantically unrelated to the modifier of the same name in Lean 3.
-
 A `meta` definition may access (and thus invoke) any `meta` or non-`meta` definition of the current module.
 For accessing imported definitions, the definition must either have been marked as `meta` when it was declared or the import must be marked as such (`meta import` when the accessing definition is in the private scope and `public meta import` otherwise).
 
@@ -164,3 +162,5 @@ The following list contains common errors one might encounter when using the mod
   {keywordOf Lean.reduceCmd}`#reduce` and/or {option}`trace.Meta.isDefEq` can help with finding the blocking definition.
   You might also see this as a kernel error when a tactic directly emits proof terms referencing specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using `@[expose] section`s generously on the closure of relevant modules.
+
+[^meta3]: Semantically unrelated to the modifier of the same name in Lean 3.
