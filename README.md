@@ -67,6 +67,24 @@ python3 ./server.py 8880 &
 
 Then open <http://localhost:8880> in your browser.
 
+## Building the Reference Manual Using Docker
+
+If you prefer to use Docker, you can build and run the reference manual without installing dependencies manually. Follow these steps:
+
+1. Build the Docker image:
+
+   ```bash
+   docker build -t reference-manual .
+   ```
+
+2. Run the Docker container:
+
+   ```bash
+   docker run -p 8880:8880 reference-manual
+   ```
+
+3. Open <http://localhost:8880> in your browser to view the reference manual.
+
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
