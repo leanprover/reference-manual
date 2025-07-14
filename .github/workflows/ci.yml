@@ -16,6 +16,7 @@ jobs:
   build:
     name: Build site and generate HTML
     runs-on: ubuntu-latest
+
     steps:
       - name: Install deps for figures (OS packages)
         run: |
@@ -24,14 +25,16 @@ jobs:
       - name: Install deps for figures (TeX)
         uses: teatimeguest/setup-texlive-action@v3
         with:
+          version: 2024
           packages: |
-            scheme-minimal
+            scheme-small
             latex-bin
             fontspec
             standalone
             pgf
             pdftexcmds
             luatex85
+            lualatex-math
             infwarerr
             ltxcmds
             xcolor
@@ -40,12 +43,19 @@ jobs:
             inter
             epstopdf-pkg
             tex-gyre
+            tex-gyre-math
+            unicode-math
+            amsmath
             sourcecodepro
+
+      - name: Do we have lualatex?
+        run: |
+          lualatex --version
 
       - name: Install elan
         run: |
           set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.0.0/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
@@ -79,7 +89,7 @@ jobs:
 
       - name: Generate HTML
         run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --output "_out" --site-base-url "/mathlib-manual/html-multi/"
+          lake --quiet exe generate-manual --depth 2 --verbose --output "_out" --site-base-url "/mathlib-manual/html-multi/"
 
       - name: Upload static files as artifact
         uses: actions/upload-pages-artifact@v3
@@ -99,7 +109,7 @@ jobs:
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           cat words.txt >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-  
+
   # Deploy job
   deploy:
     # only deploy on main
