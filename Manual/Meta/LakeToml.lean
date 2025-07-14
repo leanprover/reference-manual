@@ -18,11 +18,9 @@ import SubVerso.Examples
 
 import Manual.Meta.Basic
 import Manual.Meta.ExpectString
-import Manual.Meta.Lean.Scopes
-import Manual.Meta.Lean.Block
 import Manual.Meta.LakeToml.Toml
+import Manual.Meta.LakeToml.Test
 
-import Lake
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
@@ -31,6 +29,8 @@ open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
 
 open Lean.Elab.Tactic.GuardMsgs
+
+set_option guard_msgs.diff true
 
 namespace Manual
 
@@ -45,7 +45,8 @@ inductive FieldType where
   | oneOf (choices : List String)
   | option (t : FieldType)
   | bool
-  | other (name : Name) (what : String)
+  | target
+  | other (name : Name) (what : String) (whatPlural : Option String)
 deriving Repr, ToJson, FromJson
 
 open Lean Syntax in
@@ -61,7 +62,8 @@ where
     | .oneOf cs => mkCApp ``FieldType.oneOf #[quote cs]
     | .option x => mkCApp ``FieldType.option #[q x]
     | .bool => mkCApp ``FieldType.bool #[]
-    | .other x y => mkCApp ``FieldType.other #[quote x, quote y]
+    | .target => mkCApp ``FieldType.target #[]
+    | .other x y z => mkCApp ``FieldType.other #[quote x, quote y, quote z]
 
 
 open Output Html in
@@ -71,8 +73,10 @@ def FieldType.toHtml (plural : Bool := false) : FieldType → Html
   | .version => if plural then "version strings" else "Version string"
   | .path => if plural then "paths" else "Path"
   | .array t => (if plural then "arrays of " else "Array of ") ++ t.toHtml true
-  | .other _ y => if plural then y ++ "s" else y
+  | .other _ y none => if plural then y ++ "s" else y
+  | .other _ y (some z) => if plural then z else y
   | .bool => if plural then "Booleans" else "Boolean"
+  | .target => if plural then "targets" else "target"
   | .option t => t.toHtml ++ " (optional)"
   | .oneOf xs =>
     let opts := xs
@@ -132,6 +136,7 @@ structure TomlFieldOpts where
   inTable : Name
   field : Name
   typeDesc : String
+  typeDescPlural : String
   type : Name
   sort : Option Nat
 
@@ -144,7 +149,7 @@ private partial def many [Applicative f] [Alternative f] (p : f α) : f (List α
 
 
 def TomlFieldOpts.parse  [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m TomlFieldOpts :=
-  TomlFieldOpts.mk <$> .positional `inTable .name <*> .positional `field .name <*> .positional `typeDesc .string <*> .positional `type .resolvedName <*> .named `sort .nat true
+  TomlFieldOpts.mk <$> .positional `inTable .name <*> .positional `field .name <*> .positional `typeDesc .string <*> .positional `typeDescPlural .string <*> .positional `type .resolvedName <*> .named `sort .nat true
 
 instance : Quote Empty where
   quote := nofun
@@ -152,8 +157,8 @@ instance : Quote Empty where
 @[directive_expander tomlField]
 def tomlField : DirectiveExpander
   | args, contents => do
-    let {inTable, field, typeDesc, type, sort} ← TomlFieldOpts.parse.run args
-    let field : Toml.Field Empty := {name := field, type := .other type typeDesc, docs? := none}
+    let {inTable, field, typeDesc, typeDescPlural, type, sort} ← TomlFieldOpts.parse.run args
+    let field : Toml.Field Empty := {name := field, type := .other type typeDesc typeDescPlural, docs? := none}
     let contents ← contents.mapM elabBlock
     return #[← ``(Block.other (Block.tomlField $(quote sort) $(quote inTable) $(quote field)) #[$contents,*])]
 
@@ -170,7 +175,11 @@ def Block.tomlField.descr : BlockDescr where
     modify fun s =>
       let name := s!"{inTable} {field.name}"
       s |>.saveDomainObject tomlFieldDomain name id
-        |>.saveDomainObjectData tomlFieldDomain name (json%{"table": $inTable.toString, "tableArrayKey": $(tableArrayKey.getD .null), "field": $field.name.toString})
+        |>.saveDomainObjectData tomlFieldDomain name (json%{
+          "table": $inTable.toString,
+          "tableArrayKey": $(tableArrayKey.getD .null),
+          "field": $field.name.toString
+        })
     discard <| externalTag id (← read).path s!"{inTable}-{field.name}"
     pure none
   toTeX := none
@@ -196,6 +205,12 @@ def Block.tomlField.descr : BlockDescr where
             {{← contents.mapM goB}}
         </dd>
       }}
+  localContentItem _ info _ := open Verso.Output Html in do
+    let (_, _inTable, field) ← FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
+    let name := field.name.toString
+    pure #[
+      (name, {{<code class="field-name">{{name}}</code>}})
+    ]
 
 private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
   blocks.flatMap fun
@@ -235,7 +250,7 @@ def Block.tomlFieldCategory.descr : BlockDescr where
 
 ]
 
-  toHtml := some <| fun _goI goB id info contents =>
+  toHtml := some <| fun _goI goB _id info contents =>
     open Verso.Doc.Html in
     open Verso.Output Html in do
       let .arr #[.str title, _fields] := info
@@ -389,6 +404,14 @@ dl.toml-table-field-spec {
         </div>
       }}
 
+  localContentItem _ info _ := open Verso.Output Html in do
+    let (arrayKey, humanName, typeName) ← FromJson.fromJson? (α := Option String × String × Name) info
+    if let some arrayKey := arrayKey then
+      pure #[(s!"[[{arrayKey}]]", {{<code>s!"[[{arrayKey}]]"</code>}})]
+    else
+      pure #[(humanName, {{ {{humanName}} }})]
+
+
 namespace Toml
 
 section
@@ -443,17 +466,22 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isConstOf ``Name then some .string
                 else if type.isConstOf ``Bool then some .bool
                 else if type.isConstOf ``System.FilePath then some .path
-                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration")
+                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration" none)
                 else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
                 else if type.isConstOf ``Lake.StdVer then some .version
-                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern")
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option"))
+                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern" none)
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option" none))
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.PartialBuildKey then some (.array .target)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``Bool then some (.option .bool)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``String then some (.option .string)
                 else if type.isAppOfArity ``Option 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.option .path)
+                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``Lake.Dynlib then
+                  some (.array (.other ``Lake.Dynlib "dynamic library" "dynamic libraries"))
+                else if type.isAppOfArity ``Lake.TargetArray 1 && (type.getArg! 0).isConstOf ``System.FilePath then
+                  some (.array .path)
                 else none
               if let some type := type' then
                 return { name := fieldName, type, docs?}
@@ -531,21 +559,6 @@ def tomlTableDocs : DirectiveExpander
 
 namespace Toml
 
-/-- Types that can be used in in-manual tests for TOML decoding -/
-class Test (α : Type u) where
-  toString : α → Format
-
-instance [ToString α] : Test α where
-  toString := .text ∘ toString
-
-instance [Repr α] : Test α where
-  toString x := repr x
-
-instance [Test α] : Test (Array α) where
-  toString arr := "#[" ++ .group (.nest 2 <| Format.joinSep (arr.map Test.toString).toList ("," ++ .line))  ++ "]"
-
-instance [Test α] : Test (NameMap α) where
-  toString xs := "{" ++ .group (.nest 2 <| Format.joinSep (xs.toList.map (fun x => s!"'{x.1}' ↦ {Test.toString x.2}")) ("," ++ .line)) ++ "}"
 
 instance [Test α] : Test (Lake.OrdNameMap α) where
   toString xs := Id.run do
@@ -561,11 +574,33 @@ instance [{n : Name} → Test (f n)] : Test (Lake.DNameMap f) where
       out := out ++ .group (.nest 2 <| Test.toString k ++ " ↦" ++ .line ++ Test.toString v) ++ "," ++ .line
     return .group (.nest 2 <| "{" ++ out) ++ "}"
 
-instance : Test Lake.StrPat where
-  toString
-    | .satisfies _f n => s!".satisfies #<fun> {n}"
-    | .startsWith s => s!".startsWith {s.quote}"
-    | .mem ss => s!".mem {Test.toString ss}"
+
+
+mutual
+
+partial def testPatDescr [Test α] [Test β] : (Lake.PatternDescr α β) → Std.Format
+  | .not x => .group <| .nest 2 <| ".not" ++ .line ++ testPat x
+  | .coe x => .group <| .nest 2 <| ".coe" ++ .line ++ Test.toString x
+  | .any xs => .group <| .nest 2 <| ".any" ++ .line ++ "#[" ++ arrElems (xs.map testPat) ++ "]"
+  | .all xs => .group <| .nest 2 <| ".all" ++ .line ++ "#[" ++ arrElems (xs.map testPat) ++ "]"
+where
+  arrElems (xs : Array Std.Format) : Std.Format :=
+    .group <| .nest 2 <| (Std.Format.text "," ++ .line).joinSep xs.toList
+
+partial def testPat [Test α] [Test β] : (Lake.Pattern α β) → Std.Format
+  | {filter, name, descr?} =>
+    let fields : List Std.Format := [
+      "filter :=" ++ .line ++ Test.toString filter,
+      "name :=" ++ .line ++ Test.toString name,
+      "descr? :=" ++ .line ++ Test.toString (descr?.map testPatDescr),
+    ]
+    .group <| (.nest 2 <| "{" ++ .line ++ (Std.Format.text "," ++ .line).joinSep fields) ++ "}"
+end
+
+instance [Test α] [Test β] : Test (Lake.PatternDescr α β) := ⟨testPatDescr⟩
+instance [Test α] [Test β] : Test (Lake.Pattern α β) := ⟨testPat⟩
+
+deriving instance Repr for Lake.StrPatDescr
 
 instance : Test (Lake.Script) where
   toString s := s!"#<script {s.name}>"
@@ -579,95 +614,30 @@ instance : Test (Lake.OpaqueTargetConfig n n') where
 instance : Test (Lake.OpaquePostUpdateHook α) where
   toString _ := s!"#<post-update-hook>"
 
--- HACK: This is easier to write than a deriving handler and there's a deadline
-/--
-info: {toWorkspaceConfig, toLeanConfig, name, manifestFile, extraDepTargets, precompileModules, moreServerArgs, moreGlobalServerArgs, srcDir, buildDir, leanLibDir, nativeLibDir, binDir, irDir, releaseRepo?, releaseRepo, buildArchive?, buildArchive, preferReleaseBuild, testDriver, testDriverArgs, lintDriver, lintDriverArgs, version, versionTags, description, keywords, homepage, license, licenseFiles, readmeFile, reservoir}
-"{" ++ .group (.nest 2 <| "toWorkspaceConfig := " ++ Test.toString toWorkspaceConfig ++ "," ++ .line ++ "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "manifestFile := " ++ Test.toString manifestFile ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "moreServerArgs := " ++ Test.toString moreServerArgs ++ "," ++ .line ++ "moreGlobalServerArgs := " ++ Test.toString moreGlobalServerArgs ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "buildDir := " ++ Test.toString buildDir ++ "," ++ .line ++ "leanLibDir := " ++ Test.toString leanLibDir ++ "," ++ .line ++ "nativeLibDir := " ++ Test.toString nativeLibDir ++ "," ++ .line ++ "binDir := " ++ Test.toString binDir ++ "," ++ .line ++ "irDir := " ++ Test.toString irDir ++ "," ++ .line ++ "releaseRepo? := " ++ Test.toString releaseRepo? ++ "," ++ .line ++ "releaseRepo := " ++ Test.toString releaseRepo ++ "," ++ .line ++ "buildArchive? := " ++ Test.toString buildArchive? ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "preferReleaseBuild := " ++ Test.toString preferReleaseBuild ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "testDriverArgs := " ++ Test.toString testDriverArgs ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver ++ "," ++ .line ++ "lintDriverArgs := " ++ Test.toString lintDriverArgs ++ "," ++ .line ++ "version := " ++ Test.toString version ++ "," ++ .line ++ "versionTags := " ++ Test.toString versionTags ++ "," ++ .line ++ "description := " ++ Test.toString description ++ "," ++ .line ++ "keywords := " ++ Test.toString keywords ++ "," ++ .line ++ "homepage := " ++ Test.toString homepage ++ "," ++ .line ++ "license := " ++ Test.toString license ++ "," ++ .line ++ "licenseFiles := " ++ Test.toString licenseFiles ++ "," ++ .line ++ "readmeFile := " ++ Test.toString readmeFile ++ "," ++ .line ++ "reservoir := " ++ Test.toString reservoir) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.PackageConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-
-instance : Test Lake.PackageConfig where
-  toString
-    | {toWorkspaceConfig, toLeanConfig, name, manifestFile, extraDepTargets, precompileModules, moreServerArgs, moreGlobalServerArgs, srcDir, buildDir, leanLibDir, nativeLibDir, binDir, irDir, releaseRepo?, releaseRepo, buildArchive?, buildArchive:=_, preferReleaseBuild, testDriver, testDriverArgs, lintDriver, lintDriverArgs, version, versionTags, description, keywords, homepage, license, licenseFiles, readmeFile, reservoir} =>
-      "{" ++ .group (.nest 2 <| "toWorkspaceConfig := " ++ Test.toString toWorkspaceConfig ++ "," ++ .line ++ "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "manifestFile := " ++ Test.toString manifestFile ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "moreServerArgs := " ++ Test.toString moreServerArgs ++ "," ++ .line ++ "moreGlobalServerArgs := " ++ Test.toString moreGlobalServerArgs ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "buildDir := " ++ Test.toString buildDir ++ "," ++ .line ++ "leanLibDir := " ++ Test.toString leanLibDir ++ "," ++ .line ++ "nativeLibDir := " ++ Test.toString nativeLibDir ++ "," ++ .line ++ "binDir := " ++ Test.toString binDir ++ "," ++ .line ++ "irDir := " ++ Test.toString irDir ++ "," ++ .line ++ "releaseRepo? := " ++ Test.toString releaseRepo? ++ "," ++ .line ++ "releaseRepo := " ++ Test.toString releaseRepo ++ "," ++ .line ++ "buildArchive? := " ++ Test.toString buildArchive? ++ "," ++ .line ++ "buildArchive := " ++ "ELIDED" ++ "," ++ .line ++ "preferReleaseBuild := " ++ Test.toString preferReleaseBuild ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "testDriverArgs := " ++ Test.toString testDriverArgs ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver ++ "," ++ .line ++ "lintDriverArgs := " ++ Test.toString lintDriverArgs ++ "," ++ .line ++ "version := " ++ Test.toString version ++ "," ++ .line ++ "versionTags := " ++ Test.toString versionTags ++ "," ++ .line ++ "description := " ++ Test.toString description ++ "," ++ .line ++ "keywords := " ++ Test.toString keywords ++ "," ++ .line ++ "homepage := " ++ Test.toString homepage ++ "," ++ .line ++ "license := " ++ Test.toString license ++ "," ++ .line ++ "licenseFiles := " ++ Test.toString licenseFiles ++ "," ++ .line ++ "readmeFile := " ++ Test.toString readmeFile ++ "," ++ .line ++ "reservoir := " ++ Test.toString reservoir) ++ "}"
-instance : Test Lake.Dependency where
-  toString
-    | {name, scope, version?, src?, opts} =>
-      "{" ++ .group (.nest 2 <| "name := `" ++ name.toString ++ "," ++ .line ++ "scope := " ++ scope.quote ++ "," ++ .line ++ s!"version := {version?}" ++ "," ++ .line ++ "src? := " ++ Test.toString src? ++ "," ++ .line ++ "opts := " ++ Test.toString opts) ++ .line ++ "}"
-
 instance : Test Lake.Toml.DecodeError where
   toString
     | {ref, msg} => s!"{msg} at {ref}"
 
-instance {α : Type u} {β : Type v} : Test (α → β) where
-  toString _ := "#<fun>"
+deriving instance Test for Lake.Dependency
+deriving instance Test for Lake.PackageConfig
+deriving instance Test for Lake.LeanLibConfig
+deriving instance Test for Lake.LeanExeConfig
 
-/--
-info: {toLeanConfig, name, srcDir, roots, globs, libName, extraDepTargets, precompileModules, defaultFacets, nativeFacets}
-"{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "roots := " ++ Test.toString roots ++ "," ++ .line ++ "globs := " ++ Test.toString globs ++ "," ++ .line ++ "libName := " ++ Test.toString libName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "defaultFacets := " ++ Test.toString defaultFacets ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.LeanLibConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-instance : Test (Lake.LeanLibConfig) where
-  toString
-    | {toLeanConfig, name, srcDir, roots, globs, libName, extraDepTargets, precompileModules, defaultFacets, nativeFacets} =>
-      "{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "roots := " ++ Test.toString roots ++ "," ++ .line ++ "globs := " ++ Test.toString globs ++ "," ++ .line ++ "libName := " ++ Test.toString libName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "precompileModules := " ++ Test.toString precompileModules ++ "," ++ .line ++ "defaultFacets := " ++ Test.toString defaultFacets ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
-
-/--
-info: {toLeanConfig, name, srcDir, root, exeName, extraDepTargets, supportInterpreter, nativeFacets}
-"{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "root := " ++ Test.toString root ++ "," ++ .line ++ "exeName := " ++ Test.toString exeName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "supportInterpreter := " ++ Test.toString supportInterpreter ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.LeanExeConfig |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-instance : Test (Lake.LeanExeConfig) where
-  toString
-    | {toLeanConfig, name, srcDir, root, exeName, extraDepTargets, supportInterpreter, nativeFacets} =>
-      "{" ++ .group (.nest 2 <| "toLeanConfig := " ++ Test.toString toLeanConfig ++ "," ++ .line ++ "name := " ++ Test.toString name ++ "," ++ .line ++ "srcDir := " ++ Test.toString srcDir ++ "," ++ .line ++ "root := " ++ Test.toString root ++ "," ++ .line ++ "exeName := " ++ Test.toString exeName ++ "," ++ .line ++ "extraDepTargets := " ++ Test.toString extraDepTargets ++ "," ++ .line ++ "supportInterpreter := " ++ Test.toString supportInterpreter ++ "," ++ .line ++ "nativeFacets := " ++ Test.toString nativeFacets) ++ "}"
+instance : Test (Lake.ConfigType kind pkg name) where
+  toString :=
+    match kind with
+    | `lean_lib => fun (x : Lake.LeanLibConfig name) => Test.toString x
+    | `lean_exe => fun (x : Lake.LeanExeConfig name) => Test.toString x
+    | `extern_lib => fun (x : Lake.ExternLibConfig pkg name) => Test.toString x
+    | .anonymous => fun (x : Lake.OpaqueTargetConfig pkg name) => Test.toString x
+    | _ => fun _ => "Impossible!"
 
 
+deriving instance Test for Lake.ConfigDecl
+deriving instance Test for Lake.PConfigDecl
+deriving instance Test for Lake.NConfigDecl
+deriving instance Test for Lake.Package
 
-/--
-info: {dir, relDir, config, relConfigFile, relManifestFile, scope, remoteUrl, depConfigs, leanLibConfigs, leanExeConfigs, externLibConfigs, opaqueTargetConfigs, defaultTargets, scripts, defaultScripts, postUpdateHooks, testDriver, lintDriver}
-"{" ++ .group (.nest 2 <| "dir := " ++ Test.toString dir ++ "," ++ .line ++ "relDir := " ++ Test.toString relDir ++ "," ++ .line ++ "config := " ++ Test.toString config ++ "," ++ .line ++ "relConfigFile := " ++ Test.toString relConfigFile ++ "," ++ .line ++ "relManifestFile := " ++ Test.toString relManifestFile ++ "," ++ .line ++ "scope := " ++ Test.toString scope ++ "," ++ .line ++ "remoteUrl := " ++ Test.toString remoteUrl ++ "," ++ .line ++ "depConfigs := " ++ Test.toString depConfigs ++ "," ++ .line ++ "leanLibConfigs := " ++ Test.toString leanLibConfigs ++ "," ++ .line ++ "leanExeConfigs := " ++ Test.toString leanExeConfigs ++ "," ++ .line ++ "externLibConfigs := " ++ Test.toString externLibConfigs ++ "," ++ .line ++ "opaqueTargetConfigs := " ++ Test.toString opaqueTargetConfigs ++ "," ++ .line ++ "defaultTargets := " ++ Test.toString defaultTargets ++ "," ++ .line ++ "scripts := " ++ Test.toString scripts ++ "," ++ .line ++ "defaultScripts := " ++ Test.toString defaultScripts ++ "," ++ .line ++ "postUpdateHooks := " ++ Test.toString postUpdateHooks ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver) ++ "}"
--/
-#guard_msgs in
-open Lean Elab Command in
-#eval show CommandElabM Unit from do
-  let fs := getStructureFields (← getEnv) ``Lake.Package |>.toList
-  IO.println <| "{" ++ String.intercalate ", " (fs.map (·.toString)) ++ "}"
-  IO.println <|
-    "\"{\" ++ .group (.nest 2 <| " ++
-    String.intercalate " ++ \",\" ++ .line ++ " (fs.map (fun f => s!"\"{f} := \" ++ {if f == `buildArchive then "\"ELIDED\"" else s!"Test.toString {f}"}")) ++
-    ") ++ \"}\""
-
-instance : Test Lake.Package where
-  toString
-    | {dir, relDir, config, relConfigFile, relManifestFile, scope, remoteUrl, depConfigs, leanLibConfigs, leanExeConfigs, externLibConfigs, opaqueTargetConfigs, defaultTargets, scripts, defaultScripts, postUpdateHooks, testDriver, lintDriver} =>
-      "{" ++ .group (.nest 2 <| "dir := " ++ Test.toString dir ++ "," ++ .line ++ "relDir := " ++ Test.toString relDir ++ "," ++ .line ++ "config := " ++ Test.toString config ++ "," ++ .line ++ "relConfigFile := " ++ Test.toString relConfigFile ++ "," ++ .line ++ "relManifestFile := " ++ Test.toString relManifestFile ++ "," ++ .line ++ "scope := " ++ Test.toString scope ++ "," ++ .line ++ "remoteUrl := " ++ Test.toString remoteUrl ++ "," ++ .line ++ "depConfigs := " ++ Test.toString depConfigs ++ "," ++ .line ++ "leanLibConfigs := " ++ Test.toString leanLibConfigs ++ "," ++ .line ++ "leanExeConfigs := " ++ Test.toString leanExeConfigs ++ "," ++ .line ++ "externLibConfigs := " ++ Test.toString externLibConfigs ++ "," ++ .line ++ "opaqueTargetConfigs := " ++ Test.toString opaqueTargetConfigs ++ "," ++ .line ++ "defaultTargets := " ++ Test.toString defaultTargets ++ "," ++ .line ++ "scripts := " ++ Test.toString scripts ++ "," ++ .line ++ "defaultScripts := " ++ Test.toString defaultScripts ++ "," ++ .line ++ "postUpdateHooks := " ++ Test.toString postUpdateHooks ++ "," ++ .line ++ "testDriver := " ++ Test.toString testDriver ++ "," ++ .line ++ "lintDriver := " ++ Test.toString lintDriver) ++ "}"
 
 open Lake Toml in
 def report [Monad m] [Lean.MonadLog m] [MonadFileMap m] [Test α] (val : α) (errs : Array DecodeError) : m String := do
@@ -691,25 +661,54 @@ where
         else return s!"{fn}:{l}-{l'}:{c}-{c'}: "
       return s!"{fn}:{l}:{c}: "
     return ""
-
 end Toml
+
+section
+
+variable [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.MonadLog m]
 
 open Lean.Parser in
 open Lake Toml in
-def checkToml (α : Type) [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.MonadLog m] [Inhabited α] [DecodeToml α] [Toml.Test α] (str : String) (what : Name) : m (Except String String) := do
+def checkToml (α : Type)  [Inhabited α] [DecodeToml α] [Toml.Test α] (str : String) (what : Name) : m (Except String String) := do
   let ictx := mkInputContext str "<example TOML>"
   match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
   | .error err =>
     return .error <| toString (← err.unreported.toArray.mapM (·.toString))
   | .ok table =>
-    let ((out : α), errs) := (table.tryDecode what) #[]
+    let .ok (out : α) errs := (table.tryDecode what).run #[]
     .ok <$> report out errs
 
+structure Named (α : Name → Type u) where
+  name : Name
+  val : α name
+
+instance [(n : Name) → Toml.Test (α n)] : Toml.Test (Named α) where
+  toString
+    | ⟨n, v⟩ => "{ " ++ .group (.nest 2 <| "name := " ++ n.toString ++ "," ++ .line ++ "val := " ++ Toml.Test.toString v ++ "}")
+
+instance [(n : Name) →  Lake.DecodeToml (α n)] : Lake.DecodeToml (Named α) where
+  decode v := do
+    let table ← v.decodeTable --
+    let name ← Lake.stringToLegalOrSimpleName <$> table.decode `name
+    let val ← Lake.DecodeToml.decode v
+    return ⟨name, val⟩
+
+open Lean.Parser in
+open Lake Toml in
+def checkTomlArrayWithName (α : Name → Type) [(n : Name) → Inhabited (α n)] [(n : Name) → DecodeToml (α n)] [(n : Name) → Toml.Test (α n)] (str : String) (what : Name) : m (Except String String) := do
+  let ictx := mkInputContext str "<example TOML>"
+  match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
+  | .error err =>
+    return .error <| toString (← err.unreported.toArray.mapM (·.toString))
+  | .ok table =>
+    let .ok (name : Name) errs := (table.tryDecode `name).run #[]
+    let .ok out errs := (table.tryDecode what).run errs
+    .ok <$> report (out : α name) errs
 
 
 open Lean.Parser in
 open Lake Toml in
-def checkTomlPackage [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.MonadLog m] [Lean.MonadError m] (str : String) : m (Except String String) := do
+def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String String) := do
   let ictx := mkInputContext str "<example TOML>"
   match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
   | .error err =>
@@ -720,10 +719,10 @@ def checkTomlPackage [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.Mona
         Lake.Env.compute {home:=""} {sysroot:=""} none none
       | throwError "Failed to make env"
     let cfg : LoadConfig := {lakeEnv := env, wsDir := "."}
-    let ((pkg : Lake.Package), errs) := Id.run <| (StateT.run · #[]) <| do
-      let config ← tryDecode <| PackageConfig.decodeToml table
-      let leanLibConfigs ← mkRBArray (·.name) <$> table.tryDecodeD `lean_lib #[]
-      let leanExeConfigs ← mkRBArray (·.name) <$> table.tryDecodeD `lean_exe #[]
+    let .ok (pkg : Lake.Package) errs := Id.run <| (EStateM.run · #[]) <| do
+      let name ← stringToLegalOrSimpleName <$> table.tryDecode `name
+      let config : PackageConfig name ← PackageConfig.decodeToml table
+      let (targetDecls, targetDeclMap) ← decodeTargetDecls name table
       let defaultTargets ← table.tryDecodeD `defaultTargets #[]
       let defaultTargets := defaultTargets.map stringToLegalOrSimpleName
       let depConfigs ← table.tryDecodeD `require #[]
@@ -733,12 +732,14 @@ def checkTomlPackage [Monad m] [MonadLiftT BaseIO m] [MonadFileMap m] [Lean.Mona
         relConfigFile := cfg.relConfigFile
         scope := cfg.scope
         remoteUrl := cfg.remoteUrl
-        config, depConfigs, leanLibConfigs, leanExeConfigs
-        defaultTargets
+        configFile := cfg.configFile
+        config, depConfigs, targetDecls, targetDeclMap
+        defaultTargets, name
       }
 
     .ok <$> report pkg errs
 
+end
 
 structure LakeTomlOpts where
   /-- The type to check it against -/
@@ -785,11 +786,12 @@ def lakeToml : DirectiveExpander
           | .error e => throwErrorAt tomlStr e
           | .ok v => pure v
         | `lean_lib, ``Lake.LeanLibConfig =>
-          match (← checkToml (Array Lake.LeanLibConfig) ((← parserInputString tomlStr) ++ "\n") `lean_lib) with
+          -- TODO get the name first!
+          match (← checkToml (Array (Named Lake.LeanLibConfig)) ((← parserInputString tomlStr) ++ "\n") `lean_lib) with
           | .error e => throwErrorAt tomlStr e
           | .ok v => pure v
         | `lean_exe, ``Lake.LeanExeConfig =>
-          match (← checkToml (Array Lake.LeanExeConfig) ((← parserInputString tomlStr) ++ "\n") `lean_exe) with
+          match (← checkToml (Array (Named Lake.LeanExeConfig)) ((← parserInputString tomlStr) ++ "\n") `lean_exe) with
           | .error e => throwErrorAt tomlStr e
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"

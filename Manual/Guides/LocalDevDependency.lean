@@ -7,7 +7,7 @@ Author: Jon Eugster
 import VersoManual
 import Manual.Meta
 import Mathlib
-open Lake DSL
+open Lake
 
 open Verso.Genre Manual
 
@@ -57,7 +57,7 @@ However, if you want to do this frequently, here might be a better setup. With t
 
 For this you need to replace `require "leanprover-community" / "mathlib"` in your `lakefile.lean` with the following instructions:
 
-```lean
+```
 open Lake DSL
 
 /-- The local dependency. Using a relative path. -/

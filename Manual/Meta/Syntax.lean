@@ -7,10 +7,10 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Verso.Code.Highlighted
+import VersoManual.InlineLean
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
-import Manual.Meta.Lean.Scopes
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -18,6 +18,7 @@ open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
 
+open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
 open Lean Elab Parser
 open Lean.Widget (TaggedText)
@@ -78,11 +79,21 @@ def Inline.keyword : Inline where
 structure FreeSyntaxConfig where
   name : Name
   «open» : Bool := true
-  label : String := "syntax"
-  title : Option (FileMap × Array Syntax) := none
+  label : Option String := none
+  title : (FileMap × TSyntaxArray `inline)
+
+def FreeSyntaxConfig.getLabel (config : FreeSyntaxConfig) : String :=
+  config.label.getD <|
+    match config.name with
+    | `attr => "attribute"
+    | _ => "syntax"
 
 structure SyntaxConfig extends FreeSyntaxConfig where
+  namespaces : List Name := []
   aliases : List Name := []
+
+def SyntaxConfig.getLabel (config : SyntaxConfig) : String :=
+  config.toFreeSyntaxConfig.getLabel
 
 structure KeywordOfConfig where
   ofSyntax : Ident
@@ -107,10 +118,8 @@ def keywordOf : RoleExpander
       for (k, ()) in contents.kinds do
         if kindName == k then catName := some cat; break
       if let some _ := catName then break
-    let some c := catName
-      | throwErrorAt kind s!"Unknown syntax kind {kindName}"
     let kindDoc ← findDocString? (← getEnv) kindName
-    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Name × Name × Option String)) $(quote (kw.getString, c, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
+    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
 
 @[inline_extension keywordOf]
 def keywordOf.descr : InlineDescr where
@@ -120,7 +129,7 @@ def keywordOf.descr : InlineDescr where
   toHtml :=
     open Verso.Output Html in
     some <| fun goI _ info content => do
-      match FromJson.fromJson? (α := (String × Name × Name × Option String)) info with
+      match FromJson.fromJson? (α := (String × Option Name × Name × Option String)) info with
       | .ok (kw, cat, kind, kindDoc) =>
         -- TODO: use the presentation of the syntax in the manual to show the kind, rather than
         -- leaking the kind name here, which is often horrible. But we need more data to test this
@@ -136,7 +145,7 @@ def keywordOf.descr : InlineDescr where
         pure {{
           <span class="hl lean keyword-of">
             <code class="hover-info">
-              <code>{{kind.toString}} " : " {{cat.toString}}</code>
+              <code>{{kind.toString}} {{cat.map (" : " ++ toString ·) |>.getD ""}}</code>
               {{if let some doc := kindDoc then
                   {{ <span class="sep"/> <code class="docstring">{{doc}}</code>}}
                 else
@@ -240,12 +249,12 @@ partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : 
 def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FreeSyntaxConfig :=
   FreeSyntaxConfig.mk <$>
     .positional `name .name <*>
-    ((·.getD true) <$> (.named `open .bool true)) <*>
-    ((·.getD "syntax") <$> .named `label .string true) <*>
-    .named `title .inlinesString true
+    .namedD `open .bool true <*>
+    .named `label .string true <*>
+    .named `title .inlinesString false
 
 def SyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m SyntaxConfig :=
-  SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `alias .resolvedName false) <* .done)
+  SyntaxConfig.mk <$> FreeSyntaxConfig.parse <*> (many (.named `namespace .name false)) <*> (many (.named `alias .resolvedName false) <* .done)
 
 inductive GrammarTag where
   | lhs
@@ -371,20 +380,52 @@ def isEmpty : Format → Bool
   | .align .. => false
   | .text str => str.isEmpty
 
-def isCompound : Format → Bool
-  | .nil => false
+def isCompound [Monad m] (f : Format) : TagFormatT GrammarTag m Bool := do
+  if (← beginsWithBnfParen f <&&> endsWithBnfParen f) then return false
+  match f with
+  | .nil => pure false
   | .tag _ f => isCompound f
   | .append f1 f2 =>
-    isCompound f1 || isCompound f2
-  | .line => true
+    isCompound f1 <||> isCompound f2
+  | .line => pure true
   | .group f _ => isCompound f
   | .nest _ f => isCompound f
-  | .align .. => false
+  | .align .. => pure false
   | .text str =>
-    str.any fun c => c.isWhitespace || c ∈ ['"', ':', '+', '*', ',', '\'', '(', ')', '[', ']']
+    pure <| str.any fun c => c.isWhitespace || c ∈ ['"', ':', '+', '*', ',', '\'', '(', ')', '[', ']']
+where
+  beginsWithBnfParen : Format → TagFormatT GrammarTag m Bool
+    | .nil => pure false
+    | .tag k (.text s) => do
+      if (← get).tags.find? k matches some .bnf then
+        return "(".isPrefixOf s
+      else pure false
+    | .tag _ f => beginsWithBnfParen f
+    | .append f1 f2 =>
+      if isEmpty f1 then beginsWithBnfParen f2 else beginsWithBnfParen f1
+    | .line => pure false
+    | .group f _ => beginsWithBnfParen f
+    | .nest _ f => beginsWithBnfParen f
+    | .align _ => pure false
+    | .text .. => pure false
+
+  endsWithBnfParen : Format → TagFormatT GrammarTag m Bool
+    | .nil => pure false
+    | .tag k (.text s) => do
+      if (← get).tags.find? k matches some .bnf then
+        return ")".isPrefixOf s
+      else pure false
+    | .tag _ f => endsWithBnfParen f
+    | .append f1 f2 =>
+      if isEmpty f2 then endsWithBnfParen f1 else endsWithBnfParen f2
+    | .line => pure false
+    | .group f _ => endsWithBnfParen f
+    | .nest _ f => endsWithBnfParen f
+    | .align _ => pure false
+    | .text .. => pure false
 
 partial def kleeneLike (mod : String) (f : Format) : TagFormatT GrammarTag DocElabM Format := do
-  if isCompound f then return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
+  if (← isCompound f) then return (← tag .bnf "(") ++ f ++ (← tag .bnf s!"){mod}")
   else return f ++ (← tag .bnf mod)
 
 
@@ -434,6 +475,177 @@ def infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format 
   let post := if let .original _ _ trailing _ := info2 then lined trailing.toString else .nil
   pre ++ doc ++ post
 
+def longestSuffix (strs : Array String) : String := Id.run do
+  if h : strs.size = 0 then ""
+  else
+    let mut suff := strs[0]
+
+    repeat
+      if suff == "" then return ""
+      let suff' := suff
+      for s in strs do
+        unless s.dropSuffix? suff |>.isSome do
+          suff := suff.drop 1
+      if suff' == suff then return suff'
+    return ""
+
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "abc"]
+/-- info: "bc" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "bc"]
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestSuffix #["abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #[]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "def"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestSuffix #["abc", "def", "abc"]
+
+def longestPrefix (strs : Array String) : String := Id.run do
+  if h : strs.size = 0 then ""
+  else
+    let mut pref := strs[0]
+
+    repeat
+      if pref == "" then return ""
+      let pref' := pref
+      for s in strs do
+        unless s.dropPrefix? pref |>.isSome do
+          pref := pref.dropRight 1
+      if pref' == pref then return pref'
+    return ""
+
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "bc"]
+/-- info: "ab" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "ab"]
+/-- info: "abc" -/
+#guard_msgs in
+#eval longestPrefix #["abc"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #[]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "def"]
+/-- info: "" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "def", "abc"]
+/-- info: "a" -/
+#guard_msgs in
+#eval longestPrefix #["abc", "aaa"]
+
+/-- Does this syntax take up zero source code? -/
+partial def isEmptySyntax : Syntax → Bool
+  | .node info _ args => isEmptyInfo info && args.all isEmptySyntax
+  | .atom info s => isEmptyInfo info && s.isEmpty
+  | .ident .. => false
+  | .missing => false
+where
+  isEmptyInfo
+    | .original leading _ trailing _ => leading.isEmpty && trailing.isEmpty
+    | _ => true
+
+def removeLeadingString (string : String) : Syntax → Syntax
+  | .missing => .missing
+  | .atom info str => .atom (remove info).2 str
+  | .ident info x raw pre => .ident (remove info).2 x raw pre
+  | .node info k args => Id.run do
+    let (string', info') := remove info
+    let mut args' := #[]
+    for h : i in [0 : args.size] do
+
+      if isEmptySyntax args[i] then
+        args' := args'.push args[i]
+      else
+        let this := removeLeadingString string' args[i]
+        args' := args'.push this
+        args' := args' ++ args.extract (i + 1) args.size
+        break
+
+    .node info' k args'
+where
+  remove : SourceInfo → String × SourceInfo
+  | .original leading pos trailing pos' =>
+    (string.take leading.toString.length, .original (leading.drop string.length) pos trailing pos')
+  | other => (string, other)
+
+partial def removeTrailingString (string : String) : Syntax → Syntax :=
+  fun stx =>
+  if string.isEmpty then stx else
+  match stx with
+
+  | .missing => .missing
+  | .atom info str => .atom (remove info).2 str
+  | .ident info x raw pre => .ident (remove info).2 x raw pre
+  | .node info k args => Id.run do
+    let (string', info') := remove info
+    let mut args' := #[]
+    for h : i in [0 : args.size] do
+      let j := args.size - (i + 1)
+      have : i < args.size := by get_elem_tactic
+      have : j < args.size := by omega
+      if isEmptySyntax args[j] then
+        -- The parser doesn't presently put source info here, so it's expedient to not check for
+        -- whitespace on this source info. If this ever changes, update this code.
+        args' := args'.push args[j]
+      else
+        let this := removeTrailingString string' args[j]
+        args' := args'.push this
+        args' := args.extract 0 j ++ args'.reverse
+        break
+    .node info' k args'
+where
+  remove : SourceInfo → String × SourceInfo
+  | .original leading pos trailing pos' =>
+    (string.dropRight trailing.toString.length, .original leading pos (trailing.dropRight string.length) pos')
+  | other => (string, other)
+
+/--
+Extracts the common leading and trailing whitespaces from an array of syntaxes.
+
+This is to be used when rendering choice nodes in a grammar, so they don't have redundant whitespace.
+-/
+def commonWs (stxs : Array Syntax) : String × Array Syntax × String :=
+  let allLeading := stxs.map Syntax.getHeadInfo |>.map fun
+    | .none => ""
+    | .synthetic .. => ""
+    | .original leading _ _ _ => leading.toString
+
+  let allTrailing := stxs.map Syntax.getTailInfo |>.map fun
+    | .none => ""
+    | .synthetic .. => ""
+    | .original _ _ trailing _ => trailing.toString
+
+  let pref := longestPrefix allLeading
+  let suff := longestSuffix allTrailing
+  let stxs := stxs.map fun stx =>
+    removeLeadingString pref (removeTrailingString suff stx)
+
+
+  (pref, stxs, suff)
+
+open Lean.Parser.Command in
+/--
+A set of parsers that exist to wrap only a single keyword and should be rendered as the keyword
+itself.
+-/
+-- TODO make this extensible in the manual itself
+def keywordParsers : List (Name × String) :=
+  [(``«private», "private"), (``«protected», "protected"), (``«partial», "partial"), (``«nonrec», "nonrec")]
+
 open StateT (lift) in
 partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
@@ -475,7 +687,15 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | `sepBy.antiquot_scope, _, #[dollar, _null, _brack, contents, _brack2, .atom info star] =>
       infoWrap2 dollar.getHeadInfo info <$> (production which contents >>= lift ∘ kleeneLike star)
     | `choice, _, opts => do
-      return (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")")
+      -- Extract the common whitespace here. Otherwise, something like `∀ $_ $_*, $_` might render as
+      -- `∀ (binder  | thing )(binder  | thing )*, term`
+      -- instead of
+      -- `∀ (binder | thing) (binder | thing)* , term`
+      let (pre, opts, post) := commonWs opts
+      return pre ++
+        (← lift <| tag .bnf "(") ++ (" " ++ (← lift <| tag .bnf "|") ++ " ").joinSep
+          (← opts.toList.mapM (production which)) ++ (← lift <| tag .bnf ")") ++
+        post
     | ``Attr.simple, _, #[.ident kinfo _ name _, other] => do
       return infoWrap info (infoWrap kinfo (← lift <| tag .keyword name.toString) ++ (← production which other))
     | ``FreeSyntax.docCommentItem, _, _ =>
@@ -547,6 +767,10 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
       let doc? ← findDocString? (← getEnv) k'
       let last :=
         if let .node _ _ #[] := d then c else d
+
+      if let some kw := keywordParsers.lookup k' then
+        return infoWrap2 a.getHeadInfo last.getTailInfo (← lift (tag .keyword kw))
+
       -- Optional quasiquotes $NAME? where kind FOO is expected look like this:
       --   k := FOO.antiquot
       --   k' := FOO
@@ -617,7 +841,7 @@ def selectedParser : Parser := leading_parser
 
 
 elab "#test_syntax" arg:selectedParser : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := (TSyntax.mk arg.raw[0]).getId} true [arg.raw[2]])
+  let bnf ← Command.liftTermElabM (testGetBnf {name := (TSyntax.mk arg.raw[0]).getId, title := (FileMap.ofString "", #[])} true [arg.raw[2]])
   logInfo bnf
 
 /--
@@ -643,7 +867,7 @@ info: term ::= ...
 
 
 elab "#test_free_syntax" x:ident arg:free_syntaxes : command => do
-  let bnf ← Command.liftTermElabM (testGetBnf {name := x.getId} true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
+  let bnf ← Command.liftTermElabM (testGetBnf {name := x.getId, title := (FileMap.ofString "", #[])} true (FreeSyntax.decodeMany arg |>.map FreeSyntax.decode))
   logInfo bnf
 
 /--
@@ -685,6 +909,10 @@ def withOpenedNamespace (ns : Name) (act : DocElabM α) : DocElabM α :=
     withTheReader Core.Context ({· with openDecls := openDecls}) act
   finally
     popScope
+
+def withOpenedNamespaces (nss : List Name) (act : DocElabM α) : DocElabM α :=
+  (nss.foldl (init := id) fun acc ns => withOpenedNamespace ns ∘ acc) act
+
 
 inductive SearchableTag where
   | meta
@@ -856,11 +1084,12 @@ def «syntax» : DirectiveExpander
   | args, blocks => do
     let config ← SyntaxConfig.parse.run args
 
-    let title ← config.title.mapM fun (fm, t) =>
-      DocElabM.withFileMap fm <| t.mapM (elabInline ⟨·⟩)
+    let title ← do
+      let (fm, t) := config.title
+      DocElabM.withFileMap fm <| t.mapM elabInline
 
     let env ← getEnv
-    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+    let titleString := inlinesToString env (config.title.snd)
 
     let mut content := #[]
     let mut firstGrammar := true
@@ -873,10 +1102,10 @@ def «syntax» : DirectiveExpander
       | _ =>
         content := content.push <| ← elabBlock b
 
-    Doc.PointOfInterest.save (← getRef) (titleString.getD config.name.toString)
+    Doc.PointOfInterest.save (← getRef) titleString
       (selectionRange := (← getRef)[0])
 
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, $(quote config.aliases.toArray))} #[Block.para #[$(title.getD #[]),*], $content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
@@ -888,13 +1117,13 @@ where
     let {of, prec} ← GrammarConfig.parse.run args
     let config : SyntaxConfig :=
       if let some n := of then
-        {name := n, «open» := false}
+        {name := n, «open» := false, title := config.title}
       else config
     let altStr ← parserInputString str
     let p := andthen ⟨{}, whitespace⟩ <| andthen {fn := (fun _ => (·.pushSyntax (mkIdent config.name)))} (parserOfStack 0)
-    let scope := (← Manual.Meta.Lean.Scopes.getScopes).head!
+    let scope := (← Verso.Genre.Manual.InlineLean.Scopes.getScopes).head!
 
-    withOpenedNamespace `Manual.FreeSyntax do
+    withOpenedNamespace `Manual.FreeSyntax <| withOpenedNamespaces config.namespaces <| do
       match runParser (← getEnv) (← getOptions) p altStr (← getFileName) (prec := prec) (openDecls := scope.openDecls) with
       | .ok stx =>
         Doc.PointOfInterest.save stx stx.getKind.toString
@@ -932,10 +1161,11 @@ def freeSyntax : DirectiveExpander
   | args, blocks => do
     let config ← FreeSyntaxConfig.parse.run args
 
-    let title ← config.title.mapM fun (fm, t) =>
-      DocElabM.withFileMap fm <| t.mapM (elabInline ⟨·⟩)
+    let title ← do
+      let (fm, t) := config.title
+      DocElabM.withFileMap fm <| t.mapM elabInline
     let env ← getEnv
-    let titleString := config.title.map (fun (_, i) => inlinesToString env i)
+    let titleString := inlinesToString env config.title.snd
 
     let mut content := #[]
     let mut firstGrammar := true
@@ -947,7 +1177,7 @@ def freeSyntax : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.label), none, #[])} #[Doc.Block.para #[$(title.getD #[]),*], $content,*])]
+    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Doc.Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
@@ -1020,11 +1250,11 @@ def syntax.descr : BlockDescr where
 r#"
 .namedocs .title {
   font-family: var(--verso-structure-font-family);
-  font-size: larger;
+  font-size: 1.1rem;
   margin-top: 0;
-  margin-left: 1.5em;
-  margin-right: 1.5em;
-  margin-bottom: 0.5em;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
   display: inline-block;
 }
 "#
@@ -1208,10 +1438,25 @@ partial def grammar.descr : BlockDescr where
       | .error e =>
         Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
         pure .empty
-  extraCss := [grammarCss]
+  extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [highlightingJs, grammarJs]
   extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  localContentItem _ json _ := open Verso.Output.Html in do
+    if let .arr #[_, .arr #[_, .arr toks]] := json then
+      let toks ← toks.mapM fun v => do
+          let Json.str str ← v.getObjVal? "string"
+            | throw "Not a string"
+          let .str k ← v.getObjVal? "kind"
+            | throw "Not a string"
+          pure (str, {{<span class={{k}}>{{str}}</span>}})
+      let (strs, toks) := toks.unzip
+      if strs == #["…"] || strs == #["..."] then
+        -- Dont' add the item if it'd be useless for navigating the page
+        pure #[]
+      else
+        pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
+    else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html

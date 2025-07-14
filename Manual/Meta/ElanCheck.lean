@@ -19,7 +19,6 @@ import SubVerso.Examples
 import Manual.Meta.Basic
 import Manual.Meta.ExpectString
 
-
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
@@ -45,24 +44,24 @@ where
 
 
 /--
-Check that the output of `lake --help` has not changed unexpectedly
+Check that the output of `elan --help` has not changed unexpectedly
 -/
-@[code_block_expander lakeHelp]
-def lakeHelp : CodeBlockExpander
+@[code_block_expander elanHelp]
+def elanHelp : CodeBlockExpander
   | args, str => do
     let sub ← parseOpts.run args
-    let args := #["--help"] ++ sub.toArray
-    let out ← IO.Process.output {cmd := "lake", args}
+    let args := sub.toArray ++ #["--help"]
+    let out ← IO.Process.output {cmd := "elan", args}
     if out.exitCode != 0 then
       throwError
-        m!"When running 'lake --help', the exit code was {out.exitCode}\n" ++
+        m!"When running 'elan --help', the exit code was {out.exitCode}\n" ++
         m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
-    let lakeOutput := out.stdout
+    let elanOutput := out.stdout
 
-    discard <| expectString "'lake --help' output" str lakeOutput (useLine := useLine)
+    discard <| expectString "'elan --help' output" str elanOutput (useLine := useLine) (preEq := String.trimRight)
 
     return #[]
 where
   -- Ignore the version spec or empty lines to reduce false positives
   useLine (l : String) : Bool :=
-    !l.isEmpty && !"Lake version ".isPrefixOf l
+    !l.isEmpty && !"elan ".isPrefixOf l

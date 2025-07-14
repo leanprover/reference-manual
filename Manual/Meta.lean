@@ -18,7 +18,6 @@ import SubVerso.Examples
 
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
-import Manual.Meta.Bibliography
 import Manual.Meta.CustomStyle
 import Manual.Meta.Env
 import Manual.Meta.Example
@@ -27,14 +26,12 @@ import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
-import Manual.Meta.Lean
-import Manual.Meta.Lean.IO
-import Manual.Meta.Marginalia
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
 import Manual.Meta.Table
 import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
+import Manual.Meta.Markdown
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -184,7 +181,12 @@ def planned.descr : BlockDescr where
         logError s!"Missing issue number for planned content indicator at {file} line {line}"
       else
         logError s!"Missing issue number for planned content indicator"
-    | .ok (some _, _) => pure ()
+    | .ok (some n, loc?) =>
+      if !(← isDraft) then
+        let loc := loc?.map (fun (l, f) => s!" at {f} line {l}") |>.getD ""
+        logError s!"Planned content {n} in final rendering{loc}"
+      else
+        pure ()
 
     | .error e =>
       logError s!"Failed to deserialize issue number from {data} during traversal: {e}"
@@ -225,10 +227,9 @@ div.planned .label {
         </div>
       }}
 
-
 @[role_expander versionString]
 def versionString : RoleExpander
-  | #[], #[] => do pure #[← ``(Verso.Doc.Inline.text $(quote Lean.versionString))]
+  | #[], #[] => do pure #[← ``(Verso.Doc.Inline.code $(quote Lean.versionString))]
   | _, _ => throwError "Unexpected arguments"
 
 inductive FFIDocType where
@@ -265,6 +266,46 @@ where
         else throwErrorAt b "Expected 'true' or 'false'"
       | other => throwError "Expected Boolean, got {repr other}"
   }
+
+/--
+Indicates that an element is a C type.
+
+Currently does nothing other than indicate this fact for future use.
+-/
+@[role_expander ctype]
+def ctype : RoleExpander
+  | args, contents => do
+    ArgParse.done.run args
+    let #[x] := contents
+      | throwError "Expected exactly one parameter"
+    let `(inline|code($t)) := x
+      | throwError "Expected exactly one code item"
+    pure #[← ``(Inline.code $(quote t.getString))]
+
+def Inline.ckw : Inline where
+  name := `Manual.ckw
+
+/--
+Indicates that an element is a C keyword.
+-/
+@[role_expander ckw]
+def ckw : RoleExpander
+  | args, contents => do
+    ArgParse.done.run args
+    let #[x] := contents
+      | throwError "Expected exactly one parameter"
+    let `(inline|code($t)) := x
+      | throwError "Expected exactly one code item"
+    pure #[← ``(Inline.code $(quote t.getString))]
+
+@[inline_extension ckw]
+def ckw.descr : InlineDescr where
+  traverse _ _ _ := pure none
+  toTeX := none
+  toHtml := some fun goI _ _ content => open Verso.Output.Html in do
+    return {{<span class="c-keyword">{{← content.mapM goI}}</span>}}
+  extraCss :=
+    [".c-keyword code { font-weight: 600; }"]
 
 def Block.ffi : Block where
   name := `Manual.ffi

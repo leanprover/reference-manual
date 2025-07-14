@@ -17,9 +17,6 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
-import Manual.Meta.Lean.Scopes
-import Manual.Meta.Lean.Block
-
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -292,6 +289,11 @@ def lakeCommand.descr : BlockDescr where
   toTeX := none
   extraCss := [highlightingStyle, docstringStyle]
   extraJs := [highlightingJs]
+  localContentItem _ info _ := open Verso.Output.Html in do
+    if let Json.arr #[ Json.str name, _, _] := info then
+      let str := s!"lake {name}"
+      pure #[(str, {{<code>{{str}}</code>}})]
+    else throw s!"Expected a three-element array with a string first, got {info}"
 
 @[role_expander lakeMeta]
 def lakeMeta : RoleExpander

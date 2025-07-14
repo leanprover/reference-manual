@@ -15,14 +15,11 @@ import VersoManual
 
 import Manual.Meta.Basic
 import Manual.Meta.PPrint
-import Manual.Meta.Lean
-import Manual.Meta.Lean.Scopes
 
 namespace Manual
 
 open Lean Elab Term Tactic
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open Manual.Meta.Lean.Scopes
 open SubVerso.Highlighting
 
 def parserAliasDomain := `Manual.parserAlias

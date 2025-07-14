@@ -21,7 +21,9 @@ package "verso-manual" where
       #["-Wl,-ignore_optimization_hints"]
     else #[]
 
+
 lean_lib Manual where
+
 
 def figureDir : FilePath := "figures"
 def figureOutDir : FilePath := "static/figures"
@@ -34,24 +36,27 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
 
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
-  if let some pkg := ← findPackage? `subverso then
-    if let some exe := pkg.findLeanExe? `«subverso-extract-mod» then
-      exe.recBuildExe
-    else
-      failure
-  else
-    failure
+  let some pkg := ← findPackage? `subverso
+    | failure
+  let some exe := pkg.findLeanExe? `«subverso-extract-mod»
+    | failure
+  exe.fetch
+
+
 
 target figures : Array FilePath := do
-  let files := (← figureDir.readDir).filterMap fun f =>
-    match f.path.extension with
-    | some "tex" => some f.path
-    | _ => none
+  let files := (← figureDir.readDir).filterMap fun f => do
+    let some "tex" := f.path.extension | throw ()
+    let some fn := f.path.fileName | throw ()
+    -- Ignore backup files
+    if ".#".isPrefixOf fn then throw ()
+    return f.path
+
   let files := files.qsort (toString · < toString ·)
-  let srcs ← BuildJob.collectArray (← liftM <| files.mapM inputTextFile)
+  let srcs := Job.collectArray (← liftM <| files.mapM inputTextFile)
   let traceFile := figureDir.join "lake.trace"
-  liftM <| srcs.bindSync fun srcInfo depTrace => do
-    buildUnlessUpToDate traceFile depTrace traceFile do
+  srcs.mapM fun srcInfo => do
+    buildUnlessUpToDate traceFile (← getTrace) traceFile do
       for src in srcInfo do
         let some f := src.fileStem
           | continue
@@ -73,8 +78,9 @@ target figures : Array FilePath := do
                 h'.write buf
                 buf ← h.read 1024
 
-    pure (srcInfo, depTrace)
+    pure srcInfo
+
 @[default_target]
 lean_exe "generate-manual" where
-  extraDepTargets := #[`figures, `subversoExtractMod]
+  needs := #[`@/figures, `@/subversoExtractMod]
   root := `Main

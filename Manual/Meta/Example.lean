@@ -6,7 +6,6 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Lean
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab
@@ -22,7 +21,7 @@ def Block.example (name : Option String) : Block where
   data := ToJson.toJson (name, (none : Option Tag))
 
 structure ExampleConfig where
-  description : FileMap × Array Syntax
+  description : FileMap × TSyntaxArray `inline
   /-- Name for refs -/
   tag : Option String := none
   keep : Bool := false
@@ -44,10 +43,10 @@ def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) 
   out := out.qsort (fun (i, _) (j, _) => i < j)
   return out.map (·.2)
 
-def isLeanBlock : Syntax → CoreM Bool
+def isLeanBlock : TSyntax `block → CoreM Bool
   | `(block|```$nameStx:ident $_args*|$_contents:str```) => do
     let name ← realizeGlobalConstNoOverloadWithInfo nameStx
-    return name == ``lean
+    return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
 
@@ -58,7 +57,7 @@ def «example» : DirectiveExpander
 
     let description ←
       DocElabM.withFileMap cfg.description.1 <|
-      cfg.description.2.mapM (elabInline ⟨·⟩)
+      cfg.description.2.mapM elabInline
     PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
       (selectionRange := mkNullNode cfg.description.2)
       (kind := Lsp.SymbolKind.interface)
@@ -66,9 +65,9 @@ def «example» : DirectiveExpander
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     let blocks ←
       if cfg.keep then
-        prioritizedElab (isLeanBlock ·) (elabBlock ⟨·⟩) contents
+        prioritizedElab (isLeanBlock ·) elabBlock contents
       else
-        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) (elabBlock ⟨·⟩) contents
+        withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
     pure #[← ``(Block.other (Block.example $(quote cfg.tag)) #[Block.para #[$description,*], $blocks,*])]
@@ -103,16 +102,17 @@ def example.descr : BlockDescr where
         pure {{
           <details class="example" {{attrs}}>
             <summary class="description">{{← description.mapM goI}}</summary>
-            {{← blocks.extract 1 blocks.size |>.mapM goB}}
+            <div class="example-content">
+              {{← blocks.extract 1 blocks.size |>.mapM goB}}
+            </div>
           </details>
         }}
   extraCss := [
 r#".example {
-  padding: 1.5em;
   border: 1px solid #98B2C0;
-  border-radius: 0.5em;
-  margin-bottom: 0.75em;
-  margin-top: 0.75em;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
 }
 /* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
 @media screen and (700px < width <= 1400px) {
@@ -120,16 +120,25 @@ r#".example {
     clear: both; /* Don't overlap margin notes with examples */
   }
 }
-.example p:last-child {margin-bottom:0;}
 .example .description::before {
   content: "Example: ";
-}
-.example[open] .description {
-  margin-bottom: 1em;
 }
 .example .description {
   font-style: italic;
   font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
 }
 .example .hl.lean.block {
   overflow-x: auto;

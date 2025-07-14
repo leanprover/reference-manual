@@ -17,9 +17,6 @@ import SubVerso.Highlighting
 import SubVerso.Examples
 
 import Manual.Meta.Basic
-import Manual.Meta.Lean.Scopes
-import Manual.Meta.Lean.Block
-
 
 open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -101,3 +98,10 @@ r#"
               return {{<code class="env-var"><a href={{url}}>s!"{var}"</a></code>}}
 
       return {{<code class="env-var">s!"{var}"</code>}}
+
+  localContentItem _ info _ := open Verso.Output.Html in do
+    if let .arr #[.str var, .bool isDef] := info then
+      if isDef then
+        pure #[(var, {{<code>{{var}}</code>}}), (s!"{var} (Environment Variable)", {{<code>{{var}}</code>" (Environment Variable)"}})]
+      else pure #[]
+    else throw s!"Expected a two-element array with a string and a Boolean, got {info}"

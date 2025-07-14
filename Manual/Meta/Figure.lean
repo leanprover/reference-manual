@@ -19,18 +19,18 @@ open Lean Elab
 
 namespace Manual
 
-def Block.figure (name : Option String) : Block where
+def Block.figure (captionString : String) (name : Option String) : Block where
   name := `Manual.figure
-  data := ToJson.toJson (name, (none : Option Tag))
+  data := ToJson.toJson (captionString, name, (none : Option Tag))
 
 structure FigureConfig where
-  caption : FileMap × Array Syntax
+  caption : FileMap × TSyntaxArray `inline
   /-- Name for refs -/
-  name : Option String := none
+  tag : Option String := none
 
 
 def FigureConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FigureConfig :=
-  FigureConfig.mk <$> .positional `caption .inlinesString <*> .named `name .string true
+  FigureConfig.mk <$> .positional `caption .inlinesString <*> .named `tag .string true
 
 @[directive_expander figure]
 def figure : DirectiveExpander
@@ -43,23 +43,26 @@ def figure : DirectiveExpander
       (detail? := some "Figure")
 
     let caption ← DocElabM.withFileMap cfg.caption.1 <|
-      (cfg.caption.2.map (⟨·⟩)).mapM elabInline
+      cfg.caption.2.mapM elabInline
+
+    let captionString := inlinesToString (← getEnv) cfg.caption.2
+
     let blocks ← contents.mapM elabBlock
     -- Figures are represented using the first block to hold the caption. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.figure $(quote cfg.name)) #[Block.para #[$caption,*], $blocks,*])]
+    pure #[← ``(Block.other (Block.figure $(quote captionString) $(quote cfg.tag)) #[Block.para #[$caption,*], $blocks,*])]
 
 @[block_extension figure]
 def figure.descr : BlockDescr where
   traverse id data contents := do
-    match FromJson.fromJson? data (α := Option String × Option Tag) with
+    match FromJson.fromJson? data (α := String × Option String × Option Tag) with
     | .error e => logError s!"Error deserializing figure tag: {e}"; pure none
-    | .ok (none, _) => pure none
-    | .ok (some x, none) =>
+    | .ok (captionString, none, _) => pure none
+    | .ok (captionString, some x, none) =>
       let path ← (·.path) <$> read
       let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.figure none with id := some id, data := toJson (some x, some tag)} contents
-    | .ok (some _, some _) => pure none
+      pure <| some <| Block.other {Block.figure captionString none with id := some id, data := toJson (captionString, some x, some tag)} contents
+    | .ok (_, some _, some _) => pure none
   toTeX :=
     some <| fun _ go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
@@ -82,3 +85,6 @@ def figure.descr : BlockDescr where
             <figcaption>{{← caption.mapM goI}}</figcaption>
           </figure>
         }}
+  localContentItem _ info blocks := open Verso.Output.Html in do
+    let (captionString, _, _) ← FromJson.fromJson? info (α := String × Option String × Option Tag)
+    pure #[(captionString, {{<span class="figure">{{captionString}}</span>}})]

@@ -45,6 +45,7 @@ def attr : RoleExpander
         match stx.getKind with
         | `Lean.Parser.Attr.simple => pure stx[0].getId
         | .str (.str (.str (.str .anonymous "Lean") "Parser") "Attr") k => pure k.toName
+        | .str (.str (.str .anonymous "Lean") "Attr") k => pure k.toName
         | other =>
           let allAttrs := attributeExtension.getState (← getEnv) |>.map |>.toArray |>.map (·.fst) |>.qsort (·.toString < ·.toString)
           throwErrorAt a "Failed to process attribute kind: {stx.getKind} {isAttribute (← getEnv) stx.getKind} {allAttrs |> repr}"
@@ -53,9 +54,13 @@ def attr : RoleExpander
       | .ok {descr, name, ref, ..} =>
         let attrTok := a.getString
         let hl : Highlighted := attrToken ref descr attrTok
-        discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
+        try
+          -- Attempt to add info to the document source for go-to-def and the like, but this doesn't
+          -- work for all attributes (e.g. `csimp`)
+          discard <| realizeGlobalConstNoOverloadWithInfo (mkIdentFrom a ref)
+        catch _ =>
+          pure ()
         pure #[← `(Verso.Doc.Inline.other {Inline.attr with data := ToJson.toJson $(quote hl)} #[Verso.Doc.Inline.code $(quote attrTok)])]
-
 
 where
   -- TODO: This will eventually generate the right cross-reference, but VersoManual needs to have a

@@ -30,7 +30,7 @@ If your Lean project only wants to following the stable releases of dependencies
 
 In your `lakefile.lean`, add
 
-```lean
+```
 def leanVersion : String := s!"v{Lean.versionString}"
 ```
 
