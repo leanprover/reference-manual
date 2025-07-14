@@ -7,7 +7,6 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake
 
 import Manual.Meta
 import Manual.BuildTools.Lake
@@ -15,6 +14,7 @@ import Manual.BuildTools.Lake
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode

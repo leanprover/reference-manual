@@ -10,6 +10,19 @@ This is mostly adapted code from the [Lean Language Reference](https://github.co
 
 Any problems beyond the content itself are probably carried over from there, and might need fixing there.
 
+## Branches and Development
+
+The two most important branches are:
+ * `main` tracks the latest Lean release or release candidate
+ * `nightly-testing` tracks the latest Lean nightlies
+
+New content that addresses in-development features of Lean will be
+written on `nightly-testing`, while updates to existing content may be
+written either on `main` or `nightly-testing`, as appropriate. From
+time to time, `main` will be merged into `nightly-testing`; when Lean
+is released, the commits in `nightly-testing` are rebased onto `main`
+to achieve a clean history.
+
 ## Building the Reference Manual Locally
 
 This reference manual contains figures that are built from LaTeX sources. To build them, you'll need the following:
@@ -42,7 +55,7 @@ lake exe generate-manual --depth 2
 
 Then run a local web server on its output:
 ```
-python3 -m http.server 8880 --directory _out/html-multi
+python3 ./server.py 8880 &
 ```
 
 Then open <http://localhost:8880> in your browser.

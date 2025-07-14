@@ -26,6 +26,7 @@ import Manual.Tactics.Rewriting
 import Manual.Tactics.Test
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 

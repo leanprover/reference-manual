@@ -21,9 +21,9 @@ set_option maxRecDepth 1024
 tag := "mathlib-manual"
 %%%
 
-This document has been last updated at **{now}[]** using Lean **{versionString}[]** and Mathlib commit {mathlibCommit}[].
+This document has been last updated at *{now}[]* using Lean *{versionString}[]* and Mathlib commit {mathlibCommit}[].
 
-**Other resources**:
+*Other resources*:
 - [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/index.html):
   automatically generated collection of all declarations from Mathlib.
 - The [Lean Language Reference](https://lean-lang.org/doc/reference/latest/) contains

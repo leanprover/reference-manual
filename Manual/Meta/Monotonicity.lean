@@ -9,7 +9,6 @@ import Verso
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
-import Manual.Meta.Table
 
 open Lean Meta Elab
 open Verso Doc Elab Manual
@@ -101,7 +100,7 @@ def monotonicityLemmas : BlockRoleExpander
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged none fmt ⟨{}, false, []⟩
+              renderTagged none fmt ⟨{}, false, false, []⟩
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 

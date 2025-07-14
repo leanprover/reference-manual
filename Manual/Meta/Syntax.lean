@@ -138,10 +138,10 @@ def keywordOf.descr : InlineDescr where
         -- For now, here's the underlying data so we don't have to fill in xrefs later and can debug.
         let tgt := (← read).linkTargets.keyword kind
         let addLink (html : Html) : Html :=
-          match tgt with
+          match tgt[0]? with
           | none => html
-          | some href =>
-            {{<a href={{href}}>{{html}}</a>}}
+          | some l =>
+            {{<a href={{l.href}}>{{html}}</a>}}
         pure {{
           <span class="hl lean keyword-of">
             <code class="hover-info">
@@ -830,7 +830,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run (← ``(Manual)) (.const ``Manual []) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 namespace Tests
@@ -897,7 +897,7 @@ info: antiquot ::= ...
 
 end Tests
 
-instance : MonadWithReaderOf Core.Context DocElabM := inferInstanceAs (MonadWithReaderOf Core.Context (ReaderT PartElabM.State (StateT DocElabM.State TermElabM)))
+instance : MonadWithReaderOf Core.Context DocElabM := inferInstanceAs (MonadWithReaderOf Core.Context (ReaderT DocElabContext (ReaderT PartElabM.State (StateT DocElabM.State TermElabM))))
 
 def withOpenedNamespace (ns : Name) (act : DocElabM α) : DocElabM α :=
   try
@@ -1356,8 +1356,8 @@ private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html)
   let xref ← match (← state).resolveDomainObject syntaxKindDomain kind.toString with
     | .error _ =>
       pure none
-    | .ok (path, id) =>
-      pure (some s!"{String.join <| path.toList.map (s!"/{·}")}#{id}")
+    | .ok dest =>
+      pure (some dest.link)
   let addXref := fun html =>
     match xref with
     | none => html
@@ -1428,7 +1428,7 @@ partial def grammar.descr : BlockDescr where
       match FromJson.fromJson? (α := Name × TaggedText GrammarTag × Json) info with
       | .ok (kind, bnf, _searchable) =>
         let t ← match (← read).traverseState.externalTags.get? id with
-          | some (_, t) => pure t.toString
+          | some dest => pure dest.htmlId.toString
           | _ => Html.HtmlT.logError s!"Couldn't get HTML ID for grammar of {kind}" *> pure ""
         pure {{
           <pre class="grammar hl lean" data-lean-context="--grammar" id={{t}}>
@@ -1476,8 +1476,8 @@ where
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
-          if let some tgt := (← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).linkTargets.keyword k then
-            return {{<a href={{tgt}}><span class="keyword">{{inner}}</span></a>}}
+          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k)[0]? then
+            return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
       return {{<span class="keyword">{{inner}}</span>}}
     | .nonterminal k doc? => do
       let inner ← notLooking go

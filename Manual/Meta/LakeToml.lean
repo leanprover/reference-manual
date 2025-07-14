@@ -674,8 +674,8 @@ def checkToml (α : Type)  [Inhabited α] [DecodeToml α] [Toml.Test α] (str : 
   match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
   | .error err =>
     return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok table =>
-    let .ok (out : α) errs := (table.tryDecode what).run #[]
+  | .ok tbl =>
+    let .ok (out : α) errs := (tbl.tryDecode what).run #[]
     .ok <$> report out errs
 
 structure Named (α : Name → Type u) where
@@ -700,9 +700,9 @@ def checkTomlArrayWithName (α : Name → Type) [(n : Name) → Inhabited (α n)
   match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
   | .error err =>
     return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok table =>
-    let .ok (name : Name) errs := (table.tryDecode `name).run #[]
-    let .ok out errs := (table.tryDecode what).run errs
+  | .ok tbl =>
+    let .ok (name : Name) errs := (tbl.tryDecode `name).run #[]
+    let .ok out errs := (tbl.tryDecode what).run errs
     .ok <$> report (out : α name) errs
 
 
@@ -713,19 +713,19 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
   match (← Lake.Toml.loadToml ictx |>.toBaseIO) with
   | .error err =>
     return .error <| toString (← err.unreported.toArray.mapM (·.toString))
-  | .ok table =>
+  | .ok tbl =>
     let .ok env ←
       EIO.toBaseIO <|
         Lake.Env.compute {home:=""} {sysroot:=""} none none
       | throwError "Failed to make env"
     let cfg : LoadConfig := {lakeEnv := env, wsDir := "."}
     let .ok (pkg : Lake.Package) errs := Id.run <| (EStateM.run · #[]) <| do
-      let name ← stringToLegalOrSimpleName <$> table.tryDecode `name
-      let config : PackageConfig name ← PackageConfig.decodeToml table
-      let (targetDecls, targetDeclMap) ← decodeTargetDecls name table
-      let defaultTargets ← table.tryDecodeD `defaultTargets #[]
+      let name ← stringToLegalOrSimpleName <$> tbl.tryDecode `name
+      let config : PackageConfig name ← PackageConfig.decodeToml tbl
+      let (targetDecls, targetDeclMap) ← decodeTargetDecls name tbl
+      let defaultTargets ← tbl.tryDecodeD `defaultTargets #[]
       let defaultTargets := defaultTargets.map stringToLegalOrSimpleName
-      let depConfigs ← table.tryDecodeD `require #[]
+      let depConfigs ← tbl.tryDecodeD `require #[]
       pure {
         dir := cfg.pkgDir
         relDir := cfg.relPkgDir
@@ -796,7 +796,7 @@ def lakeToml : DirectiveExpander
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        discard <| expectString "elaborated configuration" expectedStr v (useLine := (·.any (!·.isWhitespace)))
+        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (!·.isWhitespace)))
 
         contents.mapM (elabBlock ⟨·⟩)
 
@@ -839,9 +839,8 @@ r#"
 
       if let some obj := (← read).traverseState.getDomainObject? tomlFieldDomain s!"{tableName} {fieldName}" then
         for id in obj.ids do
-          if let some (path, slug) := (← read).traverseState.externalTags[id]? then
-            let url := path.link (some slug.toString)
-            return {{<code class="toml-field"><a href={{url}}>{{fieldName.toString}}</a></code>}}
+          if let some dest := (← read).traverseState.externalTags[id]? then
+            return {{<code class="toml-field"><a href={{dest.link}}>{{fieldName.toString}}</a></code>}}
       else
         HtmlT.logError s!"No link destination for TOML field {tableName}:{fieldName}"
 

@@ -54,7 +54,7 @@ open Lean.Elab.Tactic
 TODO
 :::
 
-:::tactic linarith show:="linarith"
+:::tactic Mathlib.Tactic.linarith show:="linarith"
 :::
 
 :::tactic Mathlib.Tactic.Positivity.positivity

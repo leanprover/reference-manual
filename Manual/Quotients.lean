@@ -12,6 +12,7 @@ import Manual.Language.Functions
 import Manual.Language.InductiveTypes
 
 open Verso.Genre Manual
+open Verso.Genre.Manual.InlineLean
 
 #doc (Manual) "Quotients" =>
 %%%
@@ -229,7 +230,7 @@ Every {name}`Setoid` instance leads to a corresponding {name}`HasEquiv` instance
 section
 variable {α : Sort u} [Setoid α]
 /-- info: instHasEquivOfSetoid -/
-#guard_msgs in
+#check_msgs in
 #synth HasEquiv α
 end
 ```

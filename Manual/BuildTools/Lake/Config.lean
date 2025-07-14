@@ -7,18 +7,23 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake
+import Lake.DSL.Syntax
+import Lake.Config.Monad
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
 
+
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
+
+open Lake.DSL
 
 #doc (Manual) "Configuration File Format" =>
 %%%
@@ -127,50 +132,55 @@ This package contains no {tech}[targets], so there is no code to be built.
 name = "example-package"
 ```
 ```expected
-{dir := FilePath.mk "./.",
+{name := `«example-package»,
+  dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
-  config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
-    toLeanConfig := { buildType := Lake.BuildType.release,
-      leanOptions := #[],
-      moreLeanArgs := #[],
-      weakLeanArgs := #[],
-      moreLeancArgs := #[],
-      moreServerOptions := #[],
-      weakLeancArgs := #[],
-      moreLinkArgs := #[],
-      weakLinkArgs := #[],
-      backend := Lake.Backend.default,
-      platformIndependent := none },
-    name := `«example-package»,
-    manifestFile := none,
-    extraDepTargets := #[],
-    precompileModules := false,
-    moreServerArgs := #[],
-    moreGlobalServerArgs := #[],
-    srcDir := FilePath.mk ".",
-    buildDir := FilePath.mk ".lake/build",
-    leanLibDir := FilePath.mk "lib",
-    nativeLibDir := FilePath.mk "lib",
-    binDir := FilePath.mk "bin",
-    irDir := FilePath.mk "ir",
-    releaseRepo? := none,
-    releaseRepo := none,
-    buildArchive? := none,
-    buildArchive := ELIDED,
-    preferReleaseBuild := false,
-    testDriver := "",
-    testDriverArgs := #[],
-    lintDriver := "",
-    lintDriverArgs := #[],
-    version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
-    versionTags := .satisfies #<fun> default,
-    description := "",
-    keywords := #[],
-    homepage := "",
-    license := "",
-    licenseFiles := #[FilePath.mk "LICENSE"],
-    readmeFile := FilePath.mk "README.md",
-    reservoir := true},
+  config :=
+    {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+      toLeanConfig :=
+        { buildType := Lake.BuildType.release,
+          leanOptions := #[],
+          moreLeanArgs := #[],
+          weakLeanArgs := #[],
+          moreLeancArgs := #[],
+          moreServerOptions := #[],
+          weakLeancArgs := #[],
+          moreLinkObjs := #[],
+          moreLinkLibs := #[],
+          moreLinkArgs := #[],
+          weakLinkArgs := #[],
+          backend := Lake.Backend.default,
+          platformIndependent := none,
+          dynlibs := #[],
+          plugins := #[] },
+      bootstrap := false,
+      manifestFile := none,
+      extraDepTargets := #[],
+      precompileModules := false,
+      moreGlobalServerArgs := #[],
+      srcDir := FilePath.mk ".",
+      buildDir := FilePath.mk ".lake/build",
+      leanLibDir := FilePath.mk "lib/lean",
+      nativeLibDir := FilePath.mk "lib",
+      binDir := FilePath.mk "bin",
+      irDir := FilePath.mk "ir",
+      releaseRepo := none,
+      buildArchive := ELIDED,
+      preferReleaseBuild := false,
+      testDriver := "",
+      testDriverArgs := #[],
+      lintDriver := "",
+      lintDriverArgs := #[],
+      version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+      versionTags := { filter := #<fun>, name := `default, descr? := none},
+      description := "",
+      keywords := #[],
+      homepage := "",
+      license := "",
+      licenseFiles := #[FilePath.mk "LICENSE"],
+      readmeFile := FilePath.mk "README.md",
+      reservoir := true},
+  configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
   scope := "",
@@ -202,7 +212,8 @@ defaultTargets = ["Sorting"]
 name = "Sorting"
 ```
 ```expected
-{dir := FilePath.mk "./.",
+{name := `«example-package»,
+  dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
     toLeanConfig := { buildType := Lake.BuildType.release,
@@ -262,20 +273,112 @@ name = "Sorting"
           moreLinkArgs := #[],
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
-          platformIndependent := none },
-        name := `Sorting,
-        srcDir := FilePath.mk ".",
-        roots := #[`Sorting],
-        globs := #[Lake.Glob.one `Sorting],
-        libName := "Sorting",
-        extraDepTargets := #[],
-        precompileModules := false,
-        defaultFacets := #[`leanArts],
-        nativeFacets := #<fun>},
-    },
-  leanExeConfigs := {},
-  externLibConfigs := {},
-  opaqueTargetConfigs := {},
+          platformIndependent := none,
+          dynlibs := #[],
+          plugins := #[] },
+      bootstrap := false,
+      manifestFile := none,
+      extraDepTargets := #[],
+      precompileModules := false,
+      moreGlobalServerArgs := #[],
+      srcDir := FilePath.mk ".",
+      buildDir := FilePath.mk ".lake/build",
+      leanLibDir := FilePath.mk "lib/lean",
+      nativeLibDir := FilePath.mk "lib",
+      binDir := FilePath.mk "bin",
+      irDir := FilePath.mk "ir",
+      releaseRepo := none,
+      buildArchive := ELIDED,
+      preferReleaseBuild := false,
+      testDriver := "",
+      testDriverArgs := #[],
+      lintDriver := "",
+      lintDriverArgs := #[],
+      version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+      versionTags := { filter := #<fun>, name := `default, descr? := none},
+      description := "",
+      keywords := #[],
+      homepage := "",
+      license := "",
+      licenseFiles := #[FilePath.mk "LICENSE"],
+      readmeFile := FilePath.mk "README.md",
+      reservoir := true},
+  configFile := FilePath.mk "lakefile",
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  targetDecls :=
+    #[{toConfigDecl :=
+          {pkg := `«example-package»,
+            name := `Sorting,
+            kind := `lean_lib,
+            config :=
+              {toLeanConfig :=
+                  { buildType := Lake.BuildType.release,
+                    leanOptions := #[],
+                    moreLeanArgs := #[],
+                    weakLeanArgs := #[],
+                    moreLeancArgs := #[],
+                    moreServerOptions := #[],
+                    weakLeancArgs := #[],
+                    moreLinkObjs := #[],
+                    moreLinkLibs := #[],
+                    moreLinkArgs := #[],
+                    weakLinkArgs := #[],
+                    backend := Lake.Backend.default,
+                    platformIndependent := none,
+                    dynlibs := #[],
+                    plugins := #[] },
+                srcDir := FilePath.mk ".",
+                roots := #[`Sorting],
+                globs := #[Lake.Glob.one `Sorting],
+                libName := "Sorting",
+                needs := #[],
+                extraDepTargets := #[],
+                precompileModules := false,
+                defaultFacets := #[`lean_lib.leanArts],
+                nativeFacets := #<fun>},
+            wf_data := …},
+        pkg_eq := …}],
+  targetDeclMap :=
+    {`Sorting ↦
+        {toPConfigDecl :=
+            {toConfigDecl :=
+                {pkg := `«example-package»,
+                  name := `Sorting,
+                  kind := `lean_lib,
+                  config :=
+                    {toLeanConfig :=
+                        { buildType := Lake.BuildType.release,
+                          leanOptions := #[],
+                          moreLeanArgs := #[],
+                          weakLeanArgs := #[],
+                          moreLeancArgs := #[],
+                          moreServerOptions := #[],
+                          weakLeancArgs := #[],
+                          moreLinkObjs := #[],
+                          moreLinkLibs := #[],
+                          moreLinkArgs := #[],
+                          weakLinkArgs := #[],
+                          backend := Lake.Backend.default,
+                          platformIndependent := none,
+                          dynlibs := #[],
+                          plugins := #[] },
+                      srcDir := FilePath.mk ".",
+                      roots := #[`Sorting],
+                      globs := #[Lake.Glob.one `Sorting],
+                      libName := "Sorting",
+                      needs := #[],
+                      extraDepTargets := #[],
+                      precompileModules := false,
+                      defaultFacets := #[`lean_lib.leanArts],
+                      nativeFacets := #<fun>},
+                  wf_data := …},
+              pkg_eq := …},
+          name_eq := …},
+      },
   defaultTargets := #[`Sorting],
   scripts := {},
   defaultScripts := #[],
@@ -716,7 +819,11 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the {attr}`default_target` attribute, rather than by explicitly listing them.
+{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
+
+:::TODO
+It's presently impossible to import Lake.DSL.AttributesCore due to initialization changes, so `default_target` can't be rendered/checked as an attribute above. This should be fixed upstream.
+:::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute")
 
@@ -898,17 +1005,17 @@ section
 example : Lake.Glob := `n
 
 /-- info: instCoeNameGlob -/
-#guard_msgs in
+#check_msgs in
 #synth Coe Lean.Name Lake.Glob
 
 open Lake DSL
 
 /-- info: Lake.Glob.andSubmodules `n -/
-#guard_msgs in
+#check_msgs in
 #eval show Lake.Glob from `n.*
 
 /-- info: Lake.Glob.submodules `n -/
-#guard_msgs in
+#check_msgs in
 #eval show Lake.Glob from `n.+
 
 end

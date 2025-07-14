@@ -22,23 +22,23 @@ open Lean.Elab.Tactic
 
 (written by Jon Eugster)
 
-*This tip should be considered a workaround, some care is adviced when trying this non-standard setup!*
+_This tip should be considered a workaround, some care is adviced when trying this non-standard setup!_
 
-*Note:* Things here might change as `lake` is being developed, as features described here are not necessarily officially supported by `lake`. This file has been written for Lean `v4.16.0`. If in doubt, ask for help on [Zulip](https://leanprover.zulipchat.com).
+_Note_: Things here might change as `lake` is being developed, as features described here are not necessarily officially supported by `lake`. This file has been written for Lean `v4.16.0`. If in doubt, ask for help on [Zulip](https://leanprover.zulipchat.com).
 
 If you start many projects which all use the latest stable version of mathlib
 by default each project will download its own clone.
 If you, for example, have little disk space available,
 it might be worth setting them up using one centralised copy of mathlib instead.
 
-*Note*: This means additional effort when upgrading the mathlib version,
+_Note_: This means additional effort when upgrading the mathlib version,
 as you need to update all your projects at once.
 
-*Note*: Whenever this tutorial mentions the `lakefile.lean`, you should make the mentioned
+_Note_: Whenever this tutorial mentions the `lakefile.lean`, you should make the mentioned
 modifications to your `lakefile.toml` if you have this instead. Every Lean project
 has exactly one of these two configuration files.
 
-*Note*: The VSCode extension does a lot of things automatically and it's hard to account for all of them in this tutorial.
+_Note_: The VSCode extension does a lot of things automatically and it's hard to account for all of them in this tutorial.
 The tutorial is written without use of the extension, so probably best to not press any buttons in VSCode until you followed the steps
 here.
 
@@ -70,7 +70,7 @@ Here is the current best practice to achieve this.
 
    to prevent `lake` from screwing up your mathlib installation. However, make sure you're actually the owner of that folder (or a sudo user)!
 
-3) If you ever want to **update** your global mathlib, come back to the mathlib directory and call
+3) If you ever want to *update* your global mathlib, come back to the mathlib directory and call
    ```
    # chmod -R u+w .lake/build   # if you removed these right earlier
    git checkout v4.17.0
@@ -101,11 +101,11 @@ Here is the current best practice to achieve this.
      rm -rf .lake/packages/mathlib # delete the previous local clone of mathlib
      ```
 
-     *Note*: It seems like a bug/feature that all dependencies of Mathlib are duplicated,
+     _Note_: It seems like a bug/feature that all dependencies of Mathlib are duplicated,
      once in `../relative/path/to/mathlib4/.lake/packages` and once in
      `.lake/packages`. Calling `lake exe cache get` seems to add the build files for the copies under `./.lake/packages`
 
-     *Note*: deleting stuff in `.lake`, even `rm -rf .lake`, is a reasonably safe action as it only contains build artifacts that are fully recovered by the next `lake` call.
+     _Note_: deleting stuff in `.lake`, even `rm -rf .lake`, is a reasonably safe action as it only contains build artifacts that are fully recovered by the next `lake` call.
    * Your project should be ready: Add `import Mathlib` to a file (`MyProject.lean`) and call
 
      ```

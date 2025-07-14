@@ -12,6 +12,8 @@ import Manual.Meta.Monotonicity
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
+
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 open Lean.Order
@@ -173,7 +175,7 @@ The error message on the recursive call is:
 ```leanOutput nonTailPos
 Could not prove 'List.findIndex' to be monotone in its recursive calls:
   Cannot eliminate recursive call `List.findIndex ys p` enclosed in
-    let_fun r := ys✝.findIndex p;
+    have r := ys✝.findIndex p;
     if r = -1 then -1 else r + 1
 ```
 

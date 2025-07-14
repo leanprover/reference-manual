@@ -29,7 +29,7 @@ that is equal (or equivalent/etc.)
 :::tactic "rw"
 :::
 
-:::tactic Mathlib.Tactic.nthRewriteSeq
+:::tactic Mathlib.Tactic.tacticNth_rw_____
 :::
 
 :::tactic Mathlib.Tactic.tacticSimp_rw___
@@ -38,4 +38,7 @@ that is equal (or equivalent/etc.)
 The following Tactic is avoided in Mathlib
 
 :::tactic "erw"
+:::
+
+:::tactic "grw"
 :::

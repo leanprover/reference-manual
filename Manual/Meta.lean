@@ -18,6 +18,7 @@ import SubVerso.Examples
 
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
+import Manual.Meta.CheckMessages
 import Manual.Meta.CustomStyle
 import Manual.Meta.Env
 import Manual.Meta.Example
@@ -28,7 +29,6 @@ import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
-import Manual.Meta.Table
 import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
@@ -354,3 +354,43 @@ def ffi.descr : BlockDescr where
       }}
   toTeX := some <| fun _goI goB _ _ contents =>
     contents.mapM goB -- TODO
+
+
+
+structure LeanSectionConfig where
+  «variables» : Option String
+
+section
+
+variable [Monad m] [MonadError m] [MonadLiftT CoreM m]
+
+instance : FromArgs LeanSectionConfig m where
+  fromArgs :=
+    LeanSectionConfig.mk <$> .named `variables .string true
+end
+
+section
+open Lean Elab Command
+
+-- Take from BuiltinCommands.lean
+
+private def addScope (isNewNamespace : Bool) (header : String) (newNamespace : Name)
+    (isNoncomputable : Bool := false) (attrs : List (TSyntax ``Parser.Term.attrInstance) := []) :
+    CommandElabM Unit := do
+  modify fun s => { s with
+    env    := s.env.registerNamespace newNamespace,
+    scopes := { s.scopes.head! with
+      header := header, currNamespace := newNamespace
+      isNoncomputable := s.scopes.head!.isNoncomputable || isNoncomputable
+      attrs := s.scopes.head!.attrs ++ attrs
+    } :: s.scopes
+  }
+  pushScope
+  if isNewNamespace then
+    activateScoped newNamespace
+
+
+
+
+
+end

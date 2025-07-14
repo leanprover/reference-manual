@@ -3,16 +3,8 @@ on:
     branches:
       - main
       - 'lean-pr-testing-*'
-  pull_request:
-    branches:
-      - main
-      - nightly-testing
-  release:
-    types:
-      - published
-      - released
 
-name: "Build and check HTML"
+name: "Report PR testing status to the lean4 repository"
 
 jobs:
   build:
@@ -25,7 +17,7 @@ jobs:
           sudo apt update && sudo apt install -y poppler-utils
 
       - name: Install deps for figures (TeX)
-        uses: TeX-Live/setup-texlive-action@v3
+        uses: teatimeguest/setup-texlive-action@v3
         with:
           version: 2024
           packages: |
@@ -78,10 +70,13 @@ jobs:
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
 
+      - name: Build figures
+        run: |
+          lake build figures
+
       - name: Build
         id: build
         run: |
-          lake exe cache get
           lake build
 
       - name: Save cache for .lake
@@ -90,49 +85,20 @@ jobs:
           path: .lake
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
 
-      - name: Generate HTML
+      - name: Generate HTML (non-release)
+        id: generate
         run: |
-          lake --quiet exe generate-manual --depth 2 --verbose --output "_out" --site-base-url "/mathlib-manual/html-multi/"
+          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
 
-      - name: Upload static files as artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '_out/'
-
-      - name: Report word count
+      - name: Report status to Lean PR
+        if: always() && github.repository == 'leanprover/reference-manual'
+        shell: bash
+        env:
+          TOKEN: ${{ secrets.LEAN_PR_TESTING }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          GENERATE_OUTCOME: ${{ steps.generate.outcome }}
+          NIGHTLY_TESTING_REPO: leanprover-community/mathlib4-nightly-testing
         run: |
-          echo "Word Counts"
-          echo "-----------"
-          cat words.txt
-
-      - name: Save word count
-        run: |
-          echo "# Word Counts" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat words.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
-  # Deploy job
-  deploy:
-    # only deploy on main
-    if: github.ref == 'refs/heads/main'
-    # Add a dependency to the build job
-    needs: build
-
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
-    # Deploy to the github-pages environment
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    # Specify runner + deployment step
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+         scripts/lean-pr-testing-comments.sh lean
