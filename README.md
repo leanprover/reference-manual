@@ -10,18 +10,24 @@ This is mostly adapted code from the [Lean Language Reference](https://github.co
 
 Any problems beyond the content itself are probably carried over from there, and might need fixing there.
 
-## Branches and Development
+## Version bumping
 
-The two most important branches are:
- * `main` tracks the latest Lean release or release candidate
- * `nightly-testing` tracks the latest Lean nightlies
+The Lean reference manual has tags of the form `v4.X.0` which can be used. The process should be:
 
-New content that addresses in-development features of Lean will be
-written on `nightly-testing`, while updates to existing content may be
-written either on `main` or `nightly-testing`, as appropriate. From
-time to time, `main` will be merged into `nightly-testing`; when Lean
-is released, the commits in `nightly-testing` are rebased onto `main`
-to achieve a clean history.
+* change `lean-toolchain` to next stable release `v4.X.0`
+* call `lake update`
+* try `lake build`
+* merge upstream tag `v4.X.0` into `main` with the following merging strategy:
+  * `Meta/` and `Meta.lean` are important and should probably be completely replaced with the new upstream version.
+  * Modified files (which "our" version should be kept) include: `Manual/Tactics` and `Manual/Guides` (with their Lean files)
+    and `Manual.lean`
+  * The `lakefile.lean` has only modified `require` statements
+  * `Manual/Tweaks.lean` is completely ours.
+  * Things that "we" deleted can stay deleted. I used something like `git status | sed -n 's/deleted by us://p' | xargs git rm`
+    to delete them all once in the merge conflict.
+* All workflows are deleted except `ci.yml` which has been largely rewritten to allow for export github pages. Best strategy should be to accept "ours" and then pick the relevant steps manually from upstream.
+
+# Original README
 
 ## Building the Reference Manual Locally
 
