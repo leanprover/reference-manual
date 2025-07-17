@@ -843,7 +843,7 @@ example [Field α] (a : α)
 
 The `ring` module also performs case-analysis for terms `a⁻¹` on whether `a` is zero or not.
 In the following example, if `2*a` is zero, then `a` is also zero since
-we have`NoNatZeroDivisors α`, and all terms are zero and the equality hold. Otherwise,
+we have `NoNatZeroDivisors α`, and all terms are zero and the equality hold. Otherwise,
 `ring` adds the equalities `a*a⁻¹ = 1` and `2*a*(2*a)⁻¹ = 1`, and closes the goal.
 
 ```lean
