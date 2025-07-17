@@ -811,7 +811,7 @@ example [CommRing α] [IsCharP α 0] (a : α)
   grind
 ```
 
-Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the charactistic:
+Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the characteristic:
 ```lean
 example [CommRing α] (a b c : α)
     (h₁ : a + 6 = a) (h₂ : c = c + 9) (h : b + 3*c = 0) :
