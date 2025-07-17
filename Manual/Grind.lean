@@ -178,19 +178,22 @@ namespace ExamplePropagators
 builtin_grind_propagator propagateAndUp ↑And := fun e => do
   let_expr And a b := e | return ()
   if (← isEqTrue a) then
-    -- a = True  ⇒  (a ∧ b) = b
+    -- a = True ⇒ (a ∧ b) = b
     pushEq e b <|
       mkApp3 (mkConst ``Grind.and_eq_of_eq_true_left)
         a b (← mkEqTrueProof a)
   else if (← isEqTrue b) then
+    -- b = True ⇒ (a ∧ b) = a
     pushEq e a <|
       mkApp3 (mkConst ``Grind.and_eq_of_eq_true_right)
         a b (← mkEqTrueProof b)
   else if (← isEqFalse a) then
+    -- a = False ⇒ (a ∧ b) = False
     pushEqFalse e <|
       mkApp3 (mkConst ``Grind.and_eq_of_eq_false_left)
         a b (← mkEqFalseProof a)
   else if (← isEqFalse b) then
+    -- b = False ⇒ (a ∧ b) = False
     pushEqFalse e <|
       mkApp3 (mkConst ``Grind.and_eq_of_eq_false_right)
         a b (← mkEqFalseProof b)
