@@ -1013,7 +1013,7 @@ This example demonstrates how the various submodules of `grind` are seamlessly i
 * do Gröbner basis reasoning
 all without providing explicit instructions to drive the interactions between these modes of reasoning.
 
-For this example we'll being with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
+For this example we'll begin with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
 Of course, this example works [without any changes](https://github.com/leanprover-community/mathlib4/blob/master/MathlibTest/grind/trig.lean) using Mathlib's versions of these!
 
 ```lean
