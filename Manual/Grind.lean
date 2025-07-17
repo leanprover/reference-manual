@@ -1969,7 +1969,7 @@ Let's press onward, and see if we can define `insert` without having to write an
 ```
 In both branches, `grind` is automatically proving both the `size_keys` and `WF` fields!
 Note also in the first branch the `set` calls `m.keys.set i a` and `m.values.set i b`
-are having there "in-bounds" obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
+are having their "in-bounds" obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
 
 Next let's try `eraseSwap`:
 ```lean (name := eraseSwap_1) (error := true) (keep := false)
