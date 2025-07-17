@@ -564,7 +564,7 @@ example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
 ```
 
-By default, `grind` uses that automatically generated equations for `match`-expressions as E-matching theorems.
+By default, `grind` uses automatically generated equations for `match`-expressions as E-matching theorems.
 
 ```lean
 example (x y : Nat)
