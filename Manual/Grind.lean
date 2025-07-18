@@ -564,7 +564,7 @@ example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
 ```
 
-By default, `grind` uses that automatically generated equations for `match`-expressions as E-matching theorems.
+By default, `grind` uses automatically generated equations for `match`-expressions as E-matching theorems.
 
 ```lean
 example (x y : Nat)
@@ -811,7 +811,7 @@ example [CommRing α] [IsCharP α 0] (a : α)
   grind
 ```
 
-Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the charactistic:
+Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the characteristic:
 ```lean
 example [CommRing α] (a b c : α)
     (h₁ : a + 6 = a) (h₂ : c = c + 9) (h : b + 3*c = 0) :
@@ -843,7 +843,7 @@ example [Field α] (a : α)
 
 The `ring` module also performs case-analysis for terms `a⁻¹` on whether `a` is zero or not.
 In the following example, if `2*a` is zero, then `a` is also zero since
-we have`NoNatZeroDivisors α`, and all terms are zero and the equality hold. Otherwise,
+we have `NoNatZeroDivisors α`, and all terms are zero and the equality hold. Otherwise,
 `ring` adds the equalities `a*a⁻¹ = 1` and `2*a*(2*a)⁻¹ = 1`, and closes the goal.
 
 ```lean
@@ -1013,7 +1013,7 @@ This example demonstrates how the various submodules of `grind` are seamlessly i
 * do Gröbner basis reasoning
 all without providing explicit instructions to drive the interactions between these modes of reasoning.
 
-For this example we'll being with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
+For this example we'll begin with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
 Of course, this example works [without any changes](https://github.com/leanprover-community/mathlib4/blob/master/MathlibTest/grind/trig.lean) using Mathlib's versions of these!
 
 ```lean
@@ -1969,7 +1969,7 @@ Let's press onward, and see if we can define `insert` without having to write an
 ```
 In both branches, `grind` is automatically proving both the `size_keys` and `WF` fields!
 Note also in the first branch the `set` calls `m.keys.set i a` and `m.values.set i b`
-are having there "in-bounds" obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
+are having their "in-bounds" obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
 
 Next let's try `eraseSwap`:
 ```lean (name := eraseSwap_1) (error := true) (keep := false)

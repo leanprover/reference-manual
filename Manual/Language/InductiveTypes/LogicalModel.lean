@@ -330,7 +330,7 @@ tag := "prop-vs-type"
 
 Lean rejects universe-polymorphic types that could not, in practice, be used polymorphically.
 This could arise if certain instantiations of the universe parameters would cause the type itself to be a {lean}`Prop`.
-If this type is not a {tech}[subsingleton], then is recursor can only target propositions (that is, the {tech}[motive] must return a {lean}`Prop`).
+If this type is not a {tech}[subsingleton], then its recursor can only target propositions (that is, the {tech}[motive] must return a {lean}`Prop`).
 These types only really make sense as {lean}`Prop`s themselves, so the universe polymorphism is probably a mistake.
 Because they are largely useless, Lean's inductive type elaborator has not been designed to support these types.
 
