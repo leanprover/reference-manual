@@ -358,8 +358,12 @@ module.c.o.export
 module.c.o.noexport
 module.deps
 module.dynlib
+module.exportInfo
 module.header
 module.ilean
+module.importAllArts
+module.importArts
+module.importInfo
 module.imports
 module.input
 module.ir
@@ -412,7 +416,7 @@ The facets available for modules are:
 
 : `imports`
 
-  The immediate imports of the Lean module, but not the full set of transitive imports.
+  The immediate imports of the Lean module, but not the full set of transitive imports. {TODO}[Once the module system lands fully, add docs here for `module.importAllArts`, `module.importArts`]
 
 : `precompileImports`
 

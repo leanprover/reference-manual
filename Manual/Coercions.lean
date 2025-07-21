@@ -92,7 +92,7 @@ end
 
 ```lean (show := false)
 -- Test comment about field notation
-/-- error: unknown constant 'Nat.bdiv' -/
+/-- error: Unknown constant `Nat.bdiv` -/
 #check_msgs in
 #check Nat.bdiv
 

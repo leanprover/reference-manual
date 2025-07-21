@@ -99,14 +99,14 @@ declaration uses 'sorry'
 
 Error messages are shown like this:
 ```leanOutput output (severity := error)
-Application type mismatch: In the application
-  Nat.succ "two"
-the argument
+Application type mismatch: The argument
   "two"
 has type
   String
 but is expected to have type
   Nat
+in the application
+  Nat.succ "two"
 ```
 
 

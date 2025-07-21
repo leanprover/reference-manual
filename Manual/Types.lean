@@ -118,14 +118,14 @@ example : LengthList String 5 :=
   ("Wrong", "number", ())
 ```
 ```leanOutput wrongNum
-Application type mismatch: In the application
-  ("number", ())
-the argument
+Application type mismatch: The argument
   ()
 has type
   Unit
 but is expected to have type
   LengthList String 3
+in the application
+  ("number", ())
 ```
 :::
 ::::
@@ -464,7 +464,7 @@ def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
 unknown universe level 'u'
 ```
 ```leanOutput uv
-unknown universe level 'v'
+unknown universe level 'u'
 ```
 :::
 

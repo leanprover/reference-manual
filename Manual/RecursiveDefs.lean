@@ -131,7 +131,7 @@ mutual
 end
 ```
 ```leanOutput mutScope
-unknown identifier 'NaturalNum'
+Unknown identifier `NaturalNum`
 ```
 
 Without the mutual block, the definition succeeds:
@@ -152,7 +152,7 @@ mutual
 end
 ```
 ```leanOutput mutScopeTwo
-unknown identifier 'α'
+Unknown identifier `α`
 ```
 
 With a different name, the implicit parameter is automatically added:

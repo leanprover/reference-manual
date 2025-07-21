@@ -550,7 +550,7 @@ example : OddList String := .cons "x" (.cons "y" .nil)
 ```leanOutput evenOddMut
 Unknown identifier `OddList.nil`
 
-Note: Inferred this identifier from the expected type of `.nil`:
+Note: Inferred this name from the expected resulting type of `.nil`:
   OddList String
 ```
 :::
@@ -590,7 +590,7 @@ end
 
 The type constructors may not refer to the other type constructors in the `mutual` group, so `FreshList` is not in scope in the type constructor of `Fresh`:
 ```leanOutput mutualNoMention
-unknown identifier 'FreshList'
+Unknown identifier `FreshList`
 ```
 :::
 

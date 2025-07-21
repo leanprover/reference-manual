@@ -63,7 +63,7 @@ module
 
 def priv : Nat := 0
 
-public abbrev pub : Nat := priv  -- error: unknown identifier `priv`
+public abbrev pub : Nat := priv  -- error: Unknown identifier `priv`
 ```
 
 `public section` can be used to switch the default scope for declarations, with `private` locally negating it.
