@@ -869,10 +869,11 @@ This reduction behavior does not hold {tech key:="definitional equality"}[defini
 theorem div.eq0 : div n 0 = 0 := by rfl
 ```
 ```leanOutput nonDef
-tactic 'rfl' failed, the left-hand side
+Tactic `rfl` failed: the left-hand side
   div n 0
 is not definitionally equal to the right-hand side
   0
+
 n : Nat
 ⊢ div n 0 = 0
 ```

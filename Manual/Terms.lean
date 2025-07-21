@@ -1359,10 +1359,11 @@ structure OnlyThreeOrFive where
 
 -- Default args are synthesized in patterns too!
 /--
-error: tactic 'rfl' failed, the left-hand side
+error: Tactic `rfl` failed: the left-hand side
   n = 3
 is not definitionally equal to the right-hand side
   n = 5
+
 x✝ : OnlyThreeOrFive
 n : Nat
 ⊢ n = 3 ∨ n = 5
@@ -1387,13 +1388,14 @@ def ggg' : OnlyThreeOrFive → Nat
 /--
 error: could not synthesize default value for parameter 'ok' using tactics
 ---
-error: tactic 'rfl' failed, the left-hand side
+error: Tactic `rfl` failed: the left-hand side
   3 = 3
 is not definitionally equal to the right-hand side
   3 = 5
+
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.2638, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.2667, ok := ⋯ } : OnlyThreeOrFive
 -/
 #check_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1645,14 +1647,14 @@ def boolCases (b : Bool)
 ```
 The error for the first case is typical of both:
 ```leanOutput boolCases1
-Application type mismatch: In the application
-  ifTrue h
-the argument
+Application type mismatch: The argument
   h
 has type
   b = true
 but is expected to have type
   true = true
+in the application
+  ifTrue h
 ```
 Turning off generalization allows type checking to succeed, because {lean}`b` remains in the types of {lean}`ifTrue` and {lean}`ifFalse`.
 ```lean
@@ -1956,8 +1958,9 @@ example (n : Nat) := by
     rfl
 ```
 ```leanOutput byBusted
-tactic 'rewrite' failed, equality or iff proof expected
+Tactic `rewrite` failed: equality or iff proof expected
   0 ≍ n'
+
 n' : Nat
 ih : 0 ≍ n'
 ⊢ 0 ≍ n'.succ
