@@ -90,8 +90,14 @@ def elanOptDef : RoleExpander
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.elanOptDef $(quote name) $(quote kind) $(quote (if valMeta.isEmpty then none else some valMeta : Option String))) #[Inline.code $(quote name)])]
 
+open Verso.Search in
+def elanOptDomainMapper : DomainMapper :=
+  DomainMapper.withDefaultJs elanOptDomain "Elan Command-Line Option" "elan-option-domain" |>.setFont { family := .code }
+
 @[inline_extension elanOptDef]
 def elanOptDef.descr : InlineDescr where
+  init s := s.addQuickJumpMapper elanOptDomain elanOptDomainMapper
+
   traverse id data _ := do
     let .arr #[.str name, jsonKind, _] := data
       | logError s!"Failed to deserialize metadata for Elan option def: {data}"; return none

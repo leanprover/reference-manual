@@ -136,7 +136,7 @@ def keywordOf.descr : InlineDescr where
         -- with first! Also TODO: we need docs for syntax categories, with human-readable names to
         -- show here. Use tactic index data for inspiration.
         -- For now, here's the underlying data so we don't have to fill in xrefs later and can debug.
-        let tgt := (← read).linkTargets.keyword kind
+        let tgt := (← read).linkTargets.keyword kind none
         let addLink (html : Html) : Html :=
           match tgt[0]? with
           | none => html
@@ -1406,9 +1406,26 @@ private def notLooking : GrammarHtmlM α → GrammarHtmlM α := withReader (·.n
 
 def productionDomain : Name := `Manual.Syntax.production
 
+open Verso.Search in
+def productionDomainMapper : DomainMapper where
+  displayName := "Syntax"
+  className := "syntax-domain"
+  dataToSearchables :=
+  "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    // TODO find a way to not include the “meta” parts of the string
+    // in the search key here, but still display them
+    searchKey: value[0].data.forms.map(v => v.string).join(''),
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.Syntax.production',
+    ref: value,
+  }))"
+
 open Verso.Output Html in
 @[block_extension grammar]
 partial def grammar.descr : BlockDescr where
+  init s := s.addQuickJumpMapper productionDomain (productionDomainMapper.setFont { family := .code })
+
   traverse id info _ := do
     if let .ok (k, _, searchable) := FromJson.fromJson? (α := Name × TaggedText GrammarTag × Json) info then
       let path ← (·.path) <$> read
@@ -1476,7 +1493,7 @@ where
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
-          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k)[0]? then
+          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k none)[0]? then
             return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
       return {{<span class="keyword">{{inner}}</span>}}
     | .nonterminal k doc? => do

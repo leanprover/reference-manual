@@ -221,6 +221,19 @@ def lake : DirectiveExpander
 
 def lakeCommandDomain : Name := `Manual.lakeCommand
 
+open Verso.Search in
+def lakeCommandDomainMapper : DomainMapper where
+  displayName := "Lake Command"
+  className := "lake-command-domain"
+  dataToSearchables :=
+  "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    searchKey: `lake ${key}`,
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.lakeCommand',
+    ref: value,
+  }))"
+
 open Verso.Genre.Manual.Markdown in
 open Lean Elab Term Parser Tactic Doc in
 @[block_extension Block.lakeCommand]
@@ -228,6 +241,7 @@ def lakeCommand.descr : BlockDescr where
   init st := st
     |>.setDomainTitle lakeCommandDomain "Lake commands"
     |>.setDomainDescription lakeCommandDomain "Detailed descriptions of Lake commands"
+    |>.addQuickJumpMapper lakeCommandDomain (lakeCommandDomainMapper.setFont { family := .code })
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
@@ -278,7 +292,7 @@ def lakeCommand.descr : BlockDescr where
           {{permalink id xref false}}
           <span class="label">"Lake command"</span>
           <pre class="signature hl lean block" data-lean-context={{name}}>
-            {{← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml}}
+            {{← (Highlighted.seq #[lakeTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}}
           </pre>
           <div class="text">
             {{aliasHtml}}
@@ -330,7 +344,7 @@ def lakeMeta.descr : InlineDescr where
           (mName, none)
         | _ => ("", none)
       let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
-      hl.inlineHtml ctx
+      hl.inlineHtml ctx (g := Verso.Genre.Manual)
 
 
 @[role_expander lake]
@@ -418,5 +432,5 @@ def lakeArgs.descr : InlineDescr where
         | .error e => HtmlT.logError s!"Couldn't deserialize Lake args: {e}"; return .empty
         | .ok hl =>
           let name := if let Json.str n := name then some n else none
-          hl.inlineHtml name
+          hl.inlineHtml name (g := Verso.Genre.Manual)
       else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty

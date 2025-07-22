@@ -162,9 +162,43 @@ def tomlField : DirectiveExpander
     let contents ← contents.mapM elabBlock
     return #[← ``(Block.other (Block.tomlField $(quote sort) $(quote inTable) $(quote field)) #[$contents,*])]
 
+open Verso.Search in
+def tomlTableDomainMapper := {
+  displayName := "Lake TOML Table",
+  className := "lake-toml-table-domain",
+  dataToSearchables := "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => {
+    let arrayKey = value[0].data.arrayKey;
+    let arr = arrayKey ? `[[${arrayKey}]] — ` : '';
+    return {
+      searchKey: arr + value[0].data.description,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: 'Manual.lakeTomlTable',
+      ref: value,
+    }})
+"
+  : DomainMapper }.setFont { family := .code }
+
+open Verso.Search in
+def tomlFieldDomainMapper := {
+  displayName := "Lake TOML Field",
+  className := "lake-toml-field-domain",
+  dataToSearchables := "(domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => {
+      let tableArrayKey = value[0].data.tableArrayKey;
+      let arr = tableArrayKey ? `[[${tableArrayKey}]]` : 'package configuration';
+      return {
+        searchKey: `${value[0].data.field} in ${arr}`,
+        address: `${value[0].address}#${value[0].id}`,
+        domainId: 'Manual.lakeTomlField',
+        ref: value,
+      }})"
+  : DomainMapper }.setFont { family := .code }
 
 @[block_extension Block.tomlField]
 def Block.tomlField.descr : BlockDescr where
+  init s := s.addQuickJumpMapper tomlFieldDomain tomlFieldDomainMapper
+
   traverse id info _ := do
     let .ok (_, inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
       | do logError "Failed to deserialize field doc data"; pure none
@@ -273,6 +307,9 @@ def Block.tomlFieldCategory.descr : BlockDescr where
 
 @[block_extension Block.tomlTable]
 def Block.tomlTable.descr : BlockDescr where
+  init s :=
+    s.addQuickJumpMapper tomlTableDomain tomlTableDomainMapper
+
   traverse id info _ := do
     let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
         | do logError "Failed to deserialize FFI doc data"; pure none
