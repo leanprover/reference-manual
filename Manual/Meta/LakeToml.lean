@@ -563,7 +563,7 @@ namespace Toml
 instance [Test α] : Test (Lake.OrdNameMap α) where
   toString xs := Id.run do
     let mut out : Std.Format := Std.Format.nil
-    for (k, v) in xs.toRBMap do
+    for (k, v) in xs.toTreeMap do
       out := out ++ .group (.nest 2 <| Test.toString k ++ " ↦" ++ .line ++ Test.toString v) ++ "," ++ .line
     return .group (.nest 2 <| "{" ++ out) ++ "}"
 
