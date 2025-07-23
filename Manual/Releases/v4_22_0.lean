@@ -138,7 +138,7 @@ Lean now supports named error messages with associated explanations.
 [#8649](https://github.com/leanprover/lean4/pull/8649) and [#8730](https://github.com/leanprover/lean4/pull/8730) add
 macro syntax for registering
 and throwing named errors, mechanisms for displaying error names in the Infoview and at the command line,
-and the ability to link to error explanations in the manual (once the explanations are added).
+and the ability to link to [error explanations in the reference manual](https://lean-lang.org/doc/reference/latest/Error-Explanations/#The-Lean-Language-Reference--Error-Explanations). 
 
 This infrastructure lays the foundation for a searchable error index and improved diagnostics.
 
