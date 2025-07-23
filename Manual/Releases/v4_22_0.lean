@@ -132,6 +132,7 @@ Syntax of `have` and `let` is unified, and new options are added.
   parallelism.
 
 ### Named errors with explanations
+
 Lean now supports named error messages with associated explanations.
 
 [#8649](https://github.com/leanprover/lean4/pull/8649) and [#8730](https://github.com/leanprover/lean4/pull/8730) add
