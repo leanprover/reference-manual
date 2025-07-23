@@ -29,7 +29,7 @@ Lean now includes a new SMT-style tactic `grind`, along with annotations for the
 `grind` ships theory-specific solvers, including cutsat (superseding `omega`, with model construction)
 and a new Gröbner basis solver.
 
-Check out the new reference chapter: [grind](https://lean-lang.org/doc/reference/latest//The--grind--tactic/#grind).
+Also see the [chapter on grind in the reference manual](https://lean-lang.org/doc/reference/latest//The--grind--tactic/#grind).
 
 ### New compiler
 
