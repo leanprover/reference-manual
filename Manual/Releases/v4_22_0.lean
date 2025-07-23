@@ -55,7 +55,8 @@ See the demo in the PR description.
 
 ### Displaying import hierarchy
 
-[#8654](https://github.com/leanprover/lean4/pull/8654) adds server-side support for a new module hierarchy component in
+[#8654](https://github.com/leanprover/lean4/pull/8654) (together with [#620](https://github.com/leanprover/vscode-lean4/pull/620) for vscode-lean4) adds
+a new module hierarchy component in
 VS Code that can be used to navigate both the import tree of a module
 and the imported-by tree of a module.
 
