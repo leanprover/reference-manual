@@ -185,7 +185,8 @@ pure verification conditions.
 
 ### Experimental: module system
 
-Enabled by the `module` keyword before import statements.
+The new module system (enabled by the `module` keyword before import statements) is available
+for experimentation.
 
 ### Experimental: sharing oleans between different checkouts of the same repository
 
