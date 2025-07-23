@@ -16,9 +16,10 @@ open Lean Elab
 
 namespace Manual
 
-def Block.example (name : Option String) (opened : Bool) : Block where
+def Block.example (descriptionString : String) (name : Option String) (opened : Bool) : Block where
   name := `Manual.example
-  data := ToJson.toJson (name, opened, (none : Option Tag))
+  data := ToJson.toJson (descriptionString, name, opened, (none : Option Tag))
+  properties := .empty |>.insert `Verso.Genre.Manual.exampleDefContext descriptionString
 
 structure ExampleConfig where
   description : FileMap × TSyntaxArray `inline
@@ -53,6 +54,8 @@ def isLeanBlock : TSyntax `block → CoreM Bool
     return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
+/-- A domain for named examples -/
+def examples : Domain := {}
 
 @[directive_expander «example»]
 def «example» : DirectiveExpander
@@ -62,6 +65,7 @@ def «example» : DirectiveExpander
     let description ←
       DocElabM.withFileMap cfg.description.1 <|
       cfg.description.2.mapM elabInline
+    let descriptionString := inlinesToString (← getEnv) cfg.description.2
     PointOfInterest.save (← getRef) (inlinesToString (← getEnv) cfg.description.2)
       (selectionRange := mkNullNode cfg.description.2)
       (kind := Lsp.SymbolKind.interface)
@@ -74,20 +78,25 @@ def «example» : DirectiveExpander
         withoutModifyingEnv <| prioritizedElab (isLeanBlock ·) elabBlock contents
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote cfg.tag) (opened := $(quote cfg.opened)))
+    pure #[← ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)))
                 #[Block.para #[$description,*], $blocks,*])]
 
 @[block_extension «example»]
 def example.descr : BlockDescr where
   traverse id data contents := do
-    match FromJson.fromJson? data (α := Option String × Bool × Option Tag) with
+    match FromJson.fromJson? data (α := String × Option String × Bool × Option Tag) with
     | .error e => logError s!"Error deserializing example tag: {e}"; pure none
-    | .ok (none, _, _) => pure none
-    | .ok (some x, opened, none) =>
+    | .ok (descrString, none, _, _) => do
+      modify (·.saveDomainObject ``examples descrString id)
+      pure none
+    | .ok (descrString, some x, opened, none) =>
+      modify (·.saveDomainObject ``examples descrString id)
       let path ← (·.path) <$> read
       let tag ← Verso.Genre.Manual.externalTag id path x
-      pure <| some <| Block.other {Block.example none false with id := some id, data := toJson (some x, opened, some tag)} contents
-    | .ok (some _, _, some _) => pure none
+      pure <| some <| Block.other {Block.example descrString none false with id := some id, data := toJson (some x, opened, some tag)} contents
+    | .ok (descrString, some _, _, some _) =>
+      modify (·.saveDomainObject ``examples descrString id)
+      pure none
   toTeX :=
     some <| fun _ go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
@@ -102,22 +111,64 @@ def example.descr : BlockDescr where
       else
         let .para description := blocks[0]
           | HtmlT.logError "Malformed example - description not paragraph"; pure .empty
-        let opened ←
-          match FromJson.fromJson? data (α := Option String × Bool × Option Tag) with
-          | .error e => HtmlT.logError s!"Error deserializing example data: {e}"; pure false
-          | .ok (_, opened, _) => pure opened
+        let (descrString, opened) ←
+          match FromJson.fromJson? data (α := String × Option String × Bool × Option Tag) with
+          | .error e => HtmlT.logError s!"Error deserializing example data: {e}"; pure ("", false)
+          | .ok (descrString, _, opened, _) => pure (descrString, opened)
         let xref ← HtmlT.state
+        let ctxt ← HtmlT.context
         let mut attrs := xref.htmlId id
         if opened then
           attrs := attrs.push ("open", "")
-        pure {{
-          <details class="example" {{attrs}}>
-            <summary class="description">{{← description.mapM goI}}</summary>
-            <div class="example-content">
-              {{← blocks.extract 1 blocks.size |>.mapM goB}}
-            </div>
-          </details>
-        }}
+        withReader (fun ρ => { ρ with definitionIds := xref.definitionIds ctxt, codeOptions.definitionsAsTargets := true}) do
+          pure {{
+            <details class="example" {{attrs}}>
+              <summary class="description">{{← description.mapM goI}}</summary>
+              <div class="example-content">
+                {{← blocks.extract 1 blocks.size |>.mapM goB}}
+              </div>
+            </details>
+          }}
+  extraJs := [
+r#"function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', openDetailsForHashTarget);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+} else {
+  openDetailsForHashTarget();
+}
+"#
+  ]
   extraCss := [
 r#".example {
   border: 1px solid #98B2C0;
