@@ -28,7 +28,7 @@ jobs:
       - name: Install deps for figures (TeX)
         uses: zauguin/install-texlive@v4
         with:
-          texlive_version: 2024
+          texlive_version: 2025
           packages: |
             scheme-small
             latex-bin
@@ -313,3 +313,26 @@ jobs:
         run: |
           set -o pipefail
           vale --output JSON _out/html-vale/ | python .vale/scripts/report.py
+
+  type-check-js:
+    name: Check search JS code with TypeScript
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get generated HTML from artifact storage
+        uses: actions/download-artifact@v4
+        with:
+          name: 'html'
+          path: '_out/'
+
+      - name: Install TypeScript
+        run: |
+          sudo apt update && sudo apt install node-typescript
+
+      - name: Type check the search bar code
+        run: |
+          cd _out/html-multi/-verso-search
+          tsc --noEmit -p jsconfig.json
+

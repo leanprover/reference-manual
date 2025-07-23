@@ -424,10 +424,11 @@ private def makeExample (contents : ExampleContents) : DocElabM Term := do
       else
         s!"Fixed {i}"
     title?.getD fallback
+  let titleString := inlinesToString (← getEnv) title
   let codeBlocks := codeBlocks.map Prod.fst
   let codeExample ←
     ``(Block.other (Block.tabbedMWEs $(quote titles)) #[$codeBlocks,*])
-  ``(Block.other (Block.example none (opened := true))
+  ``(Block.other (Block.example $(quote titleString) none (opened := true))
       #[Block.para #[$title,*], $codeExample, $descrBlocks,*])
 
 private def titleOfCodeBlock? (b : MD4Lean.Block) : Option String := do
@@ -640,12 +641,18 @@ def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
 
 def errorExplanationDomain := `Manual.errorExplanation
 
+open Verso.Search in
+def errorExplanationDomainMapper :=
+  DomainMapper.withDefaultJs errorExplanationDomain "Error Explanation" "error-explanation-domain"
+    |>.setFont { family := .code }
+
 inline_extension Inline.errorExplanation (errorName : Name) (summary : String) where
   data := toJson #[errorName.toString, summary]
   init st := st
     |>.setDomainTitle errorExplanationDomain "Error Explanations"
     |>.setDomainDescription errorExplanationDomain
         "Explanations of error messages and warnings produced during compilation"
+    |>.addQuickJumpMapper errorExplanationDomain errorExplanationDomainMapper
 
   traverse id info _ := do
     let .ok #[errorName, summary] := FromJson.fromJson? (α := Array String) info

@@ -88,8 +88,14 @@ def lakeOptDef : RoleExpander
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOptDef $(quote name) $(quote kind) $(quote (if valMeta.isEmpty then none else some valMeta : Option String))) #[Inline.code $(quote name)])]
 
+open Verso.Search in
+def lakeOptDomainMapper : DomainMapper :=
+  DomainMapper.withDefaultJs lakeOptDomain "Lake Command-Line Option" "lake-option-domain" |>.setFont { family := .code }
+
 @[inline_extension lakeOptDef]
 def lakeOptDef.descr : InlineDescr where
+  init s := s.addQuickJumpMapper lakeOptDomain lakeOptDomainMapper
+
   traverse id data _ := do
     let .arr #[.str name, jsonKind, _] := data
       | logError s!"Failed to deserialize metadata for Lake option def: {data}"; return none
