@@ -137,7 +137,7 @@ def parserAlias.descr : BlockDescr where
         <div class="namedocs" {{idAttr}}>
           {{permalink id xref false}}
           <span class="label">"parser alias"</span>
-          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml}}</pre>
+          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}}</pre>
           <div class="text">
             {{metadata}}
             {{← contents.mapM goB}}

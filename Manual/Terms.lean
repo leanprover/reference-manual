@@ -113,7 +113,8 @@ The innermost local binding of a name takes precedence over others:
 
 ::::keepEnv
 :::example "Longer Prefixes of Current Namespace Take Precedence"
-The  namespaces `A`, `B`, and `C` are nested, and `A` and `C` each contain a definition of `x`.
+The  namespaces `A`, `B`, and `C` are nested.
+Both `A` and `C` contain a definition of `x`.
 ```lean (name := NS)
 namespace A
 def x := "A.x"
