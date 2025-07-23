@@ -154,13 +154,18 @@ where x := 13
 finally all_goals assumption
 ```
 
+### Polymorphic ranges and slices
+
+[#8784](https://github.com/leanprover/lean4/pull/8784) introduces new syntax for ranges:
+`1...*`, `1...=3`, `1...<3`, `1<...=2`, `*...=3.`.
+
+[#8947](https://github.com/leanprover/lean4/pull/8947) extends this syntax to slices, allowing expressions like `xs[*...end]`.
+
 ### Library highlights
 
 Notable additions to the standard library are:
 
 * Iterators ([#8420](https://github.com/leanprover/lean4/pull/8420), [#8545](https://github.com/leanprover/lean4/pull/8545), [#8615](https://github.com/leanprover/lean4/pull/8615), [#8629](https://github.com/leanprover/lean4/pull/8629), [#8768](https://github.com/leanprover/lean4/pull/8768)),
-
-* Polymorphic ranges ([#8784](https://github.com/leanprover/lean4/pull/8784)) and slices ([#8947](https://github.com/leanprover/lean4/pull/8947)),
 
 * monadic interface for `Async` operations ([#8003](https://github.com/leanprover/lean4/pull/8003)),
 
