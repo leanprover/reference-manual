@@ -60,12 +60,6 @@ a new module hierarchy component in
 VS Code that can be used to navigate both the import tree of a module
 and the imported-by tree of a module.
 
-### Warnings about `sorry`s
-
-[#8662](https://github.com/leanprover/lean4/pull/8662) adds a `warn.sorry` option (default true) that logs the
-"declaration uses 'sorry'" warning when declarations contain `sorryAx`.
-When false, the warning is not logged.
-
 ### Refactor of `have`/`let` semantics
 
 TL;DR: nondependent `let` bindings are now transformed to `have` bindings for better performance.
@@ -138,7 +132,7 @@ Lean now supports named error messages with associated explanations.
 [#8649](https://github.com/leanprover/lean4/pull/8649) and [#8730](https://github.com/leanprover/lean4/pull/8730) add
 macro syntax for registering
 and throwing named errors, mechanisms for displaying error names in the Infoview and at the command line,
-and the ability to link to [error explanations in the reference manual](https://lean-lang.org/doc/reference/latest/Error-Explanations/#The-Lean-Language-Reference--Error-Explanations). 
+and the ability to link to [error explanations in the reference manual](https://lean-lang.org/doc/reference/latest/Error-Explanations/#The-Lean-Language-Reference--Error-Explanations).
 
 This infrastructure lays the foundation for a searchable error index and improved diagnostics.
 
@@ -193,6 +187,12 @@ for experimentation.
 [#8922](https://github.com/leanprover/lean4/pull/8922) introduces a local artifact cache for Lake. When enabled, Lake
 will share build artifacts (built files) across different instances of
 the same package using an input- and content-addressed cache. Requires `export LAKE_ARTIFACT_CACHE=true` for now.
+
+### Warnings about `sorry`s
+
+[#8662](https://github.com/leanprover/lean4/pull/8662) adds a `warn.sorry` option (default true) that logs the
+"declaration uses 'sorry'" warning when declarations contain `sorryAx`.
+When false, the warning is not logged.
 
 ### Breaking changes
 
