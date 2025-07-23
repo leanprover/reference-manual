@@ -143,6 +143,7 @@ and the ability to link to error explanations in the manual (once the explanatio
 This infrastructure lays the foundation for a searchable error index and improved diagnostics.
 
 ### `finally` section
+
 [#8723](https://github.com/leanprover/lean4/pull/8723) implements a `finally` section following a (potentially empty)
 `where` block. `where ... finally` opens a tactic sequence block in
 which the goals are the unassigned metavariables from the definition
