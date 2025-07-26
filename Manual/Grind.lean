@@ -820,7 +820,7 @@ example (a b : Nat)
   grind
 ```
 
-There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` typeclass to tell cutsat that a type embeds in the integers.
+There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` type class to tell `cutsat` that a type embeds in the integers.
 Using this, we can solve goals such as:
 
 ```lean
@@ -843,7 +843,7 @@ It views multivariate polynomials as rewriting rules. For example, the polynomia
 is treated as a rewriting rule `x*y ↦ -x + 2`. It uses superposition to ensure the rewriting system is
 confluent. Users can enable the `ring` solver for their own types by providing instances of
 the following type classes, all in the `Lean.Grind` namespace.
-The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
+The algebraic solvers will self-configure depending on the availability of these type classes, so not all need to be provided.
 The capabilities of the algebraic solvers will of course degrade when some are not available.
 
 {docstring Lean.Grind.Semiring}
@@ -1016,7 +1016,7 @@ ordered vector spaces, etc.
 The main type classes for module structures are `NatModule` (every `Semiring` is a `NatModule`) and `IntModule` (every `Ring` is an `IntModule`).
 These may interact with the three order classes `Preorder`, `PartialOrder`, and `LinearOrder`.
 (Typically a `Preorder` is enough when the context already includes a contradiction, but to prove linear inequality goals you will need a `LinearOrder`.)
-To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the typeclass `OrderedRing`.
+To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the type class `OrderedRing`.
 
 {docstring Lean.Grind.NatModule}
 
@@ -1179,8 +1179,8 @@ As before, `grind` first does the instantiation and Gröbner basis calculations 
 However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`.
 Next, instantiating {lean}`Nat.max_def` (automatically, because of an annotation in the standard library) which states `max n m = if n ≤ m then m else n`,
 we then case split on the inequality.
-In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 + x`.
-In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
+In the branch `3 ≤ 4 * x`, `cutsat` again uses modularity to prove `4 * x ≠ 2 + x`.
+In the branch `4 * x < 3`, `cutsat` quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
 This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
 the central “whiteboard” which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Gröbner bases),
@@ -2128,7 +2128,7 @@ We find amongst many others:
   (keys m_1)[i_2], ...}
 ```
 This should imply, by the injectivity of `keys`, that `i_2 = (keys m_1).size - 1`.
-Since this identity *wasn't* reflected by the cutsat model,
+Since this identity *wasn't* reflected by the `cutsat` model,
 we suspect that `grind` is not managing to use the injectivity of `keys`.
 
 Thinking about the way that we've provided the well-formedness condition, as
