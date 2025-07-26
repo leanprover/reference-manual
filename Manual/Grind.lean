@@ -34,8 +34,8 @@ set_option linter.typography.dashes true
 -- TODO: discuss with David.
 set_option verso.code.warnLineLength 72
 
-set_option maxHeartbeats 1000000 -- Needed for elaboration of the `IndexMap` example.
-set_option maxRecDepth 1000000 -- Needed for elaboration of the `IndexMap` example.
+set_option maxHeartbeats 850000 -- Needed for elaboration of the `IndexMap` example.
+set_option maxRecDepth 20000 -- Needed for compilation of the `IndexMap` example.
 
 open Manual (comment)
 
