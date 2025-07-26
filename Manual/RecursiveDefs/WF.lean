@@ -507,9 +507,9 @@ termination_by m n => (m, n)
 ```
 ```leanOutput synack (whitespace := lax)
 failed to prove termination, possible solutions:
-     - Use `have`-expressions to prove the remaining goals
-     - Use `termination_by` to specify a different well-founded relation
-     - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
+  - Use `have`-expressions to prove the remaining goals
+  - Use `termination_by` to specify a different well-founded relation
+  - Use `decreasing_by` to specify your own tactic for discharging this kind of goal
 case h
 m n : Nat
 ⊢ m / 2 + 1 < m + 1

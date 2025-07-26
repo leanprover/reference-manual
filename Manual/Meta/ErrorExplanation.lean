@@ -61,7 +61,7 @@ def explanationMWE : CodeBlockExpander
     let some name := config.name
       | throwError "Explanation MWE is missing a name"
     let (hls, msgs) ← loadPreprocessedMWE name str.getString
-    saveOutputs name msgs.toList
+    saveOutputs name (msgs.map (fun (sev, str) => .ofSeverityString sev str)).toList
 
     pure #[← ``(Block.other
       (Block.lean $(quote hls) (some $(quote (← getFileName))) none)

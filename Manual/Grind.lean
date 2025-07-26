@@ -27,11 +27,15 @@ set_option verso.docstring.allowMissing true
 
 set_option linter.unusedVariables false
 
+set_option linter.typography.quotes true
+set_option linter.typography.dashes true
+
 -- The verso default max line length is 60, which is very restrictive.
 -- TODO: discuss with David.
 set_option verso.code.warnLineLength 72
 
-set_option maxHeartbeats 400000 -- Needed for elaboration of the `IndexMap` example.
+set_option maxHeartbeats 850000 -- Needed for elaboration of the `IndexMap` example.
+set_option maxRecDepth 20000 -- Needed for compilation of the `IndexMap` example.
 
 open Manual (comment)
 
@@ -122,7 +126,7 @@ Lean supports dependent types and a powerful type‑class system, and {tactic}`g
 
 ## What is congruence closure?
 
-Congruence closure maintains *equivalence classes of terms* under the reflexive–symmetric–transitive closure of "is equal to" _and_ the rule that equal arguments yield equal function results.  Formally, if `a = a'` and `b = b'`, then `f a b = f a' b'` is added.  The algorithm merges classes until a fixed point is reached.
+Congruence closure maintains *equivalence classes of terms* under the reflexive–symmetric–transitive closure of “is equal to” _and_ the rule that equal arguments yield equal function results.  Formally, if `a = a'` and `b = b'`, then `f a b = f a' b'` is added.  The algorithm merges classes until a fixed point is reached.
 
 Think of a *shared white‑board*:
 
@@ -387,10 +391,24 @@ For example, the pattern `g (f x)` is too restrictive in the following case:
 the theorem `gf` will not be instantiated because the goal does not even
 contain the function symbol `g`.
 
-```lean (error := true)
+```lean (error := true) (name := restrictivePattern)
 example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
   grind
 ```
+```leanOutput restrictivePattern
+`grind` failed
+case grind
+b a c : Nat
+h₁ : f b = a
+h₂ : f c = a
+h : ¬b = c
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] False propositions
+  [eqc] Equivalence classes
+```
+
 
 You can use the command `grind_pattern` to manually select a pattern for a given theorem.
 In the following example, we instruct `grind` to use `f x` as the pattern,
@@ -403,15 +421,14 @@ example {a b c} (h₁ : f b = a) (h₂ : f c = a) : b = c := by
 ```
 You can enable the option `trace.grind.ematch.instance` to make `grind` print a
 trace message for each theorem instance it generates.
-```lean
-/--
-trace: [grind.ematch.instance] gf: g (f c) = c
-[grind.ematch.instance] gf: g (f b) = b
--/
-#guard_msgs (trace) in
+```lean (name := ematchInstanceTrace)
 example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
   set_option trace.grind.ematch.instance true in
   grind
+```
+```leanOutput ematchInstanceTrace
+[grind.ematch.instance] gf: g (f c) = c
+[grind.ematch.instance] gf: g (f b) = b
 ```
 
 You can also specify a *multi-pattern* to control when `grind` should instantiate a theorem.
@@ -438,7 +455,7 @@ you can use the `@[grind]` attribute or one of its variants, which will use a he
 The `@[grind?]` attribute displays an info message showing the pattern which was selected—this is very helpful for debugging!
 
 * `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).
-  In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable (i.e. has a constant as its head) subexpression which "covers" (i.e. fixes the value of) an argument which was not previously covered, it will add that subexpression as a pattern, until all arguments have been covered. This rule is described in more detail below.
+  In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable (i.e. has a constant as its head) subexpression which “covers” (i.e. fixes the value of) an argument which was not previously covered, it will add that subexpression as a pattern, until all arguments have been covered. This rule is described in more detail below.
 * `@[grind ←]` will select a multi-pattern from the conclusion of theorem (i.e. it will use the theorem for backwards reasoning).
   This may fail if not all the arguments to the theorem appear in the conclusion.
 * `@[grind]` will traverse the conclusion and then the hypotheses left-to-right, adding patterns as they increase the coverage, stopping when all arguments are covered.
@@ -519,7 +536,7 @@ they follow the rules described above.
 E-matching can generate too many theorem instances. Some patterns may even generate an unbounded
 number of instances. For example, consider the pattern `s x` in the following example.
 
-```lean (error := true)
+```lean (error := true) (name := ematchUnbounded)
 def s (x : Nat) := 0
 
 @[grind =] theorem s_eq (x : Nat) : s x = s (x + 1) :=
@@ -527,6 +544,20 @@ def s (x : Nat) := 0
 
 example : s 0 > 0 := by
   grind
+```
+```leanOutput ematchUnbounded
+`grind` failed
+case grind
+h : s 0 = 0
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] Equivalence classes
+  [ematch] E-matching patterns
+  [cutsat] Assignment satisfying linear constraints
+  [limits] Thresholds reached
+
+[grind] Diagnostics
 ```
 
 In the example above, `grind` instantiates `s_eq` with `x := 0` which generates the term
@@ -555,13 +586,13 @@ You can set the option `set_option diagnostics true` to obtain the number of
 theorem instances generated by `grind` per theorem. This is useful to detect
 theorems that contain patterns that are triggering too many instances.
 
-:::comment
-FIXME: the relevant grind diagnostic hover doesn't show up in the docs, it's obscured by generic diagnostics.
-:::
-```lean
+```lean (name := grindDiagnostics)
 set_option diagnostics true in
 example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
+```
+```leanOutput grindDiagnostics
+[grind] Diagnostics
 ```
 
 By default, `grind` uses automatically generated equations for `match`-expressions as E-matching theorems.
@@ -577,13 +608,32 @@ example (x y : Nat)
 
 You can disable this feature by using `grind -matchEqs`
 
-```lean (error := true)
+```lean (error := true) (name := noMatchEqs)
 example (x y : Nat)
     : x = y + 1 →
       0 < match x with
           | 0 => 0
           | _+1 => 1 := by
   grind -matchEqs
+```
+```leanOutput noMatchEqs
+`grind` failed
+case grind.2
+x y : Nat
+h : x = y + 1
+h_1 : (match x with
+  | 0 => 0
+  | n.succ => 1) =
+  0
+n : Nat
+h_2 : x = n + 1
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] Equivalence classes
+  [cases] Case analyses
+  [cutsat] Assignment satisfying linear constraints
+  [ring] Ring `Ring.OfSemiring.Q Nat`
 ```
 
 :::comment
@@ -596,11 +646,11 @@ TBD
 # Linear Integer Arithmetic Solver
 
 The linear integer arithmetic solver, `cutsat`, implements a model-based decision procedure for linear integer arithmetic,
-inspired by Section 4 of "Cutting to the Chase: Solving Linear Integer Arithmetic".
+inspired by Section 4 of “Cutting to the Chase: Solving Linear Integer Arithmetic”.
 The implementation in `grind` includes several enhancements and modifications such as
 
 - Extended constraint support (equality and disequality).
-- Optimized encoding of the `Cooper-Left` rule using a "big"-disjunction instead of fresh variables.
+- Optimized encoding of the `Cooper-Left` rule using a “big”-disjunction instead of fresh variables.
 - Decision variable tracking for case splits (disequalities, `Cooper-Left`, `Cooper-Right`).
 
 The solver can process four categories of linear polynomial constraints (where `p` is a linear polynomial):
@@ -641,9 +691,22 @@ example (a b : Int) : 2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2*a := by
 
 You can disable this solver using the option  `grind -cutsat`.
 
-```lean (error := true)
+```lean (error := true) (name := noCutsat)
 example (a b : Int) : 2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2*a := by
   grind -cutsat
+```
+```leanOutput noCutsat
+`grind` failed
+case grind
+a b : Int
+h : 2 ∣ a + 1
+h_1 : 2 ∣ a + b
+h_2 : 2 ∣ 2 * a + b
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [linarith] Linarith assignment for `Int`
 ```
 
 The solver is complete for linear integer arithmetic.
@@ -670,13 +733,13 @@ example {x y : Int}
 ```
 
 In the example above, you can inspect the rational model constructed by `cutsat`
-by expanding the section "Assignment satisfying linear constraints" in the goal
+by expanding the section `Assignment satisfying linear constraints` in the goal
 diagnostics.
 
 The solver currently does not have support for nonlinear constraints, and treats
-nonlinear terms such as `x*x` as variables. Thus, it fails to solve the following goal.
+nonlinear terms such as `x * x` as variables. Thus, it fails to solve the following goal.
 You can use the option `trace.grind.cutsat.assert` to trace all constraints processed
-by `cutsat`. Note that the term `x*x` is "quoted" in `「x * x」 + 1 ≤ 0` to indicate
+by `cutsat`. Note that the term `x * x` is “quoted” in `「x * x」 + 1 ≤ 0` to indicate
 that `x*x` is treated as a variable.
 
 ```lean (error := true)
@@ -700,35 +763,64 @@ and consequently `x = x + y`, and `f x = f (x + y)` by congruence.
 Model-based theory combination increases the size of the search space, and you
 can disable it using the option `grind -mbtc`
 
-```lean (error := true)
-example (f : Int → Int) (x y : Int)
-    : f x = 0 → 0 ≤ y → y ≤ 1 → y ≠ 1 →
-      f (x + y) = 0 := by
+```lean (error := true) (name := noMbtc)
+example (f : Int → Int) (x y : Int) :
+    f x = 0 →
+    0 ≤ y → y ≤ 1 → y ≠ 1 →
+    f (x + y) = 0 := by
   grind -mbtc
+```
+```leanOutput noMbtc
+`grind` failed
+case grind
+f : Int → Int
+x y : Int
+h : f x = 0
+h_1 : -1 * y ≤ 0
+h_2 : y + -1 ≤ 0
+h_3 : ¬y = 1
+h_4 : ¬f (x + y) = 0
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+  [eqc] Equivalence classes
+  [cutsat] Assignment satisfying linear constraints
+  [ring] Ring `Int`
 ```
 
 The `cutsat` solver can also process linear constraints containing natural numbers.
 It converts them into integer constraints by using `Int.ofNat`.
 
 ```lean
-example (x y z : Nat) : x < y + z → y + 1 < z → z + x < 3*z := by
+example (x y z : Nat) :
+    x < y + z →
+    y + 1 < z →
+    z + x < 3 * z := by
   grind
 ```
 
 The solver also supports linear division and modulo operations.
 
 ```lean
-example (x y : Int) : x = y / 2 → y % 2 = 0 → y - 2*x = 0 := by
+example (x y : Int) :
+    x = y / 2 →
+    y % 2 = 0 →
+    y - 2 * x = 0 := by
   grind
 ```
 
 The `cutsat` solver normalizes commutative (semi)ring expressions, so can solve goals like
 ```lean
-example (a b : Nat) (h₁ : a + 1 ≠ a * b * a) (h₂ : a * a * b ≤ a + 1) : b * a^2 < a + 1 := by
+example (a b : Nat)
+    (h₁ : a + 1 ≠ a * b * a)
+    (h₂ : a * a * b ≤ a + 1) :
+    b * a ^ 2 < a + 1 := by
   grind
 ```
 
-There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` typeclass to tell cutsat that a type embeds in the integers.
+There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` type class to tell `cutsat` that a type embeds in the integers.
 Using this, we can solve goals such as:
 
 ```lean
@@ -751,7 +843,7 @@ It views multivariate polynomials as rewriting rules. For example, the polynomia
 is treated as a rewriting rule `x*y ↦ -x + 2`. It uses superposition to ensure the rewriting system is
 confluent. Users can enable the `ring` solver for their own types by providing instances of
 the following type classes, all in the `Lean.Grind` namespace.
-The algebraic solvers will self-configure depending on the availability of these typeclasses, so not all need to be provided.
+The algebraic solvers will self-configure depending on the availability of these type classes, so not all need to be provided.
 The capabilities of the algebraic solvers will of course degrade when some are not available.
 
 {docstring Lean.Grind.Semiring}
@@ -924,7 +1016,7 @@ ordered vector spaces, etc.
 The main type classes for module structures are `NatModule` (every `Semiring` is a `NatModule`) and `IntModule` (every `Ring` is an `IntModule`).
 These may interact with the three order classes `Preorder`, `PartialOrder`, and `LinearOrder`.
 (Typically a `Preorder` is enough when the context already includes a contradiction, but to prove linear inequality goals you will need a `LinearOrder`.)
-To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the typeclass `OrderedRing`.
+To express that the additive structure in a module is compatible with the order we need `OrderedAdd`. We have limited support for ordered rings at present, represented by the type class `OrderedRing`.
 
 {docstring Lean.Grind.NatModule}
 
@@ -1013,7 +1105,7 @@ This example demonstrates how the various submodules of `grind` are seamlessly i
 * do Gröbner basis reasoning
 all without providing explicit instructions to drive the interactions between these modes of reasoning.
 
-For this example we'll begin with a "mocked up" version of the real numbers, and the `sin` and `cos` functions.
+For this example we'll begin with a “mocked up” version of the real numbers, and the `sin` and `cos` functions.
 Of course, this example works [without any changes](https://github.com/leanprover-community/mathlib4/blob/master/MathlibTest/grind/trig.lean) using Mathlib's versions of these!
 
 ```lean
@@ -1027,7 +1119,7 @@ axiom cos : R → R
 axiom trig_identity : ∀ x, (cos x)^2 + (sin x)^2 = 1
 ```
 
-Our first step is to tell grind to "put the trig identity on the whiteboard" whenever it sees a goal involving `sin` or `cos`:
+Our first step is to tell grind to “put the trig identity on the whiteboard” whenever it sees a goal involving `sin` or `cos`:
 
 ```lean
 grind_pattern trig_identity => cos x
@@ -1078,18 +1170,20 @@ and then uses modularity to derive a contradiction.
 
 Finally, we can also mix in some case splitting:
 ```
-example (f : R → Nat) : max 3 (4 * f ((cos x + sin x)^2)) ≠ 2 + f (2 * cos x * sin x + 1) := by
+example (f : R → Nat) :
+    max 3 (4 * f ((cos x + sin x)^2)) ≠
+      2 + f (2 * cos x * sin x + 1) := by
   grind
 ```
 As before, `grind` first does the instantiation and Gröbner basis calculations required to identify the two function applications.
 However the `cutsat` algorithm by itself can't do anything with `max 3 (4 * x) ≠ 2 + x`.
 Next, instantiating {lean}`Nat.max_def` (automatically, because of an annotation in the standard library) which states `max n m = if n ≤ m then m else n`,
 we then case split on the inequality.
-In the branch `3 ≤ 4 * x`, cutsat again uses modularity to prove `4 * x ≠ 2 + x`.
-In the branch `4 * x < 3`, cutsat quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
+In the branch `3 ≤ 4 * x`, `cutsat` again uses modularity to prove `4 * x ≠ 2 + x`.
+In the branch `4 * x < 3`, `cutsat` quickly determines `x = 0`, and then notices `4 * 0 ≠ 2 + 0`.
 
 This has been, of course, a quite artificial example! In practice this sort of automatic integration of different reasoning modes is very powerful:
-the central "whiteboard" which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Gröbner bases),
+the central “whiteboard” which tracks instantiated theorems and equivalence classes can hand off relevant terms and equalities to the appropriate modules (here, `cutsat` and Gröbner bases),
 which can then return new facts to the whiteboard.
 
 ## if-then-else normalization
@@ -1102,7 +1196,7 @@ open Std
 FIXME (@david-christiansen): I'd like to be able to write ``{attr}`@[grind]` ``.
 :::
 
-This example is a showcase for the "out of the box" power of {tactic}`grind`.
+This example is a showcase for the “out of the box” power of {tactic}`grind`.
 Later examples will explore adding `@[grind]` annotations as part of the development process, to make {tactic}`grind` more effective in a new domain.
 This example does not rely on any of the algebra extensions to `grind`, we're just using:
 * instantiation of annotated theorems from the library,
@@ -1138,9 +1232,11 @@ FIXME: @david-christiansen: can I give `IfExpr` a hover/linkify even though it i
 To formalize the statement in Lean, we use an inductive type `IfExpr`:
 
 ```lean
-/-- An if-expression is either boolean literal,
-a numbered variable, or an if-then-else expression
-where each subexpression is an if-expression. -/
+/--
+An if-expression is either boolean literal, a
+numbered variable, or an if-then-else expression
+where each subexpression is an if-expression.
+-/
 inductive IfExpr
   | lit : Bool → IfExpr
   | var : Nat → IfExpr
@@ -1240,9 +1336,6 @@ end IfExpr
 
 Using these we can state the problem. The challenge is to inhabit the following type (and to do so nicely!):
 
-:::comment
-FIXME (@david-christiansen): No long line warning here?
-:::
 ```lean
 def IfNormalization : Type :=
   { Z : IfExpr → IfExpr // ∀ e, (Z e).normalized ∧ (Z e).eval = e.eval }
@@ -1271,14 +1364,10 @@ TODO (@david-christiansen): We include a link here to live-lean and an externall
 ### The solution using {tactic}`grind`
 
 Actually solving the problem is not that hard:
-we just need a recursive function that carries along a record of "already assigned variables",
+we just need a recursive function that carries along a record of “already assigned variables”,
 and then, whenever performing a branch on a variable, adding a new assignment in each of the branches.
-It also needs to flatten nested if-then-else expressions which have another if-then-else in the "condition" position.
+It also needs to flatten nested if-then-else expressions which have another if-then-else in the “condition” position.
 (This is extracted from Chris Hughes's solution, but without the subtyping.)
-
-:::comment
-FIXME: @david-christiansen: the long line linter complains in the next code block, but I can't wrap the options.
-:::
 
 Let's work inside the `IfExpr` namespace.
 ```lean
@@ -1304,14 +1393,14 @@ def normalize (assign : Std.HashMap Nat Bool) :
       let e' := normalize (assign.insert v false) e
       if t' = e' then t' else ite (var v) t' e'
     | some b => normalize assign (ite (lit b) t e)
+
 ```
 
 This is pretty straightforward, but it immediately runs into a problem:
 
 :::comment
-This output is extremely fragile, because it includes line numbers.
-I would like to stop at "Could not find a decreasing measure."
-but for this we need support for showing subsets of the output.
+I would like the output to stop at `Could not find a decreasing measure.`, though
+for this we need support for showing subsets of the output.
 :::
 ```leanOutput failed_to_show_termination
 fail to show termination for
@@ -1363,9 +1452,9 @@ and construct our own termination measure. We'll use
 ```
 
 
-Many different functions would work here. The basic idea is to increase the "weight" of the "condition" branch
+Many different functions would work here. The basic idea is to increase the “weight” of the “condition” branch
 (this is the multiplicative factor in the `2 * normSize i` ),
-so that as long the "condition" part shrinks a bit, the whole expression counts as shrinking even if the "then" and "else" branches have grown.
+so that as long the “condition” part shrinks a bit, the whole expression counts as shrinking even if the “then” and “else” branches have grown.
 We've annotated the definition with `@[simp]` so Lean's automated termination checker is allowed to unfold the definition.
 
 With this in place, the definition goes through using the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause:
@@ -1409,8 +1498,8 @@ theorem normalize_spec
 
 That is:
 * the result of {lean}`normalize` is actually normalized according to the initial definitions,
-* if we normalize an "if-then-else" expression using some assignments, and then evaluate the remaining variables,
-  we get the same result as evaluating the original "if-then-else" using the composite of the two assignments,
+* if we normalize an “if-then-else” expression using some assignments, and then evaluate the remaining variables,
+  we get the same result as evaluating the original “if-then-else” using the composite of the two assignments,
 * and any variable appearing in the assignments no longer appears in the normalized expression.
 
 You might think that we should state these three properties as separate lemmas,
@@ -1439,7 +1528,7 @@ We're really excited about this, and we're hoping to see a lot more proofs in th
 
 A lovely consequence of highly automated proofs is that often you have some flexibility to change the statements,
 without changing the proof at all! As examples, the particular way that we asserted above that
-"any variable appearing in the assignments no longer appears in the normalized expression"
+“any variable appearing in the assignments no longer appears in the normalized expression”
 could be stated in many different ways (although not omitted!). The variations really don't matter,
 and {tactic}`grind` can both prove, and use, any of them:
 
@@ -1510,7 +1599,7 @@ theorem normalize_spec
   fun_induction normalize with grind
 ```
 
-(The fact that we can do this relies on the fact that all the lemmas for both `HashMap` and for `TreeMap` that `grind` needs have already be annotated in the standard library.)
+(The fact that we can do this relies on the fact that all the lemmas for both {name}`HashMap` and for {name}`TreeMap` that {tactic}`grind` needs have already be annotated in the standard library.)
 
 If you'd like to play around with this code,
 you can find the whole file [here](https://github.com/leanprover/lean4/blob/master/tests/lean/run/grind_ite.lean),
@@ -1802,30 +1891,31 @@ theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
   grind
 ```
 
-This fails, and looking at the message from `grind` we see that it hasn't done much:
+This fails, and looking at the `Goal diagnostics` section of the message from `grind` we see that it hasn't done much:
 :::comment
 FIXME (Q3): @david-christiansen:
-This needs a mechanism for keeping up to date.
+This needs a way to open sections of the diagnostics by default
 :::
-```
-[grind] Goal diagnostics ▼
-  [facts] Asserted facts ▼
-    [prop] a ∈ m
-    [prop] m.size ≤ (indices m)[a]
-    [prop] m.size = (values m).size
-  [eqc] True propositions ▼
-    [prop] m.size ≤ (indices m)[a]
-    [prop] a ∈ m
-  [eqc] Equivalence classes ▼
-    [] {Membership.mem, fun m a => a ∈ m}
-    [] {m.size, (values m).size}
-  [ematch] E-matching patterns ▼
-    [thm] size.eq_1: [@size #4 #3 #2 #1 #0]
-    [thm] HashMap.contains_iff_mem: [@Membership.mem #5 (HashMap _ #4 #3 #2) _ #1 #0]
-  [cutsat] Assignment satisfying linear constraints ▼
-    [assign] m.size := 0
-    [assign] (indices m)[a] := 0
-    [assign] (values m).size := 0
+```leanOutput getElem_indices_lt_1
+`grind` failed
+case grind
+α : Type u
+β : Type v
+inst : BEq α
+inst_1 : Hashable α
+m : IndexMap α β
+a : α
+h : a ∈ m
+h_1 : m.size ≤ (indices m)[a]
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] Equivalence classes
+  [ematch] E-matching patterns
+  [cutsat] Assignment satisfying linear constraints
+
+[grind] Diagnostics
 ```
 
 An immediate problem we can see here is that
@@ -1843,7 +1933,7 @@ However this proof is going to work, we know the following:
 * It must use the well-formedness condition of the map.
 * It can't do so without relating `m.indices[a]` and `m.indices[a]?` (because the later is what appears in the well-formedness condition).
 * The expected relationship there doesn't even hold unless the map `m.indices` satisfies {lean}`LawfulGetElem`,
-  for which we need `[LawfulBEq α]` and `[LawfulHashable α]`.
+  for which we need {tech}[instances] of {lean}`LawfulBEq α` and {lean}`LawfulHashable α`.
 
 :::comment
 TODO: I'd like to ensure there's a link to the `LawfulGetElem` instance for `HashMap`, so we can see these requirements!
@@ -1969,7 +2059,7 @@ Let's press onward, and see if we can define `insert` without having to write an
 ```
 In both branches, `grind` is automatically proving both the `size_keys` and `WF` fields!
 Note also in the first branch the `set` calls `m.keys.set i a` and `m.values.set i b`
-are having their "in-bounds" obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
+are having their “in-bounds” obligations automatically filled in by `grind` via the `get_elem_tactic` auto-parameter.
 
 Next let's try `eraseSwap`:
 ```lean (name := eraseSwap_1) (error := true) (keep := false)
@@ -2038,7 +2128,7 @@ We find amongst many others:
   (keys m_1)[i_2], ...}
 ```
 This should imply, by the injectivity of `keys`, that `i_2 = (keys m_1).size - 1`.
-Since this identity *wasn't* reflected by the cutsat model,
+Since this identity *wasn't* reflected by the `cutsat` model,
 we suspect that `grind` is not managing to use the injectivity of `keys`.
 
 Thinking about the way that we've provided the well-formedness condition, as
