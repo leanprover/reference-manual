@@ -422,7 +422,7 @@ set_option pp.funBinderTypes true
 end A.B
 end
 ```
-```leanOutput scopeInfo
+```leanOutput scopeInfo (allowDiff := 1)
 namespace A.B
 
 open Nat List

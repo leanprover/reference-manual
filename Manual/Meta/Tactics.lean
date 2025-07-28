@@ -414,7 +414,7 @@ def tacticOutput : CodeBlockExpander
     let outputSeverityName ← saveOutput str opts
 
     if opts.show then
-      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson ($outputSeverityName, $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
+      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson (Highlighted.Message.ofSeverityString $outputSeverityName $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
     else
       return #[]
 
