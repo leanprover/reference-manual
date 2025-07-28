@@ -137,14 +137,13 @@ Definitions that contain non-proof code that relies on axioms must be marked {ke
 
 :::example "Axioms and Compilation"
 Adding an addtional `0` to {lean}`Nat` with an axiom makes it so functions that use it can't be compiled.
-In particular, {name}`List.length'` returns the axiom {name}`Nat.otherZero` instead of {name}`Nat.zero`.
-The function is marked {keyword}`partial` to avoid further error messages from termination checking.
+In particular, {name}`List.length'` returns the axiom {name}`Nat.otherZero` instead of {name}`Nat.zero` as the length of the empty list.
 ```lean (name := otherZero2) (error := true)
 axiom Nat.otherZero : Nat
 
-partial def List.length' : List α → Nat
+def List.length' : List α → Nat
   | [] => Nat.otherZero
-  | _ :: xs => xs.length' + 1
+  | _ :: _ => xs.length
 ```
 ```leanOutput otherZero2
 axiom 'Nat.otherZero' not supported by code generator; consider marking definition as 'noncomputable'
@@ -161,8 +160,7 @@ def nextOdd (k : Nat) :
     by_cases k % 2 = 1 <;>
     simp [*] <;> omega
 ```
-The {tactic}`by_cases` tactic uses the Law of the Excluded Middle, which is proved in the standard library using the Axiom of Choice.
-Indeed, this definition uses three axioms:
+The tactic proof generates a term that transitively relies on three axioms:
 ```lean (name:=printAxNextOdd)
 #print axioms nextOdd
 ```
