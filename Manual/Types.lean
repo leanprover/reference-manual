@@ -477,7 +477,7 @@ universe $x:ident $xs:ident*
 
 Declares one or more universe variables for the extent of the current scope.
 
-Just as the `variable` command causes a particular identifier to be treated as a parameter with a particular type, the `universe` command causes the subsequent identifiers to be implicitly quantified as as universe parameters in declarations that mention them, even if the option `autoImplicit` is {lean}`false`.
+Just as the `variable` command causes a particular identifier to be treated as a parameter with a particular type, the `universe` command causes the subsequent identifiers to be implicitly quantified as universe parameters in declarations that mention them, even if the option `autoImplicit` is {lean}`false`.
 :::
 
 :::Manual.example "The `universe` command when `autoImplicit` is `false`"
@@ -488,7 +488,7 @@ def id₃ (α : Type u) (a : α) := a
 ```
 :::
 
-Because the automatic implicit parameter feature only insert parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with `universe` even when `autoImplicit` is `true`.
+Because the automatic implicit parameter feature only inserts parameters that are used in the declaration's {tech}[header], universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with `universe` even when `autoImplicit` is `true`.
 
 :::Manual.example "Automatic universe parameters and the `universe` command"
 

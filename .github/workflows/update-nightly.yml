@@ -152,7 +152,8 @@ jobs:
         git push origin ${{ env.TARGET_BRANCH }}
 
         if [[ -f "lean-toolchain" && $(cat "lean-toolchain") == leanprover/lean4:nightly-* ]]; then
-            version=${$(cat "lean-toolchain")#leanprover/lean4:nightly-}
+            toolchain=$(cat "lean-toolchain")
+            version=${toolchain#leanprover/lean4:nightly-}
             git tag "nightly-testing-$version"
             git push origin "nightly-testing-$version"
         fi

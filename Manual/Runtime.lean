@@ -506,7 +506,7 @@ void lean_finalize_thread();
 The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked {attr}`extern`.
 To run this code (e.g. with {keywordOf Lean.Parser.Command.eval}`#eval`), the following steps are necessary:
   1. The module containing the declaration and its dependencies must be compiled into a shared library
-  1. This shared library to should be provided to `lean --load-dynlib=` to run code that imports the module.
+  1. This shared library should be provided to `lean --load-dynlib=` to run code that imports the module.
 
 It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each {attr}`extern` declaration.
 Thus it is not possible to interpret an {attr}`extern` declaration in the same file.

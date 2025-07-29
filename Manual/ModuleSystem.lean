@@ -95,7 +95,7 @@ The basic form `public import M` makes the public scope of `M` available in the 
 Without `public`, the public scope of `M` is instead imported into the {tech}[private scope].
 The import thus is irrelevant to downstream modules and ignored by them.
 
-`import all M` behaves like `import M` but additional imports the private scope of `M` into the private scope of the current module.
+`import all M` behaves like `import M` but additionally imports the private scope of `M` into the private scope of the current module.
 This is only allowed if `M` and the current module have the same module name root, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
 ```
 -- Module M.Defs

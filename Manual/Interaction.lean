@@ -81,7 +81,7 @@ The way the code is run depends on its type:
   The compiled code is run, and the result is displayed.
 
 Auxiliary definitions or other environment modifications that result from elaborating the term in {keywordOf Lean.Parser.Command.eval}`#eval` are discarded.
-If the term is an action in a metaprogramming monad, then changes made to the environment by the running the monadic action are preserved.
+If the term is an action in a metaprogramming monad, then changes made to the environment by running the monadic action are preserved.
 :::
 
 ```lean (show := false)

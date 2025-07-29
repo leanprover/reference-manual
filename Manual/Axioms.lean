@@ -119,7 +119,7 @@ The {tech}[ι-reduction] rule specifies the interaction of recursors and constru
 Ordinarily, terms without free variables reduce to applications of constructors, but axioms can cause them to get “stuck,” resulting in large terms.
 
 :::example "Axioms and Stuck Reduction"
-Adding an addtional `0` to {lean}`Nat` with an axiom results in some definitional reductions getting stuck.
+Adding an additional `0` to {lean}`Nat` with an axiom results in some definitional reductions getting stuck.
 In this example, two {name}`Nat.succ` constructors are successfully moved to the outside of the term by reduction, but {name}`Nat.rec` is unable to make further progress after encountering {lean}`Nat.otherZero`.
 ```lean (name := otherZero)
 axiom Nat.otherZero : Nat
@@ -136,7 +136,7 @@ At runtime, Lean values must be represented by concrete data in memory, but axio
 Definitions that contain non-proof code that relies on axioms must be marked {keyword}`noncomputable` and can't be compiled.
 
 :::example "Axioms and Compilation"
-Adding an addtional `0` to {lean}`Nat` with an axiom makes it so functions that use it can't be compiled.
+Adding an additional `0` to {lean}`Nat` with an axiom makes it so functions that use it can't be compiled.
 In particular, {name}`List.length'` returns the axiom {name}`Nat.otherZero` instead of {name}`Nat.zero` as the length of the empty list.
 ```lean (name := otherZero2) (error := true)
 axiom Nat.otherZero : Nat

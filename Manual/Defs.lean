@@ -150,7 +150,7 @@ Parameters may have three forms:
  * An identifier, which names a parameter but does not provide a type.
    These parameters' types must be inferred during elaboration.
  * An underscore (`_`), which indicates a parameter that is not accessible by name in the local scope.
-   These parameters' types must also inferred during elaboration.
+   These parameters' types must also be inferred during elaboration.
  * A bracketed binder, which may specify every aspect of one or more parameters, including their names, their types, default values, and whether they are explicit, implicit, strictly implicit, or instance-implicit.
 
 ## Bracketed Parameter Bindings
@@ -348,7 +348,7 @@ def map {α β} (f : α → β) :
 ```lean (show := false)
 variable (i : Fin n)
 ```
-Given a number bounded by {lean}`n`, represented by the type `Fin n`, an {lean}`AtLeast i` is a natural number paired with a proof that it is at least as large as as `i`.
+Given a number bounded by {lean}`n`, represented by the type `Fin n`, an {lean}`AtLeast i` is a natural number paired with a proof that it is at least as large as `i`.
 :::
 ```lean
 structure AtLeast (i : Fin n) where
@@ -571,7 +571,7 @@ However, because their use cases are quite different, they differ in many detail
   The types of definitions may inhabit any {tech}[universe].
 * A theorem's header (that is, the theorem statement) is completely elaborated before the body is elaborated.
   Section variables only become parameters to the theorem if they (or their dependents) are mentioned in the header.
-  This prevents changes to a proof from unintentionally changing the the theorem statement.
+  This prevents changes to a proof from unintentionally changing the theorem statement.
 * Theorems are {tech}[irreducible] by default.
   Because all proofs of the same proposition are {tech key:="definitional equality"}[definitionally equal], there few reasons to unfold a theorem.
 :::

@@ -382,7 +382,7 @@ As a result, the {keywordOf Lean.Parser.Term.dbgTrace}`dbg_trace` is included in
 ```lean (name := eval1)
 #eval ((dbg_trace "hello"; 5 : Nat) : Twice Nat)
 ```
-This used to demonstrate the effect:
+This is used to demonstrate the effect:
 ```leanOutput eval1
 hello
 ```
@@ -860,7 +860,7 @@ They exist to enable better integration with large libraries of mathematics, suc
 Ideally, the coercion of a natural number or integer into these structures is a {tech}[simp normal form], because it is a convenient way to denote them.
 
 When the coercion application is expected to be the {tech}[simp normal form] for a type, it is important that _all_ such coercions are {tech key:="definitional equality"}[definitionally equal] in practice.
-Otherwise, the {tech}[simp normal form] would need to choose a single chained coercion path, but lemmas could accidentally stated using a different path.
+Otherwise, the {tech}[simp normal form] would need to choose a single chained coercion path, but lemmas could accidentally be stated using a different path.
 Because {tactic}`simp`'s internal index is based on the underlying structure of the term, rather than its presentation in the surface syntax, these differences would cause the lemmas to not be applied where expected.
 {lean}`NatCast` and {lean}`IntCast` instances, on the other hand, should be defined such that they are always {tech key:="definitional equality"}[definitionally equal], avoiding the problem.
 The Lean standard library's instances are arranged such that {name}`NatCast` or {name}`IntCast` instances are chosen preferentially over chains of coercion instances during coercion insertion.

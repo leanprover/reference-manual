@@ -43,7 +43,7 @@ $x:ident
 :::
 
 An identifier term is a reference to a name.{margin}[The specific lexical syntax of identifiers is described {ref "keywords-and-identifiers"}[in the section on Lean's concrete syntax].]
-Identifiers also occur in contexts where they bind names, such as {keywordOf Lean.Parser.Term.let}`let` and {keywordOf Lean.Parser.Term.fun}`fun`; however, these binding occurrences are not complete terms in and of them selves.
+Identifiers also occur in contexts where they bind names, such as {keywordOf Lean.Parser.Term.let}`let` and {keywordOf Lean.Parser.Term.fun}`fun`; however, these binding occurrences are not complete terms in and of themselves.
 The mapping from identifiers to names is not trivial: at any point in a {tech}[module], some number of {tech}[namespaces] will be open, there may be {tech}[section variables], and there may be local bindings.
 Furthermore, identifiers may contain multiple dot-separated atomic identifiers; the dot both separates namespaces from their contents and variables from fields or functions that use {tech}[field notation].
 This creates ambiguity, because an identifier `A.B.C.D.e.f` could refer to any of the following:
@@ -231,8 +231,8 @@ open D
 
 ## Leading `.`
 
-When an identifier beings with a dot (`.`), the type that the elaborator expects for the expression is used to resolve it, rather than the current namespace and set of open namespaces.
-{tech}[Generalized field notation] is related: leading dot notation uses the expect type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
+When an identifier begins with a dot (`.`), the type that the elaborator expects for the expression is used to resolve it, rather than the current namespace and set of open namespaces.
+{tech}[Generalized field notation] is related: leading dot notation uses the expected type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
 If the type expected for a term is a constant applied to zero or more arguments, then its namespace is the constant's name.
@@ -363,7 +363,7 @@ Inductive type declarations, on the other hand, introduce new values with functi
 :::syntax term title:="Curried Functions"
 
 
-Multiple parameter names are accepted after after {keywordOf Lean.Parser.Term.fun}`fun`:
+Multiple parameter names are accepted after {keywordOf Lean.Parser.Term.fun}`fun`:
 ```grammar
 fun $x:ident $x:ident* => $t
 ```
@@ -372,7 +372,7 @@ fun $x:ident $x:ident* => $t
 fun $x:ident $x:ident* : $t:term => $t
 ```
 
-Different type annotations for multiple parameters requires parentheses:
+Different type annotations for multiple parameters require parentheses:
 
 ```grammar
 free{"fun " "(" (ident)* ": " term")" " =>" term}
@@ -1091,7 +1091,7 @@ xs : Array α
 ⊢ 2 < xs.size
 ```
 
-Relaxing the return type to {name}`Option` and adding a bounds check results the same error.
+Relaxing the return type to {name}`Option` and adding a bounds check results in the same error.
 This is because the proof that the index is in bounds was not added to the local context.
 ```lean (error := true) (keep := false) (name := getThird2)
 def getThird (xs : Array α) : Option α :=

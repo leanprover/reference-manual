@@ -661,7 +661,7 @@ The solver can process four categories of linear polynomial constraints (where `
 
 The procedure builds a model incrementally, resolving conflicts through constraint generation.
 For example, given a partial model `{x := 1}` and constraint `3 ∣ 3*y + x + 1`:
-- The solve cannot extend the model to `y` because `3 ∣ 3*y + 2` is unsatisfiable.
+- The solver cannot extend the model to `y` because `3 ∣ 3*y + 2` is unsatisfiable.
 - Thus, it resolves the conflict by generating the implied constraint `3 ∣ x + 1`.
 - The new constraint forces the solver to find a new assignment for `x`.
 
