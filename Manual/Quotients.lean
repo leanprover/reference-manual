@@ -21,7 +21,7 @@ tag := "quotients"
 
 
 {deftech}_Quotient types_ allow a new type to be formed by decreasing the granularity of an existing type's {tech}[propositional equality].
-In particular, given n type $`A` and an equivalence relation $`\sim`, the quotient $`A / \sim` contains the same elements as $`A`, but every pair of elements that are related by $`\sim` are considered equal.
+In particular, given a type $`A` and an equivalence relation $`\sim`, the quotient $`A / \sim` contains the same elements as $`A`, but every pair of elements that are related by $`\sim` are considered equal.
 Equality is respected universally; nothing in Lean's logic can observe any difference between two equal terms.
 Thus, quotient types provide a way to build an impenetrable abstraction barrier.
 In particular, all functions from a quotient type must prove that they respect the equivalence relation.
