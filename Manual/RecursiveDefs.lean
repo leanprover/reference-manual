@@ -398,7 +398,7 @@ There are three levels of reducibility:
   Definitions can be made irreducible by applying the {attr}`irreducible` attribute.
 
 :::example "Reducibility and Instance Synthesis"
-These three aliasees for {lean}`String` are respectively reducible, semireducible, and irreducible.
+These three aliases for {lean}`String` are respectively reducible, semireducible, and irreducible.
 ```lean
 abbrev Phrase := String
 
