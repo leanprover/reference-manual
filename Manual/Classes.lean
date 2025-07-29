@@ -279,7 +279,7 @@ def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=
 
 The problem is that a heap constructed with one {name}`Ord` instance may later be used with another, leading to the breaking of the heap invariant.
 
-One way to correct this is to making the heap type depend on the selected `Ord` instance:
+One way to correct this is to make the heap type depend on the selected `Ord` instance:
 ```lean
 structure Heap' (α : Type u) [Ord α] where
   contents : Array α
@@ -372,7 +372,7 @@ failed to synthesize
 
 Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
-Declaring an very general instance takes care of the problem for {lean}`Nat` and every other type:
+Declaring a very general instance takes care of the problem for {lean}`Nat` and every other type:
 ```lean (name := plusTimes2b)
 instance [Add α] [Mul α] : AddMul' α where
 
