@@ -39,7 +39,7 @@ They contain the following tools:
 
 : `lake`
 
-  The Lean build tool, used to invoke incrementally invoke `lean` and other tools while tracking dependencies.
+  The Lean build tool, used to incrementally invoke `lean` and other tools while tracking dependencies.
 
 : `leanc`
 
