@@ -31,7 +31,7 @@ shortContextTitle := "Build Tools"
 The Lean {deftech}_toolchain_ is the collection of command-line tools that are used to check proofs and compile programs in collections of Lean files.
 Toolchains are managed by `elan`, which installs toolchains as needed.
 Lean toolchains are designed to be self-contained, and most command-line users will never need to explicitly invoke any other than `lake` and `elan`.
-The contain the following tools:
+They contain the following tools:
 
 : `lean`
 
