@@ -41,7 +41,7 @@ Aside from that, they are named according to a system of prefixes and suffixes t
 
 : `-!` suffix
 
-  Sets the {name Lean.Meta.Simp.Config.autoUnfold}`autoUnfold` configuration option to `true`, causing the simplifier unfold all definitions
+  Sets the {name Lean.Meta.Simp.Config.autoUnfold}`autoUnfold` configuration option to `true`, causing the simplifier to unfold all definitions
 
 : `-?` suffix
 
