@@ -261,6 +261,10 @@ tag := "tactic-ref-ext"
 :::tactic "funext"
 :::
 
+# SMT-Inspired Automation
+:::tactic "grind"
+:::
+
 {include 0 Manual.Tactics.Reference.Simp}
 
 # Rewriting

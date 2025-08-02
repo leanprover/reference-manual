@@ -29,11 +29,18 @@ structure ExampleConfig where
   opened : Bool := false
 
 
-def ExampleConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m ExampleConfig :=
+section
+variable [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m]
+
+def ExampleConfig.parse  : ArgParse m ExampleConfig :=
   ExampleConfig.mk <$> .positional `description .inlinesString
                    <*> .named `tag .string true
                    <*> (.named `keep .bool true <&> (·.getD false))
                    <*> (.named `open .bool true <&> (·.getD false))
+
+instance : FromArgs ExampleConfig m where
+  fromArgs := ExampleConfig.parse
+end
 
 def prioritizedElab [Monad m] (prioritize : α → m Bool) (act : α  → m β) (xs : Array α) : m (Array β) := do
   let mut out := #[]
@@ -54,13 +61,24 @@ def isLeanBlock : TSyntax `block → CoreM Bool
     return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
+/--
+Elaborates all Lean blocks first, enabling local forward references
+-/
+@[directive_expander leanFirst]
+def leanFirst : DirectiveExpander
+  | args, contents => do
+    let () ← ArgParse.done.run args
+
+    -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
+    prioritizedElab (isLeanBlock ·) elabBlock contents
+
 /-- A domain for named examples -/
 def examples : Domain := {}
 
 @[directive_expander «example»]
 def «example» : DirectiveExpander
   | args, contents => do
-    let cfg ← ExampleConfig.parse.run args
+    let cfg ← parseThe ExampleConfig args
 
     let description ←
       DocElabM.withFileMap cfg.description.1 <|

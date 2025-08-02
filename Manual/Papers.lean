@@ -29,6 +29,15 @@ def castPaper : ArXiv where
   year := 2020
   id := "2001.10594"
 
+def cuttingToTheChase : InProceedings where
+  title := inlines!"Cutting to the Chase: Solving Linear Integer Arithmetic"
+  authors := #[inlines!"Dejan Jovanović", inlines!"Leonardo de Moura"]
+  year := 2023
+  booktitle := inlines!"Automated Deduction: CADE '23"
+  series := some (inlines!"LNCS 6803")
+  url := "https://link.springer.com/chapter/10.1007/978-3-642-22438-6_26"
+
+
 def doUnchained : InProceedings where
   title := inlines!"`do` Unchained: Embracing Local Imperativity in a Purely Functional Language"
   authors := #[inlines!"Sebastian Ullrich", inlines!"Leonardo de Moura"]
