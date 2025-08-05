@@ -68,13 +68,15 @@ Then open <http://localhost:8880> in your browser.
 
 ## Development
 
-In theory, one should be able to update this by calling a simple
+In theory, one should be able to update this by setting the desired toolchain in `lean-toolchain` and then call
 
 ```
 lake update
 ```
 
 However, this requires Verso to be compatible with the Lean version Mathlib uses.
+
+Since this project is directly forked from [Lean Language Reference](https://lean-lang.org/doc/reference/latest) you might want to rebase the newest version thereof. In case of merge conflicts, everything in `Manual.lean`, `Manual/Tactics*` and `.github/workflows/ci.yml` should be "ours" and most likely everything else can just be resolved as "theirs". `Manual/Guides*` should not exist upstream and be completely "ours".
 
 ## Contributing
 
