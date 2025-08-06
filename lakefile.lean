@@ -12,7 +12,9 @@ require verso from git "https://github.com/leanprover/verso.git"@"nightly-testin
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
-  moreLeancArgs := #["-O0"]
+  -- In particular, the Localizer pass of LLVM takes tons of time (ca 90% for many chapters) and these flags disable it
+  -- This is a circa 20% overall speedup (build and execute) at the time of writing
+  moreLeancArgs := #["-O0", "-mllvm", "-fast-isel", "-mllvm", "-fast-isel-abort=0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
   moreLinkArgs :=
     if System.Platform.isOSX then
@@ -21,6 +23,16 @@ package "verso-manual" where
 
   leanOptions := #[⟨`weak.verso.code.warnLineLength, .ofNat 72⟩]
 
+-- Extended examples used in the grind chapter
+@[default_target]
+lean_lib IndexMap where
+  srcDir := "extended-examples"
+
+@[default_target]
+lean_lib IndexMapGrind where
+  srcDir := "extended-examples"
+
+@[default_target]
 lean_lib Manual where
 
 
