@@ -30,13 +30,18 @@ structure TacticOutputConfig where
   severity : Option MessageSeverity
   summarize : Bool
   whitespace : GuardMsgs.WhitespaceMode
+  expandTraces : List Name
+
+private partial def many (p : ArgParse m α) : ArgParse m (List α) :=
+  (· :: ·) <$> p <*> many p <|> pure []
 
 def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
   TacticOutputConfig.mk <$>
     ((·.getD true) <$> .named `show .bool true) <*>
     .named `severity .messageSeverity true <*>
     ((·.getD false) <$> .named `summarize .bool true) <*>
-    ((·.getD .exact) <$> .named `whitespace .whitespaceMode true)
+    ((·.getD .exact) <$> .named `whitespace .whitespaceMode true) <*>
+    (many (.named `expandTrace .name false))
 
 
 def checkTacticExample (goal : Term) (proofPrefix : Syntax) (tactic : Syntax) (pre : TSyntax `str) (post : TSyntax `str) : TermElabM Unit := do
@@ -414,7 +419,7 @@ def tacticOutput : CodeBlockExpander
     let outputSeverityName ← saveOutput str opts
 
     if opts.show then
-      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson (Highlighted.Message.ofSeverityString $outputSeverityName $(quote str.getString), $(quote opts.summarize))} #[Block.code $(quote str.getString)])]
+      return #[← `(Block.other {Verso.Genre.Manual.InlineLean.Block.leanOutput with data := ToJson.toJson (Highlighted.Message.ofSeverityString $outputSeverityName $(quote str.getString), $(quote opts.summarize), ($(quote opts.expandTraces) : List Lean.Name))} #[Block.code $(quote str.getString)])]
     else
       return #[]
 

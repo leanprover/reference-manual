@@ -24,6 +24,16 @@ package "verso-manual" where
 
   leanOptions := #[⟨`weak.verso.code.warnLineLength, .ofNat 72⟩]
 
+-- Extended examples used in the grind chapter
+@[default_target]
+lean_lib IndexMap where
+  srcDir := "extended-examples"
+
+@[default_target]
+lean_lib IndexMapGrind where
+  srcDir := "extended-examples"
+
+@[default_target]
 lean_lib Manual where
 
 
