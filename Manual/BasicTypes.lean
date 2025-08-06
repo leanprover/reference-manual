@@ -147,7 +147,7 @@ inductive NotUnitLike where
 example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
 ```
 ```leanOutput NotUnitLike
-type mismatch
+Type mismatch
   rfl
 has type
   ?m.13 = ?m.13

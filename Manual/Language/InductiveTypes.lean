@@ -212,7 +212,7 @@ example : EvenOddList String true :=
   .cons "a" (.cons "b" (.cons "c" .nil))
 ```
 ```leanOutput evenOddOops
-type mismatch
+Type mismatch
   EvenOddList.cons "a" (EvenOddList.cons "b" (EvenOddList.cons "c" EvenOddList.nil))
 has type
   EvenOddList String !!!true
@@ -548,7 +548,7 @@ example : OddList String := .cons "x" (.cons "y" (.cons "z" .nil))
 example : OddList String := .cons "x" (.cons "y" .nil)
 ```
 ```leanOutput evenOddMut
-Unknown identifier `OddList.nil`
+Unknown constant `OddList.nil`
 
 Note: Inferred this name from the expected resulting type of `.nil`:
   OddList String
@@ -616,7 +616,9 @@ mutual
 end
 ```
 ```leanOutput bothOptional
-invalid inductive type, number of parameters mismatch in mutually inductive datatypes
+Invalid mutually inductive types: `Optional` has 1 parameter(s), but the preceding type `Both` has 2
+
+Note: All inductive types declared in the same `mutual` block must have the same parameters
 ```
 :::
 ::::
@@ -636,7 +638,7 @@ mutual
 end
 ```
 ```leanOutput manyOptional
-invalid mutually inductive types, parameter 'α' has type
+Invalid mutually inductive types: Parameter `α` has type
   Type u
 of sort `Type (u + 1)` but is expected to have type
   Type
@@ -703,10 +705,12 @@ mutual
 end
 ```
 ```leanOutput rleBad
-invalid mutually inductive types, resulting universe mismatch, given
+Invalid mutually inductive types: The resulting type of this declaration
   Prop
-expected type
+differs from a preceding one
   Type
+
+Note: All inductive types declared in the same `mutual` block must belong to the same type universe
 ```
 :::
 

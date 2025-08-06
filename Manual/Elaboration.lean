@@ -182,10 +182,10 @@ inductive B where
   | mk (x : Nat) (y : Int) : B
 example (b : B) : ⟨b.1, b.2⟩ = b := rfl
 /--
-error: type mismatch
+error: Type mismatch
   rfl
 has type
-  ?m.854 = ?m.854
+  ?m.836 = ?m.836
 but is expected to have type
   e1 = e2
 -/

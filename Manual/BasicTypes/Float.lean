@@ -54,7 +54,7 @@ Terms that require reduction to become syntactically equal cannot be checked by 
 example : (0.0 : Float) = (0.0 + 0.0 : Float) := by rfl
 ```
 ```leanOutput zeroPlusZero
-Tactic `rfl` failed: the left-hand side
+Tactic `rfl` failed: The left-hand side
   0.0
 is not definitionally equal to the right-hand side
   0.0 + 0.0
@@ -69,7 +69,7 @@ theorem Float.zero_eq_zero_plus_zero :
   by rfl
 ```
 ```leanOutput zeroPlusZero'
-Tactic `rfl` failed: the left-hand side
+Tactic `rfl` failed: The left-hand side
   0.0 == 0.0 + 0.0
 is not definitionally equal to the right-hand side
   true

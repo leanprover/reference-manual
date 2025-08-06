@@ -435,7 +435,7 @@ theorem Vector.append_associative :
 ```
 The problem is that the associativity of addition of natural numbers holds propositionally, but not definitionally:
 ```leanOutput assocFail
-type mismatch
+Type mismatch
   xs ++ ys ++ zs
 has type
   Vector α (l₁ + l₂ + l₃)

@@ -419,7 +419,7 @@ The irreducible alias, on the other hand, is rejected as the type for a string, 
 def goodEvening : Utterance := "Good evening"
 ```
 ```leanOutput irred
-type mismatch
+Type mismatch
   "Good evening"
 has type
   String

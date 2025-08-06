@@ -492,7 +492,7 @@ Ordinary type errors are produced for other strings:
 #eval ("three" : Nat)
 ```
 ```leanOutput threeCoe
-type mismatch
+Type mismatch
   "three"
 has type
   String
@@ -688,7 +688,7 @@ Lists that are known to be non-empty, but which are not syntactically instances 
 ```
 When coercion insertion fails, the original type error is reported:
 ```leanOutput coeFailDep
-type mismatch
+Type mismatch
   ys
 has type
   List Nat

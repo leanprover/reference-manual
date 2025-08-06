@@ -1360,7 +1360,7 @@ structure OnlyThreeOrFive where
 
 -- Default args are synthesized in patterns too!
 /--
-error: Tactic `rfl` failed: the left-hand side
+error: Tactic `rfl` failed: The left-hand side
   n = 3
 is not definitionally equal to the right-hand side
   n = 5
@@ -1389,14 +1389,14 @@ def ggg' : OnlyThreeOrFive → Nat
 /--
 error: could not synthesize default value for parameter 'ok' using tactics
 ---
-error: Tactic `rfl` failed: the left-hand side
+error: Tactic `rfl` failed: The left-hand side
   3 = 3
 is not definitionally equal to the right-hand side
   3 = 5
 
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.2667, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.2647, ok := ⋯ } : OnlyThreeOrFive
 -/
 #check_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1517,7 +1517,7 @@ def BalancedTree.isPerfectlyBalanced
   | _, _ => false
 ```
 ```leanOutput patfail
-type mismatch
+Type mismatch
   left.branch val right
 has type
   BalancedTree ?m.54 (?m.51 + 1)
@@ -1959,12 +1959,8 @@ example (n : Nat) := by
     rfl
 ```
 ```leanOutput byBusted
-Tactic `rewrite` failed: equality or iff proof expected
+Invalid rewrite argument: Expected an equality or iff proof or definition name, but `ih` is a proof of
   0 ≍ n'
-
-n' : Nat
-ih : 0 ≍ n'
-⊢ 0 ≍ n'.succ
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show` can be used to provide the proposition being proved.

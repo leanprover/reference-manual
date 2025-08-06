@@ -869,7 +869,7 @@ This reduction behavior does not hold {tech key:="definitional equality"}[defini
 theorem div.eq0 : div n 0 = 0 := by rfl
 ```
 ```leanOutput nonDef
-Tactic `rfl` failed: the left-hand side
+Tactic `rfl` failed: The left-hand side
   div n 0
 is not definitionally equal to the right-hand side
   0

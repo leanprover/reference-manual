@@ -567,7 +567,7 @@ def someC : C where
   z := ""
 
 /--
-error: type mismatch
+error: Type mismatch
   someC
 has type
   C
@@ -589,7 +589,7 @@ structure E extends A, B where
 #check_msgs in
 #check E.mk
 /--
-error: field type mismatch, field 'x' from parent 'A'' has type
+error: Field type mismatch: Field `x` from parent `A'` has type
   Int
 but is expected to have type
   Nat

@@ -191,7 +191,7 @@ example : Sort 5 := Sort 3
 ```
 
 ```leanOutput sort3
-type mismatch
+Type mismatch
   Type 2
 has type
   Type 3
@@ -209,7 +209,7 @@ example : Sort 2 := Unit
 ```
 
 ```leanOutput unit1
-type mismatch
+Type mismatch
   Unit
 has type
   Type
@@ -262,7 +262,7 @@ This example is not accepted, because `α`'s level is greater than `1`. In other
 example (α : Type 2) (β : Type 1) : Type 1 := α → β
 ```
 ```leanOutput toosmall
-type mismatch
+Type mismatch
   α → β
 has type
   Type 2
@@ -281,7 +281,7 @@ This example is not accepted because the annotated universe is larger than the f
 example (α : Type 2) (β : Type 1) : Type 3 := α → β
 ```
 ```leanOutput toobig
-type mismatch
+Type mismatch
   α → β
 has type
   Type 2
@@ -352,7 +352,7 @@ set_option pp.universes true
 def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
-type mismatch
+Type mismatch
   rfl.{?u.46}
 has type
   Eq.{?u.46} ?m.48 ?m.48
