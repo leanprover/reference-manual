@@ -87,7 +87,6 @@ jobs:
         id: build
         run: |
           lake --no-ansi build 2>&1 | tee build.log
-
       - name: Generate build time summary
         if: always()  # Run even if build fails
         run: |
@@ -96,39 +95,43 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Sorted by build time (longest first):" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Job       | Time |" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Time |" >> $GITHUB_STEP_SUMMARY
           echo "|-----------|------|" >> $GITHUB_STEP_SUMMARY
 
           # Parse build output, convert times to seconds for sorting, then sort
           if [ -f build.log ]; then
+          # Create temporary Python script
+          cat > parse_times.py << 'EOF'
+          import sys
+          import re
+
+          def time_to_seconds(time_str):
+              if 'ms' in time_str:
+                  return float(time_str.replace('ms', '')) / 1000
+              elif 's' in time_str:
+                  return float(time_str.replace('s', ''))
+              return 0
+
+          lines = []
+          for line in sys.stdin:
+              time_str, component = line.strip().split('|', 1)
+              seconds = time_to_seconds(time_str)
+              lines.append((seconds, time_str, component.strip()))
+
+          lines.sort(reverse=True)
+
+          for _, time_str, component in lines:
+              print(f'| {component} | {time_str} |')
+          EOF
+
             grep "✔.*Built.*(" build.log | \
             sed -E 's/.*Built ([^(]+) \(([^)]+)\).*/\2|\1/' | \
-            python3 -c "
-import sys
-import re
+            python3 parse_times.py >> $GITHUB_STEP_SUMMARY
 
-def time_to_seconds(time_str):
-    if 'ms' in time_str:
-        return float(time_str.replace('ms', '')) / 1000
-    elif 's' in time_str:
-        return float(time_str.replace('s', ''))
-    return 0
-
-lines = []
-for line in sys.stdin:
-    time_str, component = line.strip().split('|', 1)
-    seconds = time_to_seconds(time_str)
-    lines.append((seconds, time_str, component.strip()))
-
-# Sort by time (descending)
-lines.sort(reverse=True)
-
-for _, time_str, component in lines:
-    print(f'| {component} | {time_str} |')
-            " >> $GITHUB_STEP_SUMMARY
+            rm parse_times.py
           else
             echo "No build log found" >> $GITHUB_STEP_SUMMARY
-          fi
+          fi            
 
       - name: Save cache for .lake
         uses: actions/cache/save@v4
