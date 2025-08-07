@@ -557,6 +557,7 @@ def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse
 where
   arrayKey := {
     description := "'root' for the root table, or a string that contains a key for nested tables",
+    signature := .Ident ∪ .String
     get
       | .name n =>
         if n.getId == `root then pure none

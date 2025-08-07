@@ -22,10 +22,9 @@ structure SpliceContentsConfig where
 def SpliceContentsConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SpliceContentsConfig :=
   SpliceContentsConfig.mk <$> .positional `moduleName .ident
 
-@[part_command Verso.Syntax.block_role]
+@[part_command Verso.Syntax.command]
 def spliceContents : PartCommand
-  | `(block|block_role{spliceContents $_args* }[ $content ]) => throwErrorAt content "Unexpected block argument"
-  | `(block|block_role{spliceContents $args*}) => do
+  | `(block|command{spliceContents $args*}) => do
     let {moduleName} ← SpliceContentsConfig.parse.run (← parseArgs args)
     let moduleIdent ←
       mkIdentFrom moduleName <$>
