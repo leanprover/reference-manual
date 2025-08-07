@@ -54,6 +54,7 @@ def LakeOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m LakeOptDefOpts :=
 where
   optKind : ValDesc m LakeOptKind := {
     description := "'flag' or 'option'",
+    signature := .Ident,
     get
       | .name x =>
         match x.getId with

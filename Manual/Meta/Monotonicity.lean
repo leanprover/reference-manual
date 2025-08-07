@@ -109,9 +109,9 @@ end delabhelpers
 
 
 
-@[block_role_expander monotonicityLemmas]
-def monotonicityLemmas : BlockRoleExpander
-  | #[], #[] => do
+@[block_command]
+def monotonicityLemmas : BlockCommandOf Unit
+  | () => do
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
@@ -154,8 +154,7 @@ def monotonicityLemmas : BlockRoleExpander
       pure #[nameStx, patternStx]
     let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
-    return #[extraCss, tableStx]
-  | _, _ => throwError "Unexpected arguments"
+    ``(Block.concat #[$extraCss, $tableStx])
 where
   css := r#"
 table#--monotonicity-lemma-table {
