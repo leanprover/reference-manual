@@ -88,22 +88,22 @@ jobs:
         run: |
           lake --no-ansi build 2>&1 | tee build.log
 
-- name: Generate build time summary
-  if: always()  # Run even if build fails
-  run: |
-    # Create build times summary
-    echo "## Build Times Summary" >> $GITHUB_STEP_SUMMARY
-    echo "" >> $GITHUB_STEP_SUMMARY
-    echo "Sorted by build time (longest first):" >> $GITHUB_STEP_SUMMARY
-    echo "" >> $GITHUB_STEP_SUMMARY
-    echo "| Job       | Time |" >> $GITHUB_STEP_SUMMARY
-    echo "|-----------|------|" >> $GITHUB_STEP_SUMMARY
-    
-    # Parse build output, convert times to seconds for sorting, then sort
-    if [ -f build.log ]; then
-      grep "✔.*Built.*(" build.log | \
-      sed -E 's/.*Built ([^(]+) \(([^)]+)\).*/\2|\1/' | \
-      python3 -c "
+      - name: Generate build time summary
+        if: always()  # Run even if build fails
+        run: |
+          # Create build times summary
+          echo "## Build Times Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Sorted by build time (longest first):" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job       | Time |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|------|" >> $GITHUB_STEP_SUMMARY
+
+          # Parse build output, convert times to seconds for sorting, then sort
+          if [ -f build.log ]; then
+            grep "✔.*Built.*(" build.log | \
+            sed -E 's/.*Built ([^(]+) \(([^)]+)\).*/\2|\1/' | \
+            python3 -c "
 import sys
 import re
 
@@ -125,10 +125,10 @@ lines.sort(reverse=True)
 
 for _, time_str, component in lines:
     print(f'| {component} | {time_str} |')
-      " >> $GITHUB_STEP_SUMMARY
-    else
-      echo "No build log found" >> $GITHUB_STEP_SUMMARY
-    fi
+            " >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No build log found" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Save cache for .lake
         uses: actions/cache/save@v4
