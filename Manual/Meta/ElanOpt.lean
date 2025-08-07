@@ -56,6 +56,7 @@ def ElanOptDefOpts.parse [Monad m] [MonadError m] : ArgParse m ElanOptDefOpts :=
 where
   optKind : ValDesc m ElanOptKind := {
     description := "'flag' or 'option'",
+    signature := .Ident
     get
       | .name x =>
         match x.getId with

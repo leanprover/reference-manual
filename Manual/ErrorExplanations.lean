@@ -53,9 +53,9 @@ inline_extension Inline.errorExplanationShortName (errorName : Name) where
     let html := {{ <code class="error-explanation-short-name">{{errorName}}</code> }}
     return html
 
-@[block_role_expander error_explanation_table]
-def error_explanation_table : BlockRoleExpander
-  | #[], #[] => do
+@[block_command]
+def error_explanation_table : BlockCommandOf Unit
+  | () => do
     let entries ← getErrorExplanationsSorted
     let columns := 4
     let header := true
@@ -73,8 +73,7 @@ def error_explanation_table : BlockRoleExpander
       #[nameLink, summary, sev, since]
         |>.mapM fun s => ``(Verso.Doc.Block.para #[$s])
     let blocks := (headers ++ vals).map fun c => Syntax.TSepArray.mk #[c]
-    pure #[← ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name) $(quote alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])]
-  | _, _ => throwError "unexpected syntax"
+    ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name) $(quote alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])
 
 -- Elaborating explanations can exceed the default heartbeat maximum:
 set_option maxHeartbeats 1000000

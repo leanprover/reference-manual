@@ -239,8 +239,9 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
       let name := mkExampleName errorName codeBlockIdx
       let args := #[(← `(argument| $(mkIdent name):ident))]
       let parsedArgs ← parseArgs args
-      let blocks ← try
-        withFreshMacroScope <| leanOutput parsedArgs (quote str)
+      let cfg ← parseThe LeanOutputConfig parsedArgs
+      let block ← try
+        withFreshMacroScope <| leanOutput cfg (quote str)
       catch
         | .error ref msg =>
           let kindStr := kind?.map (s!" ({·} example)") |>.getD ""
@@ -251,9 +252,9 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
             else logWarningAt
           logFailure ref m!"Invalid output for {(← read).name} code block \
             #{codeBlockIdx}{kindStr}: {msg}"
-          pure #[← ``(Verso.Doc.Block.code "<invalid output>")]
+          ``(Verso.Doc.Block.code "<invalid output>")
         | e@(.internal ..) => throw e
-      return (← ``(Verso.Doc.Block.concat #[$blocks,*]))
+      return block
     else if lang == "" || lang == "lean" then
       let mut args := #[]
       let name := mkExampleName errorName (← get).codeBlockIdx
@@ -683,15 +684,16 @@ structure ExplanationConfig where
 def ExplanationConfig.parser [Monad m] [MonadError m] : ArgParse m ExplanationConfig :=
   ExplanationConfig.mk <$> .positional `name {
     description := "name of error whose explanation to display",
+    signature := .Ident
     get := fun
       | .name x => pure x
       | other => throwError "Expected error name, got {repr other}"
   }
 
 /-- Renders the error explanation for `name` via `{explanation name}`. -/
-@[part_command Verso.Syntax.block_role]
+@[part_command Verso.Syntax.command]
 def explanation : PartCommand
-  | `(block|block_role{explanation $args*}) => do
+  | `(block|command{explanation $args*}) => do
     let config ← ExplanationConfig.parser.run (← parseArgs args)
     addExplanationBlocksFor config.name.getId
   | _ => Lean.Elab.throwUnsupportedSyntax
@@ -715,9 +717,9 @@ where
 open Verso Doc Elab ArgParse in
 open Lean in
 /-- Renders all error explanations as parts of the current page. -/
-@[part_command Verso.Syntax.block_role]
+@[part_command Verso.Syntax.command]
 def make_explanations : PartCommand
-  | `(block|block_role{make_explanations}) => do
+  | `(block|command{make_explanations}) => do
     let explans ← getErrorExplanationsSorted
     for (name, explan) in explans do
       let titleString := name.toString

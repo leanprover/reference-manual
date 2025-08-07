@@ -715,8 +715,8 @@ h_9 : 0 = (indices m_1)[a_1]
   [ring] Rings
     [ring] Ring `Int`
       [basis] Basis
-        [_] ↑(keys m_1).size + -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size = 0
         [_] ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1 * ↑m_1.size = 0
+        [_] ↑m_1.size + -1 * ↑(keys m_1).size = 0
     [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
       [basis] Basis
         [_] ↑((keys m_1).size - 1) + -1 * ↑(m_1.size - 1) = 0
