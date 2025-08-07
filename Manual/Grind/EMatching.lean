@@ -304,7 +304,7 @@ ext
 :::
 
 :::example "The `@[grind ext]` Attribute"
-{tactic}`grind` does not automatically apply the {tech}[η-equality] rule for structures.
+{tactic}`grind` does not automatically apply the {tech key:="η-equivalence"}[η-equality] rule for structures.
 {lean}`Point` is a structure with two fields:
 ```lean
 structure Point where

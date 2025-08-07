@@ -28,18 +28,15 @@ open Lean.Elab.Tactic.GuardMsgs
 namespace Manual
 
 private partial def parseOpts [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m (List String) :=
-  (many (.positional `subcommand stringOrIdent))
+  (.many (.positional `subcommand stringOrIdent))
 where
-  many {α} (p : ArgParse m α) : ArgParse m (List α) :=
-    (· :: ·) <$> p <*> many p <|> pure []
-
   stringOrIdent : ValDesc m String := {
     get
       | .name x => pure <| x.getId.toString (escape := false)
       | .str x => pure x.getString
       | .num n => throwErrorAt n "Expected string or identifier"
-
-    description := "string or identifier"
+    signature := .String ∪ .Ident
+    description := "subcommand"
   }
 
 

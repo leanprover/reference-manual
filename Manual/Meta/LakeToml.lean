@@ -503,10 +503,10 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isConstOf ``Name then some .string
                 else if type.isConstOf ``Bool then some .bool
                 else if type.isConstOf ``System.FilePath then some .path
-                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration" none)
+                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "Workspace configuration" none)
                 else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
                 else if type.isConstOf ``Lake.StdVer then some .version
-                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern" none)
+                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "String pattern" none)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lean.LeanOption then some (.array (.other ``Lean.LeanOption "Lean option" none))
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
@@ -557,6 +557,7 @@ def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse
 where
   arrayKey := {
     description := "'root' for the root table, or a string that contains a key for nested tables",
+    signature := .Ident ∪ .String
     get
       | .name n =>
         if n.getId == `root then pure none

@@ -79,13 +79,17 @@ Field names not used by Lake should not be used to store metadata to be processe
 The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
 The only mandatory field is `name`, which declares the package's name.
 
-::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs skip:=dynlibs skip:=plugins
+:::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs skip:=dynlibs skip:=plugins
 
-:::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
+::::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
 They are used by [Reservoir](https://reservoir.lean-lang.org/) to index and display packages.
 If a field is left out, Reservoir may use information from the package's GitHub repository to fill in details.
+
+:::tomlField Lake.PackageConfig name "The package name" "Package names" String
+The package's name.
 :::
+::::
 
 :::tomlFieldCategory "Layout" packagesDir srcDir buildDir leanLibDr nativeLibDir binDir irDir
 These options control the top-level directory layout of the package and its build directory.
@@ -121,7 +125,7 @@ These options define a cloud release for the package, as described in the sectio
 
 :::
 
-::::
+:::::
 
 :::::example "Minimal TOML Package Configuration"
 The minimal TOML configuration for a Lean {tech}[package] sets only the package's name, using the default values for all other fields.
@@ -516,6 +520,10 @@ source = {type = "git", url = "https://example.com/example.git"}
 Library targets are expected in the `lean_lib` array of tables.
 
 ::::tomlTableDocs "lean_lib" "Library Targets" Lake.LeanLibConfig skip := backend skip:=globs skip:=nativeFacets
+:::tomlField Lake.LeanLibConfig name "The library name" "Library names" String
+The library's name, which is typically the same as its single module root.
+:::
+
 ::::
 
 :::::example "Minimal Library Target"
@@ -604,6 +612,9 @@ If its modules are accessed at elaboration time, they will be compiled to native
 ## Executable Targets
 
 :::: tomlTableDocs "lean_exe" "Executable Targets" Lake.LeanExeConfig skip := backend skip:=globs skip:=nativeFacets
+:::tomlField Lake.LeanExeConfig name "The executable's name" "Executable names" String
+The executable's name.
+:::
 
 ::::
 

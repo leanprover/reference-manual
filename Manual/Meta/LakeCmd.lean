@@ -137,17 +137,16 @@ partial def LakeCommandOptions.parse [Monad m] [MonadError m] : ArgParse m LakeC
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
      (pure (Syntax.mkStrLit ""))) <*>
-    many (.named `alias .name false)
+    .many (.named `alias .name false)
 
 where
-  many {α} (p : ArgParse m α) : ArgParse m (List α) :=
-    ((· :: ·) <$> p <*> many p) <|> pure []
 
   many1 {α} (p : ArgParse m α) : ArgParse m (List α) :=
-    (· :: ·) <$> p <*> many p
+    (· :: ·) <$> p <*> .many p
 
   strLit : ValDesc m StrLit := {
     description := "string literal containing a Lake command spec",
+    signature := .String
     get
       | .str s => pure s
       | other => throwError "Expected string, got {repr other}"

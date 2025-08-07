@@ -282,19 +282,20 @@ structure FFIConfig where
   name : String
   kind : FFIDocType := .function
 
+open FFIDocType in
 def FFIConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m FFIConfig :=
   FFIConfig.mk <$> .positional `name .string <*> ((·.getD .function) <$> .named `kind kind true)
 where
   kind : ValDesc m FFIDocType := {
-    description := m!"{true} or {false}"
+    description := doc!"{function} or {type}",
+    signature := .Ident
     get := fun
-      | .name b => open FFIDocType in do
+      | .name b => do
         let b' ← liftM <| realizeGlobalConstNoOverloadWithInfo b
-
         if b' == ``function then pure .function
         else if b' == ``type then pure .type
-        else throwErrorAt b "Expected 'true' or 'false'"
-      | other => throwError "Expected Boolean, got {repr other}"
+        else throwErrorAt b "Expected {``function} or {``type}"
+      | _ => throwError "Expected identifier"
   }
 
 /--
