@@ -22,7 +22,7 @@ tag := "subarray"
 
 {docstring Subarray}
 
-{docstring Subarray.array}
+{docstring Subarray.toArray}
 
 {docstring Subarray.empty}
 
@@ -50,6 +50,8 @@ tag := "subarray"
 
 # Iteration
 
+{docstring Subarray.foldl}
+
 {docstring Subarray.foldlM}
 
 {docstring Subarray.foldr}
@@ -59,6 +61,8 @@ tag := "subarray"
 {docstring Subarray.forM}
 
 {docstring Subarray.forRevM}
+
+{docstring Subarray.forIn}
 
 # Element Predicates
 
