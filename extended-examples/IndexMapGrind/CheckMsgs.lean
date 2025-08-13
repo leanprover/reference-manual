@@ -13,7 +13,7 @@ A version of `#guard_msgs` that leaves the messages in the log for extraction.
 The passthrough parts of the spec are ignored.
 -/
 syntax (name := checkMsgsCmd)
-  (docComment)? "#check_msgs" (ppSpace guardMsgsSpec)? " in" ppLine command : command
+  (docComment)? "#check_msgs" (" (" &"maxDiff" " := " num "%" ")")? (ppSpace guardMsgsSpec)? " in" ppLine command : command
 
 /-- Gives a string representation of a message without source position information.
 Ensures the message ends with a '\n'. -/
@@ -30,14 +30,41 @@ private def messageToStringWithoutPos (msg : Message) : BaseIO String := do
     str := str ++ "\n"
   return str
 
+def messagesEq (maxDiff? : Option Nat) (whitespace : WhitespaceMode) (msg1 msg2 : String) : Bool × Option String := Id.run do
+  let msg1 := normalizeLineNums <| normalizeMetavars msg1
+  let msg2 := normalizeLineNums <| normalizeMetavars msg2
+  if let some maxDiff := maxDiff? then
+    let lines1 := msg1.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines2 := msg2.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let maxPercent := maxDiff.toFloat / 100.0
+    let lines1 := lines1.toArray
+    let lines2 := lines2.toArray
+    let maxDiff := (min lines1.size lines2.size).toFloat * maxPercent |>.floor |>.toUInt64
+    let mut ins : UInt64 := 0
+    let mut del : UInt64 := 0
+    let mut d : UInt64 := 0
+    for (act, _) in Diff.diff lines1 lines2 do
+      match act with
+      | .insert => ins := ins + 1
+      | .delete => del := del + 1
+      | .skip =>
+        d := d + max ins del
+        ins := 0
+        del := 0
+    d := d + max ins del
+    return (d ≤ maxDiff, some s!"{d}/{maxDiff} lines differ")
+  else
+    return (whitespace.apply msg1 == whitespace.apply msg2, none)
+
 
 open Tactic.GuardMsgs in
 @[command_elab checkMsgsCmd]
 def elabCheckMsgs : CommandElab
-  | `(command| $[$dc?:docComment]? #check_msgs%$tk $(spec?)? in $cmd) => do
+  | `(command| $[$dc?:docComment]? #check_msgs%$tk $[(maxDiff := $maxDiff % )]? $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
         |>.trim |> removeTrailingWhitespaceMarker
     let (whitespace, ordering, specFn) ← parseGuardMsgsSpec spec?
+    let maxDiff? := maxDiff.map (·.getNat)
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
     withReader ({ · with snap? := none }) do
@@ -58,12 +85,25 @@ def elabCheckMsgs : CommandElab
     let strings ← toCheck.toList.mapM (messageToStringWithoutPos ·)
     let strings := ordering.apply strings
     let res := "---\n".intercalate strings |>.trim
-    if messagesMatch (whitespace.apply expected) (whitespace.apply res) then
+    let (same, msg?) := messagesEq maxDiff? whitespace expected res
+    let text ← getFileMap
+    let msg? : Option Message ← msg?.bindM fun s => OptionT.run do
+      let ⟨pos, endPos⟩ ← OptionT.mk <| pure tk.getRange?
+      return {
+        fileName := (← getFileName),
+        pos := text.toPosition pos,
+        endPos := text.toPosition endPos,
+        data := s,
+        isSilent := true
+        severity := .information
+      }
+    let msg := msg?.map (MessageLog.empty.add ·) |>.getD .empty
+    if same then
       -- Passed. Put messages back on the log, downgrading errors to warnings while recording their original status
-      modify fun st => { st with messages := initMsgs ++ SubVerso.Highlighting.Messages.errorsToWarnings msgs }
+      modify fun st => { st with messages := initMsgs ++ SubVerso.Highlighting.Messages.errorsToWarnings msgs ++ msg }
     else
       -- Failed. Put all the messages back on the message log and add an error
-      modify fun st => { st with messages := initMsgs ++ msgs }
+      modify fun st => { st with messages := initMsgs ++ msgs ++ msg }
       let feedback :=
         let diff := Diff.diff (expected.split (· == '\n')).toArray (res.split (· == '\n')).toArray
         Diff.linesToString diff

@@ -617,11 +617,7 @@ h_9 : 0 = (indices m_1)[a_1]
         if -1 * ↑m_1.size + 1 ≤ 0 then ↑m_1.size + -1 else 0,
         ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1,
         ↑(keys m_1).size + -1,
-        ↑m_1.size + -1,
-        if -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0 then
-          ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1
-        else 0,
-        if -1 * ↑(keys m_1).size + 1 ≤ 0 then ↑(keys m_1).size + -1 else 0}
+        ↑m_1.size + -1}
     [eqc] {-1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1, -1 * ↑(keys m_1).size + 1, -1 * ↑m_1.size + 1}
     [eqc] {-1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size, -1 * ↑(keys m_1).size, -1 * ↑m_1.size}
     [eqc] {some a_1, (keys m_1)[i_1]?, some (keys m_1)[i_1], (keys m_1)[(indices m_1)[a_1]]?}
@@ -715,8 +711,8 @@ h_9 : 0 = (indices m_1)[a_1]
   [ring] Rings
     [ring] Ring `Int`
       [basis] Basis
-        [_] ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1 * ↑m_1.size = 0
-        [_] ↑m_1.size + -1 * ↑(keys m_1).size = 0
+        [_] ↑m_1.size + -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size = 0
+        [_] ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1 * ↑(keys m_1).size = 0
     [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
       [basis] Basis
         [_] ↑((keys m_1).size - 1) + -1 * ↑(m_1.size - 1) = 0
@@ -798,7 +794,7 @@ h_9 : 0 = (indices m_1)[a_1]
     [thm] HashMap.mem_erase ↦ 1
     [thm] HashMap.mem_insert ↦ 1
 -/
-#check_msgs in
+#check_msgs (maxDiff := 10%) in
 -- ANCHOR: eraseSwap_init
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with

@@ -141,7 +141,6 @@ The information necessary to use Lean interactively is stored in a side table ca
 
 ```lean (show := false)
 open Lean.Elab (Info)
-deriving instance TypeName for Unit
 ```
 
 
