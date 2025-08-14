@@ -13,6 +13,7 @@ open Verso.Genre.Manual.InlineLean
 #doc (Manual) "The Module System" =>
 %%%
 number := false
+tag := "module-system"
 %%%
 
 The module system is an experimental feature that allows for more fine-grained control over what information is exported from, and imported into, Lean files.
@@ -62,7 +63,7 @@ module
 
 def priv : Nat := 0
 
-public abbrev pub : Nat := priv  -- error: unknown identifier `priv`
+public abbrev pub : Nat := priv  -- error: Unknown identifier `priv`
 ```
 
 `public section` can be used to switch the default scope for declarations, with `private` locally negating it.

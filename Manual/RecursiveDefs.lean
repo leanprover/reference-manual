@@ -131,7 +131,7 @@ mutual
 end
 ```
 ```leanOutput mutScope
-unknown identifier 'NaturalNum'
+Unknown identifier `NaturalNum`
 ```
 
 Without the mutual block, the definition succeeds:
@@ -152,7 +152,7 @@ mutual
 end
 ```
 ```leanOutput mutScopeTwo
-unknown identifier 'α'
+Unknown identifier `α`
 ```
 
 With a different name, the implicit parameter is automatically added:
@@ -419,12 +419,12 @@ The irreducible alias, on the other hand, is rejected as the type for a string, 
 def goodEvening : Utterance := "Good evening"
 ```
 ```leanOutput irred
-type mismatch
+Type mismatch
   "Good evening"
 has type
-  String : Type
+  String
 but is expected to have type
-  Utterance : Type
+  Utterance
 ```
 
 Because {lean}`Phrase` is reducible, the {inst}`ToString String` instance can be used as a {inst}`ToString Phrase` instance:

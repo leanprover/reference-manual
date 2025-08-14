@@ -34,7 +34,7 @@ if [ "$1" == "lean" ]; then
   repo_url="https://api.github.com/repos/leanprover/lean4"
   base_branch="nightly-testing" # This really should be the relevant `nightly-testing-YYYY-MM-DD` tag.
 else
-  echo "Unknown repository: $1. Must be 'lean'."
+  echo "Unknown repository: $1. Must be `lean`."
   exit 1
 fi
 

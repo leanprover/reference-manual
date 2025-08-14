@@ -225,7 +225,6 @@ h_1 : ¬b = -a
   [facts] Asserted facts
   [eqc] False propositions
   [eqc] Equivalence classes
-  [linarith] Linarith assignment for `α`
   [ring] Ring `α`
 ```
 :::
@@ -345,7 +344,6 @@ h_4 : ¬t ^ 2 = t + 1
   [eqc] True propositions
   [eqc] False propositions
   [eqc] Equivalence classes
-  [linarith] Linarith assignment for `α`
   [ring] Ring `α`
   [limits] Thresholds reached
 ```

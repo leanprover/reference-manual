@@ -147,12 +147,12 @@ inductive NotUnitLike where
 example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
 ```
 ```leanOutput NotUnitLike
-type mismatch
+Type mismatch
   rfl
 has type
-  ?m.13 = ?m.13 : Prop
+  ?m.13 = ?m.13
 but is expected to have type
-  e1 = e2 : Prop
+  e1 = e2
 ```
 
 Constructors of unit-like types may take parameters that are proofs.

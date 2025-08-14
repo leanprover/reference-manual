@@ -358,10 +358,15 @@ module.c.o.export
 module.c.o.noexport
 module.deps
 module.dynlib
+module.exportInfo
 module.header
 module.ilean
+module.importAllArts
+module.importArts
+module.importInfo
 module.imports
 module.input
+module.ir
 module.lean
 module.leanArts
 module.o
@@ -411,7 +416,7 @@ The facets available for modules are:
 
 : `imports`
 
-  The immediate imports of the Lean module, but not the full set of transitive imports.
+  The immediate imports of the Lean module, but not the full set of transitive imports. {TODO}[Once the module system lands fully, add docs here for `module.importAllArts`, `module.importArts`]
 
 : `precompileImports`
 
@@ -429,6 +434,10 @@ The facets available for modules are:
 
   All of a module's dependencies: transitive local imports and shared libraries to be loaded with `--load-dynlib`.
   Returns the list of shared libraries to load along with their search path.
+
+: `ir`
+
+  The `.ir` file produced by `lean` (with the {ref "module-system"}[experimental module system] enabled).
 
 : `c`
 

@@ -54,10 +54,11 @@ Terms that require reduction to become syntactically equal cannot be checked by 
 example : (0.0 : Float) = (0.0 + 0.0 : Float) := by rfl
 ```
 ```leanOutput zeroPlusZero
-tactic 'rfl' failed, the left-hand side
+Tactic `rfl` failed: The left-hand side
   0.0
 is not definitionally equal to the right-hand side
   0.0 + 0.0
+
 ⊢ 0.0 = 0.0 + 0.0
 ```
 
@@ -68,10 +69,11 @@ theorem Float.zero_eq_zero_plus_zero :
   by rfl
 ```
 ```leanOutput zeroPlusZero'
-tactic 'rfl' failed, the left-hand side
+Tactic `rfl` failed: The left-hand side
   0.0 == 0.0 + 0.0
 is not definitionally equal to the right-hand side
   true
+
 ⊢ (0.0 == 0.0 + 0.0) = true
 ```
 
@@ -82,12 +84,12 @@ theorem Float.zero_eq_zero_plus_zero :
     ((0.0 : Float) == (0.0 + 0.0 : Float)) = true := by
   native_decide
 ```
-This tactic uses the axiom {name}`Lean.ofReduceBool`, which states that the Lean compiler, interpreter and the low-level implementations of built-in operators are trusted in addition to the kernel.
+This tactic uses the axiom {name}`Lean.trustCompiler`, which states that the Lean compiler, interpreter and the low-level implementations of built-in operators are trusted in addition to the kernel.
 ```lean (name := ofRed)
 #print axioms Float.zero_eq_zero_plus_zero
 ```
 ```leanOutput ofRed
-'Float.zero_eq_zero_plus_zero' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool]
+'Float.zero_eq_zero_plus_zero' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Lean.trustCompiler]
 ```
 :::
 

@@ -239,7 +239,7 @@ x y : α✝
 example : foo (x, y) = (y, x) := by
   simp [foo]
 
-/-- error: simp made no progress -/
+/-- error: `simp` made no progress -/
 #check_msgs in
 example : foo (x, y) = (y, x) := by
   simp
@@ -254,7 +254,7 @@ x y : α✝
 example : foo' (x, y) = (y, x) := by
   simp [foo']
 
-/-- error: simp made no progress -/
+/-- error: `simp` made no progress -/
 #check_msgs in
 example : foo' (x, y) = (y, x) := by
   simp

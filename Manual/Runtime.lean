@@ -227,7 +227,7 @@ If the incoming string `x_1` is a unique reference, then it is still a unique re
       let x_1 : obj := "";
       ret x_1
     def process (x_1 : obj) : obj :=
-      let x_2 : obj := 0;
+      let x_2 : tagged := 0;
       let x_3 : u32 := 32;
       let x_4 : obj := String.set x_1 x_2 x_3;
       let x_5 : obj := process._closed_0;
@@ -240,7 +240,7 @@ Thus, the modified string `x_4` is a copy, regardless of whether the original re
 ```leanOutput p2
 [Compiler.IR] [result]
     def process' (x_1 : obj) : obj :=
-      let x_2 : obj := 0;
+      let x_2 : tagged := 0;
       let x_3 : u32 := 32;
       inc x_1;
       let x_4 : obj := String.set x_1 x_2 x_3;
@@ -265,33 +265,33 @@ This emits the following IR:
 
 ```leanOutput discardElems
 [Compiler.IR] [result]
-    def discardElems._redArg (x_1 : obj) : obj :=
-      case x_1 : obj of
+    def discardElems._redArg (x_1 : tobj) : tobj :=
+      case x_1 : tobj of
       List.nil →
-        let x_2 : obj := ctor_0[List.nil];
+        let x_2 : tagged := ctor_0[List.nil];
         ret x_2
       List.cons →
         let x_3 : u8 := isShared x_1;
         case x_3 : u8 of
         Bool.false →
-          let x_4 : obj := proj[1] x_1;
-          let x_5 : obj := proj[0] x_1;
+          let x_4 : tobj := proj[1] x_1;
+          let x_5 : tobj := proj[0] x_1;
           dec x_5;
-          let x_6 : obj := ctor_0[PUnit.unit];
-          let x_7 : obj := discardElems._redArg x_4;
+          let x_6 : tagged := ctor_0[PUnit.unit];
+          let x_7 : tobj := discardElems._redArg x_4;
           set x_1[1] := x_7;
           set x_1[0] := x_6;
           ret x_1
         Bool.true →
-          let x_8 : obj := proj[1] x_1;
+          let x_8 : tobj := proj[1] x_1;
           inc x_8;
           dec x_1;
-          let x_9 : obj := ctor_0[PUnit.unit];
-          let x_10 : obj := discardElems._redArg x_8;
+          let x_9 : tagged := ctor_0[PUnit.unit];
+          let x_10 : tobj := discardElems._redArg x_8;
           let x_11 : obj := ctor_1[List.cons] x_9 x_10;
           ret x_11
-    def discardElems (x_1 : ◾) (x_2 : obj) : obj :=
-      let x_3 : obj := discardElems._redArg x_2;
+    def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
+      let x_3 : tobj := discardElems._redArg x_2;
       ret x_3
 ```
 

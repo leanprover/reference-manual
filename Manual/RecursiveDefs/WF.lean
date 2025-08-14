@@ -350,14 +350,14 @@ decreasing_by
 unsolved goals
 xs : Array Nat
 i : Nat
-h✝ : i ∈ { stop := xs.size, step_pos := Nat.zero_lt_one }
+h✝ : i ∈ [:xs.size]
 ⊢ sizeOf (xs.take i) < sizeOf xs
 ```
 
 ```proofState
 ∀ (xs : Array Nat)
   (i : Nat)
-  («h✝» : i ∈ { start := 0, stop := xs.size, step := 1, step_pos := Nat.zero_lt_one : Std.Range}),
+  («h✝» : i ∈ [:xs.size]),
    sizeOf (xs.take i) < sizeOf xs := by
   set_option tactic.hygienic false in
   intros
@@ -869,10 +869,11 @@ This reduction behavior does not hold {tech key:="definitional equality"}[defini
 theorem div.eq0 : div n 0 = 0 := by rfl
 ```
 ```leanOutput nonDef
-tactic 'rfl' failed, the left-hand side
+Tactic `rfl` failed: The left-hand side
   div n 0
 is not definitionally equal to the right-hand side
   0
+
 n : Nat
 ⊢ div n 0 = 0
 ```
