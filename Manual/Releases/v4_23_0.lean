@@ -729,7 +729,9 @@ For this release, 610 changes landed. In addition to the 95 feature additions an
   these searches. These changes are also helpful preparation for
   potentially dropping the custom `Lean.Grind.*` typeclasses, and unifying
   with the new typeclasses introduced in #9729.
+````
 
+````markdown
 ## Library
 
 * [#7450](https://github.com/leanprover/lean4/pull/7450) implements `Nat.dfold`, a dependent analogue of `Nat.fold`.
