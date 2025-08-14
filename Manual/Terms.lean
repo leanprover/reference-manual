@@ -1324,9 +1324,9 @@ partial instance : OfNat Blah n where
 -- This shows that the partial instance was not unfolded
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (instOfNatBlah_1.f 0) : Sort ?u.1340
+  motive (instOfNatBlah_1.f 0)
 but is expected to have type
-  motive n✝ : Sort ?u.1340
+  motive n✝
 -/
 #check_msgs in
 def defg (n : Blah) : Bool :=
@@ -1335,9 +1335,9 @@ def defg (n : Blah) : Bool :=
 
 /--
 error: Dependent elimination failed: Type mismatch when solving this alternative: it has type
-  motive (Float.ofScientific 25 true 1) : Sort ?u.1439
+  motive (Float.ofScientific 25 true 1)
 but is expected to have type
-  motive x✝ : Sort ?u.1439
+  motive x✝
 -/
 #check_msgs in
 def twoPointFive? : Float → Option Float
@@ -1360,10 +1360,11 @@ structure OnlyThreeOrFive where
 
 -- Default args are synthesized in patterns too!
 /--
-error: tactic 'rfl' failed, the left-hand side
+error: Tactic `rfl` failed: The left-hand side
   n = 3
 is not definitionally equal to the right-hand side
   n = 5
+
 x✝ : OnlyThreeOrFive
 n : Nat
 ⊢ n = 3 ∨ n = 5
@@ -1388,13 +1389,14 @@ def ggg' : OnlyThreeOrFive → Nat
 /--
 error: could not synthesize default value for parameter 'ok' using tactics
 ---
-error: tactic 'rfl' failed, the left-hand side
+error: Tactic `rfl` failed: The left-hand side
   3 = 3
 is not definitionally equal to the right-hand side
   3 = 5
+
 ⊢ 3 = 3 ∨ 3 = 5
 ---
-info: { val := 3, val2 := ?m.2638, ok := ⋯ } : OnlyThreeOrFive
+info: { val := 3, val2 := ?m.2647, ok := ⋯ } : OnlyThreeOrFive
 -/
 #check_msgs in
 #check OnlyThreeOrFive.mk 3 ..
@@ -1515,12 +1517,12 @@ def BalancedTree.isPerfectlyBalanced
   | _, _ => false
 ```
 ```leanOutput patfail
-type mismatch
+Type mismatch
   left.branch val right
 has type
-  BalancedTree ?m.54 (?m.51 + 1) : Type ?u.47
+  BalancedTree ?m.54 (?m.51 + 1)
 but is expected to have type
-  BalancedTree α 0 : Type u
+  BalancedTree α 0
 ```
 :::
 ::::
@@ -1646,14 +1648,14 @@ def boolCases (b : Bool)
 ```
 The error for the first case is typical of both:
 ```leanOutput boolCases1
-Application type mismatch: In the application
-  ifTrue h
-the argument
+Application type mismatch: The argument
   h
 has type
-  b = true : Prop
+  b = true
 but is expected to have type
-  true = true : Prop
+  true = true
+in the application
+  ifTrue h
 ```
 Turning off generalization allows type checking to succeed, because {lean}`b` remains in the types of {lean}`ifTrue` and {lean}`ifFalse`.
 ```lean
@@ -1957,11 +1959,8 @@ example (n : Nat) := by
     rfl
 ```
 ```leanOutput byBusted
-tactic 'rewrite' failed, equality or iff proof expected
+Invalid rewrite argument: Expected an equality or iff proof or definition name, but `ih` is a proof of
   0 ≍ n'
-n' : Nat
-ih : 0 ≍ n'
-⊢ 0 ≍ n'.succ
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show` can be used to provide the proposition being proved.

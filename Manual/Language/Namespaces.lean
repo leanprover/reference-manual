@@ -92,7 +92,7 @@ HotDrink.tea : HotDrink
 #check tea
 ```
 ```leanOutput notOkTea
-unknown identifier 'tea'
+Unknown identifier `tea`
 ```
 ```lean (name := okTea2)
 section
@@ -206,13 +206,13 @@ example := [a1, a2, a3, a4, a5, a6]
 end
 ```
 ```leanOutput dotted
-unknown identifier 'a1'
+Unknown identifier `a1`
 ```
 ```leanOutput dotted
-unknown identifier 'a4'
+Unknown identifier `a4`
 ```
 ```leanOutput dotted
-unknown identifier 'a5'
+Unknown identifier `a5`
 ```
 Opening `A.B` makes `A.B.C` visible as `C` along with `_root_.C`, so the subsequent `C` opens both.
 :::
@@ -332,7 +332,7 @@ However, the name {name}`NS.three` is not in scope:
 def y := three
 ```
 ```leanOutput nothree
-unknown identifier 'three'
+Unknown identifier `three`
 ```
 :::
 ::::

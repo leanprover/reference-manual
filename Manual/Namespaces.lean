@@ -108,7 +108,7 @@ Outside its namespace, it cannot be evaluated.
 #eval english
 ```
 ```leanOutput english1
-unknown identifier 'english'
+Unknown identifier `english`
 ```
 
 Opening a section allows modifications to the global scope to be contained.
@@ -123,7 +123,7 @@ Even though the section name matches the definition's namespace, the name is not
 #eval english
 ```
 ```leanOutput english2
-unknown identifier 'english'
+Unknown identifier `english`
 ```
 
 Opening the namespace `Greetings` brings {name}`Greetings.english` as {name Greetings.english}`english`:
@@ -159,7 +159,7 @@ When the section is closed, the effects of the {keywordOf Lean.Parser.Command.op
 #eval english
 ```
 ```leanOutput english5
-unknown identifier 'english'
+Unknown identifier `english`
 ```
 :::
 
@@ -255,7 +255,7 @@ After the single command, the effects of {keywordOf Lean.Parser.Command.open}`op
 #eval cupcake
 ```
 ```leanOutput noCake
-unknown identifier 'cupcake'
+Unknown identifier `cupcake`
 ```
 :::
 
@@ -302,7 +302,7 @@ def addAll (lst : List β) : β :=
   lst.foldr (init := 0) (· + ·)
 ```
 ```leanOutput secvars
-unknown identifier 'β'
+Unknown identifier `β`
 ```
 
 On the other hand, not even {lean}`xs` needs to be written directly in the definition:

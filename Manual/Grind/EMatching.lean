@@ -296,6 +296,76 @@ theorem inv_eq [One α] [Mul α] [Inv α] {a b : α}
 ```
 :::
 
+:::syntax Lean.Parser.Attr.grindMod (title := "Extensionality for Structures")
+```grammar
+ext
+```
+{attrs}`@[grind ext]` registers a structure extensionality lemma with the E-matching engine, allowing {tactic}`grind` to equate a term with a structure type to the type's constructor applied to its projections.
+:::
+
+:::example "The `@[grind ext]` Attribute"
+{tactic}`grind` does not automatically apply the {tech key:="η-equivalence"}[η-equality] rule for structures.
+{lean}`Point` is a structure with two fields:
+```lean
+structure Point where
+  x : Int
+  y : Int
+```
+By default, {tactic}`grind` can't solve goals like this one:
+```lean (error := true) (name := noExt)
+example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
+```
+```leanOutput noExt
+`grind` failed
+case grind
+p : Point
+h : ¬p = { x := p.x, y := p.y }
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] False propositions
+```
+
+This kind of goal may come up when proving theorems like the fact that swapping the fields of a point twice is the identity:
+```lean
+def Point.swap (p : Point) : Point := ⟨p.y, p.x⟩
+```
+```lean (error := true) (name := noExt')
+theorem swap_swap_eq_id : Point.swap ∘ Point.swap = id := by
+  unfold Point.swap
+  grind
+```
+```leanOutput noExt'
+`grind` failed
+case grind
+h : ¬((fun p => { x := p.y, y := p.x }) ∘ fun p => { x := p.y, y := p.x }) = id
+w : Point
+h_1 : ¬{ x := w.x, y := w.y } = id w
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+  [eqc] Equivalence classes
+  [cases] Case analyses
+  [ematch] E-matching patterns
+
+[grind] Diagnostics
+```
+Adding the {attrs}`@[grind ext]` attribute to {name}`Point` enables {tactic}`grind` to solve both the original example and prove this theorem:
+```lean
+attribute [grind ext] Point
+
+example (p : Point) : p = ⟨p.x, p.y⟩ := by
+  grind
+
+theorem swap_swap_eq_id' : Point.swap ∘ Point.swap = id := by
+  unfold Point.swap
+  grind
+```
+
+:::
+
 # Inspecting Patterns
 
 The {attr}`grind?` attribute is a version of the {attr}`grind` attribute that additionally displays the generated pattern or {tech}[multi-pattern].
@@ -618,9 +688,6 @@ example : (iota 20).length > 10 := by
     [thm] iota_succ ↦ 14
     [thm] List.length_cons ↦ 11
   [app] Applications
-  [grind] Simplifier
-    [simp] tried theorems (max: 37, num: 1):
-    use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 :::
 

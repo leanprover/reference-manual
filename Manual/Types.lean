@@ -118,14 +118,14 @@ example : LengthList String 5 :=
   ("Wrong", "number", ())
 ```
 ```leanOutput wrongNum
-Application type mismatch: In the application
-  ("number", ())
-the argument
+Application type mismatch: The argument
   ()
 has type
-  Unit : Type
+  Unit
 but is expected to have type
-  LengthList String 3 : Type
+  LengthList String 3
+in the application
+  ("number", ())
 ```
 :::
 ::::
@@ -191,12 +191,13 @@ example : Sort 5 := Sort 3
 ```
 
 ```leanOutput sort3
-type mismatch
+Type mismatch
   Type 2
 has type
-  Type 3 : Type 4
-but is expected to have type
-  Type 4 : Type 5
+  Type 3
+of sort `Type 4` but is expected to have type
+  Type 4
+of sort `Type 5`
 ```
 
 Similarly, because {lean}`Unit` is in {lean}`Sort 1`, it is not in {lean}`Sort 2`:
@@ -208,12 +209,13 @@ example : Sort 2 := Unit
 ```
 
 ```leanOutput unit1
-type mismatch
+Type mismatch
   Unit
 has type
-  Type : Type 1
-but is expected to have type
-  Type 1 : Type 2
+  Type
+of sort `Type 1` but is expected to have type
+  Type 1
+of sort `Type 2`
 ```
 
 Because propositions and data are used differently and are governed by different rules, the abbreviations {lean}`Type` and {lean}`Prop` are provided to make the distinction more convenient.  {index}[`Type`] {index}[`Prop`]
@@ -260,12 +262,13 @@ This example is not accepted, because `α`'s level is greater than `1`. In other
 example (α : Type 2) (β : Type 1) : Type 1 := α → β
 ```
 ```leanOutput toosmall
-type mismatch
+Type mismatch
   α → β
 has type
-  Type 2 : Type 3
-but is expected to have type
-  Type 1 : Type 2
+  Type 2
+of sort `Type 3` but is expected to have type
+  Type 1
+of sort `Type 2`
 ```
 :::
 
@@ -278,12 +281,13 @@ This example is not accepted because the annotated universe is larger than the f
 example (α : Type 2) (β : Type 1) : Type 3 := α → β
 ```
 ```leanOutput toobig
-type mismatch
+Type mismatch
   α → β
 has type
-  Type 2 : Type 3
-but is expected to have type
-  Type 3 : Type 4
+  Type 2
+of sort `Type 3` but is expected to have type
+  Type 3
+of sort `Type 4`
 ```
 :::
 
@@ -348,12 +352,12 @@ set_option pp.universes true
 def test.{u, v} : T.{u} 0 = T.{v} 0 := rfl
 ```
 ```leanOutput uniIncomp
-type mismatch
-  rfl.{?u.29}
+Type mismatch
+  rfl.{?u.46}
 has type
-  Eq.{?u.29} ?m.31 ?m.31 : Prop
+  Eq.{?u.46} ?m.48 ?m.48
 but is expected to have type
-  Eq.{1} (T.{u} 0) (T.{v} 0) : Prop
+  Eq.{1} (T.{u} 0) (T.{v} 0)
 ```
 :::
 ::::
@@ -460,7 +464,7 @@ def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
 unknown universe level 'u'
 ```
 ```leanOutput uv
-unknown universe level 'v'
+unknown universe level 'u'
 ```
 :::
 

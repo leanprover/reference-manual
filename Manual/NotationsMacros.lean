@@ -273,14 +273,14 @@ example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $c
 ```
 The result is two type errors like the following:
 ```leanOutput cmdQuot
-Application type mismatch: In the application
-  cmd1.raw
-the argument
+Application type mismatch: The argument
   cmd1
 has type
-  TSyntax `command : Type
+  TSyntax `command
 but is expected to have type
-  TSyntax `term : Type
+  TSyntax `term
+in the application
+  cmd1.raw
 ```
 
 The type of the quotation ({lean}``MacroM (TSyntax `command)``) is not used to select a result because syntax priorities are applied prior to elaboration.
