@@ -660,3 +660,99 @@ tag := "tactic-ref-other"
 
 :::tactic Lean.Parser.Tactic.runTac
 :::
+
+# Verification condition generation
+%%%
+tag := "tactic-ref-mvcgen"
+%%%
+
+:::tactic "mvcgen"
+:::
+
+## Tactics for stateful goals in `Std.Do.SPred`
+%%%
+tag := "tactic-ref-spred"
+%%%
+
+### Starting and stopping the proof mode
+
+:::tactic "mstart"
+:::
+
+:::tactic "mstop"
+:::
+
+-- Next release:
+-- :::tactic "mleave"
+-- :::
+
+### Proving a stateful goal
+
+:::tactic "mspec"
+:::
+
+:::tactic "mintro"
+:::
+
+:::tactic "mexact"
+:::
+
+:::tactic "massumption"
+:::
+
+:::tactic "mrefine"
+:::
+
+:::tactic "mconstructor"
+:::
+
+:::tactic "mleft"
+:::
+
+:::tactic "mright"
+:::
+
+:::tactic "mexists"
+:::
+
+{docstring Lean.Parser.Tactic.mpureIntroMacro}
+
+-- The followign produces an error: "Failed to parse docstring as Markdown"
+-- :::tactic "mpure_intro"
+-- :::
+
+:::tactic "mexfalso"
+:::
+
+### Manipulating stateful hypotheses
+
+:::tactic "mclear"
+:::
+
+:::tactic "mdup"
+:::
+
+:::tactic "mhave"
+:::
+
+:::tactic "mreplace"
+:::
+
+:::tactic "mspecialize"
+:::
+
+:::tactic "mspecialize_pure"
+:::
+
+:::tactic "mcases"
+:::
+
+-- Next release:
+-- :::tactic "mrename_i"
+-- :::
+
+:::tactic "mpure"
+:::
+
+:::tactic "mframe"
+:::
