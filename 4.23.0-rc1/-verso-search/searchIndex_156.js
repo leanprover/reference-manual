@@ -1,0 +1,1 @@
+window.docContents[156].resolve({"/Tactic-Proofs/Tactic-Reference/#tactic-ref-inductive":{"id":"/Tactic-Proofs/Tactic-Reference/#tactic-ref-inductive","header":"13.5.14. Inductive Types","context":"Lean Reference\u0009Tactic Proofs\u0009Tactic Reference","contents":"\n\n\n\n"}});

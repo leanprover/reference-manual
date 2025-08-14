@@ -1,0 +1,4213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      (function(){
+  const {protocol:proto, host:hostName, pathname:path, search:srch, hash:hsh} = window.location;
+  if (!(path.endsWith("/") || path.endsWith(".html"))) {
+    window.location.replace(`${proto}//${hostName}${path}/${srch}${hsh}`);
+  }
+})()</script>
+    <base href="./../../"><meta charset="utf-8">
+    <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Lean 4.23.0-rc1 (2025-08-14)</title><link rel="stylesheet" href="book.css">
+    <link rel="stylesheet" href="verso-vars.css">
+    <script>
+      const __versoSiteRoot = document.baseURI;</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
+    <script src="-verso-search/elasticlunr.min.js"></script>
+    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/searchIndex.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
+    <script src="static/print.js"></script>
+    <script src="-verso-data/katex/katex.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
+    <script src="-verso-data/popper.js"></script>
+    <script src="-verso-data/tippy.js"></script>
+    <link rel="stylesheet" href="static/colors.css">
+    <link rel="stylesheet" href="static/theme.css">
+    <link rel="stylesheet" href="static/print.css">
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
+    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
+    <link rel="stylesheet" href="-verso-data/tippy-border.css">
+    <style>
+a.elan-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.elan-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+a.lake-command {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+}
+</style><style>
+.hl.lean.tactic-view {
+  white-space: collapse;
+}
+.hl.lean.tactic-view .tactic-state {
+  display: block;
+  left: 0;
+  padding: 0;
+  border: none;
+}
+.hl.lean.tactic-view .tactic-state .goal {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  display: block;
+}
+.hl.lean.tactic-view .tactic-state .goal:first-child {
+  margin-top: 0.25em;
+}
+.hl.lean.tactic-view .tactic-state .goal:last-child {
+  margin-bottom: 0.25em;
+}
+
+
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>
+.namedocs {
+  position: relative;
+  border: solid 1px #98B2C0;
+  border-radius: .5rem;
+  padding-top: var(--verso--box-padding);
+  margin-top: var(--verso--box-vertical-margin);
+  margin-bottom: var(--verso--box-vertical-margin);
+}
+
+.namedocs .text {
+  /* Causes margins on child elements to collapse inside the element, such
+     that the margins don't extend into parent with the background color.
+     The effect is that weird borders in the definition box don't happen anymore. */
+  display: flow-root;
+  /* Add a padding. this is the same as the margin applied to the first and last child.
+     The effect is that the padding looks the same size on all sides. */
+  padding: 0 var(--verso--box-padding);
+  border-top: 1px solid #98B2C0;
+}
+
+.namedocs .text > pre {
+  overflow-x: auto;
+}
+
+.namedocs .signature {
+  font-family: var(--verso-code-font-family);
+  margin-top: 0 !important;
+  margin-left: var(--verso--box-padding) !important;
+  margin-bottom: .75rem !important;
+}
+
+.namedocs .label {
+  display: block;
+  font-size: small;
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  top: -0.65rem;
+  left: 1rem;
+  background: #fff;
+  padding: 0 .5rem .125rem;
+  border: 1px solid #98B2C0;
+  border-radius: 1rem;
+  color: #555;
+}
+
+.namedocs h1 {
+  font-size: inherit;
+  font-weight: bold
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.namedocs > .text .constructor {
+  padding-top: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.namedocs > .text .constructor::before {
+  content: '| ';
+  display: block;
+  font-family: var(--verso-code-font-family);
+  font-weight: bold;
+  float: left;
+  width: 0.5rem;
+  white-space: pre;
+}
+
+.namedocs > .text .constructor .name-and-type {
+  padding-left: 0.5rem;
+  float: left;
+  margin-top: 0;
+  max-width: calc(100% - 1rem);
+}
+.namedocs > .text .constructor .docs {
+  clear: both;
+  padding-left: 1rem;
+}
+
+/* These margins work together with the padding on .text */
+.namedocs .text > :first-child {
+  margin-top: var(--verso--box-padding);
+}
+.namedocs .text > :last-child {
+  margin-bottom: var(--verso--box-padding);
+}
+
+.namedocs .methods td, .namedocs .fields td {
+  vertical-align: top;
+}
+.namedocs .inheritance {
+  vertical-align: top;
+  font-size: smaller;
+  font-family: var(--verso-structure-font-family);
+}
+.namedocs .inheritance ol {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+.namedocs .inheritance ol li {
+  list-style-type: none;
+  display: inline-block;
+}
+.namedocs .inheritance ol li::after {
+  content: " > "
+}
+.namedocs .inheritance ol li:last-child::after {
+  content: "";
+}
+
+.namedocs .extends {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+.namedocs .extends li {
+  list-style-type: none;
+  display: inline-block;
+}
+
+.namedocs .extends li label {
+  padding-right: 1rem;
+}
+
+.namedocs .subdocs .name-and-type {
+  font-size: 1rem;
+  margin-left: 0;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs .subdocs .docs {
+  margin-left: 1.5rem;
+  margin-top: 0;
+  margin-right: 0;
+  margin-bottom: 0.5rem;
+}
+
+.namedocs:has(input[data-parent-idx]) [data-inherited-from] {
+  transition-property: opacity, display;
+  transition-duration: 0.4s;
+  transition-behavior: allow-discrete;
+  @starting-style { opacity: 0 !important; }
+}
+
+#this-page-items .tactic-name { font-weight: bold; }
+.namedocs:has(input[data-parent-idx="0"]) [data-inherited-from="0"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked) [data-inherited-from="0"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="0"]:checked):has(.inheritance[data-inherited-from="0"]:hover) [data-inherited-from]:not([data-inherited-from="0"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="1"]) [data-inherited-from="1"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked) [data-inherited-from="1"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="1"]:checked):has(.inheritance[data-inherited-from="1"]:hover) [data-inherited-from]:not([data-inherited-from="1"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="2"]) [data-inherited-from="2"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked) [data-inherited-from="2"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="2"]:checked):has(.inheritance[data-inherited-from="2"]:hover) [data-inherited-from]:not([data-inherited-from="2"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="3"]) [data-inherited-from="3"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked) [data-inherited-from="3"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="3"]:checked):has(.inheritance[data-inherited-from="3"]:hover) [data-inherited-from]:not([data-inherited-from="3"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="4"]) [data-inherited-from="4"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked) [data-inherited-from="4"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="4"]:checked):has(.inheritance[data-inherited-from="4"]:hover) [data-inherited-from]:not([data-inherited-from="4"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="5"]) [data-inherited-from="5"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked) [data-inherited-from="5"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="5"]:checked):has(.inheritance[data-inherited-from="5"]:hover) [data-inherited-from]:not([data-inherited-from="5"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="6"]) [data-inherited-from="6"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked) [data-inherited-from="6"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="6"]:checked):has(.inheritance[data-inherited-from="6"]:hover) [data-inherited-from]:not([data-inherited-from="6"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="7"]) [data-inherited-from="7"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked) [data-inherited-from="7"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="7"]:checked):has(.inheritance[data-inherited-from="7"]:hover) [data-inherited-from]:not([data-inherited-from="7"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="8"]) [data-inherited-from="8"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked) [data-inherited-from="8"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="8"]:checked):has(.inheritance[data-inherited-from="8"]:hover) [data-inherited-from]:not([data-inherited-from="8"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="9"]) [data-inherited-from="9"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked) [data-inherited-from="9"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="9"]:checked):has(.inheritance[data-inherited-from="9"]:hover) [data-inherited-from]:not([data-inherited-from="9"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="10"]) [data-inherited-from="10"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked) [data-inherited-from="10"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="10"]:checked):has(.inheritance[data-inherited-from="10"]:hover) [data-inherited-from]:not([data-inherited-from="10"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="11"]) [data-inherited-from="11"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked) [data-inherited-from="11"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="11"]:checked):has(.inheritance[data-inherited-from="11"]:hover) [data-inherited-from]:not([data-inherited-from="11"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="12"]) [data-inherited-from="12"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked) [data-inherited-from="12"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="12"]:checked):has(.inheritance[data-inherited-from="12"]:hover) [data-inherited-from]:not([data-inherited-from="12"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="13"]) [data-inherited-from="13"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked) [data-inherited-from="13"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="13"]:checked):has(.inheritance[data-inherited-from="13"]:hover) [data-inherited-from]:not([data-inherited-from="13"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="14"]) [data-inherited-from="14"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked) [data-inherited-from="14"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="14"]:checked):has(.inheritance[data-inherited-from="14"]:hover) [data-inherited-from]:not([data-inherited-from="14"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="15"]) [data-inherited-from="15"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked) [data-inherited-from="15"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="15"]:checked):has(.inheritance[data-inherited-from="15"]:hover) [data-inherited-from]:not([data-inherited-from="15"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="16"]) [data-inherited-from="16"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked) [data-inherited-from="16"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="16"]:checked):has(.inheritance[data-inherited-from="16"]:hover) [data-inherited-from]:not([data-inherited-from="16"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="17"]) [data-inherited-from="17"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked) [data-inherited-from="17"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="17"]:checked):has(.inheritance[data-inherited-from="17"]:hover) [data-inherited-from]:not([data-inherited-from="17"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="18"]) [data-inherited-from="18"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked) [data-inherited-from="18"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="18"]:checked):has(.inheritance[data-inherited-from="18"]:hover) [data-inherited-from]:not([data-inherited-from="18"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="19"]) [data-inherited-from="19"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked) [data-inherited-from="19"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="19"]:checked):has(.inheritance[data-inherited-from="19"]:hover) [data-inherited-from]:not([data-inherited-from="19"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="20"]) [data-inherited-from="20"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked) [data-inherited-from="20"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="20"]:checked):has(.inheritance[data-inherited-from="20"]:hover) [data-inherited-from]:not([data-inherited-from="20"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="21"]) [data-inherited-from="21"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked) [data-inherited-from="21"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="21"]:checked):has(.inheritance[data-inherited-from="21"]:hover) [data-inherited-from]:not([data-inherited-from="21"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="22"]) [data-inherited-from="22"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked) [data-inherited-from="22"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="22"]:checked):has(.inheritance[data-inherited-from="22"]:hover) [data-inherited-from]:not([data-inherited-from="22"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="23"]) [data-inherited-from="23"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked) [data-inherited-from="23"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="23"]:checked):has(.inheritance[data-inherited-from="23"]:hover) [data-inherited-from]:not([data-inherited-from="23"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="24"]) [data-inherited-from="24"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked) [data-inherited-from="24"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="24"]:checked):has(.inheritance[data-inherited-from="24"]:hover) [data-inherited-from]:not([data-inherited-from="24"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="25"]) [data-inherited-from="25"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked) [data-inherited-from="25"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="25"]:checked):has(.inheritance[data-inherited-from="25"]:hover) [data-inherited-from]:not([data-inherited-from="25"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="26"]) [data-inherited-from="26"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked) [data-inherited-from="26"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="26"]:checked):has(.inheritance[data-inherited-from="26"]:hover) [data-inherited-from]:not([data-inherited-from="26"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="27"]) [data-inherited-from="27"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked) [data-inherited-from="27"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="27"]:checked):has(.inheritance[data-inherited-from="27"]:hover) [data-inherited-from]:not([data-inherited-from="27"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="28"]) [data-inherited-from="28"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked) [data-inherited-from="28"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="28"]:checked):has(.inheritance[data-inherited-from="28"]:hover) [data-inherited-from]:not([data-inherited-from="28"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="29"]) [data-inherited-from="29"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked) [data-inherited-from="29"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="29"]:checked):has(.inheritance[data-inherited-from="29"]:hover) [data-inherited-from]:not([data-inherited-from="29"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="30"]) [data-inherited-from="30"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked) [data-inherited-from="30"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="30"]:checked):has(.inheritance[data-inherited-from="30"]:hover) [data-inherited-from]:not([data-inherited-from="30"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="31"]) [data-inherited-from="31"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked) [data-inherited-from="31"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="31"]:checked):has(.inheritance[data-inherited-from="31"]:hover) [data-inherited-from]:not([data-inherited-from="31"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="32"]) [data-inherited-from="32"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked) [data-inherited-from="32"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="32"]:checked):has(.inheritance[data-inherited-from="32"]:hover) [data-inherited-from]:not([data-inherited-from="32"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="33"]) [data-inherited-from="33"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked) [data-inherited-from="33"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="33"]:checked):has(.inheritance[data-inherited-from="33"]:hover) [data-inherited-from]:not([data-inherited-from="33"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="34"]) [data-inherited-from="34"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked) [data-inherited-from="34"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="34"]:checked):has(.inheritance[data-inherited-from="34"]:hover) [data-inherited-from]:not([data-inherited-from="34"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="35"]) [data-inherited-from="35"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked) [data-inherited-from="35"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="35"]:checked):has(.inheritance[data-inherited-from="35"]:hover) [data-inherited-from]:not([data-inherited-from="35"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="36"]) [data-inherited-from="36"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked) [data-inherited-from="36"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="36"]:checked):has(.inheritance[data-inherited-from="36"]:hover) [data-inherited-from]:not([data-inherited-from="36"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="37"]) [data-inherited-from="37"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked) [data-inherited-from="37"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="37"]:checked):has(.inheritance[data-inherited-from="37"]:hover) [data-inherited-from]:not([data-inherited-from="37"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="38"]) [data-inherited-from="38"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked) [data-inherited-from="38"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="38"]:checked):has(.inheritance[data-inherited-from="38"]:hover) [data-inherited-from]:not([data-inherited-from="38"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="39"]) [data-inherited-from="39"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked) [data-inherited-from="39"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="39"]:checked):has(.inheritance[data-inherited-from="39"]:hover) [data-inherited-from]:not([data-inherited-from="39"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="40"]) [data-inherited-from="40"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked) [data-inherited-from="40"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="40"]:checked):has(.inheritance[data-inherited-from="40"]:hover) [data-inherited-from]:not([data-inherited-from="40"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="41"]) [data-inherited-from="41"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked) [data-inherited-from="41"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="41"]:checked):has(.inheritance[data-inherited-from="41"]:hover) [data-inherited-from]:not([data-inherited-from="41"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="42"]) [data-inherited-from="42"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked) [data-inherited-from="42"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="42"]:checked):has(.inheritance[data-inherited-from="42"]:hover) [data-inherited-from]:not([data-inherited-from="42"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="43"]) [data-inherited-from="43"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked) [data-inherited-from="43"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="43"]:checked):has(.inheritance[data-inherited-from="43"]:hover) [data-inherited-from]:not([data-inherited-from="43"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="44"]) [data-inherited-from="44"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked) [data-inherited-from="44"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="44"]:checked):has(.inheritance[data-inherited-from="44"]:hover) [data-inherited-from]:not([data-inherited-from="44"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="45"]) [data-inherited-from="45"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked) [data-inherited-from="45"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="45"]:checked):has(.inheritance[data-inherited-from="45"]:hover) [data-inherited-from]:not([data-inherited-from="45"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="46"]) [data-inherited-from="46"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked) [data-inherited-from="46"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="46"]:checked):has(.inheritance[data-inherited-from="46"]:hover) [data-inherited-from]:not([data-inherited-from="46"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="47"]) [data-inherited-from="47"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked) [data-inherited-from="47"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="47"]:checked):has(.inheritance[data-inherited-from="47"]:hover) [data-inherited-from]:not([data-inherited-from="47"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="48"]) [data-inherited-from="48"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked) [data-inherited-from="48"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="48"]:checked):has(.inheritance[data-inherited-from="48"]:hover) [data-inherited-from]:not([data-inherited-from="48"]) {
+  opacity: 0.5;
+}
+.namedocs:has(input[data-parent-idx="49"]) [data-inherited-from="49"] {
+  display: none;
+  opacity: 0;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked) [data-inherited-from="49"] {
+  display: block;
+  transform: none;
+  opacity: 1;
+}
+.namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
+  opacity: 0.5;
+}
+</style><style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.example-file {
+  white-space: normal;
+  font-family: var(--verso-structure-font-family);
+  margin: 1rem;
+  width: fit-content;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+
+  /* These are necessary for the container to behave nicely on mobile */
+  overflow-x: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.example-file::before {
+  counter-reset: linenumber;
+}
+.example-file > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.example-file > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+.example-file > .line::after {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "⏎";
+  opacity: 0;
+}
+.example-file > .line:hover::after {
+  opacity: 1;
+}
+.example-file > .line:hover, .example-file > .line:hover::before {
+  background-color: #eee;
+}
+.example-file > .empty {
+  display: block;
+  white-space: pre;
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+.example-file > .empty::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: "";
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+</style><style>
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
+</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
+table.tabular {
+  margin: auto;
+  border-spacing: 1rem;
+}
+table.tabular.left-align {
+  margin-right: auto;
+  margin-left: 0;
+}
+table.tabular.center-align {
+  margin: auto;
+}
+table.tabular.right-align {
+  margin-left auto;
+  margin-right: 0;
+}
+table.tabular td, table.tabular th {
+  text-align: left;
+  vertical-align: top;
+}
+table.tabular td > p:first-child, table.tabular th > p:first-child {
+  margin-top: 0;
+}
+table.tabular td > p:last-child, table.tabular th > p:first-child {
+  margin-bottom: 0;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+div.TODO {
+  border: 5px solid red;
+  position: relative;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+  font-size: large;
+  font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
+}
+</style><style>
+.toml {
+  font-family: var(--verso-code-font-family);
+}
+
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(.tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+</style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
+.syntax-error {
+  white-space: normal;
+}
+.syntax-error::before {
+  counter-reset: linenumber;
+}
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
+  font-family: var(--verso-code-font-family);
+}
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
+}
+
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
+}
+
+.syntax-error .parse-message > code.hover-info {
+  display:none;
+}
+
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
+}
+</style><script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
+    <script>
+      
+window.onload = () => {
+
+    // Don't show hovers inside of closed tactic states
+    function blockedByTactic(elem) {
+      let parent = elem.parentNode;
+      while (parent && "classList" in parent) {
+        if (parent.classList.contains("tactic")) {
+          const toggle = parent.querySelector("input.tactic-toggle");
+          if (toggle) {
+            return !toggle.checked;
+          }
+        }
+        parent = parent.parentNode;
+      }
+      return false;
+    }
+
+    function blockedByTippy(elem) {
+      // Don't show a new hover until the old ones are all closed.
+      // Scoped to the nearest "top-level block" to avoid being O(n) in the size of the document.
+      var block = elem;
+      const topLevel = new Set(["section", "body", "html", "nav", "header"]);
+      while (block.parentNode && !topLevel.has(block.parentNode.nodeName.toLowerCase())) {
+        block = block.parentNode;
+      }
+      for (const child of block.querySelectorAll(".token, .has-info")) {
+        if (child._tippy && child._tippy.state.isVisible) { return true };
+      }
+      return false;
+    }
+
+    for (const c of document.querySelectorAll(".hl.lean .token")) {
+        if (c.dataset.binding != "") {
+            c.addEventListener("mouseover", (event) => {
+                if (blockedByTactic(c)) {return;}
+                const context = c.closest(".hl.lean").dataset.leanContext;
+                for (const example of document.querySelectorAll(".hl.lean")) {
+                    if (example.dataset.leanContext == context) {
+                        for (const tok of example.querySelectorAll(".token")) {
+                            if (c.dataset.binding == tok.dataset.binding) {
+                                tok.classList.add("binding-hl");
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        c.addEventListener("mouseout", (event) => {
+            for (const tok of document.querySelectorAll(".hl.lean .token")) {
+                tok.classList.remove("binding-hl");
+            }
+        });
+    }
+    /* Render docstrings */
+    if ('undefined' !== typeof marked) {
+        for (const d of document.querySelectorAll("code.docstring, pre.docstring")) {
+            const str = d.innerText;
+            const html = marked.parse(str);
+            const rendered = document.createElement("div");
+            rendered.classList.add("docstring");
+            rendered.innerHTML = html;
+            d.parentNode.replaceChild(rendered, d);
+        }
+    }
+    // Add hovers
+    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
+    let docsJson = siteRoot + "-verso-docs.json";
+    fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
+
+      function hideParentTooltips(element) {
+        let parent = element.parentElement;
+        while (parent) {
+          const tippyInstance = parent._tippy;
+          if (tippyInstance) {
+            tippyInstance.hide();
+          }
+          parent = parent.parentElement;
+        }
+      }
+
+
+
+      const defaultTippyProps = {
+        /* DEBUG -- remove the space: * /
+        onHide(any) { return false; },
+        trigger: "click",
+        // */
+        /* theme: "lean", */
+        maxWidth: "none",
+        appendTo: () => document.body,
+        interactive: true,
+        delay: [100, null],
+        /* ignoreAttributes: true, */
+        followCursor: 'initial',
+        onShow(inst) {
+          if (inst.reference.className == 'tactic') {
+
+            const toggle = inst.reference.querySelector("input.tactic-toggle");
+            if (toggle && toggle.checked) {
+              return false;
+            }
+            hideParentTooltips(inst.reference);
+            //if (blockedByTippy(inst.reference)) { return false; }
+
+          } else if (inst.reference.querySelector(".hover-info") || "versoHover" in inst.reference.dataset) {
+            if (blockedByTactic(inst.reference)) { return false };
+            if (blockedByTippy(inst.reference)) { return false; }
+          } else { // Nothing to show here!
+            return false;
+          }
+        },
+        content (tgt) {
+          const content = document.createElement("span");
+          if (tgt.className == 'tactic') {
+            const state = tgt.querySelector(".tactic-state").cloneNode(true);
+            state.style.display = "block";
+            content.appendChild(state);
+            content.style.display = "block";
+            content.className = "hl lean popup";
+          } else {
+            content.className = "hl lean";
+            content.style.display = "block";
+            content.style.maxHeight = "300px";
+            content.style.overflowY = "auto";
+            content.style.overflowX = "hidden";
+            const hoverId = tgt.dataset.versoHover;
+            const hoverInfo = tgt.querySelector(".hover-info");
+            if (hoverId) { // Docstrings from the table
+              // TODO stop doing an implicit conversion from string to number here
+              let data = versoDocData[hoverId];
+              if (data) {
+                const info = document.createElement("span");
+                info.className = "hover-info";
+                info.style.display = "block";
+                info.innerHTML = data;
+                content.appendChild(info);
+                /* Render docstrings - TODO server-side */
+                if ('undefined' !== typeof marked) {
+                    for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+                        const str = d.innerText;
+                        const html = marked.parse(str);
+                        const rendered = document.createElement("div");
+                        rendered.classList.add("docstring");
+                        rendered.innerHTML = html;
+                        d.parentNode.replaceChild(rendered, d);
+                    }
+                }
+              } else {
+                content.innerHTML = "Failed to load doc ID: " + hoverId;
+              }
+            } else if (hoverInfo) { // The inline info, still used for compiler messages
+              content.appendChild(hoverInfo.cloneNode(true));
+            }
+            const extraLinks = tgt.parentElement.dataset['versoLinks'];
+            if (extraLinks) {
+              try {
+                const extras = JSON.parse(extraLinks);
+                const links = document.createElement('ul');
+                links.className = 'extra-doc-links';
+                extras.forEach((l) => {
+                  const li = document.createElement('li');
+                  li.innerHTML = "<a href=\"" + l['href'] + "\" title=\"" + l.long + "\">" + l.short + "</a>";
+                  links.appendChild(li);
+                });
+                content.appendChild(links);
+              } catch (error) {
+                console.error(error);
+              }
+            }
+          }
+          return content;
+        }
+      };
+
+
+      document.querySelectorAll('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'lean');
+      });
+      document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'warning message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'info message');
+      });
+      document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'error message');
+      });
+      document.querySelectorAll('.hl.lean .tactic').forEach(element => {
+        element.setAttribute('data-tippy-theme', 'tactic');
+      });
+      let insts = tippy('.hl.lean .const.token, .hl.lean .keyword.token, .hl.lean .literal.token, .hl.lean .option.token, .hl.lean .var.token, .hl.lean .typed.token, .hl.lean .has-info, .hl.lean .tactic, .hl.lean .level-var, .hl.lean .level-const, .hl.lean .level-op, .hl.lean .sort', defaultTippyProps);
+  });
+}
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', openDetailsForHashTarget);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+} else {
+  openDetailsForHashTarget();
+}
+</script>
+    <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
+    </head>
+  <body>
+    <header>
+      <div class="header-logo-wrapper">
+        <a href="" id="logo"><img src="static/lean_logo.svg"></a></div>
+      <div class="header-title-wrapper">
+        <a href="" class="header-title"><h1>
+            The Lean Language Reference</h1>
+          </a></div>
+      </header>
+    <label for="toggle-toc" id="toggle-toc-click"><span class="line line1"></span><span class="line line2"></span><span class="line line3"></span></label><div class="with-toc">
+      <div class="toc-backdrop" onclick="document.getElementById('toggle-toc-click')?.click()"></div>
+      <nav id="toc">
+        <input type="checkbox" id="toggle-toc"><div class="first">
+          <a href="" class="toc-title"><h1>
+              The Lean Language Reference</h1>
+            </a><div class="split-tocs">
+            <div class="split-toc book">
+              <div class="title">
+                <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
+              <table><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0-rc1 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0-rc3</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+            <div class="split-toc">
+              <div class="title">
+                <span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0-rc1 (2025-08-14)</a></span></div>
+              </div>
+            </div>
+          </div>
+        <div class="last">
+          <ul id="meta-links">
+            <li>
+              <a href="https://github.com/leanprover/reference-manual">Source Code</a></li>
+            <li>
+              <a href="https://github.com/leanprover/reference-manual/issues">Report Issues</a></li>
+            </ul>
+          </div>
+        </nav>
+      <main><div class="content-wrapper">
+          <nav class="prev-next-buttons">
+            <a class="local-button active" href="releases/#release-notes" rel="prev" title="Release Notes"><span class="arrow">←</span><span class="where">Release Notes</span></a><a class="local-button active" href="releases/v4.22.0/#release-v4___22___0" rel="next" title="Lean 4.22.0 (2025-08-14)"><span class="where">Lean 4.22.0 (2025-08-14)</span><span class="arrow">→</span></a></nav>
+          <section>
+            <h1>
+              Lean 4.23.0-rc1 (2025-08-14)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.23.0" title="Permalink">🔗</a></span></h1>
+            <div class="no-vale">
+              <p>
+                For this release, 610 changes landed. In addition to the 95 feature additions and 139 fixes listed below there were 61 refactoring changes, 12 documentation improvements, 71 performance improvements, and 232 other changes.</p>
+              <p>
+                <strong>Language</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/6732">#6732</a> adds support for the <code>clear</code> tactic in conversion mode.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/8666">#8666</a> adjusts the experimental module system to not import the IR of
+non-<code>meta</code> declarations. It does this by replacing such IR with opaque
+foreign declarations on export and adjusting the new compiler
+accordingly.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/8842">#8842</a> fixes the bug that <code>collectAxioms</code> didn't collect axioms
+referenced by other axioms. One of the results of this bug is that
+axioms collected from a theorem proved by <code>native_decide</code> may not
+include <code>Lean.trustCompiler</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9015">#9015</a> makes <code>isDefEq</code> detect more stuck definitional equalities
+involving smart unfoldings. Specifically, if <code>t =?= defn ?m</code> and <code>defn</code>
+matches on its argument, then this equality is stuck on <code>?m</code>. Prior to
+this change, we would not see this dependency and simply return <code>false</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9084">#9084</a> adds <code>binrel%</code> macros for <code>!=</code> and <code>≠</code> notation defined in
+<code>Init.Core</code>. This allows the elaborator to insert coercions on both
+sides of the relation, instead of committing to the type on the left
+hand side.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9090">#9090</a> fixes a bug in <code>whnfCore</code> where it would fail to reduce
+applications of recursors/auxiliary defs.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9097">#9097</a> ensures that <code>mspec</code> uses the configured transparency setting
+and makes <code>mvcgen</code> use default transparency when calling <code>mspec</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9099">#9099</a> improves the “expected type mismatch” error message by omitting
+the type's types when they are defeq, and putting them into separate
+lines when not.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9103">#9103</a> prevents truncation of <code>panic!</code> messages containing null bytes.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9108">#9108</a> fixes an issue that may have caused inline expressions in
+messages to be unnecessarily rendered on a separate line.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9113">#9113</a> improves the <code>grind</code> doc string and tries to make it more
+approachable to new user.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9130">#9130</a> fixes unexpected occurrences of the <code>Grind.offset</code> gadget in
+ground patterns. See new test</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9131">#9131</a> adds a <code>usedLetOnly</code> parameter to <code>LocalContext.mkLambda</code> and
+<code>LocalContext.mkForall</code>, to parallel the <code>MetavarContext</code> versions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9133">#9133</a> adds support for <code>a^(m+n)</code> in the <code>grind</code> normalizer.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9143">#9143</a> removes a rather ugly hack in the module system, exposing the
+bodies of theorems whose type mention <code>WellFounded</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9146">#9146</a> adds "safe" polynomial operations to <code>grind ring</code>. The use the
+usual combinators: <code>withIncRecDepth</code> and <code>checkSystem</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9149">#9149</a> generalizes the <code>a^(m+n)</code> grind normalizer to any semirings.
+Example:</p>
+                  <pre>variable [Field R]
+
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9150">#9150</a> adds a missing case in the <code>toPoly</code> function used in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9153">#9153</a> improves the linarith <code>markVars</code>, and ensures it does not
+produce spurious issue messages.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9168">#9168</a> resolves a defeq diamond, which caused a problem in Mathlib:</p>
+                  <pre>import Mathlib
+
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9172">#9172</a> fixes a bug at <code>matchEqBwdPat</code>. The type may contain pattern
+variables.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9173">#9173</a> fixes an incompatibility in the experimental module system when
+trying to combine wellfounded recursion with public exposed definitions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9176">#9176</a> makes <code>mvcgen</code> split ifs rather than applying specifications.
+Doing so fixes a bug reported by Rish.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9182">#9182</a> tries to improve the E-matching pattern inference for <code>grind</code>.
+That said, we still need better tools for annotating and maintaining
+<code>grind</code> annotations in libraries.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9184">#9184</a> fixes stealing of <code>⇓</code> syntax by the new notation for total
+postconditions by demoting it to non-builtin syntax and scoping it to
+<code>Std.Do</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9191">#9191</a> lets the equation compiler unfold abstracted proofs again if
+they would otherwise hide recursive calls.</p>
+                  <p>
+                    This fixes #8939.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9193">#9193</a> fixes the unexpected kernel projection issue reported by issue
+#9187</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9194">#9194</a> makes the logic and tactics of <code>Std.Do</code> universe polymorphic, at
+the cost of a few definitional properties arising from the switch from
+<code>Prop</code> to <code>ULift Prop</code> in the base case <code>SPred []</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9196">#9196</a> implements <code>forall</code> normalization using a simproc instead of
+rewriting rules in <code>grind</code>. This is the first part of the PR, after
+update stage0, we must remove the normalization theorems.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9200">#9200</a> implements <code>exists</code> normalization using a simproc instead of
+rewriting rules in grind. This is the first part of the PR, after update
+stage0, we must remove the normalization theorems.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9202">#9202</a> extends the <code>Eq</code> simproc used in <code>grind</code>. It covers more cases
+now. It also adds 3 reducible declarations to the list of declarations
+to unfold.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9214">#9214</a> implements support for local and scoped <code>grind_pattern</code>
+commands.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9225">#9225</a> improves the <code>congr</code> tactic so that it can handle function
+applications with fewer arguments than the arity of the head function.
+This also fixes a bug where <code>congr</code> could not make progress with
+<code>Set</code>-valued functions in Mathlib, since <code>Set</code> was being unfolded and
+making such functions have an apparently higher arity.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9228">#9228</a> improves the startup time for <code>grind ring</code> by generating the
+required type classes on demand. This optimization is particularly
+relevant for files that make hundreds of calls to <code>grind</code>, such as
+<code>tests/lean/run/grind_bitvec2.lean</code>. For example, before this change,
+<code>grind</code> spent 6.87 seconds synthesizing type classes, compared to 3.92
+seconds after this PR.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9241">#9241</a> ensures that the type class instances used to implement the
+<code>ToInt</code> adapter (in <code>grind cutsat</code>) are generated on demand.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9244">#9244</a> improves the instance generation in the <code>grind linarith</code> module.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9251">#9251</a> demotes the builtin elaborators for <code>Std.Do.PostCond.total</code> and
+<code>Std.Do.Triple</code> into macros, following the DefEq improvements of #9015.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9267">#9267</a> optimizes support for <code>Decidable</code> instances in <code>grind</code>. Because
+<code>Decidable</code> is a subsingleton, the canonicalizer no longer wastes time
+normalizing such instances, a significant performance bottleneck in
+benchmarks like <code>grind_bitvec2.lean</code>. In addition, the
+congruence-closure module now handles <code>Decidable</code> instances, and can
+solve examples such as:</p>
+                  <pre>example (p q : Prop) (h₁ : Decidable p) (h₂ : Decidable (p ∧ q)) : (p ↔ q) → h₁ ≍ h₂ := by
+  grind
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9271">#9271</a> improves the performance of the formula normalizer used in
+<code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9287">#9287</a> rewords the "application type mismatch" error message so that
+the argument and its type precede the application expression.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9293">#9293</a> replaces the <code>reduceCtorEq</code> simproc used in <code>grind</code> by a much
+more efficient one. The default one use in <code>simp</code> is just overhead
+because the <code>grind</code> normalizer is already normalizing arithmetic.
+In a separate PR, we will push performance improvements to the default
+<code>reduceCtorEq</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9305">#9305</a> uses the <code>mkCongrSimpForConst?</code> API in <code>simp</code> to reduce the
+number of times the same congruence lemma is generated. Before this PR,
+<code>grind</code> would spend <code>1.5</code>s creating congruence theorems during
+normalization in the <code>grind_bitvec2.lean</code> benchmark. It now spends
+<code>0.6</code>s. should make an even bigger difference after we merge
+#9300.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9315">#9315</a> adds improves the "invalid named argument" error message in
+function applications and match patterns by providing clickable hints
+with valid argument names. In so doing, it also fixes an issue where
+this error message would erroneously flag valid match-pattern argument
+names.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9316">#9316</a> adds clickable code-action hints to the "invalid case name"
+error message.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9317">#9317</a> adds to the "fields missing" error message for structure
+instance notation a code-action hint that inserts all missing fields.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9324">#9324</a> improves the functions for checking whether two terms are
+disequal in <code>grind</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9325">#9325</a> optimizes the Boolean disequality propagator used in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9326">#9326</a> optimizes <code>propagateEqUp</code> used in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9340">#9340</a> modifies the encoding from <code>Nat</code> to <code>Int</code> used in <code>grind cutsat</code>. It is simpler, more extensible, and similar to the generic
+<code>ToInt</code>. After update stage0, we will be able to delete the leftovers.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9351">#9351</a> optimizes the <code>grind</code> preprocessing steps by skipping steps when
+the term is already present in the hash-consing table.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9358">#9358</a> adds support for generating lattice-theoretic (co)induction
+proof principles for predicates defined via <code>mutual</code> blocks using
+<code>inductive_fixpoint</code>/<code>coinductive_fixpoint</code> constructs.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9367">#9367</a> implements a minor optimization to the <code>grind</code> preprocessor.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9369">#9369</a> optimizes the <code>grind</code> preprocessor by skipping unnecessary steps
+when possible.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9371">#9371</a> fixes an issue that caused some <code>deriving</code> handlers to fail when
+the name of the type being declared matched that of a declaration in an
+open namespace.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9372">#9372</a> fixes a performance issue that occurs when generating equation
+lemmas for functions that use match-expressions containing several
+literals. This issue was exposed by #9322 and arises from a combination
+of factors:</p>
+                  <ol start="1">
+                    <li>
+                      <p>
+                        Literal values are compiled into a chain of dependent if-then-else
+expressions.</p>
+                      </li>
+                    <li>
+                      <p>
+                        Dependent if-then-else expressions are significantly more expensive
+to simplify than regular ones.</p>
+                      </li>
+                    <li>
+                      <p>
+                        The <code>split</code> tactic selects a target, splits it, and then invokes
+<code>simp</code> on the resulting subgoals. Moreover, <code>simp</code> traverses the entire
+goal bottom-up and does not stop after reaching the target.</p>
+                      </li>
+                    </ol>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9385">#9385</a> replaces the <code>isDefEq</code> test in the <code>simpEq</code> simproc used in
+<code>grind</code>. It is too expensive.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9386">#9386</a> improves a confusing error message that occurred when attempting
+to project from a zero-field structure.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9387">#9387</a> adds a hint to the "invalid projection" message suggesting the
+correct nested projection for expressions of the form <code>t.n</code> where <code>t</code> is
+a tuple and <code>n &gt; 2</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9395">#9395</a> fixes a bug at <code>mkCongrSimpCore?</code>. It fixes the issue reported
+by @joehendrix at #9388.
+The fix is just commit: afc4ba617fe2ca5828e0e252558d893d7791d56b. The
+rest of the PR is just cleaning up the file.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9398">#9398</a> avoids the expensive <code>inferType</code> call in <code>simpArith</code>. It also
+cleans up some of the code and removes anti-patterns.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9408">#9408</a> implements a simple optimization: dependent implications are no
+longer treated as E-matching theorems in <code>grind</code>. In
+<code>grind_bitvec2.lean</code>, this change saves around 3 seconds, as many
+dependent implications are generated. Example:</p>
+                  <pre> ∀ (h : i + 1 ≤ w), x.abs.getLsbD i = x.abs[i]
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9414">#9414</a> increases the number of cases where <code>isArrowProposition</code> returns
+a result other than <code>.undef</code>. This function is used to implement the
+<code>isProof</code> predicate, which is invoked on every subterm visited by
+<code>simp</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9421">#9421</a> fixes a bug that caused error explanations to "steal" the
+Infoview's container in the Lean web editor.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9423">#9423</a> updates the formatting of, and adds explanations for, "unknown
+identifier" errors as well as "failed to infer type" errors for binders
+and definitions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9424">#9424</a> improves the error messages produced by the <code>split</code> tactic,
+including suggesting syntax fixes and related tactics with which it
+might be confused.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9443">#9443</a> makes cdot function expansion take hygiene information into
+account, fixing "parenthesis capturing" errors that can make erroneous
+cdots trigger cdot expansion in conjunction with macros. For example,
+given</p>
+                  <pre>macro "baz% " t:term : term =&gt; `(1 + ($t))
+</pre><p>
+                    it used to be that <code>baz% ·</code> would expand to <code>1 + fun x =&gt; x</code>, but now
+the parentheses in <code>($t)</code> do not capture the cdot. We also fix an
+oversight where cdot function expansion ignored the fact that type
+ascriptions and tuples were supposed to delimit expansion, and also now
+the quotation prechecker ignores the identifier in <code>hygieneInfo</code>. (#9491
+added the hygiene information to the parenthesis and cdot syntaxes.)</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9447">#9447</a> ensures that <code>mvcgen</code> not only tries to close stateful subgoals
+by assumption, but also pure Lean goals.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9448">#9448</a> addresses the lean crash (stack overflow) with nested induction
+and the generation of the <code>SizeOf</code> spec lemmas, reported at #9018.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9451">#9451</a> adds support in the <code>mintro</code> tactic for introducing <code>let</code>/<code>have</code>
+binders in stateful targets, akin to <code>intro</code>. This is useful when
+specifications introduce such let bindings.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9454">#9454</a> introduces tactic <code>mleave</code> that leaves the <code>SPred</code> proof mode by
+eta expanding through its abstractions and applying some mild
+simplifications. This is useful to apply automation such as <code>grind</code>
+afterwards.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9464">#9464</a> makes <code>PProdN.reduceProjs</code> also look for projection functions.
+Previously, all redexes were created by the functions in <code>PProdN</code>, which
+used primitive projections. But with <code>mkAdmProj</code> the projection
+functions creep in via the types of the <code>admissible_pprod_fst</code> theorem.
+So let's just reduce both of them.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9472">#9472</a> fixes another issue at the <code>congr_simp</code> theorems that was
+affecting Mathlib. Many thanks to Johan Commelin for creating the mwe.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9476">#9476</a> fixes the bridge between <code>Nat</code> and <code>Int</code> in <code>grind cutsat</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9479">#9479</a> improves the <code>evalInt?</code> function, which is used to evaluate
+configuration parameters from the <code>ToInt</code> type class. also adds
+a new <code>evalNat?</code> function for handling the <code>IsCharP</code> type class, and
+introduces a configuration option:</p>
+                  <pre>grind (exp := &lt;num&gt;)
+</pre><p>
+                    This option controls the maximum exponent size considered during
+expression evaluation. Previously, <code>evalInt?</code> used <code>whnf</code>, which could
+run out of stack space when reducing terms such as <code>2^1024</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9480">#9480</a> adds a feature where <code>structure</code> constructors can override the
+inferred binder kinds of the type's parameters. In the following, the
+<code>(p)</code> binder on <code>toLp</code> causes <code>p</code> to be an explicit parameter to
+<code>WithLp.toLp</code>:</p>
+                  <pre>structure WithLp (p : Nat) (V : Type) where toLp (p) ::
+  ofLp : V
+</pre><p>
+                    This reflects the syntax of the feature added in #7742 for overriding
+binder kinds of structure projections. Similarly, only those parameters
+in the header of the <code>structure</code> may be updated; it is an error to try
+to update binder kinds of parameters included via <code>variable</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9481">#9481</a> fixes a kernel type mismatch that occurs when using <code>grind</code> on
+goals containing non-standard <code>OfNat.ofNat</code> terms. For example, in issue
+#9477, the <code>0</code> in the theorem <code>range_lower</code> has the form:</p>
+                  <pre>(@OfNat.ofNat
+  (Std.PRange.Bound (Std.PRange.RangeShape.lower (Std.PRange.RangeShape.mk Std.PRange.BoundShape.closed Std.PRange.BoundShape.open)) Nat)
+  (nat_lit 0)
+  (instOfNatNat (nat_lit 0)))
+</pre><p>
+                    instead of the more standard form:</p>
+                  <pre>(@OfNat.ofNat
+  Nat
+  (nat_lit 0)
+  (instOfNatNat (nat_lit 0)))
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9487">#9487</a> fixes an incorrect proof term constructed by <code>grind linarith</code>,
+as reported in #9485.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9491">#9491</a> adds hygiene info to paren/tuple/typeAscription syntaxes, which
+will be used to implement hygienic cdot function expansion in #9443.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9496">#9496</a> improves the error messages produced by the <code>set_option</code>
+command.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9500">#9500</a> adds a <code>HPow \a Int \a</code> field to <code>Lean.Grind.Field</code>, and
+sufficient axioms to connect it to the operations, so that in future we
+can reason about exponents in <code>grind</code>. To avoid collisions, we also move
+the <code>HPow \a Nat \a</code> field in <code>Semiring</code> from the extends clause to a
+field. Finally, we add some failing tests about normalizing exponents.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9505">#9505</a> removes vestigial syntax definitions in
+<code>Lean.Elab.Tactic.Do.VCGen</code> that when imported undefine the <code>mvcgen</code>
+tactic. Now it should be possible to import Mathlib and still use
+<code>mvcgen</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9506">#9506</a> adds a few missing simp lemmas to <code>mleave</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9507">#9507</a> makes <code>mvcgen</code> <code>mintro</code> let/have bindings.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9509">#9509</a> surfaces kernel diagnostics even in <code>example</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9512">#9512</a> makes <code>mframe</code>, <code>mspec</code> and <code>mvcgen</code> respect hygiene.
+Inaccessible stateful hypotheses can now be named with a new tactic
+<code>mrename_i</code> that works analogously to <code>rename_i</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9516">#9516</a> ensures that private declarations made inaccessible by the
+module system are noted in the relevant error messages</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9518">#9518</a> ensures previous "is marked as private" messages are still
+triggered under the module system</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9520">#9520</a> corrects the changes to <code>Lean.Grind.Field</code> made in #9500.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9522">#9522</a> uses <code>withAbstractAtoms</code> to prevent the kernel from accidentally
+reducing the atoms in the arith normlizer while typechecking. This PR
+also sets <code>implicitDefEqProofs := false</code> in the <code>grind</code> normalizer</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9532">#9532</a> generalizes <code>Process.output</code> and <code>Process.run</code> with an optional
+<code>String</code> argument that can be piped to <code>stdin</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9551">#9551</a> fixes the error position for the "dependent elimination failed"
+error for the <code>cases</code> tactic.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9553">#9553</a> fixes a bug introduced in #7830 where if the cursor is at the
+indicated position</p>
+                  <pre>example (as bs : List Nat) : (as.append bs).length = as.length + bs.length := by
+  induction as with
+  | nil =&gt; -- cursor
+  | cons b bs ih =&gt;
+</pre><p>
+                    then the Infoview would show "no goals" rather than the <code>nil</code> goal. The
+PR also fixes a separate bug where placing the cursor on the next line
+after the <code>induction</code>/<code>cases</code> tactics like in</p>
+                  <pre>  induction as with
+  | nil =&gt; sorry
+  | cons b bs ih =&gt; sorry
+  I -- &lt; cursor
+</pre><p>
+                    would report the original goal in the goal list. Furthermore, there are
+numerous improvements to error recovery (including <code>allGoals</code>-type logic
+for pre-tactics) and the visible tactic states when there are errors.
+Adds <code>Tactic.throwOrLogErrorAt</code>/<code>Tactic.throwOrLogError</code> for throwing or
+logging errors depending on the recovery state.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9571">#9571</a> restores the feature where in <code>induction</code>/<code>cases</code> for <code>Nat</code>, the
+<code>zero</code> and <code>succ</code> labels are hoverable. This was added in #1660, but
+broken in #3629 and #3655 when custom eliminators were added. In
+general, if a custom eliminator <code>T.elim</code> for an inductive type <code>T</code> has
+an alternative <code>foo</code>, and <code>T.foo</code> is a constant, then the <code>foo</code> label
+will have <code>T.foo</code> hover information.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9574">#9574</a> adds the option <code>abstractProof</code> to control whether <code>grind</code>
+automatically creates an auxiliary theorem for the generated proof or
+not.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9575">#9575</a> optimizes the proof terms generated by <code>grind ring</code>. For
+example, before this PR, the kernel took 2.22 seconds (on a M4 Max) to
+type-check the proof in the benchmark <code>grind_ring_5.lean</code>; it now takes
+only 0.63 seconds.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9578">#9578</a> fixes an issue in <code>grind</code>'s disequality proof construction. The
+issue occurs when an equality is merged with the <code>False</code> equivalence
+class, but it is not the root of its congruence class, and its
+congruence root has not yet been merged into the <code>False</code> equivalence
+class yet.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9579">#9579</a> ensures <code>ite</code> and <code>dite</code> are to selected as E-matching patterns.
+They are bad patterns because the then/else branches are only
+internalized after <code>grind</code> decided whether the condition is
+<code>True</code>/<code>False</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9592">#9592</a> updates the styling and wording of error messages produced in
+inductive type declarations and anonymous constructor notation,
+including hints for inferable constructor visibility updates.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9595">#9595</a> improves the error message displayed when writing an invalid
+projection on a free variable of function type.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9606">#9606</a> adds notes to the deprecation warning when the replacement
+constant has a different type, visibility, and/or namespace.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9625">#9625</a> improves trace messages around wf_preprocess.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9628">#9628</a> introduces a <code>mutual_induct</code> variant of the generated
+(co)induction proof principle for mutually defined (co)inductive
+predicates. Unlike the standard (co)induction principle (which projects
+conclusions separately for each predicate), <code>mutual_induct</code> produces a
+conjunction of all conclusions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9633">#9633</a> updates various error messages produced by or associated with
+built-in tactics and adapts their formatting to current conventions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9634">#9634</a> modifies dot identifier notation so that <code>(.a : T)</code> resolves
+<code>T.a</code> with respect to the root namespace, like for generalized field
+notation. This lets the notation refer to private names, follow aliases,
+and also use open namespaces. The LSP completions are improved to follow
+how dot ident notation is resolved, but it doesn't yet take into account
+aliases or open namespaces.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9637">#9637</a> improves the readability of the "maximum universe level offset
+exceeded" error message.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9646">#9646</a> uses a more simple approach to proving the unfolding theorem for
+a function defined by well-founded recursion. Instead of looping a bunch
+of tactics, it uses simp in single-pass mode to (try to) exactly undo
+the changes done in <code>WF.Fix</code>, using a dedicated theorem that pushes the
+extra argument in for each matcher (or <code>casesOn</code>).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9649">#9649</a> fixes an issue where a macro unfolding to multiple commands
+would not be accepted inside <code>mutual</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9653">#9653</a> adds error explanations for two common errors caused by large
+elimination from <code>Prop</code>. To support this functionality, "nested" named
+errors thrown by sub-tactics are now able to display their error code
+and explanation.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9666">#9666</a> addresses an outstanding feature in the module system to
+automatically mark <code>let rec</code> and <code>where</code> helper declarations as private
+unless they are defined in a public context such as under <code>@[expose]</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9670">#9670</a> add constructors <code>.intCast k</code> and <code>.natCast k</code> to
+<code>CommRing.Expr</code>. We need them because terms such as <code>Nat.cast (R := α) 1</code> and <code>(1 : α)</code> are not definitionally equal. This is pervaise in
+Mathlib for the numerals <code>0</code> and <code>1</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9671">#9671</a> fixes support for <code>SMul.smul</code> in <code>grind ring</code>. <code>SMul.smul</code>
+applications are now normalized. Example:</p>
+                  <pre>example (x : BitVec 2) : x - 2 • x + x = 0 := by
+  grind
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9675">#9675</a> adds support for <code>Fin.val</code> in <code>grind cutsat</code>. Examples:</p>
+                  <pre>example (a b : Fin 2) (n : Nat) : n = 1 → ↑(a + b) ≠ n → a ≠ 0 → b = 0 → False := by
+  grind
+
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9676">#9676</a> adds normalizers for nonstandard arithmetic instances. The types
+<code>Nat</code> and <code>Int</code> have built-in support in <code>grind</code>, which uses the
+standard instances for these types and assumes they are the ones in use.
+However, users may define their own alternative instances that are
+definitionally equal to the standard ones. normalizes such
+instances using simprocs. This situation actually occurs in Mathlib.
+Example:</p>
+                  <pre>class Distrib (R : Type _) extends Mul R where
+
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9679">#9679</a> produces a warning for redundant <code>grind</code> arguments.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9682">#9682</a> fixes a regression introduced by an optimization in the
+<code>unfoldReducible</code> step used by the <code>grind</code> normalizer. It also ensures
+that projection functions are not reduced, as they are folded in a later
+step.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9686">#9686</a> applies <code>clear</code> to implementation detail local declarations
+during the <code>grind</code> preprocessing steps.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9699">#9699</a> adds propagation rules for functions that take singleton types.
+This feature is useful for discharging verification conditions produced
+by <code>mvcgen</code>. For example:</p>
+                  <pre>example (h : (fun (_ : Unit) =&gt; x + 1) = (fun _ =&gt; 1 + y)) : x = y := by
+  grind
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9700">#9700</a> fixes assertion violations when <code>checkInvariants</code> is enabled in
+<code>grind</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9701">#9701</a> switches to a non-verloading local <code>Std.Do.Triple</code> notation in
+SpecLemmas.lean to work around a stage2 build failure.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9702">#9702</a> fixes an issue in the <code>match</code> elaborator where pattern variables
+like <code>__x</code> would not have the kind <code>implDetail</code> in the local context.
+Now <code>kindOfBinderName</code> is <code>LocalDeclKind.ofBinderName</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9704">#9704</a> optimizes the proof terms produced by <code>grind cutsat</code>. Additional
+performance improvements will be merged later.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9706">#9706</a> combines <code>Poly.combine_k</code> and <code>Poly.mul_k</code> steps used in the
+<code>grind cutsat</code> proof terms.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9710">#9710</a> improves some of the proof terms produced by <code>grind ring</code> and
+<code>grind cutsat</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9714">#9714</a> adds a version of <code>CommRing.Expr.toPoly</code> optimized for kernel
+reduction. We use this function not only to implement <code>grind ring</code>, but
+also to interface the ring module with <code>grind cutsat</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9716">#9716</a> moves the validation of cross-package <code>import all</code> to Lake and
+the syntax validation of import keywords (<code>public</code>, <code>meta</code>, and <code>all</code>)
+to the two import parsers.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9728">#9728</a> fixes #9724</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9735">#9735</a> extends the propagation rule implemented in #9699 to constant
+functions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9736">#9736</a> implements the option <code>mvcgen +jp</code> to employ a slightly lossy VC
+encoding for join points that prevents exponential VC blowup incurred by
+naïve splitting on control flow.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9754">#9754</a> make <code>mleave</code> apply <code>at *</code> and improve its simp set in order to
+discharge some more trivialities (#9581).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9755">#9755</a> implements a <code>mrevert ∀n</code> tactic that "eta-reduces" the stateful
+goal and is adjoint to <code>mintro ∀x1 ... ∀xn</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9767">#9767</a> fixes equality congruence proof terms contructed by <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9772">#9772</a> fixes a bug in the projection over constructor propagator used
+in <code>grind</code>. It may construct type incorrect terms when a equivalence
+class contains heterogeneous equalities.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9776">#9776</a> combines the simplification and unfold-reducible-constants steps
+in <code>grind</code> to ensure that no potential normalization steps are missed.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9780">#9780</a> extends the test suite for <code>grind</code> working category theory, to
+help debug outstanding problems in Mathlib.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9781">#9781</a> ensures that <code>mvcgen</code> is hygienic. The goals it generates should
+now introduce all locals inaccessibly.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9785">#9785</a> splits out an implementation detail of
+MVarId.getMVarDependencies into a top-level function. Aesop was relying
+on the function defined in the where clause, which is no longer possible
+after #9759.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9798">#9798</a> introduces <code>Lean.realizeValue</code>, a new metaprogramming API for
+parallelism-aware caching of <code>MetaM</code> computations</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9800">#9800</a> improves the delta deriving handler, giving it the ability to
+process definitions with binders, as well as the ability to recursively
+unfold definitions. Furthermore, delta deriving now tries all explicit
+non-out-param arguments to a class, and it can handle "mixin" instance
+arguments. The <code>deriving</code> syntax has been changed to accept general
+terms, which makes it possible to derive specific instances with for
+example <code>deriving OfNat _ 1</code> or <code>deriving Module R</code>. The class is
+allowed to be a pi type, to add additional hypotheses; here is a Mathlib
+example:</p>
+                  <pre>def Sym (α : Type*) (n : ℕ) :=
+  { s : Multiset α // Multiset.card s = n }
+deriving [DecidableEq α] → DecidableEq _
+</pre><p>
+                    This underscore stands for where <code>Sym α n</code> may be inserted, which is
+necessary when <code>→</code> is used. The <code>deriving instance</code> command can refer to
+scoped variables when delta deriving as well. Breaking change: the
+derived instance's name uses the <code>instance</code> command's name generator,
+and the new instance is added to the current namespace.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9804">#9804</a> allows trailing comma in the argument list of <code>simp?</code>, <code>dsimp?</code>,
+<code>simpa</code>, etc... Previously, it was only allowed in the non <code>?</code> variants
+of <code>simp</code>, <code>dsimp</code>, <code>simp_all</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9807">#9807</a> adds <code>Std.List.Zipper.pref</code> to the simp set of <code>mleave</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9809">#9809</a> adds a script for analyzing <code>grind</code> E-matching annotations. The
+script is useful for detecting matching loops. We plan to add
+user-facing commands for running the script in the future.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9813">#9813</a> fixes an unexpected bound variable panic in <code>unfoldReducible</code>
+used in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9814">#9814</a> skips the <code>normalizeLevels</code> preprocessing step in <code>grind</code> when
+it is not needed.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9818">#9818</a> fixes a bug where the <code>DecidableEq</code> deriving handler did not
+take universe levels into account for enumerations (inductive types
+whose constructors all have no fields). Closes #9541.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9819">#9819</a> makes the <code>unsafe t</code> term create an auxiliary opaque
+declaration, rather than an auxiliary definition with opaque
+reducibility hints.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9831">#9831</a> adds a delaborator for <code>Std.Range</code> notation.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9832">#9832</a> adds simp lemmas <code>SPred.entails_&lt;n&gt;</code> to replace
+<code>SPred.entails_cons</code> which was disfunctional as a simp lemma due to
+#8074.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9833">#9833</a> works around a DefEq bug in <code>mspec</code> involving delayed
+assignments.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9834">#9834</a> fixes a bug in <code>mvcgen</code> triggered by excess state arguments to
+the <code>wp</code> application, a situation which arises when working with
+<code>StateT</code> primitives.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
+σs to expand into a simple, first-order expression SPred.pure p that can
+be supported by e-matching in grind.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9843">#9843</a> makes <code>mvcgen</code> produce deterministic case labels for the
+generated VCs. Invariants will be named <code>inv&lt;n&gt;</code> and every other VC will
+be named <code>vc&lt;n&gt;.*</code>, where the <code>*</code> part serves as a loose indication of
+provenance.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9852">#9852</a> removes the <code>inShareCommon</code> quick filter used in <code>grind</code>
+preprocessing steps. <code>shareCommon</code> is no longer used only for fully
+preprocessed terms.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9853">#9853</a> adds <code>Nat</code> and <code>Int</code> numeral normalizers in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9857">#9857</a> ensures <code>grind</code> can E-match patterns containing universe
+polymorphic ground sub-patterns. For example, given</p>
+                  <pre>set_option pp.universes true in
+attribute [grind?] Id.run_pure
+</pre><p>
+                    the pattern</p>
+                  <pre>Id.run_pure.{u_1}: [@Id.run.{u_1} #1 (@pure.{u_1, u_1} `[Id.{u_1}] `[Applicative.toPure.{u_1, u_1}] _ #0)]
+</pre><p>
+                    contains two nested universe polymorphic ground patterns</p>
+                  <ul>
+                    <li>
+                      <p>
+                        <code>Id.{u_1}</code></p>
+                      </li>
+                    <li>
+                      <p>
+                        <code>Applicative.toPure.{u_1, u_1}</code></p>
+                      </li>
+                    </ul>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9860">#9860</a> fixes E-matching theorem activation in <code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9865">#9865</a> adds improved support for proof-by-reflection to the kernel type
+checker. It addresses the performance issue exposed by #9854. With this
+PR, whenever the kernel type-checks an argument of the form <code>eagerReduce _</code>, it enters "eager-reduction" mode. In this mode, the kernel is more
+eager to reduce terms. The new <code>eagerReduce _</code> hint is often used to
+wrap <code>Eq.refl true</code>. The new hint should not negatively impact any
+existing Lean package.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9867">#9867</a> fixes a nondeterministic behavior in <code>grind ring</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9880">#9880</a> ensures a local forall is activated at most once per pattern in
+<code>grind</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9883">#9883</a> refines the warning message for redundant <code>grind</code> arguments. It
+is not based on the actual inferred pattern instead provided kind.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9885">#9885</a> is initially motivated by noticing <code>Lean.Grind.Preorder.toLE</code>
+appearing in long Mathlib typeclass searches; this change will prevent
+these searches. These changes are also helpful preparation for
+potentially dropping the custom <code>Lean.Grind.*</code> typeclasses, and unifying
+with the new typeclasses introduced in #9729.</p>
+                  </li>
+                </ul>
+              </div>
+            <div class="no-vale">
+              <p>
+                <strong>Library</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/7450">#7450</a> implements <code>Nat.dfold</code>, a dependent analogue of <code>Nat.fold</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9096">#9096</a> removes some unnecessary <code>Decidable*</code> instance arguments by
+using lemmas in the <code>Classical</code> namespace instead of the <code>Decidable</code>
+namespace.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9121">#9121</a> allows <code>grind</code> to case on the universe variants of <code>Prod</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9129">#9129</a> fixes simp lemmas about boolean equalities to say <code>(!x) = y</code>
+instead of <code>(!decide (x = y)) = true</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9135">#9135</a> allows the result type of <code>forIn</code>, <code>foldM</code> and <code>fold</code> on pure
+iterators (<code>Iter</code>) to be in a different universe than the iterators.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9142">#9142</a> changes <code>Fin.reverseInduction</code> from using well-founded recursion
+to using <code>let rec</code>, which makes it have better definitional equality.
+Co-authored by @digama0. See the test below:</p>
+                  <pre>namespace Fin
+
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9145">#9145</a> fixes two typos.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9176">#9176</a> makes <code>mvcgen</code> split ifs rather than applying specifications.
+Doing so fixes a bug reported by Rish.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9194">#9194</a> makes the logic and tactics of <code>Std.Do</code> universe polymorphic, at
+the cost of a few definitional properties arising from the switch from
+<code>Prop</code> to <code>ULift Prop</code> in the base case <code>SPred []</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9249">#9249</a> adds theorem <code>BitVec.clzAuxRec_eq_clzAuxRec_of_getLsbD_false</code> as
+a more general statement than <code>BitVec.clzAuxRec_eq_clzAuxRec_of_le</code>,
+replacing the latter in the bitblaster too.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9260">#9260</a> removes uses of <code>Lean.RBMap</code> in Lean itself.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9263">#9263</a> fixes <code>toISO8601String</code> to produce a string that conforms to the
+ISO 8601 format specification. The previous implementation separated the
+minutes and seconds fragments with a <code>.</code> instead of a <code>:</code> and included
+timezone offsets without the hour and minute fragments separated by a
+<code>:</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9285">#9285</a> removes the unnecessary requirement of <code>BEq α</code> for
+<code>Array.any_push</code>, <code>Array.any_push'</code>, <code>Array.all_push</code>, <code>Array.all_push'</code>
+as well as <code>Vector.any_push</code> and <code>Vector.all_push</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9301">#9301</a> adds a <code>simp</code> and a <code>grind</code> annotation on <code>Zipper</code>-related
+theorems to improve reasoning about <code>Std.Do</code> invariants.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9391">#9391</a> replaces the proof of the simplification lemma <code>Nat.zero_mod</code>
+with
+<code>rfl</code> since it is, by design, a definitional equality. This solves an
+issue
+whereby the lemma could not be used by the simplifier when in 'dsimp'
+mode.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9441">#9441</a> fixes the behavior of <code>String.prev</code>, aligning the runtime
+implementation with the reference implementation. In particular, the
+following statements hold now:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        <code>(s.prev p).byteIdx</code> is at least <code>p.byteIdx - 4</code> and at most
+<code>p.byteIdx - 1</code></p>
+                      </li>
+                    <li>
+                      <p>
+                        <code>s.prev 0 = 0</code></p>
+                      </li>
+                    <li>
+                      <p>
+                        <code>s.prev</code> is monotone</p>
+                      </li>
+                    </ul>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9449">#9449</a> fix the behavior of <code>String.next</code> on the scalar boundary (<code>2 ^ 63 - 1</code> on 64-bit platforms).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9451">#9451</a> adds support in the <code>mintro</code> tactic for introducing <code>let</code>/<code>have</code>
+binders in stateful targets, akin to <code>intro</code>. This is useful when
+specifications introduce such let bindings.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9454">#9454</a> introduces tactic <code>mleave</code> that leaves the <code>SPred</code> proof mode by
+eta expanding through its abstractions and applying some mild
+simplifications. This is useful to apply automation such as <code>grind</code>
+afterwards.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9504">#9504</a> adds a few more <code>*.by_wp</code> "adequacy theorems" that allows to
+prove facts about programs in <code>ReaderM</code> and <code>ExceptM</code> using the <code>Std.Do</code>
+framework.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9528">#9528</a> adds <code>List.zipWithM</code> and <code>Array.zipWithM</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9529">#9529</a> upstreams some helper instances for <code>NameSet</code> from Batteries.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9538">#9538</a> adds two lemmas related to <code>Iter.toArray</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9577">#9577</a> adds lemmas about <code>UIntX.toBitVec</code> and <code>UIntX.ofBitVec</code> and <code>^</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9586">#9586</a> adds componentwise algebraic operations on <code>Vector α n</code>, and
+relevant instances.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9594">#9594</a> optimizes <code>Lean.Name.toString</code>, giving a 10% instruction
+benefit.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9609">#9609</a> adds <code>@[grind =]</code> to <code>Prod.lex_def</code>. Note that <code>omega</code> has
+special handling for <code>Prod.Lex</code>, and this is needed for <code>grind</code>'s cutsat
+module to achieve parity.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9616">#9616</a> introduces checks to make sure that the IO functions produce
+errors when inputs contain NUL bytes (instead of ignoring everything
+after the first NUL byte).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9620">#9620</a> adds the separate directions of
+<code>List.pairwise_iff_forall_sublist</code> as named lemmas.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9621">#9621</a> renames <code>Xor</code> to <code>XorOp</code>, to match <code>AndOp</code>, etc.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9622">#9622</a> adds a missing lemma about <code>List.sum</code>, and a grind annotation.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9701">#9701</a> switches to a non-verloading local <code>Std.Do.Triple</code> notation in
+SpecLemmas.lean to work around a stage2 build failure.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9721">#9721</a> tags more <code>SInt</code> and <code>UInt</code> lemmas with <code>int_toBitVec</code> so
+<code>bv_decide</code>
+can handle casts between them and negation.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9729">#9729</a> introduces a canonical way to endow a type with an order
+structure. The basic operations (<code>LE</code>, <code>LT</code>, <code>Min</code>, <code>Max</code>, and in later
+PRs <code>BEq</code>, <code>Ord</code>, ...) and any higher-level property (a preorder, a
+partial order, a linear order etc.) are then put in relation to <code>LE</code> as
+necessary. The PR provides <code>IsLinearOrder</code> instances for many core types
+and updates the signatures of some lemmas.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9732">#9732</a> re-implements <code>IO.waitAny</code> using Lean instead of C++. This is to
+reduce the size and
+complexity of <code>task_manager</code> in order to ease future refactorings.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9736">#9736</a> implements the option <code>mvcgen +jp</code> to employ a slightly lossy VC
+encoding for join points that prevents exponential VC blowup incurred by
+naïve splitting on control flow.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9739">#9739</a> removes the <code>instance</code> attribute from <code>lexOrd</code> that was
+accidentally applied in <code>Std.Classes.Ord.Basic</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9757">#9757</a> adds <code>grind</code> annotations for key <code>Std.Do.SPred</code> lemmas.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9782">#9782</a> corrects the <code>Inhabited</code> instance of <code>StdGen</code> to use a valid
+initial state for the pseudorandom number generator. Previously, the
+<code>default</code> generator had the property that <code>Prod.snd (stdNext default) = default</code>, so it would produce only constant sequences.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9787">#9787</a> adds a simp lemma <code>PostCond.const_apply</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9792">#9792</a> adds <code>@[expose]</code> to two definitions with <code>where</code> clauses that
+Batteries proves theorems about.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9799">#9799</a> fixes the #9410 issue.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9805">#9805</a> improves the API for invariants and postconditions and as such
+introduces a few breaking changes to the existing pre-release API around
+<code>Std.Do</code>. It also adds Markus Himmel's <code>pairsSumToZero</code> example as a
+test case.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9832">#9832</a> adds simp lemmas <code>SPred.entails_&lt;n&gt;</code> to replace
+<code>SPred.entails_cons</code> which was disfunctional as a simp lemma due to
+#8074.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
+σs to expand into a simple, first-order expression SPred.pure p that can
+be supported by e-matching in grind.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9848">#9848</a> adds <code>@[spec]</code> lemmas for <code>forIn</code> and <code>forIn'</code> at <code>Std.PRange</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9850">#9850</a> add a delaborator for <code>Std.PRange</code> notation.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Compiler</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/8691">#8691</a> ensures that the state is reverted when compilation using the
+new compiler fails. This is especially important for noncomputable
+sections where the compiler might generate half-compiled functions which
+may then be erroneously used while compiling other functions.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9134">#9134</a> changes ToIR to call <code>lowerEnumToScalarType?</code> with
+<code>ConstructorVal.induct</code> rather than the name of the constructor itself.
+This was an oversight in some refactoring of code in the new compiler
+before landing it. It should not affect runtime of compiled code (due to
+the extra tagging/untagging being optimized by LLVM), but it does make
+IR for the interpreter slightly more efficient.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9144">#9144</a> adds support for representing more inductive as enums,
+summarized up as extending support to those that fail to be enums
+because of parameters or irrelevant fields. While this is nice to have,
+it is actually motivated by correctness of a future desired
+optimization. The existing type representation is unsound if we
+implement <code>object</code>/<code>tobject</code> distinction between values guaranteed to be
+an object pointer and those that may also be a tagged scalar. In
+particular, types like the ones added in this PR's tests would have all
+of their constructors encoded via tagged values, but under the natural
+extension of the existing rules of type representation they would be
+considered <code>object</code> rather than <code>tobject</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9154">#9154</a> tightens the IR typing rules around applications of closures.
+When re-reading some code, I realized that the code in <code>mkPartialApp</code>
+has a clear typo—<code>.object</code> and <code>type</code> should be swapped. However, it
+doesn't matter, because later IR passes smooth out the mismatch here. It
+makes more sense to be strict up-front and require applications of
+closures to always return an <code>.object</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9159">#9159</a> enforces the non-inlining of _override impls in the base phase
+of LCNF compilation. The current situation allows for constructor/cases
+mismatches to be exposed to the simplifier, which triggers an assertion
+failure. The reason this didn't show up sooner for Expr is that Expr has
+a custom extern implementation of its computed field getter.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9177">#9177</a> makes the <code>pullInstances</code> pass avoid pulling any instance
+expressions containing erased propositions, because we don't correctly
+represent the dependencies that remain after erasure.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9198">#9198</a> changes the compiler's specialization analysis to consider
+higher-order params that are rebundled in a way that only changes their
+<code>Prop</code> arguments to be fixed. This means that they get specialized with
+a mere <code>@[specialize]</code>, rather than the compiler having to opt-in to
+more aggressive parameter-specific specialization.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9207">#9207</a> makes the offending declaration clickable in the error message
+produced when something should be marked <code>noncomputable</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9209">#9209</a> changes the <code>getLiteral</code> helper function of <code>elimDeadBranches</code>
+to correctly handle inductives with constructors. This function is not
+used as often as it could be, which makes this issue rare to hit outside
+of targeted test cases.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9218">#9218</a> makes the LCNF <code>elimDeadBranches</code> pass handle unsafe decls a bit
+more carefully. Now the result of an unsafe decl will only become ⊤ if
+there is value flow from a recursive call.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9221">#9221</a> removes code that has the false assumption that LCNF local vars
+can occur in types. There are other comments in <code>ElimDead.lean</code>
+asserting that this is not possible, so this must have been a change
+early in the development of the new compiler.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9224">#9224</a> changes the <code>toMono</code> pass to consider the type of an application
+and erase all arguments corresponding to erased params. This enables a
+lightweight form of relevance analysis by changing the mono type of a
+decl. I would have liked to unify this with the behavior for
+constructors, but my attempt to give constructors the same behavior in
+#9222 (which was in preparation for this PR) had a minor performance
+regression that is really incidental to the change. Still, I decided to
+hold off on it for the time being. In the future, we can hopefully
+extend this to constructors, extern decls, etc.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9266">#9266</a> adds support for <code>.mdata</code> in LCNF mono types (and then drops it
+at the IR type level instead). This better matches the behavior of
+extern decls in the C++ code of the old compiler, which is still being
+used to create extern decls at the moment and will soon be replaced.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9268">#9268</a> moves the implementation of <code>lean_add_extern</code>/<code>addExtern</code> from
+C++ into Lean. I believe is the last C++ helper function from the
+library/compiler directory being relied upon by the new compiler. I put
+it into its own file and duplicated some code because this function
+needs to execute in CoreM, whereas the other IR functions live in their
+own monad stack. After the C++ compiler is removed, we can move the IR
+functions into CoreM.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9275">#9275</a> removes the old compiler written in C++.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9279">#9279</a> fixes the <code>compiler.extract_closed</code> option after migrating it to
+Lean (and adds a test so it would be caught in the future).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9310">#9310</a> fixes IR constructor argument lowering to correctly handle an
+irrelevant argument being passed for a relevant parameter in all cases.
+This happened because constructor argument lowering (incompletely)
+reimplemented general LCNF-to-IR argument lowering, and the fix is to
+just adopt the generic helper functions. This is probably due to an
+incomplete refactoring when the new compiler was still on a branch.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9336">#9336</a> changes the implementation of <code>trace.Compiler.result</code> to use the
+decls as they are provided rather than looking them up in the LCNF mono
+environment extension, which was seemingly done to save the trouble of
+re-normalizing fvar IDs before printing the decl. This means that the
+<code>._closed</code> decls created by the <code>extractClosed</code> pass will now be
+included in the output, which was definitely confusing before if you
+didn't know what was happening.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9344">#9344</a> correctly populates the <code>xType</code> field of the <code>IR.FnBody.case</code>
+constructor. It turns out that there is no obvious consequence for this
+being incorrect, because it is conservatively recomputed by the <code>Boxing</code>
+pass.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9393">#9393</a> fixes an unsafe trick where a sentinel for a hash table of Exprs
+(keyed by pointer) is created by constructing a value whose runtime
+representation can never be a valid Expr. The value chosen for this
+purpose was Unit.unit, which violates the inference that Expr has no
+scalar constructors. Instead, we change this to a freshly allocated Unit
+× Unit value.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9411">#9411</a> adds support for compilation of <code>casesOn</code> for subsingletons. We
+rely on the elaborator's type checking to restrict this to inductives in
+<code>Prop</code> that can actually eliminate into <code>Type n</code>. This does not yet
+cover other recursors of these types (or of inductives not in <code>Prop</code> for
+that matter).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9703">#9703</a> changes the LCNF <code>elimDeadBranches</code> pass so that it considers
+all non-<code>Nat</code> literal types to be <code>⊤</code>. It turns out that fixing this to
+correctly handle all of these types with the current abstract value
+representation is surprisingly nontrivial, and it's better to just land
+the fix first.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9720">#9720</a> removes an error which implicitly assumes that the sort of type
+dependency between erased types present in the test being added can not
+occur. It would be difficult to refine the error using only the
+information present in LCNF types, and it is of very little ongoing
+value (I don't recall it ever finding an actual problem), so it makes
+more sense to delete it.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9827">#9827</a> changes the lowering of <code>Quot.lcInv</code> (the compiler-internal form
+of <code>Quot.lift</code>) in <code>toMono</code> to support overapplication.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9847">#9847</a> adds a check for reursive decls in this bespoke inlining path,
+which fixes a regression from the old compiler.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9864">#9864</a> adds new variants of <code>Array.getInternal</code> and
+<code>Array.get!Internal</code> that return their argument borrowed, i.e. without a
+reference count increment. These are intended for use by the compiler in
+cases where it can determine that the array will continue to hold a
+valid reference to the element for the returned value's lifetime.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Pretty Printing</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/8391">#8391</a> adds an unexpander for <code>Vector.mk</code> that unexpands <code>Vector.mk #[...] _</code> to <code>#v[...]</code>.</p>
+                  <pre>-- previously:
+#check #v[1, 2, 3] -- { toArray := #[1, 2, 3], size_toArray := ⋯ } : Vector Nat 3
+-- now:
+#check #v[1, 2, 3] -- #v[1, 2, 3] : Vector Nat 3
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9475">#9475</a> fixes the way some syntaxes are pretty printed due to missing
+whitespace advice.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9494">#9494</a> fixes an issue that caused some error messages to attempt to
+display hovers for nonexistent identifiers.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9555">#9555</a> allows hints in message data to specify custom preview spans
+that extend beyond the edit region specified by the code action.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9778">#9778</a> modifies the pretty printing of anonymous metavariables to use
+the index rather than the internal name. This leads to smaller numerical
+suffixes in <code>?m.123</code> since the indices are numbered within a given
+metavariable context rather than across an entire file, hence each
+command gets its own numbering. This does not yet affect pretty printing
+of universe level metavariables.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Documentation</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9093">#9093</a> adds a missing docstring for <code>ToFormat.toFormat</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9152">#9152</a> fixes an obsolete docstring for <code>registerDerivingHandler</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9593">#9593</a> simplifies the docstring for <code>propext</code> significantly.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Server</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9040">#9040</a> improves the 'Go to Definition' UX, specifically:</p>
+                  <ul>
+                    <li>
+                      <p>
+                        Using 'Go to Definition' on a type class projection will now extract
+the specific instances that were involved and provide them as locations
+to jump to. For example, using 'Go to Definition' on the <code>toString</code> of
+<code>toString 0</code> will yield results for <code>ToString.toString</code> and <code>ToString Nat</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        Using 'Go to Definition' on a macro that produces syntax with type
+class projections will now also extract the specific instances that were
+involved and provide them as locations to jump to. For example, using
+'Go to Definition' on the <code>+</code> of <code>1 + 1</code> will yield results for
+<code>HAdd.hAdd</code>, <code>HAdd α α α</code> and <code>Add Nat</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        Using 'Go to Declaration' will now provide all the results of 'Go to
+Definition' in addition to the elaborator and the parser that were
+involved. For example, using 'Go to Declaration' on the <code>+</code> of <code>1 + 1</code>
+will yield results for <code>HAdd.hAdd</code>, <code>HAdd α α α</code>, <code>Add Nat</code>,
+<code>macro_rules | `($x + $y) =&gt; ...</code> and <code>infixl:65 " + " =&gt; HAdd.hAdd</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        Using 'Go to Type Definition' on a value with a type that contains
+multiple constants will now provide 'Go to Definition' results for each
+constant. For example, using 'Go to Type Definition' on <code>x</code> for <code>x : Array Nat</code> will yield results for <code>Array</code> and <code>Nat</code>.</p>
+                      </li>
+                    </ul>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9163">#9163</a> disables the use of the header produced by <code>lake setup-file</code> in
+the server for now. It will be re-enabled once Lake takes into account
+the header given by the server when processing workspace modules.
+Without that, <code>setup-file</code> header can produce odd behavior when the file
+on disk and in an editor disagree on whether the file participates in
+the module system.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9563">#9563</a> performs some micro optimizations on fuzzy matching for a <code>~20%</code>
+instructions win.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9784">#9784</a> ensures the editor progress bar better reflects the actual
+progress of parallel elaboration.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Lake</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9053">#9053</a> updates Lake to resolve the <code>.olean</code> files for transitive
+imports for Lean through the <code>modules</code> field of <code>lean --setup</code>. This
+enables means the Lean can now directly use the <code>.olean</code> files from the
+Lake cache without needed to locate them at a specific hierarchical
+path.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9101">#9101</a> fixes a bug introduce by #9081 where the source file was dropped
+from the module input trace and some entries were dropped from the
+module job log.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9162">#9162</a> changes the key Lake uses for the <code>,ir</code> artifact in the content
+hash data structure to <code>r</code>, maintaining the convention of single
+character key names.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9165">#9165</a> fixes two issues with Lake's process of creating static
+archives.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9332">#9332</a> changes the dependency cloning mechanism in lake so the log
+message that lake is cloning a
+dependency occurs before it is finished doing so (and instead before it
+starts). This has been a
+huge source of confusion for users that don't understand why lake seems
+to be just stuck for no
+reason when setting up a new project, the output now is:</p>
+                  <pre>λ lake +lean4 new math math
+info: downloading mathlib `lean-toolchain` file
+info: math: no previous manifest, creating one from scratch
+info: leanprover-community/mathlib: cloning https://github.com/leanprover-community/mathlib4
+&lt;hang&gt;
+info: leanprover-community/mathlib: checking out revision 'cd11c28c6a0d514a41dd7be9a862a9c8815f8599'
+</pre></li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9434">#9434</a> changes the Lake local cache infrastructure to restore
+executables and shared and static libraries from the cache. This means
+they keep their expected names, which some use cases still rely on.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9435">#9435</a> adds the <code>libPrefixOnWindows</code> package and library configuration
+option. When enabled, Lake will prefix static and shared libraries with
+<code>lib</code> on Windows (i.e., the same way it does on Unix).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9436">#9436</a> adds the number of jobs run to the final message Lake produces
+on a successfully run of <code>lake build</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9478">#9478</a> adds proper Lake support for <code>meta import</code>. Module IR is now
+tracked in traces and in the pre-resolved modules Lake passes to <code>lean --setup</code>.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9525">#9525</a> fixes Lake's handling of a module system <code>import all</code>.
+Previously, Lake treated <code>import all</code> the same a non-module <code>import</code>,
+importing all private data in the transitive import tree. Lake now
+distinguishes the two, with <code>import all M</code> just importing the private
+data of <code>M</code>. The direct private imports of <code>M</code> are followed, but they
+are not promoted.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9559">#9559</a> changes <code>lake setup-file</code> to use the server-provided header for
+workspace modules.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9604">#9604</a> restricts Lake's production of thin archives to only the Windows
+core build (i.e., <code>bootstrap = true</code>). The unbundled <code>ar</code> usually used
+for core builds on macOS does not support <code>--thin</code>, so we avoid using it
+unless necessary.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9677">#9677</a> adds build times to each build step of the build monitor (under
+<code>-v</code> or in CI) and delays exiting on a <code>--no-build</code> until after the
+build monitor finishes. Thus, a <code>--no-build</code> failure will now report
+which targets blocked Lake by needing a rebuild.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9697">#9697</a> fixes the handling in <code>lake lean</code> and <code>lake setup-file</code> of a
+library source file with multiple dots (e.g., <code>src/Foo.Bar.lean</code>).</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9698">#9698</a> adjusts the formatting type classes for <code>lake query</code> to no
+longer require both a text and JSON form and instead work with any
+combination of the two. The classes have also been renamed. In addition,
+the query formatting of a text module header has been improved to only
+produce valid headers.</p>
+                  </li>
+                </ul>
+              <p>
+                <strong>Other</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9106">#9106</a> fixes <code>undefined symbol: lean::mpz::divexact(lean::mpz const&, lean::mpz const&)</code> when building without <code>LEAN_USE_GMP</code></p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9114">#9114</a> further improves release automation, automatically incorporating
+material from <code>nightly-testing</code> and <code>bump/v4.X.0</code> branches in the bump
+PRs to downstream repositories.</p>
+                  </li>
+                <li>
+                  <p>
+                    <a href="https://github.com/leanprover/lean4/pull/9659">#9659</a> fixes compatibility of the <code>trace.profiler.output</code> option with
+newer versions of Firefox Profiler</p>
+                  </li>
+                </ul>
+              </div>
+            </section>
+          <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026"><nav class="prev-next-buttons">
+            <a class="local-button active" href="releases/#release-notes" rel="prev" title="Release Notes"><span class="arrow">←</span><span class="where">Release Notes</span></a><a class="local-button active" href="releases/v4.22.0/#release-v4___22___0" rel="next" title="Lean 4.22.0 (2025-08-14)"><span class="where">Lean 4.22.0 (2025-08-14)</span><span class="arrow">→</span></a></nav>
+          </div>
+        </main></div>
+    </body>
+  </html>
+
