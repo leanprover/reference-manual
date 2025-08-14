@@ -11,10 +11,17 @@
     <base href="./../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Introduction</title><link rel="stylesheet" href="book.css">
+    <link rel="stylesheet" href="verso-vars.css">
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/search/fuzzysort.js"></script>
+    <script src="-verso-search/elasticlunr.min.js"></script>
+    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/searchIndex.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="static/print.js"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
@@ -23,7 +30,6 @@
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
-    <link rel="stylesheet" href="static/search/search-box.css">
     <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
@@ -928,15 +934,6 @@ body {
   margin-left: 1rem;
 }
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
 dl.toml-table-field-spec {
 }
 </style><style>
@@ -1053,6 +1050,21 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1135,519 +1147,6 @@ pre.toml {
 
 .toml a:hover {
     border-bottom-style: solid;
-}
-</style><style>
-
-.hl.lean {
-  white-space: pre;
-  font-weight: normal;
-  font-style: normal;
-}
-
-.hl.lean .keyword {
-  font-weight : bold;
-}
-
-.hl.lean .var {
-  font-style: italic;
-  position: relative;
-}
-
-.hover-container {
-  width: 0;
-  height: 0;
-  position: relative;
-  display: inline;
-}
-
-.hl.lean a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-
-.hl.lean a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-.hl.lean .hover-info {
-  white-space: normal;
-}
-
-.hl.lean .token .hover-info {
-  display: none;
-  position: absolute;
-  background-color: #e5e5e5;
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 300;
-  font-size: inherit;
-}
-
-.hl.lean .hover-info.messages {
-  max-height: 10rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-  padding: 0 0.5rem 0 0;
-  display: block;
-}
-
-.hl.lean .hover-info code {
-  white-space: pre-wrap;
-}
-
-.hl.lean .hover-info.messages > code {
-  padding: 0.5rem;
-  display: block;
-  width: fit-content;
-}
-
-.hl.lean .hover-info.messages > code:only-child {
-  margin: 0;
-}
-
-.hl.lean .hover-info.messages > code {
-  margin: 0.1rem;
-}
-
-.hl.lean .hover-info.messages > code:not(:first-child) {
-  margin-top: 0rem;
-}
-
-.hl.lean.block {
-  display: block;
-}
-
-.hl.lean.inline {
-  display: inline;
-  white-space: pre-wrap;
-}
-
-.hl.lean .token {
-  transition: all 0.25s; /* Slight fade for highlights */
-}
-
-@media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
-    background-color: #eee;
-    border-radius: 2px;
-    transition: none;
-  }
-}
-
-
-.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
-  text-decoration-style: wavy;
-  text-decoration-line: underline;
-  text-decoration-thickness: from-font;
-  text-decoration-skip-ink: none;
-}
-
-.hl.lean .has-info .hover-info {
-  display: none;
-  position: absolute;
-  transform: translate(0.25rem, 0.3rem);
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 400;
-  text-align: left;
-}
-
-.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
-  text-decoration-color: red;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.error:hover {
-    background-color: #ffb3b3;
-  }
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #ffb3b3;
-}
-
-.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
-  background: none;
-  border: none;
-}
-
-.error pre {
-    color: red;
-}
-
-.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: var(--verso-warning-color);
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.warning:hover {
-    background-color:var(--verso-warning-color);
-  }
-}
-
-.hl.lean .hover-info.messages > code.warning {
-  background-color: var(--verso-warning-color);
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
-  background: none;
-  border: none;
-}
-
-
-.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: blue;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.info:hover {
-    background-color: #4777ff;
-  }
-}
-
-
-.hl.lean .hover-info.messages > code.info {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #4777ff;
-}
-
-.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
-  background: none;
-  border: none;
-}
-
-.hl.lean div.docstring {
-  font-family: sans-serif;
-  white-space: normal;
-  max-width: 40rem;
-  width: max-content;
-}
-
-.hl.lean div.docstring > :last-child {
-  margin-bottom: 0;
-}
-
-.hl.lean div.docstring > :first-child {
-  margin-top: 0;
-}
-
-.hl.lean .hover-info .sep {
-  display: block;
-  width: auto;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding: 0;
-  height: 1px;
-  border-top: 1px solid #ccc;
-}
-
-.hl.lean code {
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state {
-  display: none;
-  position: relative;
-  width: fit-content;
-  border: 1px solid #888888;
-  border-radius: 0.1rem;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-.hl.lean.popup .tactic-state {
-  position: static;
-  display: block;
-  width: auto;
-  border: none;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-
-.hl.lean .tactic {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr;
-  vertical-align: top;
-}
-
-.hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: inline-block;
-  vertical-align: top;
-  grid-row: 2;
-  justify-self: start;
-}
-
-.hl.lean .tactic > label {
-  position: relative;
-  grid-row: 1;
-}
-
-@media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
-    background-color: #eeeeee;
-  }
-}
-
-.hl.lean .tactic-toggle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .tactic > label::after {
-  content: "";
-  border: 1px solid #bbbbbb;
-  border-radius: 1rem;
-  height: 0.25rem;
-  vertical-align: middle;
-  width: 0.6rem;
-  margin-left: 0.1rem;
-  margin-right: 0.1rem;
-  display: inline-block;
-  transition: all 0.5s;
-}
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic > label:hover::after {
-    border: 1px solid #aaaaaa;
-    background-color: #aaaaaa;
-    transition: all 0.5s;
-  }
-}
-*/
-
-.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
-  border: 1px solid #999999;
-  background-color: #999999;
-  transition: all 0.5s;
-}
-
-.hl.lean .tactic-state .goal + .goal {
-  margin-top: 1.5rem;
-}
-
-.hl.lean .tactic-state summary {
-  margin-left: -0.5rem;
-}
-
-.hl.lean .tactic-state details {
-  padding-left: 0.5rem;
-}
-
-.hl.lean .case-label {
-  display: block;
-  position: relative;
-}
-
-.hl.lean .case-label input[type="checkbox"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"])::before {
-  width: 1rem;
-  height: 1rem;
-  display: inline-block;
-  background-color: black;
-  content: ' ';
-  transition: ease 0.2s;
-  margin-right: 0.7rem;
-  clip-path: polygon(100% 0, 0 0, 50% 100%);
-  width: 0.6rem;
-  height: 0.6rem;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
-  transform: rotate(-90deg);
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]) {
-
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:checked) {
-
-}
-
-
-.hl.lean .tactic-state .labeled-case > :not(:first-child) {
-  max-height: 0px;
-  display: block;
-  overflow: hidden;
-  transition: max-height 0.1s ease-in;
-  margin-left: 0.5rem;
-  margin-top: 0.1rem;
-}
-
-.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
-  max-height: 100%;
-}
-
-
-.hl.lean .tactic-state .goal-name::before {
-  font-style: normal;
-  content: "case ";
-}
-
-.hl.lean .tactic-state .goal-name {
-  font-style: italic;
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state .hypotheses {
-  display: table;
-}
-
-.hl.lean .tactic-state .hypothesis {
-  display: table-row;
-}
-
-.hl.lean .tactic-state .hypothesis > * {
-  display: table-cell;
-}
-
-
-.hl.lean .tactic-state .hypotheses .colon {
-  text-align: center;
-  min-width: 1rem;
-}
-
-.hl.lean .tactic-state .hypotheses .name {
-  text-align: right;
-}
-
-.hl.lean .tactic-state .hypotheses .name,
-.hl.lean .tactic-state .hypotheses .type,
-.hl.lean .tactic-state .conclusion .type {
-  font-family: monospace;
-}
-
-.tippy-box[data-theme~='lean'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
-  bottom: -11px;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
-  top: -11px;
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-  border-width: 11px 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
-  right: -11px;
-  border-width: 11px 0 11px 11px;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-  border-width: 11px 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
-  left: -11px;
-  border-width: 11px 11px 11px 0;
-}
-
-
-
-.tippy-box[data-theme~='warning'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='error'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #f7a7af;
-}
-
-.tippy-box[data-theme~='info'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #99b3c2;
-}
-
-.tippy-box[data-theme~='tactic'] {
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: white;
-}
-
-.extra-doc-links {
-  list-style-type: none;
-  margin-left: 0;
-  padding: 0;
-}
-
-.extra-doc-links > li {
-  display: inline-block;
-}
-
-.extra-doc-links > li:not(:last-child)::after {
-  content: '|';
-  display: inline-block;
-  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -1756,6 +1255,668 @@ pre.toml {
   text-decoration: currentcolor underline solid;
 }
 </style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(.tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
 .env-var a {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -1803,6 +1964,54 @@ pre.toml {
   overflow-x: auto;
 }
 </style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 .syntax-error {
   white-space: normal;
 }
@@ -2110,7 +2319,7 @@ window.onload = () => {
       document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
         element.setAttribute('data-tippy-theme', 'warning message');
       });
-      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
         element.setAttribute('data-tippy-theme', 'info message');
       });
       document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
@@ -2123,8 +2332,86 @@ window.onload = () => {
   });
 }
 </script>
-    <script type="module" src="static/search/search-init.js"></script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', openDetailsForHashTarget);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+} else {
+  openDetailsForHashTarget();
+}
+</script>
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2145,7 +2432,7 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot" checked="checked"></label><span class="">Table of Contents</span></div>
-              <table><tr class="current numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="current numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#The-Lean-Language-Reference--The-Module-System">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-introduction" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-introduction" checked="checked"></label><span class="number">1.</span> <span class="current"><a href="Introduction/#introduction">Introduction</a></span></div>
@@ -2163,7 +2450,9 @@ window.onload = () => {
                 <li>
                   <span class="header head-2"><span class="level-num">2.4.</span> <a href="Introduction/#reference-boxes">Constant, Syntax, and Tactic References</a></span></li>
                 <li>
-                  <a href="Introduction/#Even___zero-next-next"><code>Even</code></a></li>
+                  <a href="Introduction/#Even___zero-next"><code>Even</code></a></li>
+                <li>
+                  <span class="header head-1"><span class="level-num">3.</span> <a href="Introduction/#The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work">How to Cite This Work</a></span></li>
                 <li>
                   <span class="header head-1"><a href="Introduction/#dependency-licenses">Open-Source Licenses</a></span></li>
                 </ol>
@@ -2191,7 +2480,7 @@ It is a reference work in which Lean users can look up detailed information, rat
 At the moment, this reference manual is a public preview.
 For tutorials and learning materials, please visit <a href="https://lean-lang.org/documentation/">the Lean documentation page</a>.</p>
             <p>
-              This document describes version <code>4.21.0</code> of Lean.</p>
+              This document describes version <code>4.22.0</code> of Lean.</p>
             <section>
               <h2 id="history-of-lean">
                 1.1. History<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=history-of-lean" title="Permalink">🔗</a></span></h2>
@@ -2229,21 +2518,21 @@ The FRO currently has more than ten employees working to support the growth and 
                 <p>
                   This document contains many Lean code examples.
 They are formatted as follows:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4199">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-hello" data-verso-hover="2">hello</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="1">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="4">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5">"Hello, world!"</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4198">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-hello" data-verso-hover="3" id="hello">hello</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="5">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="6">"Hello, world!"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Compiler output (which may be errors, warnings, or just information) is shown both in the code and separately:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">"The answer is 4"</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4409" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-4415">s!</span><span class="unknown token" data-binding="">"The answer is {</span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">}"</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="7">"The answer is 4"</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4406" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-termS!_-4412">s!</span><span class="unknown token" data-binding="">"The answer is {</span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">}"</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4442">theorem</span><span class="inter-text"> </span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="message warning">declaration uses 'sorry'</code></span></span><span class="const token" data-binding="const-bogus" data-verso-hover="8" id="bogus">bogus</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-12928763604664586886-4467-4469-0"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4467" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12928763604664586886-4467-4469-0"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="9">False</span></a><span class="inter-text"></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-4470-4475-2"><a href="Tactic-Proofs/Tactic-Reference/#sorry" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticSorry-4470" data-verso-hover="11">sorry</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4470-4475-2"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-4439">theorem</span><span class="inter-text"> </span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">declaration uses 'sorry'</span></code></span></span><span class="const token" data-binding="const-bogus" data-verso-hover="10" id="bogus">bogus</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-12928763604664586886-4464-4466-0"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-4464" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-12928763604664586886-4464-4466-0"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="inter-text"></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-4467-4472-2"><a href="Tactic-Proofs/Tactic-Reference/#sorry" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticSorry-4467" data-verso-hover="13">sorry</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4467-4472-2"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4477">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="12">Nat.succ</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">Application type mismatch: In the application
-  Nat.succ "two"
-the argument
-  "two"
-has type
-  String : Type
-but is expected to have type
-  Nat : Type</code></span></span><span class="literal string token" data-binding="" data-verso-hover="13">"two"</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4474">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">Nat.succ</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Application type mismatch: In the application</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">Nat.succ</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="15">"two"</span></span><span class="text"></span><span class="text">
+</span><span class="text">the </span><span class="text">argument</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="15">"two"</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><span class="text"></span><span class="text">has type</span><span class="text">
+  </span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="17">Type</span><span class="inter-text"></span></span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text">but is expected to have type</span><span class="text">
+  </span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="17">Type</span><span class="inter-text"></span></span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><span class="literal string token" data-binding="" data-verso-hover="15">"two"</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Informative output, such as the result of <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling and evaluating it.
 
@@ -2268,38 +2557,29 @@ Options:
 
 See also: `#reduce e` for evaluation by term reduction.
 </code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___eval"><code class="kw">#eval</code></a></span>, is shown like this:</p>
-                <div class="information">
-                  <pre>"The answer is 4"
-</pre></div>
-                <p>
+                <pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="7">"The answer is 4"</span></span></span></pre><p>
                   Warnings are shown like this:</p>
-                <div class="warning">
-                  <pre>declaration uses 'sorry'
-</pre></div>
-                <p>
+                <pre class="hl lean lean-output warning"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">declaration uses 'sorry'</span></span></pre><p>
                   Error messages are shown like this:</p>
-                <div class="error">
-                  <pre>Application type mismatch: In the application
-  Nat.succ "two"
-the argument
-  "two"
-has type
-  String : Type
-but is expected to have type
-  Nat : Type
-</pre></div>
-                <p>
-                  The presence of tactic proof states is indicated by the presence of small lozenges that can be clicked to show the proof state, such as after <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="14">rfl</span></a></code> below:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5194">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2396282900516469935-5217-5219-3"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5217" data-verso-hover="10">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2396282900516469935-5217-5219-3"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-5220-5223-5"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5220" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5220-5223-5"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+                <pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Application type mismatch: In the application</span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">Nat.succ</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="15">"two"</span></span><span class="text"></span><span class="text">
+</span><span class="text">the </span><span class="text">argument</span><span class="text">
+  </span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="15">"two"</span></span><span class="text"></span><span class="text">
+</span><span class="text"></span><span class="text"></span><span class="text">has type</span><span class="text">
+  </span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"> : </span><span class="highlighted"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="17">Type</span></span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text">but is expected to have type</span><span class="text">
+  </span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"> : </span><span class="highlighted"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="17">Type</span></span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre><p>
+                  The presence of tactic proof states is indicated by the presence of small lozenges that can be clicked to show the proof state, such as after <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="19">rfl</span></a></code> below:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-5190">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2396282900516469935-5213-5215-3"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-5213" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2396282900516469935-5213-5215-3"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="20">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="21">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-5216-5219-5"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5216" data-verso-hover="19">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5216-5219-5"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Proof states may also be shown on their own.
-When attempting to prove that <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="17">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="18">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="19">4</span></code>, the initial proof state is:</p>
+When attempting to prove that <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="22">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="23">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="24">4</span></code>, the initial proof state is:</p>
                 <div class="hl lean tactic-view">
                   <div class="tactic-state">
-                    <span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="16">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span></span></span></div>
+                    <span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="20">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="21">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span></span></span></div>
                   </div>
                 <p>
-                  After using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-7-5418-5421-7"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5418" data-verso-hover="14">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5418-5421-7"><span class="tactic-state">All goals completed! 🐙</span></span></code>, the resulting state is:</p>
+                  After using <code class="hl lean inline" data-lean-context="examples"><span class="tactic"><label for="tactic-state-7-5414-5417-7"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-5414" data-verso-hover="19">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-5414-5417-7"><span class="tactic-state">All goals completed! 🐙</span></span></code>, the resulting state is:</p>
                 <div class="hl lean tactic-view">
                   <div class="tactic-state">
                     All goals completed! 🐙</div>
@@ -2308,9 +2588,7 @@ When attempting to prove that <code class="hl lean inline" data-lean-context="ex
                   Identifiers in code examples are hyperlinked to their documentation.</p>
                 <p>
                   Examples of code with syntax errors are shown with an indicator of where the parser error occurred, along with the error message:</p>
-                <pre class="syntax-error hl lean"><code class="line">def f : Option Nat → Type</code><code class="line">  | some 0 =&gt; Unit</code><code class="line">  |<span class="parse-message has-info error"><code class="hover-info">unexpected token '=&gt;'; expected term</code> =&gt;</span> Option (f t)</code><code class="line">  | none =&gt; Empty</code></pre><div class="error">
-                  <pre>&lt;example&gt;:3:3-3:6: unexpected token '=&gt;'; expected term</pre></div>
-                </section>
+                <pre class="syntax-error hl lean"><code class="line">def f : Option Nat → Type</code><code class="line">  | some 0 =&gt; Unit</code><code class="line">  |<span class="parse-message has-info error"><code class="hover-info">unexpected token '=&gt;'; expected term</code> =&gt;</span> Option (f t)</code><code class="line">  | none =&gt; Empty</code></pre><pre class="hl lean lean-output error"><span class="verso-message"><span class="text">&lt;example&gt;:3:3-3:6: unexpected token '=&gt;'; expected term</span></span></pre></section>
               <section>
                 <h3 id="example-boxes">
                   1.2.2. Examples<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=example-boxes" title="Permalink">🔗</a></span></h3>
@@ -2321,9 +2599,9 @@ When attempting to prove that <code class="hl lean inline" data-lean-context="ex
                       This is an example of an example.</p>
                     <p>
                       One way to define even numbers is via an inductive predicate:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6119" data-verso-hover="20">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6149">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="24">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="25">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="21">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6115" data-verso-hover="25">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even" data-verso-hover="26" id="Even-_LPAR_in-Even-Numbers_RPAR_">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="27">Prop</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6145">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="28" id="Even___zero-_LPAR_in-Even-Numbers_RPAR_">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="29" id="Even___plusTwo-_LPAR_in-Even-Numbers_RPAR_">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even-_LPAR_in-Even-Numbers_RPAR_&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                   </details></section>
               <section>
@@ -2342,32 +2620,39 @@ These descriptions are marked as follows:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="doc-comment token" data-binding="">/--
 Evenness: a number is even if it can be evenly divided by two.
 -/</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6838" data-verso-hover="20">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6868">where</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-6834" data-verso-hover="25">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Even" data-verso-hover="30" id="Even">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="27">Prop</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-6864">where</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="doc-comment token" data-binding="">/-- 0 is considered even here -/</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="27">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="inter-text">
+    </span><span class="const token" data-binding="const-Even.zero" data-verso-hover="31" id="Even___zero">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="doc-comment token" data-binding="">/-- If `n` is even, then so is `n + 2`. -/</span><span class="inter-text">
-    </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="28">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="namedocs" id="Even___zero-next-next">
-                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Even.zero" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="23">Prop</span></div></pre><div class="text">
+    </span><span class="const token" data-binding="const-Even.plusTwo" data-verso-hover="32" id="Even___plusTwo">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.22" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="namedocs" id="Even___zero-next">
+                  <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Even.zero" title="Permalink">🔗</a></span><span class="label">inductive predicate</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="27">Prop</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Even</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="27">Prop</span></div></pre><div class="text">
                     <p>
                       Evenness: a number is even if it can be evenly divided by two.</p>
                     <h1>
                       Constructors</h1>
                     <div class="constructor">
-                      <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></pre><div class="docs">
+                      <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></pre><div class="docs">
                         <p>
                           0 is considered even here</p>
                         </div>
                       </div>
                     <div class="constructor">
-                      <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2274" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2274" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next-next" title="Documentation for Even"><span class="const token" data-binding="const-Even" data-verso-hover="26">Even</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">(</span></a><span class="var token" data-binding="var-_uniq.2274" data-verso-hover="7">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="15">)</span></a></pre><div class="docs">
+                      <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">plusTwo</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2515" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2515" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Introduction/#Even___zero-next" title="Documentation for Even" data-verso-links="[{&quot;short&quot;:&quot;doc&quot;,&quot;long&quot;:&quot;Documentation for Even&quot;,&quot;href&quot;:&quot;/Introduction/#Even___zero-next&quot;},{&quot;short&quot;:&quot;def&quot;,&quot;long&quot;:&quot;Definition of example&quot;,&quot;href&quot;:&quot;/Introduction/#Even&quot;}]"><span class="const token" data-binding="const-Even" data-verso-hover="30">Even</span></a><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="20">(</span></a><span class="var token" data-binding="var-_uniq.2515" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="20">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="20">)</span></a></pre><div class="docs">
                         <p>
-                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2282" data-verso-hover="7">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2282" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span></code>.</p>
+                          If <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2523" data-verso-hover="9">n</span></code> is even, then so is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.2523" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span></code>.</p>
                         </div>
                       </div>
                     </div>
                   </div>
                 </section>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Introduction--How-to-Cite-This-Work">
+                1.3. How to Cite This Work</h2>
+              <p>
+                In formal citations, please cite this work as <em>The Lean Language Reference</em> by The Lean Developers.
+Additionally, please include the corresponding version of Lean in the citation, which is <code>4.22.0</code>.</p>
               </section>
             <section>
               <h2 id="dependency-licenses">
@@ -2388,6 +2673,24 @@ Evenness: a number is even if it can be evenly divided by two.
                      * Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, the W3C software and document short notice should be included.</p>
                   <p>
                      * Notice of any changes or modifications, through a copyright statement on the new code or document such as "This software or document includes material copied from or derived from "Editable Combobox With Both List and Inline Autocomplete Example" at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/. Copyright © 2024 World Wide Web Consortium. https://www.w3.org/copyright/software-license-2023/"</p>
+                  </section>
+                </section>
+              <section class="license-info">
+                <h3>
+                  elasticlunr.js</h3>
+                <a class="link" href="http://elasticlunr.com/">http://elasticlunr.com/</a><p>
+                  Elasticlunr.js is used for full-text search</p>
+                <code class="spdx">MIT</code><section>
+                  <h4>
+                    The MIT License</h4>
+                  <p>
+                    Copyright (C) 2017 by Wei Song</p>
+                  <p>
+                    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:</p>
+                  <p>
+                    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.</p>
+                  <p>
+                    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
                   </section>
                 </section>
               <section class="license-info">

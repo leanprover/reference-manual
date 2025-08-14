@@ -11,10 +11,17 @@
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Managing Toolchains with Elan</title><link rel="stylesheet" href="book.css">
+    <link rel="stylesheet" href="verso-vars.css">
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/search/fuzzysort.js"></script>
+    <script src="-verso-search/elasticlunr.min.js"></script>
+    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/searchIndex.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="static/print.js"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
@@ -23,7 +30,6 @@
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
-    <link rel="stylesheet" href="static/search/search-box.css">
     <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
@@ -928,15 +934,6 @@ body {
   margin-left: 1rem;
 }
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
 dl.toml-table-field-spec {
 }
 </style><style>
@@ -1053,6 +1050,21 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1135,519 +1147,6 @@ pre.toml {
 
 .toml a:hover {
     border-bottom-style: solid;
-}
-</style><style>
-
-.hl.lean {
-  white-space: pre;
-  font-weight: normal;
-  font-style: normal;
-}
-
-.hl.lean .keyword {
-  font-weight : bold;
-}
-
-.hl.lean .var {
-  font-style: italic;
-  position: relative;
-}
-
-.hover-container {
-  width: 0;
-  height: 0;
-  position: relative;
-  display: inline;
-}
-
-.hl.lean a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-
-.hl.lean a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-.hl.lean .hover-info {
-  white-space: normal;
-}
-
-.hl.lean .token .hover-info {
-  display: none;
-  position: absolute;
-  background-color: #e5e5e5;
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 300;
-  font-size: inherit;
-}
-
-.hl.lean .hover-info.messages {
-  max-height: 10rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-  padding: 0 0.5rem 0 0;
-  display: block;
-}
-
-.hl.lean .hover-info code {
-  white-space: pre-wrap;
-}
-
-.hl.lean .hover-info.messages > code {
-  padding: 0.5rem;
-  display: block;
-  width: fit-content;
-}
-
-.hl.lean .hover-info.messages > code:only-child {
-  margin: 0;
-}
-
-.hl.lean .hover-info.messages > code {
-  margin: 0.1rem;
-}
-
-.hl.lean .hover-info.messages > code:not(:first-child) {
-  margin-top: 0rem;
-}
-
-.hl.lean.block {
-  display: block;
-}
-
-.hl.lean.inline {
-  display: inline;
-  white-space: pre-wrap;
-}
-
-.hl.lean .token {
-  transition: all 0.25s; /* Slight fade for highlights */
-}
-
-@media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
-    background-color: #eee;
-    border-radius: 2px;
-    transition: none;
-  }
-}
-
-
-.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
-  text-decoration-style: wavy;
-  text-decoration-line: underline;
-  text-decoration-thickness: from-font;
-  text-decoration-skip-ink: none;
-}
-
-.hl.lean .has-info .hover-info {
-  display: none;
-  position: absolute;
-  transform: translate(0.25rem, 0.3rem);
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 400;
-  text-align: left;
-}
-
-.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
-  text-decoration-color: red;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.error:hover {
-    background-color: #ffb3b3;
-  }
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #ffb3b3;
-}
-
-.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
-  background: none;
-  border: none;
-}
-
-.error pre {
-    color: red;
-}
-
-.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: var(--verso-warning-color);
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.warning:hover {
-    background-color:var(--verso-warning-color);
-  }
-}
-
-.hl.lean .hover-info.messages > code.warning {
-  background-color: var(--verso-warning-color);
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
-  background: none;
-  border: none;
-}
-
-
-.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: blue;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.info:hover {
-    background-color: #4777ff;
-  }
-}
-
-
-.hl.lean .hover-info.messages > code.info {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #4777ff;
-}
-
-.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
-  background: none;
-  border: none;
-}
-
-.hl.lean div.docstring {
-  font-family: sans-serif;
-  white-space: normal;
-  max-width: 40rem;
-  width: max-content;
-}
-
-.hl.lean div.docstring > :last-child {
-  margin-bottom: 0;
-}
-
-.hl.lean div.docstring > :first-child {
-  margin-top: 0;
-}
-
-.hl.lean .hover-info .sep {
-  display: block;
-  width: auto;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding: 0;
-  height: 1px;
-  border-top: 1px solid #ccc;
-}
-
-.hl.lean code {
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state {
-  display: none;
-  position: relative;
-  width: fit-content;
-  border: 1px solid #888888;
-  border-radius: 0.1rem;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-.hl.lean.popup .tactic-state {
-  position: static;
-  display: block;
-  width: auto;
-  border: none;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-
-.hl.lean .tactic {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr;
-  vertical-align: top;
-}
-
-.hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: inline-block;
-  vertical-align: top;
-  grid-row: 2;
-  justify-self: start;
-}
-
-.hl.lean .tactic > label {
-  position: relative;
-  grid-row: 1;
-}
-
-@media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
-    background-color: #eeeeee;
-  }
-}
-
-.hl.lean .tactic-toggle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .tactic > label::after {
-  content: "";
-  border: 1px solid #bbbbbb;
-  border-radius: 1rem;
-  height: 0.25rem;
-  vertical-align: middle;
-  width: 0.6rem;
-  margin-left: 0.1rem;
-  margin-right: 0.1rem;
-  display: inline-block;
-  transition: all 0.5s;
-}
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic > label:hover::after {
-    border: 1px solid #aaaaaa;
-    background-color: #aaaaaa;
-    transition: all 0.5s;
-  }
-}
-*/
-
-.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
-  border: 1px solid #999999;
-  background-color: #999999;
-  transition: all 0.5s;
-}
-
-.hl.lean .tactic-state .goal + .goal {
-  margin-top: 1.5rem;
-}
-
-.hl.lean .tactic-state summary {
-  margin-left: -0.5rem;
-}
-
-.hl.lean .tactic-state details {
-  padding-left: 0.5rem;
-}
-
-.hl.lean .case-label {
-  display: block;
-  position: relative;
-}
-
-.hl.lean .case-label input[type="checkbox"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"])::before {
-  width: 1rem;
-  height: 1rem;
-  display: inline-block;
-  background-color: black;
-  content: ' ';
-  transition: ease 0.2s;
-  margin-right: 0.7rem;
-  clip-path: polygon(100% 0, 0 0, 50% 100%);
-  width: 0.6rem;
-  height: 0.6rem;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
-  transform: rotate(-90deg);
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]) {
-
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:checked) {
-
-}
-
-
-.hl.lean .tactic-state .labeled-case > :not(:first-child) {
-  max-height: 0px;
-  display: block;
-  overflow: hidden;
-  transition: max-height 0.1s ease-in;
-  margin-left: 0.5rem;
-  margin-top: 0.1rem;
-}
-
-.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
-  max-height: 100%;
-}
-
-
-.hl.lean .tactic-state .goal-name::before {
-  font-style: normal;
-  content: "case ";
-}
-
-.hl.lean .tactic-state .goal-name {
-  font-style: italic;
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state .hypotheses {
-  display: table;
-}
-
-.hl.lean .tactic-state .hypothesis {
-  display: table-row;
-}
-
-.hl.lean .tactic-state .hypothesis > * {
-  display: table-cell;
-}
-
-
-.hl.lean .tactic-state .hypotheses .colon {
-  text-align: center;
-  min-width: 1rem;
-}
-
-.hl.lean .tactic-state .hypotheses .name {
-  text-align: right;
-}
-
-.hl.lean .tactic-state .hypotheses .name,
-.hl.lean .tactic-state .hypotheses .type,
-.hl.lean .tactic-state .conclusion .type {
-  font-family: monospace;
-}
-
-.tippy-box[data-theme~='lean'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
-  bottom: -11px;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
-  top: -11px;
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-  border-width: 11px 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
-  right: -11px;
-  border-width: 11px 0 11px 11px;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-  border-width: 11px 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
-  left: -11px;
-  border-width: 11px 11px 11px 0;
-}
-
-
-
-.tippy-box[data-theme~='warning'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='error'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #f7a7af;
-}
-
-.tippy-box[data-theme~='info'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #99b3c2;
-}
-
-.tippy-box[data-theme~='tactic'] {
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: white;
-}
-
-.extra-doc-links {
-  list-style-type: none;
-  margin-left: 0;
-  padding: 0;
-}
-
-.extra-doc-links > li {
-  display: inline-block;
-}
-
-.extra-doc-links > li:not(:last-child)::after {
-  content: '|';
-  display: inline-block;
-  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -1756,6 +1255,668 @@ pre.toml {
   text-decoration: currentcolor underline solid;
 }
 </style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(.tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
 .env-var a {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -1803,6 +1964,54 @@ pre.toml {
   overflow-x: auto;
 }
 </style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 .syntax-error {
   white-space: normal;
 }
@@ -2110,7 +2319,7 @@ window.onload = () => {
       document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
         element.setAttribute('data-tippy-theme', 'warning message');
       });
-      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
         element.setAttribute('data-tippy-theme', 'info message');
       });
       document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
@@ -2123,8 +2332,86 @@ window.onload = () => {
   });
 }
 </script>
-    <script type="module" src="static/search/search-init.js"></script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', openDetailsForHashTarget);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+} else {
+  openDetailsForHashTarget();
+}
+</script>
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2145,14 +2432,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="current numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="current numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#The-Lean-Language-Reference--The-Module-System">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-build-tools-and-distribution" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-build-tools-and-distribution" checked="checked"></label><span class="number">21.</span> <span class=""><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></span></div>
-              <table><tr class="numbered"><td class="num">21.1.</td><td><a href="Build-Tools-and-Distribution/Lake/#lake">Lake</a></td></tr><tr class="current numbered"><td class="num">21.2.</td><td><a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan">Managing Toolchains with Elan</a></td></tr></table></div>
+                <label for="--verso-manual-toc-build-tools-and-distribution" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-build-tools-and-distribution" checked="checked"></label><span class="number">22.</span> <span class=""><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></span></div>
+              <table><tr class="numbered"><td class="num">22.1.</td><td><a href="Build-Tools-and-Distribution/Lake/#lake">Lake</a></td></tr><tr class="current numbered"><td class="num">22.2.</td><td><a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan">Managing Toolchains with Elan</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-elan" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-elan" checked="checked"></label><span class="number">21.2.</span> <span class="current"><a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan">Managing Toolchains with Elan</a></span></div>
+                <label for="--verso-manual-toc-elan" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-elan" checked="checked"></label><span class="number">22.2.</span> <span class="current"><a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan">Managing Toolchains with Elan</a></span></div>
               <ol>
                 <li>
                   <span class="header head-1"><span class="level-num">1.</span> <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-toolchain-versions">Selecting Toolchains</a></span></li>
@@ -2245,10 +2532,10 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Build-Tools-and-Distribution/Lake/#lake" rel="prev" title="21.1. Lake"><span class="arrow">←</span><span class="where">21.1. Lake</span></a><a class="local-button active" href="releases/#release-notes" rel="next" title="Release Notes"><span class="where">Release Notes</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Build-Tools-and-Distribution/Lake/#lake" rel="prev" title="22.1. Lake"><span class="arrow">←</span><span class="where">22.1. Lake</span></a><a class="local-button active" href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations" rel="next" title="Error Explanations"><span class="where">Error Explanations</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              21.2. Managing Toolchains with Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan" title="Permalink">🔗</a></span></h1>
+              22.2. Managing Toolchains with Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan" title="Permalink">🔗</a></span></h1>
             <p>
               Elan is the Lean toolchain manager.
 It is responsible both for installing <a class="technical-term" href="Build-Tools-and-Distribution/#--tech-term-toolchain">toolchains</a> and for running their constituent programs.
@@ -2256,14 +2543,14 @@ Elan makes it possible to seamlessly work on a variety of projects, each of whic
 Each project is typically configured to use a particular version, which is transparently installed as needed, and changes to the Lean version are tracked automatically.</p>
             <section>
               <h2 id="elan-toolchain-versions">
-                21.2.1. Selecting Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-versions" title="Permalink">🔗</a></span></h2>
+                22.2.1. Selecting Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-versions" title="Permalink">🔗</a></span></h2>
               <p>
                 When using Elan, the version of each tool on the <code class="env-var">PATH</code> is a proxy that invokes the correct version.
 The proxy determines the appropriate toolchain version for the current context, ensures that it is installed, and then invokes the underlying tool in the appropriate toolchain installation.
 These proxies can be instructed to use a specific version by passing it as an argument prefixed with <code>+</code>, so <code>lake +4.0.0</code> invokes <code>lake</code> version <code>4.0.0</code>, after installing it if necessary.</p>
               <section>
                 <h3 id="elan-channels">
-                  21.2.1.1. Toolchain Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-channels" title="Permalink">🔗</a></span></h3>
+                  22.2.1.1. Toolchain Identifiers<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-channels" title="Permalink">🔗</a></span></h3>
                 <p>
                   Toolchains are specified by providing a toolchain identifier that is either a <span id="--tech-term-channel" class="def-technical-term"><em>channel</em></span>, which identifies a particular type of Lean release, and optionally an origin, or a <span id="--tech-term-custom-toolchain-name" class="def-technical-term"><em>custom toolchain name</em></span> established by <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-link" class="elan-command"><code>elan toolchain link</code></a>.
 Channels may be:</p>
@@ -2291,7 +2578,7 @@ Origins are not used for custom toolchain names.</p>
                 </section>
               <section>
                 <h3 id="elan-toolchain-config">
-                  21.2.1.2. Determining the Current Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-config" title="Permalink">🔗</a></span></h3>
+                  22.2.1.2. Determining the Current Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain-config" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan associates toolchains with directories, and uses the toolchain of the most recent parent directory of the current working directory that has a configured toolchain.
 A directory's toolchain may result from a toolchain file or from an override configured with <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-override"><code>elan override</code></a>.</p>
@@ -2314,7 +2601,7 @@ They are typically used when a specific local configuration is required that doe
               </section>
             <section>
               <h2 id="elan-dir">
-                21.2.2. Toolchain Locations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-dir" title="Permalink">🔗</a></span></h2>
+                22.2.2. Toolchain Locations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-dir" title="Permalink">🔗</a></span></h2>
               <p>
                 By default, Elan stores installed toolchains in <code>.elan/toolchains</code> in the user's home directory, and its proxies are kept in <code>.elan/bin</code>, which is added to the path when Elan is installed.
 The environment variable <code class="env-var" id="ELAN_HOME">ELAN_HOME</code> can be used to change this location.
@@ -2322,7 +2609,7 @@ It should be set both prior to installing Elan and in all sessions that use Lean
               </section>
             <section>
               <h2 id="elan-cli">
-                21.2.3. Command-Line Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-cli" title="Permalink">🔗</a></span></h2>
+                22.2.3. Command-Line Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-cli" title="Permalink">🔗</a></span></h2>
               <p>
                 In addition to the proxies that automatically select, install, and invoke the correct versions of Lean tools, Elan provides a command-line interface for querying and configuring its settings.
 This tool is called <code>elan</code>.
@@ -2337,7 +2624,7 @@ Like <a href="Build-Tools-and-Distribution/Lake/#lake">Lake</a>, its command-lin
                     Displays the Elan version.</p>
                   </dd></dl><section>
                 <h3 id="elan-show">
-                  21.2.3.1. Querying Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-show" title="Permalink">🔗</a></span></h3>
+                  22.2.3.1. Querying Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-show" title="Permalink">🔗</a></span></h3>
                 <p>
                   The <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#show-next" class="elan-command"><code>elan show</code></a> command displays the current toolchain (as determined by the current directory) and lists all installed toolchains.</p>
                 <div class="namedocs" id="show-next">
@@ -2370,20 +2657,20 @@ In this case, the toolchain was selected due to a <code>lean-toolchain</code> fi
                 </section>
               <section>
                 <h3 id="elan-default">
-                  21.2.3.2. Setting the Default Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-default" title="Permalink">🔗</a></span></h3>
+                  22.2.3.2. Setting the Default Toolchain<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-default" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan's configuration file specifies a <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-default-toolchain">default toolchain</a> to be used when there is no <code>lean-toolchain</code> file or <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-toolchain-override">toolchain override</a> for the current directory.
 Rather than manually editing the file, this value is typically changed using the <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#default" class="elan-command"><code>elan default</code></a> command.</p>
                 <div class="namedocs" id="default">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">default</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=default" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="default"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">default</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></pre><div class="text">
                     <p>
-                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
+                      Sets the default toolchain to <code class="hl lean inline" data-lean-context="default"><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></code>, which should be a <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">valid toolchain identifier</a> such as <code>stable</code>, <code>nightly</code>, or <code>4.17.0</code>.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-toolchain">
-                  21.2.3.3. Managing Installed Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain" title="Permalink">🔗</a></span></h3>
+                  22.2.3.3. Managing Installed Toolchains<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-toolchain" title="Permalink">🔗</a></span></h3>
                 <p>
                   The <code>elan toolchain</code> family of subcommands is used to manage the installed toolchains.
 Toolchains are stored in Elan's <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-dir">toolchain directory</a>.</p>
@@ -2398,24 +2685,24 @@ This list of projects can be used to determine which toolchains are in active us
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-install">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain install</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain install" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~install"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain install</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></pre><div class="text">
                     <p>
-                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>.
+                      Installs the indicated <code class="hl lean inline" data-lean-context="toolchain~~install"><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></code>.
 The toolchain's name should be <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#elan-channels">an identifier that's suitable for inclusion in a <code>lean-toolchain</code> file</a>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-uninstall">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain uninstall</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain uninstall" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~uninstall"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain uninstall</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></pre><div class="text">
                     <p>
-                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code>.
+                      Uninstalls the indicated <code class="hl lean inline" data-lean-context="toolchain~~uninstall"><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></code>.
 The toolchain's name should the name of an installed toolchain.
 Use <a href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#toolchain-list" class="elan-command"><code>elan toolchain list</code></a> to see the installed toolchains with their names.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-link">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain link</span><span class="inter-text"> </span><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5426">local-name</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=toolchain link" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="toolchain~~link"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">toolchain link</span><span class="inter-text"> </span><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5964">local-name</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5965">path</span></pre><div class="text">
                     <p>
-                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5426">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></code>.</p>
+                      Creates a new local toolchain named <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-[anonymous]" data-verso-hover="5964">local-name</span></code>, using the Lean toolchain found at <code class="hl lean inline" data-lean-context="toolchain~~link"><span class="var token" data-binding="var-path" data-verso-hover="5965">path</span></code>.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="toolchain-gc">
@@ -2450,7 +2737,7 @@ The <code id="elan-flag--json" class="elan-opt">--json</code> flag causes <a hre
                 </section>
               <section>
                 <h3 id="elan-override">
-                  21.2.3.4. Managing Directory Overrides<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-override" title="Permalink">🔗</a></span></h3>
+                  22.2.3.4. Managing Directory Overrides<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-override" title="Permalink">🔗</a></span></h3>
                 <p>
                   Directory-specific <a class="technical-term" href="Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/#--tech-term-toolchain-override">toolchain overrides</a> are a local configuration that takes precedence over <code>lean-toolchain</code> files.
 The <code>elan override</code> commands manage overrides.</p>
@@ -2462,28 +2749,28 @@ The left column contains the directories in which the Lean version is overridden
                     </div>
                   </div>
                 <div class="namedocs" id="override-set">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override set</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override set" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~set"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override set</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></pre><div class="text">
                     <p>
-                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span></code> as an override for the current directory.</p>
+                      Sets <code class="hl lean inline" data-lean-context="override~~set"><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span></code> as an override for the current directory.</p>
                     </div>
                   </div>
                 <div class="namedocs" id="override-unset">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override unset</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=override unset" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="override~~unset"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">override unset</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--nonexistent</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--path</span><span class="inter-text"> </span><span class="var token" data-binding="var-path" data-verso-hover="5965">path</span><span class="keyword token" data-binding="">]</span></pre><div class="text">
                     <p>
                       If <code id="elan-flag--nonexistent" class="elan-opt">--nonexistent</code> flag is provided, all overrides that are configured for directories that don't currently exist are removed.
-If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="5427">path</span></code> is removed.
+If <code id="elan-option--path" class="elan-opt">--path</code> is provided, then the override set for <code class="hl lean inline" data-lean-context="override~~unset"><span class="var token" data-binding="var-path" data-verso-hover="5965">path</span></code> is removed.
 Otherwise, the override for the current directory is removed.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-run">
-                  21.2.3.5. Running Tools and Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-run" title="Permalink">🔗</a></span></h3>
+                  22.2.3.5. Running Tools and Commands<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-run" title="Permalink">🔗</a></span></h3>
                 <p>
                   The commands in this section provide the ability to run a command in a specific toolchain and to locate a tool from a particular toolchain on disk.
 This can be useful when experimenting with different Lean versions, for cross-version testing, and for integrating Elan with other tools.</p>
                 <div class="namedocs" id="run">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">run</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5425">toolchain</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=run" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="run"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">run</span><span class="inter-text"> </span><span class="keyword token" data-binding="">[</span><span class="keyword token" data-binding="">--install</span><span class="keyword token" data-binding="">]</span><span class="inter-text"> </span><span class="var token" data-binding="var-toolchain" data-verso-hover="5963">toolchain</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5966">command</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span></pre><div class="text">
                     <p>
                       Configures an environment to use the given toolchain and then runs the specified program.
 The toolchain will be installed if the <code id="elan-flag--install" class="elan-opt">--install</code> flag is provided.
@@ -2492,15 +2779,15 @@ This can be used for testing arbitrary toolchains without setting an override.</
                     </div>
                   </div>
                 <div class="namedocs" id="which">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">which</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=which" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="which"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">which</span><span class="inter-text"> </span><span class="var token" data-binding="var-command" data-verso-hover="5966">command</span></pre><div class="text">
                     <p>
-                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="5428">command</span></code>.</p>
+                      Displays the full path to the toolchain-specific binary for <code class="hl lean inline" data-lean-context="which"><span class="var token" data-binding="var-command" data-verso-hover="5966">command</span></code>.</p>
                     </div>
                   </div>
                 </section>
               <section>
                 <h3 id="elan-self">
-                  21.2.3.6. Managing Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-self" title="Permalink">🔗</a></span></h3>
+                  22.2.3.6. Managing Elan<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=elan-self" title="Permalink">🔗</a></span></h3>
                 <p>
                   Elan can manage its own installation.
 It can upgrade itself, remove itself, and help configure tab completion for many popular shells.</p>
@@ -2517,7 +2804,7 @@ It can upgrade itself, remove itself, and help configure tab completion for many
                     </div>
                   </div>
                 <div class="namedocs" id="completions">
-                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">completions</span><span class="inter-text"> </span><span class="var token" data-binding="var-shell" data-verso-hover="5429">shell</span></pre><div class="text">
+                  <span class="permalink-widget block"><a href="find/?domain=Manual.elanCommand&amp;name=completions" title="Permalink">🔗</a></span><span class="label">Elan command</span><pre class="signature hl lean block" data-lean-context="completions"><span class="keyword token" data-binding="">elan</span><span class="inter-text"> </span><span class="keyword token" data-binding="">completions</span><span class="inter-text"> </span><span class="var token" data-binding="var-shell" data-verso-hover="5967">shell</span></pre><div class="text">
                     <p>
                       Generates shell completion scripts for Elan, enabling tab completion for Elan commands in a variety of shells.
 See the output of <code>elan help completions</code> for a description of how to install them.</p>
@@ -2527,7 +2814,7 @@ See the output of <code>elan help completions</code> for a description of how to
               </section>
             </section>
           <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026"><nav class="prev-next-buttons">
-            <a class="local-button active" href="Build-Tools-and-Distribution/Lake/#lake" rel="prev" title="21.1. Lake"><span class="arrow">←</span><span class="where">21.1. Lake</span></a><a class="local-button active" href="releases/#release-notes" rel="next" title="Release Notes"><span class="where">Release Notes</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Build-Tools-and-Distribution/Lake/#lake" rel="prev" title="22.1. Lake"><span class="arrow">←</span><span class="where">22.1. Lake</span></a><a class="local-button active" href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations" rel="next" title="Error Explanations"><span class="where">Error Explanations</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

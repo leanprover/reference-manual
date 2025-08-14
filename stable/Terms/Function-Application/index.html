@@ -11,10 +11,17 @@
     <base href="./../../"><meta charset="utf-8">
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Function Application</title><link rel="stylesheet" href="book.css">
+    <link rel="stylesheet" href="verso-vars.css">
     <script>
       const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
-    <script src="static/search/fuzzysort.js"></script>
+    <script src="-verso-search/elasticlunr.min.js"></script>
+    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/searchIndex.js"></script>
+    <script type="module" src="-verso-search/search-init.js"></script>
+    <link rel="stylesheet" href="-verso-search/search-box.css">
+    <link rel="stylesheet" href="-verso-search/search-highlight.css">
+    <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="static/print.js"></script>
     <script src="-verso-data/katex/katex.js"></script>
     <script src="-verso-data/katex/math.js"></script>
@@ -23,7 +30,6 @@
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
     <link rel="stylesheet" href="static/print.css">
-    <link rel="stylesheet" href="static/search/search-box.css">
     <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css">
     <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css">
     <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css">
@@ -928,15 +934,6 @@ body {
   margin-left: 1rem;
 }
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
 dl.toml-table-field-spec {
 }
 </style><style>
@@ -1053,6 +1050,21 @@ dl.toml-table-field-spec {
 .c .kw { font-weight: 600; }
 .c .comment { font-style: italic; }
 </style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1135,519 +1147,6 @@ pre.toml {
 
 .toml a:hover {
     border-bottom-style: solid;
-}
-</style><style>
-
-.hl.lean {
-  white-space: pre;
-  font-weight: normal;
-  font-style: normal;
-}
-
-.hl.lean .keyword {
-  font-weight : bold;
-}
-
-.hl.lean .var {
-  font-style: italic;
-  position: relative;
-}
-
-.hover-container {
-  width: 0;
-  height: 0;
-  position: relative;
-  display: inline;
-}
-
-.hl.lean a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-
-.hl.lean a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-.hl.lean .hover-info {
-  white-space: normal;
-}
-
-.hl.lean .token .hover-info {
-  display: none;
-  position: absolute;
-  background-color: #e5e5e5;
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 300;
-  font-size: inherit;
-}
-
-.hl.lean .hover-info.messages {
-  max-height: 10rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-  padding: 0 0.5rem 0 0;
-  display: block;
-}
-
-.hl.lean .hover-info code {
-  white-space: pre-wrap;
-}
-
-.hl.lean .hover-info.messages > code {
-  padding: 0.5rem;
-  display: block;
-  width: fit-content;
-}
-
-.hl.lean .hover-info.messages > code:only-child {
-  margin: 0;
-}
-
-.hl.lean .hover-info.messages > code {
-  margin: 0.1rem;
-}
-
-.hl.lean .hover-info.messages > code:not(:first-child) {
-  margin-top: 0rem;
-}
-
-.hl.lean.block {
-  display: block;
-}
-
-.hl.lean.inline {
-  display: inline;
-  white-space: pre-wrap;
-}
-
-.hl.lean .token {
-  transition: all 0.25s; /* Slight fade for highlights */
-}
-
-@media (hover: hover) {
-  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
-    background-color: #eee;
-    border-radius: 2px;
-    transition: none;
-  }
-}
-
-
-.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
-  text-decoration-style: wavy;
-  text-decoration-line: underline;
-  text-decoration-thickness: from-font;
-  text-decoration-skip-ink: none;
-}
-
-.hl.lean .has-info .hover-info {
-  display: none;
-  position: absolute;
-  transform: translate(0.25rem, 0.3rem);
-  border: 1px solid black;
-  padding: 0.5rem;
-  z-index: 400;
-  text-align: left;
-}
-
-.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
-  text-decoration-color: red;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.error:hover {
-    background-color: #ffb3b3;
-  }
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #ffb3b3;
-}
-
-.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
-  background: none;
-  border: none;
-}
-
-.error pre {
-    color: red;
-}
-
-.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: var(--verso-warning-color);
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.warning:hover {
-    background-color:var(--verso-warning-color);
-  }
-}
-
-.hl.lean .hover-info.messages > code.warning {
-  background-color: var(--verso-warning-color);
-}
-
-.hl.lean .hover-info.messages > code.error {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
-  background: none;
-  border: none;
-}
-
-
-.hl.lean .has-info.info :not(.tactic-state):not(.tactic-state *) {
-  text-decoration-color: blue;
-}
-
-@media (hover: hover) {
-  .hl.lean .has-info.info:hover {
-    background-color: #4777ff;
-  }
-}
-
-
-.hl.lean .hover-info.messages > code.info {
-  background-color: #e5e5e5;
-  border-left: 0.2rem solid #4777ff;
-}
-
-.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.info {
-  background: none;
-  border: none;
-}
-
-.hl.lean div.docstring {
-  font-family: sans-serif;
-  white-space: normal;
-  max-width: 40rem;
-  width: max-content;
-}
-
-.hl.lean div.docstring > :last-child {
-  margin-bottom: 0;
-}
-
-.hl.lean div.docstring > :first-child {
-  margin-top: 0;
-}
-
-.hl.lean .hover-info .sep {
-  display: block;
-  width: auto;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding: 0;
-  height: 1px;
-  border-top: 1px solid #ccc;
-}
-
-.hl.lean code {
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state {
-  display: none;
-  position: relative;
-  width: fit-content;
-  border: 1px solid #888888;
-  border-radius: 0.1rem;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-.hl.lean.popup .tactic-state {
-  position: static;
-  display: block;
-  width: auto;
-  border: none;
-  padding: 0.5rem;
-  font-family: sans-serif;
-  background-color: #ffffff;
-}
-
-
-.hl.lean .tactic {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr;
-  vertical-align: top;
-}
-
-.hl.lean .tactic-toggle:checked ~ .tactic-state {
-  display: inline-block;
-  vertical-align: top;
-  grid-row: 2;
-  justify-self: start;
-}
-
-.hl.lean .tactic > label {
-  position: relative;
-  grid-row: 1;
-}
-
-@media (hover: hover) {
-  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
-    background-color: #eeeeee;
-  }
-}
-
-.hl.lean .tactic-toggle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .tactic > label::after {
-  content: "";
-  border: 1px solid #bbbbbb;
-  border-radius: 1rem;
-  height: 0.25rem;
-  vertical-align: middle;
-  width: 0.6rem;
-  margin-left: 0.1rem;
-  margin-right: 0.1rem;
-  display: inline-block;
-  transition: all 0.5s;
-}
-
-/*
-@media (hover: hover) {
-  .hl.lean .tactic > label:hover::after {
-    border: 1px solid #aaaaaa;
-    background-color: #aaaaaa;
-    transition: all 0.5s;
-  }
-}
-*/
-
-.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
-  border: 1px solid #999999;
-  background-color: #999999;
-  transition: all 0.5s;
-}
-
-.hl.lean .tactic-state .goal + .goal {
-  margin-top: 1.5rem;
-}
-
-.hl.lean .tactic-state summary {
-  margin-left: -0.5rem;
-}
-
-.hl.lean .tactic-state details {
-  padding-left: 0.5rem;
-}
-
-.hl.lean .case-label {
-  display: block;
-  position: relative;
-}
-
-.hl.lean .case-label input[type="checkbox"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  height: 0;
-  width: 0;
-  z-index: -10;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"])::before {
-  width: 1rem;
-  height: 1rem;
-  display: inline-block;
-  background-color: black;
-  content: ' ';
-  transition: ease 0.2s;
-  margin-right: 0.7rem;
-  clip-path: polygon(100% 0, 0 0, 50% 100%);
-  width: 0.6rem;
-  height: 0.6rem;
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
-  transform: rotate(-90deg);
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]) {
-
-}
-
-.hl.lean .case-label:has(input[type="checkbox"]:checked) {
-
-}
-
-
-.hl.lean .tactic-state .labeled-case > :not(:first-child) {
-  max-height: 0px;
-  display: block;
-  overflow: hidden;
-  transition: max-height 0.1s ease-in;
-  margin-left: 0.5rem;
-  margin-top: 0.1rem;
-}
-
-.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
-  max-height: 100%;
-}
-
-
-.hl.lean .tactic-state .goal-name::before {
-  font-style: normal;
-  content: "case ";
-}
-
-.hl.lean .tactic-state .goal-name {
-  font-style: italic;
-  font-family: monospace;
-}
-
-.hl.lean .tactic-state .hypotheses {
-  display: table;
-}
-
-.hl.lean .tactic-state .hypothesis {
-  display: table-row;
-}
-
-.hl.lean .tactic-state .hypothesis > * {
-  display: table-cell;
-}
-
-
-.hl.lean .tactic-state .hypotheses .colon {
-  text-align: center;
-  min-width: 1rem;
-}
-
-.hl.lean .tactic-state .hypotheses .name {
-  text-align: right;
-}
-
-.hl.lean .tactic-state .hypotheses .name,
-.hl.lean .tactic-state .hypotheses .type,
-.hl.lean .tactic-state .conclusion .type {
-  font-family: monospace;
-}
-
-.tippy-box[data-theme~='lean'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-}
-.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: #e5e5e5;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
-  bottom: -11px;
-  border-width: 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
-  top: -11px;
-  border-width: 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: #e5e5e5;
-  border-width: 11px 0 11px 11px;
-}
-.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
-  right: -11px;
-  border-width: 11px 0 11px 11px;
-}
-
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: #e5e5e5;
-  border-width: 11px 11px 11px 0;
-}
-.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
-  left: -11px;
-  border-width: 11px 11px 11px 0;
-}
-
-
-
-.tippy-box[data-theme~='warning'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid var(--verso-warning-color);
-}
-
-.tippy-box[data-theme~='error'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #f7a7af;
-}
-
-.tippy-box[data-theme~='info'] {
-  background-color: #e5e5e5;
-  color: black;
-  border: 3px solid #99b3c2;
-}
-
-.tippy-box[data-theme~='tactic'] {
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
-  border-top-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
-  border-bottom-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
-  border-left-color: white;
-}
-.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
-  border-right-color: white;
-}
-
-.extra-doc-links {
-  list-style-type: none;
-  margin-left: 0;
-  padding: 0;
-}
-
-.extra-doc-links > li {
-  display: inline-block;
-}
-
-.extra-doc-links > li:not(:last-child)::after {
-  content: '|';
-  display: inline-block;
-  margin: 0 0.25em;
 }
 </style><style>
     main .theIndex {
@@ -1756,6 +1255,668 @@ pre.toml {
   text-decoration: currentcolor underline solid;
 }
 </style><style>
+
+.hl.lean {
+  white-space: pre;
+  font-weight: normal;
+  font-style: normal;
+  font-size: inherit;
+}
+
+.hl.lean .keyword {
+  color: var(--verso-code-keyword-color,);
+  font-weight: var(--verso-code-keyword-weight, bold);
+  font-style: var(--verso-code-keyword-style, normal);
+  font-family: var(--verso-code-keyword-font-family,);
+}
+
+.hl.lean .const {
+  color: var(--verso-code-const-color,);
+  font-weight: var(--verso-code-const-weight, normal);
+  font-style: var(--verso-code-const-style, normal);
+  font-family: var(--verso-code-const-font-family,);
+}
+
+.hl.lean .var {
+  color: var(--verso-code-var-color,);
+  font-weight: var(--verso-code-var-weight, normal);
+  font-style: var(--verso-code-var-style, italic);
+  font-family: var(--verso-code-var-font-family,);
+
+  position: relative;
+}
+
+.hl.lean .literal, .hl.lean .unknown {
+  color: var(--verso-code-color,);
+  font-weight: normal;
+  font-style: normal;
+  font-family: var(--verso-code-font-family,);
+}
+
+.hover-container {
+  width: 0;
+  height: 0;
+  position: relative;
+  display: inline;
+}
+
+.hl.lean a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+
+.hl.lean a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
+.hl.lean .hover-info {
+  white-space: normal;
+}
+
+.hl.lean .token .hover-info {
+  display: none;
+  position: absolute;
+  background-color: #e5e5e5;
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 300;
+}
+
+.hl.lean .hover-info.messages {
+  max-height: 10rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  padding: 0 0.5rem 0 0;
+  display: block;
+}
+
+.hl.lean .hover-info code {
+  white-space: pre-wrap;
+  background: none;
+  color: black;
+}
+
+.hl.lean .hover-info.messages > code {
+  padding: 0.5rem;
+  display: block;
+  width: fit-content;
+}
+
+.hl.lean .hover-info.messages > code:only-child {
+  margin: 0;
+}
+
+.hl.lean .hover-info.messages > code {
+  margin: 0.1rem;
+}
+
+.hl.lean .hover-info.messages > code:not(:first-child) {
+  margin-top: 0rem;
+}
+
+.hl.lean {
+}
+
+.hl.lean.block {
+  display: block;
+}
+
+.hl.lean.inline {
+  display: inline;
+  white-space: pre-wrap;
+}
+
+.hl.lean * {
+}
+
+.hl.lean .token {
+  transition: all 0.25s; /* Slight fade for highlights */
+}
+
+@media (hover: hover) {
+  .hl.lean .token.binding-hl, .hl.lean .literal.string:hover, .hl.lean .token.typed:hover {
+    background-color: #eee;
+    border-radius: 2px;
+    transition: none;
+  }
+}
+
+
+.hl.lean .has-info .token:not(.tactic-state):not(.tactic-state *), .hl.lean .has-info .inter-text:not(.tactic-state):not(.tactic-state *) {
+  text-decoration-style: wavy;
+  text-decoration-line: underline;
+  text-decoration-thickness: from-font;
+  text-decoration-skip-ink: none;
+}
+
+.hl.lean .has-info .hover-info {
+  display: none;
+  position: absolute;
+  transform: translate(0.25rem, 0.3rem);
+  border: 1px solid black;
+  padding: 0.5rem;
+  z-index: 400;
+  text-align: left;
+}
+
+.hl.lean .has-info.error :not(.tactic-state):not(.tactic-state *){
+  text-decoration-color: red;
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.error:hover {
+    background-color: #ffb3b3;
+  }
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #ffb3b3;
+}
+
+.tippy-box[data-theme~='error'] .hl.lean .hover-info.messages > code.error {
+  background: none;
+  border: none;
+}
+
+.error .verso-message, .error .verso-message .token, .error .verso-message label {
+  color: var(--verso-error-color);
+}
+
+.error .verso-message .case-label:has(input[type="checkbox"])::before {
+  background-color: var(--verso-error-color) !important;
+}
+
+.hl.lean .has-info.warning :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-warning-indicator-color);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.warning:hover {
+    background-color:var(--verso-warning-color);
+  }
+}
+
+.hl.lean .hover-info.messages > code.warning {
+  background-color: var(--verso-warning-color);
+}
+
+.lean-output {
+  border-left: 0.2em solid transparent;
+  padding: 0 0 0 0.5em;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.lean-output.error {
+  border-color: var(--verso-error-indicator-color);
+}
+
+.lean-output.information {
+  border-color: var(--verso-info-indicator-color);
+}
+
+.lean-output.warning {
+  border-color: var(--verso-warning-indicator-color);
+}
+
+.hl.lean .hover-info.messages > code.error {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='warning'] .hl.lean .hover-info.messages > code.warning {
+  background: none;
+  border: none;
+}
+
+
+.hl.lean .has-info.information :not(.tactic-state):not(.tactic-state *) {
+  text-decoration-color: var(--verso-info-indicator-color, blue);
+}
+
+@media (hover: hover) {
+  .hl.lean .has-info.information:hover {
+    background-color: #4777ff;
+  }
+}
+
+
+.hl.lean .hover-info.messages > code.information {
+  background-color: #e5e5e5;
+  border-left: 0.2rem solid #4777ff;
+}
+
+.tippy-box[data-theme~='info'] .hl.lean .hover-info.messages > code.information {
+  background: none;
+  border: none;
+}
+
+.hl.lean div.docstring {
+  font-family: var(--verso-text-font-family, sans-serif);
+  white-space: normal;
+  max-width: calc(min(40rem, 90vw));
+  width: max-content;
+}
+
+.hl.lean div.docstring > :last-child {
+  margin-bottom: 0;
+}
+
+.hl.lean div.docstring > :first-child {
+  margin-top: 0;
+}
+
+.hl.lean .hover-info .sep {
+  display: block;
+  width: auto;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  height: 1px;
+  border-top: 1px solid #ccc;
+}
+
+.hl.lean code {
+  font-family: var(--verso-code-font-family);
+}
+
+.hl.lean .tactic-state {
+  display: none;
+  position: relative;
+  width: fit-content;
+  border: 1px solid #888888;
+  border-radius: 0.1rem;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+.hl.lean.popup .tactic-state {
+  position: static;
+  display: block;
+  width: auto;
+  border: none;
+  padding: 0.5rem;
+  font-family: sans-serif;
+  background-color: #ffffff;
+}
+
+
+.hl.lean .tactic {
+  position: relative;
+  display: inline;
+  vertical-align: top;
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.hl.lean .tactic:has(.tactic-toggle:checked) {
+  display: inline-grid;
+  grid-template-columns: 1fr;
+}
+
+.hl.lean .tactic-toggle:checked ~ .tactic-state {
+  display: inline-block;
+  vertical-align: top;
+  grid-row: 2;
+  justify-self: start;
+}
+
+.hl.lean .tactic > label {
+  position: relative;
+  grid-row: 1;
+  display: inline;
+}
+
+@media (hover: hover) {
+  .hl.lean .tactic:has(.tactic-toggle:not(:checked)) > label:hover {
+    background-color: #eeeeee;
+  }
+}
+
+.hl.lean .tactic-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .tactic > label::after {
+  content: "";
+  border: 1px solid #bbbbbb;
+  /* These need to be em, not rem, to scale with the font */
+  border-radius: 1em;
+  height: 0.25em;
+  vertical-align: middle;
+  width: 0.6em;
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+  display: inline-block;
+  transition: all 0.5s;
+}
+
+/*
+@media (hover: hover) {
+  .hl.lean .tactic > label:hover::after {
+    border: 1px solid #aaaaaa;
+    background-color: #aaaaaa;
+    transition: all 0.5s;
+  }
+}
+*/
+
+.hl.lean .tactic > label:has(+ .tactic-toggle:checked)::after {
+  border: 1px solid #999999;
+  background-color: #999999;
+  transition: all 0.5s;
+}
+
+.hl.lean .tactic-state .goal + .goal {
+  margin-top: 1.5em;
+}
+
+/*
+Some CSS frameworks customize details/summary in ways not compatible with Verso's output.
+*/
+
+.hl.lean details {
+  display: block !important;
+  margin: 0;
+}
+
+.hl.lean details summary {
+  display: list-item !important;
+  margin: 0;
+}
+
+.hl.lean details summary:focus {
+  outline: none;
+  outline-offset: none;
+  color: inherit;
+}
+
+.hl.lean ul > li {
+  margin-bottom: 0;
+}
+
+.hl.lean details summary::marker {
+  display: inline !important;
+}
+
+.hl.lean details > summary:first-of-type {
+  list-style-type: disclosure-closed;
+  list-style-position: inside;
+}
+
+.hl.lean details[open] > summary:first-of-type {
+  list-style-type: disclosure-open;
+}
+
+.hl.lean details summary::before, .hl.lean details summary::after {
+  content: "" !important;
+  background: none;
+  display: none;
+}
+
+.hl.lean .tactic-state summary {
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: -0.5em;
+}
+
+.hl.lean .tactic-state details {
+  /* These need to be em, not rem, to scale with the font */
+  padding-left: 0.5em;
+}
+
+.hl.lean .case-label {
+  display: block;
+  position: relative;
+}
+
+.hl.lean .case-label input[type="checkbox"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  z-index: -10;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"])::before {
+  display: inline-block;
+  background-color: black;
+  content: ' ';
+  transition: ease 0.2s;
+  margin-right: 0.7em;
+  clip-path: polygon(100% 0, 0 0, 50% 100%);
+  width: 0.6em;
+  height: 0.6em;
+  vertical-align: middle;
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:not(:checked))::before {
+  transform: rotate(-90deg);
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]) {
+
+}
+
+.hl.lean .case-label:has(input[type="checkbox"]:checked) {
+
+}
+
+
+.hl.lean .labeled-case > :not(:first-child) {
+  max-height: 0px;
+  display: block;
+  overflow: hidden;
+  transition: max-height 0.1s ease-in;
+  /* These need to be em, not rem, to scale with the font */
+  margin-left: 0.5em;
+  margin-top: 0.1em;
+}
+
+.hl.lean .labeled-case:has(.case-label input[type="checkbox"]:checked) > :not(:first-child) {
+  max-height: 100%;
+}
+
+
+.hl.lean .goal-name::before {
+  font-style: normal;
+  content: "case ";
+}
+
+.hl.lean .goal-name {
+  font-style: italic;
+  font-family: var(--verso-code-font-family);
+  color: inherit;
+}
+
+.hl.lean .hypotheses {
+  display: table;
+}
+
+.hl.lean .hypothesis {
+  display: table-row;
+}
+
+.hl.lean .hypothesis > * {
+  display: table-cell;
+}
+
+
+.hl.lean .hypotheses .colon {
+  text-align: center;
+  /* This needs to be em, not rem, to scale with the font */
+  min-width: 1em;
+}
+
+.hl.lean .hypotheses .name {
+  text-align: right;
+}
+
+.hl.lean .hypotheses .name,
+.hl.lean .hypotheses .type,
+.hl.lean .conclusion .type {
+  font-family: var(--verso-code-font-family);
+}
+
+.tippy-box {
+  /* Without these, mobile Safari will start making font sizes inconsistent when its text size adjustment feature is triggered.*/
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+}
+
+.tippy-box[data-theme~='lean'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='lean'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+}
+.tippy-box[data-theme~='lean'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: #e5e5e5;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='top'] > .tippy-arrow::after {
+  bottom: -11px;
+  border-width: 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='bottom'] > .tippy-arrow::after {
+  top: -11px;
+  border-width: 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: #e5e5e5;
+  border-width: 11px 0 11px 11px;
+}
+.tippy-box[data-theme~='message'][data-placement^='left'] > .tippy-arrow::after {
+  right: -11px;
+  border-width: 11px 0 11px 11px;
+}
+
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: #e5e5e5;
+  border-width: 11px 11px 11px 0;
+}
+.tippy-box[data-theme~='message'][data-placement^='right'] > .tippy-arrow::after {
+  left: -11px;
+  border-width: 11px 11px 11px 0;
+}
+
+
+
+.tippy-box[data-theme~='warning'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid var(--verso-warning-color);
+}
+
+.tippy-box[data-theme~='error'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #f7a7af;
+}
+
+.tippy-box[data-theme~='info'] {
+  background-color: #e5e5e5;
+  color: black;
+  border: 3px solid #99b3c2;
+}
+
+.tippy-box[data-theme~='tactic'] {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='top'] > .tippy-arrow::before {
+  border-top-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='bottom'] > .tippy-arrow::before {
+  border-bottom-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='left'] > .tippy-arrow::before {
+  border-left-color: white;
+}
+.tippy-box[data-theme~='tactic'][data-placement^='right'] > .tippy-arrow::before {
+  border-right-color: white;
+}
+
+.extra-doc-links {
+  list-style-type: none;
+  margin-left: 0;
+  padding: 0;
+}
+
+.extra-doc-links > li {
+  display: inline-block;
+}
+
+.extra-doc-links > li:not(:last-child)::after {
+  content: '|';
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.verso-message .trace {
+  display: block;
+}
+
+.verso-message .trace > summary::marker {
+  color: var(--verso-text-color);
+}
+
+.verso-message .trace-children {
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .trace-children > li {
+  list-style-type: none;
+  margin-left: 1.5em;
+}
+
+.verso-message .trace-children > li:not(:has(.trace)) {
+  margin-left: 0;
+}
+
+.verso-message .trace-class {
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+.verso-message .text {
+  white-space: pre-wrap;
+}
+
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
 .env-var a {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -1803,6 +1964,54 @@ pre.toml {
   overflow-x: auto;
 }
 </style><style>
+a.technical-term {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+a.technical-term:hover {
+  text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 .syntax-error {
   white-space: normal;
 }
@@ -2110,7 +2319,7 @@ window.onload = () => {
       document.querySelectorAll('.hl.lean .has-info.warning').forEach(element => {
         element.setAttribute('data-tippy-theme', 'warning message');
       });
-      document.querySelectorAll('.hl.lean .has-info.info').forEach(element => {
+      document.querySelectorAll('.hl.lean .has-info.information').forEach(element => {
         element.setAttribute('data-tippy-theme', 'info message');
       });
       document.querySelectorAll('.hl.lean .has-info.error').forEach(element => {
@@ -2123,8 +2332,86 @@ window.onload = () => {
   });
 }
 </script>
-    <script type="module" src="static/search/search-init.js"></script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', openDetailsForHashTarget);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+} else {
+  openDetailsForHashTarget();
+}
+</script>
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="-verso-search/search-highlight.js" defer="defer"></script>
     </head>
   <body>
     <header>
@@ -2145,7 +2432,7 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="current numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="current numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#The-Lean-Language-Reference--The-Module-System">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-terms" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-terms" checked="checked"></label><span class="number">10.</span> <span class=""><a href="Terms/#terms">Terms</a></span></div>
@@ -2293,74 +2580,53 @@ Finally, instance synthesis is invoked and as many metavariables as possible are
                 <p>
                   The <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.check : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___check"><code class="kw">#check</code></a></span> command can be used to inspect the arguments that were inserted for a function call.</p>
                 <p>
-                  The function <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a></code> takes three explicit <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code> parameters, named <code>x</code>, <code>y</code>, and <code>z</code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-24490">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-sum3" data-verso-hover="1573" id="sum3">sum3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="7">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="7">y</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="7">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="7">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="7">z</span><span class="inter-text">
+                  The function <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a></code> takes three explicit <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></code> parameters, named <code>x</code>, <code>y</code>, and <code>z</code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-24489">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-sum3" data-verso-hover="1601" id="sum3-_LPAR_in-Named-Arguments_RPAR_">sum3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="9">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="9">z</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   All three arguments can be provided positionally.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">sum3 1 3 8 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24611">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>sum3 1 3 8 : Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24610">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   They can also be provided by name.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">sum3 1 3 8 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24734">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>sum3 1 3 8 : Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24733">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   When arguments are provided by name, it can be in any order.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">sum3 1 3 8 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24904">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>sum3 1 3 8 : Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-24903">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   Named and positional arguments may be freely intermixed.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">sum3 1 3 8 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25070">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>sum3 1 3 8 : Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25069">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   Named and positional arguments may be freely intermixed.
 If an argument is provided by name, it is used, even if it occurs after a positional argument that could have been used.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">sum3 8 3 1 : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25351">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>sum3 8 3 1 : Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25350">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   If a named argument is to be inserted after arguments that aren't provided, a function is created in which the provided argument is filled out.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun x y =&gt; sum3 x y 8 : Nat → Nat → Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25598">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun x y =&gt; sum3 x y 8 : Nat → Nat → Nat
-</pre></div>
-                <p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25597">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
                   Behind the scenes, the names of the arguments are preserved in the function type.
 This means that the remaining arguments can again be passed by name.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">fun x =&gt; (fun x y =&gt; sum3 x y 8) x 1 : Nat → Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25867">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Terms/Function-Application/#sum3" title="Definition of example sum3"><span class="const token" data-binding="const-sum3" data-verso-hover="1573">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">8</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                  <pre>fun x =&gt; (fun x y =&gt; sum3 x y 8) x 1 : Nat → Nat
-</pre></div>
-                </div>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-25866">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">z</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">8</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Terms/Function-Application/#sum3-_LPAR_in-Named-Arguments_RPAR_" title="Definition of example"><span class="const token" data-binding="const-sum3" data-verso-hover="1601">sum3</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.5" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="9">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">8</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.1" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre></div>
               </details><p>
               Optional and automatic parameters are not part of Lean's core type theory.
-They are encoded using the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="194">optParam</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#autoParam" title="Documentation for autoParam"><span class="const token" data-binding="const-autoParam" data-verso-hover="1574">autoParam</span></a></code> <a class="technical-term" href="Type-Classes/Class-Declarations/#--tech-term-gadgets">gadgets</a>.</p>
+They are encoded using the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="198">optParam</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#autoParam" title="Documentation for autoParam"><span class="const token" data-binding="const-autoParam" data-verso-hover="1602">autoParam</span></a></code> <a class="technical-term" href="Type-Classes/Class-Declarations/#--tech-term-gadgets">gadgets</a>.</p>
             <div class="namedocs" id="optParam">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=optParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">optParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20202" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20203" data-verso-hover="45">default</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20202" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span></div><div class="narrow-only"><span class="unknown token" data-binding="">optParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20202" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20203" data-verso-hover="45">default</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20202" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=optParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">optParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20956" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20957" data-verso-hover="49">default</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20956" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span></div><div class="narrow-only"><span class="unknown token" data-binding="">optParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20956" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20957" data-verso-hover="49">default</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20956" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span></div></pre><div class="text">
                 <p>
                   Gadget for optional parameter support.</p>
                 <p>
                   A binder like <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">default</span><span class="unknown token" data-binding="">)</span></code> in a declaration is syntax sugar for
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20197" data-verso-hover="1575">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="194">optParam</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20191" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20192" data-verso-hover="45">default</span></code>, and triggers the elaborator to attempt to use
-<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Inhabited___mk" title="Documentation for Inhabited.default"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1576">default</span></a></code> to supply the argument if it is not supplied.</p>
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.20951" data-verso-hover="1603">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="198">optParam</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20945" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.20946" data-verso-hover="49">default</span></code>, and triggers the elaborator to attempt to use
+<code class="hl lean inline" data-lean-context="docstring-examples"><a href="Type-Classes/Basic-Classes/#Inhabited___mk" title="Documentation for Inhabited.default"><span class="const token" data-binding="const-Inhabited.default" data-verso-hover="1604">default</span></a></code> to supply the argument if it is not supplied.</p>
                 </div>
               </div>
             <div class="namedocs" id="autoParam">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=autoParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">autoParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20351" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20352" data-verso-hover="1577">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Lean.Syntax</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span></div><div class="narrow-only"><span class="unknown token" data-binding="">autoParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20351" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.20352" data-verso-hover="1577">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="29">Lean.Syntax</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="296">Sort u</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=autoParam" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">autoParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21105" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21106" data-verso-hover="1605">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="33">Lean.Syntax</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span></div><div class="narrow-only"><span class="unknown token" data-binding="">autoParam.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21105" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.21106" data-verso-hover="1605">tactic</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___missing" title="Documentation for Lean.Syntax"><span class="const token" data-binding="const-Lean.Syntax" data-verso-hover="33">Lean.Syntax</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span></div></pre><div class="text">
                 <p>
-                  Gadget for automatic parameter support. This is similar to the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="194">optParam</span></a></code> gadget, but it uses
+                  Gadget for automatic parameter support. This is similar to the <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="198">optParam</span></a></code> gadget, but it uses
 the given tactic.
-Like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="194">optParam</span></a></code>, this gadget only affects elaboration.
+Like <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Terms/Function-Application/#optParam" title="Documentation for optParam"><span class="const token" data-binding="const-optParam" data-verso-hover="198">optParam</span></a></code>, this gadget only affects elaboration.
 For example, the tactic will <em>not</em> be invoked during type class resolution.</p>
                 </div>
               </div>
@@ -2398,49 +2664,43 @@ Specifically, it becomes the first explicit argument that would not be a type er
 Aside from that, the application is elaborated as usual.</p>
               <details class="example"><summary class="description">Generalized Field Notation</summary><div class="example-content">
                   <p>
-                    The type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code> is a constant, so functions in the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code> namespace can be applied to terms with type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code> with generalized field notation.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-28263">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Username" data-verso-hover="1578" id="Username">Username</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="inter-text">
+                    The type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code> is a constant, so functions in the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code> namespace can be applied to terms with type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code> with generalized field notation.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-28262">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Username" data-verso-hover="1606" id="Username-_LPAR_in-Generalized-Field-Notation_RPAR_">Username</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                    One such function is <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username___validate" title="Definition of example Username.validate"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1579">Username.validate</span></a></code>, which checks that a username contains no leading whitespace and that only a small set of acceptable characters are used.
-In its definition, generalized field notation is used to call the functions <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1580">String.isPrefixOf</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1581">String.any</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___isAlpha" title="Documentation for Char.isAlpha"><span class="const token" data-binding="const-Char.isAlpha" data-verso-hover="1582">Char.isAlpha</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___isDigit" title="Documentation for Char.isDigit"><span class="const token" data-binding="const-Char.isDigit" data-verso-hover="1583">Char.isDigit</span></a></code>.
-In the case of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1580">String.isPrefixOf</span></a></code>, which takes two <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a></code> arguments, <code class="hl lean inline" data-lean-context="examples"><span class="literal string token" data-binding="" data-verso-hover="148">" "</span></code> is used as the first  because it's the term before the dot.
-<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1581">String.any</span></a></code> can be called on <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.21213" data-verso-hover="1584">name</span></code> using generalized field notation even though it has type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code> because <code>Username.any</code> is not defined and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code> unfolds to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a></code>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-29005">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Username.validate" data-verso-hover="1579" id="Username___validate">Username.validate</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1584">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except"><span class="const token" data-binding="const-Except" data-verso-hover="1466">Except</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="3">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-29069">do</span></a><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29074">if</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="148">" "</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1580">isPrefixOf</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1584">name</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29074">then</span><span class="inter-text">
-    </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1585">throw</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1586">"Unexpected leading whitespace"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29146">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1584">name</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1581">any</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Username.validate.notOk" data-verso-hover="1587">notOk</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29146">then</span><span class="inter-text">
-    </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1585">throw</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1588">"Unexpected character"</span><span class="inter-text">
-  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-29204" data-verso-hover="360">return</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.whereDecls-29214">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Username.validate.notOk" data-verso-hover="1587">notOk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="352">c</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="259">Char</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="183">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="352">c</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___isAlpha" title="Documentation for Char.isAlpha"><span class="const token" data-binding="const-Char.isAlpha" data-verso-hover="1582">isAlpha</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&&</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="352">c</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___isDigit" title="Documentation for Char.isDigit"><span class="const token" data-binding="const-Char.isDigit" data-verso-hover="1583">isDigit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&&</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="352">c</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∈</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">'_'</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">' '</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+                    One such function is <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username___validate-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1607">Username.validate</span></a></code>, which checks that a username contains no leading whitespace and that only a small set of acceptable characters are used.
+In its definition, generalized field notation is used to call the functions <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1608">String.isPrefixOf</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1609">String.any</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___isAlpha" title="Documentation for Char.isAlpha"><span class="const token" data-binding="const-Char.isAlpha" data-verso-hover="1610">Char.isAlpha</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___isDigit" title="Documentation for Char.isDigit"><span class="const token" data-binding="const-Char.isDigit" data-verso-hover="1611">Char.isDigit</span></a></code>.
+In the case of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1608">String.isPrefixOf</span></a></code>, which takes two <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code> arguments, <code class="hl lean inline" data-lean-context="examples"><span class="literal string token" data-binding="" data-verso-hover="154">" "</span></code> is used as the first  because it's the term before the dot.
+<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1609">String.any</span></a></code> can be called on <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.21946" data-verso-hover="1612">name</span></code> using generalized field notation even though it has type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code> because <code>Username.any</code> is not defined and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code> unfolds to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-29004">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Username.validate" data-verso-hover="1607" id="Username___validate-_LPAR_in-Generalized-Field-Notation_RPAR_">Username.validate</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1612">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#Except___error" title="Documentation for Except"><span class="const token" data-binding="const-Except" data-verso-hover="1494">Except</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-29068">do</span></a><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29073">if</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="154">" "</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___isPrefixOf" title="Documentation for String.isPrefixOf"><span class="const token" data-binding="const-String.isPrefixOf" data-verso-hover="1608">isPrefixOf</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1612">name</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29073">then</span><span class="inter-text">
+    </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1613">throw</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1614">"Unexpected leading whitespace"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29145">if</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1612">name</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___any" title="Documentation for String.any"><span class="const token" data-binding="const-String.any" data-verso-hover="1609">any</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Username.validate.notOk" data-verso-hover="1615">notOk</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doIf-29145">then</span><span class="inter-text">
+    </span><a href="Functors___-Monads-and--do--Notation/Varieties-of-Monads/#MonadExcept___mk" title="Documentation for MonadExcept.throw"><span class="const token" data-binding="const-MonadExcept.throw" data-verso-hover="1613">throw</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1616">"Unexpected character"</span><span class="inter-text">
+  </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-29203" data-verso-hover="368">return</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.whereDecls-29213">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Username.validate.notOk" data-verso-hover="1615">notOk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="360">c</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="262">Char</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool"><span class="const token" data-binding="const-Bool" data-verso-hover="189">Bool</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="360">c</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___isAlpha" title="Documentation for Char.isAlpha"><span class="const token" data-binding="const-Char.isAlpha" data-verso-hover="1610">isAlpha</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&&</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="360">c</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Characters/#Char___isDigit" title="Documentation for Char.isDigit"><span class="const token" data-binding="const-Char.isDigit" data-verso-hover="1611">isDigit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&&</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">!</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="360">c</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∈</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">'_'</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">' '</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-29308">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-root" data-verso-hover="1589" id="Username___validate">root</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1590">"root"</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-29307">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-root" data-verso-hover="1617" id="root-_LPAR_in-Generalized-Field-Notation_RPAR_">root</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1618">"root"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                    However, <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username___validate" title="Definition of example Username.validate"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1579">Username.validate</span></a></code> can't be called on <code class="hl lean inline" data-lean-context="examples"><span class="literal string token" data-binding="" data-verso-hover="1590">"root"</span></code> using field notation, because <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="141">String</span></a></code> does not unfold to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-29538" data-verso-hover="6">#eval</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">invalid field 'validate', the environment does not contain 'String.validate'
-  "root"
-has type
-  String</code></span></span><span class="literal string token" data-binding="" data-verso-hover="1590">"root"</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">validate</span></span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="error">
-                    <pre>invalid field 'validate', the environment does not contain 'String.validate'
-  "root"
-has type
-  String
-</pre></div>
-                  <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username___validate" title="Definition of example root"><span class="const token" data-binding="const-root" data-verso-hover="1589">root</span></a></code>, on the other hand, has type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username" title="Definition of example Username"><span class="const token" data-binding="const-Username" data-verso-hover="1578">Username</span></a></code>:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Except.ok ()</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-29786" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#Username___validate" title="Definition of example root"><span class="const token" data-binding="const-root" data-verso-hover="1589">root</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Username___validate" title="Definition of example Username.validate"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1579">validate</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>Except.ok ()
-</pre></div>
-                  </div>
+                    However, <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username___validate-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1607">Username.validate</span></a></code> can't be called on <code class="hl lean inline" data-lean-context="examples"><span class="literal string token" data-binding="" data-verso-hover="1618">"root"</span></code> using field notation, because <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code> does not unfold to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code>.</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-29537" data-verso-hover="8">#eval</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text"></span><span class="text">Invalid field `</span><span class="text">validate</span><span class="text">`: The environment does not contain `</span><span class="text">String.validate</span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="1618">"root"</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
+</span><span class="text">has type</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><span class="literal string token" data-binding="" data-verso-hover="1618">"root"</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">validate</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">Invalid field `</span><span class="text">validate</span><span class="text">`: The environment does not contain `</span><span class="text">String.validate</span><span class="text">`</span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="literal string token" data-binding="" data-verso-hover="1618">"root"</span></span><span class="text"></span><span class="text">
+</span><span class="text">has type</span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Types/Strings/#String___mk" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"></span></span></pre><p>
+                    <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#root-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-root" data-verso-hover="1617">root</span></a></code>, on the other hand, has type <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Username-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username" data-verso-hover="1606">Username</span></a></code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">Except.ok ()</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-29785" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#root-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-root" data-verso-hover="1617">root</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Username___validate-_LPAR_in-Generalized-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Username.validate" data-verso-hover="1607">validate</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Except.ok ()</span></span></pre></div>
                 </details><div class="namedocs" id="pp___fieldNotation">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc.option&amp;name=pp.fieldNotation" title="Permalink">🔗</a></span><span class="label">option</span><pre class="signature hl lean block">pp.fieldNotation</pre><div class="text">
                   <p>
-                    Default value: <code class="hl lean inline"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="40">true</span></a></code></p>
+                    Default value: <code class="hl lean inline"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="44">true</span></a></code></p>
                   <p>
                     (pretty printer) use field notation when pretty printing, including for structure projections, unless '@[pp_nodot]' is applied</p>
                   </div>
@@ -2448,29 +2708,23 @@ has type
               <div class="namedocs" id="attr-next-next-next">
                 <span class="label">attribute</span><span class="title">Controlling Field Notation</span><div class="text">
                   <p>
-                    The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1591">pp_nodot</span></code> attribute causes Lean's pretty printer to not use field notation when printing a function.</p>
+                    The <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1619">pp_nodot</span></code> attribute causes Lean's pretty printer to not use field notation when printing a function.</p>
                   <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___simple-next-next-next-next"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="keyword">pp_nodot</span><span class="from-nonterminal" data-kind="null"></span></pre></div>
                 </div>
               <details class="example"><summary class="description">Turning Off Field Notation</summary><div class="example-content">
                   <p>
-                    <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">Nat.half</span></a></code> is printed using field notation by default.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-30242">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592" id="Nat___half">Nat.half</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="7">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.123" data-verso-hover="7">n</span><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">half</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Nat.zero.half : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-30336">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1063">Nat.zero</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>Nat.zero.half : Nat
-</pre></div>
-                  <p>
-                    Adding <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1591">pp_nodot</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">Nat.half</span></a></code> causes ordinary function application syntax to be used instead when displaying the term.</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Command___attribute" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.attribute-30566">attribute</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">pp_nodot</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">Nat.half</span></a><span class="inter-text">
+                    <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a></code> is printed using field notation by default.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-30241">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620" id="Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_">Nat.half</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="9">n</span><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">half</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">half</span></a></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-30335">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a><span class="unknown token" data-binding="">.</span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">half</span></a></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre><p>
+                    Adding <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="1619">pp_nodot</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a></code> causes ordinary function application syntax to be used instead when displaying the term.</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Command___attribute" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.attribute-30565">attribute</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">pp_nodot</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a><span class="inter-text">
 
-</span><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">Nat.half Nat.zero : Nat</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-30597">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half" title="Definition of example Nat.half"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1592">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1063">Nat.zero</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>Nat.half Nat.zero : Nat
-</pre></div>
-                  </div>
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-30596">#check</span></a></span><span class="inter-text"> </span><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Terms/Function-Application/#Nat___half-_LPAR_in-Turning-Off-Field-Notation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.half" data-verso-hover="1620">Nat.half</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.zero"><span class="const token" data-binding="const-Nat.zero" data-verso-hover="1085">Nat.zero</span></a></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></span><span class="text"></span></span></pre></div>
                 </details></section>
             <section>
               <h2 id="The-Lean-Language-Reference--Terms--Function-Application--Pipeline-Syntax">
@@ -2500,20 +2754,14 @@ In left pipeline notation, values on the right are fed leftwards.</p>
                   <p>
                     Right pipelines can be used to call a series of functions on a term.
 For readers, they tend to emphasize the data that's being transformed.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">'!'</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-31610" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1593">"Hello!"</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___toList" title="Documentation for String.toList"><span class="const token" data-binding="const-String.toList" data-verso-hover="133">String.toList</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___reverse" title="Documentation for List.reverse"><span class="const token" data-binding="const-List.reverse" data-verso-hover="308">List.reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___head___-next" title="Documentation for List.head!"><span class="const token" data-binding="const-List.head!" data-verso-hover="1594">List.head!</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>'!'
-</pre></div>
-                  </div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">'!'</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-31609" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1621">"Hello!"</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___toList" title="Documentation for String.toList"><span class="const token" data-binding="const-String.toList" data-verso-hover="140">String.toList</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___reverse" title="Documentation for List.reverse"><span class="const token" data-binding="const-List.reverse" data-verso-hover="314">List.reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___head___-next" title="Documentation for List.head!"><span class="const token" data-binding="const-List.head!" data-verso-hover="1622">List.head!</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">'!'</span></span></span></pre></div>
                 </details><details class="example"><summary class="description">Left pipeline notation</summary><div class="example-content">
                   <p>
                     Left pipelines can be used to call a series of functions on a term.
 They tend to emphasize the functions over the data.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">'!'</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-31893" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___head___-next" title="Documentation for List.head!"><span class="const token" data-binding="const-List.head!" data-verso-hover="1594">List.head!</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___reverse" title="Documentation for List.reverse"><span class="const token" data-binding="const-List.reverse" data-verso-hover="308">List.reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___toList" title="Documentation for String.toList"><span class="const token" data-binding="const-String.toList" data-verso-hover="133">String.toList</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1593">"Hello!"</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>'!'
-</pre></div>
-                  </div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">'!'</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-31892" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___head___-next" title="Documentation for List.head!"><span class="const token" data-binding="const-List.head!" data-verso-hover="1622">List.head!</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___reverse" title="Documentation for List.reverse"><span class="const token" data-binding="const-List.reverse" data-verso-hover="314">List.reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___toList" title="Documentation for String.toList"><span class="const token" data-binding="const-String.toList" data-verso-hover="140">String.toList</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;|</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="1621">"Hello!"</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">'!'</span></span></span></pre></div>
                 </details><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
                 <span class="label">syntax</span><span class="title">Pipeline Fields</span><div class="text">
                   <p>
@@ -2527,40 +2775,31 @@ It is especially useful for avoiding parentheses with repeated applications.
 </code></code><span class="nonterminal" data-kind="term.pseudo">term</span> <span class="keyword">|&gt;.</span><span class="nonterminal" data-kind="fieldIdx">fieldIdx</span><span class="from-nonterminal" data-kind="null"></span></span></pre></div>
                 </div>
               <p>
-                <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.25078" data-verso-hover="1595">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><span class="const token" data-binding="const-T.f" data-verso-hover="1596">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.25080" data-verso-hover="352">arg</span></code> is an alternative syntax for <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.25092" data-verso-hover="1595">e</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-T.f" data-verso-hover="1596">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.25094" data-verso-hover="352">arg</span></code>.</p>
+                <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.25949" data-verso-hover="1623">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><span class="const token" data-binding="const-T.f" data-verso-hover="1624">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.25951" data-verso-hover="360">arg</span></code> is an alternative syntax for <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.25963" data-verso-hover="1623">e</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-T.f" data-verso-hover="1624">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.25965" data-verso-hover="360">arg</span></code>.</p>
               <details class="example"><summary class="description">Pipeline Fields</summary><div class="example-content">
                   <p>
                     Some functions are inconvenient to use with pipelines because their argument order is not conducive.
-For example, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="353">Array.push</span></a></code> takes an array as its first argument, not a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="22">Nat</span></a></code>, leading to this error:</p>
-                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-32717" data-verso-hover="6">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="353">Array.push</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="message error">failed to synthesize
-  OfNat (Array ?m.4) 4
-numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
-  Array ?m.4
-due to the absence of the instance above
-
-Additional diagnostic information may be available using the `set_option diagnostics true` command.</code></span></span><span class="typed token" data-binding="" data-verso-hover="1597">4</span></span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="error">
-                    <pre>failed to synthesize
-  OfNat (Array ?m.4) 4
-numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
-  Array ?m.4
-due to the absence of the instance above
-
-Additional diagnostic information may be available using the `set_option diagnostics true` command.
-</pre></div>
-                  <p>
+For example, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="361">Array.push</span></a></code> takes an array as its first argument, not a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="18">Nat</span></a></code>, leading to this error:</p>
+                  <code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-32716" data-verso-hover="8">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="361">Array.push</span></a><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">failed to synthesize</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.4</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">4</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.4</span></span><span class="text"></span><span class="text">
+</span><span class="text">due to the absence of the instance above</span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text">
+</span><span class="text">Hint: </span><span class="text">Additional diagnostic information may be available using the `set_option diagnostics true` command.</span><span class="text"></span></code></span></span><span class="typed token" data-binding="" data-verso-hover="1625">4</span></span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">failed to synthesize</span><span class="text">
+  </span><span class="highlighted"><a href="Terms/Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.4</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span></span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">4</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
+  </span><span class="highlighted"><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.4</span></span><span class="text"></span><span class="text">
+</span><span class="text">due to the absence of the instance above</span><span class="text"></span><span class="text"></span><span class="text">
+</span><span class="text">
+</span><span class="text">Hint: </span><span class="text">Additional diagnostic information may be available using the `set_option diagnostics true` command.</span><span class="text"></span></span></pre><p>
                     Using pipeline field notation causes the array to be inserted at the first type-correct position:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">#[1, 2, 3, 4]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-33214" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="353">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>#[1, 2, 3, 4]
-</pre></div>
-                  <p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">#[</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-33219" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="361">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">4</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">#[</span></a><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">]</span></a></span></span></pre><p>
                     This process can be iterated:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info info"><span class="hover-container"><span class="hover-info messages"><code class="message info">#[0, 1, 2, 3, 4]</code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-33344" data-verso-hover="6">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="7">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="353">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1598">reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="353">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="7">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1598">reverse</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><div class="information">
-                    <pre>#[0, 1, 2, 3, 4]
-</pre></div>
-                  </div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">#[</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">0</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">]</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-33349" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="361">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1627">reverse</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___push" title="Documentation for Array.push"><span class="const token" data-binding="const-Array.push" data-verso-hover="361">push</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">|&gt;.</span><a href="Basic-Types/Arrays/#Array___reverse" title="Documentation for Array.reverse"><span class="const token" data-binding="const-Array.reverse" data-verso-hover="1627">reverse</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">#[</span></a><span class="unknown token" data-binding="">0</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.cons"><span class="const token" data-binding="const-List.cons" data-verso-hover="108">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><a href="Basic-Types/Linked-Lists/#List___toArray" title="Documentation for List.toArray"><span class="const token" data-binding="const-List.toArray" data-verso-hover="1626">]</span></a></span></span></pre></div>
                 </details></section>
             </section>
           <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026"><nav class="prev-next-buttons">
