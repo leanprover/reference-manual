@@ -660,3 +660,104 @@ tag := "tactic-ref-other"
 
 :::tactic Lean.Parser.Tactic.runTac
 :::
+
+# Verification Condition Generation
+%%%
+tag := "tactic-ref-mvcgen"
+%%%
+
+:::tactic "mvcgen"
+:::
+
+## Tactics for Stateful Goals in `Std.Do.SPred`
+%%%
+tag := "tactic-ref-spred"
+%%%
+
+### Starting and Stopping the Proof Mode
+
+:::tactic "mstart"
+:::
+
+:::tactic "mstop"
+:::
+
+:::TODO
+Next release:
+```
+:::tactic "mleave"
+:::
+```
+:::
+
+### Proving a Stateful Goal
+
+:::tactic "mspec"
+:::
+
+:::tactic "mintro"
+:::
+
+:::tactic "mexact"
+:::
+
+:::tactic "massumption"
+:::
+
+:::tactic "mrefine"
+:::
+
+:::tactic "mconstructor"
+:::
+
+:::tactic "mleft"
+:::
+
+:::tactic "mright"
+:::
+
+:::tactic "mexists"
+:::
+
+:::tactic "mpure_intro"
+:::
+
+:::tactic "mexfalso"
+:::
+
+### Manipulating Stateful Hypotheses
+
+:::tactic "mclear"
+:::
+
+:::tactic "mdup"
+:::
+
+:::tactic "mhave"
+:::
+
+:::tactic "mreplace"
+:::
+
+:::tactic "mspecialize"
+:::
+
+:::tactic "mspecialize_pure"
+:::
+
+:::tactic "mcases"
+:::
+
+:::TODO
+Next release:
+```
+:::tactic "mrename_i"
+:::
+```
+:::
+
+:::tactic "mpure"
+:::
+
+:::tactic "mframe"
+:::
