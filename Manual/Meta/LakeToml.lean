@@ -162,9 +162,43 @@ def tomlField : DirectiveExpander
     let contents ← contents.mapM elabBlock
     return #[← ``(Block.other (Block.tomlField $(quote sort) $(quote inTable) $(quote field)) #[$contents,*])]
 
+open Verso.Search in
+def tomlTableDomainMapper := {
+  displayName := "Lake TOML Table",
+  className := "lake-toml-table-domain",
+  dataToSearchables := "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => {
+    let arrayKey = value[0].data.arrayKey;
+    let arr = arrayKey ? `[[${arrayKey}]] — ` : '';
+    return {
+      searchKey: arr + value[0].data.description,
+      address: `${value[0].address}#${value[0].id}`,
+      domainId: 'Manual.lakeTomlTable',
+      ref: value,
+    }})
+"
+  : DomainMapper }.setFont { family := .code }
+
+open Verso.Search in
+def tomlFieldDomainMapper := {
+  displayName := "Lake TOML Field",
+  className := "lake-toml-field-domain",
+  dataToSearchables := "(domainData) =>
+    Object.entries(domainData.contents).map(([key, value]) => {
+      let tableArrayKey = value[0].data.tableArrayKey;
+      let arr = tableArrayKey ? `[[${tableArrayKey}]]` : 'package configuration';
+      return {
+        searchKey: `${value[0].data.field} in ${arr}`,
+        address: `${value[0].address}#${value[0].id}`,
+        domainId: 'Manual.lakeTomlField',
+        ref: value,
+      }})"
+  : DomainMapper }.setFont { family := .code }
 
 @[block_extension Block.tomlField]
 def Block.tomlField.descr : BlockDescr where
+  init s := s.addQuickJumpMapper tomlFieldDomain tomlFieldDomainMapper
+
   traverse id info _ := do
     let .ok (_, inTable, field) := FromJson.fromJson? (α := Option Nat × Name × Toml.Field Empty) info
       | do logError "Failed to deserialize field doc data"; pure none
@@ -273,6 +307,9 @@ def Block.tomlFieldCategory.descr : BlockDescr where
 
 @[block_extension Block.tomlTable]
 def Block.tomlTable.descr : BlockDescr where
+  init s :=
+    s.addQuickJumpMapper tomlTableDomain tomlTableDomainMapper
+
   traverse id info _ := do
     let .ok (arrayKey, humanName, typeName) := FromJson.fromJson? (α := Option String × String × Name) info
         | do logError "Failed to deserialize FFI doc data"; pure none
@@ -466,11 +503,11 @@ def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM 
                 else if type.isConstOf ``Name then some .string
                 else if type.isConstOf ``Bool then some .bool
                 else if type.isConstOf ``System.FilePath then some .path
-                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "workspace configuration" none)
+                else if type.isConstOf ``Lake.WorkspaceConfig then some (.other ``Lake.WorkspaceConfig "Workspace configuration" none)
                 else if type.isConstOf ``Lake.BuildType then some (.oneOf buildTypes)
                 else if type.isConstOf ``Lake.StdVer then some .version
-                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "string pattern" none)
-                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lake.LeanOption then some (.array (.other ``Lake.LeanOption "Lean option" none))
+                else if type.isConstOf ``Lake.StrPat then some (.other ``Lake.StrPat "String pattern" none)
+                else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Lean.LeanOption then some (.array (.other ``Lean.LeanOption "Lean option" none))
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``String then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``Name then some (.array .string)
                 else if type.isAppOfArity ``Array 1 && (type.getArg! 0).isConstOf ``System.FilePath then some (.array .path)
@@ -520,6 +557,7 @@ def TomlTableOpts.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse
 where
   arrayKey := {
     description := "'root' for the root table, or a string that contains a key for nested tables",
+    signature := .Ident ∪ .String
     get
       | .name n =>
         if n.getId == `root then pure none
@@ -632,11 +670,30 @@ instance : Test (Lake.ConfigType kind pkg name) where
     | .anonymous => fun (x : Lake.OpaqueTargetConfig pkg name) => Test.toString x
     | _ => fun _ => "Impossible!"
 
+instance : Test Lake.CacheRef where
+  toString _ := "#<cacheref>"
+
+private def contains (fmt : Format) (c : Char) : Bool :=
+  match fmt with
+  | .text s => s.contains c
+  | .tag _ x | .group x .. | .nest _ x => contains x c
+  | .append x y => contains x c || contains y c
+  | .align .. | .line | .nil => false
+
+instance [Test α] : Test (Option α) where
+  toString
+    | none => "none"
+    | some x =>
+      let s := Test.toString x
+      let s := if contains s '(' || contains s ' ' then "(" ++ s ++ ")" else s
+      s!"some " ++ s
 
 deriving instance Test for Lake.ConfigDecl
 deriving instance Test for Lake.PConfigDecl
 deriving instance Test for Lake.NConfigDecl
+
 deriving instance Test for Lake.Package
+
 
 
 open Lake Toml in

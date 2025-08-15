@@ -22,17 +22,15 @@ partial def ElanCommandOptions.parse [Monad m] [MonadError m] : ArgParse m ElanC
     many1 (.positional `name .name) <*>
     (.positional `spec strLit <|>
      (pure (Syntax.mkStrLit ""))) <*>
-    many (.named `alias .name false)
+    .many (.named `alias .name false)
 
 where
-  many {α} (p : ArgParse m α) : ArgParse m (List α) :=
-    ((· :: ·) <$> p <*> many p) <|> pure []
-
   many1 {α} (p : ArgParse m α) : ArgParse m (List α) :=
-    (· :: ·) <$> p <*> many p
+    (· :: ·) <$> p <*> .many p
 
   strLit : ValDesc m StrLit := {
     description := "string literal containing a Elan command spec",
+    signature := .String,
     get
       | .str s => pure s
       | other => throwError "Expected string, got {repr other}"
@@ -107,6 +105,20 @@ def elan : DirectiveExpander
 
 def elanCommandDomain : Name := `Manual.elanCommand
 
+open Verso.Search in
+def elanCommandDomainMapper : DomainMapper := {
+  displayName := "Elan Command",
+  className := "elan-command-domain",
+  dataToSearchables := "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    searchKey: `elan ${key}`,
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.elanCommand',
+    ref: value,
+  }))"
+  : DomainMapper
+}.setFont { family := .code }
+
 open Verso.Genre.Manual.Markdown in
 open Lean Elab Term Parser Tactic Doc in
 @[block_extension Block.elanCommand]
@@ -114,6 +126,7 @@ def elanCommand.descr : BlockDescr where
   init st := st
     |>.setDomainTitle elanCommandDomain "Elan commands"
     |>.setDomainDescription elanCommandDomain "Detailed descriptions of Elan commands"
+    |>.addQuickJumpMapper elanCommandDomain elanCommandDomainMapper
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
@@ -165,7 +178,7 @@ def elanCommand.descr : BlockDescr where
           {{permalink id xref false}}
           <span class="label">"Elan command"</span>
           <pre class="signature hl lean block" data-lean-context={{name.replace " "  "~~"}}>
-            {{← (Highlighted.seq #[elanTok, .text " ", nameTok, .text " ", spec]).toHtml}}
+            {{← (Highlighted.seq #[elanTok, .text " ", nameTok, .text " ", spec]).toHtml (g := Verso.Genre.Manual)}}
           </pre>
           <div class="text">
             {{aliasHtml}}
@@ -204,7 +217,7 @@ def elanMeta.descr : InlineDescr where
         pure <| .seq #[← go b, .raw "\n"]
   extraCss := [highlightingStyle]
   extraJs := [highlightingJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
@@ -217,7 +230,7 @@ def elanMeta.descr : InlineDescr where
           (mName, none)
         | _ => ("", none)
       let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
-      hl.inlineHtml ctx
+      hl.inlineHtml ctx (g := Verso.Genre.Manual)
 
 
 @[role_expander elan]
@@ -295,7 +308,7 @@ def elanArgs.descr : InlineDescr where
 
   extraCss := [highlightingStyle]
   extraJs := [highlightingJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
@@ -305,5 +318,5 @@ def elanArgs.descr : InlineDescr where
         | .error e => HtmlT.logError s!"Couldn't deserialize Elan args: {e}"; return .empty
         | .ok hl =>
           let name := if let Json.str n := name then some n else none
-          hl.inlineHtml name
+          hl.inlineHtml name (g := Verso.Genre.Manual)
       else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty

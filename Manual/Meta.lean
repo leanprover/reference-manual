@@ -27,6 +27,7 @@ import Manual.Meta.LakeCheck
 import Manual.Meta.LakeCmd
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
+import Manual.Meta.Lean
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
 import Manual.Meta.Tactics
@@ -41,9 +42,38 @@ open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
 
-@[directive_expander comment]
-def comment : DirectiveExpander
+/--
+Comments out some content.
+-/
+@[role_expander comment]
+def comment : RoleExpander
   | _, _ => pure #[]
+
+@[code_block_expander comment]
+def commentCode : CodeBlockExpander
+  | _, _ => pure #[]
+
+@[directive_expander comment]
+def commentDirective : DirectiveExpander
+  | _, _ => pure #[]
+
+-- These are part commands rather than block expanders so that it can be used in contexts where
+-- block content doesn't fit, like right after an include. However, the blocks are still needed
+-- for contexts where part commands aren't run.
+@[part_command Verso.Syntax.codeblock, part_command Verso.Syntax.directive]
+def commentBlock : PartCommand
+  | `(block| ::: $commentId $_* { $_* } )
+  | `(block| ``` $commentId $_* | $_ ``` ) => do
+    try
+      let n ← realizeGlobalConstNoOverloadWithInfo commentId
+      if n == ``comment then
+        return ()
+      else
+        throwUnsupportedSyntax
+    catch | _ => throwUnsupportedSyntax
+  | _ => throwUnsupportedSyntax
+
+
 
 def Block.TODO : Block where
   name := `Manual.TODO
@@ -252,19 +282,20 @@ structure FFIConfig where
   name : String
   kind : FFIDocType := .function
 
+open FFIDocType in
 def FFIConfig.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m FFIConfig :=
   FFIConfig.mk <$> .positional `name .string <*> ((·.getD .function) <$> .named `kind kind true)
 where
   kind : ValDesc m FFIDocType := {
-    description := m!"{true} or {false}"
+    description := doc!"{function} or {type}",
+    signature := .Ident
     get := fun
-      | .name b => open FFIDocType in do
+      | .name b => do
         let b' ← liftM <| realizeGlobalConstNoOverloadWithInfo b
-
         if b' == ``function then pure .function
         else if b' == ``type then pure .type
-        else throwErrorAt b "Expected 'true' or 'false'"
-      | other => throwError "Expected Boolean, got {repr other}"
+        else throwErrorAt b "Expected {``function} or {``type}"
+      | _ => throwError "Expected identifier"
   }
 
 /--

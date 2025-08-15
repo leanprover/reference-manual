@@ -11,96 +11,38 @@ open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
 open Verso.Output.Html in
-def searchModule := {{
-    <script type="module" src="/static/search/search-init.js"></script>
-  }}
-
-
-open Verso.Output.Html in
 def plausible := {{
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
 
-
-
-def fuzzysortLicense : LicenseInfo where
-  identifier := "MIT"
-  dependency := "fuzzysort v3.1.0"
-  howUsed := "The fuzzysort library is used in the search box to quickly filter results."
-  link := "https://github.com/farzher/fuzzysort"
-  text := #[(some "The MIT License", text)]
-where
-  text := r#"
-Copyright (c) 2018 Stephen Kamenar
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"#
-
-def w3ComboboxLicense : LicenseInfo where
-  identifier := "W3C-20150513"
-  dependency := "Editable Combobox With Both List and Inline Autocomplete Example, from the W3C's ARIA Authoring Practices Guide (APG)"
-  howUsed := "The search box component includes code derived from the example code in the linked article from the W3C's ARIA Authoring Practices Guide (APG)."
-  link := "https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/"
-  text := #[(some "Software and Document License - 2023 Version", text)]
-where
-  text := r#"Permission to copy, modify, and distribute this work, with or without
-modification, for any purpose and without fee or royalty is hereby granted,
-provided that you include the following on ALL copies of the work or portions
-thereof, including modifications:
-
- * The full text of this NOTICE in a location viewable to users of the redistributed or derivative work.
-
- * Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, the W3C software and document short notice should be included.
-
- * Notice of any changes or modifications, through a copyright statement on the new code or document such as "This software or document includes material copied from or derived from "Editable Combobox With Both List and Inline Autocomplete Example" at https://www.w3.org/WAI/ARIA/apg/patterns/combobox/examples/combobox-autocomplete-both/. Copyright © 2024 World Wide Web Consortium. https://www.w3.org/copyright/software-license-2023/"
-
-
-"#
+open Verso.Output.Html in
+def scarfPixel := {{
+  <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026" />
+}}
 
 def main :=
   manualMain (%doc Manual) (config := config)
 where
-  config := Config.addKaTeX {
+  config := Config.addSearch <| Config.addKaTeX {
     extraFiles := [("static", "static")],
     extraCss := [
       "/static/colors.css",
       "/static/theme.css",
       "/static/print.css",
-      "/static/search/search-box.css",
       "/static/fonts/source-serif/source-serif-text.css",
       "/static/fonts/source-code-pro/source-code-pro.css",
       "/static/fonts/source-sans/source-sans-3.css",
       "/static/fonts/noto-sans-mono/noto-sans-mono.css"
     ],
     extraJs := [
-      -- Search box
-      "/static/search/fuzzysort.js",
       -- Print stylesheet improvements
-      "/static/print.js"
+      {filename := "/static/print.js"}
     ],
-    extraHead := #[searchModule, plausible],
-    extraContents := #[],
+    extraHead := #[plausible],
+    extraContents := #[scarfPixel],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover-community/mathlib-manual/",
-    issueLink := some "https://github.com/leanprover-community/mathlib-manual/pulls"
-    -- Licenses for the search box
-    licenseInfo := [fuzzysortLicense, w3ComboboxLicense]
+    issueLink := some "https://github.com/leanprover-community/mathlib-manual/pulls",
   }

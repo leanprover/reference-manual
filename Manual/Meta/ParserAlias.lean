@@ -128,7 +128,7 @@ def parserAlias.descr : BlockDescr where
         if autoGroupArgs then
           some {{"Automatically wraps arguments in a " <code>"null"</code> " node unless there's exactly one"}}
         else none
-      let meta :=
+      let metadata :=
         match grp with
         | none => {{<p>{{arity}}</p>}}
         | some g => {{<ul><li>{{arity}}</li><li>{{g}}</li></ul>}}
@@ -137,9 +137,9 @@ def parserAlias.descr : BlockDescr where
         <div class="namedocs" {{idAttr}}>
           {{permalink id xref false}}
           <span class="label">"parser alias"</span>
-          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml}}</pre>
+          <pre class="signature hl lean block">{{← (Highlighted.seq #[x, args]).toHtml (g := Verso.Genre.Manual)}}</pre>
           <div class="text">
-            {{meta}}
+            {{metadata}}
             {{← contents.mapM goB}}
           </div>
         </div>

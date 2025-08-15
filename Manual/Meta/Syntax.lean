@@ -136,7 +136,7 @@ def keywordOf.descr : InlineDescr where
         -- with first! Also TODO: we need docs for syntax categories, with human-readable names to
         -- show here. Use tactic index data for inspiration.
         -- For now, here's the underlying data so we don't have to fill in xrefs later and can debug.
-        let tgt := (← read).linkTargets.keyword kind
+        let tgt := (← read).linkTargets.keyword kind none
         let addLink (html : Html) : Html :=
           match tgt[0]? with
           | none => html
@@ -209,7 +209,7 @@ window.addEventListener("load", () => {
 });
 "#
   ]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
 
 @[role_expander keyword]
@@ -915,7 +915,7 @@ def withOpenedNamespaces (nss : List Name) (act : DocElabM α) : DocElabM α :=
 
 
 inductive SearchableTag where
-  | meta
+  | metavar
   | keyword
   | literalIdent
   | ws
@@ -924,13 +924,13 @@ deriving DecidableEq, Ord, Repr
 open Lean.Syntax in
 instance : Quote SearchableTag where
   quote
-    | .meta => mkCApp ``SearchableTag.meta #[]
+    | .metavar => mkCApp ``SearchableTag.metavar #[]
     | .keyword => mkCApp ``SearchableTag.keyword #[]
     | .literalIdent => mkCApp ``SearchableTag.literalIdent #[]
     | .ws => mkCApp ``SearchableTag.ws #[]
 
 def SearchableTag.toKey : SearchableTag → String
-  | .meta => "meta"
+  | .metavar => "meta"
   | .keyword => "keyword"
   | .literalIdent => "literalIdent"
   | .ws => "ws"
@@ -941,7 +941,7 @@ instance : ToJson SearchableTag where
   toJson := SearchableTag.toJson
 
 def SearchableTag.fromJson? : Json → Except String SearchableTag
-  | .str "meta" => pure .meta
+  | .str "meta" => pure .metavar
   | .str "keyword" => pure .keyword
   | .str "literalIdent" => pure .literalIdent
   | .str "ws" => pure .ws
@@ -967,7 +967,7 @@ def searchableJson (ss : Array (SearchableTag × String)) : Json :=
 partial def searchable (cat : Name) (txt : TaggedText GrammarTag) : Array (SearchableTag × String) :=
   (go txt *> get).run' #[] |> fixup
 where
-  dots : SearchableTag × String := (.meta, "…")
+  dots : SearchableTag × String := (.metavar, "…")
   go : TaggedText GrammarTag → StateM (Array (SearchableTag × String)) String
     | .text s => do
       ws s
@@ -1007,9 +1007,9 @@ where
           if st.isEmpty then return st
         -- Don't parenthesize just "..."
         | ")" | ")?" | ")*" =>
-          if let some st' := suffixMatches #[(· == (.meta, "(")) , (· == dots)] st then return st'.push dots
+          if let some st' := suffixMatches #[(· == (.metavar, "(")) , (· == dots)] st then return st'.push dots
         | _ => pure ()
-        return st.push (.meta, s)
+        return st.push (.metavar, s)
       pure s
     | .tag other txt => do
       go txt
@@ -1019,7 +1019,7 @@ where
     | `command => Id.run do
       -- Drop leading ellipses from commands
       for h : i in [0:s.size] do
-        if s[i] ∉ [dots, (.meta, "?"), (.ws, " ")] then return s.extract i s.size
+        if s[i] ∉ [dots, (.metavar, "?"), (.ws, " ")] then return s.extract i s.size
       return s
     | _ => s
   ws (s : String) : StateM (Array (SearchableTag × String)) Unit := do
@@ -1051,7 +1051,7 @@ where
       -- Don't push ellipsis onto ellipsis
       if let some _ := suffixMatches #[(· == dots)] st then st
       -- Don't alternate ellipses
-      else if let some st' := suffixMatches #[(· == dots), (· == (.meta, "|"))] st then st'.push dots
+      else if let some st' := suffixMatches #[(· == dots), (· == (.metavar, "|"))] st then st'.push dots
       else st.push dots
 
 
@@ -1061,19 +1061,19 @@ where
 
 /-- info: some #[(Manual.SearchableTag.keyword, "aaa")] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == (.meta, "(")), (· == searchable.dots)] #[(.keyword, "aaa"),(.meta, "("), (.ws, " "),(.meta, "…")]
+#eval searchable.suffixMatches #[(· == (.metavar, "(")), (· == searchable.dots)] #[(.keyword, "aaa"),(.metavar, "("), (.ws, " "),(.metavar, "…")]
 
 /-- info: some #[(Manual.SearchableTag.keyword, "aaa")] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.keyword, "aaa"),(.meta, "…"), (.ws, " ")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.keyword, "aaa"),(.metavar, "…"), (.ws, " ")]
 
 /-- info: some #[] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.meta, "…"), (.ws, " ")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…"), (.ws, " ")]
 
 /-- info: some #[] -/
 #guard_msgs in
-#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.meta, "…")]
+#eval searchable.suffixMatches #[(· == searchable.dots)] #[(.metavar, "…")]
 
 open Manual.Meta.PPrint Grammar in
 /--
@@ -1406,9 +1406,26 @@ private def notLooking : GrammarHtmlM α → GrammarHtmlM α := withReader (·.n
 
 def productionDomain : Name := `Manual.Syntax.production
 
+open Verso.Search in
+def productionDomainMapper : DomainMapper where
+  displayName := "Syntax"
+  className := "syntax-domain"
+  dataToSearchables :=
+  "(domainData) =>
+  Object.entries(domainData.contents).map(([key, value]) => ({
+    // TODO find a way to not include the “meta” parts of the string
+    // in the search key here, but still display them
+    searchKey: value[0].data.forms.map(v => v.string).join(''),
+    address: `${value[0].address}#${value[0].id}`,
+    domainId: 'Manual.Syntax.production',
+    ref: value,
+  }))"
+
 open Verso.Output Html in
 @[block_extension grammar]
 partial def grammar.descr : BlockDescr where
+  init s := s.addQuickJumpMapper productionDomain (productionDomainMapper.setFont { family := .code })
+
   traverse id info _ := do
     if let .ok (k, _, searchable) := FromJson.fromJson? (α := Name × TaggedText GrammarTag × Json) info then
       let path ← (·.path) <$> read
@@ -1440,7 +1457,7 @@ partial def grammar.descr : BlockDescr where
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
   extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   localContentItem _ json _ := open Verso.Output.Html in do
     if let .arr #[_, .arr #[_, .arr toks]] := json then
@@ -1476,7 +1493,7 @@ where
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
-          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k)[0]? then
+          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k none)[0]? then
             return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
       return {{<span class="keyword">{{inner}}</span>}}
     | .nonterminal k doc? => do
@@ -1536,7 +1553,7 @@ def syntaxKind.inlinedescr : InlineDescr where
         pure <| .seq #[← go b, .raw "\n"]
   extraCss := [grammarCss]
   extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [("popper.js", popper), ("tippy.js", tippy)]
+  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
   extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in

@@ -216,7 +216,9 @@ def parenSeq (xs : List Format) : Format :=
 
 {name}`nums` contains the numbers one through twenty, as a list of formats:
 ```lean
-def nums : List Format := Nat.fold 20 (init := []) fun i _ ys => text s!"{20 - i}" :: ys
+def nums : List Format :=
+  Nat.fold 20 (init := []) fun i _ ys =>
+    text s!"{20 - i}" :: ys
 ```
 
 ```lean (name := nums)
@@ -292,7 +294,8 @@ Using {name}`fill`, on the other hand, only inserts newlines as required to avoi
 
 The behavior of {name}`fill` can be seen clearly with longer sequences:
 ```lean (name := filledbigp30)
-#eval IO.println (pretty (width := 30) (fill (parenSeq (nums ++ nums ++ nums ++ nums))))
+#eval IO.println <|
+  pretty (width := 30) (fill (parenSeq (nums ++ nums ++ nums ++ nums)))
 ```
 ```leanOutput filledbigp30
 ( 1 2 3 4 5 6 7 8 9 10 11 12

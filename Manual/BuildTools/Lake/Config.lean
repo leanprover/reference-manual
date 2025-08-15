@@ -7,8 +7,8 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Command
-import Lake.DSL.Syntax
 import Lake.Config.Monad
+import Lake.DSL
 
 import Manual.Meta
 import Manual.BuildTools.Lake.CLI
@@ -79,13 +79,17 @@ Field names not used by Lake should not be used to store metadata to be processe
 The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
 The only mandatory field is `name`, which declares the package's name.
 
-::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs
+:::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs skip:=dynlibs skip:=plugins
 
-:::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
+::::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
 They are used by {ref "reservoir"}[Reservoir] to index and display packages.
 If a field is left out, Reservoir may use information from the package's GitHub repository to fill in details.
+
+:::tomlField Lake.PackageConfig name "The package name" "Package names" String
+The package's name.
 :::
+::::
 
 :::tomlFieldCategory "Layout" packagesDir srcDir buildDir leanLibDr nativeLibDir binDir irDir
 These options control the top-level directory layout of the package and its build directory.
@@ -121,7 +125,7 @@ These options define a cloud release for the package, as described in the sectio
 
 :::
 
-::::
+:::::
 
 :::::example "Minimal TOML Package Configuration"
 The minimal TOML configuration for a Lean {tech}[package] sets only the package's name, using the default values for all other fields.
@@ -179,7 +183,8 @@ name = "example-package"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache? := none},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -195,7 +200,8 @@ name = "example-package"
   defaultScripts := #[],
   postUpdateHooks := #[],
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -302,7 +308,8 @@ name = "Sorting"
       license := "",
       licenseFiles := #[FilePath.mk "LICENSE"],
       readmeFile := FilePath.mk "README.md",
-      reservoir := true},
+      reservoir := true,
+      enableArtifactCache? := none},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -384,7 +391,8 @@ name = "Sorting"
   defaultScripts := #[],
   postUpdateHooks := #[],
   testDriver := "",
-  lintDriver := ""}
+  lintDriver := "",
+  cacheRef? := none}
 ```
 ::::
 :::::
@@ -555,6 +563,10 @@ source = {type = "git", url = "https://example.com/example.git"}
 Library targets are expected in the `lean_lib` array of tables.
 
 ::::tomlTableDocs "lean_lib" "Library Targets" Lake.LeanLibConfig skip := backend skip:=globs skip:=nativeFacets
+:::tomlField Lake.LeanLibConfig name "The library name" "Library names" String
+The library's name, which is typically the same as its single module root.
+:::
+
 ::::
 
 :::::example "Minimal Library Target"
@@ -629,6 +641,9 @@ If its modules are accessed at elaboration time, they will be compiled to native
 ## Executable Targets
 
 :::: tomlTableDocs "lean_exe" "Executable Targets" Lake.LeanExeConfig skip := backend skip:=globs skip:=nativeFacets
+:::tomlField Lake.LeanExeConfig name "The executable's name" "Executable names" String
+The executable's name.
+:::
 
 ::::
 
@@ -819,13 +834,14 @@ from git $t $[@ $t]? $[/ $t]?
 
 ## Targets
 
-{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 
+
+{tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 :::TODO
-It's presently impossible to import Lake.DSL.AttributesCore due to initialization changes, so `default_target` can't be rendered/checked as an attribute above. This should be fixed upstream.
+Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
-:::syntax attr (title := "Specifying Default Targets") (label := "attribute")
+:::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
 
 ```grammar
 default_target
