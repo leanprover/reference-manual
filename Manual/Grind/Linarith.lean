@@ -38,9 +38,9 @@ It can be disabled using the option `grind -linarith`.
 
 
 :::example "Goals Decided by `linarith`" (open := true)
-All of these examples rely on instances the following `linarith` classes:
+All of these examples rely on instances of the following ordering notation and `linarith` classes:
 ```lean
-variable [IntModule α] [LinearOrder α] [OrderedAdd α]
+variable [LE α] [LT α] [IntModule α] [LinearOrder α] [OrderedAdd α]
 ```
 
 Integer modules ({name}`IntModule`) are types with zero, addition, negation, subtraction, and scalar multiplication by integers that satisfy the expected properties of these operations.
@@ -72,7 +72,7 @@ example {a b c d e : α} :
 For types that are commmutative rings (that is, types in which the multiplication operator is commutative) with {name}`CommRing` instances, `linarith` has more capabilities.
 
 ```lean
-variable [CommRing R] [LinearOrder R] [OrderedRing R]
+variable [LE R] [LT R] [CommRing R] [LinearOrder R] [OrderedRing R]
 ```
 
 The {inst}`CommRing R` instance allows `linarith` to perform basic normalization, such as identifying linear atoms `a * b` and `b * a`, and to account for scalar multiplication on both sides.
