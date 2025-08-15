@@ -963,7 +963,7 @@ $[where $_*]?
 
 :::syntax command (title := "Custom Library Facets")
 
-Package facets allow the production of an artifact or set of artifacts from a library.
+Library facets allow the production of an artifact or set of artifacts from a library.
 The Lake API makes it possible to query a library for its modules; thus, one common use for a library facet is to build a given facet of each module.
 
 ```grammar
@@ -979,7 +979,7 @@ $[where $_*]?
 
 :::syntax command (title := "Custom Module Facets")
 
-Package facets allow the production of an artifact or set of artifacts from a module, typically by invoking a command-line tool.
+Module facets allow the production of an artifact or set of artifacts from a module, typically by invoking a command-line tool.
 
 ```grammar
 $[$_:docComment]?
