@@ -19,7 +19,6 @@ file := "v4.21.0"
 %%%
 
 ````markdown
-
 For this release, 295 changes landed. In addition to the 100 feature additions and 83 fixes listed below there were 2 refactoring changes, 4 documentation improvements, 6 performance improvements, 2 improvements to the test suite and 98 other changes.
 
 ## Highlights
@@ -27,7 +26,7 @@ For this release, 295 changes landed. In addition to the 100 feature additions a
 _'Unknown identifier' code actions_
 
 * [#7665](https://github.com/leanprover/lean4/pull/7665) and [#8180](https://github.com/leanprover/lean4/pull/8180) add
-  support for code actions that resolve 'unknown identifier' errors by either importing the missing declaration or by
+  support for code actions that resolve 'Unknown identifier' errors by either importing the missing declaration or by
   changing the identifier to one from the environment.
 
 _New Language Features_
@@ -897,7 +896,7 @@ _Other Highlights_
 ## Server
 
 * [#7665](https://github.com/leanprover/lean4/pull/7665) and [#8180](https://github.com/leanprover/lean4/pull/8180) add
-  support for code actions that resolve 'unknown identifier' errors by either importing the missing declaration or by
+  support for code actions that resolve 'Unknown identifier' errors by either importing the missing declaration or by
   changing the identifier to one from the environment.
 
 * [#8091](https://github.com/leanprover/lean4/pull/8091) improves the performance of the workspace symbol request.
@@ -910,9 +909,9 @@ _Other Highlights_
   (last name component) for completions instead of the full name, avoiding
   namespace duplications.
 
-* [#8362](https://github.com/leanprover/lean4/pull/8362) fixes a bug where the unknown identifier code actions wouldn't
-  work correctly for some unknown identifier error spans and adjusts
-  several unknown identifier spans to actually end on the identifier in
+* [#8362](https://github.com/leanprover/lean4/pull/8362) fixes a bug where the Unknown identifier code actions wouldn't
+  work correctly for some Unknown identifier error spans and adjusts
+  several Unknown identifier spans to actually end on the identifier in
   question.
 
 ## Lake

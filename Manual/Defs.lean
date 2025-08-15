@@ -308,10 +308,10 @@ def map (f : α → β) : (xs : List α) → List β
 ```
 
 ```leanOutput noAuto
-unknown identifier 'α'
+Unknown identifier `α`
 ```
 ```leanOutput noAuto
-unknown identifier 'β'
+Unknown identifier `β`
 ```
 :::
 
@@ -443,7 +443,7 @@ def select (choices : α × α × α) : Asnwer →  α
   | .no => choices.2.2
 ```
 ```leanOutput asnwer2
-unknown identifier 'Asnwer'
+Unknown identifier `Asnwer`
 ```
 :::
 
@@ -470,7 +470,7 @@ def select (choices : α × α × α) : Answer →  α
   | .no => choices.2.2
 ```
 ```leanOutput noauto
-unknown identifier 'α'
+Unknown identifier `α`
 ```
 :::
 ::::

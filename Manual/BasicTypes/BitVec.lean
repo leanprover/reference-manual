@@ -151,7 +151,7 @@ Literals that are not in bounds are not allowed:
 example : BitVec 8 := 256#'(by decide)
 ```
 ```leanOutput oob
-tactic 'decide' proved that the proposition
+Tactic `decide` proved that the proposition
   256 < 2 ^ 8
 is false
 ```

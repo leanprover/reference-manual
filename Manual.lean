@@ -334,21 +334,6 @@ Std.DTreeMap
 Std.TreeSet
 ```
 
-
-```exceptions
-Std.Format.defUnicode
-Std.Format.format.indent
-Std.Format.format.unicode
-Std.Format.format.width
-Std.Format.getIndent
-Std.Format.getUnicode
-Std.Format.getWidth
-Std.Format.noConfusionType.withCtor
-Std.Format.noConfusionType.withCtorType
-Std.Format.pretty'
-```
-
-
 ```exceptions
 Std.HashMap.all
 Std.HashMap.equiv_emptyWithCapacity_iff_isEmpty.match_1_1

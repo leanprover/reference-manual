@@ -203,7 +203,6 @@ example (x : Int) : x*x ≥ 0 := by
   grind
 ```
 ```leanOutput cutsatDiag
-[grind.cutsat.assert] -1*「1」 + 1 = 0
 [grind.cutsat.assert] -1*「x ^ 2 + 1」 + 「x ^ 2」 + 1 = 0
 [grind.cutsat.assert] 「x ^ 2」 + 1 ≤ 0
 ```

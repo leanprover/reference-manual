@@ -92,7 +92,7 @@ end
 
 ```lean (show := false)
 -- Test comment about field notation
-/-- error: unknown constant 'Nat.bdiv' -/
+/-- error: Unknown constant `Nat.bdiv` -/
 #check_msgs in
 #check Nat.bdiv
 
@@ -492,12 +492,12 @@ Ordinary type errors are produced for other strings:
 #eval ("three" : Nat)
 ```
 ```leanOutput threeCoe
-type mismatch
+Type mismatch
   "three"
 has type
-  String : Type
+  String
 but is expected to have type
-  Nat : Type
+  Nat
 ```
 
 :::
@@ -688,12 +688,12 @@ Lists that are known to be non-empty, but which are not syntactically instances 
 ```
 When coercion insertion fails, the original type error is reported:
 ```leanOutput coeFailDep
-type mismatch
+Type mismatch
   ys
 has type
-  List Nat : Type
+  List Nat
 but is expected to have type
-  NonEmptyList Nat : Type
+  NonEmptyList Nat
 ```
 
 :::

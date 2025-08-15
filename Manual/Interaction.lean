@@ -338,7 +338,7 @@ The resulting proof makes use of a number of axioms:
 #print axioms swap_eq_swap'
 ```
 ```leanOutput axioms
-'swap_eq_swap'' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Quot.sound]
+'swap_eq_swap'' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Lean.trustCompiler, Quot.sound]
 ```
 :::
 

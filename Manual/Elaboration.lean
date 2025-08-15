@@ -141,7 +141,6 @@ The information necessary to use Lean interactively is stored in a side table ca
 
 ```lean (show := false)
 open Lean.Elab (Info)
-deriving instance TypeName for Unit
 ```
 
 
@@ -182,12 +181,12 @@ inductive B where
   | mk (x : Nat) (y : Int) : B
 example (b : B) : ⟨b.1, b.2⟩ = b := rfl
 /--
-error: type mismatch
+error: Type mismatch
   rfl
 has type
-  ?m.858 = ?m.858 : Prop
+  ?m.836 = ?m.836
 but is expected to have type
-  e1 = e2 : Prop
+  e1 = e2
 -/
 #check_msgs in
 example (e1 e2 : Empty) : e1 = e2 := rfl

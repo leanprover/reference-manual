@@ -533,14 +533,14 @@ it is a type error to apply {name}`printEven` directly to {name}`two`:
 #check printEven two
 ```
 ```leanOutput printTwo
-Application type mismatch: In the application
-  printEven two
-the argument
+Application type mismatch: The argument
   two
 has type
-  EvenPrime : Type
+  EvenPrime
 but is expected to have type
-  EvenNumber : Type
+  EvenNumber
+in the application
+  printEven two
 ```
 because values of type {name}`EvenPrime` are not also values of type {name}`EvenNumber`.
 :::
@@ -567,12 +567,12 @@ def someC : C where
   z := ""
 
 /--
-error: type mismatch
+error: Type mismatch
   someC
 has type
-  C : Type
+  C
 but is expected to have type
-  A : Type
+  A
 -/
 #check_msgs in
 #check (someC : A)
@@ -589,10 +589,10 @@ structure E extends A, B where
 #check_msgs in
 #check E.mk
 /--
-error: field type mismatch, field 'x' from parent 'A'' has type
-  Int : Type
+error: Field type mismatch: Field `x` from parent `A'` has type
+  Int
 but is expected to have type
-  Nat : Type
+  Nat
 -/
 #check_msgs in
 structure F extends A, A' where
