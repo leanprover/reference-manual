@@ -30,7 +30,7 @@ The following commands in Lean are definition-like: {TODO}[Render commands as th
  * {keyword}`theorem`
  * {keyword}`opaque`
 
-All of these commands cause Lean to {tech key:="elaborator"}[elaborate] a term based on a {tech}[signature].
+All of these commands cause Lean to {tech (key := "elaborator")}[elaborate] a term based on a {tech}[signature].
 With the exception of {keywordOf Lean.Parser.Command.example}`example`, which discards the result, the resulting expression in Lean's core language is saved for future use in the environment.
 The {keywordOf Lean.Parser.Command.declaration}`instance` command is described in the {ref "instance-declarations"}[section on instance declarations].
 
@@ -44,7 +44,7 @@ Declarations accept a consistent set of {deftech}_modifiers_, all of which are o
 Modifiers change some aspect of the declaration's interpretation; for example, they can add documentation or change its scope.
 The order of modifiers is fixed, but not every kind of declaration accepts every kind of modifier.
 
-:::syntax declModifiers (open := false) (alias:=Lean.Parser.Command.declModifiers) (title := "Declaration Modifiers")
+:::syntax declModifiers -open (alias:=Lean.Parser.Command.declModifiers) (title := "Declaration Modifiers")
 Modifiers consist of the following, in order, all of which are optional:
  1. a documentation comment,
  2. a list of {tech}[attributes],
@@ -66,7 +66,7 @@ $[$_]?
 Documentation comments are not, in fact comments: it is a syntax error to put a documentation comment in a position where it is not processed as documentation.
 They also occur in positions where some kind of text is required, but string escaping would be onerous, such as the desired messages on the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command.
 
-:::syntax docComment (open:=false) (title := "Documentation Comments")
+:::syntax docComment -open (title := "Documentation Comments")
 
 Documentation comments are like ordinary block comments, but they begin with the sequence `/--` rather than `/-`; just like ordinary comments, they are terminated with `-/`.
 
@@ -80,7 +80,7 @@ Documentation comments are like ordinary block comments, but they begin with the
 Attributes are an extensible collection of modifiers that associate additional information with declarations.
 They are described in a {ref "attributes"}[dedicated section].
 
-If a declaration is marked {deftech key:="private"}[{keyword}`private`], then it is not accessible outside the module in which it is defined.
+If a declaration is marked {deftech (key := "private")}[{keyword}`private`], then it is not accessible outside the module in which it is defined.
 If it is {keyword}`protected`, then opening its namespace does not bring it into scope.
 
 Functions marked {keyword}`noncomputable` are not compiled and cannot be executed.
@@ -98,7 +98,7 @@ tag := "signature-syntax"
 
 The {deftech}[_header_] of a definition or declaration consists of the constant being declared or defined, if relevant, together with its signature.
 The {deftech}_signature_ of a constant specifies how it can be used.
-The information present in the signature is more than just the type, including information such as {tech key:="universe parameter"}[universe level parameters] and the default values of its optional parameters.
+The information present in the signature is more than just the type, including information such as {tech (key := "universe parameter")}[universe level parameters] and the default values of its optional parameters.
 In Lean, signatures are written in a consistent format in different kinds of declarations.
 
 ## Declaration Names
@@ -106,7 +106,7 @@ In Lean, signatures are written in a consistent format in different kinds of dec
 Most headers begin with a {deftech}_declaration name_, which is followed by the signature proper: its parameters and the resulting type.
 A declaration name is a name that may optionally include universe parameters.
 
-:::syntax declId (open := false) (title := "Declaration Names")
+:::syntax declId -open (title := "Declaration Names")
 Declaration names without universe parameters consist of an identifier:
 ```grammar
 $_:ident
@@ -129,7 +129,7 @@ tag := "parameter-syntax"
 After the name, if present, is the header's signature.
 The signature specifies the declaration's parameters and type.
 
-:::syntax declSig (open := false) (title := "Declaration Signatures")
+:::syntax declSig -open (title := "Declaration Signatures")
 A signature consists of zero or more parameters, followed by a colon and a type.
 
 ```grammar
@@ -137,7 +137,7 @@ $_* : $_
 ```
 :::
 
-:::syntax optDeclSig (open := false) (title := "Optional Signatures")
+:::syntax optDeclSig -open (title := "Optional Signatures")
 Signatures are often optional.
 In these cases, parameters may be supplied even if the type is omitted.
 ```grammar
@@ -165,7 +165,7 @@ The name is optional for instance implicit parameters.
 Using an underscore (`_`) instead of a parameter name indicates an anonymous parameter.
 
 
-:::syntax bracketedBinder (open := false) (title := "Explicit Parameters")
+:::syntax bracketedBinder -open (title := "Explicit Parameters")
 Parenthesized parameters indicate explicit parameters.
 If more than one identifier or underscore is provided, then all of them become parameters with the same type.
 ```grammar
@@ -210,7 +210,7 @@ Strict implicit parameters are only synthesized at call sites when subsequent pa
 :::
 
 :::syntax bracketedBinder (title := "Instance Implicit Parameters")
-Parameters in square brackets indicate {tech}[instance implicit] parameters, which are synthesized at call sites using {tech key:="synthesis"}[instance synthesis].
+Parameters in square brackets indicate {tech}[instance implicit] parameters, which are synthesized at call sites using {tech (key := "synthesis")}[instance synthesis].
 ```grammar
 [$[$x :]? $t]
 ```
@@ -219,7 +219,7 @@ Parameters in square brackets indicate {tech}[instance implicit] parameters, whi
 The parameters are always in scope in the signature's type, which occurs after the colon.
 They are also in scope in the declaration's body, while names bound in the type itself are only in scope in the type.
 Thus, parameter names are used twice:
- * As names in the declaration's function type, bound as part of a {tech key:="dependent"}[dependent function type].
+ * As names in the declaration's function type, bound as part of a {tech (key := "dependent")}[dependent function type].
  * As names in the declaration's body.
    In function definitions, they are bound by a {keywordOf Lean.Parser.Term.fun}`fun`.
 
@@ -245,7 +245,7 @@ def mustBeEqual (n : Nat) : (k : Nat) → n = k → String :=
 ```
 :::
 
-The section on {ref "function-application"}[function application] describes the interpretation of {tech key:="optional parameter"}[optional], {tech key:="automatic parameter"}[automatic], {tech}[implicit], and {tech}[instance implicit] parameters in detail.
+The section on {ref "function-application"}[function application] describes the interpretation of {tech (key := "optional parameter")}[optional], {tech (key := "automatic parameter")}[automatic], {tech}[implicit], and {tech}[instance implicit] parameters in detail.
 
 ## Automatic Implicit Parameters
 %%%
@@ -263,7 +263,7 @@ They show up in signatures with a trailing dagger (`'✝'`).
 This prevents an arbitrary choice of name by Lean from becoming part of the API by being usable as a {tech}[named argument].
 
 ::::leanSection
-```lean show:=false
+```lean -show
 variable {α : Type u} {β : Type v}
 ```
 :::example "Automatic Implicit Parameters"
@@ -289,7 +289,7 @@ map.{u, v} {α : Type u} {β : Type v}
 ::::example "No Automatic Implicit Parameters"
 
 :::leanSection
-```lean show:=false
+```lean -show
 universe u v
 variable {α : Type u} {β : Type v}
 ```
@@ -299,7 +299,7 @@ Because {option}`autoImplicit` is disabled, this is an error:
 :::
 
 :::keepEnv
-```lean (error := true) (name := noAuto)
+```lean +error (name := noAuto)
 set_option autoImplicit false
 
 def map (f : α → β) : (xs : List α) → List β
@@ -317,7 +317,7 @@ Unknown identifier `β`
 
 
 The full signature allows the definition to be accepted:
-```lean (keep := false)
+```lean -keep
 set_option autoImplicit false
 
 def map.{u, v} {α : Type u} {β : Type v}
@@ -329,7 +329,7 @@ def map.{u, v} {α : Type u} {β : Type v}
 
 Universe parameters are inserted automatically for parameters without explicit type annotations.
 The type parameters' universes can be inferred, and the appropriate universe parameters inserted, even when {option}`autoImplicit` is disabled:
-```lean (keep := false)
+```lean -keep
 set_option autoImplicit false
 
 def map {α β} (f : α → β) :
@@ -345,7 +345,7 @@ def map {α β} (f : α → β) :
 :::::example "Iterated Automatic Implicit Parameters"
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable (i : Fin n)
 ```
 Given a number bounded by {lean}`n`, represented by the type `Fin n`, an {lean}`AtLeast i` is a natural number paired with a proof that it is at least as large as `i`.
@@ -368,7 +368,7 @@ def AtLeast.add (x y : AtLeast i) : AtLeast i :=
 
 ::::paragraph
 :::leanSection
-```lean (show := false)
+```lean -show
 variable (i : Fin n)
 ```
 The signature of {lean}`AtLeast.add` requires multiple rounds of automatic implicit parameter insertion.
@@ -410,7 +410,7 @@ inductive Answer where
   | no
 ```
 :::keepEnv
-```lean  (name := asnwer) (error := true)
+```lean  (name := asnwer) +error
 def select (choices : α × α × α) : Asnwer →  α
   | .yes => choices.1
   | .maybe => choices.2.1
@@ -434,7 +434,7 @@ select.{u_1, u_2}
 
 Disabling relaxed automatic implicit parameters makes the error more clear, while still allowing the type to be inserted automatically:
 :::keepEnv
-```lean  (name := asnwer2) (error := true)
+```lean  (name := asnwer2) +error
 set_option relaxedAutoImplicit false
 
 def select (choices : α × α × α) : Asnwer →  α
@@ -461,7 +461,7 @@ def select (choices : α × α × α) : Answer →  α
 
 Turning off automatic implicit parameters entirely leads to the definition being rejected:
 :::keepEnv
-```lean (error := true) (name := noauto)
+```lean +error (name := noauto)
 set_option autoImplicit false
 
 def select (choices : α × α × α) : Answer →  α
@@ -478,9 +478,9 @@ Unknown identifier `α`
 # Definitions
 
 Definitions add a new constant to the global environment as a name that stands for a term.
-As part of the kernel's definitional equality, this new constant may be replaced via {tech key:="δ"}[δ-reduction] with the term that it stands for.
+As part of the kernel's definitional equality, this new constant may be replaced via {tech (key := "δ")}[δ-reduction] with the term that it stands for.
 In the elaborator, this replacement is governed by the constant's {tech}[reducibility].
-The new constant may be {tech key:="universe polymorphism"}[universe polymorphic], in which case occurrences may instantiate it with different universe level parameters.
+The new constant may be {tech (key := "universe polymorphism")}[universe polymorphic], in which case occurrences may instantiate it with different universe level parameters.
 
 Function definitions may be recursive.
 To preserve the consistency of Lean's type theory as a logic, recursive functions must either be opaque to the kernel (e.g. by {ref "partial-functions"}[declaring them {keyword}`partial`]) or proven to terminate with one of the strategies described in {ref "recursive-definitions"}[the section on recursive definitions].
@@ -539,7 +539,7 @@ abbrev $_ $_ where
 :::
 
 
-{deftech}_Opaque constants_ are defined constants that are not subject to {tech key:="δ"}[δ-reduction] in the kernel.
+{deftech}_Opaque constants_ are defined constants that are not subject to {tech (key := "δ")}[δ-reduction] in the kernel.
 They are useful for specifying the existence of some function.
 Unlike {tech}[axioms], opaque declarations can only be used for types that are inhabited, so they do not risk introducing inconsistency.
 Also unlike axioms, the inhabitant of the type is used in compiled code.
@@ -573,7 +573,7 @@ However, because their use cases are quite different, they differ in many detail
   Section variables only become parameters to the theorem if they (or their dependents) are mentioned in the header.
   This prevents changes to a proof from unintentionally changing the theorem statement.
 * Theorems are {tech}[irreducible] by default.
-  Because all proofs of the same proposition are {tech key:="definitional equality"}[definitionally equal], there few reasons to unfold a theorem.
+  Because all proofs of the same proposition are {tech (key := "definitional equality")}[definitionally equal], there few reasons to unfold a theorem.
 :::
 
 Theorems may be recursive, subject to the same conditions as {ref "recursive-definitions"}[recursive function definitions].

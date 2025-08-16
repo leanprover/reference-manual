@@ -60,7 +60,7 @@ Infix operators additionally have an {deftech}_associativity_ that determines th
   ```
 ::::keepEnv
 :::example "Precedence for Prefix and Infix Operators"
-```lean (show := false)
+```lean -show
 axiom A : Prop
 axiom B : Prop
 example : (¬A ∧ B = (¬A) ∧ B) = (¬A ∧ ((B = ¬A) ∧ B)) := rfl
@@ -189,7 +189,7 @@ True + False : Prop
 ```
 
 However, because the new operator is not associative, the {tech}[local longest-match rule] means that only {name}`HAdd.hAdd` applies to an unparenthesized three-argument version:
-```lean (error := true) (name := trueOrFalseOrTrue1)
+```lean +error (name := trueOrFalseOrTrue1)
 #check True + False + True
 ```
 ```leanOutput trueOrFalseOrTrue1
@@ -213,7 +213,7 @@ infix:65 (priority := high)  " + " => Or
 ```leanOutput trueOrFalse2
 True + False : Prop
 ```
-```lean (name := twoPlusTwo2) (error := true)
+```lean (name := twoPlusTwo2) +error
 #check 2 + 2
 ```
 ```leanOutput twoPlusTwo2
@@ -227,7 +227,7 @@ Hint: Additional diagnostic information may be available using the `set_option d
 ```
 
 The new operator is not associative, so the {tech}[local longest-match rule] means that only {name}`HAdd.hAdd` applies to the three-argument version:
-```lean (error := true) (name := trueOrFalseOrTrue2)
+```lean +error (name := trueOrFalseOrTrue2)
 #check True + False + True
 ```
 ```leanOutput trueOrFalseOrTrue2
@@ -257,7 +257,7 @@ Omitting them causes the operator's arguments to be displayed immediately next t
 
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 -- Test claim about internal whitespace in preceding paragraph
 /--
 error: invalid atom
@@ -310,7 +310,7 @@ Other than its ability to accept arguments at each call site, there are no speci
 Operators may construct functions, so the term may expect more parameters than the operator.
 Implicit and {tech}[instance-implicit] parameters are resolved at each application site, which allows the operator to be defined by a {tech}[type class] {tech}[method].
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- Double-check claims about operators above
 prefix:max "blah" => Nat.add
 #check (blah 5)

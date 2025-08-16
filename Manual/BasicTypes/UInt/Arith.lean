@@ -20,7 +20,7 @@ tag := "fixed-int-arithmetic"
 
 Typically, arithmetic operations on fixed-width integers should be accessed using Lean's overloaded arithmetic notation, particularly their instances of {name}`Add`, {name}`Sub`, {name}`Mul`, {name}`Div`, and {name}`Mod`, as well as {name}`Neg` for signed types.
 
-```lean (show := false)
+```lean -show
 -- Check that all those instances really exist
 open Lean Elab Command in
 #eval show CommandElabM Unit from do

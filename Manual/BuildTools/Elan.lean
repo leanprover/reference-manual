@@ -108,7 +108,7 @@ tag := "elan-dir"
 %%%
 
 By default, Elan stores installed toolchains in `.elan/toolchains` in the user's home directory, and its proxies are kept in `.elan/bin`, which is added to the path when Elan is installed.
-The environment variable {envVar def:=true}`ELAN_HOME` can be used to change this location.
+The environment variable {envVar +def}`ELAN_HOME` can be used to change this location.
 It should be set both prior to installing Elan and in all sessions that use Lean in order to ensure that Elan's files are found.
 
 # Command-Line Interface

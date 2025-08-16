@@ -95,7 +95,7 @@ In other words, an invocation of a simplification tactic takes the following mod
 
 ::::example "Location specifiers for {tactic}`simp`"
 :::tacticExample
-{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+{goal -show}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
 ```setup
 intro p x h h'
 ```
@@ -121,11 +121,11 @@ h' : p (3 + x + 9)
 :::
 
 :::tacticExample
-{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+{goal -show}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
 ```setup
 intro p x h h'
 ```
-```pre (show := false)
+```pre -show
 p : Nat → Prop
 x : Nat
 h : p (x + 5 + 2)
@@ -145,11 +145,11 @@ h : p (x + 7)
 :::
 
 :::tacticExample
-{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+{goal -show}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
 ```setup
 intro p x h h'
 ```
-```pre (show := false)
+```pre -show
 p : Nat → Prop
 x : Nat
 h : p (x + 5 + 2)
@@ -169,11 +169,11 @@ h : p (x + 7)
 :::
 
 :::tacticExample
-{goal show:=false}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
+{goal -show}`∀ (p : Nat → Prop) (x : Nat) (h : p (x + 5 + 2)) (h' : p (3 + x + 9)), p (6 + x + 1)`
 ```setup
 intro p x h h'
 ```
-```pre (show := false)
+```pre -show
 p : Nat → Prop
 x : Nat
 h : p (x + 5 + 2)
@@ -216,7 +216,7 @@ The simplifier has three kinds of rewrite rules:
   The simplifier supports simplification procedures, known as {deftech}_simprocs_, that use Lean metaprogramming to perform rewrites that can't be efficiently specified using equations. Lean includes simprocs for the most important operations on built-in types.
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 -- Validate the above description of reducibility
 
 @[irreducible]
@@ -290,7 +290,7 @@ They are preprocessed into rules that rewrite the proposition to {lean}`True`.
 :::::example "Rewriting Propositions"
 ::::tacticExample
 
-{goal show:=false}`∀(α β : Type) (w y : α) (x z : β), (w, x) = (y, z)`
+{goal -show}`∀(α β : Type) (w y : α) (x z : β), (w, x) = (y, z)`
 ```setup
 intro α β w y x z
 ```
@@ -337,7 +337,7 @@ The `only` modifier to the {tactic}`simp` tactic causes it to start with an empt
 Rules are added to the default simp set using the {attr}`simp` attribute.
 
 
-:::syntax attr alias := Lean.Meta.simpExtension (title := "Registering {keyword}`simp` Lemmas")
+:::syntax attr (alias := Lean.Meta.simpExtension) (title := "Registering {keyword}`simp` Lemmas")
 The {attr}`simp` attribute adds a declaration to the default simp set.
 If the declaration is a definition, the definition is marked for unfolding; if it is a theorem, then the theorem is registered as a rewrite rule.
 
@@ -358,7 +358,7 @@ simp ↓ $p?
 simp $p:prio
 ```
 
-```lean (show := false)
+```lean -show
 -- Check above claim about default priority
 /-- info: 1000 -/
 #check_msgs in

@@ -98,7 +98,7 @@ def Permissions.decode (i : UInt8) : Permissions :=
   ⟨i &&& 0x01 ≠ 0, i &&& 0x02 ≠ 0, i &&& 0x04 ≠ 0⟩
 ```
 
-```lean (show := false)
+```lean -show
 -- Check the above
 theorem Permissions.decode_encode (p : Permissions) : p = .decode (p.encode) := by
   let ⟨r, w, x⟩ := p
@@ -491,7 +491,7 @@ This predicate is part of the {name}`UInt32` API.
 
 Typically, bitwise operations on fixed-width integers should be accessed using Lean's overloaded operators, particularly their instances of {name}`ShiftLeft`, {name}`ShiftRight`, {name}`AndOp`, {name}`OrOp`, and {name}`Xor`.
 
-```lean (show := false)
+```lean -show
 -- Check that all those instances really exist
 open Lean Elab Command in
 #eval show CommandElabM Unit from do

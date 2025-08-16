@@ -73,7 +73,7 @@ In addition to what Verso provides, there are a number of additional roles, code
 Please use the following roles where they make sense:
 
  * `` {lean}`TERM` `` - `TERM` is a Lean term, to be elaborated as such and included it in the rendered document with appropriate highlighting.
-   The optional named argument `type` specifies an expected type, e.g. `` {lean type:="Nat"}`.succ .zero` ``
+   The optional named argument `type` specifies an expected type, e.g. `` {lean  (type := "Nat")}`.succ .zero` ``
 
  * `` {name}`X` `` - `X` is a constant in the Lean environment.
    The optional positional argument can be used to override name resolution; if it is provided, then the positional argument is used to resolve the name but the contents of the directive are rendered.

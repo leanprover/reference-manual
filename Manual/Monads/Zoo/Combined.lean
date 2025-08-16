@@ -22,7 +22,7 @@ set_option linter.unusedVariables false
 
 #doc (Manual) "Combined Error and State Monads" =>
 
-```lean (show := false)
+```lean -show
 variable (ε : Type u) (σ σ' : Type u) (α : Type u)
 ```
 
@@ -32,7 +32,7 @@ While {lean}`ExceptT ε (StateM σ)` evaluates to the type {lean}`σ → Except 
 {name}`EStateM.Result` is an inductive type that's very similar to {name}`Except`, except both constructors have an additional field for the state.
 In compiled code, this representation removes one level of indirection from each monadic bind.
 
-```lean (show := false)
+```lean -show
 /-- info: σ → Except ε α × σ -/
 #check_msgs in
 #reduce (types := true) ExceptT ε (StateM σ) α
@@ -52,7 +52,7 @@ In compiled code, this representation removes one level of indirection from each
 
 {docstring EStateM.adaptExcept}
 
-{docstring EStateM.fromStateM (allowMissing := true)}
+{docstring EStateM.fromStateM +allowMissing}
 
 # State Rollback
 

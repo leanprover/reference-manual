@@ -48,7 +48,7 @@ tag := "Format"
 
 
 ::::leanSection
-```lean show:=false
+```lean -show
 open Std (Format)
 open Std.Format
 variable {str : String} {indent : String} {n : Nat}
@@ -112,7 +112,7 @@ def lst : Format := parenSeq nums
 where nums := [1, 2, 3, 4, 5].map (text s!"{·}")
 ```
 
-```lean show := false
+```lean -show
 -- check statement in next paragraph
 /-- info: 120 -/
 #check_msgs in
@@ -399,10 +399,10 @@ tag := "format-empty"
 The empty string does not have a single unique representative in {name}`Std.Format`.
 All of the following represent the empty string:
 
-* {lean type:="Std.Format"}`.nil`
-* {lean type:="Std.Format"}`.text ""`
-* {lean type:="Std.Format"}`.text "" ++ .nil`
-* {lean type:="Std.Format"}`.nil ++ .text ""`
+* {lean  (type := "Std.Format")}`.nil`
+* {lean  (type := "Std.Format")}`.text ""`
+* {lean  (type := "Std.Format")}`.text "" ++ .nil`
+* {lean  (type := "Std.Format")}`.nil ++ .text ""`
 
 Use {name}`Std.Format.isEmpty` to check whether a document contains zero characters, and {name}`Std.Format.isNil` to specifically check whether it is the constructor {lean}`Std.Format.nil`.
 :::
@@ -563,12 +563,12 @@ In some cases, however, it's necessary to write an instance by hand:
 * The derived {name}`Repr` instance for structures uses {tech}[structure instance] notation.
   A hand-written instance can use the constructor's name explicitly or use {tech}[anonymous constructor syntax].
 
-```lean (show := false)
+```lean -show
 /-- info: Std.HashSet.ofList [0, 3, 5] -/
 #check_msgs in
 #eval IO.println <| repr (({} : Std.HashSet Nat).insert 3 |>.insert 5 |>.insert 0)
 ```
-```lean (show := false) (keep := false)
+```lean -show -keep
 structure S where
   x : Nat
   y : Nat
@@ -743,7 +743,7 @@ protected def AddExpr.reprPrec : AddExpr → Nat → Std.Format
 instance : Repr AddExpr := ⟨AddExpr.reprPrec⟩
 ```
 
-```lean (show := false)
+```lean -show
 -- Test that the guidelines provided for infix operators match Lean's own pretty printer
 /--
 info: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 +
@@ -788,7 +788,7 @@ The latter is defined after the former and is thus selected when possible; howev
 If the {name}`Repr` instance for a type never generates spaces or newlines, then it should have a {name}`ReprAtom` instance.
 Lean has {name}`ReprAtom` instances for types such as {name}`String`, {name}`UInt8`, {name}`Nat`, {name}`Char`, and {name}`Bool`.
 
-```lean (show := false)
+```lean -show
 open Lean Elab Command in
 #eval show CommandElabM Unit from
   for x in [``String, ``UInt8, ``Nat, ``Char, ``Bool] do

@@ -98,7 +98,7 @@ The inductive type {name}`Except` captures this pattern, and is itself a monad.
 
 # Exception Monads in Continuation Passing Style
 
-```lean (show := false)
+```lean -show
 universe u
 variable (α : Type u)
 variable (ε : Type u)
@@ -111,7 +111,7 @@ An example of such a type is {lean}`(β : Type u) → (α → β) → (ε → β
 {lean}`ExceptCpsT` is a transformer that can be applied to any monad, so {lean}`ExceptCpsT ε m α` is actually defined as {lean}`(β : Type u) → (α → m β) → (ε → m β) → m β`.
 Exception monads in continuation passing style have different performance characteristics than {name}`Except`-based state monads; for some applications, it may be worth benchmarking them.
 
-```lean (show := false)
+```lean -show
 /-- info: (β : Type u) → (α → m β) → (ε → m β) → m β -/
 #check_msgs in
 #reduce (types := true) ExceptCpsT ε m α

@@ -18,7 +18,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 #doc (Manual) "Recursion Example (for inclusion elsewhere)" =>
 
 
-```lean (show := false)
+```lean -show
 section
 variable (n k : Nat) (mot : Nat → Sort u)
 ```
@@ -117,6 +117,6 @@ This definition still works.
 However, it is now far from the original definition and it has become difficult for most people to understand.
 Recursors are an excellent logical foundation, but not an easy way to write programs or proofs.
 :::
-```lean (show := false)
+```lean -show
 end
 ```

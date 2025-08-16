@@ -40,7 +40,7 @@ Finally, a basic principle of Lean's logic is that functions are _functions_ tha
 Including side effects such as console I/O, arbitrary mutable state, or random number generation would violate this principle.
 
 :::::keepEnv
-```lean (show := false)
+```lean -show
 /-- A type -/
 axiom α : Type
 ```
@@ -56,7 +56,7 @@ At run time, the compiler produces ordinary code.
 # Logical Model
 
 :::::keepEnv
-```lean (show := false)
+```lean -show
 /-- A type -/
 axiom α : Type
 ```
@@ -108,7 +108,7 @@ Both {lean}`IO` and {lean}`BaseIO` are instances of {lean}`EIO`, in which the ty
 {lean}`IO` is defined as {lean}`EIO IO.Error`, while {lean}`BaseIO` is defined as {lean}`EIO Empty`.
 In some circumstances, such as bindings to non-Lean libraries, it can be convenient to use {lean}`EIO` with a custom error type, which ensures that errors are handled at the boundaries between these and other {lean}`IO` actions.
 
-```lean (show := false)
+```lean -show
 -- Check claim in preceding paragraph
 example : IO = EIO IO.Error := rfl
 example : BaseIO = EIO Empty := rfl
@@ -517,7 +517,7 @@ There are 90 four-digit palindromes.
 
 {docstring RandomGen}
 
-{docstring StdGen (hideStructureConstructor := true) (hideFields := true)}
+{docstring StdGen +hideStructureConstructor +hideFields}
 
 {docstring stdRange}
 

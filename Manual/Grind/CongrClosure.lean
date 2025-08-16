@@ -23,7 +23,7 @@ tag := "congruence-closure"
 %%%
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {a a' : α} {b b' : β} {f : α → β → γ}
 ```
 {deftech}_Congruence closure_ maintains equivalence classes of terms under the reflexive, symmetric, and transitive closure of “is equal to” _and_ the rule that equal arguments yield equal function results.
@@ -33,7 +33,7 @@ If a contradiction is discovered, then the goal can be closed immediately.
 :::
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {t₁ t₂ : α} {h : t₁ = t₂} {a : α} {f : α → β} {g : β → β}
 ```
 :::paragraph
@@ -45,7 +45,7 @@ Using the analogy of the shared whiteboard:
    Soon, whole constellations ({lean}`f a`, {lean}`g (f a)`, …) are connected.
 
 3. If two different constructors of the same inductive type are connected by one or more lines, then a contradiction is discovered and the goal is closed.
-   For example, equating {lean}`True` and {lean}`False` or {lean type:="Option Nat"}`none` and {lean}`some 1` would be a contradiction.
+   For example, equating {lean}`True` and {lean}`False` or {lean  (type := "Option Nat")}`none` and {lean}`some 1` would be a contradiction.
 
 :::
 ::::
@@ -75,7 +75,7 @@ Because the pair constructor {name}`Prod.mk` obeys congruence, the tuples become
 # Congruence Closure vs. Simplification
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {t₁ t₂ : α} {h : t₁ = t₂} {a : α} {f : α → β} {g : β → β}
 ```
 :::paragraph
@@ -83,7 +83,7 @@ Congruence closure is a fundamentally different operation from simplification:
 
 * {tactic}`simp` _rewrites_ a goal, replacing occurrences of {lean}`t₁` with {lean}`t₂` as soon as it sees {typed}`h : t₁ = t₂`.
   The rewrite is directional and destructive.
-* {tactic}`grind` _accumulates_ equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines ({TODO}[techterm] E‑matching, theory solvers, {tech key:="constraint propagation"}[propagation]) can query these classes and add new facts, then the closure updates incrementally.
+* {tactic}`grind` _accumulates_ equalities bidirectionally.  No term is rewritten; instead, both representatives live in the same class.  All other engines ({TODO}[techterm] E‑matching, theory solvers, {tech (key := "constraint propagation")}[propagation]) can query these classes and add new facts, then the closure updates incrementally.
 
 This makes congruence closure especially robust in the presence of symmetrical reasoning, mutual recursion, and large nestings of constructors where rewriting would duplicate work.
 :::

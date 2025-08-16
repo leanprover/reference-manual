@@ -33,7 +33,7 @@ The rules that govern structural recursion are fundamentally _syntactic_ in natu
 There are many recursive definitions that exhibit structurally recursive computational behavior, but which are not accepted by these rules; this is a fundamental consequence of the analysis being fully automatic.
 {tech}[Well-founded recursion] provides a semantic approach to demonstrating termination that can be used in situations where a recursive function is not structurally recursive, but it can also be used when a function that computes according to structural recursion doesn't satisfy the syntactic requirements.
 
-```lean (show := false)
+```lean -show
 section
 variable (n n' : Nat)
 ```
@@ -48,7 +48,7 @@ def countdown (n : Nat) : List Nat :=
 ```
 
 Replacing pattern matching with an equivalent Boolean test and subtraction results in an error:
-```lean (error := true) (name := countdown') (keep := false)
+```lean +error (name := countdown') -keep
 def countdown' (n : Nat) : List Nat :=
   if n == 0 then []
   else
@@ -90,7 +90,7 @@ def countdown' (n : Nat) : List Nat :=
 Here, Lean's automation automatically constructs a termination proof from facts about propositional equality and subtraction.
 It uses well-founded recursion rather than structural recursion behind the scenes.
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -112,7 +112,7 @@ When the signature specifies a function type, the decreasing parameter may addit
 
 When the decreasing parameter is a named parameter to the function, it can be specified by referring to its name.
 
-```lean (keep := false)
+```lean -keep
 def half (n : Nat) : Nat :=
   match n with
   | 0 | 1 => 0
@@ -122,7 +122,7 @@ termination_by structural n
 
 When the decreasing parameter is not named in the signature, a name can be introduced locally in the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause.
 
-```lean (keep := false)
+```lean -keep
 def half : Nat → Nat
   | 0 | 1 => 0
   | n + 2 => half n + 1
@@ -158,7 +158,7 @@ The {deftech}_fixed prefix_ is the longest prefix of the function's parameters i
 The decreasing parameter's type must be an inductive type.
 In {lean}`notInductive`, a function is specified as the decreasing parameter:
 
-```lean (error := true) (name := badnoindct)
+```lean +error (name := badnoindct)
 def notInductive (x : Nat → Nat) : Nat :=
   notInductive (fun n => x (n+1))
 termination_by structural x
@@ -171,7 +171,7 @@ cannot use specified measure for structural recursion:
 If the decreasing parameter is an indexed family, all the indices must be variables.
 In {lean}`constantIndex`, the indexed family {lean}`Fin'` is instead applied to a constant value:
 
-```lean (error := true) (name := badidx)
+```lean +error (name := badidx)
 inductive Fin' : Nat → Type where
   | zero : Fin' (n+1)
   | succ : Fin' n → Fin' (n+1)
@@ -188,7 +188,7 @@ cannot use specified measure for structural recursion:
 The parameters of the decreasing parameter's type must not depend on function parameters that come after varying parameters or indices.
 In {lean}`afterVarying`, the {tech}[fixed prefix] is empty, because the first parameter `n` varies, so `p` is not part of the fixed prefix:
 
-```lean (error := true) (name := badparam)
+```lean +error (name := badparam)
 inductive WithParam' (p : Nat) : Nat → Type where
   | zero : WithParam' p (n+1)
   | succ : WithParam' p n → WithParam' p (n+1)
@@ -209,18 +209,18 @@ Furthermore, every recursive call of the functions must be on a {deftech}_strict
 parameter.
 
  * The decreasing parameter itself is a sub-term, but not a strict sub-term.
- * If a sub-term is the {tech key:="match discriminant"}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression or other pattern-matching syntax, the pattern that matches the discriminant is a sub-term in the {tech}[right-hand side] of each {tech}[match alternative].
+ * If a sub-term is the {tech (key := "match discriminant")}[discriminant] of a {keywordOf Lean.Parser.Term.match}`match` expression or other pattern-matching syntax, the pattern that matches the discriminant is a sub-term in the {tech}[right-hand side] of each {tech}[match alternative].
    In particular, the rules of {ref "match-generalization"}[match generalization] are used to connect the discriminant to the occurrences of the pattern term in the right-hand side; thus, it respects {tech}[definitional equality].
    The pattern is a _strict_ sub-term if and only if the discriminant is a strict sub-term.
  * If a sub-term is a constructor applied to arguments, then its recursive arguments are strict sub-terms.
 
-```lean (show := false)
+```lean -show
 section
 variable (n : Nat)
 ```
 ::::example "Nested Patterns and Sub-Terms"
 
-In the following example, the decreasing parameter {lean}`n` is matched against the nested pattern {lean type:="Nat"}`.succ (.succ n)`. Therefore {lean type:="Nat"}`.succ (.succ n)` is a (non-strict) sub-term of {lean type:="Nat"}`n`, and consequently  both {lean type:="Nat"}`n` and {lean type:="Nat"}`.succ n` are strict sub-terms, and the definition is accepted.
+In the following example, the decreasing parameter {lean}`n` is matched against the nested pattern {lean  (type := "Nat")}`.succ (.succ n)`. Therefore {lean  (type := "Nat")}`.succ (.succ n)` is a (non-strict) sub-term of {lean  (type := "Nat")}`n`, and consequently  both {lean  (type := "Nat")}`n` and {lean  (type := "Nat")}`.succ n` are strict sub-terms, and the definition is accepted.
 
 ```lean
 def fib : Nat → Nat
@@ -229,27 +229,27 @@ def fib : Nat → Nat
 termination_by structural n => n
 ```
 
-For clarity, this example uses {lean type:="Nat"}`.succ n` and {lean type:="Nat"}`.succ (.succ n)` instead of the equivalent {lean}`Nat`-specific {lean}`n+1` and {lean}`n+2`.
+For clarity, this example uses {lean  (type := "Nat")}`.succ n` and {lean  (type := "Nat")}`.succ (.succ n)` instead of the equivalent {lean}`Nat`-specific {lean}`n+1` and {lean}`n+2`.
 
 :::TODO
 Link to where this special syntax is documented.
 :::
 
 ::::
-```lean (show := false)
+```lean -show
 end
 ```
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} (n n' : Nat) (xs : List α)
 ```
 :::example "Matching on Complex Expressions Can Prevent Elaboration"
 
-In the following example, the decreasing parameter {lean}`n` is not directly the {tech key:="match discriminant"}[discriminant] of the {keywordOf Lean.Parser.Term.match}`match` expression.
+In the following example, the decreasing parameter {lean}`n` is not directly the {tech (key := "match discriminant")}[discriminant] of the {keywordOf Lean.Parser.Term.match}`match` expression.
 Therefore, {lean}`n'` is not considered a sub-term of {lean}`n`.
 
-```lean (error := true) (keep := false) (name := badtarget)
+```lean +error -keep (name := badtarget)
 def half (n : Nat) : Nat :=
   match Option.some n with
   | .some (n' + 2) => half n' + 1
@@ -275,9 +275,9 @@ decreasing_by simp_all; omega
 ```
 
 Similarly, the following example fails: although {lean}`xs.tail` would reduce to a strict sub-term of {lean}`xs`, this is not visible to Lean according to the rules above.
-In particular, {lean}`xs.tail` is not {tech key:="definitional equality"}[definitionally equal] to a strict sub-term of {lean}`xs`.
+In particular, {lean}`xs.tail` is not {tech (key := "definitional equality")}[definitionally equal] to a strict sub-term of {lean}`xs`.
 
-```lean (error := true) (keep := false)
+```lean +error -keep
 def listLen : List α → Nat
   | [] => 0
   | xs => listLen xs.tail + 1
@@ -285,19 +285,19 @@ termination_by structural xs => xs
 ```
 
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 
 
 :::example "Simultaneous Matching vs Matching Pairs for Structural Recursion"
 
-An important consequence of the strategies that are used to prove termination is that *simultaneous matching of two {tech key:="match discriminant"}[discriminants] is not equivalent to matching a pair*.
+An important consequence of the strategies that are used to prove termination is that *simultaneous matching of two {tech (key := "match discriminant")}[discriminants] is not equivalent to matching a pair*.
 Simultaneous matching maintains the connection between the discriminants and the patterns, allowing the pattern matching to refine the types of the assumptions in the local context as well as the expected type of the {keywordOf Lean.Parser.Term.match}`match`.
 Essentially, the elaboration rules for {keywordOf Lean.Parser.Term.match}`match` treat the discriminants specially, and changing discriminants in a way that preserves the run-time meaning of a program does not necessarily preserve the compile-time meaning.
 
 This function that finds the minimum of two natural numbers is defined by structural recursion on its first parameter:
-```lean (keep := false)
+```lean -keep
 def min' (n k : Nat) : Nat :=
   match n, k with
   | 0, _ => 0
@@ -307,7 +307,7 @@ termination_by structural n
 ```
 
 Replacing the simultaneous pattern match on both parameters with a match on a pair causes termination analysis to fail:
-```lean (error := true) (name := noMin)
+```lean +error (name := noMin)
 def min' (n k : Nat) : Nat :=
   match (n, k) with
   | (0, _) => 0
@@ -329,7 +329,7 @@ Wrapping the discriminants in a pair breaks the connection.
 :::example "Structural Recursion Under Pairs"
 
 This function that finds the minimum of the two components of a pair can't be elaborated via structural recursion.
-```lean (error := true) (name := minpair) (keep := false)
+```lean +error (name := minpair) -keep
 def min' (nk : Nat × Nat) : Nat :=
   match nk with
   | (0, _) => 0
@@ -357,7 +357,7 @@ termination_by nk
 ```
 :::
 
-```lean (show := false)
+```lean -show
 section
 variable (n n' : Nat)
 ```
@@ -372,11 +372,11 @@ def countdown (n : Nat) : List Nat :=
 termination_by structural n
 ```
 
-This is because {lean}`n' + 0` is {tech key:="definitional equality"}[definitionally equal] to {lean}`n'`, which is a strict sub-term of {lean}`n`.
-{tech key:="strict sub-term"}[Sub-terms] that result from pattern matching are connected to the {tech key:="match discriminant"}[discriminant] using the rules for {ref "match-generalization"}[match generalization], which respect definitional equality.
+This is because {lean}`n' + 0` is {tech (key := "definitional equality")}[definitionally equal] to {lean}`n'`, which is a strict sub-term of {lean}`n`.
+{tech (key := "strict sub-term")}[Sub-terms] that result from pattern matching are connected to the {tech (key := "match discriminant")}[discriminant] using the rules for {ref "match-generalization"}[match generalization], which respect definitional equality.
 
 In {lean}`countdown'`, the recursive occurrence is applied to {lean}`0 + n'`, which is not definitionally equal to `n'` because addition on natural numbers is structurally recursive in its second parameter:
-```lean (error := true) (name := countdownNonDefEq)
+```lean +error (name := countdownNonDefEq)
 def countdown' (n : Nat) : List Nat :=
   match n with
   | 0 => []
@@ -391,7 +391,7 @@ Cannot use parameter n:
 ```
 
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -540,12 +540,12 @@ When the body of the recursive function is transformed into an invocation of `br
 The analysis traverses the body of the function, looking for recursive calls.
 If the parameter is matched against, then its occurrences in the local context are {ref "match-generalization"}[generalized] and then instantiated with the pattern; this is also true for the type of the course-of-values table.
 Typically, this pattern matching results in the type of the course-of-values table becoming more specific, which gives access to the recursive results for smaller values.
-This generalization process implements the rule that patterns are {tech key:="strict sub-term"}[sub-terms] of match discriminants.
+This generalization process implements the rule that patterns are {tech (key := "strict sub-term")}[sub-terms] of match discriminants.
 When an recursive occurrence of the function is detected, the course-of-values table is consulted to see whether it contains a result for the argument being checked.
 If so, the recursive call can be replaced with a projection from the table.
 If not, then the parameter in question doesn't support structural recursion.
 
-```lean (show := false)
+```lean -show
 section
 ```
 
@@ -553,13 +553,13 @@ section
 The first step in walking through the elaboration of {name}`half` is to manually desugar it to a simpler form.
 This doesn't match the way Lean works, but its output is much easier to read when there are fewer {name}`OfNat` instances present.
 This readable definition:
-```lean (keep := false)
+```lean -keep
 def half : Nat → Nat
   | 0 | 1 => 0
   | n + 2 => half n + 1
 ```
 can be rewritten to this somewhat lower-level version:
-```lean (keep := false)
+```lean -keep
 def half : Nat → Nat
   | .zero | .succ .zero => .zero
   | .succ (.succ n) => half n |>.succ
@@ -567,7 +567,7 @@ def half : Nat → Nat
 
 The elaborator begins by elaborating a pre-definition in which recursion is still present but the definition is otherwise in Lean's core type theory.
 Turning on the compiler's tracing of pre-definitions, as well as making the pretty printer more explicit, makes the resulting pre-definition visible:
-```lean (keep := false) (show := false)
+```lean -keep -show
 -- Test of next block - visually check correspondence when updating!
 set_option trace.Elab.definition.body true in
 set_option pp.all true in
@@ -641,7 +641,7 @@ def half' : Nat → Nat :=
 
 To elaborate it as a structurally recursive function, the first step is to establish the `bRecOn` invocation.
 The definition must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` because Lean does not support code generation for recursors such as {name}`Nat.brecOn`.
-```lean (error := true) (keep := false)
+```lean +error -keep
 noncomputable
 def half'' : Nat → Nat :=
   fun (x : Nat) =>
@@ -658,7 +658,7 @@ def half'' : Nat → Nat :=
 The next step is to replace occurrences of `x` in the original function body with the `n` provided by {name Nat.brecOn}`brecOn`.
 Because `table`'s type depends on `x`, it must also be generalized when splitting cases with {name}`half.match_1`, leading to a motive with an extra parameter.
 
-```lean (error := true) (keep := false) (name := threeCases)
+```lean +error -keep (name := threeCases)
 noncomputable
 def half'' : Nat → Nat :=
   fun (x : Nat) =>
@@ -706,7 +706,7 @@ table : Nat.below n
 
 The first two cases in the pre-definition are constant functions, with no recursion to check:
 
-```lean (error := true) (keep := false) (name := oneMore)
+```lean +error -keep (name := oneMore)
 noncomputable
 def half'' : Nat → Nat :=
   fun (x : Nat) =>
@@ -741,7 +741,7 @@ Nat ×' (Nat ×' Nat.below (motive := fun _ => Nat) n) →
 Nat
 ```
 
-```lean (show := false)
+```lean -show
 example : ((n : Nat) →
 Nat.below (motive := fun _ => Nat) n.succ.succ →
 Nat) = ((n : Nat) →
@@ -749,7 +749,7 @@ Nat ×' (Nat ×' Nat.below (motive := fun _ => Nat) n) →
 Nat) := rfl
 ```
 
-```lean (show := false)
+```lean -show
 
 variable {n : Nat}
 ```
@@ -757,7 +757,7 @@ variable {n : Nat}
 The first {lean}`Nat` in the course-of-values table is the result of recursion on {lean}`n + 1`, and the second is the result of recursion on {lean}`n`.
 The recursive call can thus be replaced by a lookup, and the elaboration is successful:
 
-```lean (error := true) (keep := false) (name := oneMore)
+```lean +error -keep (name := oneMore)
 noncomputable
 def half'' : Nat → Nat :=
   fun (x : Nat) =>
@@ -777,7 +777,7 @@ def half'' : Nat → Nat :=
 The actual elaborator keeps track of the relationship between the parameter being checked for structural recursion and the positions in the course-of-values tables by inserting sentinel types with fresh names into the motive.
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 

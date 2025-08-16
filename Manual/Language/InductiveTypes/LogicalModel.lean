@@ -78,7 +78,7 @@ Bool.rec.{u} {motive : Bool → Sort u}
 {lean}`List`'s recursor {name}`List.rec` has the following parameters:
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 axiom α.{u} : Type u
 ```
 
@@ -282,7 +282,7 @@ This restriction rules out unsound inductive type definitions, at the cost of al
 ::::keepEnv
 :::keepEnv
 The type `Bad` would make Lean inconsistent if it were not rejected:
-```lean (name := Bad) (error := true)
+```lean (name := Bad) +error
 inductive Bad where
   | bad : (Bad → Bad) → Bad
 ```
@@ -292,7 +292,7 @@ inductive Bad where
 :::
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 axiom Bad : Type
 axiom Bad.bad : (Bad → Bad) → Bad
 ```
@@ -302,7 +302,7 @@ This is because it would be possible to write a circular argument that proves {l
 
 :::keepEnv
 This declaration of a fixed point operator is rejected, because `Fix` occurs as an argument to `f`:
-```lean (name := Fix) (error := true)
+```lean (name := Fix) +error
 inductive Fix (f : Type u → Type u) where
   | fix : f (Fix f) → Fix f
 ```
@@ -313,7 +313,7 @@ inductive Fix (f : Type u → Type u) where
 
 `Fix.fix` is rejected because `f` is not a type constructor of an inductive type, but `Fix` itself occurs as an argument to it.
 In this case, `Fix` is also sufficient to construct a type equivalent to `Bad`:
-```lean (show := false)
+```lean -show
 axiom Fix : (Type → Type) → Type
 ```
 ```lean
@@ -343,7 +343,7 @@ To define a subsingleton that can inhabit {lean}`Prop` or a {lean}`Type`, set th
 ::::keepEnv
 :::example "Overly-universe-polymorphic {lean}`Bool`"
 Defining a version of {lean}`Bool` that can be in any universe is not allowed:
-```lean (error := true) (name := PBool)
+```lean +error (name := PBool)
 inductive PBool : Sort u where
   | true
   | false

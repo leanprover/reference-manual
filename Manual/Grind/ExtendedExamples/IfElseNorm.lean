@@ -25,7 +25,7 @@ open Lean.Grind
 tag := "grind-if-then-else-norm"
 %%%
 
-```lean (show := false)
+```lean -show
 open Std
 ```
 
@@ -209,7 +209,7 @@ namespace IfExpr
 
 :::keepEnv
 
-```lean (error := true) (name := failed_to_show_termination)
+```lean +error (name := failed_to_show_termination)
 def normalize (assign : Std.HashMap Nat Bool) :
     IfExpr → IfExpr
   | lit b => lit b
@@ -304,7 +304,7 @@ termination_by e => e.normSize
 Now it's time to prove some properties of this function.
 We're just going to package together all the properties we want:
 
-```lean (keep := false)
+```lean -keep
 theorem normalize_spec
     (assign : Std.HashMap Nat Bool) (e : IfExpr) :
     (normalize assign e).normalized
@@ -381,7 +381,7 @@ we can simply switch that implementation detail out, without having to touch the
 :::
 
 
-```lean (show := false)
+```lean -show
 -- We have to repeat these annotations because we've rolled back the environment to before we defined `normalize`.
 attribute [local grind]
   normalized hasNestedIf hasConstantIf hasRedundantIf
@@ -425,6 +425,6 @@ you can find the whole file [here](https://github.com/leanprover/lean4/blob/mast
 or in fact [play with it with no installation](https://live.lean-lang.org/#project=lean-nightly&url=https%3A%2F%2Fraw.githubusercontent.com%2Fleanprover%2Flean4%2Frefs%2Fheads%2Fmaster%2Ftests%2Flean%2Frun%2Fgrind_ite.lean)
 in the Live Lean editor.
 
-```lean (show := false)
+```lean -show
 end IfExpr
 ```

@@ -28,7 +28,7 @@ The identity monad has two primary use cases:
  1. It can be the type of a {keywordOf Lean.Parser.Term.do}`do` block that implements a pure function with local effects.
  2. It can be placed at the bottom of a stack of monad transformers.
 
-```lean (show := false)
+```lean -show
 -- Verify claims
 example : Id = id := rfl
 example : Id.run (α := α) = id := rfl

@@ -18,7 +18,7 @@ open Verso.Genre.Manual.InlineLean
 tag := "Fin"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable (n : Nat)
 ```
@@ -92,7 +92,7 @@ When the literal is greater than or equal to {lean}`n`, the remainder when divid
 ```
 
 If Lean can't synthesize an instance of {lean}`NeZero n`, then there is no {lean}`OfNat (Fin n)` instance:
-```lean (error := true) (name := fin0)
+```lean +error (name := fin0)
 example : Fin 0 := 0
 ```
 ```leanOutput fin0
@@ -105,7 +105,7 @@ due to the absence of the instance above
 Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
 
-```lean (error := true) (name := finK)
+```lean +error (name := finK)
 example (k : Nat) : Fin k := 0
 ```
 ```leanOutput finK

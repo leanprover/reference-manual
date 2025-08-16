@@ -31,7 +31,7 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
 : Boolean connectives
 
   ::::leanSection
-  ```lean (show := false)
+  ```lean -show
   variable {A B : Prop}
   ```
   :::paragraph
@@ -50,7 +50,7 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
 
 : Projections
   :::leanSection
-  ```lean (show := false)
+  ```lean -show
   variable {x x' : α} {y y' : β} {h : (x, y) = (x', y')} {a : α}
   ```
 
@@ -60,7 +60,7 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
 : Casts
 
   :::leanSection
-  ```lean (show := false)
+  ```lean -show
   variable {h : α = β} {a : α}
   ```
   Any term {typed}`cast h a : β` is equated with {typed}`a : α` immediately (using {tech}[heterogeneous equality]).
@@ -70,7 +70,7 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
 
   ::::keepEnv
   :::leanSection
-  ```lean (show := false)
+  ```lean -show
   variable {α : Type u} {β : Type v} {a : α} {b : β}
   structure S α β where
     x : α
@@ -105,7 +105,7 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
   example : p = ⟨p.1, p.2⟩ := by grind
   ```
   Definitional reduction is propagated, so {lean}`(a, b).1` is equated with {lean}`a`.
-  The {tech key:="η-equivalence"}[η-equality] rule for structures is not automatically used, so if {lean}`p` is an instance of a {tech}[structure] {lean}`S` with two fields, then {lean}`p` is not equated with {lean type:="S α β"}`⟨p.1, p.2⟩`.
+  The {tech (key := "η-equivalence")}[η-equality] rule for structures is not automatically used, so if {lean}`p` is an instance of a {tech}[structure] {lean}`S` with two fields, then {lean}`p` is not equated with {lean  (type := "S α β")}`⟨p.1, p.2⟩`.
   However, tagging {name}`S` with {attrs}`@[grind ext]` causes the {tech}[E-matching] engine to prove these goals.
   :::
   ::::
@@ -124,10 +124,10 @@ Each follows the same skeleton.
 {deftech}_Upward propagation_ derives facts about a term from facts about sub-terms, while {deftech}_downward propagation_ derives facts about sub-terms from facts about a term.
 :::
 
-```lean (show := false)
+```lean -show
 namespace ExamplePropagators
 ```
-```lean (keep := false)
+```lean -keep
 
 /-- Propagate equalities *upwards* for conjunctions. -/
 builtin_grind_propagator propagateAndUp ↑And := fun e => do
@@ -168,7 +168,7 @@ builtin_grind_propagator propagateAndDown ↓And :=
     pushEqTrue b <| mkApp3
       (mkConst ``Grind.eq_true_of_and_eq_true_right) a b h
 ```
-```lean (show := false)
+```lean -show
 end ExamplePropagators
 ```
 
@@ -177,11 +177,11 @@ end ExamplePropagators
 Other frequently‑triggered propagators follow the same pattern:
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {A B : Prop} {a b : α}
 ```
 
-:::table (header := true)
+:::table +header
 *
   * Propagator
   * Handles
@@ -243,7 +243,7 @@ Setting the option {option}`trace.grind.eqc` to {lean}`true` causes {tactic}`gri
 
 This section should be uncommented when the command is implemented:
 
-```lean (show := false)
+```lean -show
 -- Test to ensure that this section is uncommented when the command is implemented
 /--
 error: elaboration function for 'Lean.Parser.«command_Grind_propagator___(_):=_»' has not been implemented
@@ -265,7 +265,7 @@ The full equivalence classes are displayed automatically _only when {tactic}`gri
 :::example "Identifying Missing Facts"
 In this example, {tactic}`grind` fails:
 
-```lean (error := true) (name := missing)
+```lean +error (name := missing)
 example :
     x = y ∧ y = z →
     w = x ∨ w = v →

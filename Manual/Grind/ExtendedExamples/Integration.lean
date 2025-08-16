@@ -63,7 +63,7 @@ grind_pattern trig_identity => sin x
 Note here we use *two* different patterns for the same theorem, so the theorem is instantiated even if {tactic}`grind` sees just one of these functions.
 If we preferred to more conservatively instantiate the theorem only when both {name}`sin` and {name}`cos` are present, we could have used a multi-pattern:
 
-```lean (keep := false)
+```lean -keep
 grind_pattern trig_identity => cos x, sin x
 ```
 
@@ -71,7 +71,7 @@ For this example, either approach will work.
 :::
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {x : R}
 ```
 
@@ -103,7 +103,7 @@ example (f : R → Nat) :
   grind
 ```
 
-```lean (show := false)
+```lean -show
 variable (f : R → Nat) (n : Nat)
 ```
 

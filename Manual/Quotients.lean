@@ -72,11 +72,11 @@ While {name}`Quotient` is a convenient way to form quotients with reasonable com
 In general, a type $`Q` is said to be the quotient of $`A` by an equivalence relation $`\sim` if it respects the universal property of quotients: there is a function $`q:A\to Q` with the property that $`q(a)=q(b)` if and only if $`a\sim b` for all $`a` and $`b` in $`A`.
 
 Quotients formed with {name}`Quotient` have this property up to {tech}[propositional equality]: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
-However, members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
+However, members of the same equivalence class are not necessarily {tech (key := "definitional equality")}[definitionally equal] in the quotient.
 
 Quotients may also be implemented by designating a single representative of each equivalence class in $`A` itself, and then defining $`Q` as pair of elements in $`A` with proofs that they are such a canonical representative.
 Together with a function that maps each $`a` in $`A` to its canonical representative, $`Q` is a quotient of $`A`.
-Due to {tech}[proof irrelevance], representatives in $`Q` of the same equivalence class are {tech key:="definitional equality"}[definitionally equal].
+Due to {tech}[proof irrelevance], representatives in $`Q` of the same equivalence class are {tech (key := "definitional equality")}[definitionally equal].
 
 Such a manually implemented quotient $`Q` can be easier to work with than {name}`Quotient`.
 In particular, because each equivalence class is represented by its single canonical representative, there's no need to prove that functions from the quotient respect the equivalence relation.
@@ -216,7 +216,7 @@ $_ ≈ $_
 
 {docstring HasEquiv}
 
-```lean (show := false)
+```lean -show
 section
 variable (r : α → α → Prop)
 ```
@@ -225,13 +225,13 @@ The fact that a relation {lean}`r` is actually an equivalence relation is stated
 
 {docstring Equivalence}
 
-```lean (show := false)
+```lean -show
 end
 ```
 
 Every {name}`Setoid` instance leads to a corresponding {name}`HasEquiv` instance.
 
-```lean (show := false)
+```lean -show
 -- Check preceding para
 section
 variable {α : Sort u} [Setoid α]
@@ -266,7 +266,7 @@ A value in the quotient is a value from the setoid's underlying type, wrapped in
 
 :::example "The Integers as a Quotient Type"
 The integers, defined as pairs of natural numbers where the represented integer is the difference of the two numbers, can be represented via a quotient type.
-This representation is not unique: both {lean}`(4, 7)` and {lean}`(1, 4)` represent {lean type:="Int"}`-3`.
+This representation is not unique: both {lean}`(4, 7)` and {lean}`(1, 4)` represent {lean  (type := "Int")}`-3`.
 
 Two encoded integers should be considered equal when they are related by {name}`Z.eq`:
 
@@ -342,7 +342,7 @@ The variants {lean}`Quotient.liftOn` and {lean}`Quotient.liftOn₂` place the qu
 
 :::example "Integer Negation and Addition"
 
-```lean (show := false)
+```lean -show
 def Z' : Type := Nat × Nat
 
 def Z.eq (n k : Z') : Prop :=
@@ -433,7 +433,7 @@ Because {name}`Quotient` is not an {tech}[inductive type], tactics such as {tact
 
 :::example "Proofs About Quotients"
 
-```lean (show := false)
+```lean -show
 def Z' : Type := Nat × Nat
 
 def Z.eq (n k : Z') : Prop :=
@@ -551,7 +551,7 @@ These are used in the same way as their {name}`Quotient`-based counterparts.
 tag := "quotient-reduction"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable
   (α β : Sort u)
@@ -561,13 +561,13 @@ variable
   (x : α)
 ```
 In addition to the above constants, Lean's kernel contains a reduction rule for {name}`Quot.lift` that causes it to reduce when used with {name}`Quot.mk`, analogous to {tech}[ι-reduction] for inductive types.
-Given a relation {lean}`r` over {lean}`α`, a function {lean}`f` from {lean}`α` to {lean}`β`, and a proof {lean}`resp` that {lean}`f` respects {lean}`r`, the term {lean}`Quot.lift f resp (Quot.mk r x)` is {tech key:="definitional equality"}[definitionally equal] to {lean}`f x`.
+Given a relation {lean}`r` over {lean}`α`, a function {lean}`f` from {lean}`α` to {lean}`β`, and a proof {lean}`resp` that {lean}`f` respects {lean}`r`, the term {lean}`Quot.lift f resp (Quot.mk r x)` is {tech (key := "definitional equality")}[definitionally equal] to {lean}`f x`.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
-```lean (show := false)
+```lean -show
 section
 ```
 
@@ -581,7 +581,7 @@ variable
 example : Quot.lift f ok (Quot.mk r x) = f x := rfl
 ```
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -603,7 +603,7 @@ inductive RoseTree (α : Type u) where
 ```
 
 However, taking a quotient of the {name}`List` that identifies all elements in the style of {ref "squash-types"}[squash types] causes Lean to reject the declaration:
-```lean (error := true) (name := nestedquot)
+```lean +error (name := nestedquot)
 inductive SetTree (α : Type u) where
   | leaf : α → SetTree α
   | branch :
@@ -664,7 +664,7 @@ def extApp
     exact h x
 ```
 
-```lean (show := false)
+```lean -show
 section
 variable (f : (x : α) → β x)
 ```
@@ -680,7 +680,7 @@ fun x => (Quot.mk extEq f).lift (· x) (fun _ _ h => h x)
 which is definitionally equal to {lean}`fun x => f x`, which is definitionally equal (by {tech}[η-equivalence]) to {lean}`f`.
 A propositional version of the computation rule for {name}`Quot.lift` would not suffice, because the reducible expression occurs in the body of a function and rewriting by an equality in a function would already require function extensionality.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -711,7 +711,7 @@ theorem funext'
 tag := "squash-types"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Sort u}
 ```
@@ -720,7 +720,7 @@ In other words, if {lean}`α` is inhabited, then {lean}`Squash α` has a single 
 Unlike {lean}`Nonempty α`, which is a proposition stating that {lean}`α` is inhabited and is thus represented by a dummy value at runtime, {lean}`Squash α` is a type that is represented identically to {lean}`α`.
 Because {lean}`Squash α` is in the same universe as {lean}`α`, it is not subject to the restrictions on computing data from propositions.
 
-```lean (show := false)
+```lean -show
 end
 ```
 

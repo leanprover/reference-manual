@@ -87,30 +87,24 @@ def typed : RoleExpander
         Hover.addCustomHover (mkNullNode #[s, e]) type
         Hover.addCustomHover f type
 
-      match config.error with
-      | none =>
-        for msg in newMsgs.toArray do
-          logMessage {msg with
-            isSilent := msg.isSilent || msg.severity != .error
-          }
-      | some true =>
+      if config.error then
         if newMsgs.hasErrors then
           for msg in newMsgs.errorsToWarnings.toArray do
             logMessage {msg with isSilent := true}
         else
           throwErrorAt term "Error expected in code block, but none occurred"
-      | some false =>
+      else
         for msg in newMsgs.toArray do
-          logMessage {msg with isSilent := msg.isSilent || msg.severity != .error}
-        if newMsgs.hasErrors then
-          throwErrorAt term "No error expected in code block, one occurred"
+          logMessage {msg with
+            isSilent := msg.isSilent || msg.severity != .error
+          }
 
       reportMessages config.error term newMsgs
 
       let hls := (← highlight stx #[] (PersistentArray.empty.push tree))
 
 
-      if config.show.getD true then
+      if config.show then
         pure #[← ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hls)) #[Inline.code $(quote term.getString)])]
       else
         pure #[]

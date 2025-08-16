@@ -26,7 +26,7 @@ def List.below' {α : Type u} {motive : List α → Sort u} :
   | _ :: xs => motive xs ×' xs.below' (motive := motive)
 ```
 
-```lean (show := false)
+```lean -show
 theorem List.below_eq_below' : @List.below = @List.below' := by
   funext α motive xs
   induction xs <;> simp [below']
@@ -53,7 +53,7 @@ def Tree.below' {α : Type u} {motive : Tree α → Sort u} :
     (motive right ×' right.below' (motive := motive))
 ```
 
-```lean (show := false)
+```lean -show
 theorem Tree.below_eq_below' : @Tree.below = @Tree.below' := by
   funext α motive t
   induction t
@@ -130,7 +130,7 @@ def Tree.brecOn' {α : Type u}
   (t.brecOnTable (motive := motive) step).1
 ```
 
-```lean (show := false)
+```lean -show
 -- Proving the above-claimed equivalence is too time consuming, but evaluating a few examples will at least catch silly mistakes!
 
 /--

@@ -29,37 +29,37 @@ In practice, they differ in four ways:
  * whether the type as a whole is a proposition or type
 :::
 
-:::table (header := true)
+:::table +header
 * + Type
   + First Projection
   + Second Projection
   + Dependent?
   + Universe
 * + {name}`Prod`
-  + {lean universes:="u"}`Type u`
-  + {lean universes:="v"}`Type v`
+  + {lean (universes := "u")}`Type u`
+  + {lean (universes := "v")}`Type v`
   + ❌️
-  + {lean universes:="u v"}`Type (max u v)`
+  + {lean (universes := "u v")}`Type (max u v)`
 * + {name}`And`
-  + {lean universes:="u v"}`Prop`
-  + {lean universes:="u v"}`Prop`
+  + {lean (universes := "u v")}`Prop`
+  + {lean (universes := "u v")}`Prop`
   + ❌️
-  + {lean universes:="u v"}`Prop`
+  + {lean (universes := "u v")}`Prop`
 * + {name}`Sigma`
-  + {lean universes:="u"}`Type u`
-  + {lean universes:="v"}`Type v`
+  + {lean (universes := "u")}`Type u`
+  + {lean (universes := "v")}`Type v`
   + ✔
-  + {lean universes:="u v"}`Type (max u v)`
+  + {lean (universes := "u v")}`Type (max u v)`
 * + {name}`Subtype`
-  + {lean universes:="u"}`Type u`
-  + {lean universes:="v"}`Prop`
+  + {lean (universes := "u")}`Type u`
+  + {lean (universes := "v")}`Prop`
   + ✔
-  + {lean universes:="u v"}`Type u`
+  + {lean (universes := "u v")}`Type u`
 * + {name}`Exists`
-  + {lean universes:="u"}`Type u`
-  + {lean universes:="v"}`Prop`
+  + {lean (universes := "u")}`Type u`
+  + {lean (universes := "v")}`Prop`
   + ✔
-  + {lean universes:="u v"}`Prop`
+  + {lean (universes := "u v")}`Prop`
 :::
 
 :::paragraph
@@ -83,7 +83,7 @@ This chapter documents the tuple-like pairs, namely {name}`Prod` and {name}`Sigm
 tag := "pairs"
 %%%
 
-```lean (show:=false)
+```lean -show
 section
 variable {α : Type u} {β : Type v} {γ : Type w} {x : α} {y : β} {z : γ}
 ```
@@ -92,14 +92,14 @@ The type {lean}`α × β`, which is a {tech}[notation] for {lean}`Prod α β`, c
 These pairs are written in parentheses, separated by commas.
 Larger tuples are represented as nested tuples, so {lean}`α × β × γ` is equivalent to {lean}`α × (β × γ)` and {lean}`(x, y, z)` is equivalent to {lean}`(x, (y, z))`.
 
-:::syntax term title:="Product Types"
+:::syntax term (title := "Product Types")
 ```grammar
 $_ × $_
 ```
 The product {lean}`Prod α β` is written {lean}`α × β`.
 :::
 
-:::syntax term title:="Pairs"
+:::syntax term (title := "Pairs")
 ```grammar
 ($_, $_)
 ```
@@ -107,7 +107,7 @@ The product {lean}`Prod α β` is written {lean}`α × β`.
 
 {docstring Prod}
 
-```lean (show:=false)
+```lean -show
 section
 variable {α : Sort u} {β : Sort v} {γ : Type w}
 ```
@@ -116,11 +116,11 @@ There are also the variants {lean}`α ×' β` (which is notation for {lean}`PPro
 Generally speaking, {name}`PProd` is primarily used in the implementation of proof automation and the elaborator, as it tends to give rise to universe level unification problems that can't be solved.
 {lean}`MProd`, on the other hand, can simplify universe level issues in certain advanced use cases.
 
-```lean (show:=false)
+```lean -show
 end
 ```
 
-:::syntax term title:="Products of Arbitrary Sorts"
+:::syntax term (title := "Products of Arbitrary Sorts")
 ```grammar
 $_ ×' $_
 ```
@@ -232,7 +232,7 @@ The two styles of annotation cannot be mixed in a single {keywordOf «termΣ_,_�
 ```
 ::::
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type} (x : α)
 ```
@@ -252,12 +252,12 @@ Dependent pairs are typically used in one of two ways:
     Σ (b : Bool), if b then Unit else α
     ```
 
-    is equivalent to {lean}`Option α`, where {lean type:="Option α"}`none` is {lean type:="Σ (b : Bool), if b then Unit else α"}`⟨true, ()⟩` and {lean type:="Option α"}`some x` is {lean type:="Σ (b : Bool), if b then Unit else α"}`⟨false, x⟩`.
+    is equivalent to {lean}`Option α`, where {lean  (type := "Option α")}`none` is {lean  (type := "Σ (b : Bool), if b then Unit else α")}`⟨true, ()⟩` and {lean  (type := "Option α")}`some x` is {lean  (type := "Σ (b : Bool), if b then Unit else α")}`⟨false, x⟩`.
     Using dependent pairs this way is uncommon, because it's typically much easier to define a special-purpose {tech}[inductive type] directly.
     :::
 ::::
 
-```lean (show := false)
+```lean -show
 end
 ```
 

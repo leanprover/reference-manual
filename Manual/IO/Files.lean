@@ -151,7 +151,7 @@ Starting contents: 'AABAABCDAB'
 Count: 5
 Contents: '!!B!!BCD!B'
 ```
-```stderr (show := false)
+```stderr -show
 ```
 
 Afterwards, the file contains:
@@ -189,7 +189,7 @@ Avoid hard-coding these rules.
 
 There is an instance of the {lean}`Div` type class for {name System.FilePath}`FilePath` which allows the slash operator to be used to concatenate paths.
 
-{docstring System.FilePath (allowMissing := true)}
+{docstring System.FilePath +allowMissing}
 
 {docstring System.mkFilePath}
 
@@ -245,7 +245,7 @@ Some operations on paths consult the filesystem.
 
 {docstring System.FilePath.walkDir}
 
-{docstring IO.AccessRight (allowMissing := true)}
+{docstring IO.AccessRight +allowMissing}
 
 {docstring IO.AccessRight.flags}
 

@@ -55,7 +55,7 @@ inductive Tree (α : Type u) where
 
 A straightforward definition of the {name Tree.map}`map` function fails:
 
-```lean (error := true) (keep := false) (name := badwf)
+```lean +error -keep (name := badwf)
 def Tree.map (f : α → β) : Tree α → Tree β
   | leaf x => leaf (f x)
   | node p => node (p.map (fun t' => t'.map f))
@@ -74,12 +74,12 @@ t' : Tree α
 ```
 
 :::paragraph
-```lean (show := false)
+```lean -show
 section
 variable (t' : Tree α) (p : Pair (Tree α))
 ```
 Clearly the proof obligation is not solvable, because nothing connects {lean}`t'` to {lean}`p`.
-```lean (show := false)
+```lean -show
 end
 ```
 :::
@@ -121,7 +121,7 @@ def Pair.unattach {P : α → Prop} :
 
 {name Tree.map}`Tree.map` can now be defined by using {name}`Pair.attach` and {name}`Pair.sizeOf_lt_of_mem` explicitly:
 
-```lean (keep := false)
+```lean -keep
 def Tree.map (f : α → β) : Tree α → Tree β
   | leaf x => leaf (f x)
   | node p => node (p.attach.map (fun ⟨t', _⟩ => t'.map f))
@@ -156,7 +156,7 @@ theorem Pair.map_unattach {P : α → Prop}
 
 Now the function body can be written without extra considerations, and the membership assumption is still available to the termination proof.
 
-```lean (keep := false)
+```lean -keep
 def Tree.map (f : α → β) : Tree α → Tree β
   | leaf x => leaf (f x)
   | node p => node (p.map (fun t' => t'.map f))

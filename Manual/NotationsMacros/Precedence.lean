@@ -29,7 +29,7 @@ Infix operators, notations, and other syntactic extensions to Lean make use of e
 While precedences in Lean can technically be any natural number, by convention they range from {evalPrec}`min` to {evalPrec}`max`, respectively denoted `min` and `max`.{TODO}[Fix the keywordOf operator and use it here]
 Function application has the highest precedence.
 
-:::syntax prec (open := false) (title := "Parser Precedences")
+:::syntax prec -open (title := "Parser Precedences")
 Most operator precedences consist of explicit numbers.
 The named precedence levels denote the outer edges of the range, close to the minimum or maximum, and are typically used by more involved syntax extensions.
 ```grammar

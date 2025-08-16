@@ -33,7 +33,7 @@ tag := "nat-model"
 {docstring Nat}
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable (i : Nat)
 ```
 :::example "Proofs by Induction"

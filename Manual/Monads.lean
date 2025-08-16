@@ -62,7 +62,7 @@ The {name}`Alternative` type class describes applicative functors that additiona
 
 :::::keepEnv
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {β : Type u}
 ```
@@ -135,7 +135,7 @@ def LenList.diagonal (square : LenList n (LenList n α)) : LenList n α :=
   }
 ```
 
-```lean (show := false)
+```lean -show
 end
 ```
 ::::

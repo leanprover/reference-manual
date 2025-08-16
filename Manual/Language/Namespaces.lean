@@ -69,7 +69,7 @@ Every {tech}[section scope] has a {deftech}_current namespace_, which is determi
 Names that are declared within the section scope are added to the current namespace.
 If the declared name has more than one component, then its namespace is nested within the current namespace; the body of the declaration's current namespace is the nested namespace.
 Section scopes also include a set of {deftech}_opened namespaces_, which are namespaces whose contents are in scope without additional qualification.
-{tech key:="resolve"}[Resolving] an identifier to a particular name takes the current namespace and opened namespaces into account.
+{tech (key := "resolve")}[Resolving] an identifier to a particular name takes the current namespace and opened namespaces into account.
 However, {deftech}[protected] declarations (that is, those with the {keyword}`protected` {ref "declaration-modifiers"}[modifier]) are not brought into scope when their namespace is opened.
 The rules for resolving identifiers into names that take the current namespace and opened namespaces into account are described in the {ref "identifiers-and-resolution"}[section on identifiers as terms].
 
@@ -88,7 +88,7 @@ Outside the namespace, these names must be qualified unless the namespace is ope
 ```leanOutput okTea
 HotDrink.tea : HotDrink
 ```
-```lean (name := notOkTea) (error := true)
+```lean (name := notOkTea) +error
 #check tea
 ```
 ```leanOutput notOkTea
@@ -199,7 +199,7 @@ end
 ```
 
 If the initial namespace in the command is `A.B` instead, then neither `_root_.A`, `_root_.B`, nor `_root_.B.C` is opened:
-```lean (error := true) (name := dotted)
+```lean +error (name := dotted)
 section
 open A.B C
 example := [a1, a2, a3, a4, a5, a6]
@@ -226,7 +226,7 @@ $_:ident hiding $x:ident $x:ident*
 ```
 :::
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 namespace A
 namespace B
 def x := 5
@@ -251,7 +251,7 @@ $_:ident renaming $[$x:ident → $x:ident],*
 An ASCII arrow (`->`) may be used instead of the Unicode arrow (`→`).
 :::
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 namespace A
 namespace B
 def x := 5
@@ -279,7 +279,7 @@ The indicated namespace is added to each currently-opened namespace, and each na
 All of the listed names must be unambiguous; that is, they must exist in exactly one of the considered namespaces.
 :::
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 namespace A
 namespace B
 def y := ""
@@ -328,7 +328,7 @@ def x := {!{ "pear" }!}
 ```
 
 However, the name {name}`NS.three` is not in scope:
-```lean (error := true) (name := nothree)
+```lean +error (name := nothree)
 def y := three
 ```
 ```leanOutput nothree
@@ -352,7 +352,7 @@ export $_ ($_*)
 ```
 
 Internally, exported names are registered as aliases of their targets.
-From the perspective of the kernel, only the original name exists; the elaborator resolves aliases as part of {tech key:="resolve"}[resolving] identifiers to names.
+From the perspective of the kernel, only the original name exists; the elaborator resolves aliases as part of {tech (key := "resolve")}[resolving] identifiers to names.
 :::
 
 :::example "Exported Names"

@@ -22,7 +22,7 @@ set_option pp.rawOnError true
 tag := "TreeSet"
 %%%
 
-{docstring Std.TreeSet (hideStructureConstructor := true) (hideFields := true)}
+{docstring Std.TreeSet +hideStructureConstructor +hideFields}
 
 # Creation
 

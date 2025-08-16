@@ -322,7 +322,7 @@ Let's add this fact:
 ```
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {α : Type u} [BEq α] [Hashable α]
 ```
 :::paragraph

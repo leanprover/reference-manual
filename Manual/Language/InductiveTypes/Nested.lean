@@ -52,7 +52,7 @@ inductive RTree (α : Type u) : Type u where
 :::::example "Invalid Nested Inductive Types"
 
 This declaration of arbitrarily-branching rose trees declares an alias for {name}`List`, rather than using {name}`List` directly:
-```lean (error := true) (name := viaAlias)
+```lean +error (name := viaAlias)
 abbrev Children := List
 
 inductive RTree (α : Type u) : Type u where
@@ -65,25 +65,23 @@ inductive RTree (α : Type u) : Type u where
 
 ::::paragraph
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {n : Nat}
 ```
 This declaration of arbitrarily-branching rose trees tracks the depth of the tree using an index.
 The constructor `DRTree.node` has an {tech}[automatic implicit parameter] {lean}`n` that represents the depths of all sub-trees.
 However, local variables such as constructor parameters are not permitted as arguments to nested occurrences:
 :::
-```lean (error := true) (name := localVar)
+```lean +error (name := localVar)
 inductive DRTree (α : Type u) : Nat → Type u where
   | empty : DRTree α 0
   | node (val : α) (children : List (DRTree α n)) : DRTree α (n + 1)
 ```
-```leanOutput localVar
-(kernel) invalid nested inductive datatype 'List', nested inductive datatypes parameters cannot contain local variables.
-```
+
 ::::
 
 This declaration includes a non-strictly-positive occurrence of the inductive type, nested under an {name}`Option`:
-```lean (error := true) (name := nonPos)
+```lean +error (name := nonPos)
 inductive WithCheck where
   | done
   | check (f : Option WithCheck → Bool)
@@ -94,7 +92,7 @@ inductive WithCheck where
 
 :::paragraph
 This rose tree has a branching factor that's limited by its parameter:
-```lean (error := true) (name := brtree)
+```lean +error (name := brtree)
 inductive BRTree (branches : Nat) (α : Type u) : Type u where
   | mk :
     (children : List (BRTree branches α)) →
@@ -164,7 +162,7 @@ The translation from nested inductive types to mutual inductive types proceeds a
 
 ::::example "Translating Nested Inductive Types"
 This nested inductive type represents the natural numbers:
-```lean (keep := false)
+```lean -keep
 inductive ONat where
   | mk (pred : Option ONat) : ONat
 

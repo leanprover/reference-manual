@@ -41,7 +41,7 @@ $_:attrKind notation$[:$_:prec]? $[(name := $_:ident)]? $[(priority := $_:prio)]
 ```
 :::
 
-:::syntax Lean.Parser.Command.notationItem (open := false) (title := "Notation Items")
+:::syntax Lean.Parser.Command.notationItem -open (title := "Notation Items")
 The body of a notation definition consists of a sequence of {deftech}_notation items_, which may be either string literals or identifiers with optional precedences.
 ```grammar
 $s:str
@@ -79,7 +79,7 @@ This applies both to notations that consist only of a single atom and to notatio
 Otherwise, the default precedence of the whole notation is `lead`.
 If no precedence is provided for notation items that are terms, then they default to precedence `min`.
 
-```lean (keep := false) (show := false)
+```lean -keep -show
 
 -- Test for default precedences for notations
 

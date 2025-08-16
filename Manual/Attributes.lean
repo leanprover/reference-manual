@@ -59,7 +59,7 @@ Each attribute determines how to store its own metadata and what the appropriate
 Attributes can be added to declarations as a {ref "declaration-modifiers"}[declaration modifier].
 They are placed between the documentation comment and the visibility modifiers.
 
-:::syntax Lean.Parser.Term.attributes (open := false) (title := "Attributes")
+:::syntax Lean.Parser.Term.attributes -open (title := "Attributes")
 ```grammar
 @[$_:attrInstance,*]
 ```
@@ -104,7 +104,7 @@ This determines whether the attribute's effect is visible only in the current se
 These scope indications are also used to control {ref "syntax-rules"}[syntax extensions] and {ref "instance-attribute"}[type class instances].
 Each attribute is responsible for defining precisely what these terms mean for its particular effect.
 
-:::syntax attrKind (open := false) (title := "Attribute Scopes") (alias := Lean.Parser.Term.attrKind)
+:::syntax attrKind -open (title := "Attribute Scopes") (alias := Lean.Parser.Term.attrKind)
 Globally-scoped declarations (the default) are in effect whenever the {tech}[module] in which they're established is transitively imported.
 They are indicated by the absence of another scope modifier.
 ```grammar
@@ -115,7 +115,7 @@ Locally-scoped declarations are in effect only for the extent of the {tech}[sect
 local
 ```
 
-Scoped declarations are in effect whenever the {tech key:="current namespace"}[namespace] in which they are established is opened.
+Scoped declarations are in effect whenever the {tech (key := "current namespace")}[namespace] in which they are established is opened.
 ```grammar
 scoped
 ```

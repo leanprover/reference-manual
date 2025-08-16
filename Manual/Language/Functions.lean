@@ -78,7 +78,7 @@ def AllNonZero (xs : Array Nat) : Prop :=
 :::keepEnv
 This is because the elaborator for array access requires a proof that the index is in bounds.
 The non-dependent version of the statement does not introduce this assumption:
-```lean (error := true) (name := nondepOops)
+```lean +error (name := nondepOops)
 def AllNonZero (xs : Array Nat) : Prop :=
   (i : Nat) → (i < xs.size) → xs[i] ≠ 0
 ```
@@ -115,7 +115,7 @@ example :
 
 In Lean's type theory, functions are created using {deftech}_function abstractions_ that bind a variable.
 {margin}[In various communities, function abstractions are also known as _lambdas_, due to Alonzo Church's notation for them, or _anonymous functions_ because they don't need to be defined with a name in the global environment.]
-When the function is applied, the result is found by {tech key:="β"}[β-reduction]: substituting the argument for the bound variable.
+When the function is applied, the result is found by {tech (key := "β")}[β-reduction]: substituting the argument for the bound variable.
 In compiled code, this happens strictly: the argument must already be a value.
 When type checking, there are no such restrictions; the equational theory of definitional equality allows β-reduction with any term.
 
@@ -157,7 +157,7 @@ Function extensionality is instead made available as a reasoning principle that 
 
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 axiom α : Type
 axiom β : α → Type
 axiom f : (x : α) → β x

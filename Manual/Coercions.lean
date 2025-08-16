@@ -21,7 +21,7 @@ open Lean (Syntax SourceInfo)
 tag := "coercions"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 open Lean (TSyntax Name)
 variable {c1 c2 : Name} {α : Type u}
@@ -47,7 +47,7 @@ Coercions are found using type class {tech}[synthesis].
 The set of coercions can be extended by adding further instances of the appropriate type classes.
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -77,7 +77,7 @@ fun f x => { fn := fun x_1 => f ↑x }
 :::
 
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u}
 ```
@@ -86,11 +86,11 @@ Coercions are not used to resolve {tech}[generalized field notation]: only the i
 However, a {tech}[type ascription] can be used to trigger a coercion to the type that has the desired generalized field.
 Coercions are also not used to resolve {name}`OfNat` instances: even though there is a default instance for {lean}`OfNat Nat`, a coercion from {lean}`Nat` to {lean}`α` does not allow natural number literals to be used for {lean}`α`.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
-```lean (show := false)
+```lean -show
 -- Test comment about field notation
 /-- error: Unknown constant `Nat.bdiv` -/
 #check_msgs in
@@ -115,10 +115,10 @@ example (n : Nat) := (n : Int).bdiv 2
 
 :::example "Coercions and Generalized Field Notation"
 
-The name {lean (error := true)}`Nat.bdiv` is not defined, but {lean}`Int.bdiv` exists.
+The name {lean +error}`Nat.bdiv` is not defined, but {lean}`Int.bdiv` exists.
 The coercion from {lean}`Nat` to {lean}`Int` is not considered when looking up the field `bdiv`:
 
-```lean (error := true) (name := natBdiv)
+```lean +error (name := natBdiv)
 example (n : Nat) := n.bdiv 2
 ```
 ```leanOutput natBdiv
@@ -168,7 +168,7 @@ def Bin.ofNat (n : Nat) : Bin :=
   | n + 1 => (Bin.ofNat n).succ
 ```
 
-```lean (show := false)
+```lean -show
 --- Internal tests
 /-- info: [0, 1, 10, 11, 100, 101, 110, 111, 1000] -/
 #check_msgs in
@@ -206,7 +206,7 @@ theorem Bin.ofNat_toNat_eq {n : Nat} : (Bin.ofNat n).toNat = n := by
 
 
 Even if {lean}`Bin.ofNat` is registered as a coercion, natural number literals cannot be used for {lean}`Bin`:
-```lean (name := nineFail) (error := true)
+```lean (name := nineFail) +error
 attribute [coe] Bin.ofNat
 
 instance : Coe Nat Bin where
@@ -299,7 +299,7 @@ Coercions are also inserted when they are explicitly requested.
 Each situation in which coercions may be inserted has a corresponding prefix operator that triggers the appropriate insertion.
 :::
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {α' : Type u'} {β : Type u} [Coe α α'] [Coe α' β] (e : α)
 ```
@@ -307,7 +307,7 @@ variable {α : Type u} {α' : Type u'} {β : Type u} [Coe α α'] [Coe α' β] (
 Because coercions are inserted automatically, nested {tech}[type ascriptions] provide a way to precisely control the types involved in a coercion.
 If {lean}`α` and {lean}`β` are not the same type, {lean}`((e : α) : β)` arranges for {lean}`e` to have type {lean}`α` and then inserts a coercion from {lean}`α` to {lean}`β`.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -350,7 +350,7 @@ def tomorrow : Later String :=
 ```
 :::
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u}
 ```
@@ -411,7 +411,7 @@ hello
 ```
 
 ::::
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -464,7 +464,7 @@ def four : Even := ⟨4, by omega⟩
 ```
 
 Due to coercion chaining, there is also a coercion from {name}`Even` to {name}`Int` formed by chaining the {inst}`Coe Even Nat` instance with the existing coercion from {name}`Nat` to {name}`Int`:
-```lean name := four'
+```lean (name := four')
 #eval (four : Int) - 5
 ```
 ```leanOutput four'
@@ -476,7 +476,7 @@ Due to coercion chaining, there is also a coercion from {name}`Even` to {name}`I
 Non-dependent coercions are used whenever all values of the inferred type can be coerced to the target type.
 
 :::example "Defining Dependent Coercions"
-The string "four" can be coerced into the natural number {lean type:="Nat"}`4` with this instance declaration:
+The string "four" can be coerced into the natural number {lean  (type := "Nat")}`4` with this instance declaration:
 ```lean (name := fourCoe)
 instance : CoeDep String "four" Nat where
   coe := 4
@@ -488,7 +488,7 @@ instance : CoeDep String "four" Nat where
 ```
 
 Ordinary type errors are produced for other strings:
-```lean (error := true) (name := threeCoe)
+```lean +error (name := threeCoe)
 #eval ("three" : Nat)
 ```
 ```leanOutput threeCoe
@@ -503,7 +503,7 @@ but is expected to have type
 :::
 
 
-```lean (show := false)
+```lean -show
 section
 variable {α α' α'' β β' «…» γ: Sort _}
 
@@ -516,7 +516,7 @@ variable [CoeHead α α'] [CoeOut α' …] [CoeOut … α''] [Coe α'' …] [Coe
 
 :::paragraph
 Non-dependent coercions may be chained: if there is a coercion from {lean}`α` to {lean}`β` and from {lean}`β` to {lean}`γ`, then there is also a coercion from {lean}`α` to {lean}`γ`.
-{index subterm:="of coercions"}[chain]
+{index (subterm:="of coercions")}[chain]
 The chain should be in the form {name}`CoeHead`$`?`{name}`CoeOut`$`*`{name}`Coe`$`*`{name}`CoeTail`$`?`, which is to say it may consist of:
 
  * An optional instance of {inst}`CoeHead α α'`, followed by
@@ -578,7 +578,7 @@ instance : Coe Bool (Decision α) := ⟨Decision.ofBool⟩
 ```
 
 With these instances, coercion chaining works:
-```lean name := chainTruthiness
+```lean (name := chainTruthiness)
 #eval ({ val := 1, isTrue := true : Truthy Nat } : Decision String)
 ```
 ```leanOutput chainTruthiness
@@ -586,7 +586,7 @@ Decision.yes
 ```
 
 Attempting to use the wrong class leads to an error:
-```lean name:=coeOutErr error:=true
+```lean (name := coeOutErr) +error
 instance : Coe (Truthy α) Bool := ⟨Truthy.isTrue⟩
 ```
 ```leanOutput coeOutErr
@@ -597,7 +597,7 @@ instance does not provide concrete values for (semi-)out-params
 :::
 
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -612,7 +612,7 @@ If both exist, then the {name}`CoeDep` instance takes priority.
 
 {docstring CoeT}
 
-```lean (show := false)
+```lean -show
 section
 variable {α β : Sort _} {e : α} [CoeDep α e β]
 ```
@@ -622,14 +622,14 @@ As an alternative to a chain of coercions, a term {lean}`e` of type {lean}`α` c
 Dependent coercions are useful in situations where only some of the values can be coerced; this mechanism is used to coerce only decidable propositions to {lean}`Bool`.
 They are also useful when the value itself occurs in the coercion's target type.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
 {docstring CoeDep}
 
 :::example "Dependent Coercion"
-```lean (show := false)
+```lean -show
 universe u
 ```
 
@@ -654,7 +654,7 @@ def oneTwoThree : NonEmptyList Nat := ⟨[1, 2, 3], by simp⟩
 
 Arbitrary lists cannot, however, be coerced to non-empty lists, because some arbitrarily-chosen lists may indeed be empty:
 
-```lean (error := true) (name := coeFail) (keep := false)
+```lean +error (name := coeFail) -keep
 instance : Coe (List α) (NonEmptyList α) where
   coe xs := ⟨xs, _⟩
 ```
@@ -679,8 +679,8 @@ instance : CoeDep (List α) (x :: xs) (NonEmptyList α) where
 
 
 Dependent coercion insertion requires that the term to be coerced syntactically matches the term in the instance header.
-Lists that are known to be non-empty, but which are not syntactically instances of {lean type:= "{α : Type u} → α → List α → List α"}`(· :: ·)`, cannot be coerced with this instance.
-```lean (error := true) (name := coeFailDep)
+Lists that are known to be non-empty, but which are not syntactically instances of {lean  (type := "{α : Type u} → α → List α → List α")}`(· :: ·)`, cannot be coerced with this instance.
+```lean +error (name := coeFailDep)
 #check
   fun (xs : List Nat) =>
     let ys : List Nat := xs ++ [4]
@@ -803,7 +803,7 @@ def Weekday.fromFin : Fin 7 → Weekday
   | 6 => su
 ```
 
-```lean (show := false)
+```lean -show
 theorem Weekday.toFin_fromFin_id : Weekday.toFin (Weekday.fromFin n) = n := by
   repeat (cases ‹Fin (_ + 1)› using Fin.cases; case zero => rfl)
   apply Fin.elim0; assumption
@@ -859,10 +859,10 @@ The type classes {name}`NatCast` and {name}`IntCast` are special cases of {name}
 They exist to enable better integration with large libraries of mathematics, such as [Mathlib](https://github.com/leanprover-community/mathlib4), that make heavy use of coercions to map from the natural numbers or integers to other structures (typically rings).
 Ideally, the coercion of a natural number or integer into these structures is a {tech}[simp normal form], because it is a convenient way to denote them.
 
-When the coercion application is expected to be the {tech}[simp normal form] for a type, it is important that _all_ such coercions are {tech key:="definitional equality"}[definitionally equal] in practice.
+When the coercion application is expected to be the {tech}[simp normal form] for a type, it is important that _all_ such coercions are {tech (key := "definitional equality")}[definitionally equal] in practice.
 Otherwise, the {tech}[simp normal form] would need to choose a single chained coercion path, but lemmas could accidentally be stated using a different path.
 Because {tactic}`simp`'s internal index is based on the underlying structure of the term, rather than its presentation in the surface syntax, these differences would cause the lemmas to not be applied where expected.
-{lean}`NatCast` and {lean}`IntCast` instances, on the other hand, should be defined such that they are always {tech key:="definitional equality"}[definitionally equal], avoiding the problem.
+{lean}`NatCast` and {lean}`IntCast` instances, on the other hand, should be defined such that they are always {tech (key := "definitional equality")}[definitionally equal], avoiding the problem.
 The Lean standard library's instances are arranged such that {name}`NatCast` or {name}`IntCast` instances are chosen preferentially over chains of coercion instances during coercion insertion.
 They can also be used as {name}`CoeOut` instances, allowing a graceful fallback to coercion chaining when needed.
 
@@ -919,7 +919,7 @@ structure Monoid where
   op_id_identity : ∀ (x : Carrier), op x id = x
 ```
 
-The type {lean type := "Type 1"}`Monoid` does not indicate the carrier:
+The type {lean  (type := "Type 1")}`Monoid` does not indicate the carrier:
 ```lean
 def StringMonoid : Monoid where
   Carrier := String
@@ -993,7 +993,7 @@ Unlike {name}`CoeDep`, the term itself is not taken into account during instance
 ```
 :::
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {β : Type v}
 ```
@@ -1056,7 +1056,7 @@ instance : CoeFun (NamedFun α α'') (fun _ => α → α'') where
 [1, 2, 3, 4, 5, 6]
 ```
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 

@@ -99,7 +99,7 @@ However, it should not be confused with {name}`PProd`: using non-computable reas
 
 In a {ref "tactics"}[tactic] proof, conjunctions can be proved using {name}`And.intro` explicitly via {tactic}`apply`, but {tactic}`constructor` is more common.
 When multiple conjunctions are nested in a proof goal, {tactic}`and_intros` can be used to apply {name}`And.intro` in each relevant location.
-Assumptions of conjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic}`let` or {tactic show:="match"}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
+Assumptions of conjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic}`let` or {tactic (show := "match")}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
 
 {docstring And}
 
@@ -113,7 +113,7 @@ Because {lean}`Sum` is a type, it is possible to check _which_ constructor was u
 In other words, because {lean}`Or` is not a {tech}[subsingleton], its proofs cannot be used as part of a computation.
 
 In a {ref "tactics"}[tactic] proof, disjunctions can be proved using either constructor ({name}`Or.inl` or {name}`Or.inr`) explicitly via {tactic}`apply`.
-Assumptions of disjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic show:="match"}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
+Assumptions of disjunctions in the context can be simplified using {tactic}`cases`, pattern matching with {tactic (show := "match")}`Lean.Parser.Tactic.match`, or {tactic}`rcases`.
 
 {docstring Or}
 
@@ -125,14 +125,14 @@ This is because the decision procedure's result provides a suitable branch condi
 {docstring Or.by_cases'}
 
 
-```lean (show := false)
+```lean -show
 section
 variable {P : Prop}
 ```
 Rather than encoding negation as an inductive type, {lean}`¬P` is defined to mean {lean}`P → False`.
 In other words, to prove a negation, it suffices to assume the negated statement and derive a contradiction.
 This also means that {lean}`False` can be derived immediately from a proof of a proposition and its negation, and then used to prove any proposition or inhabit any type.
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -146,7 +146,7 @@ end
 
 
 
-```lean (show := false)
+```lean -show
 section
 variable {A B : Prop}
 ```
@@ -171,7 +171,7 @@ theorem truth_functional_imp {A B : Prop} :
 ```
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -239,7 +239,7 @@ Unlike both {name}`Subtype` and {name}`Sigma`, it is a {tech}[proposition]; this
 
 When writing a proof, the {tactic}`exists` tactic allows one (or more) witness(es) to be specified for a (potentially nested) existential statement.
 The {tactic}`constructor` tactic, on the other hand, creates a {tech}[metavariable] for the witness; providing a proof of the predicate may solve the metavariable as well.
-The components of an existential assumption can be made available individually by pattern matching with {tactic}`let` or {tactic show:="match"}`Lean.Parser.Tactic.match`, as well as by using {tactic}`cases` or {tactic}`rcases`.
+The components of an existential assumption can be made available individually by pattern matching with {tactic}`let` or {tactic (show := "match")}`Lean.Parser.Tactic.match`, as well as by using {tactic}`cases` or {tactic}`rcases`.
 
 :::example "Proving Existential Statements"
 
@@ -402,12 +402,12 @@ In these cases, the built-in automation has no choice but to use heterogeneous e
 $_ ≍ $_
 ```
 
-```lean (show := false)
+```lean -show
 section
 variable (x : α) (y : β)
 ```
 Heterogeneous equality {lean}`HEq x y` can be written {lean}`x ≍ y`.
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -418,7 +418,7 @@ end
 
 :::::leanSection
 ::::example "Heterogeneous Equality"
-```lean (show := false)
+```lean -show
 variable {α : Type u} {n k l₁ l₂ l₃ : Nat}
 ```
 
@@ -429,7 +429,7 @@ variable
   {xs : Vector α l₁} {ys : Vector α l₂} {zs : Vector α l₃}
 set_option linter.unusedVariables false
 ```
-```lean (name := assocFail) (error := true) (keep := false)
+```lean (name := assocFail) +error -keep
 theorem Vector.append_associative :
     xs ++ (ys ++ zs) = (xs ++ ys) ++ zs := by sorry
 ```
@@ -456,7 +456,7 @@ However, such proof statements can be difficult to work with in certain circumst
 
 :::paragraph
 Another is to use heterogeneous equality:
-```lean (keep := false)
+```lean -keep
 theorem Vector.append_associative :
     HEq (xs ++ (ys ++ zs)) ((xs ++ ys) ++ zs) := by sorry
 ```
@@ -464,7 +464,7 @@ theorem Vector.append_associative :
 
 In this case, {ref "the-simplifier"}[the simplifier] can rewrite both sides of the equation without having to preserve their types.
 However, proving the theorem does require eventually proving that the lengths nonetheless match.
-```lean (keep := false)
+```lean -keep
 theorem Vector.append_associative :
     HEq (xs ++ (ys ++ zs)) ((xs ++ ys) ++ zs) := by
   cases xs; cases ys; cases zs

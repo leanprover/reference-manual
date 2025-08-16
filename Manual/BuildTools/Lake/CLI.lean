@@ -142,9 +142,9 @@ Otherwise, the provided command is invoked in Lake's environment.
 
 ::::paragraph
 The following variables are set, overriding previous values:
-:::table align:=left
+:::table (align := left)
 *
-  * {envVar def:=true}`LAKE`
+  * {envVar +def}`LAKE`
   * The detected Lake executable
 *
   * {envVar}`LAKE_HOME`
@@ -163,7 +163,7 @@ The following variables are set, overriding previous values:
 
 ::::paragraph
 The following variables are augmented with additional information:
-:::table align:=left
+:::table (align := left)
 *
   * {envVar}`LEAN_PATH`
   * Lake's and the {tech}[workspace]'s Lean {tech}[library directories] are added.
@@ -185,35 +185,35 @@ The following variables are augmented with additional information:
 
 ::::paragraph
 Lake itself can be configured with the following environment variables:
-:::table align:=left
+:::table (align := left)
 *
-  * {envVar def:=true}`ELAN_HOME`
+  * {envVar +def}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
 
 *
-  * {envVar def:=true}`ELAN`
+  * {envVar +def}`ELAN`
   * The location of the `elan` binary, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
     If it is not set, an occurrence of `elan` must exist on the {envVar}`PATH`.
 
 *
-  * {envVar def:=true}`LAKE_HOME`
+  * {envVar +def}`LAKE_HOME`
   * The location of the Lake installation.
     This environment variable is only consulted when Lake is unable to determine its installation path from the location of the `lake` executable that's currently running.
 *
-  * {envVar def:=true}`LEAN_SYSROOT`
+  * {envVar +def}`LEAN_SYSROOT`
   * The location of the Lean installation, used to find the Lean compiler, the standard library, and other bundled tools.
     Lake first checks whether its binary is colocated with a Lean install, using that installation if so.
-    If not, or if {envVar def:=true}`LAKE_OVERRIDE_LEAN` is true, then Lake consults {envVar}`LEAN_SYSROOT`.
-    If this is not set, Lake consults the {envVar def:=true}`LEAN` environment variable to find the Lean compiler, and attempts to find the Lean installation relative to the compiler.
+    If not, or if {envVar +def}`LAKE_OVERRIDE_LEAN` is true, then Lake consults {envVar}`LEAN_SYSROOT`.
+    If this is not set, Lake consults the {envVar +def}`LEAN` environment variable to find the Lean compiler, and attempts to find the Lean installation relative to the compiler.
     If {envVar}`LEAN` is set but empty, Lake considers Lean to be disabled.
     If {envVar}`LEAN_SYSROOT` and {envVar}`LEAN` are unset, the first occurrence of `lean` on the {envVar}`PATH` is used to find the installation.
 *
-  * {envVar def:=true}`LEAN_CC` and {envVar def:=true}`LEAN_AR`
+  * {envVar +def}`LEAN_CC` and {envVar +def}`LEAN_AR`
   * If {envVar}`LEAN_CC` and/or {envVar}`LEAN_AR` is set, its value is used as the C compiler or `ar` command when building libraries.
     If not, Lake will fall back to the bundled tool in the Lean installation.
-    If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
+    If the bundled tool is not found, the value of {envVar +def}`CC` or {envVar +def}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
 *
-  * {envVar def:=true}`LAKE_NO_CACHE`
+  * {envVar +def}`LAKE_NO_CACHE`
   * If true, Lake does not use cached builds from [Reservoir](https://reservoir.lean-lang.org/) or {ref "lake-github"}[GitHub].
     This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
 
@@ -224,7 +224,7 @@ Lake considers an environment variable to be true when its value is `y`, `yes`, 
 It considers a variable to be false when its value is `n`, `no`, `f`, `false`, `off`, or `0`, compared case-insensitively.
 If the variable is unset, or its value is neither true nor false, a default value is used.
 
-```lean (show := false)
+```lean -show
 -- Test the claim above
 /--
 info: def Lake.envToBool? : String → Option Bool :=
@@ -285,7 +285,7 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
-  Normally, the {tech}[package configuration] file is {tech key:="elaborator"}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
+  Normally, the {tech}[package configuration] file is {tech (key := "elaborator")}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
   Providing this flag causes the configuration file to be re-elaborated.
 
 : {lakeOptDef flag}`--keep-toolchain`

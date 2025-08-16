@@ -77,14 +77,14 @@ The signature may specify any parameters, modulo the well-formedness requirement
 If no signature is provided, then the constructor's type is inferred by inserting sufficient implicit parameters to construct a well-formed return type.
 
 The new inductive type's name is defined in the {tech}[current namespace].
-Each constructor's name is in the inductive type's namespace.{index subterm:="of inductive type"}[namespace]
+Each constructor's name is in the inductive type's namespace.{index (subterm := "of inductive type")}[namespace]
 
 ## Parameters and Indices
 %%%
 tag := "inductive-datatypes-parameters-and-indices"
 %%%
 
-Type constructors may take two kinds of arguments: {deftech}_parameters_ {index subterm:="of inductive type"}[parameter] and {deftech key:="index"}_indices_.{index subterm:="of inductive type"}[index]
+Type constructors may take two kinds of arguments: {deftech}_parameters_ {index (subterm := "of inductive type")}[parameter] and {deftech (key := "index")}_indices_.{index (subterm := "of inductive type")}[index]
 Parameters must be used consistently in the entire definition; all occurrences of the type constructor in each constructor in the declaration must take precisely the same argument.
 Indices may vary among the occurrences of the type constructor.
 All parameters must precede all indices in the type constructor's signature.
@@ -99,7 +99,7 @@ An index could have been a parameter if all of its type dependencies are themsel
 
 Indices can be seen as defining a _family_ of types.
 Each choice of indices selects a type from the family, which has its own set of available constructors.
-Type constructors with indices are said to specify {deftech}_indexed families_ {index subterm:="of types"}[indexed family] of types.
+Type constructors with indices are said to specify {deftech}_indexed families_ {index (subterm := "of types")}[indexed family] of types.
 
 ## Example Inductive Types
 %%%
@@ -121,7 +121,7 @@ Empty inductive types are not useless; they can be used to indicate unreachable 
 inductive No : Prop where
 ```
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 theorem no_is_false : No = False := by
   apply propext
   constructor <;> intro h <;> cases h
@@ -175,7 +175,7 @@ The signature inferred for {lean}`Yes.intro` is:
 Yes.intro : Yes
 ```
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 theorem yes_is_true : Yes = True := by
   apply propext
   constructor <;> intros <;> constructor
@@ -185,7 +185,7 @@ theorem yes_is_true : Yes = True := by
 ::::example "A type with parameter and index" (keep := true)
 
 :::keepEnv
-```lean (show:=false)
+```lean -show
 universe u
 axiom α : Type u
 axiom b : Bool
@@ -207,7 +207,7 @@ example : EvenOddList String true :=
 ```
 
 This example is not well typed because there are three entries in the list:
-```lean (error := true) (name := evenOddOops)
+```lean +error (name := evenOddOops)
 example : EvenOddList String true :=
   .cons "a" (.cons "b" (.cons "c" .nil))
 ```
@@ -221,7 +221,7 @@ but is expected to have type
 ```
 
 :::keepEnv
-```lean (show:=false)
+```lean -show
 universe u
 axiom α : Type u
 axiom b : Bool
@@ -232,7 +232,7 @@ In this declaration, {lean}`α` is a {tech}[parameter], because it is used consi
 :::
 
 
-```lean (show:=false) (keep:=false)
+```lean -show -keep
 def EvenOddList.length : EvenOddList α b → Nat
   | .nil => 0
   | .cons _ xs => xs.length + 1
@@ -258,7 +258,7 @@ inductive Either (α : Type u) (β : Type v) : Type (max u v) where
 ```
 
 In this version, there are two types named `α` that might not be identical:
-```lean (name := Either') (error := true)
+```lean (name := Either') +error
 inductive Either' (α : Type u) (β : Type v) : Type (max u v) where
   | left : {α : Type u} → {β : Type v} → α → Either' α β
   | right : β → Either' α β
@@ -306,7 +306,7 @@ Constructors can be invoked anonymously by enclosing their explicit arguments in
 ::::example "Anonymous constructors"
 
 :::keepEnv
-```lean (show:=false)
+```lean -show
 axiom α : Type
 ```
 The type {lean}`AtLeastOne α` is similar to `List α`, except there's always at least one element present:
@@ -366,7 +366,7 @@ tag := "inductive-types-runtime-special-support"
 
 Not every inductive type is represented as indicated here—some inductive types have special support from the Lean compiler:
 :::keepEnv
-```lean (show := false)
+```lean -show
 axiom α : Prop
 ```
 
@@ -544,7 +544,7 @@ end
 example : EvenList String := .cons "x" (.cons "y" .nil)
 example : OddList String := .cons "x" (.cons "y" (.cons "z" .nil))
 ```
-```lean (error := true) (name := evenOddMut)
+```lean +error (name := evenOddMut)
 example : OddList String := .cons "x" (.cons "y" .nil)
 ```
 ```leanOutput evenOddMut
@@ -575,7 +575,7 @@ The constructors of each inductive type may mention the other type constructors 
 
 :::example "Mutual inductive type constructors may not mention each other"
 These inductive types are not accepted by Lean:
-```lean (error:=true) (name := mutualNoMention)
+```lean +error (name := mutualNoMention)
 mutual
   inductive FreshList (α : Type) (r : α → α → Prop) : Type where
     | nil : FreshList α r
@@ -606,7 +606,7 @@ Their indices may differ.
 ::::keepEnv
 ::: example "Differing numbers of parameters"
 Even though `Both` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters:
-```lean (name := bothOptional) (error := true)
+```lean (name := bothOptional) +error
 mutual
   inductive Both (α : Type u) (β : Type v) where
     | mk : α → β → Both α β
@@ -627,7 +627,7 @@ Note: All inductive types declared in the same `mutual` block must have the same
 ::: example "Differing parameter types"
 Even though `Many` and `OneOf` are not mutually recursive, they are declared in the same `mutual` block and must therefore have identical parameters.
 They both have exactly one parameter, but `Many`'s parameter is not necessarily in the same universe as `Optional`'s:
-```lean (name := manyOptional) (error := true)
+```lean (name := manyOptional) +error
 mutual
   inductive Many (α : Type) : Type u where
     | nil : Many α
@@ -686,7 +686,7 @@ Specifying {name}`PrefixRunOf` as a {lean}`Prop` would be sensible, but it canno
 :::
 
 :::keepEnv
-```lean (error :=true) (name := rleBad)
+```lean +error (name := rleBad)
 mutual
   inductive RLE : List α → Type where
   | nil : RLE []
@@ -758,7 +758,7 @@ In other words, in the type of each parameter to each constructor in all the typ
 
 ::: example "Mutual strict positivity"
 In the following mutual group, `Tm` occurs in a negative position in the argument to `Binding.scope`:
-```lean (error := true) (name := mutualHoas)
+```lean +error (name := mutualHoas)
 mutual
   inductive Tm where
     | app : Tm → Tm → Tm

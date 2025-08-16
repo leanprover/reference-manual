@@ -37,7 +37,7 @@ Roughly speaking, Lean's processing of a source file can be divided into the fol
 
 : Elaboration
 
-  {deftech key:="elaborator"}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
+  {deftech (key := "elaborator")}[Elaboration] is the process of transforming Lean's user-facing syntax into its core type theory.
   This core theory is much simpler, enabling the trusted kernel to be very small.
   Elaboration additionally produces metadata, such as proof states or the types of expressions, used for Lean's interactive features, storing them in a side table.
 
@@ -139,7 +139,7 @@ When interacting with Lean code, much more information is needed than when simpl
 For example, Lean's interactive environment can be used to view the types of selected expressions, to step through all the intermediate states of a proof, to view documentation, and highlight all occurrences of a bound variable.
 The information necessary to use Lean interactively is stored in a side table called the  {deftech}_info trees_ during elaboration.
 
-```lean (show := false)
+```lean -show
 open Lean.Elab (Info)
 ```
 
@@ -166,11 +166,11 @@ The language implemented by the kernel is a version of the Calculus of Construct
  * A {tech}[predicative], non-cumulative hierarchy of universes of data
  * {ref "quotients"}[Quotient types] with a definitional computation rule
  * Propositional function extensionality{margin}[Function extensionality is a theorem that can be proved using quotient types, but it is such an important consequence that it's worth listing separately.]
- * Definitional {tech key:="η-equivalence"}[η-equality] for functions and products
+ * Definitional {tech (key := "η-equivalence")}[η-equality] for functions and products
  * Universe-polymorphic definitions
  * Consistency: there is no axiom-free closed term of type {lean}`False`
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- Test definitional eta for structures
 structure A where
   x : Nat
@@ -221,7 +221,7 @@ To see auxiliary pattern matching functions in Lean's output, set the option {op
 {optionDocs pp.match}
 
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 def third_of_five : List α → Option α
   | [_, _, x, _, _] => some x
   | _ => none

@@ -19,7 +19,7 @@ tag := "Thunk"
 %%%
 
 A {deftech}_thunk_ delays the computation of a value.
-In particular, the {name}`Thunk` type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called {deftech key:="force"}_forcing_ the thunk.
+In particular, the {name}`Thunk` type is used to delay the computation of a value in compiled code until it is explicitly requested—this request is called {deftech (key := "force")}_forcing_ the thunk.
 The computed value is saved, so subsequent requests do not result in recomputation.
 Computing values at most once, when explicitly requested, is called {deftech}_lazy evaluation_.{index}[call-by-need]
 This caching is invisible to Lean's logic, in which {name}`Thunk` is equivalent to a function from {name}`Unit`.
@@ -58,7 +58,7 @@ The runtime system maintains the invariant that either the closure or the saved 
 If both are null pointers, then the thunk is being forced on another thread.
 :::
 
-When a thunk is {tech key:="force"}[forced], the runtime system first checks whether the saved value has already been computed, returning it if so.
+When a thunk is {tech (key := "force")}[forced], the runtime system first checks whether the saved value has already been computed, returning it if so.
 Otherwise, it attempts to acquire a lock on the closure by atomically swapping it with a null pointer.
 If the lock is acquired, it is invoked to compute the value; the computed value is stored in the saved value field and the reference to the closure is dropped.
 If not, then another thread is already computing the value; the system waits until it is computed.
@@ -69,7 +69,7 @@ tag := "Thunk-coercions"
 %%%
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {α : Type u} {e : α}
 ```
 There is a coercion from any type {lean}`α` to {lean}`Thunk α` that converts a term {lean}`e` into {lean}`Thunk.mk fun () => e`.

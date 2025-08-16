@@ -20,7 +20,7 @@ set_option pp.rawOnError true
 tag := "array-ffi"
 %%%
 
-:::ffi "lean_string_object" kind := type
+:::ffi "lean_string_object" (kind := type)
 ```
 typedef struct {
     lean_object   m_header;

@@ -249,7 +249,7 @@ partial def many [Inhabited (f (List α))] [Applicative f] [Alternative f] (x : 
 def FreeSyntaxConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] [MonadFileMap m] : ArgParse m FreeSyntaxConfig :=
   FreeSyntaxConfig.mk <$>
     .positional `name .name <*>
-    .namedD `open .bool true <*>
+    .flag `open true <*>
     .named `label .string true <*>
     .named `title .inlinesString false
 

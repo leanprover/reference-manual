@@ -56,14 +56,14 @@ This creates ambiguity, because an identifier `A.B.C.D.e.f` could refer to any o
 
 This list is not exhaustive.
 Given an identifier, the elaborator must discover which name or names an identifier refers to, and whether any of the trailing components are fields or functions applied via field notation.
-This is called {deftech key:="resolve"}_resolving_ the name.
+This is called {deftech (key := "resolve")}_resolving_ the name.
 
 Some declarations in the global environment are lazily created the first time they are referenced.
 Resolving an identifier in a way that both creates one of these declarations and results in a reference to it is called {deftech}_realizing_ the name.
 The rules for resolving and realizing a name are the same, so even though this section refers only to resolving names, it applies to both.
 
 Name resolution is affected by the following:
- * {tech key:="pre-resolved identifier"}[Pre-resolved names] attached to the identifier
+ * {tech (key := "pre-resolved identifier")}[Pre-resolved names] attached to the identifier
  * The {tech}[macro scopes] attached to the identifier
  * The local bindings in scope, including auxiliary definitions created as part of the elaboration of {keywordOf Lean.Parser.Term.letrec}`let rec`.
  * Aliases created with {keywordOf Lean.Parser.Command.export}`export` in modules transitively imported by the current module
@@ -195,7 +195,7 @@ Even though `A` was opened more recently than the declaration of {name}`B.x`, th
 :::example "Ambiguous Identifiers"
 In this example, `x` could refer either to {name}`A.x` or {name}`B.x`, and neither takes precedence.
 Because both have the same type, it is an error.
-```lean (name := ambi) (error := true)
+```lean (name := ambi) +error
 def A.x := "A.x"
 def B.x := "B.x"
 open A
@@ -274,9 +274,9 @@ tag := "function-types"
 
 Lean's function types describe more than just the function's domain and codomain.
 They also provide instructions for elaborating application sites by indicating that some parameters are to be discovered automatically via unification or {ref "instance-synth"}[type class synthesis], that others are optional with default values, and that yet others should be synthesized using a custom tactic script.
-Furthermore, their syntax contains support for abbreviating {tech key:="currying"}[curried] functions.
+Furthermore, their syntax contains support for abbreviating {tech (key := "currying")}[curried] functions.
 
-:::syntax term title:="Function types"
+:::syntax term (title := "Function types")
 Dependent function types include an explicit name:
 ```grammar
 ($x:ident : $t) → $t2
@@ -288,7 +288,7 @@ $t1:term → $t2
 ```
 :::
 
-:::syntax term title:="Curried Function Types"
+:::syntax term (title := "Curried Function Types")
 Dependent function types may include multiple parameters that have the same type in a single set of parentheses:
 ```grammar
 ($x:ident* : $t) → $t
@@ -296,7 +296,7 @@ Dependent function types may include multiple parameters that have the same type
 This is equivalent to repeating the type annotation for each parameter name in a nested function type.
 :::
 
-:::syntax term title:="Implicit, Optional, and Auto Parameters"
+:::syntax term (title := "Implicit, Optional, and Auto Parameters")
 Function types can describe functions that take implicit, instance implicit, optional, and automatic parameters.
 All but instance implicit parameters require one or more names.
 ```grammar
@@ -342,7 +342,7 @@ tag := "function-terms"
 Terms with function types can be created via abstractions, introduced with the {keywordOf Lean.Parser.Term.fun}`fun` keyword.{margin}[In various communities, function abstractions are also known as _lambdas_, due to Alonzo Church's notation for them, or _anonymous functions_ because they don't need to be defined with a name in the global environment.]
 While abstractions in the core type theory only allow a single variable to be bound, function terms are quite flexible in the high-level Lean syntax.
 
-:::syntax term title:="Function Abstraction"
+:::syntax term (title := "Function Abstraction")
 The most basic function abstraction introduces a variable to stand for the function's parameter:
 
 ```grammar
@@ -360,7 +360,7 @@ fun $x:ident : term => $t
 Function definitions defined with keywords such as {keywordOf Lean.Parser.Command.declaration parser:=Lean.Parser.Command.definition}`def` desugar to {keywordOf Lean.Parser.Term.fun}`fun`.
 Inductive type declarations, on the other hand, introduce new values with function types (constructors and type constructors) that cannot themselves be implemented using just {keywordOf Lean.Parser.Term.fun}`fun`.
 
-:::syntax term title:="Curried Functions"
+:::syntax term (title := "Curried Functions")
 
 
 Multiple parameter names are accepted after {keywordOf Lean.Parser.Term.fun}`fun`:
@@ -434,7 +434,7 @@ However, when the explicit argument is not provided, uses of {lean}`f` do not re
 example := f
 ```
 However, uses of `g` do require it to be solved, and fail to elaborate if there is insufficient information available:
-```lean (error := true) (name := noAlpha)
+```lean +error (name := noAlpha)
 example := g
 ```
 ```leanOutput noAlpha
@@ -447,7 +447,7 @@ context:
 ::::
 
 
-:::syntax term title := "Functions with Varying Binders"
+:::syntax term (title := "Functions with Varying Binders")
 The most general syntax for {keywordOf Lean.Parser.Term.fun}`fun` accepts a sequence of binders:
 ```grammar
 fun $p:funBinder $p:funBinder* => $t
@@ -455,7 +455,7 @@ fun $p:funBinder $p:funBinder* => $t
 :::
 
 
-:::syntax Lean.Parser.Term.funBinder title:="Function Binders"
+:::syntax Lean.Parser.Term.funBinder (title := "Function Binders")
 Function binders may be identifiers:
 ```grammar
 $x:ident
@@ -498,7 +498,7 @@ As usual, an `_` may be used instead of an identifier to create an anonymous par
 Lean's core language does not distinguish between implicit, instance, and explicit parameters: the various kinds of function and function type are definitionally equal.
 The differences can be observed only during elaboration.
 
-```lean (show := false)
+```lean -show
 -- Evidence of claims in prior paragraph
 example : ({x : Nat} → Nat) = (Nat → Nat) := rfl
 example : (fun {x} => 2 : {x : Nat} → Nat) = (fun x => 2 : Nat → Nat) := rfl
@@ -600,7 +600,7 @@ If any fresh variables were created for missing explicit positional arguments, t
 Finally, instance synthesis is invoked and as many metavariables as possible are solved:
  1. A type is inferred for the entire function application. This may cause some metavariables to be solved due to unification that occurs during type inference.
  2. The instance metavariables are synthesized. {tech}[Default instances] are only used if the inferred type is a metavariable that is the output parameter of one of the instances.
- 3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech key:="lift"}[monad lifts].
+ 3. If there is an expected type, it is unified with the inferred type; however, errors resulting from this unification are discarded. If the expected and inferred types can be equal, unification can solve leftover implicit argument metavariables. If they can't be equal, an error is not thrown because a surrounding elaborator may be able to insert {tech}[coercions] or {tech (key := "lift")}[monad lifts].
 
 
 ::::keepEnv
@@ -670,7 +670,7 @@ This means that the remaining arguments can again be passed by name.
 fun x => (fun x y => sum3 x y 8) x 1 : Nat → Nat
 ```
 
-```lean (show := false)
+```lean -show
 -- This is not shown in the manual pending #6373
 -- https://github.com/leanprover/lean4/issues/6373
 -- When the issue is fixed, this code will stop working and the text can be updated.
@@ -720,7 +720,7 @@ Specifically, it becomes the first explicit argument that would not be a type er
 Aside from that, the application is elaborated as usual.
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 section
 variable (name : Username)
 ```
@@ -752,7 +752,7 @@ def root : Username := "root"
 ```
 
 However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
-```lean (error := true) (name := notString)
+```lean +error (name := notString)
 #eval "root".validate
 ```
 ```leanOutput notString
@@ -770,7 +770,7 @@ has type
 Except.ok ()
 ```
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 ::::
@@ -862,7 +862,7 @@ $e |>.$_:fieldIdx
 :::
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 section
 universe u
 axiom T : Nat → Type u
@@ -877,7 +877,7 @@ axiom T.f : {n : Nat} → Char → T n → String
 
 Some functions are inconvenient to use with pipelines because their argument order is not conducive.
 For example, {name}`Array.push` takes an array as its first argument, not a {lean}`Nat`, leading to this error:
-```lean (name := arrPush) (error := true)
+```lean (name := arrPush) +error
 #eval #[1, 2, 3] |> Array.push 4
 ```
 ```leanOutput arrPush
@@ -908,7 +908,7 @@ This process can be iterated:
 :::
 
 
-```lean (show := false)
+```lean -show
 end
 ```
 ::::
@@ -916,14 +916,14 @@ end
 # Literals
 
 There are two kinds of numeric literal: natural number literals and {deftech}[scientific literals].
-Both are overloaded via {tech key:="type class"}[type classes].
+Both are overloaded via {tech (key := "type class")}[type classes].
 
 ## Natural Numbers
 %%%
 tag := "nat-literals"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable {n : Nat}
 ```
@@ -933,7 +933,7 @@ A {tech}[default instance] of {lean}`OfNat Nat n` ensures that the type {lean}`N
 
 {docstring OfNat}
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -1077,7 +1077,7 @@ else
 
 Array indexing requires evidence that the index in question is within the bounds of the array, so {name}`getThird` does not elaborate.
 
-```lean (error := true) (keep := false) (name := getThird1)
+```lean +error -keep (name := getThird1)
 def getThird (xs : Array α) : α := xs[2]
 ```
 ```leanOutput getThird1
@@ -1093,7 +1093,7 @@ xs : Array α
 
 Relaxing the return type to {name}`Option` and adding a bounds check results in the same error.
 This is because the proof that the index is in bounds was not added to the local context.
-```lean (error := true) (keep := false) (name := getThird2)
+```lean +error -keep (name := getThird2)
 def getThird (xs : Array α) : Option α :=
   if xs.size ≤ 2 then none
   else xs[2]
@@ -1169,7 +1169,7 @@ $[| $[$e,*]|* => $e]*
 ```
 :::
 
-:::syntax matchDiscr (title := "Match Discriminants") (open := false)
+:::syntax matchDiscr (title := "Match Discriminants") -open
 ```grammar
 $e:term
 ```
@@ -1203,7 +1203,7 @@ They consist of the following:
   If the identifier is a constructor, the pattern matches values built with that constructor if the argument patterns match the constructor's arguments.
   If it is a function with the {attr}`match_pattern` attribute, then the function application is unfolded and the resulting term's {tech}[normal form] is used as the pattern.
   Default arguments are inserted as usual, and their normal forms are used as patterns.
-  {tech key:="ellipsis"}[Ellipses], however, result in all further arguments being treated as universal patterns, even those with associated default values or tactics.
+  {tech (key := "ellipsis")}[Ellipses], however, result in all further arguments being treated as universal patterns, even those with associated default values or tactics.
 
 : Literals
 
@@ -1283,7 +1283,7 @@ $x:ident@$h:ident:$e
 :::
 
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- Check claims about patterns
 
 -- Literals
@@ -1435,7 +1435,7 @@ In both subsequent patterns in the same match alternative and the right-hand sid
 
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 variable {α : Type u}
 ```
 
@@ -1462,7 +1462,7 @@ inductive BalancedTree (α : Type u) : Nat → Type u where
 ```
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
-```lean (keep := false) (name := fill1) (error := true)
+```lean -keep (name := fill1) +error
 def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth := _
 ```
 The error message demonstrates that the tree should have the indicated depth.
@@ -1477,7 +1477,7 @@ depth : Nat
 
 Matching on the expected depth and inserting holes results in an error message for each hole.
 These messages demonstrate that the expected type has been refined, with `depth` replaced by the matched values.
-```lean (error := true) (name := fill2)
+```lean +error (name := fill2)
 def BalancedTree.filledWith
     (x : α) (depth : Nat) :
     BalancedTree α depth :=
@@ -1506,7 +1506,7 @@ depth n : Nat
 
 Matching on the depth of a tree and the tree itself leads to a refinement of the tree's type according to the depth's pattern.
 This means that certain combinations are not well-typed, such as {lean}`0` and {name BalancedTree.branch}`branch`, because refining the second discriminant's type yields {lean}`BalancedTree α 0` which does not match the constructor's type.
-```lean (name := patfail) (error := true)
+```lean (name := patfail) +error
 def BalancedTree.isPerfectlyBalanced
     (n : Nat) (t : BalancedTree α n) : Bool :=
   match n, t with
@@ -1546,7 +1546,7 @@ def last? (xs : List α) : Except String α :=
 ```
 
 Without the name, {tactic}`simp_all` is unable to find the contradiction.
-```lean (error := true) (name := namedHyp)
+```lean +error (name := namedHyp)
 def last?' (xs : List α) : Except String α :=
   match xs with
   | [] =>
@@ -1572,7 +1572,7 @@ The type that results from applying a function with this type to the discriminan
 :::example "Matching with an Explicit Motive"
 An explicit motive can be used to provide type information that is otherwise unavailable from the surrounding context.
 Attempting to match on a number and a proof that it is in fact {lean}`5` is an error, because there's no reason to connect the number to the proof:
-```lean (error := true) (name := noMotive)
+```lean +error (name := noMotive)
 #eval
   match 5, rfl with
   | 5, rfl => "ok"
@@ -1631,13 +1631,13 @@ This latter behavior can be turned off by passing the `(generalizing := false)` 
 
 :::::keepEnv
 ::::example "Matching, With and Without Generalization"
-```lean (show := false)
+```lean -show
 variable {α : Type u} (b : Bool) (ifTrue : b = true → α) (ifFalse : b = false → α)
 ```
 In this definition of {lean}`boolCases`, the assumption {lean}`b` is generalized in the type of `h` and then replaced with the actual pattern.
 This means that {lean}`ifTrue` and {lean}`ifFalse` have the types {lean}`true = true → α` and {lean}`false = false → α` in their respective cases, but `h`'s type mentions the original discriminant.
 
-```lean (error := true) (name := boolCases1) (keep := false)
+```lean +error (name := boolCases1) -keep
 def boolCases (b : Bool)
     (ifTrue : b = true → α)
     (ifFalse : b = false → α) :
@@ -1676,7 +1676,7 @@ In the generalized version, {name}`rfl` could have been used as the proof argume
 tag := "match_pattern-functions"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable {n : Nat}
 ```
@@ -1694,13 +1694,13 @@ match_pattern
 :::
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 section
 variable {k : Nat}
 ```
 :::example "Match Patterns Follow Reduction"
 The following function can't be compiled:
-```lean (error := true) (name := nonPat)
+```lean +error (name := nonPat)
 def nonzero (n : Nat) : Bool :=
   match n with
   | 0 => false
@@ -1725,14 +1725,14 @@ No {tech}[ι-reduction] is possible, because the value being matched is a variab
 In the case of {lean}`k + 1`, that is, {lean}`Nat.add k (.succ .zero)`, the second pattern matches, so it reduces to {lean}`Nat.succ (Nat.add k .zero)`.
 The second pattern now matches, yielding {lean}`Nat.succ k`, which is a valid pattern.
 :::
-```lean (show := false)
+```lean -show
 end
 ```
 
 ::::
 
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -1810,7 +1810,7 @@ $e matches $e
 
 When branching on the result of {keywordOf Lean.«term_Matches_|»}`matches`, it's usually better to use {keywordOf termIfLet}`if let`, which can bind pattern variables in addition to checking whether a pattern matches.
 
-```lean (show := false)
+```lean -show
 /--
 info: match 4 with
 | n.succ => true
@@ -1870,7 +1870,7 @@ Specify the elaboration of pattern matching to {deftech}[auxiliary match functio
 
 # Holes
 
-A {deftech}_hole_ or {deftech}_placeholder term_ is a term that indicates the absence of instructions to the elaborator.{index}[placeholder term]{index subterm:="placeholder"}[term]
+A {deftech}_hole_ or {deftech}_placeholder term_ is a term that indicates the absence of instructions to the elaborator.{index}[placeholder term]{index (subterm := "placeholder")}[term]
 In terms, holes can be automatically filled when the surrounding context would only allow one type-correct term to be written where the hole is.
 Otherwise, a hole is an error.
 In patterns, holes represent universal patterns that can match anything.
@@ -1949,7 +1949,7 @@ show $_ by $_
 This example is unable to execute the tactic proof because the desired proposition is not known.
 As part of running the earlier tactics, the proposition is automatically refined to be one that the tactics could prove.
 However, their default cases fill it out incorrectly, leading to a proof that fails.
-```lean (name := byBusted) (error := true)
+```lean (name := byBusted) +error
 example (n : Nat) := by
   induction n
   next => rfl
@@ -1978,7 +1978,7 @@ example (n : Nat) := show 0 + n = n by
 
 :::example "Ascribing Types to {keywordOf Lean.Parser.Term.do}`do` Blocks"
 This example lacks sufficient type information to synthesize the {name}`Pure` instance.
-```lean (name := doBusted) (error := true)
+```lean (name := doBusted) +error
 example := do
   return 5
 ```
@@ -1988,7 +1988,7 @@ typeclass instance problem is stuck, it is often due to metavariables
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
-The {tech key:="default instance"}[default] {lean}`OfNat _ 5` instance provides enough type information to fill the hole with {lean}`Nat`.
+The {tech (key := "default instance")}[default] {lean}`OfNat _ 5` instance provides enough type information to fill the hole with {lean}`Nat`.
 ```lean
 example := show StateM String _ from do
   return 5

@@ -62,12 +62,12 @@ They can be combined flexibly to achieve the necessary results:
 tag := "macros"
 %%%
 
-{deftech}_Macros_ are transformations from {name Lean.Syntax}`Syntax` to {name Lean.Syntax}`Syntax` that occur during {tech key:="elaborator"}[elaboration] and during {ref "tactic-macros"}[tactic execution].
+{deftech}_Macros_ are transformations from {name Lean.Syntax}`Syntax` to {name Lean.Syntax}`Syntax` that occur during {tech (key := "elaborator")}[elaboration] and during {ref "tactic-macros"}[tactic execution].
 Replacing syntax with the result of transforming it with a macro is called {deftech}_macro expansion_.
 Multiple macros may be associated with a single {tech}[syntax kind], and they are attempted in order of definition.
 Macros are run in a {tech}[monad] that has access to some compile-time metadata and has the ability to either emit an error message or to delegate to subsequent macros, but the macro monad is much less powerful than the elaboration monads.
 
-```lean (show := false)
+```lean -show
 section
 open Lean (Syntax MacroM)
 ```
@@ -102,7 +102,7 @@ When applied to terms that are not syntactically the numeral five, elaboration s
 ```
 
 When the error case is triggered, the user receives an error message:
-```lean (name := notFiveFive) (error := true)
+```lean (name := notFiveFive) +error
 #eval notFive 5
 ```
 ```leanOutput notFiveFive
@@ -127,7 +127,7 @@ In particular, macro expansion occurs in three situations in Lean:
  3. During tactic execution, macros in the outermost layer of the syntax to be elaborated are expanded {ref "tactic-macros"}[prior to executing the syntax as a tactic].
 
 
-```lean (keep := false) (show := false)
+```lean -keep -show
 -- Test claim in preceding paragraph that it's OK for macros to give up prior to elab
 syntax "doubled " term:arg : term
 
@@ -260,7 +260,7 @@ Term quotations have higher priority than command quotations, so in cases of amb
 
 ::::keepEnv
 :::example "Term vs Command Quotation Syntax"
-```lean (show := false)
+```lean -show
 open Lean
 ```
 
@@ -268,7 +268,7 @@ In the following example, the contents of the quotation could either be a functi
 Both match the same region of the file, so the {tech}[local longest-match rule] is not relevant.
 Term quotation has a higher priority than command quotation, so the quotation is interpreted as a term.
 Terms expect their {tech}[antiquotations] to have type {lean}``TSyntax `term`` rather than {lean}``TSyntax `command``.
-```lean (error := true) (name := cmdQuot)
+```lean +error (name := cmdQuot)
 example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $cmd2)
 ```
 The result is two type errors like the following:
@@ -295,7 +295,7 @@ example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $c
 :::
 ::::
 
-```lean (show := false)
+```lean -show
 -- There is no way to extract parser priorities (they're only saved in the Pratt tables next to
 -- compiled Parser code), so this test of priorities checks the observable relative priorities of the
 -- quote parsers.
@@ -363,7 +363,7 @@ info: do
           $(⟨.missing⟩):tactic; $(⟨.missing⟩)) : MacroM _)
 ```
 
-:::freeSyntax term (open := false) (title := "Quotations")
+:::freeSyntax term -open (title := "Quotations")
 
 Lean's syntax includes quotations for terms, commands, tactics, and sequences of tactics, as well as a general quotation syntax that allows any input that Lean can parse to be quoted.
 Term quotations have the highest priority, followed by tactic quotations, general quotations, and finally command quotations.
@@ -381,7 +381,7 @@ Term quotations have the highest priority, followed by tactic quotations, genera
 ```
 :::
 
-```lean (show := false)
+```lean -show
 section M
 variable {m : Type → Type}
 open Lean (MonadRef MonadQuotation)
@@ -396,12 +396,12 @@ The specific monad to be used is an implicit parameter to the quotation, and any
 {name}`MonadQuotation` extends {name}`MonadRef`, which gives the quotation access to the source location of the syntax that the macro expander or elaborator is currently processing. {name}`MonadQuotation` additionally includes the ability to add {tech}[macro scopes] to identifiers and use a fresh macro scope for a sub-task.
 Monads that support quotation include {name}`MacroM`, {name}`TermElabM`, {name}`CommandElabM`, and {name}`TacticM`.
 
-```lean (show := false)
+```lean -show
 end M
 ```
 
 
-```lean (show := false)
+```lean -show
 -- Verify claim about monads above
 open Lean in
 example [Monad m] [MonadQuotation m] : m Syntax := `(term|2 + 2)
@@ -421,7 +421,7 @@ Basic antiquotations consist of a dollar sign (`$`) immediately followed by an i
 This means that the value of the corresponding variable, which should be a syntax tree, is to be substituted into this position of the quoted syntax.
 Entire expressions may be used as antiquotations by wrapping them in parentheses.
 
-```lean (show := false)
+```lean -show
 section
 open Lean
 example (e : Term) : MacroM Syntax := `(term| $e)
@@ -435,7 +435,7 @@ end
 
 
 
-```lean (show := false)
+```lean -show
 section
 open Lean (TSyntax SyntaxNodeKinds)
 variable {c : SyntaxNodeKinds}
@@ -449,7 +449,7 @@ Some syntax categories can be matched by elements of other categories.
 For example, numeric and string literals are valid terms in addition to being their own syntax categories.
 Antiquotations may be annotated with the expected category by suffixing them with a colon and the category name, which causes the parser to validate that the annotated category is acceptable in the given position and construct any intermediate layers that are required in the parse tree.
 
-:::freeSyntax antiquot title:="Antiquotations" open := false
+:::freeSyntax antiquot (title := "Antiquotations") -open
 ```grammar
 "$"ident(":"ident)?
 *******
@@ -473,7 +473,7 @@ example [Monad m] [MonadQuotation m] (x : Term) (n : Nat) : m Syntax :=
 
 :::::keepEnv
 ::::example "Antiquotation Annotations"
-```lean (show := false)
+```lean -show
 open Lean
 ```
 
@@ -519,7 +519,7 @@ def ex2 (e) := show m _ from `(2 + $e :num)
 ::::
 :::::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -553,7 +553,7 @@ fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
 ```
 
 :::paragraph
-```lean (show := false)
+```lean -show
 section
 open Lean (Term)
 open Lean.Quote
@@ -565,9 +565,9 @@ It begins by constructing the source information for the resulting syntax, obtai
 It then obtains the current macro scope and the name of the module being processed, because macro scopes are added with respect to a module to enable independent compilation and avoid the need for a global counter.
 It then constructs a node using helpers such as {name}`Syntax.node1` and {name}`Syntax.node2`, which create a {name}`Syntax.node` with the indicated number of children.
 The macro scope is added to each identifier, and {name Lean.TSyntax.raw}`TSyntax.raw` is used to extract the contents of typed syntax wrappers.
-The antiquotations of {lean}`x` and {lean type:="Term"}`quote (n + 2)` occur directly in the expansion, as parameters to {name}`Syntax.node3`.
+The antiquotations of {lean}`x` and {lean  (type := "Term")}`quote (n + 2)` occur directly in the expansion, as parameters to {name}`Syntax.node3`.
 
-```lean (show := false)
+```lean -show
 end
 ```
 :::
@@ -601,7 +601,7 @@ The syntax repetitions `+` and `*` correspond to the splice suffix `*`; the repe
 The optional suffix `?` in syntax and splices correspond with each other.
 
 
-:::table (header := true)
+:::table +header
  * - Syntax Repetition
    - Splice Suffix
  * - `+` `*`
@@ -617,7 +617,7 @@ The optional suffix `?` in syntax and splices correspond with each other.
 
 ::::keepEnv
 :::example "Suffixed Splices"
-```lean (show := false)
+```lean -show
 open Lean
 open Lean.Elab.Command (CommandElabM)
 ```
@@ -693,7 +693,7 @@ macro_rules
 :::example "Optional Splices"
 The following syntax declaration optionally matches a term between two tokens.
 The parentheses around the nested `term` are needed because `term?` is a valid identifier.
-```lean (show := false)
+```lean -show
 open Lean
 ```
 ```lean
@@ -732,7 +732,7 @@ Supplying {name}`none` results in the optional term being absent.
 :::
 ::::
 
-```lean (show := false)
+```lean -show
 section
 open Lean Syntax
 variable {k k' : SyntaxNodeKinds} {sep : String} [Coe (TSyntax k) (TSyntax k')]
@@ -768,7 +768,7 @@ This is primarily useful to control the placement of error messages or other inf
 A token antiquotation does not allow an arbitrary atom to be inserted via evaluation.
 A token antiquotation consists of an atom (that is, a keyword)
 
-:::freeSyntax antiquot (open := true) (title := "Token Antiquotations")
+:::freeSyntax antiquot +open (title := "Token Antiquotations")
 Token antiquotations replace the source information (of type {name Lean.SourceInfo}`SourceInfo`) on a token with the source information from some other syntax.
 
 ```grammar
@@ -971,7 +971,7 @@ Additionally, if an earlier rule in the macro throws the {name Lean.Macro.Except
 
 ::::example "One vs. Two Sets of Macro Rules"
 
-```lean (show := false)
+```lean -show
 open Lean.Macro
 ```
 
@@ -1047,7 +1047,7 @@ macro_rules
 ```
 
 The case for {lean}`List Nat` fails to elaborate, because macro expansion did not translate the {keywordOf arbitrary!}`arbitrary!` syntax into something supported by the elaborator.
-```lean (name := arb3) (error := true)
+```lean (name := arb3) +error
 #eval arbitrary! (List Nat)
 ```
 ```leanOutput arb3
@@ -1070,7 +1070,7 @@ The case for {lean}`Array Nat` succeeds, because the first set of macro rules ar
 tag := "macro-command"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 open Lean
 ```
@@ -1088,7 +1088,7 @@ $_:attrKind macro$[:$p]? $[(name := $_)]? $[(priority := $_)]? $xs:macroArg* : $
 ```
 :::
 
-:::syntax Lean.Parser.Command.macroArg (open := false) (title := "Macro Arguments")
+:::syntax Lean.Parser.Command.macroArg -open (title := "Macro Arguments")
 A macro's arguments are either syntax items (as used in the {keywordOf Lean.Parser.Command.syntax}`syntax` command) or syntax items with attached names.
 ```grammar
 $s:stx
@@ -1101,7 +1101,7 @@ $x:ident:$stx
 In the expansion, the names that are attached to syntax items are bound; they have type {name Lean.TSyntax}`TSyntax` for the appropriate syntax kinds.
 If the syntax matched by the parser does not have a defined kind (e.g. because the name is applied to a complex specification), then the type is {lean}`TSyntax Name.anonymous`.
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- Check the typing rules
 open Lean Elab Term Macro Meta
 
@@ -1136,7 +1136,7 @@ The documentation comment is associated with the new syntax, and the attribute k
 Behind the scenes, the {keywordOf Lean.Parser.Command.macro}`macro` command is itself implemented by a macro that expands it to a {keywordOf Lean.Parser.Command.syntax}`syntax` command and a {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command.
 Any attributes applied to the macro command are applied to the syntax definition, but not to the {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` command.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -1157,7 +1157,7 @@ macro $_:ident
 
 ::::keepEnv
 :::example "The Macro Attribute"
-```lean (show := false)
+```lean -show
 open Lean Macro
 ```
 ```lean

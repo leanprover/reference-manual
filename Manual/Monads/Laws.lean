@@ -27,7 +27,7 @@ tag := "monad-laws"
 
 ::::keepEnv
 
-```lean (show := false)
+```lean -show
 section Laws
 universe u u' v
 axiom f : Type u → Type v
@@ -42,7 +42,7 @@ axiom x : f α
 ```
 
 
-```lean (show := false)
+```lean -show
 section F
 variable {f : Type u → Type v} [Functor f] {α β : Type u} {g : α → β} {h : β → γ} {x : f α}
 ```
@@ -64,7 +64,7 @@ The {name}`LawfulFunctor` class includes the necessary proofs.
 
 {docstring LawfulFunctor}
 
-```lean (show := false)
+```lean -show
 end F
 ```
 
