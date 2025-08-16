@@ -10,7 +10,6 @@ import Lean.Parser.Command
 
 import Manual.Meta
 import Manual.BuildTools.Lake
-import Manual.BuildTools.Elan
 
 open Manual
 open Verso.Genre
@@ -54,6 +53,14 @@ They contain the following tools:
   A tool that replays elaboration results from {tech}[`.olean` files] through the Lean kernel, providing additional assurance that all terms were properly checked.
 :::
 
+When using Elan, the version of each tool on the {envVar}`PATH` is a proxy that invokes the correct version.
+The proxy determines the appropriate toolchain version for the current context, ensures that it is installed, and then invokes the underlying tool in the appropriate toolchain installation.
+These proxies can be instructed to use a specific version by passing it as an argument prefixed with `+`, so `lake +4.0.0` invokes `lake` version `4.0.0`, after installing it if necessary.
+If present, a {deftech}_toolchain file_ in a directory causes a particular version of Lean to be used in it and all subdirectories.
+This file should indicate a specific version, such as `leanprover/lean4:v4.15.0`, `leanprover/lean4:v4.16.0-rc2`, or `leanprover/lean4:nightly-2025-01-19`.
+If no toolchain file is present, then the `elan` configuration is used to select a version to invoke. {TODO}[Link to Elan chapter here]
+
+
 In addition to these build tools, toolchains contain files that are needed to build Lean code.
 This includes source code, {tech}[`.olean` files], compiled libraries, C header files, and the compiled Lean run-time system.
 They also include external proof automation tools that are used by tactics included with Lean, such as `cadical` for {tactic}`bv_decide`.
@@ -61,12 +68,9 @@ They also include external proof automation tools that are used by tactics inclu
 
 {include 0 Manual.BuildTools.Lake}
 
-{include 0 Manual.BuildTools.Elan}
-
 # Reservoir
 %%%
 tag := "reservoir"
-draft := true
 %%%
 
 

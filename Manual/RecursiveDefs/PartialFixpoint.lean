@@ -192,7 +192,7 @@ tag := "partial-fixpoint-monadic"
 Defining a function as a partial fixpoint is more powerful if the function's return type is a monad that is an instance of {name}`Lean.Order.MonoBind`, such as {name}`Option`.
 In this case, recursive call are not restricted to tail-positions, but may also occur inside higher-order monadic functions such as {name}`bind` and {name}`List.mapM`.
 
-The set of higher-order functions for which this works is {ref "partial-fixpoint-theory"}[extensible], so no exhaustive list is given here.
+The set of higher-order functions for which this works is extensible (see TODO below), so no exhaustive list is given here.
 The aspiration is that a monadic recursive function definition that is built using abstract monadic operations like {name}`bind`, but that does not open the abstraction of the monad (e.g. by matching on the {name}`Option` value), is accepted.
 In particular, using {tech}[{keywordOf Lean.Parser.Term.do}`do`-notation] should work.
 
@@ -298,22 +298,17 @@ partial_fixpoint
 With this function definition, Lean automatically proves the following partial correctness theorem:
 
 ```signature
-List.findIndex.partial_correctness.{u_1} {α : Type u_1}
-  (p : α → Bool)
-  (motive : List α → Nat → Prop)
+List.findIndex.partial_correctness {α : Type _} (motive : List α → (α → Bool) → Nat → Prop)
   (h :
-    ∀ (findIndex : List α → Option Nat),
-      (∀ (xs : List α) (r : Nat), findIndex xs = some r → motive xs r) →
-        ∀ (xs : List α) (r : Nat),
+    ∀ (findIndex : List α → (α → Bool) → Option Nat),
+      (∀ (xs : List α) (p : α → Bool) (r : Nat), findIndex xs p = some r → motive xs p r) →
+        ∀ (xs : List α) (p : α → Bool) (r : Nat),
           (match xs with
               | [] => none
-              | x :: ys =>
-                if p x = true then some 0
-                else (fun x => x + 1) <$> findIndex ys) = some r →
-            motive xs r)
-  (xs : List α) (r : Nat) :
-  xs.findIndex p = some r →
-    motive xs r
+              | x :: ys => if p x = true then some 0 else (fun x => x + 1) <$> findIndex ys p) =
+              some r →
+            motive xs p r)
+  (xs : List α) (p : α → Bool) (r : Nat) : xs.findIndex p = some r → motive xs p r
 ```
 
 :::paragraph
@@ -332,13 +327,11 @@ The partial correctness theorem is a reasoning principle.
 It can be used to prove that the resulting number is a valid index in the list and that the predicate holds for that index:
 
 ```lean
-theorem List.findIndex_implies_pred
-    (xs : List α) (p : α → Bool) :
-    xs.findIndex p = some i →
-    ∃x, xs[i]? = some x ∧ p x := by
+theorem List.findIndex_implies_pred (xs : List α) (p : α → Bool) :
+    xs.findIndex p = some i → ∃x, xs[i]? = some x ∧ p x := by
   apply List.findIndex.partial_correctness
-          (motive := fun xs i => ∃ x, xs[i]? = some x ∧ p x)
-  intro findIndex ih xs r hsome
+          (motive := fun xs p i => ∃ x, xs[i]? = some x ∧ p x)
+  intro findIndex ih xs p r hsome
   split at hsome
   next => contradiction
   next x ys =>
@@ -349,7 +342,7 @@ theorem List.findIndex_implies_pred
     next =>
       simp only [Option.map_eq_map, Option.map_eq_some'] at hsome
       obtain ⟨r', hr, rfl⟩ := hsome
-      specialize ih _ _ hr
+      specialize ih _ _ _ hr
       simpa
 ```
 
@@ -379,9 +372,9 @@ Instead, the definitions and theorems in `Lean.Order` are only intended as imple
 
 The notion of a partial order, and that of a chain-complete partial order, are represented by the type classes {name}`Lean.Order.PartialOrder` and {name}`Lean.Order.CCPO`, respectively.
 
-{docstring Lean.Order.PartialOrder (allowMissing := true)}
+{docstring Lean.Order.PartialOrder}
 
-{docstring Lean.Order.CCPO (allowMissing := true)}
+{docstring Lean.Order.CCPO}
 
 ```lean (show := false)
 section

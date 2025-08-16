@@ -83,7 +83,7 @@ The only mandatory field is `name`, which declares the package's name.
 
 ::::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
-They are used by [Reservoir](https://reservoir.lean-lang.org/) to index and display packages.
+They are used by {ref "reservoir"}[Reservoir] to index and display packages.
 If a field is left out, Reservoir may use information from the package's GitHub repository to fill in details.
 
 :::tomlField Lake.PackageConfig name "The package name" "Package names" String
@@ -119,7 +119,7 @@ These options define a cloud release for the package, as described in the sectio
 
 :::
 
-:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" "default targets' names (array)" String (sort := 2)
+:::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" String (sort := 2)
 
 {includeDocstring Lake.Package.defaultTargets (elab:=false)}
 
@@ -191,13 +191,14 @@ name = "example-package"
   scope := "",
   remoteUrl := "",
   depConfigs := #[],
-  targetDecls := #[],
-  targetDeclMap := {},
+  leanLibConfigs := {},
+  leanExeConfigs := {},
+  externLibConfigs := {},
+  opaqueTargetConfigs := {},
   defaultTargets := #[],
   scripts := {},
   defaultScripts := #[],
   postUpdateHooks := #[],
-  buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
   cacheRef? := none}
@@ -220,18 +221,61 @@ name = "Sorting"
 {name := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
-  config :=
-    {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
-      toLeanConfig :=
-        { buildType := Lake.BuildType.release,
+  config := {toWorkspaceConfig := { packagesDir := FilePath.mk ".lake/packages" },
+    toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `«example-package»,
+    manifestFile := none,
+    extraDepTargets := #[],
+    precompileModules := false,
+    moreServerArgs := #[],
+    moreGlobalServerArgs := #[],
+    srcDir := FilePath.mk ".",
+    buildDir := FilePath.mk ".lake/build",
+    leanLibDir := FilePath.mk "lib",
+    nativeLibDir := FilePath.mk "lib",
+    binDir := FilePath.mk "bin",
+    irDir := FilePath.mk "ir",
+    releaseRepo? := none,
+    releaseRepo := none,
+    buildArchive? := none,
+    buildArchive := ELIDED,
+    preferReleaseBuild := false,
+    testDriver := "",
+    testDriverArgs := #[],
+    lintDriver := "",
+    lintDriverArgs := #[],
+    version := { toSemVerCore := { major := 0, minor := 0, patch := 0 }, specialDescr := "" },
+    versionTags := .satisfies #<fun> default,
+    description := "",
+    keywords := #[],
+    homepage := "",
+    license := "",
+    licenseFiles := #[FilePath.mk "LICENSE"],
+    readmeFile := FilePath.mk "README.md",
+    reservoir := true},
+  relConfigFile := FilePath.mk "lakefile",
+  relManifestFile := FilePath.mk "lake-manifest.json",
+  scope := "",
+  remoteUrl := "",
+  depConfigs := #[],
+  leanLibConfigs := {`Sorting ↦
+      {toLeanConfig := { buildType := Lake.BuildType.release,
           leanOptions := #[],
           moreLeanArgs := #[],
           weakLeanArgs := #[],
           moreLeancArgs := #[],
           moreServerOptions := #[],
           weakLeancArgs := #[],
-          moreLinkObjs := #[],
-          moreLinkLibs := #[],
           moreLinkArgs := #[],
           weakLinkArgs := #[],
           backend := Lake.Backend.default,
@@ -346,7 +390,6 @@ name = "Sorting"
   scripts := {},
   defaultScripts := #[],
   postUpdateHooks := #[],
-  buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
   cacheRef? := none}
@@ -358,32 +401,32 @@ name = "Sorting"
 
 Dependencies are specified in the {toml}`[[require]]` field array of a package configuration, which specifies both the name and the source of each package.
 There are three kinds of sources:
- * [Reservoir](https://reservoir.lean-lang.org/), or an alternative package registry
+ * {ref "reservoir"}[Reservoir], or an alternative package registry
  * Git repositories, which may be local paths or URLs
  * Local paths
 
 ::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version?
 
 The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
-If neither are provided, then the dependency is fetched from [Reservoir](https://reservoir.lean-lang.org/), or an alternative registry if one has been configured.
+If neither are provided, then the dependency is fetched from {ref "reservoir"}[Reservoir], or an alternative registry if one has been configured.
 The {tomlField Lake.Dependency}`scope` field is required when fetching a package from Reservoir.
 
-:::tomlField Lake.Dependency path "Path" "Paths" System.FilePath
+:::tomlField Lake.Dependency path "Path" System.FilePath
 A dependency on the local filesystem, specified by its path.
 :::
 
-:::tomlField Lake.Dependency git "Git specification" "Git specifications" Lake.DependencySrc
+:::tomlField Lake.Dependency git "Git specification" Lake.DependencySrc
 A dependency in a Git repository, specified either by its URL as a string or by a table with the keys:
  * `url`: the repository URL
  * `subDir`: the subdirectory of the Git repository that contains the package's source code
 :::
 
-:::tomlField Lake.Dependency rev "Git revision" "Git revisions" String
+:::tomlField Lake.Dependency rev "Git revision" String
 For Git or Reservoir dependencies, this field specifies the Git revision, which may be a branch name, a tag name, or a specific hash.
 On Reservoir, the `version` field takes precedence over this field.
 :::
 
-:::tomlField Lake.Dependency source "Package Source" "Package Sources" Lake.DependencySrc
+:::tomlField Lake.Dependency source "Package Source" Lake.DependencySrc
 A dependency source, specified as a self-contained table, which is used when neither the `git` nor the `path` key is present.
 The key `type` should be either the string `"git"` or the string `"path"`.
 If the type is `"path"`, then there must be a further key `"path"` whose value is a string that provides the location of the package on disk.
@@ -393,7 +436,7 @@ If the type is `"git"`, then the following keys should be present:
  * `subDir`: the subdirectory of the Git repository that contains the package's source code
 :::
 
-:::tomlField Lake.Dependency version "version as string" "versions as strings" String
+:::tomlField Lake.Dependency version "version as string" String
 
 {includeDocstring Lake.Dependency.version?}
 
@@ -411,7 +454,7 @@ version = "2.12"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "2.12", src? := none, opts := {}}]
+#[{name := `example, scope := "exampleDev", version := (some 2.12), src? := none, opts := {} }]
 ```
 ::::
 :::::
@@ -429,9 +472,10 @@ version = "2.12"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := some "2.12",
+    version := (some 2.12),
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "main") none),
-    opts := {}}]
+    opts := {}
+  }]
 ```
 ::::
 
@@ -450,9 +494,10 @@ rev = "v2.12"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := none,
     src? := some (Lake.DependencySrc.git "https://git.example.com/example.git" (some "v2.12") none),
-    opts := {}}]
+    opts := {}
+  }]
 ```
 ::::
 The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
@@ -468,7 +513,7 @@ rev = "v2.12"
 scope = "exampleDev"
 ```
 ```expected
-#[{name := `example, scope := "exampleDev", version? := some "git#v2.12", src? := none, opts := {}}]
+#[{name := `example, scope := "exampleDev", version := (some git#v2.12), src? := none, opts := {} }]
 ```
 ::::
 The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
@@ -485,9 +530,10 @@ path = "../example"
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := none,
     src? := some (Lake.DependencySrc.path (FilePath.mk "../example")),
-    opts := {}}]
+    opts := {}
+  }]
 ```
 ::::
 Dependencies on local paths are useful when developing multiple packages in a single repository, or when testing whether a change to a dependency fixes a bug in a downstream package.
@@ -504,9 +550,10 @@ source = {type = "git", url = "https://example.com/example.git"}
 ```expected
 #[{name := `example,
     scope := "",
-    version? := none,
+    version := none,
     src? := some (Lake.DependencySrc.git "https://example.com/example.git" none none),
-    opts := {}}]
+    opts := {}
+  }]
 ```
 ::::
 :::::
@@ -530,32 +577,26 @@ This library declaration supplies only a name:
 name = "TacticTools"
 ```
 ```expected
-#[{ name := TacticTools,
-    val := {toLeanConfig :=
-        { buildType := Lake.BuildType.release,
-          leanOptions := #[],
-          moreLeanArgs := #[],
-          weakLeanArgs := #[],
-          moreLeancArgs := #[],
-          moreServerOptions := #[],
-          weakLeancArgs := #[],
-          moreLinkObjs := #[],
-          moreLinkLibs := #[],
-          moreLinkArgs := #[],
-          weakLinkArgs := #[],
-          backend := Lake.Backend.default,
-          platformIndependent := none,
-          dynlibs := #[],
-          plugins := #[] },
-      srcDir := FilePath.mk ".",
-      roots := #[`TacticTools],
-      globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
-      needs := #[],
-      extraDepTargets := #[],
-      precompileModules := false,
-      defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `TacticTools,
+    srcDir := FilePath.mk ".",
+    roots := #[`TacticTools],
+    globs := #[Lake.Glob.one `TacticTools],
+    libName := "TacticTools",
+    extraDepTargets := #[],
+    precompileModules := false,
+    defaultFacets := #[`leanArts],
+    nativeFacets := #<fun>}]
 ```
 ::::
 The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
@@ -571,32 +612,26 @@ srcDir = "src"
 precompileModules = true
 ```
 ```expected
-#[{ name := TacticTools,
-    val := {toLeanConfig :=
-        { buildType := Lake.BuildType.release,
-          leanOptions := #[],
-          moreLeanArgs := #[],
-          weakLeanArgs := #[],
-          moreLeancArgs := #[],
-          moreServerOptions := #[],
-          weakLeancArgs := #[],
-          moreLinkObjs := #[],
-          moreLinkLibs := #[],
-          moreLinkArgs := #[],
-          weakLinkArgs := #[],
-          backend := Lake.Backend.default,
-          platformIndependent := none,
-          dynlibs := #[],
-          plugins := #[] },
-      srcDir := FilePath.mk "src",
-      roots := #[`TacticTools],
-      globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
-      needs := #[],
-      extraDepTargets := #[],
-      precompileModules := true,
-      defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `TacticTools,
+    srcDir := FilePath.mk "src",
+    roots := #[`TacticTools],
+    globs := #[Lake.Glob.one `TacticTools],
+    libName := "TacticTools",
+    extraDepTargets := #[],
+    precompileModules := true,
+    defaultFacets := #[`leanArts],
+    nativeFacets := #<fun>}]
 ```
 ::::
 The library's source is located in the directory `src`, in the module hierarchy rooted at `TacticTools`.
@@ -620,30 +655,24 @@ This executable declaration supplies only a name:
 name = "trustworthytool"
 ```
 ```expected
-#[{ name := trustworthytool,
-    val := {toLeanConfig :=
-        { buildType := Lake.BuildType.release,
-          leanOptions := #[],
-          moreLeanArgs := #[],
-          weakLeanArgs := #[],
-          moreLeancArgs := #[],
-          moreServerOptions := #[],
-          weakLeancArgs := #[],
-          moreLinkObjs := #[],
-          moreLinkLibs := #[],
-          moreLinkArgs := #[],
-          weakLinkArgs := #[],
-          backend := Lake.Backend.default,
-          platformIndependent := none,
-          dynlibs := #[],
-          plugins := #[] },
-      srcDir := FilePath.mk ".",
-      root := `trustworthytool,
-      exeName := "trustworthytool",
-      needs := #[],
-      extraDepTargets := #[],
-      supportInterpreter := false,
-      nativeFacets := #<fun>}}]
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `trustworthytool,
+    srcDir := FilePath.mk ".",
+    root := `trustworthytool,
+    exeName := "trustworthytool",
+    extraDepTargets := #[],
+    supportInterpreter := false,
+    nativeFacets := #<fun>}]
 ```
 ::::
 
@@ -668,30 +697,24 @@ root = "TrustworthyTool"
 exeName = "tt"
 ```
 ```expected
-#[{ name := «trustworthy-tool»,
-    val := {toLeanConfig :=
-        { buildType := Lake.BuildType.release,
-          leanOptions := #[],
-          moreLeanArgs := #[],
-          weakLeanArgs := #[],
-          moreLeancArgs := #[],
-          moreServerOptions := #[],
-          weakLeancArgs := #[],
-          moreLinkObjs := #[],
-          moreLinkLibs := #[],
-          moreLinkArgs := #[],
-          weakLinkArgs := #[],
-          backend := Lake.Backend.default,
-          platformIndependent := none,
-          dynlibs := #[],
-          plugins := #[] },
-      srcDir := FilePath.mk ".",
-      root := `TrustworthyTool,
-      exeName := "tt",
-      needs := #[],
-      extraDepTargets := #[],
-      supportInterpreter := false,
-      nativeFacets := #<fun>}}]
+#[{toLeanConfig := { buildType := Lake.BuildType.release,
+      leanOptions := #[],
+      moreLeanArgs := #[],
+      weakLeanArgs := #[],
+      moreLeancArgs := #[],
+      moreServerOptions := #[],
+      weakLeancArgs := #[],
+      moreLinkArgs := #[],
+      weakLinkArgs := #[],
+      backend := Lake.Backend.default,
+      platformIndependent := none },
+    name := `«trustworthy-tool»,
+    srcDir := FilePath.mk ".",
+    root := `TrustworthyTool,
+    exeName := "tt",
+    extraDepTargets := #[],
+    supportInterpreter := false,
+    nativeFacets := #<fun>}]
 ```
 ::::
 
@@ -753,18 +776,18 @@ package $name where
 $[$_:docComment]?
 $[@[$_,*]]?
 package $_:identOrStr {
-  $[$_:declField];*
+  $[$_:declField $[,]?]*
 }
 $[where
   $[$_:letRecDecl];*]?
 ```
 
-There can only be one {keywordOf Lake.DSL.packageCommand}`package` declaration per Lake configuration file.
+There can only be one {keywordOf Lake.DSL.packageDecl}`package` declaration per Lake configuration file.
 The defined package configuration will be available for reference as `_package`.
 
 ::::
 
-::::syntax command (title := "Post-Update Hooks")
+::::syntax command
 ```grammar
 post_update $[$name]? $v
 ```
@@ -784,7 +807,7 @@ $doc:docComment
 require $name:depName $[@ $[git]? $_:term]? $[$_:fromClause]? $[with $_:term]?
 ```
 
-The `@` clause specifies a package version, which is used when requiring a package from [Reservoir](https://reservoir.lean-lang.org/).
+The `@` clause specifies a package version, which is used when requiring a package from {ref "reservoir"}[Reservoir].
 The version may either be a string that specifies the version declared in the package's {name Lake.PackageConfig.version}`version` field, or a specific Git revision.
 Git revisions may be branch names, tag names, or commit hashes.
 
@@ -831,7 +854,7 @@ Marks a target as a default, to be built when no other target is specified.
 
 :::syntax command (title := "Library Targets")
 
-To define a library in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanLibCommand}`lean_lib` with no further fields.
+To define a library in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanLibDecl}`lean_lib` with no further fields.
 
 ```grammar
 $[$_:docComment]?
@@ -853,22 +876,22 @@ lean_lib $_:identOrStr where
 $[$_:docComment]?
 $[$_:attributes]?
 lean_lib $_:identOrStr {
-  $[$_:declField];*
+  $[$_:declField $[,]?]*
 }
 $[where
   $[$_:letRecDecl];*]?
 ```
 :::
 
-The fields of {keywordOf Lake.DSL.leanLibCommand}`lean_lib` are those of the {name Lake.LeanLibConfig}`LeanLibConfig` structure.
+The fields of {keywordOf Lake.DSL.leanLibDecl}`lean_lib` are those of the {name Lake.LeanLibConfig}`LeanLibConfig` structure.
 
 {docstring Lake.LeanLibConfig}
 
 ### Executables
 
-:::syntax command (title := "Executable Targets")
+:::syntax command
 
-To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeCommand}`lean_exe` with no further fields.
+To define an executable in which all configurable fields have their default values, use {keywordOf Lake.DSL.leanExeDecl}`lean_exe` with no further fields.
 
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
@@ -886,14 +909,14 @@ lean_exe $_:identOrStr where
 ```grammar
 $[$_:docComment]? $[$_:attributes]?
 lean_exe $_:identOrStr {
-  $[$_:declField];*
+  $[$_:declField $[,]?]*
 }
 $[where
   $[$_:letRecDecl];*]?
 ```
 :::
 
-The fields of {keywordOf Lake.DSL.leanExeCommand}`lean_exe` are those of the {name Lake.LeanExeConfig}`LeanExeConfig` structure.
+The fields of {keywordOf Lake.DSL.leanExeDecl}`lean_exe` are those of the {name Lake.LeanExeConfig}`LeanExeConfig` structure.
 
 {docstring Lake.LeanExeConfig}
 
@@ -904,7 +927,7 @@ External library targets should produce a build job that carries out the build a
 For the external library to link properly when {name Lake.PackageConfig.precompileModules}`precompileModules` is on, the static library produced by an {keyword}`extern_lib` target must follow the platform's naming conventions for libraries (i.e., be named foo.a on Windows or libfoo.a on Unix-like systems).
 The utility function {name}`Lake.nameToStaticLib` converts a library name into its proper file name for current platform.
 
-:::syntax command (title := "External Library Targets")
+:::syntax command
 
 ```grammar
 $[$_:docComment]?
@@ -913,7 +936,7 @@ extern_lib $_:identOrStr $_? := $_:term
 $[where $_*]?
 ```
 
-{includeDocstring Lake.DSL.externLibCommand}
+{includeDocstring Lake.DSL.externLibDecl}
 
 :::
 
@@ -921,7 +944,7 @@ $[where $_*]?
 
 Custom targets may be used to define any incrementally-built artifact whatsoever, using the Lake API.
 
-:::syntax command (title := "Custom Targets")
+:::syntax command
 
 ```grammar
 $[$_:docComment]?
@@ -930,7 +953,7 @@ target $_:identOrStr $_? : $ty:term := $_:term
 $[where $_*]?
 ```
 
-{includeDocstring Lake.DSL.externLibCommand}
+{includeDocstring Lake.DSL.externLibDecl}
 
 :::
 
@@ -1051,7 +1074,7 @@ Workspace information in scripts is primarily accessed via the {inst}`MonadWorks
 example : ScriptFn = (List String → ScriptM UInt32) := rfl
 ```
 
-:::syntax command (title := "Script Declarations")
+:::syntax command
 ```grammar
 $[$_:docComment]?
 $[@[$_,*]]?
@@ -1068,7 +1091,7 @@ $[where
 {docstring Lake.ScriptM}
 
 
-:::syntax attr (label := "attribute") (title := "Default Scripts")
+:::syntax attr
 ```grammar
 default_script
 ```
@@ -1081,7 +1104,7 @@ Marks a {tech}[Lake script] as the {tech}[package]'s default.
 
 ## Utilities
 
-:::syntax term (title := "The Current Directory")
+:::syntax term
 ```grammar
 __dir__
 ```
@@ -1090,7 +1113,7 @@ __dir__
 
 :::
 
-:::syntax term (title := "Configuration Options")
+:::syntax term
 ```grammar
 get_config? $t
 ```
@@ -1099,7 +1122,7 @@ get_config? $t
 
 :::
 
-:::syntax command (title := "Compile-Time Conditionals")
+:::syntax command
 
 ```grammar
 meta if $_ then
@@ -1111,7 +1134,7 @@ $[else $_]?
 
 :::
 
-:::syntax cmdDo (title := "Command Sequences")
+:::syntax cmdDo
 
 ```grammar
   $_:command
@@ -1127,7 +1150,7 @@ do
 
 :::
 
-:::syntax term (title := "Compile-Time Side Effects")
+:::syntax term
 ```grammar
 run_io $t
 ```

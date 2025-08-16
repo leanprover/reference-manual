@@ -214,7 +214,7 @@ Lake itself can be configured with the following environment variables:
     If the bundled tool is not found, the value of {envVar def:=true}`CC` or {envVar def:=true}`AR`, followed by a `cc` or `ar` on the {envVar}`PATH`, are used.
 *
   * {envVar def:=true}`LAKE_NO_CACHE`
-  * If true, Lake does not use cached builds from [Reservoir](https://reservoir.lean-lang.org/) or {ref "lake-github"}[GitHub].
+  * If true, Lake does not use cached builds from {ref "reservoir"}[Reservoir] or {ref "lake-github"}[GitHub].
     This environment variable can be overridden using the {lakeOpt}`--try-cache` command-line option.
 
 :::
@@ -381,10 +381,7 @@ The Elan executable used by Lake can be configured using the {envVar}`ELAN` envi
 Create a Lean package in a new directory
 
 USAGE:
-  lake [+<lean-version>] new <name> [<template>][.<language>]
-
-If you are using Lake through Elan (which is standard), you can create a
-package with a specific Lean version via the `+` option.
+  lake new <name> [<template>][.<language>]
 
 The initial configuration and starter files are based on the template:
 
@@ -395,7 +392,7 @@ The initial configuration and starter files are based on the template:
   math                  library with Mathlib standards for linting and workflows
 
 Templates can be suffixed with `.lean` or `.toml` to produce a Lean or TOML
-version of the configuration file, respectively. The default is TOML.
+version of the configuration file, respectively. The default is Lean.
 ```
 
 :::lake new "name [template][\".\"language]"

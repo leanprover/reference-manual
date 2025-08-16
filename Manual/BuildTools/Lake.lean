@@ -21,7 +21,6 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
-set_option guard_msgs.diff true
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
@@ -55,7 +54,7 @@ A single package may contain multiple libraries or executable programs.
 A package consist of a directory that contains a {tech}[package configuration] file together with source code.
 Packages may {deftech}_require_ other packages, in which case those packages' code (more specifically, their {tech}[targets]) are made available.
 The {deftech}_direct dependencies_ of a package are those that it requires, and the {deftech}_transitive dependencies_ are the direct dependencies of a package together with their transitive dependencies.
-Packages may either be obtained from [Reservoir](https://reservoir.lean-lang.org/){TODO}[xref chapter], the Lean package repository, or from a manually-specified location.
+Packages may either be obtained from {ref "reservoir"}[Reservoir], the Lean package repository, or from a manually-specified location.
 {deftech}_Git dependencies_ are specified by a Git repository URL along with a revision (branch, tag, or hash) and must be cloned locally prior to build, while local {deftech}_path dependencies_ are specified by a path relative to the package's directory.
 
 :::paragraph
@@ -78,7 +77,7 @@ Workspaces typically have the following layout:
      * `.lake/build/ir` - The package's intermediate result directory, which contains generated intermediate artifacts, primarily C code.
 :::
 
-:::figure "Workspace Layout" (tag :="workspace-layout")
+:::figure "Workspace Layout"
 ![Lake Workspaces](/static/figures/lake-workspace.svg)
 :::
 
@@ -253,8 +252,7 @@ The facets available for packages are:
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
-info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
-  `package.optRelease, `package.release, `package.transDeps]
+info: #[`barrel, `cache, `deps, `extraDep, `optBarrel, `optCache, `optRelease, `release, `transDeps]
 -/
 #guard_msgs in
 #eval Lake.initPackageFacetConfigs.toList.map (·.1) |>.toArray |>.qsort (·.toString < ·.toString)
@@ -307,10 +305,7 @@ info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `pack
 
 ```lean (show := false)
 -- Always keep this in sync with the description below. It ensures that the list is complete.
-/--
-info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
-  `lean_lib.default]
--/
+/-- info: [`modules, `static, `leanArts, `shared, `extraDep, `static.export] -/
 #guard_msgs in
 #eval Lake.initLibraryFacetConfigs.toList.map (·.1)
 ```

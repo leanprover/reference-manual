@@ -9,7 +9,6 @@ import Manual.Meta
 import Mathlib
 
 open Verso.Genre Manual
-open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 set_option linter.unusedVariables false
@@ -19,10 +18,31 @@ set_option maxRecDepth 100000000000000000
 
 open Lean.Elab.Tactic
 
-#doc (Manual) "Conv mode" =>
+#doc (Manual) "Analysis" =>
 
-:::tactic Lean.Parser.Tactic.Conv.conv
+add intro text here
+
+:::tactic "congr"
 :::
 
-TODO: a lot of tactics have a `conv`-equivalent. Add them here.
-Meanwhile, try other tactics and see which work in `conv` mode.
+:::tactic Mathlib.Tactic.GCongr.tacticGcongr___With___
+:::
+
+:::tactic finiteness show:="finiteness"
+:::
+
+:::tactic Mathlib.Tactic.Monotonicity.mono
+:::
+
+:::tactic Mathlib.Meta.FunProp.funPropTacStx
+:::
+
+:::tactic tacticContinuity
+:::
+
+:::example "bound"
+TODO
+:::
+
+:::tactic Mathlib.Tactic.normNum
+:::

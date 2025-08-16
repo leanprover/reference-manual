@@ -1,30 +1,33 @@
-# Lean Language Reference
-
-The Lean Language Reference is intended as a comprehensive, precise description of Lean. It is first and foremost a reference work in which Lean users can look up detailed information, rather than a tutorial for new users.
-
-This new reference has been rebuilt from the ground up in Verso. This means that all example code is type checked, the source code contains tests to ensure that it stays up-to-date with respect to changes in Lean, and we can add any features that we need to improve the documentation. Verso also makes it easy to integrate tightly with Lean, so we can show function docstrings directly, mechanically check descriptions of syntax against the actual parser, and insert cross-references automatically.
-
+# Mathlib Documentation
 
 ## Reading the Manual
 
-The latest release of this reference manual can be read [here](https://lean-lang.org/doc/reference/latest/).
+The latest release of this Mathlib manual can be read [here](https://leanprover-community.github.io/mathlib-manual/html-multi/).
 
-For developers:
- * The output of building the current state of the `nightly-testing` branch can be read [here](https://lean-reference-manual-review.netlify.app/).
- * Each pull request in this repository causes two separate previews to be generated, one with extra information that's only useful to those actively working on the text, such as TODO notes and symbol coverage progress bars. These are posted by a bot to the PR after the first successful build.
+## Code origin / Installation
 
-## Branches and Development
+This is mostly adapted code from the [Lean Language Reference](https://github.com/leanprover/reference-manual). **You should check there for installation instructions.**
 
-The two most important branches are:
- * `main` tracks the latest Lean release or release candidate
- * `nightly-testing` tracks the latest Lean nightlies
+Any problems beyond the content itself are probably carried over from there, and might need fixing there.
 
-New content that addresses in-development features of Lean will be
-written on `nightly-testing`, while updates to existing content may be
-written either on `main` or `nightly-testing`, as appropriate. From
-time to time, `main` will be merged into `nightly-testing`; when Lean
-is released, the commits in `nightly-testing` are rebased onto `main`
-to achieve a clean history.
+## Version bumping
+
+The Lean reference manual has tags of the form `v4.X.0` which can be used. The process should be:
+
+* change `lean-toolchain` to next stable release `v4.X.0`
+* call `lake update`
+* try `lake build`
+* merge upstream tag `v4.X.0` into `main` with the following merging strategy:
+  * `Meta/` and `Meta.lean` are important and should probably be completely replaced with the new upstream version.
+  * Modified files (which "our" version should be kept) include: `Manual/Tactics` and `Manual/Guides` (with their Lean files)
+    and `Manual.lean`
+  * The `lakefile.lean` has only modified `require` statements (and deleted anything related to `extended-examples`)
+  * `Manual/Tweaks.lean` is completely ours.
+  * Things that "we" deleted can stay deleted. I used something like `git status | sed -n 's/deleted by us://p' | xargs git rm`
+    to delete them all once in the merge conflict.
+* All workflows are deleted except `ci.yml` which has been largely rewritten to allow for export github pages. Best strategy should be to accept "ours" and then pick the relevant steps manually from upstream.
+
+# Original README
 
 ## Building the Reference Manual Locally
 
@@ -37,7 +40,6 @@ This reference manual contains figures that are built from LaTeX sources. To bui
    + `pgf`
    + `pdftexcmds`
    + `luatex85`
-   + `lualatex-math`
    + `infwarerr`
    + `ltxcmds`
    + `xcolor`
@@ -46,12 +48,9 @@ This reference manual contains figures that are built from LaTeX sources. To bui
    + `inter`
    + `epstopdf-pkg`
    + `tex-gyre`
-   + `tex-gyre-math`
-   + `unicode-math`
-   + `amsmath`
    + `sourcecodepro`
  * `pdftocairo`, which can be found in the `poppler-utils` package on Debian-derived systems and the `poppler` package in Homebrew
- 
+
 Additionally, to run the style checker locally, you'll need [Vale](https://vale.sh/). It runs in CI, so this is not a necessary step to contribute.
 
 To build the manual, run the following command:
@@ -67,7 +66,18 @@ python3 ./server.py 8880 &
 
 Then open <http://localhost:8880> in your browser.
 
+## Development
+
+In theory, one should be able to update this by setting the desired toolchain in `lean-toolchain` and then call
+
+```
+lake update
+```
+
+However, this requires Verso to be compatible with the Lean version Mathlib uses.
+
+Since this project is directly forked from [Lean Language Reference](https://lean-lang.org/doc/reference/latest) you might want to rebase the newest version thereof. In case of merge conflicts, everything in `Manual.lean`, `Manual/Tactics*` and `.github/workflows/ci.yml` should be "ours" and most likely everything else can just be resolved as "theirs". `Manual/Guides*` should not exist upstream and be completely "ours".
+
 ## Contributing
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
-
+We happily accept content!

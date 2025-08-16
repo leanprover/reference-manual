@@ -265,7 +265,7 @@ Nonetheless, a partially-elaborated term is available:
 tag := "hash-synth"
 %%%
 
-:::syntax command (title := "Synthesizing Instances")
+:::syntax command
 ```grammar
 #synth $t
 ```

@@ -71,8 +71,8 @@ While {name}`Quotient` is a convenient way to form quotients with reasonable com
 
 In general, a type $`Q` is said to be the quotient of $`A` by an equivalence relation $`\sim` if it respects the universal property of quotients: there is a function $`q:A\to Q` with the property that $`q(a)=q(b)` if and only if $`a\sim b` for all $`a` and $`b` in $`A`.
 
-Quotients formed with {name}`Quotient` have this property up to {tech}[propositional equality]: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
-However, members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
+Quotients formed with {name}`Quotient` have this property up to propositional equality: elements of $`A` that are related by $`\sim` are equal, so they cannot be distinguished.
+But members of the same equivalence class are not necessarily {tech key:="definitional equality"}[definitionally equal] in the quotient.
 
 Quotients may also be implemented by designating a single representative of each equivalence class in $`A` itself, and then defining $`Q` as pair of elements in $`A` with proofs that they are such a canonical representative.
 Together with a function that maps each $`a` in $`A` to its canonical representative, $`Q` is a quotient of $`A`.
@@ -194,12 +194,6 @@ Setoids are useful on their own, in addition to being a building block for quoti
 
 {docstring Setoid}
 
-{docstring Setoid.refl}
-
-{docstring Setoid.symm}
-
-{docstring Setoid.trans}
-
 # Equivalence Relations
 %%%
 tag := "equivalence-relations"
@@ -282,7 +276,7 @@ This relation is an equivalence relation:
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp +arith [eq]
+    simp_arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -351,7 +345,7 @@ def Z.eq (n k : Z') : Prop :=
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp +arith [eq]
+    simp_arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -442,7 +436,7 @@ def Z.eq (n k : Z') : Prop :=
 def Z.eq.eqv : Equivalence Z.eq where
   refl := by
     intro (x, y)
-    simp +arith [eq]
+    simp_arith [eq]
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
@@ -499,7 +493,7 @@ This is provable using {tactic}`simp_arith`.
 theorem Z.add_neg_inverse (n : Z) : n  + (-n) = 0 := by
   cases n using Quotient.ind
   apply Quotient.sound
-  simp +arith [· ≈ ·, Setoid.r, eq]
+  simp_arith [· ≈ ·, Setoid.r, eq]
 ```
 
 :::
@@ -546,11 +540,6 @@ These are used in the same way as their {name}`Quotient`-based counterparts.
 
 {docstring Quot.sound}
 
-## Quotient Reduction
-%%%
-tag := "quotient-reduction"
-%%%
-
 ```lean (show := false)
 section
 variable
@@ -585,10 +574,9 @@ example : Quot.lift f ok (Quot.mk r x) = f x := rfl
 end
 ```
 
-## Quotients and Inductive Types
-%%%
-tag := "quotients-nested-inductives"
-%%%
+{name}`Quot.liftOn` is an version of {name}`Quot.lift` that takes the quotient type's value first, by analogy to {name}`Quotient.liftOn`.
+
+{docstring Quot.liftOn}
 
 Because {name}`Quot` is not an inductive type, types implemented as quotients may not occur around {ref "nested-inductive-types"}[nested occurrences] in inductive type declarations.
 These types declarations must be rewritten to remove the nested quotient, which can often be done by defining a quotient-free version and then separately defining an equivalence relation that implements the desired equality relation.
@@ -615,12 +603,6 @@ inductive SetTree (α : Type u) where
 ```
 
 :::
-
-## Low-Level Quotient API
-
-{name}`Quot.liftOn` is an version of {name}`Quot.lift` that takes the quotient type's value first, by analogy to {name}`Quotient.liftOn`.
-
-{docstring Quot.liftOn}
 
 Lean also provides convenient elimination from {name}`Quot` into any subsingleton without further proof obligations, along with dependent elimination principles that correspond to those used for {name}`Quotient`.
 
@@ -729,5 +711,3 @@ end
 {docstring Squash.mk}
 
 {docstring Squash.lift}
-
-{docstring Squash.ind}
