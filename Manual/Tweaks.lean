@@ -13,9 +13,6 @@ open Lean Verso.Doc.Elab
 
 namespace Manual
 
-
-#check Std.Time.ZonedDateTime.now
-
 /--
 Display the time the manual was built in the verso text.
 TODO: move this to a better place.

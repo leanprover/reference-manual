@@ -25,7 +25,7 @@ add intro text here
 :::tactic "congr"
 :::
 
-:::tactic Mathlib.Tactic.GCongr.tacticGcongr__With___
+:::tactic Mathlib.Tactic.GCongr.tacticGcongr___With___
 :::
 
 :::tactic finiteness show:="finiteness"

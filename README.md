@@ -21,7 +21,7 @@ The Lean reference manual has tags of the form `v4.X.0` which can be used. The p
   * `Meta/` and `Meta.lean` are important and should probably be completely replaced with the new upstream version.
   * Modified files (which "our" version should be kept) include: `Manual/Tactics` and `Manual/Guides` (with their Lean files)
     and `Manual.lean`
-  * The `lakefile.lean` has only modified `require` statements
+  * The `lakefile.lean` has only modified `require` statements (and deleted anything related to `extended-examples`)
   * `Manual/Tweaks.lean` is completely ours.
   * Things that "we" deleted can stay deleted. I used something like `git status | sed -n 's/deleted by us://p' | xargs git rm`
     to delete them all once in the merge conflict.

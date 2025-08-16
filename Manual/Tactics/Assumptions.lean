@@ -50,10 +50,10 @@ even though they appear to be one to the user.
 :::tactic "generalize"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticHave_
+:::tactic Lean.Parser.Tactic.tacticHave__
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLet_
+:::tactic Lean.Parser.Tactic.tacticLet__
 :::
 
 -- TODO: The `set` docstring ought to be on the `syntax`, not the `elab_rules`

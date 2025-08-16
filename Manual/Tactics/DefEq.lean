@@ -32,5 +32,5 @@ definitionally equal.
 :::tactic "unfold"
 :::
 
-:::tactic Lean.Parser.Tactic.tacticShow_
+:::tactic Lean.Parser.Tactic.show
 :::

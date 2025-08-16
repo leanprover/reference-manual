@@ -46,8 +46,6 @@ open Lean Verso Doc Elab in
 This is directly inspired by `Verso.Genre.Manual.tactic` which defined the `::tactic` syntax. -/
 @[directive_expander all_tactics]
 def all_tactics : DirectiveExpander
-  -- the first (unused) parameter contains any arguments that would be
-  -- passed to `all_tactics`, but we don't need any currently.
   | args, more => do
     let opts ← AllTacticsOptions.parse.run args
 
@@ -87,11 +85,28 @@ package (Lean/Std/Batteries/Mathlib/etc.) defines them.
 
 If you see two tactics which are almost identical, consider adding `tactic_alt TAC` to the variant version of a tactic to tell Lean to group them together.
 
-:::all_tactics to:="g"
+:::all_tactics to:="c"
 :::
 
-:::all_tactics from:="g" to:="p"
+:::all_tactics from:="c" to:="g"
 :::
 
-:::all_tactics from:="p"
+:::all_tactics from:="g" to:="i"
 :::
+
+:::all_tactics from:="i" to:="n"
+:::
+
+:::all_tactics from:="n" to:="q"
+:::
+
+:::all_tactics from:="q" to:="u"
+:::
+
+:::all_tactics from:="u"
+:::
+
+Hey, I'm only here as a hack. Please ignore me and that thing below.
+
+-- TODO: without anything here verso gets a parsing error...?
+{optionDocs trace.grind.split}

@@ -1,3 +1,4 @@
+
 /-
 Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -14,11 +15,6 @@ open Verso.Output.Html in
 def plausible := {{
     <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
-
-open Verso.Output.Html in
-def scarfPixel := {{
-  <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026" />
-}}
 
 def main :=
   manualMain (%doc Manual) (config := config)
@@ -39,10 +35,10 @@ where
       {filename := "/static/print.js"}
     ],
     extraHead := #[plausible],
-    extraContents := #[scarfPixel],
+    extraContents := #[],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
-    sourceLink := some "https://github.com/leanprover-community/mathlib-manual/",
-    issueLink := some "https://github.com/leanprover-community/mathlib-manual/pulls",
+    sourceLink := some "https://github.com/leanprover/reference-manual",
+    issueLink := some "https://github.com/leanprover/reference-manual/issues",
   }
