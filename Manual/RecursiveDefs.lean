@@ -124,7 +124,7 @@ Even though the names are not in scope in signatures, they will not be inserted 
 :::example "Mutual Block Scope"
 Names defined in a mutual block are not in scope in each others' signatures.
 
-```lean (error := true) (name := mutScope) (keep := false)
+```lean +error (name := mutScope) -keep
 mutual
   abbrev NaturalNum : Type := Nat
   def n : NaturalNum := 5
@@ -145,7 +145,7 @@ def n : NaturalNum := 5
 Names defined in a mutual block are not in scope in each others' signatures.
 Nonetheless, they cannot be used as automatic implicit parameters:
 
-```lean (error := true) (name := mutScopeTwo) (keep := false)
+```lean +error (name := mutScopeTwo) -keep
 mutual
   abbrev α : Type := Nat
   def identity (x : α) : α := x
@@ -276,11 +276,11 @@ Using these operators requires a thorough understanding of the Lean implementati
 
 {docstring unsafeCast}
 
-{docstring ptrEq (allowMissing := true)}
+{docstring ptrEq +allowMissing}
 
-{docstring ptrEqList (allowMissing := true)}
+{docstring ptrEqList +allowMissing}
 
-{docstring ptrAddrUnsafe (allowMissing := true)}
+{docstring ptrAddrUnsafe +allowMissing}
 
 {docstring isExclusiveUnsafe}
 
@@ -415,7 +415,7 @@ def hello : Phrase := "Hello"
 def goodMorning : Clause := "Good morning"
 ```
 The irreducible alias, on the other hand, is rejected as the type for a string, because the elaborator's definitional equality test does not unfold it:
-```lean (error := true) (name := irred)
+```lean +error (name := irred)
 def goodEvening : Utterance := "Good evening"
 ```
 ```leanOutput irred
@@ -433,7 +433,7 @@ Because {lean}`Phrase` is reducible, the {inst}`ToString String` instance can be
 ```
 
 However, {lean}`Clause` is semireducible, so the {inst}`ToString String` instance cannot be used:
-```lean (error := true) (name := toStringClause)
+```lean +error (name := toStringClause)
 #synth ToString Clause
 ```
 ```leanOutput toStringClause
@@ -465,7 +465,7 @@ generalized field notation allows {name}`List.reverse` to be accessed from a ter
 ```
 
 However, declaring {name}`Sequence` to be irreducible prevents the unfolding:
-```lean (error := true) (name := irredSeq)
+```lean +error (name := irredSeq)
 attribute [irreducible] Sequence
 
 #check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
@@ -516,7 +516,7 @@ theorem plus_eq_add : plus x y = x + y := by simp
 ```
 
 The semireducible synonym is not, however, unfolded by {tactic}`simp`:
-```lean (keep := false) (error := true) (name := simpSemi)
+```lean -keep +error (name := simpSemi)
 theorem sum_eq_add : sum x y = x + y := by simp
 ```
 Nonetheless, the definitional equality check induced by {tactic}`rfl` unfolds the {lean}`sum`:
@@ -524,11 +524,11 @@ Nonetheless, the definitional equality check induced by {tactic}`rfl` unfolds th
 theorem sum_eq_add : sum x y = x + y := by rfl
 ```
 The irreducible {lean}`tally`, however, is not reduced by definitional equality.
-```lean  (keep := false) (error := true) (name := reflIr)
+```lean  -keep +error (name := reflIr)
 theorem tally_eq_add : tally x y = x + y := by rfl
 ```
 The {tactic}`simp` tactic can unfold any definition, even irreducible ones, when they are explicitly provided:
-```lean  (keep := false) (name := simpName)
+```lean  -keep (name := simpName)
 theorem tally_eq_add : tally x y = x + y := by simp [tally]
 ```
 Similarly, part of a proof can be instructed to ignore irreducibility by placing it in a {tactic}`with_unfolding_all` block:

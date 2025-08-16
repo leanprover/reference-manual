@@ -98,7 +98,7 @@ Letters are English letters, upper- or lowercase, and the letter-like characters
 Identifier continuation characters consist of letters, letter-like characters, underscores (`'_'`), exclamation marks (`!`), question marks (`?`), subscripts, and single quotes (`'`).
 As an exception, underscore alone is not a valid identifier.
 
-```lean (show := false)
+```lean -show
 def validIdentifier (str : String) : IO String :=
   Lean.Parser.identFn.test str
 
@@ -165,7 +165,7 @@ The guillemets are not part of the resulting identifier component, so `«x»` an
 
 
 
-```lean (show := false)
+```lean -show
 /-- info: "Success! Final stack:\n  `«\n  »\nAll input consumed." -/
 #check_msgs in
 #eval validIdentifier "«\n»"
@@ -197,7 +197,7 @@ tag := "module-structure"
 %%%
 
 
-:::syntax Lean.Parser.Module.module (open := false) (title := "Modules")
+:::syntax Lean.Parser.Module.module -open (title := "Modules")
 ```grammar
 $hdr:header $cmd:command*
 ```
@@ -216,7 +216,7 @@ tag := "module-headers"
 Module headers list the modules that should be elaborated prior to the current module.
 Their declarations are visible in the current module.
 
-:::syntax Lean.Parser.Module.header (open := false) (title := "Module Headers")
+:::syntax Lean.Parser.Module.header -open (title := "Module Headers")
 The module header consists of a sequence of {deftech}[`import` statements]:
 ```grammar
 $i:import*
@@ -231,7 +231,7 @@ $i:import*
 
 If present, the {keyword}`prelude` keyword indicates that the module is part of the implementation of the Lean {deftech}_prelude_, which is the code that is available without explicitly importing any modules—it should not be used outside of Lean's implementation.
 
-:::syntax Lean.Parser.Module.prelude (open := false) (title := "Prelude Modules")
+:::syntax Lean.Parser.Module.prelude -open (title := "Prelude Modules")
 ```grammar
 prelude
 ```
@@ -274,7 +274,7 @@ tag := "module-contents"
 %%%
 
 When Lean elaborates a module, the result is an {TODO}[def and xref] environment.
-The environment includes the constants, {tech}[inductive types], {tech}[theorems], {tech key:="type class"}[type classes], {tech}[instances], and everything else declared in the module, along with side tables that track data as diverse as {tech}[simp sets], namespace aliases, and {tech}[documentation comments].
+The environment includes the constants, {tech}[inductive types], {tech}[theorems], {tech (key := "type class")}[type classes], {tech}[instances], and everything else declared in the module, along with side tables that track data as diverse as {tech}[simp sets], namespace aliases, and {tech}[documentation comments].
 
 As the module is processed by Lean, commands add content to the environment.
 A module's environment can be serialized to a {deftech (key:="olean")}[`.olean` file], which contains both the environment and a compacted heap region with the run-time objects needed by the environment.

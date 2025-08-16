@@ -59,7 +59,7 @@ Here, {lean}`ST` is analogous to {lean}`BaseIO` rather than {lean}`IO`, because 
 
 {docstring runEST}
 
-{docstring ST.Ref (hideFields := true)}
+{docstring ST.Ref +hideFields}
 
 {docstring ST.mkRef}
 

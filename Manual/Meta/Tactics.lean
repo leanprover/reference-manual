@@ -37,9 +37,9 @@ private partial def many (p : ArgParse m α) : ArgParse m (List α) :=
 
 def TacticOutputConfig.parser [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticOutputConfig :=
   TacticOutputConfig.mk <$>
-    ((·.getD true) <$> .named `show .bool true) <*>
+    .flag `show true <*>
     .named `severity .messageSeverity true <*>
-    ((·.getD false) <$> .named `summarize .bool true) <*>
+    .flag `summarize false <*>
     ((·.getD .exact) <$> .named `whitespace .whitespaceMode true) <*>
     (many (.named `expandTrace .name false))
 
@@ -333,7 +333,7 @@ structure TacticGoalConfig where
   «show» : Bool
 
 def TacticGoalConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m TacticGoalConfig :=
-  TacticGoalConfig.mk <$> ((·.getD true) <$> .named `show .bool true)
+  TacticGoalConfig.mk <$> (.flag `show true)
 
 @[role_expander goal]
 def goal : RoleExpander
@@ -628,7 +628,7 @@ structure StateConfig where
   «show» : Bool := true
 
 def StateConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m StateConfig :=
-  StateConfig.mk <$> .named `tag .string true <*> ((·.getD true) <$> .named `show .bool true)
+  StateConfig.mk <$> .named `tag .string true <*> (.flag `show true)
 
 @[code_block_expander pre]
 def pre : CodeBlockExpander

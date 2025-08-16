@@ -38,19 +38,19 @@ Lean provides two floating-point types: {name}`Float` represents 64-bit floating
 The precision of {name}`Float` does not vary based on the platform that Lean is running on.
 
 
-{docstring Float (label := "type") (hideStructureConstructor := true) (hideFields := true)}
+{docstring Float (label := "type") +hideStructureConstructor +hideFields}
 
-{docstring Float32 (label := "type") (hideStructureConstructor := true) (hideFields := true)}
+{docstring Float32 (label := "type") +hideStructureConstructor +hideFields}
 
 
 :::example "No Kernel Reasoning About Floating-Point Numbers"
-The Lean kernel can compare expressions of type {lean}`Float` for syntactic equality, so {lean type:="Float"}`0.0` is definitionally equal to itself.
+The Lean kernel can compare expressions of type {lean}`Float` for syntactic equality, so {lean  (type := "Float")}`0.0` is definitionally equal to itself.
 ```lean
 example : (0.0 : Float) = (0.0 : Float) := by rfl
 ```
 
 Terms that require reduction to become syntactically equal cannot be checked by the kernel:
-```lean (error := true) (name := zeroPlusZero)
+```lean +error (name := zeroPlusZero)
 example : (0.0 : Float) = (0.0 + 0.0 : Float) := by rfl
 ```
 ```leanOutput zeroPlusZero
@@ -63,7 +63,7 @@ is not definitionally equal to the right-hand side
 ```
 
 Similarly, the kernel cannot evaluate {lean}`Bool`-valued comparisons of floating-point numbers while checking definitional equality:
-```lean (error := true) (name := zeroPlusZero') (keep := false)
+```lean +error (name := zeroPlusZero') -keep
 theorem Float.zero_eq_zero_plus_zero :
     ((0.0 : Float) == (0.0 + 0.0 : Float)) = true :=
   by rfl
@@ -141,7 +141,7 @@ is syntactic sugar for
 (OfScientific.ofScientific 41352 true 2 : Float32)
 ```
 
-```lean (show := false)
+```lean -show
 example : (-2.2523 : Float) = (Neg.neg (OfScientific.ofScientific 22523 true 4) : Float) := by simp [OfScientific.ofScientific]
 example : (413.52 : Float32) = (OfScientific.ofScientific 41352 true 2 : Float32) := by simp [OfScientific.ofScientific]
 ```

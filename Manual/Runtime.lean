@@ -29,7 +29,7 @@ These services include:
 
     Lean does not require programmers to manually manage memory.
     Space is allocated when needed to store a value, and values that can no longer be reached (and are thus irrelevant) are deallocated.
-    In particular, Lean uses {tech key:="reference count"}[reference counting], where each allocated object maintains a count of incoming references.
+    In particular, Lean uses {tech (key := "reference count")}[reference counting], where each allocated object maintains a count of incoming references.
     The compiler emits calls to memory management routines that allocate memory and modify reference counts, and these routines are provided by the runtime, along with the data structures that represent Lean values in compiled code.
 
  : Multiple Threads
@@ -70,7 +70,7 @@ A field of type {lean}`Bool` in an inductive type's constructor is represented u
 tag := "reference-counting"
 %%%
 
-Lean uses {deftech key:="reference count"}_reference counting_ for memory management.
+Lean uses {deftech (key := "reference count")}_reference counting_ for memory management.
 Each allocated object maintains a count of how many other objects refer to it.
 When a new reference is added, the count is incremented, and when a reference is dropped, the count is decremented.
 When a reference count reaches zero, the object is no longer reachable and can play no part in the further execution of the program.
@@ -360,7 +360,7 @@ For simple examples of how to call foreign code from Lean and vice versa, see [t
 
 :::leanSection
 
-```lean (show := false)
+```lean -show
 variable {α₁ αₙ β αᵢ}
 private axiom «α₂→…→αₙ₋₁».{u} : Type u
 local macro "..." : term => ``(«α₂→…→αₙ₋₁»)
@@ -371,7 +371,7 @@ It is based on the standard C ABI and calling convention of the target platform.
 Lean declarations can be marked for interaction with foreign functions using either the attribute {attr}`extern "sym"`, which causes compiled code to use the C declaration {c}`sym` as the implementation, or the attribute {attr}`export sym`, which makes the declaration available as {c}`sym` to C.
 
 In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
-Let {lean}`α₁ → ... → αₙ → β` be the declaration's {tech key:="normal form"}[normalized] type.
+Let {lean}`α₁ → ... → αₙ → β` be the declaration's {tech (key := "normal form")}[normalized] type.
 If `n` is 0, the corresponding C declaration is
 ```c
 extern s sym;
@@ -393,17 +393,17 @@ In the case of {attr}`extern`, all {tech}[irrelevant] types are removed first.
 tag := "ffi-types"
 %%%
 
-```lean (show := false)
+```lean -show
 universe u
 variable (p : Prop)
 private axiom «...» : Sort u
 local macro "..." : term => ``(«...»)
 ```
 
-In the {tech key:="application binary interface"}[ABI], Lean types are translated to C types as follows:
+In the {tech (key := "application binary interface")}[ABI], Lean types are translated to C types as follows:
 
 * The integer types {lean}`UInt8`, …, {lean}`UInt64`, {lean}`USize` are represented by the C types {c}`uint8_t`, ..., {c}`uint64_t`, {c}`size_t`, respectively.
-  If their {ref "fixed-int-runtime"}[run-time representation] requires {tech key:="boxed"}[boxing], then they are unboxed at the FFI boundary.
+  If their {ref "fixed-int-runtime"}[run-time representation] requires {tech (key := "boxed")}[boxing], then they are unboxed at the FFI boundary.
 * {lean}`Char` is represented by {c}`uint32_t`.
 * {lean}`Float` is represented by {c}`double`.
 * {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
@@ -413,7 +413,7 @@ In the {tech key:="application binary interface"}[ABI], Lean types are translate
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
   Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
-  ```lean (show := false)
+  ```lean -show
   variable (u : Unit)
   ```
 
@@ -445,7 +445,7 @@ Parameters may be marked as {tech}[borrowed] by prefixing their types with {keyw
 tag := "ffi-initialization"
 %%%
 
-When including Lean code in a larger program, modules must be {deftech key:="initialize"}_initialized_ before accessing any of their declarations.
+When including Lean code in a larger program, modules must be {deftech (key := "initialize")}_initialized_ before accessing any of their declarations.
 Module initialization entails:
 * initialization of all “constant definitions” (nullary functions), including closed terms lifted out of other functions,
 * execution of all code marked with the {attr}`init` attribute, and

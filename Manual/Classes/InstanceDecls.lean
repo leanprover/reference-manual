@@ -130,7 +130,7 @@ inductive NatTree where
   | branch (left : NatTree) (val : Nat) (right : NatTree)
 ```
 the following {name}`BEq` instance fails:
-```lean (error := true) (name := beqNatTreeFail)
+```lean +error (name := beqNatTreeFail)
 instance : BEq NatTree where
   beq
     | .leaf, .leaf => true
@@ -177,7 +177,7 @@ inductive NatRoseTree where
 ```
 Checking the equality of rose trees requires checking equality of arrays.
 However, instances are not typically available for instance synthesis during their own definitions, so the following definition fails, even though {lean}`NatRoseTree.beq` is a recursive function and is in scope in its own definition.
-```lean (error := true) (name := natRoseTreeBEqFail) (keep := false)
+```lean +error (name := natRoseTreeBEqFail) -keep
 def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
   | .node val1 children1, .node val2 children2 =>
     val1 == val2 &&
@@ -213,7 +213,7 @@ This is done using ordinary Lean function syntax.
 Just as with other instances, the function in question is not available for instance synthesis in its own definition.
 ::::keepEnv
 :::example "An instance for a sum class"
-```lean (show := false)
+```lean -show
 axiom α : Type
 ```
 Because {lean}`DecidableEq α` is an abbreviation for {lean}`(a b : α) → Decidable (Eq a b)`, its arguments can be used directly, as in this example:
@@ -248,7 +248,7 @@ inductive StringList where
   | cons (hd : String) (tl : StringList)
 ```
 In the following attempt at defining a {name}`DecidableEq` instance, instance synthesis invoked while elaborating the inner {keywordOf termIfThenElse}`if` fails because the instance is not available for instance synthesis in its own definition:
-```lean (error := true) (name := stringListNoRec) (keep := false)
+```lean +error (name := stringListNoRec) -keep
 instance : DecidableEq StringList
   | .nil, .nil => .isTrue rfl
   | .cons h1 t1, .cons h2 t2 =>
@@ -295,7 +295,7 @@ tag := "instance-priorities"
 Instances may be assigned {deftech}_priorities_.
 During instance synthesis, higher-priority instances are preferred; see {ref "instance-synth"}[the section on instance synthesis] for details of instance synthesis.
 
-:::syntax prio open:=false (title := "Instance Priorities")
+:::syntax prio -open (title := "Instance Priorities")
 Priorities may be numeric:
 ```grammar
 $n:num

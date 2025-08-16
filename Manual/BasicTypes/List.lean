@@ -99,7 +99,7 @@ def split'' : List α → List α × List α
     let (ys, zs) := split xs
     (.cons x ys, .cons x' zs)
 ```
-```lean (show := false)
+```lean -show
 -- Test claim
 example : @split = @split' := by
   funext α xs

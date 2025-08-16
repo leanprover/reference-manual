@@ -29,7 +29,7 @@ tag := "custom-tactics"
 %%%
 
 
-```lean (show := false)
+```lean -show
 open Lean
 ```
 
@@ -69,7 +69,7 @@ example : 0 ≤ 4 := by
 :::
 ::::
 
-Like other Lean macros, tactic macros are {tech key:="hygiene"}[hygienic].
+Like other Lean macros, tactic macros are {tech (key := "hygiene")}[hygienic].
 References to global names are resolved when the macro is defined, and names introduced by the tactic macro cannot capture names from its invocation site.
 
 When defining a tactic macro, it's important to specify that the syntax being matched or constructed is for the syntax category `tactic`.
@@ -90,7 +90,7 @@ This is used to make a number of Lean's built-in tactics extensible—new behavi
 
 The {tactic}`trivial`, which is used by many other tactics to quickly dispatch subgoals that are not worth bothering the user with, is designed to be extended through new macro expansions.
 Lean's default {lean}`trivial` can't solve {lean}`IsEmpty []` goals:
-```lean (error := true)
+```lean +error
 def IsEmpty (xs : List α) : Prop :=
   ¬ xs ≠ []
 

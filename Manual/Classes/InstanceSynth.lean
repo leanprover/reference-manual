@@ -180,7 +180,7 @@ In some cases, however, the choice of one parameter should cause an automatic ch
 For example, the overloaded membership predicate type class {name}`Membership` treats the type of elements of a data structure as an output, so that the type of element can be determined by the type of data structure at a use site, instead of requiring that there be sufficient type annotations to determine _both_ types prior to starting instance synthesis.
 An element of a {lean}`List Nat` can be concluded to be a {lean}`Nat` simply on the basis of its membership in the list.
 
-```signature (show := false)
+```signature -show
 -- Test the above claim
 Membership.{u, v} (α : outParam (Type u)) (γ : Type v) : Type (max u v)
 ```
@@ -210,7 +210,7 @@ instance [Serialize α γ] [Serialize β γ] [Append γ] :
 ```
 
 In this example, the output type is unknown.
-```lean (error := true) (name := noOutputType)
+```lean +error (name := noOutputType)
 example := ser (2, 3)
 ```
 Instance synthesis can't select the {lean}`Serialize Nat String` instance, and thus the {lean}`Append String` instance, because that would require instantiating the output type as {lean}`String`, so the search gets stuck:
@@ -271,7 +271,7 @@ instance : OneSmaller Bool Unit where
     | false, _ => ()
 ```
 Because instance synthesis selects the most recently defined instance, the following code is an error:
-```lean (error := true) (name := nosmaller)
+```lean +error (name := nosmaller)
 #check OneSmaller.shrink (β := Bool) (some false) sorry
 ```
 ```leanOutput nosmaller

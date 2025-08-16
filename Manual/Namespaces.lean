@@ -104,7 +104,7 @@ def Greetings.english := "Hello"
 
 Outside its namespace, it cannot be evaluated.
 
-```lean (error := true) (name := english1)
+```lean +error (name := english1)
 #eval english
 ```
 ```leanOutput english1
@@ -119,7 +119,7 @@ section Greetings
 
 Even though the section name matches the definition's namespace, the name is not in scope because section names are purely for readability and ease of refactoring.
 
-```lean (error := true)  (name := english2)
+```lean +error  (name := english2)
 #eval english
 ```
 ```leanOutput english2
@@ -140,7 +140,7 @@ open Greetings
 
 The section's name must be used to close it.
 
-```lean (error := true) (name := english4) (keep := false)
+```lean +error (name := english4) -keep
 end
 ```
 ```leanOutput english4
@@ -155,7 +155,7 @@ end Greetings
 ```
 
 When the section is closed, the effects of the {keywordOf Lean.Parser.Command.open}`open` command are reverted.
-```lean (error := true)  (name := english5)
+```lean +error  (name := english5)
 #eval english
 ```
 ```leanOutput english5
@@ -215,7 +215,7 @@ namespace D.E
 ```
 At this point, the current namespace is `A.D.E`.
 An {keywordOf Lean.Parser.Command.end}`end` command cannot close all three due to the intervening section:
-```lean (error := true) (name := endADE) (keep := false)
+```lean +error (name := endADE) -keep
 end A.D.E
 ```
 ```leanOutput endADE
@@ -251,7 +251,7 @@ open Dessert in
 
 After the single command, the effects of {keywordOf Lean.Parser.Command.open}`open` are reverted.
 
-```lean (error := true) (name := noCake)
+```lean +error (name := noCake)
 #eval cupcake
 ```
 ```leanOutput noCake
@@ -297,7 +297,7 @@ variable {α : Type u} (xs : List α) [Zero α] [Add α]
 ```
 
 Because automatic implicit parameters are disabled, the following definition fails:
-```lean (error := true) (name := secvars) (keep := false)
+```lean +error (name := secvars) -keep
 def addAll (lst : List β) : β :=
   lst.foldr (init := 0) (· + ·)
 ```
@@ -319,7 +319,7 @@ All variables marked for inclusion are added to all theorems.
 The {keywordOf Lean.Parser.Command.omit}`omit` command removes the inclusion mark from a variable; it's typically a good idea to use it with {keywordOf Lean.Parser.Command.in}`in`.
 
 
-```lean (show := false)
+```lean -show
 section
 variable {p : Nat → Prop}
 variable (pFifteen : p 15)
@@ -336,14 +336,14 @@ variable (pFifteen : p 15)
 ```
 
 However, only {lean}`p` is added to this theorem's assumptions, so it cannot be proved.
-```lean (error := true) (keep := false)
+```lean +error -keep
 theorem p_all : ∀ n, p n := by
   intro n
   induction n
 ```
 
 The {keywordOf Lean.Parser.Command.include}`include` command causes the additional assumptions to be added unconditionally:
-```lean (keep := false) (name := lint)
+```lean -keep (name := lint)
 include pZero pStep pFifteen
 
 theorem p_all : ∀ n, p n := by
@@ -361,7 +361,7 @@ Note: This linter can be disabled with `set_option linter.unusedSectionVars fals
 ```
 
 This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:
-```lean (keep := false)
+```lean -keep
 include pZero pStep pFifteen
 
 omit pFifteen in
@@ -375,6 +375,6 @@ end
 ```
 
 :::::
-```lean (show := false)
+```lean -show
 end
 ```

@@ -26,7 +26,7 @@ tag := "TreeMap"
 
 The declarations in this section should be imported using `import Std.TreeMap`.
 
-{docstring Std.TreeMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.TreeMap +hideFields +hideStructureConstructor}
 
 # Creation
 

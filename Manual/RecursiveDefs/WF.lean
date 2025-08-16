@@ -29,7 +29,7 @@ This allows a larger class of recursive definitions to be accepted.
 Furthermore, when Lean's automation fails to construct a termination proof, it is possible to specify one manually.
 
 All definitions are treated identically by the Lean compiler.
-In Lean's logic, definitions that use well-founded recursion typically do not reduce {tech key:="definitional equality"}[definitionally].
+In Lean's logic, definitions that use well-founded recursion typically do not reduce {tech (key := "definitional equality")}[definitionally].
 The reductions do hold as propositional equalities, however, and Lean automatically proves them.
 This does not typically make it more difficult to prove properties of definitions that use well-founded recursion, because the propositional reductions can be used to reason about the behavior of the function.
 It does mean, however, that using these functions in types typically does not work well.
@@ -79,7 +79,7 @@ In Lean, types that are equipped with a canonical well-founded relation are inst
 
 {docstring WellFoundedRelation}
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {β : Type v} (a₁ a₂ : α) (b₁ b₂ : β) [WellFoundedRelation α] [WellFoundedRelation β]
 variable {γ : Type u} (x₁ x₂ : γ) [SizeOf γ]
@@ -88,21 +88,21 @@ local notation x " ≺ " y => WellFoundedRelation.rel x y
 
 The most important instances are:
 
-* {name}[`Nat`], ordered by {lean type:="Nat → Nat → Prop"}`(· < ·)`.
+* {name}[`Nat`], ordered by {lean  (type := "Nat → Nat → Prop")}`(· < ·)`.
 
 * {name}[`Prod`], ordered lexicographically: {lean}`(a₁, b₁) ≺ (a₂, b₂)` if and only if {lean}`a₁ ≺ a₂` or {lean}`a₁ = a₂` and {lean}`b₁ ≺ b₂`.
 
 * Every type that is an instance of the {name}`SizeOf` type class, which provides a method {name}`SizeOf.sizeOf`, has a well-founded relation.
   For these types, {lean}`x₁ ≺ x₂` if and only if {lean}`sizeOf x₁ < sizeOf x₂`. For {tech}[inductive types], a {lean}`SizeOf` instance is automatically derived by Lean.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
 Note that there exists a low-priority instance {name}`instSizeOfDefault` that provides a {lean}`SizeOf` instance for any type, and always returns {lean}`0`.
 This instance cannot be used to prove that a function terminates using well-founded recursion because {lean}`0 < 0` is false.
 
-```lean (show := false)
+```lean -show
 
 -- Check claims about instSizeOfDefault
 
@@ -120,7 +120,7 @@ Function types in general do not have a well-founded relation that's useful for 
 {ref "instance-synth"}[Instance synthesis] thus selects {name}`instSizeOfDefault` and the corresponding well-founded relation.
 If the measure is a function, the default {name}`SizeOf` instance is selected and the proof cannot succeed.
 
-```lean (keep := false)
+```lean -keep
 def fooInst (b : Bool → Bool) : Unit := fooInst (b ∘ b)
 termination_by b
 decreasing_by
@@ -138,7 +138,7 @@ decreasing_by
 
 Once a {tech}[measure] is specified and its {tech}[well-founded relation] is determined, Lean determines the termination proof obligation for every recursive call.
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {β : α → Type v} {β' : Type v} (more : β') (g : (x : α) → (y : β x) → β' → γ) [WellFoundedRelation γ] (a₁ p₁ : α) (a₂ : β a₁) (p₂ : β p₁)
 
@@ -155,9 +155,9 @@ The proof obligation for each recursive call is of the form {lean}`g a₁ a₂ �
 
 The context of the proof obligation is the local context of the recursive call.
 In particular, local assumptions (such as those introduced by `if h : _`, `match h : _ with ` or `have`) are available.
-If a function parameter is the {tech key:="match discriminant"}[discriminant] of a pattern match (e.g. by a {keywordOf Lean.Parser.Term.match}`match` expression), then this parameter is refined to the matched pattern in the proof obligation.
+If a function parameter is the {tech (key := "match discriminant")}[discriminant] of a pattern match (e.g. by a {keywordOf Lean.Parser.Term.match}`match` expression), then this parameter is refined to the matched pattern in the proof obligation.
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -166,7 +166,7 @@ By default, the tactic {tactic}`decreasing_trivial` is used to prove each proof 
 A custom tactic script can be provided using the optional {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause, which comes after the {keywordOf Lean.Parser.Command.declaration}`termination_by` clause.
 This tactic script is run once, with one goal for each proof obligation, rather than separately on each proof obligation.
 
-```lean (show := false)
+```lean -show
 section
 variable {n : Nat}
 ```
@@ -175,7 +175,7 @@ variable {n : Nat}
 
 The following recursive definition of the Fibonacci numbers has two recursive calls, which results in two goals in the termination proof.
 
-```lean (error := true) (keep := false) (name := fibGoals)
+```lean +error -keep (name := fibGoals)
 def fib (n : Nat) :=
   if h : n ≤ 1 then
     1
@@ -186,7 +186,7 @@ decreasing_by
   skip
 ```
 
-```leanOutput fibGoals (whitespace := lax) (show := false)
+```leanOutput fibGoals (whitespace := lax) -show
 unsolved goals
    n : Nat
    h : ¬n ≤ 1
@@ -220,7 +220,7 @@ The first proof goal requires the user to prove that the argument of the first r
 
 Both termination proofs can be easily discharged using the {tactic}`omega` tactic.
 
-```lean (keep := false)
+```lean -keep
 def fib (n : Nat) :=
   if h : n ≤ 1 then
     1
@@ -232,15 +232,15 @@ decreasing_by
   · omega
 ```
 ::::
-```lean (show := false)
+```lean -show
 end
 ```
 
 :::example "Refined Parameters"
 
-If a parameter of the function is the {tech key:="match discriminant"}[discriminant] of a pattern match, then the proof obligations mention the refined parameter.
+If a parameter of the function is the {tech (key := "match discriminant")}[discriminant] of a pattern match, then the proof obligations mention the refined parameter.
 
-```lean (error := true) (keep := false) (name := fibGoals2)
+```lean +error -keep (name := fibGoals2)
 def fib : Nat → Nat
   | 0 | 1 => 1
   | .succ (.succ n) => fib (n + 1) + fib n
@@ -248,7 +248,7 @@ termination_by n => n
 decreasing_by
   skip
 ```
-```leanOutput fibGoals2 (whitespace := lax) (show := false)
+```leanOutput fibGoals2 (whitespace := lax) -show
 unsolved goals
 n : Nat
 ⊢ n + 1 < n.succ.succ
@@ -284,7 +284,7 @@ This list is not exhaustive, and the mechanism is extensible.
 It is described in detail in {ref "well-founded-preprocessing"}[the section on preprocessing].
 :::
 
-```lean (show := false)
+```lean -show
 section
 variable {x : Nat} {xs : List Nat} {n : Nat}
 ```
@@ -294,7 +294,7 @@ variable {x : Nat} {xs : List Nat} {n : Nat}
 Here, the {keywordOf termIfThenElse}`if` does not add a local assumption about the condition (that is, whether {lean}`n ≤ 1`) to the local contexts in the branches.
 
 
-```lean (error := true) (keep := false) (name := fibGoals3)
+```lean +error -keep (name := fibGoals3)
 def fib (n : Nat) :=
   if n ≤ 1 then
     1
@@ -305,7 +305,7 @@ decreasing_by
   skip
 ```
 
-```leanOutput fibGoals3 (whitespace := lax) (show := false)
+```leanOutput fibGoals3 (whitespace := lax) -show
 unsolved goals
    n : Nat
    h✝ : ¬n ≤ 1
@@ -336,7 +336,7 @@ h✝ : ¬n ≤ 1
 
 Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Range` membership hypothesis:
 
-```lean (error := true) (keep := false) (name := nestGoal3)
+```lean +error -keep (name := nestGoal3)
 def f (xs : Array Nat) : Nat := Id.run do
   let mut s := xs.sum
   for i in [:xs.size] do
@@ -346,7 +346,7 @@ termination_by xs
 decreasing_by
   skip
 ```
-```leanOutput nestGoal3 (whitespace := lax) (show := false)
+```leanOutput nestGoal3 (whitespace := lax) -show
 unsolved goals
 xs : Array Nat
 i : Nat
@@ -365,14 +365,14 @@ h✝ : i ∈ [:xs.size]
 
 Similarly, in the following (contrived) example, the termination proof contains an additional assumption showing that {lean}`x ∈ xs`.
 
-```lean (error := true) (keep := false) (name := nestGoal1)
+```lean +error -keep (name := nestGoal1)
 def f (n : Nat) (xs : List Nat) : Nat :=
   List.sum (xs.map (fun x => f x []))
 termination_by xs
 decreasing_by
   skip
 ```
-```leanOutput nestGoal1 (whitespace := lax) (show := false)
+```leanOutput nestGoal1 (whitespace := lax) -show
 unsolved goals
 n : Nat
 xs : List Nat
@@ -397,7 +397,7 @@ h✝ : x ∈ xs
 This feature requires special setup for the higher-order function under which the recursive call is nested, as described in {ref "well-founded-preprocessing"}[the section on preprocessing].
 In the following definition, identical to the one above except using a custom, equivalent function instead of {name}`List.map`, the proof obligation context is not enriched:
 
-```lean (error := true) (keep := false) (name := nestGoal4)
+```lean +error -keep (name := nestGoal4)
 def List.myMap := @List.map
 def f (n : Nat) (xs : List Nat) : Nat :=
   List.sum (xs.myMap (fun x => f x []))
@@ -405,7 +405,7 @@ termination_by xs
 decreasing_by
   skip
 ```
-```leanOutput nestGoal4 (whitespace := lax) (show := false)
+```leanOutput nestGoal4 (whitespace := lax) -show
 unsolved goals
 n : Nat
 xs : List Nat
@@ -421,12 +421,12 @@ x : Nat
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
 
-```lean (show := false)
+```lean -show
 section
 ```
 
@@ -475,7 +475,7 @@ This tactic is intended to be extended with further heuristics using {keywordOf 
 
 A classic example of a recursive function that needs a more complex {tech}[measure] is the Ackermann function:
 
-```lean (keep := false)
+```lean -keep
 def ack : Nat → Nat → Nat
   | 0,     n     => n + 1
   | m + 1, 0     => ack m 1
@@ -498,7 +498,7 @@ Prod.Lex.right {α β} {ra : α → α → Prop} {rb : β → β → Prop}
 
 It fails, however, with the following modified function definition, where the third recursive call's first argument is provably smaller or equal to the first parameter, but not syntactically equal:
 
-```lean (keep := false) (error := true) (name := synack)
+```lean -keep +error (name := synack)
 def synack : Nat → Nat → Nat
   | 0,     n     => n + 1
   | m + 1, 0     => synack m 1
@@ -525,7 +525,7 @@ Prod.Lex.right' {β} (rb : β → β → Prop)
   Prod.Lex Nat.lt rb (a₁, b₁) (a₂, b₂)
 ```
 
-```lean (keep := false)
+```lean -keep
 def synack : Nat → Nat → Nat
   | 0, n => n + 1
   | m + 1, 0 => synack m 1
@@ -577,7 +577,7 @@ This table shows up in the error message when no automatic measure could be foun
 
 {spliceContents Manual.RecursiveDefs.WF.GuessLexExample}
 
-```lean (show := false)
+```lean -show
 section
 variable {e₁ e₂ i j : Nat}
 ```
@@ -612,7 +612,7 @@ Try this: termination_by (j, j - i)
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -625,7 +625,7 @@ The tactic indicated by {keywordOf Lean.Parser.Command.declaration}`decreasing_b
 
 A consequence is that a {keywordOf Lean.Parser.Command.declaration}`decreasing_by` block that addresses goals individually and which works successfully with an explicit termination argument can cause inference of the termination measure to fail:
 
-```lean (keep := false) (error := true)
+```lean -keep +error
 def ack : Nat → Nat → Nat
   | 0, n => n + 1
   | m + 1, 0 => ack m 1
@@ -649,7 +649,7 @@ Because {tactic}`decreasing_tactic` avoids the need to backtrack by being incomp
 In this case, the error message is the one that results from the failing tactic rather than the one that results from being unable to find a measure.
 This is what happens in {lean}`notAck`:
 
-```lean (error := true) (name := badInfer)
+```lean +error (name := badInfer)
 def notAck : Nat → Nat → Nat
   | 0, n => n + 1
   | m + 1, 0 => notAck m 1
@@ -767,7 +767,7 @@ ite_eq_dite {P : Prop} {α : Sort u} {a b : α} [Decidable P]  :
 ```
 
 
-```lean (show := false)
+```lean -show
 section
 variable (xs : List α) (p : α → Bool) (f : α → β) (x : α)
 ```
@@ -800,7 +800,7 @@ By separating the introduction of {name}`List.attach` from the propagation of th
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -813,7 +813,7 @@ To see the preprocessed function definition, before and after the removal of {na
 
 # Theory and Construction
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u}
 ```
@@ -864,8 +864,8 @@ The definition of division should satisfy the following equations:
  * {lean}`∀{n k : Nat}, (k > n) → div n k = 0`
  * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = div (n - k) k`
 
-This reduction behavior does not hold {tech key:="definitional equality"}[definitionally]:
-```lean (error := true) (name := nonDef) (keep := false)
+This reduction behavior does not hold {tech (key := "definitional equality")}[definitionally]:
+```lean +error (name := nonDef) -keep
 theorem div.eq0 : div n 0 = 0 := by rfl
 ```
 ```leanOutput nonDef

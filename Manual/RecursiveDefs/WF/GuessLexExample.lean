@@ -26,7 +26,7 @@ If there is no {keywordOf Lean.Parser.Command.declaration}`termination_by` claus
 If it fails, then it prints the table mentioned above.
 In this example, the {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause simply prevents Lean from also attempting structural recursion; this keeps the error message specific.
 
-```lean (error := true) (keep := false) (name := badwf)
+```lean +error -keep (name := badwf)
 def f : (n m l : Nat) → Nat
   | n+1, m+1, l+1 => [
       f (n+1) (m+1) (l+1),

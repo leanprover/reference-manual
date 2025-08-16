@@ -199,7 +199,7 @@ tag := "tactic-ref-goals"
 :::tactic "change"
 :::
 
-:::tactic Lean.Parser.Tactic.changeWith show:="change ... with ..."
+:::tactic Lean.Parser.Tactic.changeWith (show := "change ... with ...")
 :::
 
 :::tactic "generalize"
@@ -284,13 +284,13 @@ tag := "tactic-ref-rw"
 :::tactic Lean.Parser.Tactic.tacticRwa__
 :::
 
-{docstring Lean.Meta.Rewrite.Config (allowMissing := true)}
+{docstring Lean.Meta.Rewrite.Config +allowMissing}
 
 {docstring Lean.Meta.Occurrences}
 
-{docstring Lean.Meta.TransparencyMode (allowMissing := true)}
+{docstring Lean.Meta.TransparencyMode +allowMissing}
 
-{docstring Lean.Meta.Rewrite.NewGoals (allowMissing := true)}
+{docstring Lean.Meta.Rewrite.NewGoals +allowMissing}
 
 
 :::tactic "unfold"
@@ -340,7 +340,7 @@ Elimination tactics use {ref "recursors"}[recursors] and the automatically-deriv
 The {tech}[subgoals] that result from these tactics are determined by the types of the minor premises of the eliminators, and using different eliminators with the {keyword}`using` option results in different subgoals.
 
 :::::leanSection
-```lean (show := false)
+```lean -show
 variable {n : Nat}
 ```
 ::::example "Choosing Eliminators"
@@ -349,9 +349,9 @@ variable {n : Nat}
 ```setup
 intro n i
 ```
-{goal show:= false}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
+{goal -show}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
 
-```pre (show := false)
+```pre -show
 n : Nat
 i : Fin (n + 1)
 ⊢ 0 + i = i
@@ -380,9 +380,9 @@ Fin.rec.{u} {n : Nat} {motive : Fin n → Sort u}
 ```setup
 intro n i
 ```
-{goal show:= false}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
+{goal -show}`∀(n : Nat) (i : Fin (n + 1)), 0 + i = i`
 
-```pre (show := false)
+```pre -show
 n : Nat
 i : Fin (n + 1)
 ⊢ 0 + i = i
@@ -476,7 +476,7 @@ These tactics should not be left in a proof; rather, their suggestions should be
 
 
 :::tacticExample
-{goal show:=false}`∀ (i j k : Nat), i < j → j < k → i < k`
+{goal -show}`∀ (i j k : Nat), i < j → j < k → i < k`
 ```setup
 intro i j k h1 h2
 ```
@@ -494,7 +494,7 @@ invoking {tacticStep}`apply?` suggests:
 Try this: exact Nat.lt_trans h1 h2
 ```
 
-```post (show := false)
+```post -show
 
 ```
 :::
@@ -521,10 +521,10 @@ tag := "tactic-ref-decision"
 %%%
 
 
-:::tactic Lean.Parser.Tactic.decide show:="decide"
+:::tactic Lean.Parser.Tactic.decide (show := "decide")
 :::
 
-:::tactic Lean.Parser.Tactic.nativeDecide show:="native_decide"
+:::tactic Lean.Parser.Tactic.nativeDecide (show := "native_decide")
 :::
 
 :::tactic "omega"
