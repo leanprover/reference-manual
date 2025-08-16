@@ -39,6 +39,6 @@ where
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
-    sourceLink := some "https://github.com/leanprover/reference-manual",
-    issueLink := some "https://github.com/leanprover/reference-manual/issues",
+    sourceLink := some "https://github.com/leanprover-community/mathlib-manual",
+    issueLink := some "https://github.com/leanprover-community/mathlib-manual/pulls",
   }
