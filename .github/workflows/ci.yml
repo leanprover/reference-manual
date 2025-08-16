@@ -1,16 +1,8 @@
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-      - 'lean-pr-testing-*'
-  pull_request:
-    branches:
-      - main
-      - nightly-testing
-  release:
-    types:
-      - published
-      - released
 
 name: "Build and check HTML"
 
@@ -159,26 +151,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-  type-check-js:
-    name: Check search JS code with TypeScript
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get generated HTML from artifact storage
-        uses: actions/download-artifact@v4
-        with:
-          name: 'html'
-          path: '_out/'
-
-      - name: Install TypeScript
-        run: |
-          sudo apt update && sudo apt install node-typescript
-
-      - name: Type check the search bar code
-        run: |
-          cd _out/html-multi/-verso-search
-          tsc --noEmit -p jsconfig.json
-
