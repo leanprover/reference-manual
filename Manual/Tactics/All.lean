@@ -15,7 +15,7 @@ set_option pp.rawOnError true
 set_option linter.unusedVariables false
 
 set_option maxHeartbeats 0
-set_option maxRecDepth 10000000000
+set_option maxRecDepth 10000000000000000000
 
 section
 
@@ -88,22 +88,40 @@ If you see two tactics which are almost identical, consider adding `tactic_alt T
 :::all_tactics to:="c"
 :::
 
-:::all_tactics from:="c" to:="g"
+:::all_tactics from:="c" to:="e"
+:::
+
+:::all_tactics from:="e" to:="g"
 :::
 
 :::all_tactics from:="g" to:="i"
 :::
 
-:::all_tactics from:="i" to:="n"
+:::all_tactics from:="i" to:="k"
 :::
 
-:::all_tactics from:="n" to:="q"
+:::all_tactics from:="k" to:="m"
 :::
 
-:::all_tactics from:="q" to:="u"
+:::all_tactics from:="m" to:="o"
 :::
 
-:::all_tactics from:="u"
+:::all_tactics from:="o" to:="q"
+:::
+
+:::all_tactics from:="q" to:="s"
+:::
+
+:::all_tactics from:="s" to:="u"
+:::
+
+:::all_tactics from:="u" to:="w"
+:::
+
+:::all_tactics from:="w" to:="y"
+:::
+
+:::all_tactics from:="y"
 :::
 
 Hey, I'm only here as a hack. Please ignore me and that thing below.
