@@ -163,3 +163,14 @@ The following list contains common errors one might encounter when using the mod
   {keywordOf Lean.reduceCmd}`#reduce` and/or {option}`trace.Meta.isDefEq` can help with finding the blocking definition.
   You might also see this as a kernel error when a tactic directly emits proof terms referencing specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using `@[expose] section`s generously on the closure of relevant modules.
+
+## Recipe for Porting Existing Files
+
+Start by enabling the module system throughout all files with minimal breaking changes:
+* Prefix all files with `module`.
+* Make all existing imports `public` unless you know they will be used only in proofs.
+  Add `import all` when getting errors about references to private data.
+  Add `public meta import` when getting "must be `meta`" errors (`public` may be avoided when defining local-only metaprograms).
+* Prefix the remainder of the file with `@[expose] public section` or, for programming-focused files, with `public section`.
+
+After getting an initial build under the module system to work, you can then work iteratively on minimizing uses of `public` and `@[expose]` where sensible.
