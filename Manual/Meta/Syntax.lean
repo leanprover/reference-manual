@@ -126,9 +126,9 @@ def keywordOf.descr : InlineDescr where
   traverse _ _ _ := do
     pure none
   toTeX :=
-    some <| fun go _id _ content => do
+    some <| fun goI _id _ content => do
       pure <| .seq <| ← content.mapM fun b => do
-        pure <| .seq #[← go b, .raw "\n"]
+        pure <| .seq #[← goI b]
   toHtml :=
     open Verso.Output Html in
     some <| fun goI _ info content => do
