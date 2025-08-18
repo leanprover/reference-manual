@@ -198,7 +198,7 @@ These should be in agreement with `Ord`, `LT`, and `LE` instances, if they exist
 
 :::leanSection
 
-```lean (show := false)
+```lean -show
 variable {α : Type u} [LE α]
 ```
 
@@ -216,7 +216,7 @@ They can be used as the right-hand side of an {keywordOf Lean.Parser.Command.dec
 tag := "decidable-propositions"
 %%%
 
-A proposition is {deftech}_decidable_ if it can be checked algorithmically.{index}[decidable]{index subterm:="decidable"}[proposition]
+A proposition is {deftech}_decidable_ if it can be checked algorithmically.{index}[decidable]{index (subterm := "decidable")}[proposition]
 The Law of the Excluded Middle means that every proposition is true or false, but it provides no way to check which of the two cases holds, which can often be useful.
 By default, only algorithmic {lean}`Decidable` instances for which code can be generated are in scope; opening the `Classical` namespace makes every proposition decidable.
 
@@ -239,7 +239,7 @@ By default, only algorithmic {lean}`Decidable` instances for which code can be g
 ::::keepEnv
 :::example "Excluded Middle and {lean}`Decidable`"
 The equality of functions from {lean}`Nat` to {lean}`Nat` is not decidable:
-```lean (error:=true) (name := NatFunNotDecEq)
+```lean +error (name := NatFunNotDecEq)
 example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 ```
 ```leanOutput NatFunNotDecEq
@@ -285,7 +285,7 @@ draft := true
 :::
 
 
-{docstring ToString (allowMissing := true)}
+{docstring ToString +allowMissing}
 
 # Arithmetic and Bitwise Operators
 

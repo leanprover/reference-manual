@@ -108,7 +108,7 @@ tag := "grind-ring-classes"
 %%%
 
 :::paragraph
-Users can enable the `ring` solver for their own types by providing instances of the following {tech key:="type class"}[type classes], all in the `Lean.Grind` namespace:
+Users can enable the `ring` solver for their own types by providing instances of the following {tech (key := "type class")}[type classes], all in the `Lean.Grind` namespace:
 
 * {name Lean.Grind.Semiring}`Semiring`
 
@@ -154,7 +154,7 @@ tag := "grind-ring-field"
 %%%
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {a b p : α} [Field α]
 ```
 The `ring` solver also has support for {name}`Field`s.
@@ -206,7 +206,7 @@ example [CommRing α] [NoNatZeroDivisors α] (a b : α) :
   grind
 ```
 Without it, the proof fails:
-```lean (name := NoNatZero) (error := true)
+```lean (name := NoNatZero) +error
 example [CommRing α] (a b : α) :
     2 * a + 2 * b = 0 →
     b ≠ -a → False := by
@@ -262,7 +262,7 @@ example [Field α] {x y z w : α} :
 
 You can disable the `ring` solver using the option `grind -ring`.
 
-```lean (error := true) (name := noRing)
+```lean +error (name := noRing)
 example [CommRing α] (x y : α) :
     x ^ 2 * y = 1 →
     x * y ^ 2 = y →
@@ -313,7 +313,7 @@ Gröbner basis computation can be very expensive. You can limit the number of st
 
 :::example "Limiting `ring` Steps"
 This example cannot be solved by performing at most 100 steps:
-```lean (error := true) (name := ring100)
+```lean +error (name := ring100)
 example [CommRing α] [IsCharP α 0] (d t c : α) (d_inv PSO3_inv : α) :
     d ^ 2 * (d + t - d * t - 2) * (d + t + d * t) = 0 →
     -d ^ 4 * (d + t - d * t - 2) *

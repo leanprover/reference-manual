@@ -44,7 +44,7 @@ All of these are represented by a few basic building blocks:
 : {deftech}[Identifiers]
 
   :::keepEnv
-  ```lean (show := false)
+  ```lean -show
   variable {α : Type u}
   variable {x : α}
   ```
@@ -91,7 +91,7 @@ Typically, single-token syntax productions consist of a {name Lean.Syntax.node}`
 Atoms for literals are not interpreted by the parser: string atoms include their leading and trailing double-quote characters along with any escape sequences contained within, and hexadecimal numerals are saved as a string that begins with {lean}`"0x"`.
 {ref "typed-syntax-helpers"}[Helpers] such as {name}`Lean.TSyntax.getString` are provided to perform this decoding on demand.
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- Verify claims about atoms and nodes
 open Lean in
 partial def noInfo : Syntax → Syntax
@@ -147,7 +147,7 @@ tag := "source-info"
 
 Atoms, identifiers, and nodes optionally contain {deftech}[source information] that tracks their correspondence with the original file.
 The parser saves source information for all tokens, but not for nodes; position information for parsed nodes is reconstructed from their first and last tokens.
-Not all {name Lean.Syntax}`Syntax` data results from the parser: it may be the result of {tech}[macro expansion], in which case it typically contains a mix of generated and parsed syntax, or it may be the result of {tech key:="delaborator"}[delaborating] an internal term to display it to a user.
+Not all {name Lean.Syntax}`Syntax` data results from the parser: it may be the result of {tech}[macro expansion], in which case it typically contains a mix of generated and parsed syntax, or it may be the result of {tech (key := "delaborator")}[delaborating] an internal term to display it to a user.
 In these use cases, nodes may themselves contain source information.
 
 Source information comes in two varieties:
@@ -169,7 +169,7 @@ Source information comes in two varieties:
 
 # Inspecting Syntax
 
-```lean (show := false)
+```lean -show
 section Inspecting
 open Lean
 ```
@@ -290,7 +290,7 @@ However, {name}`ppTerm` can be explicitly invoked if needed.
 
 ::::keepEnv
 :::example "Pretty-Printed Syntax"
-```lean (show := false)
+```lean -show
 open Lean Elab Command
 ```
 
@@ -350,7 +350,7 @@ List.length✝
 
 ::::
 
-```lean (show := false)
+```lean -show
 end Inspecting
 ```
 
@@ -372,7 +372,7 @@ The list of syntax categories typically contains precisely one element, in which
 For many of Lean's built-in syntactic categories, there is a set of {tech}[coercions] that appropriately wrap one kind of syntax for another category, such as a coercion from the syntax of string literals to the syntax of terms.
 Additionally, many helper functions that are only valid on some syntactic categories are defined for the appropriate typed syntax only.
 
-```lean (show := false)
+```lean -show
 /-- info: instCoeHTCTOfCoeHTC -/
 #check_msgs in
 open Lean in
@@ -512,7 +512,7 @@ Identifiers in syntax rules indicate syntax categories, rather than naming subte
 Finally, the syntax rule specifies which syntax category it extends.
 It is an error to declare a syntax rule in a nonexistent category.
 
-```lean (show := false)
+```lean -show
 -- verify preceding para
 /-- error: unknown category 'nuhUh' -/
 #check_msgs in
@@ -520,7 +520,7 @@ syntax "blah" : nuhUh
 ```
 
 
-:::syntax stx (open := false) (title := "Syntax Specifiers")
+:::syntax stx -open (title := "Syntax Specifiers")
 The syntactic category `stx` is the grammar of specifiers that may occur in the body of a {keywordOf Lean.Parser.Command.syntax}`syntax` command.
 
 String literals are parsed as {tech}[atoms] (including both keywords such as `if`, `#eval`, or `where`):
@@ -760,7 +760,7 @@ syntax "note " ppLine withPosition((colEq "◦ " str ppLine)+) : term
 ```
 
 There is no elaborator or macro associated with this syntax, but the following example is accepted by the parser:
-```lean (error := true) (name := noteEx1)
+```lean +error (name := noteEx1)
 #check
   note
     ◦ "One"
@@ -775,7 +775,7 @@ elaboration function for '«termNote__◦__»' has not been implemented
 ```
 
 The syntax does not require that the list is indented with respect to the opening token, which would require an extra `withPosition` and a `colGt`.
-```lean (error := true) (name := noteEx15)
+```lean +error (name := noteEx15)
 #check
   note
 ◦ "One"

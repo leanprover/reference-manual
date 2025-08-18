@@ -33,8 +33,8 @@ def LakeOptKind.ns : LakeOptKind → String
 open LakeOptKind in
 instance : Quote LakeOptKind where
   quote
-    | .flag => Syntax.mkCApp ``flag #[]
-    | .option => Syntax.mkCApp ``option #[]
+    | .flag => Syntax.mkCApp ``LakeOptKind.flag #[]
+    | .option => Syntax.mkCApp ``LakeOptKind.option #[]
 
 def Inline.lakeOptDef (name : String) (kind : LakeOptKind) (argMeta : Option String) : Inline where
   name := `Manual.lakeOptDef

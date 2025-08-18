@@ -13,7 +13,8 @@ import Lean.ErrorExplanations
 import PreprocessedExplanations
 
 open Lean Elab
-open Verso.ArgParse
+open Verso (ArgParse)
+open Verso.ArgParse (parseThe)
 open Verso.Doc Elab
 open Verso.Genre.Manual Markdown InlineLean
 open SubVerso.Highlighting

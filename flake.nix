@@ -8,8 +8,9 @@
     { devShell.${system} = pkgs.stdenv.mkDerivation rec {
       name = "env";
       buildInputs = with pkgs; [
-        elan
+        #elan # Should be installed manually
         python3
+        poppler_utils
       ];
    };};
 }

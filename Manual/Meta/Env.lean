@@ -43,7 +43,7 @@ def envVar : RoleExpander
 
     pure #[← `(.other {Manual.Inline.envVar with data := Json.arr #[.str $(quote v), .bool $(quote isDef)] } #[Inline.code $(quote v)])]
   where
-    parseOpts : ArgParse DocElabM Bool := .named `def .bool true <&> (·.getD false)
+    parseOpts : ArgParse DocElabM Bool := .flag `def false "If true, this is the definition site (i.e. the link target) for the variable"
 
 def envVarDomain := `Manual.envVar
 

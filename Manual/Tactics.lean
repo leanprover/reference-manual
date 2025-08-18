@@ -39,7 +39,7 @@ Tactics are imperative programs that modify a {deftech}_proof state_.{index}[pro
 A proof state consists of an ordered sequence of {deftech}_goals_, which are contexts of local assumptions together with types to be inhabited; a tactic may either _succeed_ with a possibly-empty sequence of further goals (called {deftech}_subgoals_) or _fail_ if it cannot make progress.
 If a tactic succeeds with no subgoals, then the proof is complete.
 If it succeeds with one or more subgoals, then its goal or goals will be proved when those subgoals have been proved.
-The first goal in the proof state is called the {deftech}_main goal_.{index subterm:="main"}[goal]{index}[main goal]
+The first goal in the proof state is called the {deftech}_main goal_.{index (subterm := "main")}[goal]{index}[main goal]
 While most tactics affect only the main goal, operators such as {tactic}`<;>` and {tactic}`all_goals` can be used to apply a tactic to many goals, and operators such as bullets, {tactic}`next` or {tactic}`case` can narrow the focus of subsequent tactics to only a single goal in the proof state.
 
 Behind the scenes, tactics construct {deftech}[proof terms].
@@ -91,7 +91,7 @@ Tactics assign goal names, typically on the basis of constructor names, paramete
 This proof state contains four goals, all of which are named.
 This is part of a proof that the {lean}`Monad Option` instance is lawful (that is, to provide the {lean}`LawfulMonad Option` instance), and the case names (highlighted below) come from the names of the fields of {name}`LawfulMonad`.
 
-```proofState tag:="lawful-option-cases"
+```proofState (tag := "lawful-option-cases")
 LawfulMonad Option := by
 constructor
 intro α β f x
@@ -145,7 +145,7 @@ After {tacticStep}`induction k`, the two new cases' names have `zero` as a prefi
 #hierarchical-case-names .goal:not(:last-child) .goal-name { background-color: var(--lean-compl-yellow); }
 ```
 
-```post tag:="hierarchical-case-names"
+```post (tag := "hierarchical-case-names")
 case zero.zero
 ⊢ 0 + 0 = 0 + 0
 
@@ -175,7 +175,7 @@ Assumptions are either arbitrary elements of some type or statements that are pr
 
 This goal has four assumptions:
 
-```proofState tag:="ex-assumption-names"
+```proofState (tag := "ex-assumption-names")
 ∀ (α) (xs : List α), xs ++ [] = xs := by
 intro α xs
 induction xs
@@ -184,7 +184,7 @@ rename_i x xs ih
 ```
 
 :::keepEnv
-```lean show:=false
+```lean -show
 axiom α : Type
 axiom x : α
 axiom xs : List α
@@ -203,7 +203,7 @@ The conclusion is the statement that prepending `x` to both sides of the equalit
 
 ::::
 
-Some assumptions are {deftech}_inaccessible_, {index}[inaccessible] {index subterm:="inaccessible"}[assumption] which means that they cannot be referred to explicitly by name.
+Some assumptions are {deftech}_inaccessible_, {index}[inaccessible] {index (subterm := "inaccessible")}[assumption] which means that they cannot be referred to explicitly by name.
 Inaccessible assumptions occur when an assumption is created without a specified name or when the assumption's name is shadowed by a later assumption.
 Inaccessible assumptions should be regarded as anonymous; they are presented as if they had names because they may be referred to in later assumptions or in the conclusion, and displaying a name allows these references to be distinguished from one another.
 In particular, inaccessible assumptions are presented with daggers (`†`) after their names.
@@ -216,7 +216,7 @@ In particular, inaccessible assumptions are presented with daggers (`†`) after
 
 In this proof state, all assumptions are accessible.
 
-```proofState tag:="option-cases-accessible"
+```proofState (tag := "option-cases-accessible")
 LawfulMonad Option := by
 constructor
 intro α β f x
@@ -239,7 +239,7 @@ rotate_right
 In this proof state, only the first and third assumptions are accessible.
 The second and fourth are inaccessible, and their names include a dagger to indicate that they cannot be referenced.
 
-```proofState tag:="option-cases-inaccessible"
+```proofState (tag := "option-cases-inaccessible")
 LawfulMonad Option := by
 constructor
 intro α _ f _
@@ -272,7 +272,7 @@ This can be used to refer to local lemmas by their theorem statement rather than
 ::::example "Assumptions by Type"
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 variable (n : Nat)
 ```
 In the following proof, {tactic}`cases` is repeatedly used to analyze a number.
@@ -294,7 +294,7 @@ example : x < 3 → x ∈ [0, 1, 2] := by
 
 Single-guillemet syntax also works outside of proofs:
 
-```lean name:=evalGuillemets
+```lean (name := evalGuillemets)
 #eval
   let x := 1
   let y := 2
@@ -401,7 +401,7 @@ elem : x ∈ xs
 
 :::tacticExample
 
-{goal show:=false}`∀ (i j k  : Nat), i < j → j < k → i < k`
+{goal -show}`∀ (i j k  : Nat), i < j → j < k → i < k`
 
 ```setup
   intros i j k h1 h2
@@ -439,7 +439,7 @@ h2 : j < k
 
 ::::example "Explicitly-Created Metavariables"
 :::tacticExample
-{goal show:=false}`∀ (i j k  : Nat), i < j → j < k → i < k`
+{goal -show}`∀ (i j k  : Nat), i < j → j < k → i < k`
 
 ```setup
   intros i j k h1 h2
@@ -548,11 +548,11 @@ While terms are expected to be executed once the values of their variables are k
 Thus, when {keyword}`if` and {keyword}`match` are used in tactics, their meaning is reasoning by cases rather than selection of a concrete branch.
 All of their branches are executed, and the condition or pattern match is used to refine the main goal with more information in each branch, rather than to select a single branch.
 
-:::tactic Lean.Parser.Tactic.tacIfThenElse show := "if ... then ... else ..."
+:::tactic Lean.Parser.Tactic.tacIfThenElse (show := "if ... then ... else ...")
 
 :::
 
-:::tactic Lean.Parser.Tactic.tacDepIfThenElse show:= "if h : ... then ... else ..."
+:::tactic Lean.Parser.Tactic.tacDepIfThenElse (show := "if h : ... then ... else ...")
 :::
 
 :::example "Reasoning by cases with `if`"
@@ -632,7 +632,7 @@ If the tactic fails on any of the {tech}[subgoals], then the whole {tactic}`<;>`
 ```
 
 
-{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+{goal -show}`∀x, x = 1 ∨ x = 2 → x < 3`
 
 In this proof state:
 ```pre
@@ -660,9 +660,9 @@ h✝ : x = 2
   intro x h
 ```
 
-{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+{goal -show}`∀x, x = 1 ∨ x = 2 → x < 3`
 
-```pre (show := false)
+```pre -show
 x : Nat
 h : x = 1 ∨ x = 2
 ⊢ x < 3
@@ -684,9 +684,9 @@ h✝ : x = 2
   intro x h
 ```
 
-{goal show := false}`∀x, x = 1 ∨ x = 2 → x < 3`
+{goal -show}`∀x, x = 1 ∨ x = 2 → x < 3`
 
-```pre (show := false)
+```pre -show
 x : Nat
 h : x = 1 ∨ x = 2
 ⊢ x < 3
@@ -725,7 +725,7 @@ tag := "tactic-language-focusing"
 Focusing tactics remove some subset of the proof goals (typically leaving only the main goal) from the consideration of some further tactics.
 In addition to the tactics described here, the {tactic}`case` and {tactic}`case'` tactics focus on the selected goal.
 
-:::tactic Lean.cdot show:="·"
+:::tactic Lean.cdot (show := "·")
 
 It is generally considered good Lean style to use bullets whenever a tactic line results in more than one new subgoal.
 This makes it easier to read and maintain proofs, because the connections between steps of reasoning are more clear and any change in the number of subgoals while editing the proof will have a localized effect.
@@ -766,7 +766,7 @@ These proof terms exist in a local context, because assumptions in proof states 
 Uses of assumptions correspond to variable references.
 It is very important that the naming of assumptions be predictable; otherwise, small changes to the internal implementation of a tactic could either lead to variable capture or to a broken reference if they cause different names to be selected.
 
-Lean's tactic language is _hygienic_. {index subterm := "in tactics"}[hygiene]
+Lean's tactic language is _hygienic_. {index (subterm := "in tactics")}[hygiene]
 This means that the tactic language respects lexical scope: names that occur in a tactic refer to the enclosing binding in the source code, rather than being determined by the generated code, and the tactic framework is responsible for maintaining this property.
 Variable references in tactic scripts refer either to names that were in scope at the beginning of the script or to bindings that were explicitly introduced as part of the tactics, rather than to the names chosen for use in the proof term behind the scenes.
 
@@ -869,10 +869,10 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 :::tactic Lean.Parser.Tactic.tacticHave'
 :::
 
-:::tactic Lean.Parser.Tactic.tacticLet__ show:="let"
+:::tactic Lean.Parser.Tactic.tacticLet__ (show := "let")
 :::
 
-:::tactic Lean.Parser.Tactic.letrec show:="let rec"
+:::tactic Lean.Parser.Tactic.letrec (show := "let rec")
 :::
 
 :::tactic Lean.Parser.Tactic.tacticLetI__
@@ -886,18 +886,18 @@ Generally speaking, {tactic}`have` should be used when proving an intermediate l
 tag := "tactic-config"
 %%%
 
-Many tactics are configurable.{index subterm:="of tactics"}[configuration]
+Many tactics are configurable.{index (subterm := "of tactics")}[configuration]
 By convention, tactics share a configuration syntax, described using {syntaxKind}`optConfig`.
 The specific options available to each tactic are described in the tactic's documentation.
 
-:::syntax Lean.Parser.Tactic.optConfig (open := false) (title := "Tactic Configuration")
+:::syntax Lean.Parser.Tactic.optConfig -open (title := "Tactic Configuration")
 A tactic configuration consists of zero or more {deftech}[configuration items]:
 ```grammar
 $x:configItem*
 ```
 :::
 
-:::syntax Lean.Parser.Tactic.configItem (open := false) (title := "Tactic Configuration Items")
+:::syntax Lean.Parser.Tactic.configItem -open (title := "Tactic Configuration Items")
 Each configuration item has a name that corresponds to an underlying tactic option.
 Boolean options may be enabled or disabled using prefix `+` and `-`:
 ```grammar
@@ -927,10 +927,10 @@ tag := "tactic-language-namespaces-options"
 
 Namespaces and options can be adjusted in tactic scripts using the same syntax as in terms.
 
-:::tactic Lean.Parser.Tactic.set_option show:="set_option"
+:::tactic Lean.Parser.Tactic.set_option (show := "set_option")
 :::
 
-:::tactic Lean.Parser.Tactic.open show:="open"
+:::tactic Lean.Parser.Tactic.open (show := "open")
 :::
 
 ### Controlling Unfolding

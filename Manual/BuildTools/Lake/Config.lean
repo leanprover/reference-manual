@@ -49,7 +49,7 @@ The command {lake}`translate-config` can be used to automatically convert betwee
 :::
 
 Both formats are processed similarly by Lake, which extracts the {tech}[package configuration] from the configuration file in the form of internal structure types.
-When the package is {tech key:="configure package"}[configured], the resulting data structures are written to `lakefile.olean` in the {tech}[build directory].
+When the package is {tech (key := "configure package")}[configured], the resulting data structures are written to `lakefile.olean` in the {tech}[build directory].
 
 
 # Declarative TOML Format
@@ -79,7 +79,7 @@ Field names not used by Lake should not be used to store metadata to be processe
 The top-level contents of `lakefile.toml` specify the options that apply to the package itself, including metadata such as the name and version, the locations of the files in the {tech}[workspace], compiler flags to be used for all {tech}[targets], and
 The only mandatory field is `name`, which declares the package's name.
 
-:::::tomlTableDocs root "Package Configuration" Lake.PackageConfig skip:=backend skip:=releaseRepo? skip:=buildArchive? skip:=manifestFile skip:=moreServerArgs skip:=dynlibs skip:=plugins
+:::::tomlTableDocs root "Package Configuration" Lake.PackageConfig (skip := backend) (skip := releaseRepo?) (skip := buildArchive?) (skip := manifestFile) (skip := moreServerArgs) (skip := dynlibs) (skip := plugins)
 
 ::::tomlFieldCategory "Metadata" name version versionTags description keywords homepage license licenseFiles readmeFile reservoir
 These options describe the package.
@@ -121,7 +121,7 @@ These options define a cloud release for the package, as described in the sectio
 
 :::tomlField Lake.PackageConfig defaultTargets "default targets' names (array)" "default targets' names (array)" String (sort := 2)
 
-{includeDocstring Lake.Package.defaultTargets (elab:=false)}
+{includeDocstring Lake.Package.defaultTargets -elab}
 
 :::
 
@@ -366,7 +366,7 @@ There are three kinds of sources:
  * Git repositories, which may be local paths or URLs
  * Local paths
 
-::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency skip:=src? skip := opts skip:=subdir skip:=version?
+::::tomlTableDocs "require" "Requiring Packages" Lake.Dependency (skip := src?) (skip := opts) (skip := subdir) (skip := version?)
 
 The {tomlField Lake.Dependency}`path` and {tomlField Lake.Dependency}`git` fields specify an explicit source for a dependency.
 If neither are provided, then the dependency is fetched from [Reservoir](https://reservoir.lean-lang.org/), or an alternative registry if one has been configured.
@@ -439,7 +439,7 @@ version = "2.12"
 ```
 ::::
 
-In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech key:="package configuration"}[configuration] should match `2.12`.
+In particular, the package will be checked out from the `main` branch, and the version number specified in the package's {tech (key := "package configuration")}[configuration] should match `2.12`.
 :::::
 
 :::::example "Requiring Packages from a Git tag"
@@ -459,7 +459,7 @@ rev = "v2.12"
     opts := {}}]
 ```
 ::::
-The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
+The version number specified in the package's {tech (key := "package configuration")}[configuration] is not used.
 :::::
 
 :::::example "Requiring Reservoir Packages from a Git tag"
@@ -475,7 +475,7 @@ scope = "exampleDev"
 #[{name := `example, scope := "exampleDev", version? := some "git#v2.12", src? := none, opts := {}}]
 ```
 ::::
-The version number specified in the package's {tech key:="package configuration"}[configuration] is not used.
+The version number specified in the package's {tech (key := "package configuration")}[configuration] is not used.
 :::::
 
 :::::example "Requiring Packages from Paths"
@@ -519,7 +519,7 @@ source = {type = "git", url = "https://example.com/example.git"}
 
 Library targets are expected in the `lean_lib` array of tables.
 
-::::tomlTableDocs "lean_lib" "Library Targets" Lake.LeanLibConfig skip := backend skip:=globs skip:=nativeFacets
+::::tomlTableDocs "lean_lib" "Library Targets" Lake.LeanLibConfig (skip := backend) (skip := globs) (skip := nativeFacets)
 :::tomlField Lake.LeanLibConfig name "The library name" "Library names" String
 The library's name, which is typically the same as its single module root.
 :::
@@ -611,7 +611,7 @@ If its modules are accessed at elaboration time, they will be compiled to native
 
 ## Executable Targets
 
-:::: tomlTableDocs "lean_exe" "Executable Targets" Lake.LeanExeConfig skip := backend skip:=globs skip:=nativeFacets
+:::: tomlTableDocs "lean_exe" "Executable Targets" Lake.LeanExeConfig (skip := backend) (skip := globs) (skip := nativeFacets)
 :::tomlField Lake.LeanExeConfig name "The executable's name" "Executable names" String
 The executable's name.
 :::
@@ -653,7 +653,7 @@ name = "trustworthytool"
 ```
 ::::
 
-```lean (show := false)
+```lean -show
 def main : List String → IO UInt32 := fun _ => pure 0
 ```
 
@@ -701,7 +701,7 @@ exeName = "tt"
 ```
 ::::
 
-```lean (show := false)
+```lean -show
 def main : List String → IO UInt32 := fun _ => pure 0
 ```
 
@@ -721,7 +721,7 @@ Because the Lean format is a Lean source file, it can be edited using all the fe
 Additionally, Lean's metaprogramming framework allows elaboration-time side effects to be used to implement features such as configuration steps that are conditional on the current platform.
 However, a consequence of the Lean configuration format being a Lean file is that it is not feasible to process such files using tools that are not themselves written in Lean.
 
-```lean (show := false)
+```lean -show
 section
 open Lake DSL
 open Lean (NameMap)
@@ -731,7 +731,7 @@ open Lean (NameMap)
 
 The declarative subset of the Lean configuration format uses sequences of declaration fields to specify configuration options.
 
-:::syntax Lake.DSL.declField (title := "Declarative Fields") (open := false)
+:::syntax Lake.DSL.declField (title := "Declarative Fields") -open
 
 {includeDocstring Lake.DSL.declField}
 
@@ -741,7 +741,7 @@ $_ := $_
 :::
 
 ## Packages
-::::syntax command title:="Package Configuration"
+::::syntax command (title := "Package Configuration")
 ```grammar
 $[$_:docComment]?
 $[@[ $_,* ]]?
@@ -800,7 +800,7 @@ The {keywordOf Lake.DSL.requireDecl}`with` clause specifies a {lean}`NameMap Str
 This is equivalent to passing {lakeOpt}`-K` options to {lake}`build` when building the dependency on the command line.
 :::
 
-:::syntax fromClause (open := false) (title := "Package Sources")
+:::syntax fromClause -open (title := "Package Sources")
 
 {includeDocstring Lake.DSL.fromClause}
 
@@ -963,7 +963,7 @@ $[where $_*]?
 
 :::syntax command (title := "Custom Library Facets")
 
-Package facets allow the production of an artifact or set of artifacts from a library.
+Library facets allow the production of an artifact or set of artifacts from a library.
 The Lake API makes it possible to query a library for its modules; thus, one common use for a library facet is to build a given facet of each module.
 
 ```grammar
@@ -979,7 +979,7 @@ $[where $_*]?
 
 :::syntax command (title := "Custom Module Facets")
 
-Package facets allow the production of an artifact or set of artifacts from a module, typically by invoking a command-line tool.
+Module facets allow the production of an artifact or set of artifacts from a module, typically by invoking a command-line tool.
 
 ```grammar
 $[$_:docComment]?
@@ -999,7 +999,7 @@ $[where $_*]?
 In Lake's DSL, {deftech}_globs_ are patterns that match sets of module names.
 There is a coercion from names to globs that match the name in question, and there are two postfix operators for constructing further globs.
 
-```lean (show := false)
+```lean -show
 section
 example : Lake.Glob := `n
 
@@ -1048,12 +1048,12 @@ Whitespace is not permitted between the name and `.*` or `.+`.
 ## Scripts
 
 Lake scripts are used to automate tasks that require access to a package configuration but do not participate in incremental builds of artifacts from code.
-Scripts run in the {name Lake.ScriptM}`ScriptM` monad, which is {name}`IO` with an additional {tech}[reader monad] {tech key:="monad transformer"}[transformer] that provides access to the package configuration.
+Scripts run in the {name Lake.ScriptM}`ScriptM` monad, which is {name}`IO` with an additional {tech}[reader monad] {tech (key := "monad transformer")}[transformer] that provides access to the package configuration.
 In particular, a script should have the type {lean}`List String → ScriptM UInt32`.
 Workspace information in scripts is primarily accessed via the {inst}`MonadWorkspace ScriptM` instance.
 
 
-```lean (show := false)
+```lean -show
 example : ScriptFn = (List String → ScriptM UInt32) := rfl
 ```
 

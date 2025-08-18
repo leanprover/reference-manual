@@ -24,14 +24,14 @@ Sums are also known as disjoint unions, discriminated unions, or tagged unions.
 The constructors of a sum are also called {deftech}_injections_; mathematically, they can be considered as injective functions from each summand to the sum.
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 universe u v
 ```
 
 :::paragraph
 There are two varieties of the sum type:
 
- * {lean}`Sum` is {tech key:="universe polymorphism"}[polymorphic] over all {lean}`Type` {tech}[universes], and is never a {tech}[proposition].
+ * {lean}`Sum` is {tech (key := "universe polymorphism")}[polymorphic] over all {lean}`Type` {tech}[universes], and is never a {tech}[proposition].
 
  * {lean}`PSum` is allows the summands to be propositions or types. Unlike {name}`Or`, the {name}`PSum` of two propositions is still a type, and non-propositional code can check which injection was used to construct a given value.
 
@@ -56,12 +56,12 @@ tag := "sum-syntax"
 The names {name}`Sum` and {name}`PSum` are rarely written explicitly.
 Most code uses the corresponding infix operators.
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} {β : Type v}
 ```
 
-:::syntax term title:="Sum Types"
+:::syntax term (title := "Sum Types")
 ```grammar
 $_ ⊕ $_
 ```
@@ -70,16 +70,16 @@ $_ ⊕ $_
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Sort u} {β : Sort v}
 ```
 
-:::syntax term title:="Potentially-Propositional Sum Types"
+:::syntax term (title := "Potentially-Propositional Sum Types")
 ```grammar
 $_ ⊕' $_
 ```
@@ -88,7 +88,7 @@ $_ ⊕' $_
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -128,7 +128,7 @@ As such, their primary API is the constructors {name Sum.inl}`inl` and {name Sum
 
 The {name}`Inhabited` definitions for {name}`Sum` and {name}`PSum` are not registered as instances.
 This is because there are two separate ways to construct a default value (via {name Sum.inl}`inl` or {name Sum.inr}`inr`), and instance synthesis might result in either choice.
-The result could be situations where two identically-written terms elaborate differently and are not {tech key:="definitional equality"}[definitionally equal].
+The result could be situations where two identically-written terms elaborate differently and are not {tech (key := "definitional equality")}[definitionally equal].
 
 Both types have {name}`Nonempty` instances, for which {tech}[proof irrelevance] makes the choice of {name Sum.inl}`inl` or {name Sum.inr}`inr` not matter.
 This is enough to enable {keyword}`partial` functions.
@@ -145,7 +145,7 @@ example : Nat × String := panic! "Cant' find it"
 ```
 
 Sums do not, by default:
-```lean (error := true) (name := panic)
+```lean +error (name := panic)
 example : Nat ⊕ String := panic! "Cant' find it"
 ```
 ```leanOutput panic

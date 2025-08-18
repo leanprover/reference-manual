@@ -51,7 +51,7 @@ open Manual (comment)
 tag := "grind-tactic"
 %%%
 
-```lean (show := false)
+```lean -show
 -- Open some namespaces for the examples.
 open Lean Lean.Grind Lean.Meta.Grind
 ```
@@ -115,7 +115,7 @@ example [CommRing α] [NoNatZeroDivisors α] (a b c : α) :
 :::
 
 :::example "Finite-Field Reasoning" (open := true)
-Arithmetic operations on {name}`Fin` overflow, wrapping around to {lean type:="Fin 11"}`0` when the result would be outside the bound.
+Arithmetic operations on {name}`Fin` overflow, wrapping around to {lean  (type := "Fin 11")}`0` when the result would be outside the bound.
 {tactic}`grind` can use this fact to prove theorems such as this:
 
 ```lean

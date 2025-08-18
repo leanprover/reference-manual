@@ -40,7 +40,7 @@ Because {name}`BitVec` is a {ref "inductive-types-trivial-wrappers"}[trivial wra
 
 # Syntax
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {w n : Nat}
 ```
 There is an {inst}`OfNat (BitVec w) n` instance for all widths {lean}`w` and natural numbers {lean}`n`.
@@ -55,7 +55,7 @@ example : BitVec 8 := 0xff
 example : BitVec 8 := 255
 example : BitVec 8 := 0b1111_1111
 ```
-```lean (show := false)
+```lean -show
 -- Inline test
 example : (0xff : BitVec 8) = 255 := by rfl
 example : (0b1111_1111 : BitVec 8) = 255 := by rfl
@@ -147,7 +147,7 @@ example : BitVec 8 := 1#'(by decide)
 ```
 
 Literals that are not in bounds are not allowed:
-```lean (error := true) (name := oob)
+```lean +error (name := oob)
 example : BitVec 8 := 256#'(by decide)
 ```
 ```leanOutput oob

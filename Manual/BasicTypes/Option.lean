@@ -21,13 +21,13 @@ tag := "option"
 
 :::::leanSection
 
-```lean (show := false)
+```lean -show
 variable {α : Type u} (v : α) {β : Type v}
 ```
 
-{lean}`Option α` is the type of values which are either {lean}`some v` for some {lean}`v`﻿` : `﻿{lean}`α`, or {lean type:="Option α"}`none`.
-In functional programming, this type is used similarly to nullable types: {lean type:="Option α"}`none` represents the absence of a value.
-Additionally, partial functions from {lean}`α` to {lean}`β` can be represented by the type {lean}`α → Option β`, where {lean type:="Option β"}`none` results when the function is undefined for some input.
+{lean}`Option α` is the type of values which are either {lean}`some v` for some {lean}`v`﻿` : `﻿{lean}`α`, or {lean  (type := "Option α")}`none`.
+In functional programming, this type is used similarly to nullable types: {lean  (type := "Option α")}`none` represents the absence of a value.
+Additionally, partial functions from {lean}`α` to {lean}`β` can be represented by the type {lean}`α → Option β`, where {lean  (type := "Option β")}`none` results when the function is undefined for some input.
 Computationally, these partial functions represent the possibility of failure or errors, and they correspond to a program that can terminate early but not throw an informative exception.
 
 {lean}`Option` can also be thought of as being similar to a list that contains at most one element.
@@ -38,7 +38,7 @@ The {lean}`Option` API makes frequent use of this perspective.
 
 :::example "Options as Nullability"
 
-```lean (show := false)
+```lean -show
 open Std (HashMap)
 variable {Coll} [BEq α] [Hashable α] (a : α) (b : β) {xs : Coll} [GetElem Coll α β fun _ _ => True] {i : α} {m : HashMap α β}
 ```
@@ -51,7 +51,7 @@ Std.HashMap.get?.{u, v} {α : Type u} {β : Type v}
   (m : HashMap α β) (a : α) :
   Option β
 ```
-Because there is no way to know in advance whether the key is actually in the map, the return type is {lean}`Option β`, where {lean type:="Option β"}`none` means the key was not in the map, and {lean}`some b` means that the key was found and `b` is the value retrieved.
+Because there is no way to know in advance whether the key is actually in the map, the return type is {lean}`Option β`, where {lean  (type := "Option β")}`none` means the key was not in the map, and {lean}`some b` means that the key was found and `b` is the value retrieved.
 
 The {lean}`xs[i]` syntax, which is used to index into collections when there is an available proof that {lean}`i` is a valid index into {lean}`xs`, has a variant {lean}`xs[i]?` that returns an optional value depending on whether the given index is valid.
 If {lean}`m`﻿` : `﻿{lean}`HashMap α β` and {lean}`a`﻿` : `﻿{lean}`α`, then {lean}`m[a]?` is equivalent to {lean}`HashMap.get? m a`.
@@ -61,7 +61,7 @@ If {lean}`m`﻿` : `﻿{lean}`HashMap α β` and {lean}`a`﻿` : `﻿{lean}`α`,
 
 :::example "Options as Safe Nullability"
 In many programming languages, it is important to remember to check for the null value.
-When using {name}`Option`, the type system requires these checks in the right places: {lean}`Option α` and {lean}`α` are not the same type, and converting from one to the other requires handling the case of {lean type:="Option α"}`none`.
+When using {name}`Option`, the type system requires these checks in the right places: {lean}`Option α` and {lean}`α` are not the same type, and converting from one to the other requires handling the case of {lean  (type := "Option α")}`none`.
 This can be done via helpers such as {name}`Option.getD`, or with pattern matching.
 
 ```lean
@@ -69,14 +69,14 @@ def postalCodes : Std.HashMap Nat String :=
   .empty |>.insert 12345 "Schenectady"
 ```
 
-```lean name:=getD
+```lean (name := getD)
 #eval postalCodes[12346]?.getD "not found"
 ```
 ```leanOutput getD
 "not found"
 ```
 
-```lean name := m
+```lean (name := m)
 #eval
   match postalCodes[12346]? with
   | none => "not found"
@@ -106,7 +106,7 @@ def postalCodes : Std.HashMap Nat String :=
 
 # Coercions
 
-```lean (show := false)
+```lean -show
 section
 variable {α : Type u} (line : String)
 ```
@@ -132,7 +132,7 @@ The {name}`some` is automatically inserted by the coercion.
 
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -167,7 +167,7 @@ end
 {docstring Option.isEqSome}
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {α} [DecidableEq α] [LT α] [Min α] [Max α]
 ```
 Ordering of optional values typically uses the {inst}`DecidableEq (Option α)`, {inst}`LT (Option α)`, {inst}`Min (Option α)`, and {inst}`Max (Option α)` instances.

@@ -111,7 +111,7 @@ draft := true
 
 {docstring Dynamic}
 
-{docstring Dynamic.mk (allowMissing := true)}
+{docstring Dynamic.mk +allowMissing}
 
 {docstring Dynamic.get?}
 

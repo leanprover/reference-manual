@@ -54,7 +54,7 @@ If an integer is too large to fit in the remaining bits, it is instead allocated
 tag := "int-syntax"
 %%%
 
-```lean (show := false)
+```lean -show
 section
 variable (n : Nat)
 ```
@@ -63,7 +63,7 @@ The {lean}`OfNat Int` instance allows numerals to be used as literals, both in e
 {lean}`(OfNat.ofNat n : Int)` reduces to the constructor application {lean}`Int.ofNat n`.
 The {inst}`Neg Int` instance allows negation to be used as well.
 
-```lean (show := false)
+```lean -show
 open Int
 ```
 
@@ -79,7 +79,7 @@ The notation {lean}`-[ n +1]` is suggestive of $`-(n + 1)`, which is the meaning
 ```
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -143,7 +143,7 @@ This is not, however, the only sensible convention for rounding and remainders i
 Four pairs of division and modulus functions are available, implementing various conventions.
 
 :::example "Division by 0"
-In all integer division conventions, division by {lean type:="Int"}`0` is defined to be {lean type:="Int"}`0`:
+In all integer division conventions, division by {lean  (type := "Int")}`0` is defined to be {lean  (type := "Int")}`0`:
 
 ```lean (name := div0)
 #eval Int.ediv 5 0
@@ -193,7 +193,7 @@ Bitwise operators on {name}`Int` can be understood as bitwise operators on an in
 
 Equality and inequality tests on {lean}`Int` are typically performed using the decidability of its equality and ordering relations or using the {inst}`BEq Int` and {inst}`Ord Int` instances.
 
-```lean (show := false)
+```lean -show
 example (i j : Int) : Decidable (i ≤ j) := inferInstance
 example (i j : Int) : Decidable (i < j) := inferInstance
 example (i j : Int) : Decidable (i = j) := inferInstance
