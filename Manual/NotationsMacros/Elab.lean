@@ -35,7 +35,7 @@ Elaborators come in two varieties:
 
  * {deftech}_Command elaborators_ are used to add new commands to Lean.
    Commands are implemented as side effects: they may add new constants to the global environment, extend compile-time tables such as the one that tracks {tech}[instances], they can provide feedback in the form of information, warnings, or errors, and they have full access to the {name}`IO` monad.
-   Command elaborators are associated with the {tech key:="kind"}[syntax kinds] that they can handle.
+   Command elaborators are associated with the {tech (key := "kind")}[syntax kinds] that they can handle.
 
  * {deftech}_Term elaborators_ are used to implement new terms by translating the syntax into Lean's core type theory.
    They can do everything that command elaborators can do, and they additionally have access to the local context in which the term is being elaborated.
@@ -84,7 +84,7 @@ tactic $_
 # Command Elaborators
 
 :::::leanSection
-```lean (show := false)
+```lean -show
 open Lean Elab Command
 ```
 A command elaborator has type {name}`CommandElab`, which is an abbreviation for {lean}`Syntax → CommandElabM Unit`.
@@ -129,7 +129,7 @@ Found 2 instances of 'interestingName'
 # Term Elaborators
 
 :::::leanSection
-```lean (show := false)
+```lean -show
 open Lean Elab Term
 ```
 A term elaborator has type {name}`TermElab`, which is an abbreviation for {lean}`Syntax → Option Expr → TermElabM Expr`.
@@ -141,7 +141,7 @@ Like command elaborators, term elaborators may be implicitly defined using {keyw
 This examples demonstrates an elaborator for syntax that is the opposite of a type ascription.
 The provided term may have any type _other_ than the one indicated, and metavariables are solved pessimistically.
 In this example, {name}`elabType` invokes the term elaborator and then ensures that the resulting term is a type.
-{name}`Meta.inferType` infers a type for a term, and {name}`Meta.isDefEq` attempts to make two terms {tech key:="definitional equality"}[definitionally equal] by unification, returning {lean}`true` if it succeeds.
+{name}`Meta.inferType` infers a type for a term, and {name}`Meta.isDefEq` attempts to make two terms {tech (key := "definitional equality")}[definitionally equal] by unification, returning {lean}`true` if it succeeds.
 
 ```lean
 syntax (name := notType) "(" term  " !: " term ")" : term
@@ -159,7 +159,7 @@ def elabNotType : TermElab := fun stx _ => do
 ```
 
 If the type position does not contain a type, then `elabType` throws an error:
-```lean (name := notType) (error := true)
+```lean (name := notType) +error
 #eval ([1, 2, 3] !: "not a type")
 ```
 ```leanOutput notType
@@ -176,15 +176,15 @@ If the term's type is definitely not equal to the provided type, then elaboratio
 ```
 
 If the types match, an error is thrown:
-```lean (name := nope) (error := true)
+```lean (name := nope) +error
 #eval (5 !: Nat)
 ```
 ```leanOutput nope
 Got unwanted type Nat
 ```
 
-The type equality check may fill in missing information, so {lean type :="String"}`sorry` (which may have any type) is also rejected:
-```lean (name := unif) (error := true)
+The type equality check may fill in missing information, so {lean  (type := "String")}`sorry` (which may have any type) is also rejected:
+```lean (name := unif) +error
 #eval (sorry !: String)
 ```
 ```leanOutput unif
@@ -235,7 +235,7 @@ It chooses the most recent suitable variable, as desired:
 ```
 
 When no assumption is suitable, it returns an error that describes the attempt:
-```lean (name := noFun) (error := true)
+```lean (name := noFun) +error
 #eval
   let x := Nat.zero
   let y := "hello"
@@ -248,7 +248,7 @@ No assumption in [x, y, f] has type Int → Int
 
 Because it uses unification, the natural number literal is chosen here, because numeric literals may have any type with an {name}`OfNat` instance.
 Unfortunately, there is no {name}`OfNat` instance for functions, so instance synthesis later fails.
-```lean (name := poly) (error := true)
+```lean (name := poly) +error
 #eval
   let x := 5
   let y := "hello"

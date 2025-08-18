@@ -81,7 +81,7 @@ example (a b : Int) :
 
 Without `cutsat`, {tactic}`grind` cannot prove the statement:
 
-```lean (error := true) (name := noCutsat)
+```lean +error (name := noCutsat)
 example (a b : Int) :
     2 ∣ a + 1 →
     2 ∣ b + a →
@@ -125,7 +125,7 @@ example {x y : Int} :
 ```
 
 Because it uses the rational solution, {tactic}`grind` fails to refute the negation of the goal when `+qlia` is specified:
-```lean (error := true) (name := withqlia)
+```lean +error (name := withqlia)
 example {x y : Int} :
     27 ≤ 13 * x + 11 * y →
     13 * x + 11 * y ≤ 30 →
@@ -160,7 +160,7 @@ The solver currently does support nonlinear constraints, and treats nonlinear te
 ::::example "Nonlinear Terms" (open := true)
 `cutsat` fails to prove this theorem:
 
-```lean (error := true) (name := nonlinear)
+```lean +error (name := nonlinear)
 example (x : Int) : x * x ≥ 0 := by
   grind
 ```
@@ -178,7 +178,7 @@ h : x * x + 1 ≤ 0
 
 From the perspective of `cutsat`, it is equivalent to:
 
-```lean (error := true) (name := nonlinear2)
+```lean +error (name := nonlinear2)
 example {y : Int} (x : Int) : y ≥ 0 := by
   grind
 ```
@@ -197,7 +197,7 @@ h : x * x + 1 ≤ 0
 :::paragraph
 This can be seen by setting the option {option}`trace.grind.cutsat.assert` to {lean}`true`, which traces all constraints processed by `cutsat`.
 
-```lean (error := true) (name := cutsatDiag)
+```lean +error (name := cutsatDiag)
 example (x : Int) : x*x ≥ 0 := by
   set_option trace.grind.cutsat.assert true in
   grind
@@ -257,9 +257,9 @@ example (f : Int → Int) (x y : Int) :
     f (x + y) = 0 := by
   grind
 ```
-Consequently `x = x + y`, so `f x = f (x + y)` by {tech key:="congruence closure"}[congruence].
+Consequently `x = x + y`, so `f x = f (x + y)` by {tech (key := "congruence closure")}[congruence].
 Without model-based theory combination, the proof gets stuck:
-```lean (error := true) (name := noMbtc)
+```lean +error (name := noMbtc)
 example (f : Int → Int) (x y : Int) :
     f x = 0 →
     0 ≤ y → y ≤ 1 → y ≠ 1 →
@@ -326,7 +326,7 @@ example (a b c : UInt64) : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := 
 # Implementation Notes
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 variable {x y : Int}
 ```
 

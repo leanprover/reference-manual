@@ -39,7 +39,7 @@ In exchange for these restrictions, Lean generates code for structures that offe
 Just like other inductive types, structures may be recursive; they are subject to the same restrictions regarding strict positivity.
 Structures do not add any expressive power to Lean; all of their features are implemented in terms of code generation.
 
-```lean (show := false)
+```lean -show
 -- Test claim about recursive above
 
 /--
@@ -331,7 +331,7 @@ When the value of a field is not specified, the first default value defined in t
 References to fields in the default value use the field resolution order as well; this means that child structures that override default fields of parent constructors may also change the computed default values of parent fields.
 Because the child structure is the first element of its own resolution order, default values in the child structure take precedence over default values from the parent structures.
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 -- If the overlapping fields have different default values, then the default value from the first
 -- parent structure in the resolution order that includes the field is used.
 structure Q where
@@ -461,7 +461,7 @@ def toAcademicWork (self : Textbook) : AcademicWork :=
   let .mk _title author := book
   .mk author discipline
 ```
-```lean (show := false)
+```lean -show
 -- check claim of equivalence
 example : toAcademicWork = Textbook.toAcademicWork := by
   funext b
@@ -501,7 +501,7 @@ Evaluating the first field index of {name}`coords` yields the underlying {name}`
 
 The elaborator translates {lean}`coords.fst` into {lean}`coords.toPair.fst`.
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 example (t : Triple α) : t.fst = t.toPair.fst := rfl
 ```
 ::::
@@ -529,7 +529,7 @@ def printEven (num : EvenNumber) : IO Unit :=
   IO.print num.val
 ```
 it is a type error to apply {name}`printEven` directly to {name}`two`:
-```lean (error := true) (name := printTwo)
+```lean +error (name := printTwo)
 #check printEven two
 ```
 ```leanOutput printTwo
@@ -547,7 +547,7 @@ because values of type {name}`EvenPrime` are not also values of type {name}`Even
 ::::
 
 
-```lean (show := false) (keep := false)
+```lean -show -keep
 structure A where
   x : Nat
   y : Int

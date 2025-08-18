@@ -27,7 +27,7 @@ It is especially effective when combined with {tech}[congruence closure], enabli
 
 E-matching adds new facts to the metaphorical whiteboard, based on an index of theorems.
 When the whiteboard contains terms that match the index, the E-matching engine instantiates the corresponding theorems, and the resulting terms can feed further rounds of {tech}[congruence closure], {tech}[constraint propagation], and theory-specific solvers.
-Each fact added to the whiteboard by E-matching is referred to as an {deftech key:="e-matching instance"}_instance_.
+Each fact added to the whiteboard by E-matching is referred to as an {deftech (key := "e-matching instance")}_instance_.
 Annotating theorems for E-matching, thus adding them to the index, is essential for enabling {tactic}`grind` to make effective use of a library.
 
 In addition to user-specified theorems, {tactic}`grind` uses automatically generated equations for {keywordOf Lean.Parser.Term.match}`match`-expressions as E-matching theorems.
@@ -59,7 +59,7 @@ theorem gf (x : Nat) : g (f x) = x := by
   simp [f, g]
 ```
 
-```lean (show := false)
+```lean -show
 variable {x a b : Nat}
 ```
 The theorem {lean}`gf` asserts that {lean}`g (f x) = x` for all natural numbers {lean}`x`.
@@ -108,7 +108,7 @@ the theorem `gf` will not be instantiated because the goal does not even
 contain the function symbol `g`.
 
 In this example, {tactic}`grind` fails because the pattern is too restrictive: the goal does not contain the function symbol {lean}`g`.
-```lean (error := true) (name := restrictivePattern)
+```lean +error (name := restrictivePattern)
 example (h₁ : f b = a) (h₂ : f c = a) : b = c := by
   grind
 ```
@@ -175,7 +175,7 @@ example {a b c d} : R a b → R b c → R c d → R a d := by
   grind
 ```
 
-```lean (show := false)
+```lean -show
 variable {x y z a b c d : Int}
 ```
 
@@ -284,7 +284,7 @@ Ordinarily, the {attr}`grind` attribute does not consider the `=` symbol when ge
 :::
 
 :::example "The `@[grind ←=]` Attribute"
-```lean (show := false)
+```lean -show
 variable {α} {a b : α} [Inv α]
 ```
 When attempting to prove that {lean}`a⁻¹ = b`, {tactic}`grind` uses {name}`inv_eq` due to the {attrs}`@[grind ←=]` annotation.
@@ -304,7 +304,7 @@ ext
 :::
 
 :::example "The `@[grind ext]` Attribute"
-{tactic}`grind` does not automatically apply the {tech key:="η-equivalence"}[η-equality] rule for structures.
+{tactic}`grind` does not automatically apply the {tech (key := "η-equivalence")}[η-equality] rule for structures.
 {lean}`Point` is a structure with two fields:
 ```lean
 structure Point where
@@ -312,7 +312,7 @@ structure Point where
   y : Int
 ```
 By default, {tactic}`grind` can't solve goals like this one:
-```lean (error := true) (name := noExt)
+```lean +error (name := noExt)
 example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
 ```
 ```leanOutput noExt
@@ -330,7 +330,7 @@ This kind of goal may come up when proving theorems like the fact that swapping 
 ```lean
 def Point.swap (p : Point) : Point := ⟨p.y, p.x⟩
 ```
-```lean (error := true) (name := noExt')
+```lean +error (name := noExt')
 theorem swap_swap_eq_id : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
   grind
@@ -427,7 +427,7 @@ Thus, `q x` is selected as the pattern.
 :::
 
 :::example "Backward Pattern Generation" (open := true)
-```lean (show := false)
+```lean -show
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
@@ -444,7 +444,7 @@ h₂: [p (#1 + 1)]
 :::
 
 :::example "Bidirectional Equality Pattern Generation" (open := true)
-```lean (show := false)
+```lean -show
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
@@ -464,7 +464,7 @@ h₃: [p (#1 + 1)]
 :::
 
 :::example "Patterns from Conclusion and Hypotheses" (open := true)
-```lean (show := false)
+```lean -show
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
@@ -482,12 +482,12 @@ h₄: [p (#2 + 2), q #1]
 :::
 
 :::example "Failing Backward Pattern Generation" (open := true)
-```lean (show := false)
+```lean -show
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
 In this example, pattern generation fails because the theorem's conclusion doesn't mention the the argument `y`.
-```lean (name := h5) (error := true)
+```lean (name := h5) +error
 @[grind? ←] theorem h₅ (w : p x = q y) : p (x + 2) = 7 := sorry
 ```
 ```leanOutput h5
@@ -496,7 +496,7 @@ In this example, pattern generation fails because the theorem's conclusion doesn
 :::
 
 :::example "Left-to-Right Generation" (open := true)
-```lean (show := false)
+```lean -show
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
@@ -522,7 +522,7 @@ h₆: [q (#3 + 2), p (#2 + 2)]
 tag := "grind-limits"
 %%%
 
-E-matching can generate an unbounded number of theorem {tech key:="e-matching instance"}[instances].
+E-matching can generate an unbounded number of theorem {tech (key := "e-matching instance")}[instances].
 For the sake of both efficiency and termination, {tactic}`grind` limits the number of times that E-matching can run using two mechanisms:
 
 : Generations
@@ -540,7 +540,7 @@ For the sake of both efficiency and termination, {tactic}`grind` limits the numb
 
 :::example "Too Many Instances" (open := true)
 
-E-matching can generate too many theorem {tech key:="e-matching instance"}[instances].
+E-matching can generate too many theorem {tech (key := "e-matching instance")}[instances].
 Some patterns may even generate an unbounded number of instances.
 
 In this example, {name}`s_eq` is added to the index with the pattern `s x`:
@@ -559,7 +559,7 @@ In particular, {lean}`s_eq` is instantiated with a new {lean}`Nat` in each of th
 First, {tactic}`grind` instantiates {lean}`s_eq` with `x := 0`, which generates the term {lean}`s 1`.
 This matches the pattern `s x`, and is thus used to instantiate {lean}`s_eq` with `x := 1`, which generates the term {lean}`s 2`,
 and so on until the round limit is reached.
-```lean (error := true) (name := ematchUnbounded)
+```lean +error (name := ematchUnbounded)
 example : s 0 > 0 := by
   grind
 ```
@@ -588,7 +588,7 @@ h : s 0 = 0
 ```
 
 Increasing the round limit to 20 causes E-matching to terminate due to the default generation limit of 8:
-```lean (error := true) (name := ematchUnbounded2)
+```lean +error (name := ematchUnbounded2)
 example : s 0 > 0 := by
   grind (ematch := 20)
 ```
@@ -634,7 +634,7 @@ def iota : Nat → List Nat
 
 The fact that {lean}`(iota 20).length > 10` can be proven by repeatedly instantiating {lean}`iota_succ` and {lean}`List.length_cons`.
 However, {tactic}`grind` does not succeed:
-```lean (error := true) (name := biggerGrindLimits)
+```lean +error (name := biggerGrindLimits)
 example : (iota 20).length > 10 := by
   grind
 ```
@@ -727,7 +727,7 @@ gt1.match_1.congr_eq_2.{u_1} (motive : Nat → Sort u_1) (x✝ : Nat) (h_1 : Uni
 
 Disabling the use of matcher function equations causes the proof to fail:
 
-```lean (error := true) (name := noMatchEqs)
+```lean +error (name := noMatchEqs)
 example (x y : Nat)
     : x = y + 1 →
       0 < match x with

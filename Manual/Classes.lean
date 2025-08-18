@@ -66,7 +66,7 @@ All of these possibilities are used in practice:
 
 While ordinary polymorphic definitions simply expect instantiation with arbitrary parameters, the operators overloaded with type classes are to be instantiated with {deftech}_instances_ that define the overloaded operation for some specific set of parameters.
 These {deftech}[instance-implicit] parameters are indicated in square brackets.
-At invocation sites, Lean either {deftech key:="synthesis"}_synthesizes_ {index}[instance synthesis] {index subterm:="of type class instances"}[synthesis] a suitable instance from the available candidates or signals an error.
+At invocation sites, Lean either {deftech (key := "synthesis")}_synthesizes_ {index}[instance synthesis] {index (subterm := "of type class instances")}[synthesis] a suitable instance from the available candidates or signals an error.
 Because instances may themselves have instance parameters, this search process may be recursive and result in a final composite instance value that combines code from a variety of instances.
 Thus, type class instance synthesis is also a means of constructing programs in a type-directed manner.
 
@@ -101,7 +101,7 @@ Declares a new type class.
 :::
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 -- Just make sure that the `deriving` clause is legit
 class A (n : Nat) where
   k : Nat
@@ -144,7 +144,7 @@ While {keywordOf Lean.Parser.Command.declaration}`deriving` clauses are allowed 
 :::example "No Instances of Non-Classes"
 
 Lean rejects instance-implicit parameters of types that are not classes:
-```lean (error := true) (name := notClass)
+```lean +error (name := notClass)
 def f [n : Nat] : n = n := rfl
 ```
 
@@ -363,7 +363,7 @@ Because {name}`AddMul` is a {keywordOf Lean.Parser.Command.classAbbrev}`class ab
 ```
 
 However, {name}`plusTimes2` fails, because there is no {lean}`AddMul' Nat` instance—no instances whatsoever have yet been declared:
-```lean (name := plusTimes2a) (error := true)
+```lean (name := plusTimes2a) +error
 #eval plusTimes2 2 5 7
 ```
 ```leanOutput plusTimes2a
@@ -396,7 +396,7 @@ tag := "deriving-instances"
 Lean can automatically generate instances for many classes, a process known as {deftech}_deriving_ instances.
 Instance deriving can be invoked either when defining a type or as a stand-alone command.
 
-:::syntax Lean.Parser.Command.optDeriving (open := false) (title := "Instance Deriving (Optional)")
+:::syntax Lean.Parser.Command.optDeriving -open (title := "Instance Deriving (Optional)")
 As part of a command that creates a new inductive type, a {keywordOf Lean.Parser.Command.declaration}`deriving` clause specifies a comma-separated list of class names for which instances should be generated:
 ```grammar
 $[deriving $[$_],*]?

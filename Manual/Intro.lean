@@ -79,7 +79,7 @@ def hello : IO Unit := IO.println "Hello, world!"
 
 Compiler output (which may be errors, warnings, or just information) is shown both in the code and separately:
 
-```lean (name := output) (error := true)
+```lean (name := output) +error
 #eval s!"The answer is {2 + 2}"
 
 theorem bogus : False := by sorry

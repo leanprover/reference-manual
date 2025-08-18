@@ -27,7 +27,7 @@ Lean has three kinds of string literals: ordinary string literals, interpolated 
 tag := "string-literals"
 %%%
 
-String literals begin and end with a double-quote character `"`. {index subterm:="string"}[literal]
+String literals begin and end with a double-quote character `"`. {index (subterm := "string")}[literal]
 Between these characters, they may contain any other character, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as `'\n'`, regardless of file encoding and platform).
 Special characters that cannot otherwise be written in string literals may be escaped with a backslash, so `"\"Quotes\""` is a string literal that begins and ends with double quotes.
 The following forms of escape sequences are accepted:
@@ -94,7 +94,7 @@ Preceding a literal with `m!` causes the interpolation to result in an instance 
 tag := "raw-string-literals"
 %%%
 
-In {deftech}[raw string literals], {index subterm:="raw string"}[literal] there are no escape sequences or gaps, and each character denotes itself exactly.
+In {deftech}[raw string literals], {index (subterm := "raw string")}[literal] there are no escape sequences or gaps, and each character denotes itself exactly.
 Raw string literals are preceded by `r`, followed by zero or more hash characters (`#`) and a double quote `"`.
 The string literal is completed at a double quote that is followed by _the same number_ of hash characters.
 For example, they can be used to avoid the need to double-escape certain characters:

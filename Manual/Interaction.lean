@@ -30,7 +30,7 @@ By convention, commands that are intended for interactive use rather than as par
 
 Information from Lean commands is available in the {deftech}_message log_, which accumulates output from the {tech}[elaborator].
 Each entry in the message log is associated with a specific source range and has a {deftech}_severity_.
-There are three severities: {lean type:="Lean.MessageSeverity"}`information` is used for messages that do not indicate a problem, {lean type:="Lean.MessageSeverity"}`warning` indicates a potential problem, and {lean type:="Lean.MessageSeverity"}`error` indicates a definite problem.
+There are three severities: {lean  (type := "Lean.MessageSeverity")}`information` is used for messages that do not indicate a problem, {lean  (type := "Lean.MessageSeverity")}`warning` indicates a potential problem, and {lean  (type := "Lean.MessageSeverity")}`error` indicates a definite problem.
 For interactive commands, results are typically returned as informational messages that are associated with the command's leading keyword.
 
 # Evaluating Terms
@@ -56,11 +56,11 @@ Use {keywordOf Lean.reduceCmd}`#reduce` to instead reduce terms using the reduct
 
 :::
 
-{keywordOf Lean.Parser.Command.eval}`#eval` always {tech key:="elaborator"}[elaborates] and compiles the provided term.
+{keywordOf Lean.Parser.Command.eval}`#eval` always {tech (key := "elaborator")}[elaborates] and compiles the provided term.
 It then checks whether the term transitively depends on any uses of {lean}`sorry`, in which case evaluation is terminated unless the command was invoked as {keywordOf Lean.Parser.Command.eval}`#eval!`.
 This is because compiled code may rely on compile-time invariants (such as array lookups being in-bounds) that are ensured by proofs of suitable statements, and running code that contains incomplete proofs (or uses of {lean}`sorry` that “prove” incorrect statements) can cause Lean itself to crash.
 
-```lean (show := false)
+```lean -show
 section
 variable (m : Type → Type)
 open Lean.Elab.Command (CommandElabM)
@@ -84,7 +84,7 @@ Auxiliary definitions or other environment modifications that result from elabor
 If the term is an action in a metaprogramming monad, then changes made to the environment by running the monadic action are preserved.
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 
@@ -96,7 +96,7 @@ Setting {option}`eval.pp` to {lean}`false` disables the use of {name Lean.ToExpr
 :::example "Displaying Output"
 
 {keywordOf Lean.Parser.Command.eval}`#eval` cannot display functions:
-```lean (name := funEval) (error := true)
+```lean (name := funEval) +error
 #eval fun x => x + 1
 ```
 ```leanOutput funEval
@@ -119,7 +119,7 @@ Quadrant.nw
 The derived instance is not saved.
 Disabling {option}`eval.derive.repr` causes {keywordOf Lean.Parser.Command.eval}`#eval` to fail:
 
-```lean (name := quadEval2) (error := true)
+```lean (name := quadEval2) +error
 set_option eval.derive.repr false
 #eval Quadrant.nw
 ```
@@ -406,7 +406,7 @@ intersperse.eq_unfold.{u_1} :
 :::example "Scope Information"
 The {keywordOf Lean.Parser.Command.where}`#where` command displays all the modifications made to the current {tech}[section scope], both in the current scope and in the scopes in which it is nested.
 
-```lean (fresh := true) (name := scopeInfo)
+```lean +fresh (name := scopeInfo)
 section
 open Nat
 
@@ -498,7 +498,7 @@ The behavior of the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command can be sp
 These configuration options are provided in parentheses, separated by commas.
 :::
 
-::::syntax Lean.guardMsgsSpecElt (title := "Specifying {keyword}`#guard_msgs` Behavior") (open := false)
+::::syntax Lean.guardMsgsSpecElt (title := "Specifying {keyword}`#guard_msgs` Behavior") -open
 
 ```grammar
 $_:guardMsgsFilter
@@ -513,7 +513,7 @@ ordering := $_
 There are three kinds of options for {keywordOf Lean.guardMsgsCmd}`#guard_msgs`: filters, whitespace comparison strategies, and orderings.
 ::::
 
-:::syntax Lean.guardMsgsFilter (title := "Output Filters for {keyword}`#guard_msgs`") (open := false)
+:::syntax Lean.guardMsgsFilter (title := "Output Filters for {keyword}`#guard_msgs`") -open
 ```grammar
 $[drop]? all
 ```
@@ -532,7 +532,7 @@ $[drop]? error
 :::
 
 
-:::syntax Lean.guardMsgsWhitespaceArg (title := "Whitespace Comparison for `#guard_msgs`") (open := false)
+:::syntax Lean.guardMsgsWhitespaceArg (title := "Whitespace Comparison for `#guard_msgs`") -open
 ```grammar
 exact
 ```
@@ -577,7 +577,7 @@ def Tree.big (n : Nat) : Tree Nat :=
 ```
 
 However, it can be difficult to spot where test failures come from when the output is large:
-```lean (error := true) (name := bigMsg)
+```lean +error (name := bigMsg)
 set_option guard_msgs.diff false
 /--
 info: Tree.branches
@@ -616,7 +616,7 @@ info: Tree.branches
 ```
 
 Enabling {option}`guard_msgs.diff` highlights the differences instead, making the error more apparent:
-```lean (error := true) (name := bigMsg')
+```lean +error (name := bigMsg')
 set_option guard_msgs.diff true in
 /--
 info: Tree.branches

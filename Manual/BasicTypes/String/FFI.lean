@@ -21,7 +21,7 @@ tag := "string-ffi"
 %%%
 
 
-:::ffi "lean_string_object" kind := type
+:::ffi "lean_string_object" (kind := type)
 ```
 typedef struct {
     lean_object m_header;

@@ -19,13 +19,13 @@ htmlSplit := .never
 %%%
 :::leanSection
 
-```lean (show := false)
+```lean -show
 universe u
 ```
 
 {deftech}_Axioms_ are postulated constants.
 While the axiom's type must itself be a type (that is, it must have type {lean}`Sort u`), there are no further requirements.
-Axioms do not {tech key:="reduction"}[reduce] to other terms.
+Axioms do not {tech (key := "reduction")}[reduce] to other terms.
 :::
 
 Axioms can be used to experiment with the consequences of an idea before investing the time required to construct a model or prove a theorem.
@@ -138,7 +138,7 @@ Definitions that contain non-proof code that relies on axioms must be marked {ke
 :::example "Axioms and Compilation"
 Adding an additional `0` to {lean}`Nat` with an axiom makes it so functions that use it can't be compiled.
 In particular, {name}`List.length'` returns the axiom {name}`Nat.otherZero` instead of {name}`Nat.zero` as the length of the empty list.
-```lean (name := otherZero2) (error := true)
+```lean (name := otherZero2) +error
 axiom Nat.otherZero : Nat
 
 def List.length' : List α → Nat
@@ -224,9 +224,9 @@ However, they allow the use of compiled code in proofs to be carefully controlle
    ```
 
 :::keepEnv
-```lean (show := false)
+```lean -show
 axiom Anything : Type
 ```
-Finally, the axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean type:="Anything"}`sorry` term.
+Finally, the axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean  (type := "Anything")}`sorry` term.
 Uses of this axiom are not intended to occur in finished proofs, and this can be confirmed using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
 :::

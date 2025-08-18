@@ -66,7 +66,7 @@ Definitional equality includes the following forms of {deftech}[reduction]:
 Terms in which all possible reductions have been carried out are in {deftech}_normal form_.
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 axiom α : Type
 axiom β : Type
 axiom f : α → β
@@ -113,7 +113,7 @@ example : LengthList String 2 :=
 ```
 
 If the length does not match the number of entries, then the computed type will not match the term:
-```lean error:=true name:=wrongNum
+```lean +error (name := wrongNum)
 example : LengthList String 5 :=
   ("Wrong", "number", ())
 ```
@@ -163,7 +163,7 @@ Propositions have the following properties:
 
   With the exception of {tech}[subsingletons], propositions cannot be eliminated into non-proposition types.
 
-: {deftech key:="propositional extensionality"}[Extensionality] {index subterm:="of propositions"}[extensionality]
+: {deftech (key := "propositional extensionality")}[Extensionality] {index (subterm := "of propositions")}[extensionality]
 
   Any two logically equivalent propositions can be proven to be equal with the {lean}`propext` axiom.
 
@@ -172,7 +172,7 @@ Propositions have the following properties:
 # Universes
 
 Types are classified by {deftech}_universes_. {index}[universe]{margin}[Universes are also referred to as {deftech}_sorts_.]
-Each universe has a {deftech (key:="universe level")}_level_, {index subterm := "of universe"}[level] which is a natural number.
+Each universe has a {deftech (key:="universe level")}_level_, {index (subterm := "of universe")}[level] which is a natural number.
 The {lean}`Sort` operator constructs a universe from a given level. {index}[`Sort`]
 If the level of a universe is smaller than that of another, the universe itself is said to be smaller.
 With the exception of propositions (described later in this chapter), types in a given universe may only quantify over types in smaller universes.
@@ -186,7 +186,7 @@ example : Sort 2 := Sort 1
 ```
 
 On the other hand, {lean}`Sort 3` is not an element of {lean}`Sort 5`:
-```lean (error := true) (name := sort3)
+```lean +error (name := sort3)
 example : Sort 5 := Sort 3
 ```
 
@@ -204,7 +204,7 @@ Similarly, because {lean}`Unit` is in {lean}`Sort 1`, it is not in {lean}`Sort 2
 ```lean
 example : Sort 1 := Unit
 ```
-```lean error := true name := unit1
+```lean +error (name := unit1)
 example : Sort 2 := Unit
 ```
 
@@ -230,7 +230,7 @@ A function type's universe is determined by the universes of its argument and re
 The specific rules depend on whether the return type of the function is a proposition.
 
 Predicates, which are functions that return propositions (that is, where the result of the function is some type in `Prop`) may have argument types in any universe whatsoever, but the function type itself remains in `Prop`.
-In other words, propositions feature {deftech}[_impredicative_] {index}[impredicative]{index subterm := "impredicative"}[quantification] quantification, because propositions can themselves be statements about all propositions (and all other types).
+In other words, propositions feature {deftech}[_impredicative_] {index}[impredicative]{index (subterm := "impredicative")}[quantification] quantification, because propositions can themselves be statements about all propositions (and all other types).
 
 :::Manual.example "Impredicativity"
 Proof irrelevance can be written as a proposition that quantifies over all propositions:
@@ -245,7 +245,7 @@ example : Prop := ∀ (α : Type 5), ∀ (x : α), x = x
 ```
 :::
 
-For universes at {tech key:="universe level"}[level] `1` and higher (that is, the `Type u` hierarchy), quantification is {deftech}[_predicative_]. {index}[predicative]{index subterm := "predicative"}[quantification]
+For universes at {tech (key := "universe level")}[level] `1` and higher (that is, the `Type u` hierarchy), quantification is {deftech}[_predicative_]. {index}[predicative]{index (subterm := "predicative")}[quantification]
 For these universes, the universe of a function type is the least upper bound of the argument and return types' universes.
 
 :::Manual.example "Universe levels of function types"
@@ -258,7 +258,7 @@ example (α : Type 2) (β : Type 1) : Type 2 := α → β
 
 :::Manual.example "Predicativity of {lean}`Type`"
 This example is not accepted, because `α`'s level is greater than `1`. In other words, the annotated universe is smaller than the function type's universe:
-```lean error := true name:=toosmall
+```lean +error (name := toosmall)
 example (α : Type 2) (β : Type 1) : Type 1 := α → β
 ```
 ```leanOutput toosmall
@@ -277,7 +277,7 @@ Each type inhabits precisely one universe.
 
 :::Manual.example "No cumulativity"
 This example is not accepted because the annotated universe is larger than the function type's universe:
-```lean error := true name:=toobig
+```lean +error (name := toobig)
 example (α : Type 2) (β : Type 1) : Type 3 := α → β
 ```
 ```leanOutput toobig
@@ -293,7 +293,7 @@ of sort `Type 4`
 
 ## Polymorphism
 
-Lean supports {deftech}_universe polymorphism_, {index subterm:="universe"}[polymorphism] {index}[universe polymorphism] which means that constants defined in the Lean environment can take {deftech}[universe parameters].
+Lean supports {deftech}_universe polymorphism_, {index (subterm := "universe")}[polymorphism] {index}[universe polymorphism] which means that constants defined in the Lean environment can take {deftech}[universe parameters].
 These parameters can then be instantiated with universe levels when the constant is used.
 Universe parameters are written in curly braces following a dot after a constant name.
 
@@ -320,7 +320,7 @@ structure Codec.{u} : Type (u + 1) where
 
 Lean automatically infers most level parameters.
 In the following example, it is not necessary to annotate the type as {lean}`Codec.{0}`, because {lean}`Char`'s type is {lean}`Type 0`, so `u` must be `0`:
-```lean (keep := true)
+```lean
 def Codec.char : Codec where
   type := Char
   encode buf ch := buf.push ch.val
@@ -343,7 +343,7 @@ Universe-polymorphic definitions in fact create a _schematic definition_ that ca
 This can be seen in the following example, in which {lean}`T` is a gratuitously-universe-polymorphic function that always returns {lean}`true`.
 Because it is marked {keywordOf Lean.Parser.Command.declaration}`opaque`, Lean can't check equality by unfolding the definitions.
 Both instantiations of {lean}`T` have the parameters and the same type, but their differing universe instantiations make them incompatible.
-```lean (error := true) (name := uniIncomp)
+```lean +error (name := uniIncomp)
 opaque T.{u} (_ : Nat) : Bool :=
   (fun (α : Sort u) => true) PUnit.{u}
 
@@ -382,7 +382,7 @@ partial def count [Monad m] (p : α → Bool) (act : m α) : m Nat := do
     return 0
 ```
 
-```lean (show := false)
+```lean -show
 /-- info: Nat : Type -/
 #check_msgs in
 #check Nat
@@ -446,7 +446,7 @@ When it is set to {lean}`false`, then they must be added explicitly or declared 
 
 :::Manual.example "Automatic Implicit Parameters and Universe Polymorphism"
 When `autoImplicit` is {lean}`true` (which is the default setting), this definition is accepted even though it does not bind its universe parameters:
-```lean (keep := false)
+```lean -keep
 set_option autoImplicit true
 def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
   | [] => []
@@ -454,7 +454,7 @@ def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
 ```
 
 When `autoImplicit` is {lean}`false`, the definition is rejected because `u` and `v` are not in scope:
-```lean (error := true) (name := uv)
+```lean +error (name := uv)
 set_option autoImplicit false
 def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
   | [] => []
@@ -481,7 +481,7 @@ Just as the `variable` command causes a particular identifier to be treated as a
 :::
 
 :::Manual.example "The `universe` command when `autoImplicit` is `false`"
-```lean (keep := false)
+```lean -keep
 set_option autoImplicit false
 universe u
 def id₃ (α : Type u) (a : α) := a
@@ -493,11 +493,11 @@ Because the automatic implicit parameter feature only inserts parameters that ar
 :::Manual.example "Automatic universe parameters and the `universe` command"
 
 This definition with an explicit universe parameter is accepted:
-```lean (keep := false)
+```lean -keep
 def L.{u} := List (Type u)
 ```
 Even with automatic implicit parameters, this definition is rejected, because `u` is not mentioned in the header, which precedes the `:=`:
-```lean (error := true) (name := unknownUni) (keep := false)
+```lean +error (name := unknownUni) -keep
 set_option autoImplicit true
 def L := List (Type u)
 ```
@@ -505,7 +505,7 @@ def L := List (Type u)
 unknown universe level 'u'
 ```
 With a universe declaration, `u` is accepted as a parameter even on the right-hand side:
-```lean (keep := false)
+```lean -keep
 universe u
 def L := List (Type u)
 ```

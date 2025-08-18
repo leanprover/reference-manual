@@ -46,7 +46,7 @@ This case analysis is not exhaustive: {tactic}`grind` only recursively splits ca
   :  `splitImp` (default {lean}`false`)
 
     :::leanSection
-    ```lean (show := false)
+    ```lean -show
     variable {A : Prop} {B : Sort u}
     ```
     Hypotheses of the form {lean}`A → B` whose antecedent {lean}`A` is *propositional* are split by considering all possibilities for {lean}`A`.
@@ -82,7 +82,7 @@ example (c : Bool) (x y : Nat)
 ```
 
 Disabling `splitIte` causes the proof to fail:
-```lean (error := true) (name := noSplitIte)
+```lean +error (name := noSplitIte)
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
@@ -109,7 +109,7 @@ right : ¬y = 0
 ```
 
 Forbidding all case splitting causes the proof to fail for the same reason:
-```lean (error := true) (name := noSplitsAtAll)
+```lean +error (name := noSplitsAtAll)
 example (c : Bool) (x y : Nat)
     (h : (if c then x else y) = 0) :
     x = 0 ∨ y = 0 := by
@@ -146,7 +146,7 @@ example (c : Bool) (x y : Nat)
 
 :::example "Splitting Pattern Matching"
 Disabling case splitting on pattern matches causes {tactic}`grind` to fail in this example:
-```lean (error := true) (name := noSplitMatch)
+```lean +error (name := noSplitMatch)
 example (h : y = match x with | 0 => 1 | _ => 2) :
     y > 0 := by
   grind -splitMatch
@@ -198,7 +198,7 @@ inductive Not30 : Nat → Prop where
 ```
 
 By default, {tactic}`grind` cannot show that {lean}`Not30` implies that a number is, in fact, not {lean}`30`:
-```lean (error := true) (name := not30fail)
+```lean +error (name := not30fail)
 example : Not30 n → n ≠ 30 := by grind
 ```
 This is because {tactic}`grind` does not consider both cases for {lean}`Not30`

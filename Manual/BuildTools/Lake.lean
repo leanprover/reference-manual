@@ -135,7 +135,7 @@ Producing a desired {tech}[artifact], such as a {tech}[`.olean` file] or an exec
 Builds are triggered by the {lake}`build` command or by other commands that require an artifact to be present, such as {lake}`exe`.
 A build consists of the following steps:
 
-: {deftech key:="configure package"}[Configuring] the package
+: {deftech (key := "configure package")}[Configuring] the package
 
   If {tech}[package configuration] file is newer than the cached configuration file `lakefile.olean`, then the package configuration is re-elaborated.
   This also occurs when the cached file is missing or when the {lakeOpt}`--reconfigure` or {lakeOpt}`-R` flag is provided.
@@ -250,7 +250,7 @@ Package dependencies are not updated during a build.
 
 The facets available for packages are:
 
-```lean (show := false)
+```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
 info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `package.optBarrel, `package.optCache,
@@ -305,7 +305,7 @@ info: #[`package.barrel, `package.cache, `package.deps, `package.extraDep, `pack
 
 ::::
 
-```lean (show := false)
+```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
 info: [`lean_lib.extraDep, `lean_lib.leanArts, `lean_lib.static.export, `lean_lib.shared, `lean_lib.modules, `lean_lib.static,
@@ -321,7 +321,7 @@ The facets available for libraries are:
 
 : `leanArts`
 
-  The artifacts that the Lean compiler produces for the library or executable ({tech key:=".olean files"}`*.olean`, `*.ilean`, and `*.c` files).
+  The artifacts that the Lean compiler produces for the library or executable ({tech (key := ".olean files")}`*.olean`, `*.ilean`, and `*.c` files).
 
 : `static`
 
@@ -347,7 +347,7 @@ Executables have a single `exe` facet that consists of the executable binary.
 
 :::
 
-```lean (show := false)
+```lean -show
 -- Always keep this in sync with the description below. It ensures that the list is complete.
 /--
 info: module.bc
@@ -489,7 +489,7 @@ Because they are Lean definitions, Lake scripts can only be defined in the Lean 
 Restore the following once we can import enough of Lake to elaborate it
 
 ````
-```lean (show := false)
+```lean -show
 section
 open Lake DSL
 ```
@@ -513,7 +513,7 @@ script "list-deps" := do
 ```
 :::
 
-```lean (show := false)
+```lean -show
 end
 ```
 ````
@@ -654,7 +654,7 @@ This is true for all of the monads in the Lake API, including {name Lake.ScriptM
 Monads that provide access to information about the current Lake workspace have {name Lake.MonadWorkspace}`MonadWorkspace` instances.
 In particular, there are instances for {name Lake.ScriptM}`ScriptM` and {name Lake.LakeM}`LakeM`.
 
-```lean (show := false)
+```lean -show
 section
 open Lake
 #synth MonadWorkspace ScriptM

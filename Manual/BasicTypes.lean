@@ -69,7 +69,7 @@ In functional programming, {lean}`Unit` is the return type of things that "retur
 Mathematically, this is represented by a single completely uninformative value, as opposed to an empty type such as {lean}`Empty`, which represents unreachable code.
 
 :::leanSection
-```lean (show := false)
+```lean -show
 variable {m : Type → Type} [Monad m] {α : Type}
 ```
 
@@ -85,7 +85,7 @@ There are two variants of the unit type:
 
  * {lean}`Unit` is a {lean}`Type` that exists in the smallest non-propositional {tech}[universe].
 
- * {lean}`PUnit` is {tech key:="universe polymorphism"}[universe polymorphic] and can be used in any non-propositional {tech}[universe].
+ * {lean}`PUnit` is {tech (key := "universe polymorphism")}[universe polymorphic] and can be used in any non-propositional {tech}[universe].
 
 Behind the scenes, {lean}`Unit` is actually defined as {lean}`PUnit.{1}`.
 {lean}`Unit` should be preferred over {name}`PUnit` when possible to avoid unnecessary universe parameters.
@@ -101,7 +101,7 @@ If in doubt, use {lean}`Unit` until universe errors occur.
 
 {deftech}_Unit-like types_ are inductive types that have a single constructor which takes no non-proof parameters.
 {lean}`PUnit` is one such type.
-All elements of unit-like types are {tech key:="definitional equality"}[definitionally equal] to all other elements.
+All elements of unit-like types are {tech (key := "definitional equality")}[definitionally equal] to all other elements.
 
 :::example "Definitional Equality of {lean}`Unit`"
 Every term with type {lean}`Unit` is definitionally equal to every other term with type {lean}`Unit`:
@@ -143,7 +143,7 @@ inductive NotUnitLike where
   | mk (u : Unit)
 ```
 
-```lean (error:=true) (name := NotUnitLike)
+```lean +error (name := NotUnitLike)
 example (e1 e2 : NotUnitLike) : e1 = e2 := rfl
 ```
 ```leanOutput NotUnitLike
@@ -186,7 +186,7 @@ However, there is an important pragmatic difference: {lean}`Bool` classifies _va
 In other words, {lean}`Bool` is the notion of truth and falsehood that's appropriate for programs, while {lean}`Prop` is the notion that's appropriate for mathematics.
 Because proofs are erased from compiled programs, keeping {lean}`Bool` and {lean}`Prop` distinct makes it clear which parts of a Lean file are intended for computation.
 
-```lean (show := false)
+```lean -show
 section BoolProp
 
 axiom b : Bool
@@ -211,7 +211,7 @@ These propositions are called {tech}_decidable_ propositions, and have instances
 The function {name}`Decidable.decide` converts a proof-carrying {lean}`Decidable` result into a {lean}`Bool`.
 This function is also a coercion from decidable propositions to {lean}`Bool`, so {lean}`(2 = 2 : Bool)` evaluates to {lean}`true`.
 
-```lean (show := false)
+```lean -show
 /-- info: true -/
 #check_msgs in
 #eval (2 = 2 : Bool)
@@ -246,7 +246,7 @@ The prefix operator `!` is notation for {lean}`Bool.not`.
 
 ### Logical Operations
 
-```lean (show := false)
+```lean -show
 section ShortCircuit
 
 axiom BIG_EXPENSIVE_COMPUTATION : Bool
@@ -256,7 +256,7 @@ The functions {name}`cond`, {name Bool.and}`and`, and {name Bool.or}`or` are sho
 In other words, {lean}`false && BIG_EXPENSIVE_COMPUTATION` does not need to execute {lean}`BIG_EXPENSIVE_COMPUTATION` before returning `false`.
 These functions are defined using the {attr}`macro_inline` attribute, which causes the compiler to replace calls to them with their definitions while generating code, and the definitions use nested pattern matching to achieve the short-circuiting behavior.
 
-```lean (show := false)
+```lean -show
 end ShortCircuit
 ```
 

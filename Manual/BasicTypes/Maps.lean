@@ -56,13 +56,13 @@ In Lean, maps may have the following properties:
 : Extensionality
 
   Maps can be viewed as partial functions from keys to values.
-  {deftech}_Extensional maps_{index subterm:="extensional"}[map] are maps for which propositional equality matches this interpretation.
+  {deftech}_Extensional maps_{index (subterm := "extensional")}[map] are maps for which propositional equality matches this interpretation.
   This can be convenient for reasoning, but it also rules out some useful operations that would be able to distinguish between them.
   In general, extensional maps should be used only when needed for verification.
 
 : Dependent or Not
 
-  A {deftech}_dependent map_{index subterm:="dependent"}[map] is one in which the type of each value is determined by its corresponding key, rather than being constant.
+  A {deftech}_dependent map_{index (subterm := "dependent")}[map] is one in which the type of each value is determined by its corresponding key, rather than being constant.
   Dependent maps have more expressive power, but are also more difficult to use.
   They impose more requirements on their users.
   For example, many operations on {name Std.DHashMap}`DHashMap` require {name}`LawfulBEq` instances rather than {name}`BEq`.
@@ -71,12 +71,12 @@ In Lean, maps may have the following properties:
 
 ::::: leanSection
 
-```lean (show := false)
+```lean -show
 open Std
 ```
 
 
-:::table (header := true)
+:::table +header
 *
   - Map
   - Representation
@@ -186,7 +186,7 @@ The map of an adventure game may consist of a series of rooms, connected by pass
 Each room has a description, and each passage faces in a particular direction.
 This can be represented as a recursive structure.
 
-```lean (error:=true) (name:=badNesting) (keep := false)
+```lean +error (name:=badNesting) -keep
 structure Maze where
   description : String
   passages : HashMap String Maze
@@ -355,7 +355,7 @@ tag := "HashMap"
 
 The declarations in this section should be imported using `import Std.HashMap`.
 
-{docstring Std.HashMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.HashMap +hideFields +hideStructureConstructor}
 
 
 ## Creation
@@ -479,7 +479,7 @@ tag := "DHashMap"
 
 The declarations in this section should be imported using `import Std.DHashMap`.
 
-{docstring Std.DHashMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.DHashMap +hideFields +hideStructureConstructor}
 
 ## Creation
 
@@ -597,7 +597,7 @@ tag := "ExtHashMap"
 
 The declarations in this section should be imported using `import Std.ExtHashMap`.
 
-{docstring Std.ExtHashMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.ExtHashMap +hideFields +hideStructureConstructor}
 
 ## Creation
 
@@ -674,7 +674,7 @@ tag := "ExtDHashMap"
 
 The declarations in this section should be imported using `import Std.ExtDHashMap`.
 
-{docstring Std.ExtDHashMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.ExtDHashMap +hideFields +hideStructureConstructor}
 
 ## Creation
 
@@ -895,7 +895,7 @@ tag := "DTreeMap"
 
 The declarations in this section should be imported using `import Std.DTreeMap`.
 
-{docstring Std.DTreeMap (hideFields:=true) (hideStructureConstructor := true)}
+{docstring Std.DTreeMap +hideFields +hideStructureConstructor}
 
 ## Creation
 

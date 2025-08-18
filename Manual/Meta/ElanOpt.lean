@@ -35,8 +35,8 @@ def ElanOptKind.ns : ElanOptKind → String
 open ElanOptKind in
 instance : Quote ElanOptKind where
   quote
-    | .flag => Syntax.mkCApp ``flag #[]
-    | .option => Syntax.mkCApp ``option #[]
+    | .flag => Syntax.mkCApp ``ElanOptKind.flag #[]
+    | .option => Syntax.mkCApp ``ElanOptKind.option #[]
 
 def Inline.elanOptDef (name : String) (kind : ElanOptKind) (argMeta : Option String) : Inline where
   name := `Manual.elanOptDef

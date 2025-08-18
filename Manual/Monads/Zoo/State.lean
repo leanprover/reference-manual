@@ -51,7 +51,7 @@ Even those implementations that use a tuple may in fact use mutation at run-time
 
 # Tuple-Based State Monads
 
-```lean (show := false)
+```lean -show
 variable {α σ : Type u}
 ```
 
@@ -91,7 +91,7 @@ An example of such a type is {lean}`(δ : Type u) → σ → (α → σ → δ) 
 State monads in continuation passing style have different performance characteristics than tuple-based state monads; for some applications, it may be worth benchmarking them.
 
 
-```lean (show := false)
+```lean -show
 /-- info: (δ : Type u) → σ → (α → σ → Id δ) → δ -/
 #check_msgs in
 #reduce (types := true) StateCpsT σ Id α
@@ -108,7 +108,7 @@ State monads in continuation passing style have different performance characteri
 
 # State Monads from Mutable References
 
-```lean (show := false)
+```lean -show
 variable {m : Type → Type} {σ ω : Type} [STWorld σ m]
 ```
 

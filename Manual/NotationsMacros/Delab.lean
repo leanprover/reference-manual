@@ -66,7 +66,7 @@ The unexpander is passed the syntax of the application, with implicit arguments 
 If the option {option}`pp.explicit` is {lean}`true` or {option}`pp.notation` is {lean}`false`, then unexpanders are not used.
 
 ::::::::leanSection
-```lean (show := false)
+```lean -show
 open Lean.PrettyPrinter (Unexpander UnexpandM)
 ```
 
@@ -74,7 +74,7 @@ An unexpander has type {lean}`Lean.PrettyPrinter.Unexpander`, which is an abbrev
 In the remainder of this section, the names {lean}`Unexpander` and {lean}`UnexpandM` are used unqualified.
 {lean}`UnexpandM` is a monad that supports quotation and failure via its {name Lean.MonadQuotation}`MonadQuotation` and {lean}`MonadExcept Unit` instances.
 
-An unexpander should either return unexpanded syntax or fail using {lean type:="UnexpandM Syntax"}`throw ()`.
+An unexpander should either return unexpanded syntax or fail using {lean  (type := "UnexpandM Syntax")}`throw ()`.
 If the unexpander succeeds, then the resulting syntax is unexpanded again; if it fails, then the next unexpander is tried.
 When no unexpander succeeds for the syntax, its child nodes are unexpanded until all opportunities for unexpansion are exhausted.
 
@@ -137,6 +137,7 @@ intro v
 v : Solo
 ⊢ v = ‹›
 -/
+
 ```
 
 ::::
@@ -178,7 +179,7 @@ def ListCursor.fastForward : ListCursor α → ListCursor α
 termination_by xs => xs.after
 ```
 
-```lean (show := false)
+```lean -show
 def ListCursor.ofList (xs : List α) : ListCursor α where
   before := []
   after := xs
@@ -250,7 +251,7 @@ some [1 🚩 2, 3, 4, 5]
 tag := "delaborators"
 %%%
 ::::::::leanSection
-```lean (show := false)
+```lean -show
 open Lean.PrettyPrinter.Delaborator (DelabM Delab)
 open Lean (Term)
 ```
@@ -268,14 +269,14 @@ The {attr}`delab` attribute registers a delaborator for the indicated constructo
 delab $_:ident
 ```
 
-The {keyword}`app_delab ` attribute registers a delaborator for applications of the indicated constant after {tech key:="resolve"}[resolving] it in the current {tech key:="section scope"}[scope].
+The {keyword}`app_delab ` attribute registers a delaborator for applications of the indicated constant after {tech (key := "resolve")}[resolving] it in the current {tech (key := "section scope")}[scope].
 ```grammar
 app_delab $_:ident
 ```
 :::
 
 ::::leanSection
-```lean (show := false)
+```lean -show
 open Lean.PrettyPrinter.Delaborator.SubExpr
 ```
 :::paragraph

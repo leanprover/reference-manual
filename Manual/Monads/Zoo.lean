@@ -158,7 +158,7 @@ Except.ok 0
 A single monad may support multiple version of the same effect.
 For example, there might be a mutable {lean}`Nat` and a mutable {lean}`String` or two separate reader parameters.
 As long as they have different types, it should be convenient to access both.
-In typical use, some monadic operations that are overloaded in type classes have type information available for {tech key:="synthesis"}[instance synthesis], while others do not.
+In typical use, some monadic operations that are overloaded in type classes have type information available for {tech (key := "synthesis")}[instance synthesis], while others do not.
 For example, the argument passed to {name MonadState.set}`set` determines the type of the state to be used, while {name MonadState.get}`get` takes no such argument.
 The type information present in applications of {name MonadState.set}`set` can be used to pick the correct instance when multiple states are available, which suggests that the type of the mutable state should be an input parameter or {tech}[semi-output parameter] so that it can be used to select instances.
 The lack of type information present in uses of {name MonadState.get}`get`, on the other hand, suggests that the type of the mutable state should be an {tech}[output parameter] in {lean}`MonadState`, so type class synthesis determines the state's type from the monad itself.
@@ -170,7 +170,7 @@ The operations with explicit type parameters have names ending in `-The`, such a
 The name of the version with an output parameter is undecorated.
 The standard library exports a mix of operations from the `-Of` and undecorated versions of each type class, based on what has good inference behavior in typical use cases.
 
-:::table (header := true)
+:::table +header
   *
    * Operation
    * From Class
@@ -225,7 +225,7 @@ The standard library exports a mix of operations from the `-Of` and undecorated 
    * Semi-output parameter uses provided type to guide synthesis
 :::
 
-```lean (show := false)
+```lean -show
 example : @get = @MonadState.get := by rfl
 example : @set = @MonadStateOf.set := by rfl
 example {inst} (f : σ → σ) : @modify σ m inst f = @MonadState.modifyGet σ m inst PUnit fun (s : σ) => (PUnit.unit, f s) := by rfl
@@ -256,7 +256,7 @@ get : M Nat
 ```
 
 Only the outermost may be used, because the type of the state is an output parameter.
-```lean (name := getMStr) (error := true)
+```lean (name := getMStr) +error
 #check (get : M String)
 ```
 ```leanOutput getMStr
@@ -300,7 +300,7 @@ tag := "monad-transformers"
 A {deftech}_monad transformer_ is a function that, when provided with a monad, gives back a new monad.
 Typically, this new monad has all the effects of the original monad along with some additional ones.
 
-```lean (show := false)
+```lean -show
 variable {α : Type u} (T : (Type u → Type v) → Type u → Type w) (m : Type u → Type v)
 
 ```
@@ -315,7 +315,7 @@ Typically, a monad transformer also provides instances of one or more type class
 The transformer's {name}`Monad` and {name}`MonadLift` instances make it practical to write code in the transformed monad, while the type class instances allow the transformed monad to be used with polymorphic functions.
 
 ::::keepEnv
-```lean (show := false)
+```lean -show
 universe u v
 variable {m : Type u → Type v} {α : Type u}
 ```
