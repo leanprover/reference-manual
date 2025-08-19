@@ -6,6 +6,7 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta
+import Manual.Papers
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -375,6 +376,7 @@ First, the equation compiler (which translates recursive functions with pattern 
  * `noConfusion` is a general statement from which injectivity and disjointness of constructors can be derived.
  * `noConfusionType` is the motive used for `noConfusion` that determines what the consequences of two constructors being equal would be. For separate constructors, this is {lean}`False`; if both constructors are the same, then the consequence is the equality of their respective parameters.
 
+These constructions follow the description in {citet constructionsOnConstructors}[].
 
 For {tech}[well-founded recursion], it is frequently useful to have a generic notion of size available.
 This is captured in the {name}`SizeOf` class.
