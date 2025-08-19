@@ -29,6 +29,14 @@ def castPaper : ArXiv where
   year := 2020
   id := "2001.10594"
 
+def constructionsOnConstructors : InProceedings where
+  title := inlines!"A Few Constructions on Constructors"
+  authors := #[inlines!"Conor McBrid,", inlines!"Healfdene Goguen", inlines!"James McKinna"]
+  year := 2004
+  booktitle := inlines!"Types for Proofs and Programs, International Workshop, TYPES 2004"
+  series := some (inlines!"LNCS 3839")
+  url := "https://doi.org/10.1007/11617990_12"
+
 def cuttingToTheChase : InProceedings where
   title := inlines!"Cutting to the Chase: Solving Linear Integer Arithmetic"
   authors := #[inlines!"Dejan Jovanović", inlines!"Leonardo de Moura"]
