@@ -275,7 +275,7 @@ This updating does not require that the index expression be in bounds for the ar
 Updating structures may use array indices as well as projection names.
 Updates at indices that are out of bounds are ignored:
 
-```lean name:=arrayUpdate
+```lean (name := arrayUpdate)
 structure AugmentedIntArray where
   array : Array Int
   augmentation : String := ""
@@ -492,7 +492,7 @@ def coords : Triple Nat := {fst := 17, snd := 2, thd := 95}
 ```
 
 Evaluating the first field index of {name}`coords` yields the underlying {name}`Pair`, rather than the contents of the field `fst`:
-```lean name:=coords1
+```lean (name := coords1)
 #eval coords.1
 ```
 ```leanOutput coords1
