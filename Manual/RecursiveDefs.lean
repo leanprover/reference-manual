@@ -490,7 +490,7 @@ semireducible
 ```grammar
 irreducible
 ```
-These attributes can only be applied globally in the same file as the definition being modified, but they may be {keywordOf attrInst parser:=Lean.Parser.Term.attrKind}`local`ly applied anywhere.
+These attributes can only be applied globally in the same file as the definition being modified, but they may be {keywordOf attrInst (parser := Lean.Parser.Term.attrKind)}`local`ly applied anywhere.
 :::
 
 ## Reducibility and Tactics

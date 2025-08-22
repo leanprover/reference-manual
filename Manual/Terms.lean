@@ -357,7 +357,7 @@ fun $x:ident : term => $t
 ```
 :::
 
-Function definitions defined with keywords such as {keywordOf Lean.Parser.Command.declaration parser:=Lean.Parser.Command.definition}`def` desugar to {keywordOf Lean.Parser.Term.fun}`fun`.
+Function definitions defined with keywords such as {keywordOf Lean.Parser.Command.declaration (parser := Lean.Parser.Command.definition)}`def` desugar to {keywordOf Lean.Parser.Term.fun}`fun`.
 Inductive type declarations, on the other hand, introduce new values with function types (constructors and type constructors) that cannot themselves be implemented using just {keywordOf Lean.Parser.Term.fun}`fun`.
 
 :::syntax term (title := "Curried Functions")

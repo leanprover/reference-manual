@@ -489,7 +489,7 @@ The headers and bodies of definitions are elaborated together.
 If the header is incompletely specified (e.g. a parameter's type or the codomain is missing), then the body may provide sufficient information for the elaborator to reconstruct the missing parts.
 However, {tech}[instance implicit] parameters must be specified in the header or as {tech}[section variables].
 
-:::syntax Lean.Parser.Command.declaration alias:=Lean.Parser.Command.definition (title := "Definitions")
+:::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.definition) (title := "Definitions")
 Definitions that use `:=` associate the term on the right-hand side with the constant's name.
 The term is wrapped in a {keywordOf Lean.Parser.Term.fun}`fun` for each parameter, and the type is found by binding the parameters in a function type.
 Definitions with {keyword}`def` are {tech}[semireducible].
@@ -517,7 +517,7 @@ def $_ $_ where
 ```
 :::
 
-:::syntax Lean.Parser.Command.declaration alias:=Lean.Parser.Command.abbrev (title := "Abbreviations")
+:::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.abbrev) (title := "Abbreviations")
 Abbreviations are identical to definitions with {keyword}`def`, except they are {tech}[reducible].
 
 ```grammar
@@ -545,7 +545,7 @@ Unlike {tech}[axioms], opaque declarations can only be used for types that are i
 Also unlike axioms, the inhabitant of the type is used in compiled code.
 The {attr}`implemented_by` attribute can be used to instruct the compiler to emit a call to some other function as the compilation of an opaque constant.
 
-:::syntax Lean.Parser.Command.declaration alias:=Lean.Parser.Command.opaque (title := "Opaque Constants")
+:::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.opaque) (title := "Opaque Constants")
 Opaque definitions with right-hand sides are elaborated like other definitions.
 This demonstrates that the type is inhabited; the inhabitant plays no further role.
 ```grammar
@@ -579,7 +579,7 @@ However, because their use cases are quite different, they differ in many detail
 Theorems may be recursive, subject to the same conditions as {ref "recursive-definitions"}[recursive function definitions].
 However, it is more common to use tactics such as {tactic}`induction` or {tactic}`fun_induction` instead.
 
-:::syntax Lean.Parser.Command.declaration alias:=Lean.Parser.Command.theorem (title := "Theorems")
+:::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.theorem) (title := "Theorems")
 The syntax of theorems is like that of definitions, except the codomain (that is, the theorem statement) in the signature is mandatory.
 ```grammar
 $_:declModifiers
@@ -606,7 +606,7 @@ theorem $_ $_ where
 An {deftech}[example] is an anonymous definition that is elaborated and then discarded.
 Examples are useful for incremental testing during development and to make it easier to understand a file.
 
-:::syntax Lean.Parser.Command.declaration alias:=Lean.Parser.Command.example (title := "Examples")
+:::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.example) (title := "Examples")
 ```grammar
 $_:declModifiers
 example $_:optDeclSig := $_
