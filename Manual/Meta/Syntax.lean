@@ -125,7 +125,7 @@ def keywordOf : RoleExpander
 def keywordOf.descr : InlineDescr where
   traverse _ _ _ := do
     pure none
-  toTeX := none
+  toTeX := some fun goI _ _ content => content.mapM goI
   toHtml :=
     open Verso.Output Html in
     some <| fun goI _ info content => do
