@@ -21,6 +21,82 @@ file := "v4.23.0"
 ````markdown
 For this release, 610 changes landed. In addition to the 95 feature additions and 139 fixes listed below there were 61 refactoring changes, 12 documentation improvements, 71 performance improvements, and 232 other changes.
 
+## Highlights
+
+Lean v4.23.0 release brings significant performance improvements, better error messages,
+and a plethora of bug fixes, refinements, and consolidations in `grind`, the compiler, and other components of Lean.
+
+In terms of user experience, noteworthy new features are:
+
+- Improved 'Go to Definition' navigation ([#9040](https://github.com/leanprover/lean4/pull/9040))
+
+  - Using 'Go to Definition' on a type class projection now extracts
+    the specific instances that were involved and provides them as locations
+    to jump to. For example, using 'Go to Definition' on the `toString` of
+    `toString 0` yields results for `ToString.toString` and `ToString Nat`.
+  - Using 'Go to Definition' on a macro that produces syntax with type
+    class projections now also extracts the specific instances that were
+    involved and provides them as locations to jump to. For example, using
+    'Go to Definition' on the `+` of `1 + 1` yields results for
+    `HAdd.hAdd`, `HAdd α α α` and `Add Nat`.
+  - Using 'Go to Declaration' now provides all the results of 'Go to
+    Definition' in addition to the elaborator and the parser that were
+    involved. For example, using 'Go to Declaration' on the `+` of `1 + 1`
+    yields results for `HAdd.hAdd`, `HAdd α α α`, `Add Nat`,
+    `` macro_rules | `($x + $y) => ... `` and `infixl:65 " + " => HAdd.hAdd`.
+  - Using 'Go to Type Definition' on a value with a type that contains
+    multiple constants now provides 'Go to Definition' results for each
+    constant. For example, using 'Go to Type Definition' on `x` for `x : Array Nat`
+    yields results for `Array` and `Nat`.
+
+- Interactive code-action hints for errors:
+
+  - for "invalid named argument" error, suggest valid argument names ([#9315](https://github.com/leanprover/lean4/pull/9315))
+
+  - for "invalid case name" error, suggest valid case names ([#9316](https://github.com/leanprover/lean4/pull/9316))
+
+  - for "fields missing" error in structure instances, suggest to insert all the missing fields ([#9317](https://github.com/leanprover/lean4/pull/9317))
+
+  You can try all of these in the [Lean playground](https://live.lean-lang.org/#codez=PQWghAUAxABAEgSwHYBcDOMBmB7ATjZANwEMAbBAExiWIFsBTK43AcwFcHUNkYAHYlCnq4kaCCGAQIyCmwDGKBIXowAKjADuAC2H0IMGAB8YtANYBGGAAoAHjACeMAF4wAXDABC2bKQCUU+hs6XlIVKxQ3NV83AF59EwE5LRgIjQQULXjjADozSytHVxiU3DZ6aKsNWJKyipcirDI0cpgYgD5rfylQSFhELiw8GDliZuo6ejEJAKDaELCAI0ivH2j3ADkBaoX7eJHmjAW90ZUkbCRAhDQhVFa2+IM0UwRebvBoeGR0QfxaK7RkCwYNdSgo2LgVMhrsQkHIVJgEPRSBQppIICD5ChwSoAMqaHQQ+IIpEUSwbARExHIgBMkQAavQFENNhFicjzDNgqFIniivEAN4AXwgQA).
+
+### Breaking Changes
+
+- [#9800](https://github.com/leanprover/lean4/pull/9800) improves the delta deriving handler, giving it the ability to
+  process definitions with binders, as well as the ability to recursively
+  unfold definitions. **Breaking change**: the
+  derived instance's name uses the `instance` command's name generator,
+  and the new instance is added to the current namespace.
+
+- [#9040](https://github.com/leanprover/lean4/pull/9040) improves the 'Go to Definition' UX.
+  **Breaking change**: `InfoTree.hoverableInfoAt?` has been generalized to
+  `InfoTree.hoverableInfoAtM?` and now takes a general `filter` argument
+  instead of several boolean flags, as was the case before.
+
+- [#9594](https://github.com/leanprover/lean4/pull/9594) optimizes `Lean.Name.toString`, giving a 10% instruction
+  benefit.
+
+  Crucially this is a **breaking change** as the old `Lean.Name.toString`
+  method used to support a method for identifying tokens. This method is
+  now available as `Lean.Name.toStringWithToken` in order to allow for
+  specialization of the (highly common) `toString` code path which sets
+  this function to just return `false`.
+
+- [#9729](https://github.com/leanprover/lean4/pull/9729) introduces a canonical way to endow a type with an order
+  structure. **Breaking changes:**
+
+  - The requirements of the `lt_of_le_of_lt`/`le_trans` lemmas for
+    `Vector`, `List` and `Array` are simplified. They now require an
+    `IsLinearOrder` instance. The new requirements are logically equivalent
+    to the old ones, but the `IsLinearOrder` instance is not automatically
+    inferred from the smaller typeclasses.
+  - Hypotheses of type `Std.Total (¬ · < · : α → α → Prop)` are replaced
+    with the equivalent class `Std.Asymm (· < · : α → α → Prop)`. Breakage
+    should be limited because there is now an instance that derives the
+    latter from the former.
+  - In `Init.Data.List.MinMax`, multiple theorem signatures are modified,
+    replacing explicit parameters for antisymmetry, totality, `min_ex_or`
+    etc. with corresponding instance parameters.
+
 ## Language
 
 * [#6732](https://github.com/leanprover/lean4/pull/6732) adds support for the `clear` tactic in conversion mode.
