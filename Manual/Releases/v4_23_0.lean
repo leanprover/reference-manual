@@ -23,168 +23,47 @@ For this release, 610 changes landed. In addition to the 95 feature additions an
 
 ## Highlights
 
-Lean v4.23.0 release brings significant performance improvements, better error messages, and several new features.
+Lean v4.23.0 release brings significant performance improvements, better error messages,
+and a plethora of bug fixes, refinements, and consolidations in `grind`, the compiler, and other components of Lean.
 
-- **Tactics**
+In terms of user experience, noteworthy new features are:
 
-  - [#6732](https://github.com/leanprover/lean4/pull/6732) adds support for the `clear` tactic in conversion mode.
+- Improved 'Go to Definition' navigation ([#9040](https://github.com/leanprover/lean4/pull/9040))
 
-  - [#9225](https://github.com/leanprover/lean4/pull/9225) improves the `congr` tactic so that it can handle function
-    applications with fewer arguments than the arity of the head function.
-
-- **(Co)induction proof principles for mutually defined predicates**
-
-  [#9358](https://github.com/leanprover/lean4/pull/9358) adds support for generating lattice-theoretic (co)induction
-  proof principles for predicates defined via `mutual` blocks using
-  `inductive_fixpoint`/`coinductive_fixpoint` constructs. [#9628](https://github.com/leanprover/lean4/pull/9628)
-  introduces a `mutual_induct` variant, which produces a conjunction of all conclusions.
-
-  ```lean
-  mutual
-    def f : Prop := g
-    coinductive_fixpoint
-
-    def g : Prop := f
-    coinductive_fixpoint
-  end
-  ```
-
-  Standard coinduction principles:
-  ```lean
-  f.coinduct (pred_1 pred_2 : Prop) (hyp_1 : pred_1 → pred_2) (hyp_2 : pred_2 → pred_1) : pred_1 → f
-  g.coinduct (pred_1 pred_2 : Prop) (hyp_1 : pred_1 → pred_2) (hyp_2 : pred_2 → pred_1) : pred_2 → g
-  ```
-
-  `mutual_induct` principle:
-  ```lean
-  f.mutual_induct
-    (pred_1 pred_2 : Prop)
-    (hyp_1 : pred_1 → pred_2)
-    (hyp_2 : pred_2 → pred_1)
-    : (pred_1 → f) ∧ (pred_2 → g)
-  ```
-
-- **Dot notation resolution**
-
-  [#9634](https://github.com/leanprover/lean4/pull/9634) modifies dot identifier notation so that `(.a : T)` resolves
-  `T.a` with respect to the root namespace, like for generalized field
-  notation. This lets the notation refer to private names, follow aliases,
-  and also use open namespaces.
-
-- **Structure constructors override the inferred binder kinds**
-
-  [#9480](https://github.com/leanprover/lean4/pull/9480) adds a feature where `structure` constructors can override the
-  inferred binder kinds of the type's parameters. In the following, the
-  `(p)` binder on `toLp` causes `p` to be an explicit parameter to
-  `WithLp.toLp`:
-  ```lean
-  structure WithLp (p : Nat) (V : Type) where toLp (p) ::
-    ofLp : V
-  ```
-
-- **`Lean.realizeValue`**
-
-  [#9798](https://github.com/leanprover/lean4/pull/9798) introduces `Lean.realizeValue`, a new metaprogramming API for
-  parallelism-aware caching of `MetaM` computations.
-
-- **Order structure for types**
-
-  [#9729](https://github.com/leanprover/lean4/pull/9729) introduces a canonical way to endow a type with an order
-  structure. The basic operations (`LE`, `LT`, `Min`, `Max`, and in later
-  PRs `BEq`, `Ord`, ...) and any higher-level property (a preorder, a
-  partial order, a linear order, etc.) are then put in relation to `LE` as
-  necessary. The PR provides `IsLinearOrder` instances for many core types
-  and updates the signatures of some lemmas.
-
-- **Library updates**
-
-  - [#7450](https://github.com/leanprover/lean4/pull/7450) implements `Nat.dfold`, a dependent analogue of `Nat.fold`.
-
-  - [#9586](https://github.com/leanprover/lean4/pull/9586) adds componentwise algebraic operations on `Vector α n`, and
-    relevant instances.
-
-- **Improvements to 'Go to Definition' UX** ([#9040](https://github.com/leanprover/lean4/pull/9040))
-
-  - Using 'Go to Definition' on a type class projection will now extract
-  the specific instances that were involved and provide them as locations
-  to jump to. For example, using 'Go to Definition' on the `toString` of
-  `toString 0` will yield results for `ToString.toString` and `ToString
-  Nat`.
+  - Using 'Go to Definition' on a type class projection now extracts
+    the specific instances that were involved and provides them as locations
+    to jump to. For example, using 'Go to Definition' on the `toString` of
+    `toString 0` yields results for `ToString.toString` and `ToString Nat`.
   - Using 'Go to Definition' on a macro that produces syntax with type
-  class projections will now also extract the specific instances that were
-  involved and provide them as locations to jump to. For example, using
-  'Go to Definition' on the `+` of `1 + 1` will yield results for
-  `HAdd.hAdd`, `HAdd α α α` and `Add Nat`.
-  - Using 'Go to Declaration' will now provide all the results of 'Go to
-  Definition' in addition to the elaborator and the parser that were
-  involved. For example, using 'Go to Declaration' on the `+` of `1 + 1`
-  will yield results for `HAdd.hAdd`, `HAdd α α α`, `Add Nat`,
-  ``macro_rules | `($x + $y) => ...`` and `infixl:65 " + " => HAdd.hAdd`.
+    class projections now also extracts the specific instances that were
+    involved and provides them as locations to jump to. For example, using
+    'Go to Definition' on the `+` of `1 + 1` yields results for
+    `HAdd.hAdd`, `HAdd α α α` and `Add Nat`.
+  - Using 'Go to Declaration' now provides all the results of 'Go to
+    Definition' in addition to the elaborator and the parser that were
+    involved. For example, using 'Go to Declaration' on the `+` of `1 + 1`
+    yields results for `HAdd.hAdd`, `HAdd α α α`, `Add Nat`,
+    `` macro_rules | `($x + $y) => ... `` and `infixl:65 " + " => HAdd.hAdd`.
   - Using 'Go to Type Definition' on a value with a type that contains
-  multiple constants will now provide 'Go to Definition' results for each
-  constant. For example, using 'Go to Type Definition' on `x` for `x :
-  Array Nat` will yield results for `Array` and `Nat`.
+    multiple constants now provides 'Go to Definition' results for each
+    constant. For example, using 'Go to Type Definition' on `x` for `x : Array Nat`
+    yields results for `Array` and `Nat`.
 
-- **Module System**
+- Interactive code-action hints for errors:
 
-  - [#9666](https://github.com/leanprover/lean4/pull/9666) addresses an outstanding feature in the module system to
-    automatically mark `let rec` and `where` helper declarations as private
-    unless they are defined in a public context such as under `@[expose]`.
+  - for "invalid named argument" error, suggest valid argument names ([#9315](https://github.com/leanprover/lean4/pull/9315))
 
-- **Grind**
+  - for "invalid case name" error, suggest valid case names ([#9316](https://github.com/leanprover/lean4/pull/9316))
 
-  - [#9214](https://github.com/leanprover/lean4/pull/9214) implements support for local and scoped `grind_pattern`
-    commands.
+  - for "fields missing" error in structure instances, suggest to insert all the missing fields ([#9317](https://github.com/leanprover/lean4/pull/9317))
 
-  - [#9574](https://github.com/leanprover/lean4/pull/9574) adds the option `abstractProof` to control whether `grind`
-    automatically creates an auxiliary theorem for the generated proof or
-    not.
-
-  - [#9675](https://github.com/leanprover/lean4/pull/9675) adds support for `Fin.val` in `grind cutsat`. Examples:
-    ```lean
-    example (a b : Fin 2) (n : Nat) : n = 1 → ↑(a + b) ≠ n → a ≠ 0 → b = 0 → False := by
-      grind
-    ```
-
-- **Verification Framework**
-
-  - [#9451](https://github.com/leanprover/lean4/pull/9451) adds support in the `mintro` tactic for introducing `let`/`have`
-    binders in stateful targets, akin to `intro`. This is useful when
-    specifications introduce such let bindings.
-
-  - [#9454](https://github.com/leanprover/lean4/pull/9454) introduces tactic `mleave` that leaves the `SPred` proof mode by
-    eta expanding through its abstractions and applying some mild
-    simplifications. This is useful to apply automation such as `grind`
-    afterwards.
-
-  - [#9736](https://github.com/leanprover/lean4/pull/9736) implements the option `mvcgen +jp` to employ a slightly lossy VC
-    encoding for join points that prevents exponential VC blowup incurred by
-    naïve splitting on control flow.
-
-  - [#9755](https://github.com/leanprover/lean4/pull/9755) implements a `mrevert ∀n` tactic that "eta-reduces" the stateful
-    goal and is adjoint to `mintro ∀x1 ... ∀xn`.
+  You can try all of these in the [Lean playground](https://live.lean-lang.org/#codez=PQWghAUAxABAEgSwHYBcDOMBmB7ATjZANwEMAbBAExiWIFsBTK43AcwFcHUNkYAHYlCnq4kaCCGAQIyCmwDGKBIXowAKjADuAC2H0IMGAB8YtANYBGGAAoAHjACeMAF4wAXDABC2bKQCUU+hs6XlIVKxQ3NV83AF59EwE5LRgIjQQULXjjADozSytHVxiU3DZ6aKsNWJKyipcirDI0cpgYgD5rfylQSFhELiw8GDliZuo6ejEJAKDaELCAI0ivH2j3ADkBaoX7eJHmjAW90ZUkbCRAhDQhVFa2+IM0UwRebvBoeGR0QfxaK7RkCwYNdSgo2LgVMhrsQkHIVJgEPRSBQppIICD5ChwSoAMqaHQQ+IIpEUSwbARExHIgBMkQAavQFENNhFicjzDNgqFIniivEAN4AXwgQA).
 
 ### Breaking Changes
 
 - [#9800](https://github.com/leanprover/lean4/pull/9800) improves the delta deriving handler, giving it the ability to
   process definitions with binders, as well as the ability to recursively
-  unfold definitions. Furthermore, delta deriving now tries all explicit
-  non-out-param arguments to a class, and it can handle "mixin" instance
-  arguments. The `deriving` syntax has been changed to accept general
-  terms, which makes it possible to derive specific instances with for
-  example `deriving OfNat _ 1` or `deriving Module R`. The class is
-  allowed to be a pi type, to add additional hypotheses; here is a Mathlib
-  example:
-
-  ```lean
-  def Sym (α : Type*) (n : ℕ) :=
-    { s : Multiset α // Multiset.card s = n }
-  deriving [DecidableEq α] → DecidableEq _
-  ```
-
-  This underscore stands for where `Sym α n` may be inserted, which is
-  necessary when `→` is used. The `deriving instance` command can refer to
-  scoped variables when delta deriving as well. **Breaking change**: the
+  unfold definitions. **Breaking change**: the
   derived instance's name uses the `instance` command's name generator,
   and the new instance is added to the current namespace.
 
