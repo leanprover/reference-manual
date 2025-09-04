@@ -29,6 +29,7 @@ import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
 import Manual.ModuleSystem
+import Manual.Order.Test
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
