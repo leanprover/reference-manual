@@ -142,6 +142,8 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.Releases}
 
+{include 0 Manual.Order.Test}
+
 # Index
 %%%
 number := false
