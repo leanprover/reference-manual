@@ -15,9 +15,9 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
-#doc (Manual) "Order typeclasses" =>
+#doc (Manual) "Iterators and Ranges" =>
 %%%
-tag := "order"
+tag := "iterators"
 %%%
 
 Lorem ipsum
