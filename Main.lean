@@ -12,13 +12,8 @@ open Verso.Genre.Manual.InlineLean
 
 open Verso.Output.Html in
 def plausible := {{
-    <script defer="defer" data-domain="lean-lang.org/doc/reference/latest" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
-
-open Verso.Output.Html in
-def scarfPixel := {{
-  <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=11415071-5949-444a-8c93-ef0905bcd026" />
-}}
 
 def main :=
   manualMain (%doc Manual) (config := config)
@@ -39,7 +34,6 @@ where
       {filename := "/static/print.js"}
     ],
     extraHead := #[plausible],
-    extraContents := #[scarfPixel],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
