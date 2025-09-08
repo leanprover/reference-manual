@@ -110,7 +110,7 @@ Nevertheless, multi-threaded code requires that reference count updates are sync
 To reduce this overhead, Lean values are partitioned into those which are reachable from multiple threads and those which are not.
 Single-threaded reference counts can be updated much faster than multi-threaded reference counts, and many values are accessed only on a single thread.
 Together, these techniques greatly reduce the performance overhead of reference counting.
-Because Lean cannot create cyclic data, no technique is needed to detect it.
+The verifiable fragment of Lean cannot create cyclic data anyways, so the Lean runtime does not have a technique to detect it.
 {citet countingBeans}[] provide more details on the implementation of reference counting in Lean.
 
 ## Observing Uniqueness
