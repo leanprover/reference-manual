@@ -140,7 +140,7 @@ macro_rules
 #eval doubled 5
 
 /--
-error: elaboration function for 'termDoubled_' has not been implemented
+error: elaboration function for `termDoubled_` has not been implemented
   doubled (5 + 2)
 -/
 #check_msgs in
@@ -304,7 +304,7 @@ example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $c
 info: do
   let _ ← Lean.MonadRef.mkInfoFromRefPos
   let _ ← Lean.getCurrMacroScope
-  let _ ← Lean.getMainModule
+  let _ ← Lean.MonadQuotation.getContext
   pure { raw := { raw := Syntax.missing }.raw } : MacroM (Lean.TSyntax `term)
 -/
 #check_msgs in
@@ -313,7 +313,7 @@ info: do
 info: do
   let info ← Lean.MonadRef.mkInfoFromRefPos
   let _ ← Lean.getCurrMacroScope
-  let _ ← Lean.getMainModule
+  let _ ← Lean.MonadQuotation.getContext
   pure
       {
         raw :=
@@ -326,7 +326,7 @@ info: do
 info: do
   let info ← Lean.MonadRef.mkInfoFromRefPos
   let _ ← Lean.getCurrMacroScope
-  let _ ← Lean.getMainModule
+  let _ ← Lean.MonadQuotation.getContext
   pure
       {
         raw :=
@@ -340,7 +340,7 @@ info: do
 info: do
   let _ ← Lean.MonadRef.mkInfoFromRefPos
   let _ ← Lean.getCurrMacroScope
-  let _ ← Lean.getMainModule
+  let _ ← Lean.MonadQuotation.getContext
   pure { raw := { raw := Syntax.missing }.raw } : MacroM (Lean.TSyntax `tactic)
 -/
 #check_msgs in
@@ -350,7 +350,7 @@ info: do
 info: do
   let info ← Lean.MonadRef.mkInfoFromRefPos
   let _ ← Lean.getCurrMacroScope
-  let _ ← Lean.getMainModule
+  let _ ← Lean.MonadQuotation.getContext
   pure
       {
         raw :=
@@ -538,18 +538,18 @@ def f : {m : Type → Type} → [Monad m] → [Lean.MonadQuotation m] → Lean.T
 fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
   let info ← Lean.MonadRef.mkInfoFromRefPos
   let scp ← Lean.getCurrMacroScope
-  let mainModule ← Lean.getMainModule
+  let quotCtx ← Lean.MonadQuotation.getContext
   pure
       {
           raw :=
             Syntax.node2 info `Lean.Parser.Term.fun (Syntax.atom info "fun")
               (Syntax.node4 info `Lean.Parser.Term.basicFun
-                (Syntax.node1 info `null (Syntax.ident info "k".toSubstring' (Lean.addMacroScope mainModule `k scp) []))
+                (Syntax.node1 info `null (Syntax.ident info "k".toSubstring' (Lean.addMacroScope quotCtx `k scp) []))
                 (Syntax.node info `null #[]) (Syntax.atom info "=>")
                 (Syntax.node3 info `«term_+_»
                   (Syntax.node3 info `«term_+_» x.raw (Syntax.atom info "+") (Lean.quote `term (n + 2)).raw)
                   (Syntax.atom info "+")
-                  (Syntax.ident info "k".toSubstring' (Lean.addMacroScope mainModule `k scp) []))) }.raw
+                  (Syntax.ident info "k".toSubstring' (Lean.addMacroScope quotCtx `k scp) []))) }.raw
 ```
 
 :::paragraph
@@ -1051,7 +1051,7 @@ The case for {lean}`List Nat` fails to elaborate, because macro expansion did no
 #eval arbitrary! (List Nat)
 ```
 ```leanOutput arb3
-elaboration function for 'arbitrary!' has not been implemented
+elaboration function for `arbitrary!` has not been implemented
   arbitrary! (List Nat)
 ```
 

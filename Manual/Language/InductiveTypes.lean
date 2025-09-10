@@ -271,7 +271,7 @@ The provided argument
 is not definitionally equal to the expected parameter
   α✝
 
-Note: The value of parameter 'α✝' must be fixed throughout the inductive declaration. Consider making this parameter an index if it must vary.
+Note: The value of parameter `α✝` must be fixed throughout the inductive declaration. Consider making this parameter an index if it must vary.
 ```
 
 Placing the parameters after the colon results in parameters that can be instantiated by the constructors:

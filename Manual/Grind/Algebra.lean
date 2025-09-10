@@ -284,8 +284,6 @@ h_2 : ¬y * x = 1
   [eqc] False propositions
   [eqc] Equivalence classes
   [linarith] Linarith assignment for `α`
-
-[grind] Issues
 ```
 
 ### Right-Cancellative Addition

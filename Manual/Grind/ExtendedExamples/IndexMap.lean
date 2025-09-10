@@ -299,12 +299,12 @@ inst_1 : Hashable α
 m : IndexMap α β
 a : α
 h : a ∈ m
-h_1 : m.size ≤ (indices m)[a]
+h_1 : m.size ≤ m.indices[a]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
     [prop] a ∈ m
-    [prop] m.size ≤ (indices m)[a]
+    [prop] m.size ≤ m.indices[a]
   [eqc] True propositions
   [eqc] Equivalence classes
   [ematch] E-matching patterns
@@ -495,23 +495,23 @@ inst_3 : LawfulHashable α
 m_1 : IndexMap α β
 a_1 : α
 i_1 : Nat
-h : (indices m_1)[a_1]? = some i_1
+h : m_1.indices[a_1]? = some i_1
 w : ¬i_1 = m_1.size - 1
 i_2 : Nat
 a_2 : α
-h_1 : (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-  ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-h_2 : -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0
-left : ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2
-right : ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
+h_1 : ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+  ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
+h_2 : -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
+left : (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
+right : ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
 h_4 : ¬i_1 = i_2
-left_1 : ¬(keys m_1)[i_2]? = some a_1
-right_1 : ¬(indices m_1)[a_1]? = some i_2
-h_6 : ((keys m_1).back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ (keys m_1).pop.size
-left_2 : ((indices m_1).erase a_1).contains a_2 = true
-right_2 : a_2 ∈ (indices m_1).erase a_1
-h_9 : 0 = (indices m_1)[a_1]
+left_1 : ¬m_1.keys[i_2]? = some a_1
+right_1 : ¬m_1.indices[a_1]? = some i_2
+h_6 : (m_1.keys.back ⋯ == a_2) = true
+h_7 : i_1 + 1 ≤ m_1.keys.pop.size
+left_2 : (m_1.indices.erase a_1).contains a_2 = true
+right_2 : a_2 ∈ m_1.indices.erase a_1
+h_9 : 0 = m_1.indices[a_1]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -535,19 +535,19 @@ Let's look at the model produced by `cutsat` and see if we can see what's going 
 [cutsat] Assignment satisfying linear constraints
   [assign] i_1 := 0
   [assign] i_2 := 1
-  [assign] (keys m_1).pop.size := 2
-  [assign] (keys m_1).size := 3
+  [assign] m_1.keys.pop.size := 2
+  [assign] m_1.keys.size := 3
   [assign] m_1.size := 3
-  [assign] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size := 2
-  [assign] (values m_1).size := 3
-  [assign] (indices m_1)[a_1] := 0
-  [assign] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] := 0
-  [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size := 2
-  [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size := 3
-  [assign] (indices m_1)[a_1] := 0
-  [assign] (indices m_1)[a_2] := 1
-  [assign] (indices m_1)[(keys m_1)[i_2]] := 1
-  [assign] (indices m_1)[(keys m_1)[i_2]] := 1
+  [assign] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size := 2
+  [assign] m_1.values.size := 3
+  [assign] m_1.indices[a_1] := 0
+  [assign] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2] := 0
+  [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size := 2
+  [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size := 3
+  [assign] m_1.indices[a_1] := 0
+  [assign] m_1.indices[a_2] := 1
+  [assign] m_1.indices[m_1.keys[i_2]] := 1
+  [assign] m_1.indices[m_1.keys[i_2]] := 1
 ```
 
 

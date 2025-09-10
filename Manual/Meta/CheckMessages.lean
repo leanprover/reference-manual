@@ -38,7 +38,7 @@ def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
         |>.trim |> removeTrailingWhitespaceMarker
-    let (whitespace, ordering, specFn) ← parseGuardMsgsSpec spec?
+    let {whitespace, ordering, filterFn, ..} ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
     withReader ({ · with snap? := none }) do
@@ -54,7 +54,7 @@ def elabCheckMsgs : CommandElab
     for msg in msgs.toList do
       if msg.isSilent then
         continue
-      match specFn msg with
+      match filterFn msg with
       | .check => toCheck := toCheck.add msg
       | .drop => pure ()
       | .pass => toPassthrough := toPassthrough.add msg

@@ -352,7 +352,7 @@ theorem p_all : ∀ n, p n := by
 ```
 Because the spurious assumption {lean}`pFifteen` was inserted, Lean issues a warning:
 ```leanOutput lint
-automatically included section variable(s) unused in theorem 'p_all':
+automatically included section variable(s) unused in theorem `p_all`:
   pFifteen
 consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
   omit pFifteen in theorem ...

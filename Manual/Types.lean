@@ -461,10 +461,10 @@ def map {α : Type u} {β : Type v} (f : α → β) : List α → List β
   | x :: xs => f x :: map f xs
 ```
 ```leanOutput uv
-unknown universe level 'u'
+unknown universe level `u`
 ```
 ```leanOutput uv
-unknown universe level 'u'
+unknown universe level `v`
 ```
 :::
 
@@ -502,7 +502,7 @@ set_option autoImplicit true
 def L := List (Type u)
 ```
 ```leanOutput unknownUni
-unknown universe level 'u'
+unknown universe level `u`
 ```
 With a universe declaration, `u` is accepted as a parameter even on the right-hand side:
 ```lean -keep

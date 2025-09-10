@@ -438,8 +438,8 @@ However, uses of `g` do require it to be solved, and fail to elaborate if there 
 example := g
 ```
 ```leanOutput noAlpha
-don't know how to synthesize implicit argument 'α'
-  @g ?m.6
+don't know how to synthesize implicit argument `α`
+  @g ?m.3
 context:
 ⊢ Type
 ```

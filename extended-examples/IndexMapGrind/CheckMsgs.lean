@@ -63,7 +63,7 @@ def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $[(maxDiff := $maxDiff % )]? $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
         |>.trim |> removeTrailingWhitespaceMarker
-    let (whitespace, ordering, specFn) ← parseGuardMsgsSpec spec?
+    let {whitespace, ordering, filterFn, .. } ← parseGuardMsgsSpec spec?
     let maxDiff? := maxDiff.map (·.getNat)
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
@@ -78,7 +78,7 @@ def elabCheckMsgs : CommandElab
     let mut toCheck : MessageLog := .empty
     let mut toPassthrough : MessageLog := .empty
     for msg in msgs.toList do
-      match specFn msg with
+      match filterFn msg with
       | .check => toCheck := toCheck.add msg
       | .drop => pure ()
       | .pass => toPassthrough := toPassthrough.add msg

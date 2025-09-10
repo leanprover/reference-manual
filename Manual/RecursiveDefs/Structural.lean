@@ -508,7 +508,8 @@ def half : Nat → Nat
 termination_by?
 ```
 ```leanOutput inferStruct
-Try this: termination_by structural x => x
+Try this:
+  termination_by structural x => x
 ```
 :::
 
@@ -681,7 +682,7 @@ def half'' : Nat → Nat :=
 ```
 The three cases' placeholders expect the following types:
 ```leanOutput threeCases
-don't know how to synthesize placeholder for argument 'h_1'
+don't know how to synthesize placeholder for argument `h_1`
 context:
 x n : Nat
 table : Nat.below n
@@ -689,7 +690,7 @@ table : Nat.below n
 ```
 
 ```leanOutput threeCases
-don't know how to synthesize placeholder for argument 'h_2'
+don't know how to synthesize placeholder for argument `h_2`
 context:
 x n : Nat
 table : Nat.below n
@@ -697,7 +698,7 @@ table : Nat.below n
 ```
 
 ```leanOutput threeCases
-don't know how to synthesize placeholder for argument 'h_3'
+don't know how to synthesize placeholder for argument `h_3`
 context:
 x n : Nat
 table : Nat.below n
