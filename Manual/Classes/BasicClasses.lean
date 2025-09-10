@@ -303,6 +303,8 @@ draft := true
 
 {docstring HMul}
 
+{docstring SMul}
+
 {docstring Mul}
 
 {docstring HDiv}

@@ -763,6 +763,39 @@ def checkTomlArrayWithName (α : Name → Type) [(n : Name) → Inhabited (α n)
     .ok <$> report (out : α name) errs
 
 
+-- TODO this became private upstream, so it's been copied to fix the build.
+-- Negotiate a public API.
+open Lake Toml in
+private def decodeTargetDecls
+  (pkg : Name) (t : Table)
+: DecodeM (Array (PConfigDecl pkg) × DNameMap (NConfigDecl pkg)) := do
+  let r := (#[], {})
+  let r ← go r LeanLib.keyword LeanLib.configKind LeanLibConfig.decodeToml
+  let r ← go r LeanExe.keyword LeanExe.configKind LeanExeConfig.decodeToml
+  let r ← go r InputFile.keyword InputFile.configKind InputFileConfig.decodeToml
+  let r ← go r InputDir.keyword InputDir.configKind InputDirConfig.decodeToml
+  return r
+where
+  go r kw kind (decode : {n : Name} → Table → DecodeM (ConfigType kind pkg n)) := do
+    let some tableArrayVal := t.find? kw | return r
+    let some vals ← tryDecode? tableArrayVal.decodeValueArray | return r
+    vals.foldlM (init := r) fun r val => do
+      let some t ← tryDecode? val.decodeTable | return r
+      let some name ← tryDecode? <| stringToLegalOrSimpleName <$> t.decode `name
+        | return r
+      let (decls, map) := r
+      if let some orig := map.get? name then
+        modify fun es => es.push <| .mk val.ref s!"\
+          {pkg}: target '{name}' was already defined as a '{orig.kind}', \
+          but then redefined as a '{kind}'"
+        return (decls, map)
+      else
+        let config ← @decode name t
+        let decl : NConfigDecl pkg name :=
+          -- Safety: By definition, config kind = facet kind for declarative configurations.
+          unsafe {pkg, name, kind, config, wf_data := lcProof}
+        return (decls.push decl.toPConfigDecl, map.insert name decl)
+
 open Lean.Parser in
 open Lake Toml in
 def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String String) := do

@@ -445,7 +445,7 @@ I (Joachim) wanted to include a good example where recursive calls are nested in
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
 
 
-:::tactic "decreasing_tactic" (replace := true)
+:::tactic "decreasing_tactic" +replace
 
 The tactic {tactic}`decreasing_tactic` mainly deals with lexicographic ordering of tuples, applying {name}`Prod.Lex.right` if the left components of the product are {tech (key := "definitional equality")}[definitionally equal], and {name}`Prod.Lex.left` otherwise.
 After preprocessing tuples this way, it calls the {tactic}`decreasing_trivial` tactic.
@@ -607,7 +607,8 @@ where
 
 The fact that the inferred termination argument uses some arbitrary measure, rather than an optimal or minimal one, is visible in the inferred measure, which contains a redundant `j`:
 ```leanOutput binarySearch
-Try this: termination_by (j, j - i)
+Try this:
+  termination_by (j, j - i)
 ```
 
 :::
@@ -703,12 +704,14 @@ end
 
 The inferred termination argument for {lean}`f` is:
 ```leanOutput fg
-Try this: termination_by n => (n, 0)
+Try this:
+  termination_by (n, 1)
 ```
 
 The inferred termination argument for {lean}`g` is:
 ```leanOutput fg
-Try this: termination_by (n, 1)
+Try this:
+  termination_by (n, 1)
 ```
 
 :::

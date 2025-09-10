@@ -514,7 +514,7 @@ It is an error to declare a syntax rule in a nonexistent category.
 
 ```lean -show
 -- verify preceding para
-/-- error: unknown category 'nuhUh' -/
+/-- error: unknown category `nuhUh` -/
 #check_msgs in
 syntax "blah" : nuhUh
 ```
@@ -664,21 +664,21 @@ syntax (name := termBalanced) "balanced " balanced : term
 These terms cannot be elaborated, but reaching an elaboration error indicates that parsing succeeded:
 ```lean
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced ()
 -/
 #guard_msgs in
 example := balanced ()
 
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced []
 -/
 #guard_msgs in
 example := balanced []
 
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced [[]()([])]
 -/
 #guard_msgs in
@@ -767,7 +767,7 @@ There is no elaborator or macro associated with this syntax, but the following e
     ◦ "Two"
 ```
 ```leanOutput noteEx1
-elaboration function for '«termNote__◦__»' has not been implemented
+elaboration function for `«termNote__◦__»` has not been implemented
   note
     ◦ "One"
     ◦ "Two"
@@ -782,10 +782,11 @@ The syntax does not require that the list is indented with respect to the openin
 ◦ "Two"
 ```
 ```leanOutput noteEx15
-elaboration function for '«termNote__◦__»' has not been implemented
+elaboration function for `«termNote__◦__»` has not been implemented
   note
     ◦ "One"
     ◦ "Two"
+
 ```
 
 

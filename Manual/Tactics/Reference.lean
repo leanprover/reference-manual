@@ -196,7 +196,7 @@ tag := "tactic-ref-goals"
 :::tactic "suffices"
 :::
 
-:::tactic "change"
+:::tactic Lean.Parser.Tactic.change
 :::
 
 :::tactic Lean.Parser.Tactic.changeWith (show := "change ... with ...")
@@ -491,7 +491,8 @@ h2 : j < k
 invoking {tacticStep}`apply?` suggests:
 
 ```tacticOutput
-Try this: exact Nat.lt_trans h1 h2
+Try this:
+  exact Nat.lt_trans h1 h2
 ```
 
 ```post -show

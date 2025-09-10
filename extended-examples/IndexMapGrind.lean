@@ -79,14 +79,14 @@ inst_1 : Hashable α
 m : IndexMap α β
 a : α
 h : a ∈ m
-h_1 : m.size ≤ (indices m)[a]
+h_1 : m.size ≤ m.indices[a]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
     [prop] a ∈ m
-    [prop] m.size ≤ (indices m)[a]
+    [prop] m.size ≤ m.indices[a]
   [eqc] True propositions
-    [prop] m.size ≤ (indices m)[a]
+    [prop] m.size ≤ m.indices[a]
     [prop] a ∈ m
   [eqc] Equivalence classes
     [eqc] {Membership.mem, fun m a => a ∈ m}
@@ -94,7 +94,7 @@ h_1 : m.size ≤ (indices m)[a]
     [thm] HashMap.contains_iff_mem: [@Membership.mem #5 (HashMap _ #4 #3 #2) _ #1 #0]
   [cutsat] Assignment satisfying linear constraints
     [assign] m.size := 0
-    [assign] (indices m)[a] := 0
+    [assign] m.indices[a] := 0
 -/
 #check_msgs in
 -- ANCHOR: getElem_indices_lt_init
@@ -216,436 +216,424 @@ inst_3 : LawfulHashable α
 m_1 : IndexMap α β
 a_1 : α
 i_1 : Nat
-h : (indices m_1)[a_1]? = some i_1
+h : m_1.indices[a_1]? = some i_1
 w : ¬i_1 = m_1.size - 1
 i_2 : Nat
 a_2 : α
 h_1 :
-  (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-    ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-h_2 : -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0
-left : ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2
-right : ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
+  ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+    ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
+h_2 : -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
+left : (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
+right : ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
 h_4 : ¬i_1 = i_2
-left_1 : ¬(keys m_1)[i_2]? = some a_1
-right_1 : ¬(indices m_1)[a_1]? = some i_2
-h_6 : ((keys m_1).back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ (keys m_1).pop.size
-left_2 : ((indices m_1).erase a_1).contains a_2 = true
-right_2 : a_2 ∈ (indices m_1).erase a_1
-h_9 : 0 = (indices m_1)[a_1]
+left_1 : ¬m_1.keys[i_2]? = some a_1
+right_1 : ¬m_1.indices[a_1]? = some i_2
+h_6 : (m_1.keys.back ⋯ == a_2) = true
+h_7 : i_1 + 1 ≤ m_1.keys.pop.size
+left_2 : (m_1.indices.erase a_1).contains a_2 = true
+right_2 : a_2 ∈ m_1.indices.erase a_1
+h_9 : 0 = m_1.indices[a_1]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
     [prop] LawfulBEq α
     [prop] LawfulHashable α
-    [prop] (indices m_1)[a_1]? = some i_1
+    [prop] m_1.indices[a_1]? = some i_1
     [prop] ¬i_1 = m_1.size - 1
-    [prop] (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-          ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-    [prop] ¬a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1 →
-          (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = none
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] ¬a_1 ∈ indices m_1 → (indices m_1)[a_1]? = none
-    [prop] ∀ (h_10 : a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1),
-          (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? =
-            some (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]
-    [prop] ∀ (h_10 : i_2 + 1 ≤ ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size),
-          ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? =
-            some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] ∀ (h : a_1 ∈ indices m_1), (indices m_1)[a_1]? = some (indices m_1)[a_1]
-    [prop] ((keys m_1)[i_1]? = some a_1) = ((indices m_1)[a_1]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some a_1) = ((indices m_1)[a_1]? = some i_2)
-    [prop] m_1.size = (values m_1).size
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? =
-          if i_1 = i_2 then some ((keys m_1).back ⋯) else (keys m_1).pop[i_2]?
-    [prop] (keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯ = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop
-    [prop] (keys m_1).back ⋯ = (keys m_1)[(keys m_1).size - 1]
-    [prop] (keys m_1).size = m_1.size
-    [prop] (keys m_1).pop.size = (keys m_1).size - 1
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? =
-          if ((keys m_1).back ⋯ == a_2) = true then some i_1 else ((indices m_1).erase a_1)[a_2]?
-    [prop] (keys m_1).size ≤ i_2 → (keys m_1)[i_2]? = none
-    [prop] (keys m_1).size ≤ i_1 → (keys m_1)[i_1]? = none
-    [prop] ∀ (h : i_2 + 1 ≤ (keys m_1).size), (keys m_1)[i_2]? = some (keys m_1)[i_2]
-    [prop] ∀ (h : i_1 + 1 ≤ (keys m_1).size), (keys m_1)[i_1]? = some (keys m_1)[i_1]
-    [prop] ((indices m_1).contains a_1 = true) = (a_1 ∈ indices m_1)
-    [prop] ((((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2 = true) =
-          (a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some a_1) = ((indices m_1)[a_1]? = some (indices m_1)[a_1])
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop[i_2]? =
-          if i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1 then
-            ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]?
+    [prop] ↑(m_1.size - 1) = if -1 * ↑m_1.size + 1 ≤ 0 then ↑m_1.size + -1 else 0
+    [prop] ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+          ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
+    [prop] ¬a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1 →
+          ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = none
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 →
+          (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] ¬a_1 ∈ m_1.indices → m_1.indices[a_1]? = none
+    [prop] ∀ (h_10 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
+          ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
+            some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]
+    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
+          (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] ∀ (h : a_1 ∈ m_1.indices), m_1.indices[a_1]? = some m_1.indices[a_1]
+    [prop] (m_1.keys[i_1]? = some a_1) = (m_1.indices[a_1]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some a_1) = (m_1.indices[a_1]? = some i_2)
+    [prop] m_1.size = m_1.values.size
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? =
+          if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys.pop[i_2]?
+    [prop] m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
+    [prop] m_1.keys.back ⋯ = m_1.keys[m_1.keys.size - 1]
+    [prop] ↑(m_1.keys.size - 1) = if -1 * ↑m_1.keys.size + 1 ≤ 0 then ↑m_1.keys.size + -1 else 0
+    [prop] m_1.keys.size = m_1.size
+    [prop] m_1.keys.pop.size = m_1.keys.size - 1
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
+          if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?
+    [prop] m_1.keys.size ≤ i_2 → m_1.keys[i_2]? = none
+    [prop] m_1.keys.size ≤ i_1 → m_1.keys[i_1]? = none
+    [prop] ∀ (h : i_2 + 1 ≤ m_1.keys.size), m_1.keys[i_2]? = some m_1.keys[i_2]
+    [prop] ∀ (h : i_1 + 1 ≤ m_1.keys.size), m_1.keys[i_1]? = some m_1.keys[i_1]
+    [prop] (m_1.indices.contains a_1 = true) = (a_1 ∈ m_1.indices)
+    [prop] (((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2 = true) =
+          (a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[a_1])
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2]? =
+          if i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1 then (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?
           else none
-    [prop] ∀ (h_10 : i_1 + 1 ≤ (keys m_1).pop.size),
-          (keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯ = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop
-    [prop] ((keys m_1)[i_2]? = some a_2) = ((indices m_1)[a_2]? = some i_2)
-    [prop] ((keys m_1)[i_1]? = some a_2) = ((indices m_1)[a_2]? = some i_1)
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] (keys m_1).size ≤ i_2 → (keys m_1)[i_2]? = none
-    [prop] (keys m_1).size ≤ i_1 → (keys m_1)[i_1]? = none
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size = (keys m_1).pop.size
-    [prop] (a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1) =
-          ((keys m_1).back ⋯ = a_2 ∨ a_2 ∈ (indices m_1).erase a_1)
-    [prop] ∀ (h : a_1 ∈ m_1), (indices m_1)[a_1] + 1 ≤ m_1.size
-    [prop] ¬a_2 ∈ indices m_1 → (indices m_1)[a_2]? = none
-    [prop] ∀ (h : a_2 ∈ indices m_1), (indices m_1)[a_2]? = some (indices m_1)[a_2]
-    [prop] (((indices m_1).erase a_1).contains a_2 = true) = (a_2 ∈ (indices m_1).erase a_1)
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some a_2) = ((indices m_1)[a_2]? = some (indices m_1)[a_1])
-    [prop] ((keys m_1)[i_1]? = some (keys m_1)[i_1]) = ((indices m_1)[(keys m_1)[i_1]]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some (keys m_1)[i_1]) = ((indices m_1)[(keys m_1)[i_1]]? = some i_2)
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size = (keys m_1).size
-    [prop] (a_2 ∈ (indices m_1).erase a_1) = ((a_1 == a_2) = false ∧ a_2 ∈ indices m_1)
-    [prop] ((((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2 = true) =
-          ((keys m_1).back ⋯ = a_2 ∨ ((indices m_1).erase a_1).contains a_2 = true)
-    [prop] (a_1 ∈ m_1) = (a_1 ∈ indices m_1)
-    [prop] ((indices m_1).contains a_2 = true) = (a_2 ∈ indices m_1)
-    [prop] (((indices m_1).erase a_1).contains a_2 = true) = ((!a_1 == a_2) = true ∧ (indices m_1).contains a_2 = true)
-    [prop] -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2
-    [prop] ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size),
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? =
-          if i_1 = i_2 then some ((keys m_1).back ⋯) else (keys m_1)[i_2]?
-    [prop] ((keys m_1)[i_1]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]) =
-          ((indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]) =
-          ((indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_2)
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2] =
-          if i_1 = i_2 then (keys m_1).back ⋯ else (keys m_1).pop[i_2]
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop[i_2] = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] ((keys m_1)[i_1]? = some (keys m_1)[i_2]) = ((indices m_1)[(keys m_1)[i_2]]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some (keys m_1)[i_2]) = ((indices m_1)[(keys m_1)[i_2]]? = some i_2)
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2] = if i_1 = i_2 then (keys m_1).back ⋯ else (keys m_1)[i_2]
-    [prop] ¬(keys m_1)[i_2] ∈ indices m_1 → (indices m_1)[(keys m_1)[i_2]]? = none
-    [prop] ∀ (h_10 : (keys m_1)[i_2] ∈ indices m_1),
-          (indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[(keys m_1)[i_2]]
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some (keys m_1)[i_2]) =
-          ((indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[a_1])
-    [prop] ((indices m_1).contains (keys m_1)[i_2] = true) = ((keys m_1)[i_2] ∈ indices m_1)
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some (keys m_1)[i_2]) =
-          ((indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_2) =
-          ((indices m_1)[a_2]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_1) =
-          ((indices m_1)[a_1]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] ∀ (h_10 : (keys m_1)[i_2] ∈ m_1), (indices m_1)[(keys m_1)[i_2]] + 1 ≤ m_1.size
-    [prop] ((keys m_1)[i_2] ∈ m_1) = ((keys m_1)[i_2] ∈ indices m_1)
+    [prop] ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) =
+          if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
+            ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
+          else 0
+    [prop] ∀ (h_10 : i_1 + 1 ≤ m_1.keys.pop.size),
+          m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
+    [prop] (m_1.keys[i_2]? = some a_2) = (m_1.indices[a_2]? = some i_2)
+    [prop] (m_1.keys[i_1]? = some a_2) = (m_1.indices[a_2]? = some i_1)
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 →
+          (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] m_1.keys.size ≤ i_2 → m_1.keys[i_2]? = none
+    [prop] m_1.keys.size ≤ i_1 → m_1.keys[i_1]? = none
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size = m_1.keys.pop.size
+    [prop] (a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1) =
+          (m_1.keys.back ⋯ = a_2 ∨ a_2 ∈ m_1.indices.erase a_1)
+    [prop] ∀ (h : a_1 ∈ m_1), m_1.indices[a_1] + 1 ≤ m_1.size
+    [prop] ¬a_2 ∈ m_1.indices → m_1.indices[a_2]? = none
+    [prop] ∀ (h : a_2 ∈ m_1.indices), m_1.indices[a_2]? = some m_1.indices[a_2]
+    [prop] ((m_1.indices.erase a_1).contains a_2 = true) = (a_2 ∈ m_1.indices.erase a_1)
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[a_1])
+    [prop] (m_1.keys[i_1]? = some m_1.keys[i_1]) = (m_1.indices[m_1.keys[i_1]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some m_1.keys[i_1]) = (m_1.indices[m_1.keys[i_1]]? = some i_2)
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size = m_1.keys.size
+    [prop] (a_2 ∈ m_1.indices.erase a_1) = ((a_1 == a_2) = false ∧ a_2 ∈ m_1.indices)
+    [prop] (((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2 = true) =
+          (m_1.keys.back ⋯ = a_2 ∨ (m_1.indices.erase a_1).contains a_2 = true)
+    [prop] (a_1 ∈ m_1) = (a_1 ∈ m_1.indices)
+    [prop] (m_1.indices.contains a_2 = true) = (a_2 ∈ m_1.indices)
+    [prop] ((m_1.indices.erase a_1).contains a_2 = true) = ((!a_1 == a_2) = true ∧ m_1.indices.contains a_2 = true)
+    [prop] -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
+    [prop] ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
+          (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys[i_2]?
+    [prop] (m_1.keys[i_1]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
+          (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
+          (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_2)
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2] = if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys.pop[i_2]
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2] = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] (m_1.keys[i_1]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_2)
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2] = if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]
+    [prop] ¬m_1.keys[i_2] ∈ m_1.indices → m_1.indices[m_1.keys[i_2]]? = none
+    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[a_1])
+    [prop] (m_1.indices.contains m_1.keys[i_2] = true) = (m_1.keys[i_2] ∈ m_1.indices)
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some m_1.keys[i_2]) =
+          (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
+    [prop] (m_1.keys[i_2] ∈ m_1) = (m_1.keys[i_2] ∈ m_1.indices)
     [prop] ¬i_1 = i_2
-    [prop] (keys m_1).pop.size ≤ i_2 → (keys m_1).pop[i_2]? = none
-    [prop] ∀ (h : i_2 + 1 ≤ (keys m_1).pop.size), (keys m_1).pop[i_2]? = some (keys m_1).pop[i_2]
-    [prop] (keys m_1).pop[i_2]? = if i_2 + 1 ≤ (keys m_1).size - 1 then (keys m_1)[i_2]? else none
-    [prop] (keys m_1).pop.size ≤ i_2 → (keys m_1).pop[i_2]? = none
-    [prop] (keys m_1).pop[i_2] = (keys m_1)[i_2]
-    [prop] ¬(keys m_1)[i_2]? = some a_1
-    [prop] ¬(indices m_1)[a_1]? = some i_2
-    [prop] ((keys m_1).back ⋯ == a_2) = true
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] =
-          if h₂ : ((keys m_1).back ⋯ == a_2) = true then i_1 else ((indices m_1).erase a_1)[a_2]
-    [prop] i_1 + 1 ≤ (keys m_1).pop.size
-    [prop] ((indices m_1).erase a_1).contains a_2 = true
-    [prop] a_2 ∈ (indices m_1).erase a_1
-    [prop] 0 = (indices m_1)[a_1]
+    [prop] m_1.keys.pop.size ≤ i_2 → m_1.keys.pop[i_2]? = none
+    [prop] ∀ (h : i_2 + 1 ≤ m_1.keys.pop.size), m_1.keys.pop[i_2]? = some m_1.keys.pop[i_2]
+    [prop] m_1.keys.pop[i_2]? = if i_2 + 1 ≤ m_1.keys.size - 1 then m_1.keys[i_2]? else none
+    [prop] m_1.keys.pop.size ≤ i_2 → m_1.keys.pop[i_2]? = none
+    [prop] m_1.keys.pop[i_2] = m_1.keys[i_2]
+    [prop] ¬m_1.keys[i_2]? = some a_1
+    [prop] ¬m_1.indices[a_1]? = some i_2
+    [prop] (m_1.keys.back ⋯ == a_2) = true
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2] =
+          if h₂ : (m_1.keys.back ⋯ == a_2) = true then i_1 else (m_1.indices.erase a_1)[a_2]
+    [prop] i_1 + 1 ≤ m_1.keys.pop.size
+    [prop] (m_1.indices.erase a_1).contains a_2 = true
+    [prop] a_2 ∈ m_1.indices.erase a_1
+    [prop] 0 = m_1.indices[a_1]
   [eqc] True propositions
-    [prop] ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
+    [prop] ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
     [prop] LawfulBEq α
-    [prop] (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-          ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-    [prop] 0 = (indices m_1)[a_1]
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2
+    [prop] ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+          ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
+    [prop] 0 = m_1.indices[a_1]
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
     [prop] LawfulHashable α
-    [prop] -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0
-    [prop] -1 * ↑(keys m_1).size + 1 ≤ 0
+    [prop] -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
+    [prop] -1 * ↑m_1.keys.size + 1 ≤ 0
     [prop] -1 * ↑m_1.size + 1 ≤ 0
-    [prop] i_1 < (keys m_1).pop.size
-    [prop] 0 < (keys m_1).size
-    [prop] ((keys m_1)[i_1]? = some a_1) = ((indices m_1)[a_1]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some a_1) = ((indices m_1)[a_1]? = some i_2)
-    [prop] ((keys m_1).back ⋯ == a_2) = true
-    [prop] (indices m_1)[a_1]? = some i_1
-    [prop] (indices m_1)[a_1]? = some (indices m_1)[a_1]
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? =
-          some (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? =
-          some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] (keys m_1)[i_1]? = some a_1
-    [prop] i_2 + 1 ≤ ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size
-    [prop] i_1 < (keys m_1).size
-    [prop] i_2 < ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size
-    [prop] (keys m_1).size - 1 < (keys m_1).size
-    [prop] a_1 ∈ indices m_1
-    [prop] a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1
-    [prop] ¬a_1 ∈ indices m_1 → (indices m_1)[a_1]? = none
-    [prop] ¬a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1 →
-          (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = none
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size),
-          ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? =
-            some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] ∀ (h : a_1 ∈ indices m_1), (indices m_1)[a_1]? = some (indices m_1)[a_1]
-    [prop] ∀ (h_10 : a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1),
-          (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? =
-            some (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]
-    [prop] (keys m_1).back ⋯ = a_2 ∨ a_2 ∈ (indices m_1).erase a_1
-    [prop] ((indices m_1).contains a_1 = true) = (a_1 ∈ indices m_1)
-    [prop] ((((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2 = true) =
-          (a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)
-    [prop] ((keys m_1)[i_1]? = some a_2) = ((indices m_1)[a_2]? = some i_1)
-    [prop] ((keys m_1)[i_1]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]) =
-          ((indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some a_2) = ((indices m_1)[a_2]? = some i_2)
-    [prop] ((keys m_1)[i_2]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]) =
-          ((indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_2)
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some a_1) = ((indices m_1)[a_1]? = some (indices m_1)[a_1])
-    [prop] (a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1) =
-          ((keys m_1).back ⋯ = a_2 ∨ a_2 ∈ (indices m_1).erase a_1)
-    [prop] (indices m_1).contains a_1 = true
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2 = true
-    [prop] (indices m_1)[a_2]? = some i_2
-    [prop] (indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_2
-    [prop] (keys m_1).back ⋯ = a_2
-    [prop] (keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯ = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop
-    [prop] (keys m_1).pop[i_2]? = some (keys m_1).pop[i_2]
-    [prop] (keys m_1)[i_1]? = some (keys m_1)[i_1]
-    [prop] (keys m_1)[i_2]? = some a_2
-    [prop] (keys m_1)[i_2]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] (keys m_1)[i_2]? = some (keys m_1)[i_2]
-    [prop] (keys m_1)[(indices m_1)[a_1]]? = some a_1
-    [prop] i_1 + 1 ≤ (keys m_1).pop.size
-    [prop] i_1 + 1 ≤ (keys m_1).size
-    [prop] i_2 + 1 ≤ (keys m_1).pop.size
-    [prop] i_2 + 1 ≤ (keys m_1).size
-    [prop] i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1
-    [prop] i_2 + 1 ≤ (keys m_1).size - 1
-    [prop] (indices m_1)[a_1] + 1 ≤ m_1.size
-    [prop] i_2 < ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size
-    [prop] i_2 < (keys m_1).pop.size
-    [prop] i_2 < (keys m_1).size
-    [prop] a_2 ∈ (indices m_1).erase a_1
+    [prop] i_1 < m_1.keys.pop.size
+    [prop] 0 < m_1.keys.size
+    [prop] (m_1.keys[i_1]? = some a_1) = (m_1.indices[a_1]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some a_1) = (m_1.indices[a_1]? = some i_2)
+    [prop] (m_1.keys.back ⋯ == a_2) = true
+    [prop] m_1.indices[a_1]? = some i_1
+    [prop] m_1.indices[a_1]? = some m_1.indices[a_1]
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
+          some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] m_1.keys[i_1]? = some a_1
+    [prop] i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size
+    [prop] i_1 < m_1.keys.size
+    [prop] i_2 < (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size
+    [prop] m_1.keys.size - 1 < m_1.keys.size
+    [prop] a_1 ∈ m_1.indices
+    [prop] a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1
+    [prop] ¬a_1 ∈ m_1.indices → m_1.indices[a_1]? = none
+    [prop] ¬a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1 →
+          ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = none
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 →
+          (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
+          (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] ∀ (h : a_1 ∈ m_1.indices), m_1.indices[a_1]? = some m_1.indices[a_1]
+    [prop] ∀ (h_10 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
+          ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
+            some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]
+    [prop] m_1.keys.back ⋯ = a_2 ∨ a_2 ∈ m_1.indices.erase a_1
+    [prop] (m_1.indices.contains a_1 = true) = (a_1 ∈ m_1.indices)
+    [prop] (((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2 = true) =
+          (a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)
+    [prop] (m_1.keys[i_1]? = some a_2) = (m_1.indices[a_2]? = some i_1)
+    [prop] (m_1.keys[i_1]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
+          (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some a_2) = (m_1.indices[a_2]? = some i_2)
+    [prop] (m_1.keys[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
+          (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_2)
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[a_1])
+    [prop] (a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1) =
+          (m_1.keys.back ⋯ = a_2 ∨ a_2 ∈ m_1.indices.erase a_1)
+    [prop] m_1.indices.contains a_1 = true
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2 = true
+    [prop] m_1.indices[a_2]? = some i_2
+    [prop] m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_2
+    [prop] m_1.keys.back ⋯ = a_2
+    [prop] m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
+    [prop] m_1.keys.pop[i_2]? = some m_1.keys.pop[i_2]
+    [prop] m_1.keys[i_1]? = some m_1.keys[i_1]
+    [prop] m_1.keys[i_2]? = some a_2
+    [prop] m_1.keys[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] m_1.keys[i_2]? = some m_1.keys[i_2]
+    [prop] m_1.keys[m_1.indices[a_1]]? = some a_1
+    [prop] i_1 + 1 ≤ m_1.keys.pop.size
+    [prop] i_1 + 1 ≤ m_1.keys.size
+    [prop] i_2 + 1 ≤ m_1.keys.pop.size
+    [prop] i_2 + 1 ≤ m_1.keys.size
+    [prop] i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1
+    [prop] i_2 + 1 ≤ m_1.keys.size - 1
+    [prop] m_1.indices[a_1] + 1 ≤ m_1.size
+    [prop] i_2 < (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size
+    [prop] i_2 < m_1.keys.pop.size
+    [prop] i_2 < m_1.keys.size
+    [prop] a_2 ∈ m_1.indices.erase a_1
     [prop] a_1 ∈ m_1
-    [prop] (keys m_1).pop.size ≤ i_2 → (keys m_1).pop[i_2]? = none
-    [prop] (keys m_1).size ≤ i_1 → (keys m_1)[i_1]? = none
-    [prop] (keys m_1).size ≤ i_2 → (keys m_1)[i_2]? = none
-    [prop] ∀ (h_10 : i_1 + 1 ≤ (keys m_1).pop.size),
-          (keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯ = ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop
-    [prop] ∀ (h : i_1 + 1 ≤ (keys m_1).size), (keys m_1)[i_1]? = some (keys m_1)[i_1]
-    [prop] ∀ (h : i_2 + 1 ≤ (keys m_1).pop.size), (keys m_1).pop[i_2]? = some (keys m_1).pop[i_2]
-    [prop] ∀ (h : i_2 + 1 ≤ (keys m_1).size), (keys m_1)[i_2]? = some (keys m_1)[i_2]
-    [prop] ∀ (h : a_1 ∈ m_1), (indices m_1)[a_1] + 1 ≤ m_1.size
-    [prop] (a_1 == a_2) = false ∧ a_2 ∈ indices m_1
-    [prop] (keys m_1).back ⋯ = a_2 ∨ ((indices m_1).erase a_1).contains a_2 = true
-    [prop] (((indices m_1).erase a_1).contains a_2 = true) = (a_2 ∈ (indices m_1).erase a_1)
-    [prop] ((((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2 = true) =
-          ((keys m_1).back ⋯ = a_2 ∨ ((indices m_1).erase a_1).contains a_2 = true)
-    [prop] ((keys m_1)[i_1]? = some (keys m_1)[i_1]) = ((indices m_1)[(keys m_1)[i_1]]? = some i_1)
-    [prop] ((keys m_1)[i_1]? = some (keys m_1)[i_2]) = ((indices m_1)[(keys m_1)[i_2]]? = some i_1)
-    [prop] ((keys m_1)[i_2]? = some (keys m_1)[i_1]) = ((indices m_1)[(keys m_1)[i_1]]? = some i_2)
-    [prop] ((keys m_1)[i_2]? = some (keys m_1)[i_2]) = ((indices m_1)[(keys m_1)[i_2]]? = some i_2)
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some a_2) = ((indices m_1)[a_2]? = some (indices m_1)[a_1])
-    [prop] (a_2 ∈ (indices m_1).erase a_1) = ((a_1 == a_2) = false ∧ a_2 ∈ indices m_1)
-    [prop] (a_1 ∈ m_1) = (a_1 ∈ indices m_1)
+    [prop] m_1.keys.pop.size ≤ i_2 → m_1.keys.pop[i_2]? = none
+    [prop] m_1.keys.size ≤ i_1 → m_1.keys[i_1]? = none
+    [prop] m_1.keys.size ≤ i_2 → m_1.keys[i_2]? = none
+    [prop] ∀ (h_10 : i_1 + 1 ≤ m_1.keys.pop.size),
+          m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
+    [prop] ∀ (h : i_1 + 1 ≤ m_1.keys.size), m_1.keys[i_1]? = some m_1.keys[i_1]
+    [prop] ∀ (h : i_2 + 1 ≤ m_1.keys.pop.size), m_1.keys.pop[i_2]? = some m_1.keys.pop[i_2]
+    [prop] ∀ (h : i_2 + 1 ≤ m_1.keys.size), m_1.keys[i_2]? = some m_1.keys[i_2]
+    [prop] ∀ (h : a_1 ∈ m_1), m_1.indices[a_1] + 1 ≤ m_1.size
+    [prop] (a_1 == a_2) = false ∧ a_2 ∈ m_1.indices
+    [prop] m_1.keys.back ⋯ = a_2 ∨ (m_1.indices.erase a_1).contains a_2 = true
+    [prop] ((m_1.indices.erase a_1).contains a_2 = true) = (a_2 ∈ m_1.indices.erase a_1)
+    [prop] (((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2 = true) =
+          (m_1.keys.back ⋯ = a_2 ∨ (m_1.indices.erase a_1).contains a_2 = true)
+    [prop] (m_1.keys[i_1]? = some m_1.keys[i_1]) = (m_1.indices[m_1.keys[i_1]]? = some i_1)
+    [prop] (m_1.keys[i_1]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some m_1.keys[i_1]) = (m_1.indices[m_1.keys[i_1]]? = some i_2)
+    [prop] (m_1.keys[i_2]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_2)
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[a_1])
+    [prop] (a_2 ∈ m_1.indices.erase a_1) = ((a_1 == a_2) = false ∧ a_2 ∈ m_1.indices)
+    [prop] (a_1 ∈ m_1) = (a_1 ∈ m_1.indices)
     [prop] (a_1 == a_2) = false
-    [prop] ((indices m_1).erase a_1).contains a_2 = true
-    [prop] (indices m_1)[a_2]? = some (indices m_1)[a_2]
-    [prop] (indices m_1)[(keys m_1)[i_1]]? = some i_1
-    [prop] (indices m_1)[(keys m_1)[i_2]]? = some i_2
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size
-    [prop] i_2 < ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size
-    [prop] a_2 ∈ indices m_1
-    [prop] ¬a_2 ∈ indices m_1 → (indices m_1)[a_2]? = none
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2 →
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size),
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] ∀ (h : a_2 ∈ indices m_1), (indices m_1)[a_2]? = some (indices m_1)[a_2]
-    [prop] (!a_1 == a_2) = true ∧ (indices m_1).contains a_2 = true
-    [prop] ((indices m_1).contains a_2 = true) = (a_2 ∈ indices m_1)
-    [prop] (((indices m_1).erase a_1).contains a_2 = true) = ((!a_1 == a_2) = true ∧ (indices m_1).contains a_2 = true)
-    [prop] ((keys m_1)[(indices m_1)[a_1]]? = some (keys m_1)[i_2]) =
-          ((indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[a_1])
+    [prop] (m_1.indices.erase a_1).contains a_2 = true
+    [prop] m_1.indices[a_2]? = some m_1.indices[a_2]
+    [prop] m_1.indices[m_1.keys[i_1]]? = some i_1
+    [prop] m_1.indices[m_1.keys[i_2]]? = some i_2
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size
+    [prop] i_2 < (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size
+    [prop] a_2 ∈ m_1.indices
+    [prop] ¬a_2 ∈ m_1.indices → m_1.indices[a_2]? = none
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
+          (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] ∀ (h : a_2 ∈ m_1.indices), m_1.indices[a_2]? = some m_1.indices[a_2]
+    [prop] (!a_1 == a_2) = true ∧ m_1.indices.contains a_2 = true
+    [prop] (m_1.indices.contains a_2 = true) = (a_2 ∈ m_1.indices)
+    [prop] ((m_1.indices.erase a_1).contains a_2 = true) = ((!a_1 == a_2) = true ∧ m_1.indices.contains a_2 = true)
+    [prop] (m_1.keys[m_1.indices[a_1]]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[a_1])
     [prop] (!a_1 == a_2) = true
-    [prop] (indices m_1).contains a_2 = true
-    [prop] (indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[(keys m_1)[i_2]]
-    [prop] (keys m_1)[i_2] ∈ indices m_1
-    [prop] ¬(keys m_1)[i_2] ∈ indices m_1 → (indices m_1)[(keys m_1)[i_2]]? = none
-    [prop] ∀ (h_10 : (keys m_1)[i_2] ∈ indices m_1),
-          (indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[(keys m_1)[i_2]]
-    [prop] ((indices m_1).contains (keys m_1)[i_2] = true) = ((keys m_1)[i_2] ∈ indices m_1)
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_1) =
-          ((indices m_1)[a_1]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_2) =
-          ((indices m_1)[a_2]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] ((keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some (keys m_1)[i_2]) =
-          ((indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[(keys m_1)[i_2]])
-    [prop] (indices m_1).contains (keys m_1)[i_2] = true
-    [prop] (indices m_1)[a_2]? = some (indices m_1)[(keys m_1)[i_2]]
-    [prop] (keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_2
-    [prop] (keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some (keys m_1)[i_2]
-    [prop] (indices m_1)[(keys m_1)[i_2]] + 1 ≤ m_1.size
-    [prop] (keys m_1)[i_2] ∈ m_1
-    [prop] ∀ (h_10 : (keys m_1)[i_2] ∈ m_1), (indices m_1)[(keys m_1)[i_2]] + 1 ≤ m_1.size
-    [prop] ((keys m_1)[i_2] ∈ m_1) = ((keys m_1)[i_2] ∈ indices m_1)
+    [prop] m_1.indices.contains a_2 = true
+    [prop] m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] m_1.keys[i_2] ∈ m_1.indices
+    [prop] ¬m_1.keys[i_2] ∈ m_1.indices → m_1.indices[m_1.keys[i_2]]? = none
+    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] (m_1.indices.contains m_1.keys[i_2] = true) = (m_1.keys[i_2] ∈ m_1.indices)
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some m_1.keys[i_2]) =
+          (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]])
+    [prop] m_1.indices.contains m_1.keys[i_2] = true
+    [prop] m_1.indices[a_2]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_2
+    [prop] m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some m_1.keys[i_2]
+    [prop] m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
+    [prop] m_1.keys[i_2] ∈ m_1
+    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
+    [prop] (m_1.keys[i_2] ∈ m_1) = (m_1.keys[i_2] ∈ m_1.indices)
   [eqc] False propositions
     [prop] i_1 = m_1.size - 1
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
     [prop] a_1 = a_2
-    [prop] ¬a_1 ∈ indices m_1
-    [prop] ¬a_2 ∈ ((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1
+    [prop] ¬a_1 ∈ m_1.indices
+    [prop] ¬a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1
     [prop] i_1 = i_2
-    [prop] (indices m_1)[a_1]? = none
-    [prop] (indices m_1)[a_1]? = some i_2
-    [prop] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = none
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] (keys m_1)[i_2]? = some a_1
-    [prop] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2
-    [prop] (indices m_1)[a_2]? = some i_1
-    [prop] (indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]? = some i_1
-    [prop] (keys m_1).pop[i_2]? = none
-    [prop] (keys m_1)[i_1]? = none
-    [prop] (keys m_1)[i_1]? = some a_2
-    [prop] (keys m_1)[i_1]? = some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]
-    [prop] (keys m_1)[i_2]? = none
-    [prop] (keys m_1).pop.size ≤ i_2
-    [prop] (keys m_1).size ≤ i_1
-    [prop] (keys m_1).size ≤ i_2
-    [prop] ¬a_2 ∈ indices m_1
-    [prop] (indices m_1)[a_2]? = none
-    [prop] (indices m_1)[a_2]? = some (indices m_1)[a_1]
-    [prop] (indices m_1)[(keys m_1)[i_1]]? = some i_2
-    [prop] (indices m_1)[(keys m_1)[i_2]]? = some i_1
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = none
-    [prop] (keys m_1)[i_1]? = some (keys m_1)[i_2]
-    [prop] (keys m_1)[i_2]? = some (keys m_1)[i_1]
-    [prop] (keys m_1)[(indices m_1)[a_1]]? = some a_2
-    [prop] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size ≤ i_2
-    [prop] ¬(keys m_1)[i_2] ∈ indices m_1
-    [prop] (indices m_1)[(keys m_1)[i_2]]? = none
-    [prop] (indices m_1)[(keys m_1)[i_2]]? = some (indices m_1)[a_1]
-    [prop] (keys m_1)[(indices m_1)[a_1]]? = some (keys m_1)[i_2]
-    [prop] (indices m_1)[a_1]? = some (indices m_1)[(keys m_1)[i_2]]
-    [prop] (keys m_1)[(indices m_1)[(keys m_1)[i_2]]]? = some a_1
+    [prop] m_1.indices[a_1]? = none
+    [prop] m_1.indices[a_1]? = some i_2
+    [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = none
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] m_1.keys[i_2]? = some a_1
+    [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2
+    [prop] m_1.indices[a_2]? = some i_1
+    [prop] m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_1
+    [prop] m_1.keys.pop[i_2]? = none
+    [prop] m_1.keys[i_1]? = none
+    [prop] m_1.keys[i_1]? = some a_2
+    [prop] m_1.keys[i_1]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
+    [prop] m_1.keys[i_2]? = none
+    [prop] m_1.keys.pop.size ≤ i_2
+    [prop] m_1.keys.size ≤ i_1
+    [prop] m_1.keys.size ≤ i_2
+    [prop] ¬a_2 ∈ m_1.indices
+    [prop] m_1.indices[a_2]? = none
+    [prop] m_1.indices[a_2]? = some m_1.indices[a_1]
+    [prop] m_1.indices[m_1.keys[i_1]]? = some i_2
+    [prop] m_1.indices[m_1.keys[i_2]]? = some i_1
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
+    [prop] m_1.keys[i_1]? = some m_1.keys[i_2]
+    [prop] m_1.keys[i_2]? = some m_1.keys[i_1]
+    [prop] m_1.keys[m_1.indices[a_1]]? = some a_2
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2
+    [prop] ¬m_1.keys[i_2] ∈ m_1.indices
+    [prop] m_1.indices[m_1.keys[i_2]]? = none
+    [prop] m_1.indices[m_1.keys[i_2]]? = some m_1.indices[a_1]
+    [prop] m_1.keys[m_1.indices[a_1]]? = some m_1.keys[i_2]
+    [prop] m_1.indices[a_1]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1
   [eqc] Equivalence classes
-    [eqc] {a_1, (keys m_1)[i_1]}
+    [eqc] {a_1, m_1.keys[i_1]}
     [eqc] {i_1,
         0,
-        (indices m_1)[a_1],
-        (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2],
-        if h₂ : ((keys m_1).back ⋯ == a_2) = true then i_1 else ((indices m_1).erase a_1)[a_2],
-        (indices m_1)[a_1]}
-    [eqc] {i_2, (indices m_1)[a_2], (indices m_1)[(keys m_1)[i_2]], (indices m_1)[(keys m_1)[i_2]]}
+        m_1.indices[a_1],
+        ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2],
+        if h₂ : (m_1.keys.back ⋯ == a_2) = true then i_1 else (m_1.indices.erase a_1)[a_2],
+        m_1.indices[a_1]}
+    [eqc] {i_2, m_1.indices[a_2], m_1.indices[m_1.keys[i_2]], m_1.indices[m_1.keys[i_2]]}
     [eqc] {a_2,
-        (keys m_1).back ⋯,
-        ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2],
-        (keys m_1)[(keys m_1).size - 1],
-        if i_1 = i_2 then (keys m_1).back ⋯ else (keys m_1).pop[i_2],
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop[i_2],
-        (keys m_1).pop[i_2],
-        (keys m_1)[i_2],
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then (keys m_1).back ⋯ else (keys m_1)[i_2]}
+        m_1.keys.back ⋯,
+        (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
+        m_1.keys[m_1.keys.size - 1],
+        if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys.pop[i_2],
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2],
+        m_1.keys.pop[i_2],
+        m_1.keys[i_2],
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
+        if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]}
     [eqc] {false, a_1 == a_2}
     [eqc] {true,
-        (keys m_1).back ⋯ == a_2,
-        (indices m_1).contains a_1,
-        (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1).contains a_2,
-        ((indices m_1).erase a_1).contains a_2,
+        m_1.keys.back ⋯ == a_2,
+        m_1.indices.contains a_1,
+        ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1).contains a_2,
+        (m_1.indices.erase a_1).contains a_2,
         !a_1 == a_2,
-        (indices m_1).contains a_2,
-        (indices m_1).contains (keys m_1)[i_2]}
-    [eqc] {(keys m_1).pop.size,
+        m_1.indices.contains a_2,
+        m_1.indices.contains m_1.keys[i_2]}
+    [eqc] {m_1.keys.pop.size,
         m_1.size - 1,
-        ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size,
-        (keys m_1).size - 1,
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size,
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1}
-    [eqc] {(keys m_1).size, m_1.size, (values m_1).size, ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size}
+        (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size,
+        m_1.keys.size - 1,
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size,
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1}
+    [eqc] {m_1.keys.size, m_1.size, m_1.values.size, (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size}
     [eqc] {some i_1,
-        (indices m_1)[a_1]?,
-        (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]?,
-        some (indices m_1)[a_1],
-        some (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2],
-        if ((keys m_1).back ⋯ == a_2) = true then some i_1 else ((indices m_1).erase a_1)[a_2]?,
-        (indices m_1)[(keys m_1)[i_1]]?}
+        m_1.indices[a_1]?,
+        ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]?,
+        some m_1.indices[a_1],
+        some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2],
+        if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?,
+        m_1.indices[m_1.keys[i_1]]?}
     [eqc] {some i_2,
-        (indices m_1)[a_2]?,
-        (indices m_1)[((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]]?,
-        some (indices m_1)[a_2],
-        (indices m_1)[(keys m_1)[i_2]]?,
-        some (indices m_1)[(keys m_1)[i_2]]}
+        m_1.indices[a_2]?,
+        m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]?,
+        some m_1.indices[a_2],
+        m_1.indices[m_1.keys[i_2]]?,
+        some m_1.indices[m_1.keys[i_2]]}
     [eqc] {some a_2,
-        ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]?,
-        some ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then some ((keys m_1).back ⋯) else (keys m_1).pop[i_2]?,
-        (keys m_1).pop[i_2]?,
-        (keys m_1)[i_2]?,
-        some (keys m_1).pop[i_2],
-        some (keys m_1)[i_2],
-        if i_2 + 1 ≤ ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1 then
-          ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]?
+        (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?,
+        some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
+        if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys.pop[i_2]?,
+        m_1.keys.pop[i_2]?,
+        m_1.keys[i_2]?,
+        some m_1.keys.pop[i_2],
+        some m_1.keys[i_2],
+        if i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1 then (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?
         else none,
-        if i_2 + 1 ≤ (keys m_1).size - 1 then (keys m_1)[i_2]? else none,
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop[i_2]?,
-        ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2]?,
-        some ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then some ((keys m_1).back ⋯) else (keys m_1)[i_2]?,
-        (keys m_1)[(indices m_1)[(keys m_1)[i_2]]]?}
-    [eqc] {↑(m_1.size - 1), ↑((keys m_1).size - 1), ↑(((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1)}
+        if i_2 + 1 ≤ m_1.keys.size - 1 then m_1.keys[i_2]? else none,
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2]?,
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?,
+        some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
+        if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys[i_2]?,
+        m_1.keys[m_1.indices[m_1.keys[i_2]]]?}
+    [eqc] {↑(m_1.size - 1), ↑(m_1.keys.size - 1), ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
     [eqc] {Membership.mem, fun m a => a ∈ m}
-    [eqc] {↑i_1, ↑0, ↑(indices m_1)[a_1]}
-    [eqc] {↑i_2, ↑(indices m_1)[(keys m_1)[i_2]]}
-    [eqc] {↑(keys m_1).pop.size,
+    [eqc] {↑i_1, ↑0, ↑m_1.indices[a_1]}
+    [eqc] {↑i_2, ↑m_1.indices[m_1.keys[i_2]]}
+    [eqc] {↑m_1.keys.pop.size,
         ↑(m_1.size - 1),
-        ↑((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size,
-        ↑((keys m_1).size - 1),
-        ↑(((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1)}
-    [eqc] {↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size, ↑(keys m_1).size, ↑m_1.size}
-    [eqc] {(keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯, ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop}
-    [eqc] {if -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0 then
-          ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1
+        if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
+          ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
         else 0,
-        if -1 * ↑(keys m_1).size + 1 ≤ 0 then ↑(keys m_1).size + -1 else 0,
+        if -1 * ↑m_1.keys.size + 1 ≤ 0 then ↑m_1.keys.size + -1 else 0,
         if -1 * ↑m_1.size + 1 ≤ 0 then ↑m_1.size + -1 else 0,
-        ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1,
-        ↑(keys m_1).size + -1,
-        ↑m_1.size + -1}
-    [eqc] {-1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1, -1 * ↑(keys m_1).size + 1, -1 * ↑m_1.size + 1}
-    [eqc] {-1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size, -1 * ↑(keys m_1).size, -1 * ↑m_1.size}
-    [eqc] {some a_1, (keys m_1)[i_1]?, some (keys m_1)[i_1], (keys m_1)[(indices m_1)[a_1]]?}
-    [eqc] {i_2 + 1, (indices m_1)[(keys m_1)[i_2]] + 1}
-    [eqc] {i_1 + 1, (indices m_1)[a_1] + 1}
+        ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1,
+        ↑m_1.keys.size + -1,
+        ↑m_1.size + -1,
+        ↑(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size,
+        ↑(m_1.keys.size - 1),
+        ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
+    [eqc] {↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, ↑m_1.keys.size, ↑m_1.size}
+    [eqc] {m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯, (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop}
+    [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1, -1 * ↑m_1.keys.size + 1, -1 * ↑m_1.size + 1}
+    [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, -1 * ↑m_1.keys.size, -1 * ↑m_1.size}
+    [eqc] {some a_1, m_1.keys[i_1]?, some m_1.keys[i_1], m_1.keys[m_1.indices[a_1]]?}
+    [eqc] {i_2 + 1, m_1.indices[m_1.keys[i_2]] + 1}
+    [eqc] {i_1 + 1, m_1.indices[a_1] + 1}
   [cases] Case analyses
-    [cases] [1/2]: if -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0 then
-          ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1
+    [cases] [1/2]: if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
+          ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
         else 0
       [cases] source: E-matching Array.getElem?_pop
-    [cases] [1/2]: (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-          ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
+    [cases] [1/2]: ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+          ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
       [cases] source: Initial goal
-    [cases] [2/2]: if i_1 = i_2 then some ((keys m_1).back ⋯) else (keys m_1).pop[i_2]?
+    [cases] [2/2]: if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys.pop[i_2]?
       [cases] source: E-matching Array.getElem?_set
-    [cases] [2/2]: ((keys m_1)[i_2]? = some a_1) = ((indices m_1)[a_1]? = some i_2)
+    [cases] [2/2]: (m_1.keys[i_2]? = some a_1) = (m_1.indices[a_1]? = some i_2)
       [cases] source: E-matching WF
-    [cases] [1/2]: if ((keys m_1).back ⋯ == a_2) = true then some i_1 else ((indices m_1).erase a_1)[a_2]?
+    [cases] [1/2]: if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?
       [cases] source: E-matching HashMap.getElem?_insert
-    [cases] [1/2]: i_1 + 1 ≤ (keys m_1).pop.size
+    [cases] [1/2]: i_1 + 1 ≤ m_1.keys.pop.size
       [cases] source: E-matching Array.set_pop
-    [cases] [1/2]: (((indices m_1).erase a_1).contains a_2 = true) = (a_2 ∈ (indices m_1).erase a_1)
+    [cases] [1/2]: ((m_1.indices.erase a_1).contains a_2 = true) = (a_2 ∈ m_1.indices.erase a_1)
       [cases] source: E-matching HashMap.contains_iff_mem
-    [cases] [1/2]: 0 = (indices m_1)[a_1]
+    [cases] [1/2]: 0 = m_1.indices[a_1]
       [cases] source: Model-based theory combination at argument #2 of
-            i_1 < (keys m_1).pop.size
+            i_1 < m_1.keys.pop.size
           and
-            0 < (keys m_1).size
+            0 < m_1.keys.size
   [ematch] E-matching patterns
     [thm] getElem?_neg: [@getElem? #8 #7 #6 #5 #4 #2 #1]
     [thm] getElem?_pos: [@getElem? #8 #7 #6 #5 #4 #2 #1]
@@ -695,30 +683,30 @@ h_9 : 0 = (indices m_1)[a_1]
   [cutsat] Assignment satisfying linear constraints
     [assign] i_1 := 0
     [assign] i_2 := 1
-    [assign] (keys m_1).pop.size := 2
-    [assign] (keys m_1).size := 3
+    [assign] m_1.keys.pop.size := 2
+    [assign] m_1.keys.size := 3
     [assign] m_1.size := 3
-    [assign] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size := 2
-    [assign] (values m_1).size := 3
-    [assign] (indices m_1)[a_1] := 0
-    [assign] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] := 0
-    [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size := 2
-    [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size := 3
-    [assign] (indices m_1)[a_1] := 0
-    [assign] (indices m_1)[a_2] := 1
-    [assign] (indices m_1)[(keys m_1)[i_2]] := 1
-    [assign] (indices m_1)[(keys m_1)[i_2]] := 1
+    [assign] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size := 2
+    [assign] m_1.values.size := 3
+    [assign] m_1.indices[a_1] := 0
+    [assign] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2] := 0
+    [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size := 2
+    [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size := 3
+    [assign] m_1.indices[a_1] := 0
+    [assign] m_1.indices[a_2] := 1
+    [assign] m_1.indices[m_1.keys[i_2]] := 1
+    [assign] m_1.indices[m_1.keys[i_2]] := 1
   [ring] Rings
     [ring] Ring `Int`
       [basis] Basis
-        [_] ↑m_1.size + -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size = 0
-        [_] ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + -1 * ↑(keys m_1).size = 0
+        [_] ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1 * ↑m_1.keys.size = 0
+        [_] ↑m_1.keys.size + -1 * ↑m_1.size = 0
     [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
       [basis] Basis
-        [_] ↑((keys m_1).size - 1) + -1 * ↑(m_1.size - 1) = 0
-        [_] ↑(m_1.size - 1) + -1 * ↑(((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1) = 0
+        [_] ↑(m_1.keys.size - 1) + -1 * ↑(m_1.size - 1) = 0
+        [_] ↑(m_1.size - 1) + -1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) = 0
       [diseqs] Disequalities
-        [_] ¬-1 * ↑(((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size - 1) = 0
+        [_] ¬-1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) = 0
 [grind] Issues
   [issue] type error constructing proof for WF
       when assigning metavariable ?a with ⏎
@@ -730,7 +718,7 @@ h_9 : 0 = (indices m_1)[a_1]
       of sort `Type u`
   [issue] type error constructing proof for WF
       when assigning metavariable ?a with ⏎
-        (indices m_1)[a_1]
+        m_1.indices[a_1]
       has type
         Nat
       of sort `Type` but is expected to have type
@@ -746,7 +734,7 @@ h_9 : 0 = (indices m_1)[a_1]
       of sort `Type u`
   [issue] type error constructing proof for WF
       when assigning metavariable ?a with ⏎
-        (indices m_1)[a_1]
+        m_1.indices[a_1]
       has type
         Nat
       of sort `Type` but is expected to have type
@@ -754,7 +742,7 @@ h_9 : 0 = (indices m_1)[a_1]
       of sort `Type u`
   [issue] type error constructing proof for WF
       when assigning metavariable ?a with ⏎
-        (indices m_1)[(keys m_1)[i_2]]
+        m_1.indices[m_1.keys[i_2]]
       has type
         Nat
       of sort `Type` but is expected to have type
@@ -762,7 +750,7 @@ h_9 : 0 = (indices m_1)[a_1]
       of sort `Type u`
   [issue] type error constructing proof for WF
       when assigning metavariable ?a with ⏎
-        (indices m_1)[(keys m_1)[i_2]]
+        m_1.indices[m_1.keys[i_2]]
       has type
         Nat
       of sort `Type` but is expected to have type

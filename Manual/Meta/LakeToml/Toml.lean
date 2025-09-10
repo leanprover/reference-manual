@@ -391,7 +391,7 @@ def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do
   let pos := str.raw.getPos? |>.getD 0
 
   let p := andthenFn whitespace Lake.Toml.toml.fn
-  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.input, pos }
+  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.inputString, pos }
   match s.errorMsg with
   | some err =>
     throwErrorAt str "Couldn't parse TOML: {err}"

@@ -659,7 +659,7 @@ instance : Coe (List α) (NonEmptyList α) where
   coe xs := ⟨xs, _⟩
 ```
 ```leanOutput coeFail
-don't know how to synthesize placeholder for argument 'non_empty'
+don't know how to synthesize placeholder for argument `non_empty`
 context:
 α : Type u_1
 xs : List α
