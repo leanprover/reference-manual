@@ -166,6 +166,7 @@ Inspect these lists to spot missing facts or contradictory assumptions.
 
 {include 1 Manual.Grind.Linarith}
 
+{include 1 Manual.Grind.Annotation}
 
 ```comment
 # Diagnostics
