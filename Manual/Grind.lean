@@ -155,7 +155,7 @@ Inspect these lists to spot missing facts or contradictory assumptions.
 
 By replacing a successful {tactic}`grind` tactic invocation with {tactic}`grind?`,
 you will see a message with associated code action
-that will replace the {tactic}`grind?` with a {tactic}`grind only [...]` tactic, showing exactly the theorems {tactic}`grind` used.
+that will replace the {tactic}`grind?` with a `grind only [...]` tactic, showing exactly the theorems {tactic}`grind` used.
 
 This theorems will typically include a symbol prefix such as `=`, `←`, or `→`, indicating the
 pattern that triggered the instantiation. See the section on E-matching for details.
