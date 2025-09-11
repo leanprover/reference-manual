@@ -151,6 +151,15 @@ In particular, it presents equivalence classes of terms that it has determined t
 The two largest classes are shown as `True propositions` and `False propositions`, listing every literal currently known to be provable or refutable.
 Inspect these lists to spot missing facts or contradictory assumptions.
 
+# Minimizing `grind` calls
+
+By replacing a successful {tactic}`grind` tactic invocation with {tactic}`grind?`,
+you will see a message with associated code action
+that will replace the {tactic}`grind?` with a {tactic}`grind only [...]` tactic, showing exactly the theorems {tactic}`grind` used.
+
+This theorems will typically include a symbol prefix such as `=`, `←`, or `→`, indicating the
+pattern that triggered the instantiation. See the section on E-matching for details.
+Some theorems may be labelled with a `usr` prefix, which indicates that a custom pattern was used.
 
 {include 1 Manual.Grind.CongrClosure}
 
