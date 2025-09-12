@@ -30,7 +30,7 @@ you expect that {tactic}`grind` should always instantiate the theorem once the p
 Typically, many theorems that are annotated with `@[simp]` will also be need to be annotated with `@[grind =]`.
 One significant exception is that typically we avoid having `@[simp]` theorems that introduce an `if` on the right hand side,
 instead preferring a pair of theorems with the positive and negative conditions as hypotheses.
-Because `grind` is designed to perform case splitting, it is generally better to instead label the single theorem introducting the `if` with `@[grind =]`.
+Because `grind` is designed to perform case splitting, it is generally better to instead label the single theorem introducing the `if` with `@[grind =]`.
 
 Besides using `@[grind =]` to encourage {tactic}`grind` to perform rewriting from left to right,
 you can also use `@[grind _=_]` to "saturate", allowing bidirectional rewriting whenever either side is encountered.
@@ -61,6 +61,8 @@ grind_pattern size_pos_of_mem => a ∈ xs, xs.size
 ```
 Unlike `@[grind →]` attribute, which would cause this theorem to be instantiated whenever `a ∈ xs` is encountered,
 this pattern will only be used when `xs.size` is already on the whiteboard.
+(Note that this grind pattern could also be produced using the `@[grind <=]` attribute, which looks at the conclusion first,
+then backwards through the hypotheses to select patterns. On the other hand `@[grind →]` would select only `a ∈ xs`.)
 
 In Mathlib we might want to enable polynomial reasoning about the sine and cosine functions,
 and so add a custom grind pattern
@@ -72,3 +74,4 @@ grind_pattern sin_sq_add_cos_sq => sin x, cos x
 which will instantiate the theorem as soon as *both* `sin x` and `cos x` (with the same `x`) are encountered.
 This theorem will then automatically enter the Grobner basis module,
 and be used to reason about polynomial expressions involving both `sin x` and `cos x`.
+One both alternatively, more aggressively, write two separate grind patterns so that this theorem instantiated when either `sin x` or `cos x` is encountered.
