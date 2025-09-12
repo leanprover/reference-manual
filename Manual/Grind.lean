@@ -153,12 +153,11 @@ Inspect these lists to spot missing facts or contradictory assumptions.
 
 # Minimizing `grind` calls
 
-By replacing a successful {tactic}`grind` tactic invocation with {tactic}`grind?`,
-you will see a message with associated code action
-that will replace the {tactic}`grind?` with a `grind only [...]` tactic, showing exactly the theorems {tactic}`grind` used.
+The `grind only [...]` tactic invokes {tactic}`grind` with a limited set of theorems, which can improve performance.
+Calls to `grind only` can be conveniently constructed using {tactic}`grind?`, which automatically records the theorems used by {tactic}`grind` and suggests a suitable `grind only`.
 
-This theorems will typically include a symbol prefix such as `=`, `←`, or `→`, indicating the
-pattern that triggered the instantiation. See the section on E-matching for details.
+These theorems will typically include a symbol prefix such as `=`, `←`, or `→`, indicating the
+pattern that triggered the instantiation. See the {ref "e-matching"}[section on E-matching] for details.
 Some theorems may be labelled with a `usr` prefix, which indicates that a custom pattern was used.
 
 {include 1 Manual.Grind.CongrClosure}
