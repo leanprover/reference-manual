@@ -18,6 +18,7 @@ import Manual.Grind.EMatching
 import Manual.Grind.Cutsat
 import Manual.Grind.Algebra
 import Manual.Grind.Linarith
+import Manual.Grind.Annotation
 import Manual.Grind.ExtendedExamples
 
 -- Needed for the if-then-else normalization example.
