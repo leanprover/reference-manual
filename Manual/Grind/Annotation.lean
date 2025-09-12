@@ -72,6 +72,6 @@ theorem sin_sq_add_cos_sq : sin x ^ 2 + cos x ^ 2 = 1 := ...
 grind_pattern sin_sq_add_cos_sq => sin x, cos x
 ```
 which will instantiate the theorem as soon as *both* `sin x` and `cos x` (with the same `x`) are encountered.
-This theorem will then automatically enter the Grobner basis module,
+This theorem will then automatically enter the Gröbner basis module,
 and be used to reason about polynomial expressions involving both `sin x` and `cos x`.
 One both alternatively, more aggressively, write two separate grind patterns so that this theorem instantiated when either `sin x` or `cos x` is encountered.
