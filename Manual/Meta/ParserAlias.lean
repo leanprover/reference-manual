@@ -18,8 +18,9 @@ import Manual.Meta.PPrint
 
 namespace Manual
 
-open Lean Elab Term Tactic
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab Term Tactic
 open SubVerso.Highlighting
 
 def parserAliasDomain := `Manual.parserAlias
@@ -77,7 +78,7 @@ private def getFromJson {α} [Inhabited α] [FromJson α] (v : Json) : HtmlT Gen
   | .ok v => pure v
 
 open Verso.Genre.Manual.Markdown in
-open Lean Elab Term Parser Tactic Doc in
+open Lean Elab Term Parser Tactic in
 @[block_extension Block.parserAlias]
 def parserAlias.descr : BlockDescr where
   init st := st
@@ -91,7 +92,7 @@ def parserAlias.descr : BlockDescr where
       | do logError "Failed to deserialize docstring data while traversing a parser alias"; pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path <| show.getD name.toString
-    Index.addEntry id {term := Doc.Inline.code <| show.getD name.toString}
+    Index.addEntry id {term := Inline.code <| show.getD name.toString}
     modify fun st => st.saveDomainObject parserAliasDomain name.toString id
     pure none
   toHtml := some <| fun _goI goB id info contents =>

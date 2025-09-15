@@ -18,9 +18,10 @@ import Manual.Meta.Basic
 
 -- TODO: this is copied from LakeOpt for reasons of expediency. Factor out the common parts to a library!
 
-open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 
+open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean.Doc.Syntax
+open Lean Elab
 namespace Manual
 
 inductive ElanOptKind where

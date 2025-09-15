@@ -9,6 +9,7 @@ import VersoManual
 
 -- TODO generalize upstream - this is based on the one in the blog genre.
 namespace Manual
+open Lean.Doc.Syntax
 
 abbrev LexedText.Highlighted := Array (Option String × String)
 
