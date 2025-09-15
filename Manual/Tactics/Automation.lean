@@ -56,6 +56,3 @@ TODO
 
 :::tactic Mathlib.Tactic.linarith (show := "linarith")
 :::
-
-:::tactic Mathlib.Tactic.Positivity.positivity
-:::
