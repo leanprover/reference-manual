@@ -18,9 +18,11 @@ import SubVerso.Examples
 
 import Manual.Meta.Basic
 
-open Lean Elab
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab
 open SubVerso.Highlighting Highlighted
+open Lean.Doc.Syntax
 
 open Lean.Elab.Tactic.GuardMsgs
 
@@ -234,7 +236,7 @@ def lakeCommandDomainMapper : DomainMapper where
   }))"
 
 open Verso.Genre.Manual.Markdown in
-open Lean Elab Term Parser Tactic Doc in
+open Lean Elab Term Parser Tactic in
 @[block_extension Block.lakeCommand]
 def lakeCommand.descr : BlockDescr where
   init st := st
@@ -252,7 +254,7 @@ def lakeCommand.descr : BlockDescr where
         logError s!"Failed to deserialize aliases while traversing a Lake command: {e}"; pure []
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
-    Index.addEntry id {term := Doc.Inline.concat #[.code name, .text " (Lake command)"]}
+    Index.addEntry id {term := Inline.concat #[.code name, .text " (Lake command)"]}
     modify fun st => st.saveDomainObject lakeCommandDomain name id
     for a in aliases do
       modify fun st => st.saveDomainObject lakeCommandDomain a id

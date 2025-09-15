@@ -6,8 +6,8 @@ Author: Joseph Rotella
 
 import Manual.Meta.ErrorExplanation
 
-open Lean
 open Verso Doc Elab Genre Manual
+open Lean
 
 namespace Manual
 
@@ -62,14 +62,14 @@ def error_explanation_table : BlockCommandOf Unit
     let name := "error-explanation-table"
     let alignment : Option TableConfig.Alignment := none
     let headers ← #["Name", "Summary", "Severity", "Since"]
-      |>.mapM fun s => ``(Verso.Doc.Block.para #[Doc.Inline.text $(quote s)])
+      |>.mapM fun s => ``(Verso.Doc.Block.para #[Inline.text $(quote s)])
     let vals ← entries.flatMapM fun (name, explan) => do
       let sev := quote <| if explan.metadata.severity == .warning then "Warning" else "Error"
-      let sev ← ``(Doc.Inline.text $sev)
-      let nameLink ← ``(Doc.Inline.other (Inline.errorExplanationLink $(quote name))
-        #[Doc.Inline.other (Inline.errorExplanationShortName $(quote name)) #[]])
-      let summary ← ``(Doc.Inline.text $(quote explan.metadata.summary))
-      let since ← ``(Doc.Inline.text $(quote explan.metadata.sinceVersion))
+      let sev ← ``(Inline.text $sev)
+      let nameLink ← ``(Inline.other (Inline.errorExplanationLink $(quote name))
+        #[Inline.other (Inline.errorExplanationShortName $(quote name)) #[]])
+      let summary ← ``(Inline.text $(quote explan.metadata.summary))
+      let since ← ``(Inline.text $(quote explan.metadata.sinceVersion))
       #[nameLink, summary, sev, since]
         |>.mapM fun s => ``(Verso.Doc.Block.para #[$s])
     let blocks := (headers ++ vals).map fun c => Syntax.TSepArray.mk #[c]

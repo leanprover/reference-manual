@@ -5,9 +5,11 @@ Author: David Thrane Christiansen
 -/
 import Manual.Meta.LakeCmd -- TODO: generalize the common parts into a library that can be upstreamed
 
-open Lean Elab
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab
 open SubVerso.Highlighting Highlighted
+open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -120,7 +122,7 @@ def elanCommandDomainMapper : DomainMapper := {
 }.setFont { family := .code }
 
 open Verso.Genre.Manual.Markdown in
-open Lean Elab Term Parser Tactic Doc in
+open Lean Elab Term Parser Tactic in
 @[block_extension Block.elanCommand]
 def elanCommand.descr : BlockDescr where
   init st := st
@@ -139,7 +141,7 @@ def elanCommand.descr : BlockDescr where
         logError s!"Failed to deserialize aliases while traversing a Elan command: {e}"; pure []
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
-    Index.addEntry id {term := Doc.Inline.concat #[.code name, .text " (Elan command)"]}
+    Index.addEntry id {term := Inline.concat #[.code name, .text " (Elan command)"]}
     modify fun st => st.saveDomainObject elanCommandDomain name id
     for a in aliases do
       modify fun st => st.saveDomainObject elanCommandDomain a id

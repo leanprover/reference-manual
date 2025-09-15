@@ -24,10 +24,11 @@ import Manual.Meta.LakeToml.Test
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
-open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open SubVerso.Highlighting Highlighted
 
+open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab
+open SubVerso.Highlighting Highlighted
+open scoped Lean.Doc.Syntax
 open Lean.Elab.Tactic.GuardMsgs
 
 set_option guard_msgs.diff true
@@ -246,7 +247,7 @@ def Block.tomlField.descr : BlockDescr where
       (name, {{<code class="field-name">{{name}}</code>}})
     ]
 
-private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
+private partial def flattenBlocks (blocks : Array (Block genre)) : Array (Block genre) :=
   blocks.flatMap fun
     | .concat bs =>
       flattenBlocks bs
@@ -374,7 +375,7 @@ dl.toml-table-field-spec {
         else notFields := notFields.push f
 
       -- Next, find all the categories and the names that they expect
-      let mut categorized : Std.HashMap String (Array (Doc.Block Genre.Manual)) := {}
+      let mut categorized : Std.HashMap String (Array (Block Genre.Manual)) := {}
       let mut uncategorized := #[]
       for (f, fieldName) in fields do
         if let some title := category? fieldName then
@@ -398,9 +399,9 @@ dl.toml-table-field-spec {
 
       -- Add the contents of each category to its corresponding block
       let categories := categories.map fun
-        | (_, some title, Doc.Block.other which contents) =>
+        | (_, some title, .other which contents) =>
           let inCategory := categorized.getD title #[]
-          Doc.Block.other which (contents ++ inCategory)
+          .other which (contents ++ inCategory)
         | (_, _, blk) => blk
 
 

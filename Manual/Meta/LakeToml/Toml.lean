@@ -12,10 +12,11 @@ import Manual.Meta.Basic
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
-open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets Multi
 open SubVerso.Highlighting Highlighted
+open Lean Elab
 
+open scoped Lean.Doc.Syntax
 
 open Lean.Elab.Tactic.GuardMsgs
 

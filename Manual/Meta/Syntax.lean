@@ -17,6 +17,7 @@ open Verso.Genre Manual
 open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
+open Lean.Doc.Syntax
 
 open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
@@ -119,7 +120,7 @@ def keywordOf : RoleExpander
         if kindName == k then catName := some cat; break
       if let some _ := catName then break
     let kindDoc ← findDocString? (← getEnv) kindName
-    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Inline.code $kw])]
 
 @[inline_extension keywordOf]
 def keywordOf.descr : InlineDescr where
@@ -221,7 +222,7 @@ def keyword : RoleExpander
     let `(inline|code( $kw:str )) := inl
       | throwErrorAt inl "Expected code literal with the keyword"
 
-    return #[← `(Doc.Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Doc.Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Inline.code $kw])]
 
 @[inline_extension keyword]
 def keyword.descr : InlineDescr where
@@ -1105,7 +1106,7 @@ def «syntax» : DirectiveExpander
     Doc.PointOfInterest.save (← getRef) titleString
       (selectionRange := (← getRef)[0])
 
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
+    pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
@@ -1177,7 +1178,7 @@ def freeSyntax : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Doc.Block.para #[$(title),*], $content,*])]
+    pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
@@ -1540,7 +1541,7 @@ def syntaxKind : RoleExpander
     let id : Ident := mkIdentFrom syntaxKindName kName
     let k ← try realizeGlobalConstNoOverloadWithInfo id catch _ => pure kName
     let doc? ← findDocString? (← getEnv) k
-    return #[← `(Doc.Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Doc.Inline.code $(quote k.toString)])]
+    return #[← `(Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Inline.code $(quote k.toString)])]
 
 
 @[inline_extension syntaxKind]

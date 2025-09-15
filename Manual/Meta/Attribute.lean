@@ -17,6 +17,8 @@ open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
 
+open scoped Lean.Doc.Syntax
+
 
 open Lean Elab Parser
 open Lean.Widget (TaggedText)
@@ -51,7 +53,7 @@ def attr : RoleExpander
           throwErrorAt a "Failed to process attribute kind: {stx.getKind} {isAttribute (← getEnv) stx.getKind} {allAttrs |> repr}"
       match getAttributeImpl (← getEnv) attrName with
       | .error e => throwErrorAt a e
-      | .ok {descr, name, ref, ..} =>
+      | .ok {descr, name, ref, ..} => do
         let attrTok := a.getString
         let hl : Highlighted := attrToken ref descr attrTok
         try

@@ -14,6 +14,7 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
+section
 
 open Lean Elab Command
 
@@ -33,6 +34,7 @@ private def derivableClasses : IO (Array Name) := do
       |>.qsort (·.toString < ·.toString)
   pure derivable
 
+end
 
 -- When new deriving handlers are added, check that they should actually appear in the manual and
 -- then update either `hiddenDerivable` or this `#guard_msgs`:
@@ -43,6 +45,7 @@ info: #[`BEq, `DecidableEq, `Hashable, `Inhabited, `Nonempty, `Ord, `Repr, `Size
 #eval derivableClasses
 
 open Verso Doc Elab ArgParse in
+open Lean in
 open SubVerso Highlighting in
 @[directive_expander derivableClassList]
 def derivableClassList : DirectiveExpander
@@ -56,6 +59,8 @@ def derivableClassList : DirectiveExpander
       `(Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $(quote hl)} #[Inline.code $(quote n.toString)])
     let theList ← `(Verso.Doc.Block.ul #[$[⟨#[Verso.Doc.Block.para #[$itemStx]]⟩],*])
     return #[theList]
+
+open Lean Elab Command
 
 #doc (Manual) "Deriving Handlers" =>
 %%%
