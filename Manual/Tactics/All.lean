@@ -36,8 +36,8 @@ structure AllTacticsOptions where
   «from» : Option String
   «to» : Option String
 
-open Lean Verso.ArgParse in
-def AllTacticsOptions.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : ArgParse m AllTacticsOptions :=
+open Lean in
+def AllTacticsOptions.parse [Monad m] [MonadError m] [MonadLiftT CoreM m] : Verso.ArgParse m AllTacticsOptions :=
   AllTacticsOptions.mk <$> .named `from .string true <*> .named `to .string true
 
 open Lean Verso Doc Elab in
@@ -85,43 +85,43 @@ package (Lean/Std/Batteries/Mathlib/etc.) defines them.
 
 If you see two tactics which are almost identical, consider adding `tactic_alt TAC` to the variant version of a tactic to tell Lean to group them together.
 
-:::all_tactics to:="c"
+:::all_tactics (to := "c")
 :::
 
-:::all_tactics from:="c" to:="e"
+:::all_tactics (from := "c") (to := "e")
 :::
 
-:::all_tactics from:="e" to:="g"
+:::all_tactics (from := "e") (to := "g")
 :::
 
-:::all_tactics from:="g" to:="i"
+:::all_tactics (from := "g") (to := "i")
 :::
 
-:::all_tactics from:="i" to:="k"
+:::all_tactics (from := "i") (to := "k")
 :::
 
-:::all_tactics from:="k" to:="m"
+:::all_tactics (from := "k") (to := "m")
 :::
 
-:::all_tactics from:="m" to:="o"
+:::all_tactics (from := "m") (to := "o")
 :::
 
-:::all_tactics from:="o" to:="q"
+:::all_tactics (from := "o") (to := "q")
 :::
 
-:::all_tactics from:="q" to:="s"
+:::all_tactics (from := "q") (to := "s")
 :::
 
-:::all_tactics from:="s" to:="u"
+:::all_tactics (from := "s") (to := "u")
 :::
 
-:::all_tactics from:="u" to:="w"
+:::all_tactics (from := "u") (to := "w")
 :::
 
-:::all_tactics from:="w" to:="y"
+:::all_tactics (from := "w") (to := "y")
 :::
 
-:::all_tactics from:="y"
+:::all_tactics (from := "y")
 :::
 
 Hey, I'm only here as a hack. Please ignore me and that thing below.

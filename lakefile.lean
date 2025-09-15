@@ -30,6 +30,9 @@ package "verso-manual" where
 
 @[default_target]
 lean_lib Manual where
+  leanOptions := #[
+    ⟨`linter.all, false⟩
+  ]
 
 
 def figureDir : FilePath := "figures"

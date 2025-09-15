@@ -26,7 +26,7 @@ open Lean.Elab.Tactic
 :::tactic "omega"
 :::
 
-:::tactic Lean.Parser.Tactic.decide show:="decide"
+:::tactic Lean.Parser.Tactic.decide (show := "decide")
 :::
 
 :::tactic Lean.Parser.Tactic.simp
@@ -54,8 +54,5 @@ open Lean.Elab.Tactic
 TODO
 :::
 
-:::tactic Mathlib.Tactic.linarith show:="linarith"
-:::
-
-:::tactic Mathlib.Tactic.Positivity.positivity
+:::tactic Mathlib.Tactic.linarith (show := "linarith")
 :::

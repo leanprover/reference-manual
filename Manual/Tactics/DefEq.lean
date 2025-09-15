@@ -26,7 +26,7 @@ definitionally equal.
 :::tactic Lean.Parser.Tactic.dsimp
 :::
 
-:::tactic "change"
+:::tactic Lean.Parser.Tactic.change
 :::
 
 :::tactic "unfold"
