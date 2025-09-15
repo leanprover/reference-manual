@@ -41,7 +41,7 @@ open Lean.Elab.Tactic
 Note that `apply` and `apply at` are formally considered two distinct tactics
 even though they appear to be one to the user.
 
-:::tactic Mathlib.Tactic.tacticApply_At_ show:="apply at"
+:::tactic Mathlib.Tactic.tacticApply_At_ (show := "apply at")
 :::
 
 :::tactic "specialize"
@@ -58,13 +58,13 @@ even though they appear to be one to the user.
 
 -- TODO: The `set` docstring ought to be on the `syntax`, not the `elab_rules`
 -- remove the replace below once that's fixed
-:::tactic Mathlib.Tactic.setTactic replace:=true
+:::tactic Mathlib.Tactic.setTactic (replace := true)
 :::
 
-:::tactic "replace"
+:::tactic Lean.Parser.Tactic.replace
 :::
 
-:::tactic "suffices"
+:::tactic Lean.Parser.Tactic.tacticSuffices_
 :::
 
 :::tactic Lean.Parser.Tactic.obtain
@@ -82,7 +82,7 @@ even though they appear to be one to the user.
 :::tactic "injection"
 :::
 
-:::tactic "intro"
+:::tactic Lean.Parser.Tactic.intro
 :::
 
 :::tactic Lean.Parser.Tactic.revert

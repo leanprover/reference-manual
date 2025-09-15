@@ -22,13 +22,13 @@ open Lean.Elab.Tactic
 
 add intro text here
 
-:::tactic "congr"
+:::tactic Lean.Parser.Tactic.congr
 :::
 
 :::tactic Mathlib.Tactic.GCongr.tacticGcongr___With___
 :::
 
-:::tactic finiteness show:="finiteness"
+:::tactic finiteness (show := "finiteness")
 :::
 
 :::tactic Mathlib.Tactic.Monotonicity.mono
