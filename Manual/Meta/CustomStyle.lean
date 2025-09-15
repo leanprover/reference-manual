@@ -22,7 +22,7 @@ def Block.CSS : Block where
 def CSS : CodeBlockExpander
   | args, str => do
     let () ← ArgParse.done.run args
-    pure #[← `(Doc.Block.other {Block.CSS with data := ToJson.toJson (α := String) $(quote str.getString)} #[])]
+    pure #[← `(Block.other {Block.CSS with data := ToJson.toJson (α := String) $(quote str.getString)} #[])]
 
 @[block_extension Manual.CSS]
 def CSS.descr : BlockDescr where

@@ -38,30 +38,31 @@ It can be disabled using the option `grind -linarith`.
 
 
 :::example "Goals Decided by `linarith`" (open := true)
-All of these examples rely on instances the following `linarith` classes:
+All of these examples rely on instances of the following ordering notation and `linarith` classes:
 ```lean
-variable [IntModule α] [LE α] [LT α][LinearOrder α] [OrderedAdd α]
+variable [LE α] [LT α] [Std.LawfulOrderLT α]  [Std.IsLinearOrder α]
+variable [IntModule α] [OrderedAdd α]
 ```
 
 Integer modules ({name}`IntModule`) are types with zero, addition, negation, subtraction, and scalar multiplication by integers that satisfy the expected properties of these operations.
-Linear orders ({name}`LinearOrder`) are orders in which any pair of elements is ordered, and {name}`OrderedAdd` states that adding a constant to both sides preserves orderings.
+Linear orders ({name}`Std.IsLinearOrder`) are orders in which any pair of elements is ordered, and {name}`OrderedAdd` states that adding a constant to both sides preserves orderings.
 
 ```lean
-example {a b : α} : 2 * a + b ≥ b + a + a := by grind
+example {a b : α} : 2 • a + b ≥ b + a + a := by grind
 
-example {a b : α} (h : a ≤ b) : 3 * a + b ≤ 4 * b := by grind
+example {a b : α} (h : a ≤ b) : 3 • a + b ≤ 4 • b := by grind
 
 example {a b c : α} :
     a = b + c →
-    2 * b ≤ c →
-    2 * a ≤ 3 * c := by
+    2 • b ≤ c →
+    2 • a ≤ 3 • c := by
   grind
 
 example {a b c d e : α} :
-    2 * a + b ≥ 0 →
+    2 • a + b ≥ 0 →
     b ≥ 0 → c ≥ 0 → d ≥ 0 → e ≥ 0 →
-    a ≥ 3 * c → c ≥ 6 * e → d - 5 * e ≥ 0 →
-    a + b + 3 * c + d + 2 * e < 0 →
+    a ≥ 3 • c → c ≥ 6 • e → d - 5 • e ≥ 0 →
+    a + b + 3 • c + d + 2 • e < 0 →
     False := by
   grind
 ```
@@ -72,21 +73,22 @@ example {a b c d e : α} :
 For types that are commmutative rings (that is, types in which the multiplication operator is commutative) with {name}`CommRing` instances, `linarith` has more capabilities.
 
 ```lean
-variable [CommRing R] [LE R] [LT R] [LinearOrder R] [OrderedRing R]
+variable [LE R] [LT R] [Std.IsLinearOrder R] [Std.LawfulOrderLT R]
+variable [CommRing R] [OrderedRing R]
 ```
 
 The {inst}`CommRing R` instance allows `linarith` to perform basic normalization, such as identifying linear atoms `a * b` and `b * a`, and to account for scalar multiplication on both sides.
 The {inst}`OrderedRing R` instance allows the solver to support constants, because it has access to the fact that {lean}`(0 : R) < 1`.
 
 ```lean
-example (a b : R) (h : a * b ≤ 1) : b * 3 * a + 1 ≤ 4 := by grind
+example (a b : R) (h : a * b ≤ 1) : b * 3 • a + 1 ≤ 4 := by grind
 
 example (a b c d e f : R) :
-    2 * a + b ≥ 1 →
-    b ≥ 0 → c ≥ 0 → d ≥ 0 → e * f ≥ 0 →
-    a ≥ 3 * c →
-    c ≥ 6 * e * f → d - f * e * 5 ≥ 0 →
-    a + b + 3 * c + d + 2 * e * f < 0 →
+    2 • a + b ≥ 1 →
+    b ≥ 0 → c ≥ 0 → d ≥ 0 → e • f ≥ 0 →
+    a ≥ 3 • c →
+    c ≥ 6 • e • f → d - f * e * 5 ≥ 0 →
+    a + b + 3 • c + d + 2 • e • f < 0 →
     False := by
   grind
 ```
@@ -107,20 +109,14 @@ tag := "grind-linarith-classes"
 
 To add support for a new type to `linarith`, the first step is to implement {name}`IntModule` if possible, or {name}`NatModule` otherwise.
 Every {name}`Ring` is already an {name}`IntModule`, and every {name}`Semiring` is already a {name}`NatModule`, so implementing one of those instances is also sufficient.
-Next, one of the order classes ({name}`Preorder`, {name}`PartialOrder`, or {name}`LinearOrder`) should be implemented.
-Typically a {name}`Preorder` instance is enough when the context already includes a contradiction, but a {name}`LinearOrder` instance is required in order to prove linear inequality goals.
+Next, one of the order classes ({name}`Std.IsPreorder`, {name}`Std.IsPartialOrder`, or {name}`Std.IsLinearOrder`) should be implemented.
+Typically an {name Std.IsPreorder}`IsPreorder` instance is enough when the context already includes a contradiction, but an {name Std.IsLinearOrder}`IsLinearOrder` instance is required in order to prove linear inequality goals.
 Additional features are enabled by implementing {name}`OrderedAdd`, which expresses that the additive structure in a module is compatible with the order, and {name}`OrderedRing`, which improves support for constants.
 
 
 {docstring Lean.Grind.NatModule}
 
 {docstring Lean.Grind.IntModule}
-
-{docstring Lean.Grind.Preorder}
-
-{docstring Lean.Grind.PartialOrder}
-
-{docstring Lean.Grind.LinearOrder}
 
 {docstring Lean.Grind.OrderedAdd}
 

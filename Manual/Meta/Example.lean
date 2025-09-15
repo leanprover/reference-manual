@@ -11,6 +11,7 @@ import Lean.Elab.InfoTree.Types
 open Verso Doc Elab
 open Verso.Genre Manual
 open Verso.ArgParse
+open Lean.Doc.Syntax
 
 open Lean Elab
 

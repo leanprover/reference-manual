@@ -246,7 +246,7 @@ This section should be uncommented when the command is implemented:
 ```lean -show
 -- Test to ensure that this section is uncommented when the command is implemented
 /--
-error: elaboration function for 'Lean.Parser.«command_Grind_propagator___(_):=_»' has not been implemented
+error: elaboration function for `Lean.Parser.«command_Grind_propagator___(_):=_»` has not been implemented
 -/
 #guard_msgs in
 grind_propagator ↑x(y) := _

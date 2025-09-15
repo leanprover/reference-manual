@@ -15,9 +15,9 @@ import Verso.Code
 
 import Manual.Meta.Basic
 
-
-open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean.Doc.Syntax
+open Lean Elab
 
 namespace Manual
 

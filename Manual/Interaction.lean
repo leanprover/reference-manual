@@ -100,7 +100,7 @@ Setting {option}`eval.pp` to {lean}`false` disables the use of {name Lean.ToExpr
 #eval fun x => x + 1
 ```
 ```leanOutput funEval
-could not synthesize a 'ToExpr', 'Repr', or 'ToString' instance for type
+could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
   Nat → Nat
 ```
 
@@ -124,7 +124,7 @@ set_option eval.derive.repr false
 #eval Quadrant.nw
 ```
 ```leanOutput quadEval2
-could not synthesize a 'ToExpr', 'Repr', or 'ToString' instance for type
+could not synthesize a `ToExpr`, `Repr`, or `ToString` instance for type
   Quadrant
 ```
 

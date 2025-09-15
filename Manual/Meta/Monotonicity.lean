@@ -10,12 +10,13 @@ import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
 
-open Lean Meta Elab
+open scoped Lean.Doc.Syntax
+
 open Verso Doc Elab Manual
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean (constTok)
 open SubVerso.Highlighting Highlighted
-
+open Lean Meta Elab
 
 namespace Manual
 
@@ -44,16 +45,16 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
     let arr2 ← mkFreshUserName `monoBlocks2
     let blockName ← mkFreshUserName `block
 
-    let blockType : Expr := .app (.const ``Doc.Block []) (.const ``Verso.Genre.Manual [])
-    let listItemBlockType : Expr := .app (.const ``ListItem [0]) blockType
-    let inlineType : Expr := .app (.const ``Doc.Inline []) (.const ``Verso.Genre.Manual [])
-    let listItemInlineType : Expr := .app (.const ``ListItem [0]) inlineType
+    let blockType : Expr := .app (.const ``Verso.Doc.Block []) (.const ``Verso.Genre.Manual [])
+    let listItemBlockType : Expr := .app (.const ``Verso.Doc.ListItem [0]) blockType
+    let inlineType : Expr := .app (.const ``Verso.Doc.Inline []) (.const ``Verso.Genre.Manual [])
+    let listItemInlineType : Expr := .app (.const ``Verso.Doc.ListItem [0]) inlineType
     let arrListItemBlockType : Expr := .app (.const ``Array [0]) listItemBlockType
 
     let elabCell (blk : Syntax) : TermElabM Expr := do
       let blk ← Term.elabTerm blk (some inlineType)
-      let blk := mkApp2 (.const ``Block.para [])  (.const ``Verso.Genre.Manual []) (← mkArrayLit inlineType [blk])
-      let blk := mkApp2 (.const ``ListItem.mk [0]) blockType (← mkArrayLit blockType [blk])
+      let blk := mkApp2 (.const ``Verso.Doc.Block.para [])  (.const ``Verso.Genre.Manual []) (← mkArrayLit inlineType [blk])
+      let blk := mkApp2 (.const ``Verso.Doc.ListItem.mk [0]) blockType (← mkArrayLit blockType [blk])
       Term.synthesizeSyntheticMVarsNoPostponing
       instantiateMVars blk
 

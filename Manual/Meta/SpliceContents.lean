@@ -12,9 +12,9 @@ import Verso.Code
 
 namespace Manual
 
+open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets Syntax
-
+open Lean.Doc.Syntax
 
 structure SpliceContentsConfig where
   moduleName : Ident
@@ -22,7 +22,7 @@ structure SpliceContentsConfig where
 def SpliceContentsConfig.parse [Monad m] [MonadInfoTree m] [MonadLiftT CoreM m] [MonadEnv m] [MonadError m] : ArgParse m SpliceContentsConfig :=
   SpliceContentsConfig.mk <$> .positional `moduleName .ident
 
-@[part_command Verso.Syntax.command]
+@[part_command Lean.Doc.Syntax.command]
 def spliceContents : PartCommand
   | `(block|command{spliceContents $args*}) => do
     let {moduleName} ← SpliceContentsConfig.parse.run (← parseArgs args)

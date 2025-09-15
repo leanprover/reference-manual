@@ -12,10 +12,11 @@ import Manual.Meta.Basic
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
-open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets Multi
 open SubVerso.Highlighting Highlighted
+open Lean Elab
 
+open scoped Lean.Doc.Syntax
 
 open Lean.Elab.Tactic.GuardMsgs
 
@@ -391,7 +392,7 @@ def tomlContent (str : StrLit) : DocElabM Toml.Highlighted := do
   let pos := str.raw.getPos? |>.getD 0
 
   let p := andthenFn whitespace Lake.Toml.toml.fn
-  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.input, pos }
+  let s := p.run inputCtx pmctx (getTokenTable pmctx.env) { cache := initCacheForInput inputCtx.inputString, pos }
   match s.errorMsg with
   | some err =>
     throwErrorAt str "Couldn't parse TOML: {err}"

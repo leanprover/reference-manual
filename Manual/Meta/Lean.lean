@@ -8,6 +8,8 @@ import VersoManual
 import Lean.Elab.InfoTree.Types
 import SubVerso.Highlighting.Code
 
+open scoped Lean.Doc.Syntax
+
 open Verso Doc Elab
 open Lean Elab
 open Verso.Genre.Manual InlineLean Scopes

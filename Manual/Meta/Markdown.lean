@@ -36,4 +36,4 @@ def markdown : CodeBlockExpander
       | throwError "Failed to parse docstring as Markdown"
     let content ← ast.blocks.mapM <|
       Markdown.blockFromMarkdown (handleHeaders := Markdown.strongEmphHeaders)
-    pure #[← ``(Doc.Block.other Block.noVale #[$content,*])]
+    pure #[← ``(Block.other Block.noVale #[$content,*])]

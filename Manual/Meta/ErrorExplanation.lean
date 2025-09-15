@@ -12,12 +12,13 @@ import Lean.ErrorExplanations
 
 import PreprocessedExplanations
 
-open Lean Elab
 open Verso (ArgParse)
 open Verso.ArgParse (parseThe)
 open Verso.Doc Elab
 open Verso.Genre.Manual Markdown InlineLean
 open SubVerso.Highlighting
+open scoped Lean.Doc.Syntax
+open Lean Elab
 
 set_option pp.rawOnError true
 set_option guard_msgs.diff true
@@ -238,7 +239,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
     if lang == "output" then
       let codeBlockIdx := (← get).codeBlockIdx - 1
       let name := mkExampleName errorName codeBlockIdx
-      let args := #[(← `(argument| $(mkIdent name):ident))]
+      let args := #[(← `(doc_arg| $(mkIdent name):ident))]
       let parsedArgs ← parseArgs args
       let cfg ← parseThe LeanOutputConfig parsedArgs
       let block ← try
@@ -259,13 +260,13 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
     else if lang == "" || lang == "lean" then
       let mut args := #[]
       let name := mkExampleName errorName (← get).codeBlockIdx
-      args := args.push (← `(argument| name := $(mkIdent name):ident))
+      args := args.push (← `(doc_arg| name := $(mkIdent name):ident))
       if let some kind := kind? then
         let errorVal ← if kind == .broken && errorSev == .error then
           `(arg_val|true)
         else
           `(arg_val|false)
-        args := args.push (← `(argument| error := $errorVal))
+        args := args.push (← `(doc_arg| error := $errorVal))
       let parsedArgs ← parseArgs args
       let blocks ← withFreshMacroScope <| explanationMWE parsedArgs (quote str)
       modify fun s => { s with codeBlockIdx := s.codeBlockIdx + 1 }
@@ -692,7 +693,7 @@ def ExplanationConfig.parser [Monad m] [MonadError m] : ArgParse m ExplanationCo
   }
 
 /-- Renders the error explanation for `name` via `{explanation name}`. -/
-@[part_command Verso.Syntax.command]
+@[part_command Lean.Doc.Syntax.command]
 def explanation : PartCommand
   | `(block|command{explanation $args*}) => do
     let config ← ExplanationConfig.parser.run (← parseArgs args)
@@ -715,20 +716,20 @@ where
     | .seq elts => elts.foldl (· ++ htmlText ·) ""
     | .tag _nm _attrs children => htmlText children
 
-open Verso Doc Elab ArgParse in
+open Verso.Doc.Elab in
 open Lean in
 /-- Renders all error explanations as parts of the current page. -/
-@[part_command Verso.Syntax.command]
+@[part_command Lean.Doc.Syntax.command]
 def make_explanations : PartCommand
   | `(block|command{make_explanations}) => do
     let explans ← getErrorExplanationsSorted
-    for (name, explan) in explans do
-      let titleString := name.toString
+    for (errorName, explan) in explans do
+      let titleString := errorName.toString
       let titleBits := #[← ``(Inline.other
-        (Inline.errorExplanation $(quote name) $(quote explan.metadata.summary))
+        (Inline.errorExplanation $(quote errorName) $(quote explan.metadata.summary))
         #[Inline.code $(quote titleString)])]
-      let some shortTitleString := getBreakableSuffix name
-        | throwError m!"Found invalid explanation name `{name}` when generating explanations section"
+      let some shortTitleString := getBreakableSuffix errorName
+        | throwError m!"Found invalid explanation name `{errorName}` when generating explanations section"
       PartElabM.push {
         titleSyntax := quote (k := `str) titleString,
         expandedTitle := some (titleString, titleBits),
@@ -736,6 +737,6 @@ def make_explanations : PartCommand
         blocks := #[],
         priorParts := #[]
       }
-      addExplanationBlocksFor name
+      addExplanationBlocksFor errorName
       closeEnclosingSection
   | _ => throwUnsupportedSyntax

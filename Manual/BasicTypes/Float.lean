@@ -89,7 +89,7 @@ This tactic uses the axiom {name}`Lean.trustCompiler`, which states that the Lea
 #print axioms Float.zero_eq_zero_plus_zero
 ```
 ```leanOutput ofRed
-'Float.zero_eq_zero_plus_zero' depends on axioms: [propext, Classical.choice, Lean.ofReduceBool, Lean.trustCompiler]
+'Float.zero_eq_zero_plus_zero' depends on axioms: [Classical.choice, Lean.ofReduceBool, Lean.trustCompiler]
 ```
 :::
 

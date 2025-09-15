@@ -34,11 +34,13 @@ import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
 
-open Lean Elab
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
-
+open Lean Elab
 open Lean.Elab.Tactic.GuardMsgs
+
+open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -60,7 +62,7 @@ def commentDirective : DirectiveExpander
 -- These are part commands rather than block expanders so that it can be used in contexts where
 -- block content doesn't fit, like right after an include. However, the blocks are still needed
 -- for contexts where part commands aren't run.
-@[part_command Verso.Syntax.codeblock, part_command Verso.Syntax.directive]
+@[part_command Lean.Doc.Syntax.codeblock, part_command Lean.Doc.Syntax.directive]
 def commentBlock : PartCommand
   | `(block| ::: $commentId $_* { $_* } )
   | `(block| ``` $commentId $_* | $_ ``` ) => do
@@ -89,7 +91,7 @@ def TODO : DirectiveExpander
       (kind := .null)
       (detail? := some "Author's note")
     let content ← blocks.mapM elabBlock
-    pure #[← `(Doc.Block.other Block.TODO #[$content,*])]
+    pure #[← `(Block.other Block.TODO #[$content,*])]
 
 @[role_expander TODO]
 def TODOinline : RoleExpander
@@ -99,7 +101,7 @@ def TODOinline : RoleExpander
       (kind := .null)
       (detail? := some "Author's note")
     let content ← inlines.mapM elabInline
-    pure #[← `(Doc.Inline.other Inline.TODO #[$content,*])]
+    pure #[← `(Inline.other Inline.TODO #[$content,*])]
 
 
 @[block_extension TODO]
@@ -199,7 +201,7 @@ def planned : DirectiveExpander
     let loc : Option (Nat × String) :=
       ((·.line, System.FilePath.normalize fileName |>.toString) ∘ fileMap.utf8PosToLspPos) <$> (← getRef).getPos?
     let content ← blocks.mapM elabBlock
-    pure #[← `(Doc.Block.other {Block.planned with data := ToJson.toJson (α := Option Nat × Option (Nat × String)) ($(quote issue), $(quote loc))} #[$content,*])]
+    pure #[← `(Block.other {Block.planned with data := ToJson.toJson (α := Option Nat × Option (Nat × String)) ($(quote issue), $(quote loc))} #[$content,*])]
 
 @[block_extension planned]
 def planned.descr : BlockDescr where
@@ -362,7 +364,7 @@ def ffi.descr : BlockDescr where
       | do logError "Failed to deserialize FFI doc data"; pure none
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
-    Index.addEntry id {term := Doc.Inline.code name}
+    Index.addEntry id {term := .code name}
     pure none
   toHtml := some <| fun _goI goB id info contents =>
     open Verso.Doc.Html in
