@@ -67,6 +67,36 @@ python3 ./server.py 8880 &
 
 Then open <http://localhost:8880> in your browser.
 
+## Backporting Manual Changes
+
+In the event that a backported update is necessary, manual deployment of the newly built HTML is handled via Git tags, which are version-numbered tags based on major Lean versions matching the RegEx pattern `^v4\.\d+\.\d+$`. Pushing a new tag triggers the necessary deployment, but to do so requires first deleting any existing tag of the same name. The following describes the steps and commands you may use to manage this process.
+
+Make any desired changes to the codebase. Once you have tested changes locally, create a new branch based on the version of the reference manual you are modifying. By convention, this branch should match the tag (i.e. version number), but without the leading `v`. Push this branch to the remote.
+
+For example, for modifications to the reference manual associated with Lean version 4.22, the branch should be named `4.22.0`:
+
+```
+git checkout -b 4.22.0  //create new branch
+git push origin 4.22.0  //push new branch to remote
+```
+
+Any existing tag matching the desired version number must be deleted on both the remote and locally, then regeneratged locally and pushed to the remote to trigger deployment. 
+
+For example, for modifications to the reference manual associated with Lean version 4.22, the tag to be regenerated is `v4.22.0` and the commands to delete it are:
+
+```
+git push origin :v4.22.0  //delete remote tag
+git tag --delete v4.22.0  //delete local tag
+```
+
+Recreating the `v4.22.0` tag locally and pushing to origin will now trigger the new deployment:
+
+```
+git tag v4.22.0  //create new tag locally
+git push origin v4.22.0  //push tag to remote
+```
+
+
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
