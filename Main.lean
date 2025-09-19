@@ -15,25 +15,28 @@ def plausible := {{
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
 
+open Verso.Output.Html in
+def staticJs := {{
+    <script src="static/print.js"></script>
+  }}
+
+open Verso.Output.Html in
+def staticCss := {{
+    <link rel="stylesheet" href="static/colors.css" />
+    <link rel="stylesheet" href="static/theme.css" />
+    <link rel="stylesheet" href="static/print.css" />
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css" />
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css" />
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css" />
+    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css" />
+  }}
+
 def main :=
   manualMain (%doc Manual) (config := config)
 where
   config := Config.addSearch <| Config.addKaTeX {
     extraFiles := [("static", "static")],
-    extraCss := [
-      "/static/colors.css",
-      "/static/theme.css",
-      "/static/print.css",
-      "/static/fonts/source-serif/source-serif-text.css",
-      "/static/fonts/source-code-pro/source-code-pro.css",
-      "/static/fonts/source-sans/source-sans-3.css",
-      "/static/fonts/noto-sans-mono/noto-sans-mono.css"
-    ],
-    extraJs := [
-      -- Print stylesheet improvements
-      {filename := "/static/print.js"}
-    ],
-    extraHead := #[plausible],
+    extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",
