@@ -913,7 +913,7 @@ end
 ```
 ::::
 
-# Literals
+# Numeric Literals
 
 There are two kinds of numeric literal: natural number literals and {deftech}[scientific literals].
 Both are overloaded via {tech (key := "type class")}[type classes].
@@ -927,6 +927,9 @@ tag := "nat-literals"
 section
 variable {n : Nat}
 ```
+
+Except for the natural number literal {lean}`0`, a natural number literal is always a digit between 1 and 9 followed by a sequence of digits, possibly also containing underscores.
+The underscores are intended to help write numbers like {lean}`1_000_000`; while it is possible to write the number 123 as {lean}`1_2__3`, it is not recommended.
 
 When Lean encounters a natural number literal {lean}`n`, it interprets it via the overloaded method {lean}`OfNat.ofNat n`.
 A {tech}[default instance] of {lean}`OfNat Nat n` ensures that the type {lean}`Nat` can be inferred when no other type information is present.
@@ -968,8 +971,7 @@ Terms such as {lean}`-5` consist of a prefix negation (which can be overloaded v
 
 ## Scientific Numbers
 
-Scientific number literals consist of a sequence of digits followed by an optional period and decimal part and an optional exponent.
-If no period or exponent is present, then the term is instead a natural number literal.
+Scientific number literals consist of a natural number literal followed (without intervening whitespace) by an optional decimal part (a period followed by a natural number) and an optional exponent part (the letter `e` followed by an optional `+` or `-` and then followed by another natural number).
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}
