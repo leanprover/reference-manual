@@ -931,9 +931,9 @@ variable {n : Nat}
 Natural numbers can be specified in several forms:
 
  - A sequence of digits 0 through 9 is a decimal literal
- - `0b` or `0B` followed by a sequence of 0s and 1s is a binary literal
- - `0o` or `0O` followed by a sequence of digits 0 through 7 is an octal literal
- - `0x` or `0X` followed by a series of hex digits (0 through 9 and A through F, case-insensitive) is a hexadecimal literal
+ - `0b` or `0B` followed by a sequence of one or more 0s and 1s is a binary literal
+ - `0o` or `0O` followed by a sequence of one or more digits 0 through 7 is an octal literal
+ - `0x` or `0X` followed by a sequence of one or more hex digits (0 through 9 and A through F, case-insensitive) is a hexadecimal literal
 
 All numeric literals can also contain internal underscores, except for between the first two characters in a binary, octal, or hexadecimal literal.
 These are intended to help groups of digits in natural ways, for instance {lean}`1_000_000` or {lean}`0x_c0de_cafe`.
