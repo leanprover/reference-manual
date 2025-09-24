@@ -52,7 +52,7 @@ Tasks may be explicitly cancelled using {name}`IO.cancel`.
 The Lean runtime maintains a thread pool for running tasks.
 The size of the thread pool is determined by the environment variable {envVar +def}`LEAN_NUM_THREADS` if it is set, or by the number of logical processors on the current machine otherwise.
 The size of the thread pool is not a hard limit; in certain situations it may be exceeded to avoid deadlocks.
-By default, these threads are used to run tasks; each task has a {deftech}_priority_ ({name}`Task.Priority`), and higher-priority tasks take precedence over lower-priority tasks.
+By default, these threads are used to run tasks; each task has a {deftech}_task priority_ ({name}`Task.Priority`), and higher-priority tasks take precedence over lower-priority tasks.
 Tasks may also be assigned to dedicated threads by spawning them with a sufficiently high priority.
 
 {docstring Task (label := "type") +hideStructureConstructor +hideFields}
