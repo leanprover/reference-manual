@@ -683,12 +683,7 @@ tag := "tactic-ref-spred"
 :::tactic "mstop"
 :::
 
-:::TODO
-Next release:
-```
 :::tactic "mleave"
-:::
-```
 :::
 
 ### Proving a Stateful Goal
@@ -749,12 +744,7 @@ Next release:
 :::tactic "mcases"
 :::
 
-:::TODO
-Next release:
-```
 :::tactic "mrename_i"
-:::
-```
 :::
 
 :::tactic "mpure"
