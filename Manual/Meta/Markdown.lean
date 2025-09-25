@@ -28,11 +28,12 @@ def Block.noVale.descr : BlockDescr where
     some <| fun _ goB _ _ content => do
       pure {{<div class="no-vale">{{← content.mapM goB}}</div>}}
 
-open Lean.Doc.Syntax in
 @[part_command Lean.Doc.Syntax.codeblock]
 def markdown : PartCommand
-  | `(block| ``` markdown | $txt ``` ) => do
+  | `(Lean.Doc.Syntax.codeblock| ``` markdown | $txt ``` ) => do
      let some ast := MD4Lean.parse txt.getString
        | throwError "Failed to parse body of markdown code block"
-     _ ← ast.blocks.mapM Markdown.addPartFromMarkdown
+     let mut currentHeaderLevels : List (Nat × Nat) := []
+     for block in ast.blocks do
+       currentHeaderLevels ← Markdown.addPartFromMarkdown block currentHeaderLevels
   | _ => Elab.throwUnsupportedSyntax
