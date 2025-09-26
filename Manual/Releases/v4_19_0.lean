@@ -47,11 +47,6 @@ which is added in this version via [#7366](https://github.com/leanprover/lean4/p
 All of these features can be disabled, and 'Goals accomplished!' icon can be configured in VS Code extension settings.
 See [leanprover/vscode-lean4#585](https://github.com/leanprover/vscode-lean4/pull/585) for the details.
 
-### Parallel Elaboration
-
-* [#7084](https://github.com/leanprover/lean4/pull/7084) enables the elaboration of theorem bodies, i.e. proofs, to
-  happen in parallel to each other as well as to other elaboration tasks.
-
 ### Language Features
 
 * [#5182](https://github.com/leanprover/lean4/pull/5182) makes functions defined by well-founded recursion use an
