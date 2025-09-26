@@ -194,7 +194,7 @@ There are seven standard axioms in Lean. The first three axioms are important pa
      r a b → Quot.mk r a = Quot.mk r b
    ```
 
-The first of these axiom is the Axiom of Choice; all three are discussed in the book [Theorem Proving in Lean](https://lean-lang.org/theorem_proving_in_lean4/find/?domain=Verso.Genre.Manual.section&name=axioms-and-computation).
+All three of these axioms are discussed in the book [Theorem Proving in Lean](https://lean-lang.org/theorem_proving_in_lean4/find/?domain=Verso.Genre.Manual.section&name=axioms-and-computation).
 
 The axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean}`sorry` term.
 Uses of this axiom are not intended to occur in finished proofs, as it can be used to prove anything:
@@ -285,7 +285,7 @@ Regular functions like {lean}`addThree` that we might want to actually evaluatio
 'addThree' does not depend on any axioms
 ```
 
-The excluded middle theorem is only true if we use classical reasoning, so the principle of classical reasoning shows up alongside other axioms:
+The excluded middle theorem is only true if we use classical reasoning, so the foundation for classical reasoning shows up alongside other axioms:
 
 ```lean (name := printAxEx1)
 #print axioms excludedMiddle
