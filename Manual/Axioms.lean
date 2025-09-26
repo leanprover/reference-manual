@@ -176,16 +176,6 @@ Because they occur only in a proof, the compiler has no problem generating code:
 ```
 :::
 
-# Displaying Axiom Dependencies
-%%%
-tag := "print-axioms"
-%%%
-
-The command {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` displays all the axioms that a declaration transitively relies on.
-In other words, if a proof uses another proof, which itself uses an axiom, then the axiom is reported by {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` for both.
-This can be used to audit the assumptions made by a proof.
-Together with {keywordOf Lean.guardMsgsCmd}`#guard_msgs`, it can also ensure that updates to libraries from other projects don't silently introduce unwanted dependencies on axioms.
-
 # Standard Axioms
 %%%
 tag := "standard-axioms"
@@ -223,10 +213,83 @@ However, they allow the use of compiled code in proofs to be carefully controlle
     Lean.ofReduceNat (a b : Nat) : Lean.reduceNat a = b → a = b
    ```
 
-:::keepEnv
-```lean -show
-axiom Anything : Type
+
+Finally, the axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean}`sorry` term.
+Uses of this axiom are not intended to occur in finished proofs.
+
+# Displaying Axiom Dependencies
+%%%
+tag := "print-axioms"
+%%%
+
+The command {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`, followed by a defined identifier, displays all the axioms that a definition transitively relies on.
+In other words, if a proof uses another proof, which itself uses an axiom, then the axiom is reported by {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` for both.
+
+::::keepEnv
+
+This can be used to audit the assumptions made by a proof, for instance detecting that a proof transitively depends on the {name}`sorryAx` tactic.
+
+```lean
+def lazy : 4 == 2 + 1 + 1 := by sorry
 ```
-Finally, the axiom {name}`sorryAx` is used as part of the implementation of the {tactic}`sorry` tactic and {lean  (type := "Anything")}`sorry` term.
-Uses of this axiom are not intended to occur in finished proofs, and this can be confirmed using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
+```lean (name := printAxEx4)
+#print axioms lazy
+```
+```leanOutput printAxEx4
+'lazy' depends on axioms: [sorryAx]
+```
+
+:::example "Printing Axioms of Simple Definitions" (keep := true)
+
+Consider the following three constants:
+
+```lean
+def addThree (n : Nat) : Nat := 1 + n + 2
+theorem excludedMiddle : {P : Prop} → P ∨ ¬ P := by grind
+theorem simpleEquality : addThree 7 = 10 := by simp [addThree]
+```
+
+A regular computational function like {lean}`addThree` that we might execute will typically not depend on any axioms:
+
+```lean (name := printAxEx2)
+#print axioms addThree
+```
+```leanOutput printAxEx2
+'addThree' does not depend on any axioms
+```
+
+The excluded middle theorem is only true if we use classical reasoning, so it is unsurprising to see classical principles listed:
+
+```lean (name := printAxEx1)
+#print axioms excludedMiddle
+```
+```leanOutput printAxEx1
+'excludedMiddle' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+Finally, the {tactic}`simp` tactic generates proofs that depends on the axiom of propositional extensionality:
+
+```lean (name := printAxEx3)
+#print axioms simpleEquality
+```
+```leanOutput printAxEx3
+'simpleEquality' depends on axioms: [propext]
+```
 :::
+
+:::example "Using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` with {keywordOf Lean.guardMsgsCmd}`#guard_msgs`"
+
+You can use {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` together with {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to ensure that updates to libraries from other projects cannot silently introduce unwanted dependencies on axioms.
+
+Perhaps you are worried that some future update to the {tactic}`simp` tactic in the previous example's {lean}`simpleEquality` definition might introduce a new axiom dependency.
+You can guard against this by writing a command that will fail if {lean}`simpleEquality` uses any axioms besides {lean}`propext`:
+
+```lean
+/--
+info: 'simpleEquality' depends on axioms: [propext]
+-/
+#guard_msgs in
+#print axioms simpleEquality
+```
+:::
+::::
