@@ -985,7 +985,7 @@ Terms such as {lean}`-5` consist of a prefix negation (which can be overloaded v
 
 ## Scientific Numbers
 
-Scientific number literals consist of a sequence of decimal digits followed (without intervening whitespace) by an optional decimal part (a period followed by zero or more decimal digits) and an optional exponent part (the letter `e` followed by an optional `+` or `-` and then followed by a one or more decimal digits).
+Scientific number literals consist of a sequence of decimal digits followed (without intervening whitespace) by an optional decimal part (a period followed by zero or more decimal digits) and an optional exponent part (the letter `e` followed by an optional `+` or `-` and then followed by one or more decimal digits).
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}
