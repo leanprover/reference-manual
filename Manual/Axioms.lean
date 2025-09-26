@@ -181,9 +181,7 @@ Because they occur only in a proof, the compiler has no problem generating code:
 tag := "standard-axioms"
 %%%
 
-There are seven standard axioms in Lean.
-
-The first three axioms to know about are all important parts of how mathematics is done in Lean:
+There are seven standard axioms in Lean. The first three axioms are important parts of how mathematics is done in Lean:
  * ```signature
    Classical.choice.{u} {α : Sort u} : Nonempty α → α
    ```
@@ -204,8 +202,7 @@ Uses of this axiom are not intended to occur in finished proofs, as it can be us
    sorryAx {α : Sort u} (synthetic := true) : α
    ```
 
-Three final axioms do not truly exist for their _mathematical_ content; from a mathematical perspective they prove trivial statements.
-These axioms instead track proofs that depend on the correctness of the entire compiler.
+Three final axioms do not truly exist for their _mathematical_ content; from a mathematical perspective they prove trivial statements:
 
  * ```signature
     Lean.trustCompiler : True
@@ -218,9 +215,10 @@ These axioms instead track proofs that depend on the correctness of the entire c
     Lean.ofReduceNat (a b : Nat) : Lean.reduceNat a = b → a = b
    ```
 
+These axioms instead track proofs that depend on the correctness of the entire compiler, and not just on the much smaller {tech}`kernel`.
+
 :::example "Creating and Tracking Proofs That Trust the Compiler"
-The functions {name}`Lean.reduceBool` and {name}`Lean.reduceNat` can be invoked to have the compiler perform a calculation.
-This can greatly improve performance of implementations of proof by reflection, but it means that the correctness of proofs relies on the entire compiler, rather than just relying on the much smaller {tech}[kernel].
+The functions {name}`Lean.reduceBool` and {name}`Lean.reduceNat` can be invoked to have the compiler perform a calculation; this can greatly improve performance of implementations of proof by reflection.
 
 ```lean
 def largeNumber : Nat := Lean.reduceNat (230_000 + 4_500 + 1_000_067)
@@ -278,7 +276,7 @@ theorem excludedMiddle (P : Prop) : P ∨ ¬ P := Classical.em P
 theorem simpleEquality (P : Prop) : (P ∨ False) = P := or_false P
 ```
 
-A regular computational function like {lean}`addThree` that we might execute will typically not depend on any axioms:
+Regular functions like {lean}`addThree` that we might want to actually evaluation typically do not depend on any axioms:
 
 ```lean (name := printAxEx2)
 #print axioms addThree
@@ -296,9 +294,7 @@ The excluded middle theorem is only true if we use classical reasoning, so the p
 'excludedMiddle' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-Finally, the idea that two equivalent propositions are equal requires the principle of
-
- {tactic}`simp` tactic generates proofs that depends on the axiom of propositional extensionality:
+Finally, the idea that two equivalent propositions are equal directly relies on {tech}[propositional extensionality].
 
 ```lean (name := printAxEx3)
 #print axioms simpleEquality
@@ -312,7 +308,7 @@ Finally, the idea that two equivalent propositions are equal requires the princi
 
 You can use {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` together with {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to ensure that updates to libraries from other projects cannot silently introduce unwanted dependencies on axioms.
 
-Perhaps you are worried that some future update to the {lean}`or_false` in the previous example's {lean}`simpleEquality` definition might introduce a new axiom dependency.
+Perhaps you are worried that some future update to {lean}`or_false` in the previous example's {lean}`simpleEquality` proof might quietly introduce a new axiom dependency.
 You can guard against this by writing a command that will fail if {lean}`simpleEquality` uses any axioms besides {lean}`propext`:
 
 ```lean
