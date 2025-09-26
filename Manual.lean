@@ -18,6 +18,7 @@ import Manual.ErrorExplanations
 import Manual.Tactics
 import Manual.Simp
 import Manual.Grind
+import Manual.VCGen
 import Manual.BasicTypes
 import Manual.BasicProps
 import Manual.NotationsMacros
@@ -97,6 +98,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 {include 0 Manual.Simp}
 
 {include 0 Manual.Grind}
+
+{include 0 Manual.VCGen}
 
 {include 0 Manual.BasicProps}
 
