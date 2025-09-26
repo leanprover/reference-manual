@@ -913,7 +913,7 @@ end
 ```
 ::::
 
-# Literals
+# Numeric Literals
 
 There are two kinds of numeric literal: natural number literals and {deftech}[scientific literals].
 Both are overloaded via {tech (key := "type class")}[type classes].
@@ -927,6 +927,17 @@ tag := "nat-literals"
 section
 variable {n : Nat}
 ```
+
+Natural numbers can be specified in several forms:
+
+ - A sequence of digits 0 through 9 is a decimal literal
+ - `0b` or `0B` followed by a sequence of one or more 0s and 1s is a binary literal
+ - `0o` or `0O` followed by a sequence of one or more digits 0 through 7 is an octal literal
+ - `0x` or `0X` followed by a sequence of one or more hex digits (0 through 9 and A through F, case-insensitive) is a hexadecimal literal
+
+All numeric literals can also contain internal underscores, except for between the first two characters in a binary, octal, or hexadecimal literal.
+These are intended to help groups of digits in natural ways, for instance {lean}`1_000_000` or {lean}`0x_c0de_cafe`.
+(While it is possible to write the number 123 as {lean}`1_2__3`, this is not recommended.)
 
 When Lean encounters a natural number literal {lean}`n`, it interprets it via the overloaded method {lean}`OfNat.ofNat n`.
 A {tech}[default instance] of {lean}`OfNat Nat n` ensures that the type {lean}`Nat` can be inferred when no other type information is present.
@@ -961,6 +972,12 @@ instance : OfNat NatInterval n where
 ```leanOutput eval8Interval
 { low := 8, high := 8, low_le_high := _ }
 ```
+```lean (name := eval7Interval)
+#eval (0b111 : NatInterval)
+```
+```leanOutput eval7Interval
+{ low := 7, high := 7, low_le_high := _ }
+```
 :::
 
 There are no separate integer literals.
@@ -968,8 +985,7 @@ Terms such as {lean}`-5` consist of a prefix negation (which can be overloaded v
 
 ## Scientific Numbers
 
-Scientific number literals consist of a sequence of digits followed by an optional period and decimal part and an optional exponent.
-If no period or exponent is present, then the term is instead a natural number literal.
+Scientific number literals consist of a sequence of decimal digits followed (without intervening whitespace) by an optional decimal part (a period followed by zero or more decimal digits) and an optional exponent part (the letter `e` followed by an optional `+` or `-` and then followed by one or more decimal digits).
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}
