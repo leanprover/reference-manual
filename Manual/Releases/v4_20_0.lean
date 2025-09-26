@@ -166,6 +166,11 @@ Other notable library developments in this release include:
 - Updates to `Perm` API in `Array`, `List`, and added support for `Vector`,
 - Additional lemmas for `Array`/`List`/`Vector`.
 
+### Lake
+
+* [#7909](https://github.com/leanprover/lean4/pull/7909) adds Lake support for building modules given their source file
+  path. This is made use of in both the CLI and the server.
+
 ### Breaking Changes
 
 * [#7474](https://github.com/leanprover/lean4/pull/7474) updates `rw?`, `show_term`, and other tactic-suggesting tactics
@@ -1090,7 +1095,7 @@ Other notable library developments in this release include:
   no longer incorporate their module's source trace.
 
 * [#7909](https://github.com/leanprover/lean4/pull/7909) adds Lake support for building modules given their source file
-  path. This is made use of in both the CLI and the server.
+  path. This is made use of in both the CLI and the sever.
 
 * [#7963](https://github.com/leanprover/lean4/pull/7963) adds helper functions to convert between `Lake.EStateT` and
   `EStateM`.
