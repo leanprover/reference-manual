@@ -33,7 +33,7 @@ def markdown : PartCommand
   | `(Lean.Doc.Syntax.codeblock| ``` markdown | $txt ``` ) => do
      let some ast := MD4Lean.parse txt.getString
        | throwError "Failed to parse body of markdown code block"
-     let mut currentHeaderLevels : List (Nat × Nat) := []
+     let mut currentHeaderLevels : Markdown.HeaderMapping := default
      for block in ast.blocks do
        currentHeaderLevels ← Markdown.addPartFromMarkdown block currentHeaderLevels
   | _ => Elab.throwUnsupportedSyntax
