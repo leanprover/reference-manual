@@ -6,7 +6,7 @@ Author: Joachim Breitner
 
 import VersoManual
 import Manual.Meta.Figure
-import Lean.Elab.InfoTree.Types
+import Lean.Elab.InfoTree
 
 open Verso Doc Elab
 open Verso.Genre Manual
@@ -30,7 +30,12 @@ def Block.noVale.descr : BlockDescr where
 
 @[part_command Lean.Doc.Syntax.codeblock]
 def markdown : PartCommand
-  | `(Lean.Doc.Syntax.codeblock| ``` markdown | $txt ``` ) => do
+  | `(Lean.Doc.Syntax.codeblock| ``` $markdown:ident $args*| $txt ``` ) => do
+     let x ← Lean.Elab.realizeGlobalConstNoOverloadWithInfo markdown
+      if x != by exact decl_name% then Elab.throwUnsupportedSyntax
+      for arg in args do
+        let h ← MessageData.hint m!"Remove it" #[""] (ref? := arg)
+        logErrorAt arg m!"No arguments expected{h}"
      let some ast := MD4Lean.parse txt.getString
        | throwError "Failed to parse body of markdown code block"
      let mut currentHeaderLevels : Markdown.HeaderMapping := default
