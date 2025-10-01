@@ -292,7 +292,7 @@ structure ExplanElabM.State where
   /-- The index of the next block in the context's `blocks` to elaborate. -/
   blockIdx : Nat := 0
   /-- Active Markdown header levels that can be closed by subsequent Markdown -/
-  levels : HeaderMapping := []
+  levels : Markdown.HeaderMapping := default
   /-- The index of the current code block within this explanation. -/
   codeBlockIdx : Nat := 0
 
@@ -362,7 +362,7 @@ def addPartFromExplanationMarkdown (b : MD4Lean.Block) : ExplanElabM Unit := do
   let keywords := tactics.map (·.userName)
   let ref ← getRef
   let {name, severity .. } ← read
-  let ls ← addPartFromMarkdown b
+  let ls ← addPartFromMarkdown b ((← getThe ExplanElabM.State).levels)
     (handleHeaders := Markdown.strongEmphHeaders)
     (elabInlineCode := some (tryElabInlineCodeStrictRestoringState tactics keywords))
     (elabBlockCode := some fun i l s => withRef ref <|
