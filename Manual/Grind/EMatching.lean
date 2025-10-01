@@ -78,7 +78,7 @@ Thus, the theorem {lean}`gf` is instantiated with `x := b`, and the new equality
 ::::
 
 
-The command {keywordOf Lean.Parser.Command.grind_pattern}`grind_pattern` command can be used to manually select an E-matching pattern for a theorem.
+The {keywordOf Lean.Parser.Command.grind_pattern}`grind_pattern` command can be used to manually select an E-matching pattern for a theorem.
 Enabling the option {option}`trace.grind.ematch.instance` causes {tactic}`grind` print a trace message for each theorem instance it generates, which can be helpful when determining E-matching patterns.
 
 :::syntax command (title := "E-matching Pattern Selection")
@@ -199,88 +199,159 @@ An indexable subexpression is {deftech}_minimal_ if there is no smaller indexabl
 grind $[$_:grindMod]?
 ```
 The {attr}`grind` attribute automatically generates an E-matching pattern for a theorem, using a strategy determined by the provided modifier.
+If no modifier is provided, then {attr}`grind` suggests suitable modifiers, displaying the resulting patterns.
+
+```grammar
+grind! $[$_:grindMod]?
+```
+The {attr}`grind!` attribute automatically generates an E-matching pattern for a theorem, using a strategy determined by the provided modifier.
+It additionally enforces the condition that the selected pattern(s) should be minimal indexable subexpressions.
 
 ```grammar
 grind? $[$_:grindMod]?
 ```
 
-The {attr}`grind?` displays the generated pattern.
+The {attr}`grind?` displays the pattern that was generated.
+
+```grammar
+grind!? $[$_:grindMod]?
+```
+The {attr}`grind!?` attribute is equivalent to {attr}`grind!`, except it displays the resulting pattern for inspection.
+
 
 Without any modifier, {attrs}`@[grind]` traverses the conclusion and then the hypotheses from left to right, adding patterns as they increase the coverage, stopping when all arguments are covered.
+This default strategy can be explicitly requested using the {keywordOf Lean.Parser.Attr.grindDef}`.` modifier.
+In addition to using the default strategy, the attribute checks which other strategies could be applied, and displays all of the resulting patterns.
 :::
 
-:::syntax Lean.Parser.Attr.grindMod (title := "Forward Reasoning")
-```grammar
-→
+```lean -keep -show
+-- This test will start failing if new grind modfiers are added. It's to make sure they're all
+-- documented (or at least that a decision has been mad to _not_ document one of them).
+open Lean Parser Attr
+open Lean Elab Command
+
+deriving instance Repr for ParserDescr
+
+def getName : ParserDescr → CommandElabM String
+  | .nodeWithAntiquot name .. => pure name
+  | other => throwError m!"Expected a {.ofConstName ``nodeWithAntiquot}, got {repr other}"
+
+def getOrElse (descr : ParserDescr) : CommandElabM (Array ParserDescr) := do
+  match descr with
+  | .binary `orelse x y => return (← getOrElse x) ++ (← getOrElse y)
+  | other => return #[other]
+
+def getGrindAlts (descr : ParserDescr) : CommandElabM (Array String) := do
+  if let .nodeWithAntiquot "grindMod" ``grindMod d' := descr then
+    let cases ← getOrElse d'
+    return (← cases.mapM getName).qsort
+  else throwError "Expected a {.ofConstName ``nodeWithAntiquot}, got {repr descr}"
+
+/--
+info: `grindMod` can be these:
+grindBwd
+grindCases
+grindCasesEager
+grindDef
+grindEq
+grindEqBoth
+grindEqBwd
+grindEqRhs
+grindExt
+grindFwd
+grindGen
+grindInj
+grindIntro
+grindLR
+grindRL
+grindSym
+grindUsr
+-/
+#guard_msgs in
+#eval show CommandElabM Unit from do
+  let allMods ← getGrindAlts grindMod
+  IO.println "`grindMod` can be these:"
+  for gmod in allMods do
+    IO.println gmod
+
 ```
-{attrs}`@[grind →]` selects a multi-pattern from the hypotheses of the theorem.
-In other words, {tactic}`grind` will use the theorem for forwards reasoning.
 
-To generate a pattern, it traverses the hypotheses of the theorem from left to right.
-Each time it encounters a {tech}[minimal] {tech}[indexable] subexpression which {tech}[covers] an argument which was not previously covered, it adds that subexpression as a pattern, until all arguments have been covered.
-:::
-
-:::syntax Lean.Parser.Attr.grindMod (title := "Backward Reasoning")
+:::syntax Lean.Parser.Attr.grindMod (title := "Default Pattern")
 ```grammar
-←
+.
 ```
-
-{attrs}`@[grind ←]` selects a multi-pattern from the conclusion of theorem.
-In other words, {tactic}`grind` will use the theorem for backwards reasoning.
-This may fail if not all of the arguments to the theorem appear in the conclusion.
+```grammar
+·
+```
+{includeDocstring Lean.Parser.Attr.grindDef}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Equality Rewrites")
 ```grammar
 =
 ```
-{attrs}`@[grind =]` checks that the conclusion of the theorem is an equality, and then uses the left-hand side of the equality as a pattern.
-This may fail if not all of the arguments appear in the left-hand side.
+{includeDocstring Lean.Parser.Attr.grindEq}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Backward Equality Rewrites")
 ```grammar
 =_
 ```
-
-{attrs}`@[grind =_]` is like {attrs}`@[grind =]`, but using the right-hand-side of the equality.
+{includeDocstring Lean.Parser.Attr.grindEqRhs}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Bidirectional Equality Rewrites")
 ```grammar
 _=_
 ```
-
-{attrs}`@[grind _=_]` acts like a macro which expands to {attrs}`@[grind =, grind =_]`.
-It adds _two_ multipatterns, allowing the equality theorem to trigger in either direction.
+{includeDocstring Lean.Parser.Attr.grindEqBoth}
 :::
 
-Although it is tempting to just use {attrs}`@[grind]` by default, we recommend using one of the other forms when it achieves the desired effect.
-In every case, it is worthwhile to verify the chosen pattern using `@[grind?]` (which accepts all of these modifiers).
+:::syntax Lean.Parser.Attr.grindMod (title := "Forward Reasoning")
+```grammar
+→
+```
+{includeDocstring Lean.Parser.Attr.grindFwd}
+:::
 
-There are also three less commonly used modifiers:
+:::syntax Lean.Parser.Attr.grindMod (title := "Backward Reasoning")
+```grammar
+←
+```
+{includeDocstring Lean.Parser.Attr.grindBwd}
+:::
+
+It is important to inspect the patterns generated by the {attrs}`@[grind]` attribute to ensure that they match the correct parts of the lemma.
+If the pattern is too strict, the lemma will not be applied in situations where it would be relevant, leading to less automation.
+If it is too general, then performance will suffer as the lemma is tried in many situations where it is not helpful.
+
+There are also three less commonly used modifiers for lemmas:
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Left-to-Right Traversal")
 ```grammar
 =>
 ```
-{attrs}`@[grind =>]` traverses all the hypotheses from left to right, followed by the conclusion.
+```grammar
+⇒
+```
+{includeDocstring Lean.Parser.Attr.grindLR}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Right-to-Left Traversal")
 ```grammar
 <=
 ```
-{attrs}`@[grind <=]` traverses all the hypotheses from right to left, followed by the conclusion.
+```grammar
+⇐
+```
+{includeDocstring Lean.Parser.Attr.grindRL}
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Backward Reasoning on Equality")
 ```grammar
 ←=
 ```
-{attrs}`@[grind ←=]` is unlike the other modifiers, and it used specifically for backwards reasoning on equality.
-When a theorem's conclusion is an equality proposition and it is annotated with {attrs}`@[grind ←=]`, {tactic}`grind` will instantiate it whenever the corresponding disequality is assumed—this is a consequence of the fact that {tactic}`grind` performs all proofs by contradiction.
-Ordinarily, the {attr}`grind` attribute does not consider the `=` symbol when generating patterns.
+{includeDocstring Lean.Parser.Attr.grindEqBwd}
 :::
 
 :::example "The `@[grind ←=]` Attribute"
@@ -296,11 +367,16 @@ theorem inv_eq [One α] [Mul α] [Inv α] {a b : α}
 ```
 :::
 
-:::syntax Lean.Parser.Attr.grindMod (title := "Extensionality for Structures")
+Some additional modifiers can be used to add other kinds of lemmas to the index.
+This includes extensionality theorems, injectivity theorems for functions, and a shortcut to add all constructors of an inductively defined predicate to the index.
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Extensionality")
 ```grammar
 ext
 ```
-{attrs}`@[grind ext]` registers a structure extensionality lemma with the E-matching engine, allowing {tactic}`grind` to equate a term with a structure type to the type's constructor applied to its projections.
+{includeDocstring Lean.Parser.Attr.grindExt}
+
+In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem
 :::
 
 :::example "The `@[grind ext]` Attribute"
@@ -363,8 +439,133 @@ theorem swap_swap_eq_id' : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
   grind
 ```
-
 :::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Injectivity")
+```grammar
+inj
+```
+{includeDocstring Lean.Parser.Attr.grindInj}
+:::
+
+:::example "Injectivity Patterns"
+This function {name}`double` doubles its argument:
+```lean
+def double (x : Nat) : Nat := x + x
+```
+By default, {tactic}`grind` cannot prove the following theorem:
+```lean +error
+theorem A {n k : Nat} :
+    double (n + 5) = double (k - 3) →
+    n + 8 = k := by
+  grind
+```
+However, {name}`double` is injective, and this fact can be registered for {tactic}`grind` using the {attr}`grind inj` attribute:
+```lean
+@[grind inj]
+theorem double_inj : Function.Injective double := by
+  simp only [double, Function.Injective]
+  grind
+```
+This injectivity lemma suffices to prove the theorem:
+```lean
+theorem B {n k : Nat} :
+    double (n + 5) = double (k - 3) →
+    n + 8 = k := by
+  grind
+```
+:::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Constructor Patterns")
+```grammar
+intro
+```
+{includeDocstring Lean.Parser.Attr.grindIntro}
+:::
+
+:::example "Patterns for Constructors"
+The predicate {name}`Decreasing` states that each of the values in a list of integers is less than the one before, and the function {name}`decreasing` checks this property, returning a {name}`Bool`.
+```lean
+inductive Decreasing : List Int → Prop
+  | nil : Decreasing []
+  | singleton : Decreasing [x]
+  | cons : Decreasing (x :: xs) → y > x → Decreasing (y :: x :: xs)
+
+def decreasing : List Int → Bool
+  | [] | [_] => true
+  | y :: x :: xs => y > x && decreasing (x :: xs)
+```
+
+The function is correct if it returns {name}`true` exactly when {name}`Decreasing` holds for its argument.
+Attempting to prove this fact using a combination of {tactic}`fun_induction` and {tactic}`grind` fails immediately, with none of the three cases proven:
+```lean +error (name := decreasingCorrect1)
+def decreasingCorrect : decreasing xs = Decreasing xs := by
+  fun_induction decreasing <;> grind
+```
+```leanOutput decreasingCorrect1
+`grind` failed
+case grind
+h : (true = true) = ¬Decreasing []
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+```
+```leanOutput decreasingCorrect1
+`grind` failed
+case grind
+head : Int
+h : (true = true) = ¬Decreasing [head]
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+```
+```leanOutput decreasingCorrect1
+`grind` failed
+case grind.1
+y x : Int
+xs : List Int
+ih1 : (decreasing (x :: xs) = true) = Decreasing (x :: xs)
+h : (-1 * y + x + 1 ≤ 0 ∧ decreasing (x :: xs) = true) = ¬Decreasing (y :: x :: xs)
+left : -1 * y + x + 1 ≤ 0
+left_1 : decreasing (x :: xs) = true
+right_1 : ¬Decreasing (y :: x :: xs)
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] True propositions
+  [eqc] False propositions
+  [eqc] Equivalence classes
+  [cases] Case analyses
+  [cutsat] Assignment satisfying linear constraints
+```
+Adding the {attr}`grind intro` attribute to {name}`Decreasing` results in E-matching patterns being added for each of the three constructors, after which {tactic}`grind` can prove the first two goals, and requires only a case analysis of a hypothesis to prove the final goal:
+```lean
+attribute [grind intro] Decreasing
+
+def decreasingCorrect' : decreasing xs = Decreasing xs := by
+  fun_induction decreasing <;> try grind
+  case case3 y x xs ih =>
+    apply propext
+    constructor
+    . grind
+    . intro
+      | .cons hDec hLt =>
+        grind
+```
+Adding {attr}`grind cases` to {name}`Decreasing` enables this case analysis automatically, resulting in a fully automatic proof:
+```lean
+attribute [grind cases] Decreasing
+
+def decreasingCorrect'' : decreasing xs = Decreasing xs := by
+  fun_induction decreasing <;> grind
+```
+:::
+
+{TODO}[Document `gen` modifier for `grind` patterns]
 
 # Inspecting Patterns
 
@@ -406,7 +607,7 @@ axiom q : Nat → Nat
 ```
 
 ```lean (name := h1)
-@[grind? →] theorem h₁ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
+@[grind!? →] theorem h₁ (w : 7 = p (q x)) : p (x + 1) = q x := sorry
 ```
 ```leanOutput h1
 h₁: [q #1]
@@ -471,7 +672,7 @@ axiom q : Nat → Nat
 
 Without any modifiers, {attrs}`@[grind]` produces a multipattern by first checking the conclusion and then the premises:
 ```lean (name := h4)
-@[grind?] theorem h₄ (w : p x = q y) : p (x + 2) = 7 := sorry
+@[grind? .] theorem h₄ (w : p x = q y) : p (x + 2) = 7 := sorry
 ```
 Here, argument `x` is `#2`, `y` is `#1`, and `w` is `#0`.
 The resulting multipattern contains the left-hand side of the equality, which is the only {tech}[minimal] {tech}[indexable] subexpression of the conclusion that covers an argument (namely `x`).

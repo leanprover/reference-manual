@@ -137,6 +137,7 @@ name = "example-package"
 ```
 ```expected
 {name := `«example-package»,
+  origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
@@ -185,6 +186,7 @@ name = "example-package"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
+      restoreAllArtifacts := false,
       libPrefixOnWindows := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
@@ -201,7 +203,8 @@ name = "example-package"
   buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
-  cacheRef? := none}
+  inputsRef? := none,
+  outputsRef? := none}
 ```
 ::::
 :::::
@@ -219,6 +222,7 @@ name = "Sorting"
 ```
 ```expected
 {name := `«example-package»,
+  origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
@@ -267,6 +271,7 @@ name = "Sorting"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
+      restoreAllArtifacts := false,
       libPrefixOnWindows := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
@@ -353,7 +358,8 @@ name = "Sorting"
   buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
-  cacheRef? := none}
+  inputsRef? := none,
+  outputsRef? := none}
 ```
 ::::
 :::::

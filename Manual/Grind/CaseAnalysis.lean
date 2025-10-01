@@ -64,11 +64,18 @@ This case analysis is not exhaustive: {tactic}`grind` only recursively splits ca
   {tactic}`grind` treats every instance of that predicate as a candidate for splitting.
 
 
-:::syntax attr (title := "Case analysis")
+:::syntax attr (title := "Case Analysis")
 ```grammar
 grind cases
 ```
-The {attr}`grind cases` attribute marks inductively-defined predicates as suitable for case splitting.
+{includeDocstring Lean.Parser.Attr.grindCases}
+:::
+
+:::syntax attr (title := "Eager Case Analysis")
+```grammar
+grind cases eager
+```
+{includeDocstring Lean.Parser.Attr.grindCasesEager}
 :::
 
 
@@ -104,7 +111,8 @@ right : ¬y = 0
     [prop] x = 0
     [prop] y = 0
   [eqc] Equivalence classes
-    [eqc] {0, if c = true then x else y}
+    [eqc] others
+      [eqc] {0, if c = true then x else y}
   [cutsat] Assignment satisfying linear constraints
 ```
 
@@ -130,7 +138,8 @@ right : ¬y = 0
     [prop] x = 0
     [prop] y = 0
   [eqc] Equivalence classes
-    [eqc] {0, if c = true then x else y}
+    [eqc] others
+      [eqc] {0, if c = true then x else y}
   [cutsat] Assignment satisfying linear constraints
   [limits] Thresholds reached
 ```
@@ -170,11 +179,10 @@ h_1 : y = 0
             | x => 2) =
             2
   [eqc] Equivalence classes
-    [eqc] {y,
-        0,
-        match x with
-        | 0 => 1
-        | x => 2}
+    [eqc] {y, 0}
+      [eqc] {match x with
+          | 0 => 1
+          | x => 2}
     [eqc] {x = 0 → False, (fun x_0 => x_0 = 0 → False) x, x = 0 → False}
   [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints

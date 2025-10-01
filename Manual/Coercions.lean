@@ -346,7 +346,7 @@ Printing the resulting definition shows that the computation is inside the funct
 ```
 ```leanOutput tomorrow
 def tomorrow : Later String :=
-{ get := fun x => Nat.fold 10000 (fun x x s => s ++ "tomorrow") "" }
+{ get := fun x => Nat.fold 10000 (fun x x_1 s => s ++ "tomorrow") "" }
 ```
 :::
 

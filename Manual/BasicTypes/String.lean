@@ -12,6 +12,7 @@ import Manual.BasicTypes.String.Logical
 import Manual.BasicTypes.String.Literals
 import Manual.BasicTypes.String.FFI
 import Manual.BasicTypes.String.Substrings
+import Manual.BasicTypes.String.Slice
 
 open Manual.FFIDocType
 
@@ -28,13 +29,18 @@ tag := "String"
 
 Strings represent Unicode text.
 Strings are specially supported by Lean:
- * They have a _logical model_ that specifies their behavior in terms of lists of characters, which specifies the meaning of each operation on strings.
- * They have an optimized run-time representation in compiled code, as packed arrays of bytes that encode the string as UTF-8, and the Lean runtime specially optimizes string operations.
+ * They have a _logical model_ that specifies their behavior in terms of {name}`ByteArray`s that contain UTF-8 scalar values.
+ * In compiled code, they have a run-time representation that additionally includes a cached length, measured as the number of scalar values.
+   Additionally, the Lean runtime contains optimized implementations of string operations.
  * There is {ref "string-syntax"}[string literal syntax] for writing strings.
 
-The fact that strings are internally represented as UTF-8-encoded byte arrays is visible in the API:
+UTF-8 is a variable-width encoding.
+A character may be encoded as a one, two, three, or four byte code unit.
+The fact that strings are UTF-8-encoded byte arrays is visible in the API:
  * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use a {name}`String.Iterator`] in a loop instead of a {name}`Nat`.
- * Strings are indexed by {name}`String.Pos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time. Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
+ * Strings are indexed by {name}`String.ValidPos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time.
+   {name}`String.ValidPos` includes a proof that the byte count in fact points at the beginning of a UTF-8 code unit.
+   Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
 
 {include 0 Manual.BasicTypes.String.Logical}
 
@@ -142,6 +148,8 @@ tag := "string-api-pos"
 
 {docstring String.Pos.isValid}
 
+{docstring String.Pos.isValidForSlice}
+
 {docstring String.atEnd}
 
 {docstring String.endPos}
@@ -157,6 +165,10 @@ tag := "string-api-pos"
 {docstring String.prev}
 
 {docstring String.Pos.min}
+
+{docstring String.Pos.inc}
+
+{docstring String.Pos.dec}
 
 ## Lookups and Modifications
 %%%
@@ -308,9 +320,13 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.curr}
 
+{docstring String.Iterator.curr'}
+
 {docstring String.Iterator.hasNext}
 
 {docstring String.Iterator.next}
+
+{docstring String.Iterator.next'}
 
 {docstring String.Iterator.forward}
 
@@ -328,6 +344,10 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.setCurr}
 
+{docstring String.Iterator.find}
+
+{docstring String.Iterator.foldUntil}
+
 {docstring String.Iterator.extract}
 
 {docstring String.Iterator.remainingToString}
@@ -336,8 +356,12 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.pos}
 
+{docstring String.Iterator.toString}
+
 
 {include 2 Manual.BasicTypes.String.Substrings}
+
+{include 2 Manual.BasicTypes.String.Slice}
 
 
 
