@@ -184,7 +184,7 @@ The Lean standard library instances that allow the following types to be used fo
 * * {lean}`String`
   * Matches occurrences of the given string
 * * {lean}`String.Slice`
-  * Matches occurrences of the given string string slice
+  * Matches occurrences of the string represented by the slice
 :::
 
 {docstring String.Slice.Pattern.ToForwardSearcher}
