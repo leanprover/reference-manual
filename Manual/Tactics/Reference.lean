@@ -549,7 +549,7 @@ tag := "tactic-ref-sat"
 :::tactic "bv_check"
 :::
 
-:::tactic Lean.Parser.Tactic.bvTrace
+:::tactic Lean.Parser.Tactic.bvTraceMacro
 :::
 
 # Controlling Reduction

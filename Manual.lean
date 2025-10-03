@@ -161,6 +161,9 @@ file := some "the-index"
 
 :::progress
 ```namespace
+ByteArray
+ByteArray.Iterator
+ByteSlice
 List
 Int
 IntCast
@@ -203,6 +206,7 @@ LawfulFunctor
 LawfulApplicative
 LawfulMonad
 LawfulBEq
+ReflBEq
 EquivBEq
 LawfulHashable
 Id
@@ -216,7 +220,11 @@ EStateM.Result
 EStateM.Backtrackable
 String
 Substring
+String.Slice
+String.Slice.Pos
+String.Pattern
 String.Pos
+String.Iterator
 Char
 Nat
 Lean.Elab.Tactic
@@ -431,6 +439,34 @@ BitVec.reduceShift
 BitVec.reduceShiftShift
 BitVec.reduceShiftWithBitVecLit
 BitVec.reduceUnary
+```
+
+```exceptions
+ByteArray.ctorIdx
+ByteArray.findFinIdx?.loop
+ByteArray.findIdx?.loop
+ByteArray.foldlM.loop
+ByteArray.foldlMUnsafe
+ByteArray.foldlMUnsafe.fold
+ByteArray.forIn.loop
+ByteArray.forInUnsafe
+ByteArray.forInUnsafe.loop
+ByteArray.hash
+ByteArray.instBEq.beq
+ByteArray.instInhabitedIterator.default
+ByteArray.mk.noConfusion
+ByteArray.mkIterator
+ByteArray.toList.loop
+ByteArray.utf8Decode?.go
+ByteArray.utf8DecodeChar?.assemble₁
+ByteArray.utf8DecodeChar?.assemble₂
+ByteArray.utf8DecodeChar?.assemble₂Unchecked
+ByteArray.utf8DecodeChar?.assemble₃
+ByteArray.utf8DecodeChar?.assemble₃Unchecked
+ByteArray.utf8DecodeChar?.assemble₄
+ByteArray.utf8DecodeChar?.assemble₄Unchecked
+ByteArray.utf8DecodeChar?.isInvalidContinuationByte
+ByteArray.utf8DecodeChar?.parseFirstByte
 ```
 
 ```exceptions

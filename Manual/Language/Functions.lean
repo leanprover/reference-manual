@@ -224,3 +224,20 @@ The `Function` namespace contains general-purpose helpers for working with funct
 {docstring Function.curry}
 
 {docstring Function.uncurry}
+
+## Properties
+%%%
+tag := "function-api-properties"
+%%%
+
+{docstring Function.Injective}
+
+{docstring Function.Surjective}
+
+{docstring Function.LeftInverse}
+
+{docstring Function.HasLeftInverse}
+
+{docstring Function.RightInverse}
+
+{docstring Function.HasRightInverse}

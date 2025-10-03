@@ -105,7 +105,7 @@ theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
 stop discarding
 
 -- ANCHOR: mem_indices_of_mem
-@[local grind] private theorem mem_indices_of_mem
+@[local grind =] private theorem mem_indices_of_mem
     {m : IndexMap α β} {a : α} :
     a ∈ m ↔ a ∈ m.indices := Iff.rfl
 -- ANCHOR_END: mem_indices_of_mem
@@ -138,11 +138,13 @@ private theorem getElem_indices_lt {h : a ∈ m} : m.indices[a] < m.size := by
 
 section
 /--
-info: getElem_indices_lt: [@LE.le `[Nat] `[instLENat] ((@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@indices _ #7 _ _ #4) #3 #0) + 1) (@size _ _ _ _ #4)]
+info: Try these:
+  • [grind .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
+  • [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
 -/
 #check_msgs in
 -- ANCHOR: getElem_indices_lt_attr
-attribute [local grind?] getElem_indices_lt
+attribute [local grind] getElem_indices_lt
 -- ANCHOR_END: getElem_indices_lt_attr
 end
 
@@ -163,15 +165,15 @@ instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
 -- ANCHOR_END: GetElem?
 
 -- ANCHOR: getElem_local
-@[local grind] private theorem getElem_def
+@[local grind =] private theorem getElem_def
     (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m[a] = m.values[m.indices[a]'h] :=
   rfl
-@[local grind] private theorem getElem?_def
+@[local grind =] private theorem getElem?_def
     (m : IndexMap α β) (a : α) :
     m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) :=
   rfl
-@[local grind] private theorem getElem!_def
+@[local grind =] private theorem getElem!_def
     [Inhabited β] (m : IndexMap α β) (a : α) :
     m[a]! = (m.indices[a]?.bind (m.values[·]?)).getD default :=
   rfl
@@ -202,7 +204,7 @@ discarding
 error: could not synthesize default value for field 'WF' of 'IndexMap' using tactics
 ---
 error: `grind` failed
-case grind.1.1.2.2.1.1.1.1
+case grind.1.1.2.2.1.1
 α : Type u
 β : Type v
 inst : BEq α
@@ -230,10 +232,9 @@ h_4 : ¬i_1 = i_2
 left_1 : ¬m_1.keys[i_2]? = some a_1
 right_1 : ¬m_1.indices[a_1]? = some i_2
 h_6 : (m_1.keys.back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ m_1.keys.pop.size
-left_2 : (m_1.indices.erase a_1).contains a_2 = true
-right_2 : a_2 ∈ m_1.indices.erase a_1
-h_9 : 0 = m_1.indices[a_1]
+left_2 : a_2 ∈ m_1.indices.erase a_1
+left_3 : (a_1 == a_2) = false
+right_3 : a_2 ∈ m_1.indices
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -249,10 +250,10 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 →
           (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
     [prop] ¬a_1 ∈ m_1.indices → m_1.indices[a_1]? = none
-    [prop] ∀ (h_10 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
+    [prop] ∀ (h_8 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
           ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
             some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]
-    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
+    [prop] ∀ (h_8 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
           (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
     [prop] ∀ (h : a_1 ∈ m_1.indices), m_1.indices[a_1]? = some m_1.indices[a_1]
     [prop] (m_1.keys[i_1]? = some a_1) = (m_1.indices[a_1]? = some i_1)
@@ -282,7 +283,7 @@ h_9 : 0 = m_1.indices[a_1]
           if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
             ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
           else 0
-    [prop] ∀ (h_10 : i_1 + 1 ≤ m_1.keys.pop.size),
+    [prop] ∀ (h_8 : i_1 + 1 ≤ m_1.keys.pop.size),
           m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
     [prop] (m_1.keys[i_2]? = some a_2) = (m_1.indices[a_2]? = some i_2)
     [prop] (m_1.keys[i_1]? = some a_2) = (m_1.indices[a_2]? = some i_1)
@@ -312,28 +313,28 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
     [prop] ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
     [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
+    [prop] ∀ (h_8 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
           (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
     [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys[i_2]?
     [prop] (m_1.keys[i_1]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
           (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_1]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_1)
+    [prop] (m_1.keys[i_2]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_2)
     [prop] (m_1.keys[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]) =
           (m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]? = some i_2)
     [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
     [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2] = if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys.pop[i_2]
     [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2] = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
-    [prop] (m_1.keys[i_1]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_1)
-    [prop] (m_1.keys[i_2]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some i_2)
-    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2] = if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]
     [prop] ¬m_1.keys[i_2] ∈ m_1.indices → m_1.indices[m_1.keys[i_2]]? = none
-    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] ∀ (h_8 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
     [prop] (m_1.keys[m_1.indices[a_1]]? = some m_1.keys[i_2]) = (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[a_1])
+    [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2] = if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]
     [prop] (m_1.indices.contains m_1.keys[i_2] = true) = (m_1.keys[i_2] ∈ m_1.indices)
     [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some m_1.keys[i_2]) =
           (m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]])
     [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[m_1.keys[i_2]])
     [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[m_1.keys[i_2]])
-    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
+    [prop] ∀ (h_8 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
     [prop] (m_1.keys[i_2] ∈ m_1) = (m_1.keys[i_2] ∈ m_1.indices)
     [prop] ¬i_1 = i_2
     [prop] m_1.keys.pop.size ≤ i_2 → m_1.keys.pop[i_2]? = none
@@ -346,16 +347,14 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] (m_1.keys.back ⋯ == a_2) = true
     [prop] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2] =
           if h₂ : (m_1.keys.back ⋯ == a_2) = true then i_1 else (m_1.indices.erase a_1)[a_2]
-    [prop] i_1 + 1 ≤ m_1.keys.pop.size
-    [prop] (m_1.indices.erase a_1).contains a_2 = true
     [prop] a_2 ∈ m_1.indices.erase a_1
-    [prop] 0 = m_1.indices[a_1]
+    [prop] (a_1 == a_2) = false
+    [prop] a_2 ∈ m_1.indices
   [eqc] True propositions
     [prop] ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
     [prop] LawfulBEq α
     [prop] ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
           ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
-    [prop] 0 = m_1.indices[a_1]
     [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
     [prop] LawfulHashable α
     [prop] -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
@@ -383,10 +382,10 @@ h_9 : 0 = m_1.indices[a_1]
           ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = none
     [prop] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 →
           (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
+    [prop] ∀ (h_8 : i_2 + 1 ≤ (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size),
           (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
     [prop] ∀ (h : a_1 ∈ m_1.indices), m_1.indices[a_1]? = some m_1.indices[a_1]
-    [prop] ∀ (h_10 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
+    [prop] ∀ (h_8 : a_2 ∈ (m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1),
           ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? =
             some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]
     [prop] m_1.keys.back ⋯ = a_2 ∨ a_2 ∈ m_1.indices.erase a_1
@@ -429,7 +428,7 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] m_1.keys.pop.size ≤ i_2 → m_1.keys.pop[i_2]? = none
     [prop] m_1.keys.size ≤ i_1 → m_1.keys[i_1]? = none
     [prop] m_1.keys.size ≤ i_2 → m_1.keys[i_2]? = none
-    [prop] ∀ (h_10 : i_1 + 1 ≤ m_1.keys.pop.size),
+    [prop] ∀ (h_8 : i_1 + 1 ≤ m_1.keys.pop.size),
           m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯ = (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop
     [prop] ∀ (h : i_1 + 1 ≤ m_1.keys.size), m_1.keys[i_1]? = some m_1.keys[i_1]
     [prop] ∀ (h : i_2 + 1 ≤ m_1.keys.pop.size), m_1.keys.pop[i_2]? = some m_1.keys.pop[i_2]
@@ -458,7 +457,7 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] a_2 ∈ m_1.indices
     [prop] ¬a_2 ∈ m_1.indices → m_1.indices[a_2]? = none
     [prop] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size ≤ i_2 → (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = none
-    [prop] ∀ (h_10 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
+    [prop] ∀ (h_8 : i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size),
           (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]
     [prop] ∀ (h : a_2 ∈ m_1.indices), m_1.indices[a_2]? = some m_1.indices[a_2]
     [prop] (!a_1 == a_2) = true ∧ m_1.indices.contains a_2 = true
@@ -470,7 +469,7 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
     [prop] m_1.keys[i_2] ∈ m_1.indices
     [prop] ¬m_1.keys[i_2] ∈ m_1.indices → m_1.indices[m_1.keys[i_2]]? = none
-    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
+    [prop] ∀ (h_8 : m_1.keys[i_2] ∈ m_1.indices), m_1.indices[m_1.keys[i_2]]? = some m_1.indices[m_1.keys[i_2]]
     [prop] (m_1.indices.contains m_1.keys[i_2] = true) = (m_1.keys[i_2] ∈ m_1.indices)
     [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1) = (m_1.indices[a_1]? = some m_1.indices[m_1.keys[i_2]])
     [prop] (m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_2) = (m_1.indices[a_2]? = some m_1.indices[m_1.keys[i_2]])
@@ -482,7 +481,7 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some m_1.keys[i_2]
     [prop] m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
     [prop] m_1.keys[i_2] ∈ m_1
-    [prop] ∀ (h_10 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
+    [prop] ∀ (h_8 : m_1.keys[i_2] ∈ m_1), m_1.indices[m_1.keys[i_2]] + 1 ≤ m_1.size
     [prop] (m_1.keys[i_2] ∈ m_1) = (m_1.keys[i_2] ∈ m_1.indices)
   [eqc] False propositions
     [prop] i_1 = m_1.size - 1
@@ -525,23 +524,19 @@ h_9 : 0 = m_1.indices[a_1]
     [prop] m_1.keys[m_1.indices[m_1.keys[i_2]]]? = some a_1
   [eqc] Equivalence classes
     [eqc] {a_1, m_1.keys[i_1]}
-    [eqc] {i_1,
-        0,
-        m_1.indices[a_1],
-        ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2],
-        if h₂ : (m_1.keys.back ⋯ == a_2) = true then i_1 else (m_1.indices.erase a_1)[a_2],
-        m_1.indices[a_1]}
+    [eqc] {i_1, m_1.indices[a_1], ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2], m_1.indices[a_1]}
+      [eqc] {if h₂ : (m_1.keys.back ⋯ == a_2) = true then i_1 else (m_1.indices.erase a_1)[a_2]}
     [eqc] {i_2, m_1.indices[a_2], m_1.indices[m_1.keys[i_2]], m_1.indices[m_1.keys[i_2]]}
     [eqc] {a_2,
         m_1.keys.back ⋯,
         (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
         m_1.keys[m_1.keys.size - 1],
-        if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys.pop[i_2],
         (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2],
         m_1.keys.pop[i_2],
         m_1.keys[i_2],
-        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]}
+        (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]}
+      [eqc] {if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys.pop[i_2],
+          if i_1 = i_2 then m_1.keys.back ⋯ else m_1.keys[i_2]}
     [eqc] {false, a_1 == a_2}
     [eqc] {true,
         m_1.keys.back ⋯ == a_2,
@@ -563,8 +558,8 @@ h_9 : 0 = m_1.indices[a_1]
         ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]?,
         some m_1.indices[a_1],
         some ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2],
-        if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?,
         m_1.indices[m_1.keys[i_1]]?}
+      [eqc] {if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?}
     [eqc] {some i_2,
         m_1.indices[a_2]?,
         m_1.indices[(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]]?,
@@ -574,43 +569,45 @@ h_9 : 0 = m_1.indices[a_1]
     [eqc] {some a_2,
         (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?,
         some (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys.pop[i_2]?,
         m_1.keys.pop[i_2]?,
         m_1.keys[i_2]?,
         some m_1.keys.pop[i_2],
         some m_1.keys[i_2],
-        if i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1 then (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?
-        else none,
-        if i_2 + 1 ≤ m_1.keys.size - 1 then m_1.keys[i_2]? else none,
         (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop[i_2]?,
         (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?,
         some (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2],
-        if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys[i_2]?,
         m_1.keys[m_1.indices[m_1.keys[i_2]]]?}
-    [eqc] {↑(m_1.size - 1), ↑(m_1.keys.size - 1), ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
+      [eqc] {if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys.pop[i_2]?,
+          if i_2 + 1 ≤ (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1 then (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]?
+          else none,
+          if i_2 + 1 ≤ m_1.keys.size - 1 then m_1.keys[i_2]? else none,
+          if i_1 = i_2 then some (m_1.keys.back ⋯) else m_1.keys[i_2]?}
     [eqc] {Membership.mem, fun m a => a ∈ m}
-    [eqc] {↑i_1, ↑0, ↑m_1.indices[a_1]}
-    [eqc] {↑i_2, ↑m_1.indices[m_1.keys[i_2]]}
-    [eqc] {↑m_1.keys.pop.size,
-        ↑(m_1.size - 1),
-        if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
-          ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
-        else 0,
-        if -1 * ↑m_1.keys.size + 1 ≤ 0 then ↑m_1.keys.size + -1 else 0,
-        if -1 * ↑m_1.size + 1 ≤ 0 then ↑m_1.size + -1 else 0,
-        ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1,
-        ↑m_1.keys.size + -1,
-        ↑m_1.size + -1,
-        ↑(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size,
-        ↑(m_1.keys.size - 1),
-        ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
-    [eqc] {↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, ↑m_1.keys.size, ↑m_1.size}
     [eqc] {m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯, (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop}
-    [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1, -1 * ↑m_1.keys.size + 1, -1 * ↑m_1.size + 1}
-    [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, -1 * ↑m_1.keys.size, -1 * ↑m_1.size}
     [eqc] {some a_1, m_1.keys[i_1]?, some m_1.keys[i_1], m_1.keys[m_1.indices[a_1]]?}
     [eqc] {i_2 + 1, m_1.indices[m_1.keys[i_2]] + 1}
     [eqc] {i_1 + 1, m_1.indices[a_1] + 1}
+    [eqc] others
+      [eqc] {↑(m_1.size - 1), ↑(m_1.keys.size - 1), ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
+      [eqc] {↑i_1, ↑m_1.indices[a_1]}
+      [eqc] {↑i_2, ↑m_1.indices[m_1.keys[i_2]]}
+      [eqc] {↑m_1.keys.pop.size,
+          ↑(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size,
+          ↑(m_1.size - 1),
+          if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
+            ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
+          else 0,
+          if -1 * ↑m_1.keys.size + 1 ≤ 0 then ↑m_1.keys.size + -1 else 0,
+          if -1 * ↑m_1.size + 1 ≤ 0 then ↑m_1.size + -1 else 0,
+          ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1,
+          ↑m_1.keys.size + -1,
+          ↑m_1.size + -1,
+          ↑(m_1.keys.size - 1),
+          ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size,
+          ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1)}
+      [eqc] {↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, ↑m_1.keys.size, ↑m_1.size}
+      [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1, -1 * ↑m_1.keys.size + 1, -1 * ↑m_1.size + 1}
+      [eqc] {-1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size, -1 * ↑m_1.keys.size, -1 * ↑m_1.size}
   [cases] Case analyses
     [cases] [1/2]: if -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0 then
           ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1
@@ -625,15 +622,8 @@ h_9 : 0 = m_1.indices[a_1]
       [cases] source: E-matching WF
     [cases] [1/2]: if (m_1.keys.back ⋯ == a_2) = true then some i_1 else (m_1.indices.erase a_1)[a_2]?
       [cases] source: E-matching HashMap.getElem?_insert
-    [cases] [1/2]: i_1 + 1 ≤ m_1.keys.pop.size
-      [cases] source: E-matching Array.set_pop
-    [cases] [1/2]: ((m_1.indices.erase a_1).contains a_2 = true) = (a_2 ∈ m_1.indices.erase a_1)
-      [cases] source: E-matching HashMap.contains_iff_mem
-    [cases] [1/2]: 0 = m_1.indices[a_1]
-      [cases] source: Model-based theory combination at argument #2 of
-            i_1 < m_1.keys.pop.size
-          and
-            0 < m_1.keys.size
+    [cases] [1/2]: (a_2 ∈ m_1.indices.erase a_1) = ((a_1 == a_2) = false ∧ a_2 ∈ m_1.indices)
+      [cases] source: E-matching HashMap.mem_erase
   [ematch] E-matching patterns
     [thm] getElem?_neg: [@getElem? #8 #7 #6 #5 #4 #2 #1]
     [thm] getElem?_pos: [@getElem? #8 #7 #6 #5 #4 #2 #1]
@@ -665,7 +655,7 @@ h_9 : 0 = m_1.indices[a_1]
     [thm] Option.not_mem_none: [@Membership.mem #1 (Option _) _ (@none _) #0]
     [thm] Option.not_some_le_none: [@LE.le (Option #2) _ (@some _ #0) (@none _)]
     [thm] Option.none_le: [@LE.le (Option #2) _ (@none _) #0]
-    [thm] Array.getElem_mem: [@Membership.mem #3 (Array _) _ #2 (@getElem (Array _) `[Nat] _ _ _ #2 #1 #0)]
+    [thm] Array.getElem_mem: [@Membership.mem #3 (Array _) _ #2 (@getElem (Array _) `[Nat] _ _ _ #2 #1 _)]
     [thm] getElem_indices_lt: [@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@indices _ #7 _ _ #4) #3 _]
     [thm] HashMap.getElem_erase: [@getElem (HashMap #9 #8 #7 #6) _ _ _ _ (@HashMap.erase _ _ #7 #6 #5 #2) #1 #0]
     [thm] HashMap.getElem_insert: [@getElem (HashMap #10 #9 #8 #7) _ _ _ _ (@HashMap.insert _ _ #8 #7 #6 #3 #1) #2 #0]
@@ -699,63 +689,22 @@ h_9 : 0 = m_1.indices[a_1]
   [ring] Rings
     [ring] Ring `Int`
       [basis] Basis
-        [_] ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1 * ↑m_1.keys.size = 0
-        [_] ↑m_1.keys.size + -1 * ↑m_1.size = 0
+        [_] ↑m_1.size + -1 * ↑m_1.keys.size = 0
+        [_] ↑m_1.keys.size + -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size = 0
+        [_] ↑i_1 + -1 * ↑m_1.indices[a_1] = 0
+        [_] ↑m_1.keys.pop.size + -1 * ↑(m_1.keys.size - 1) = 0
+        [_] ↑(m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size + -1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) =
+              0
+        [_] ↑i_2 + -1 * ↑m_1.indices[m_1.keys[i_2]] = 0
+        [_] ↑(m_1.keys.size - 1) + -1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) = 0
+        [_] ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) + -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 =
+              0
+        [_] ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size + -1 =
+              0
     [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
       [basis] Basis
         [_] ↑(m_1.keys.size - 1) + -1 * ↑(m_1.size - 1) = 0
         [_] ↑(m_1.size - 1) + -1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) = 0
-      [diseqs] Disequalities
-        [_] ¬-1 * ↑((m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size - 1) = 0
-[grind] Issues
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        i_2
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        m_1.indices[a_1]
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        i_2
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        m_1.indices[a_1]
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        m_1.indices[m_1.keys[i_2]]
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
-  [issue] type error constructing proof for WF
-      when assigning metavariable ?a with ⏎
-        m_1.indices[m_1.keys[i_2]]
-      has type
-        Nat
-      of sort `Type` but is expected to have type
-        α
-      of sort `Type u`
 [grind] Diagnostics
   [thm] E-Matching instances
     [thm] WF ↦ 16
@@ -811,7 +760,7 @@ instance [LawfulBEq α] : LawfulSingleton (α × β) (IndexMap α β) :=
     ⟨fun _ => rfl⟩
 
 -- ANCHOR: WF'
-@[local grind] private theorem WF'
+@[local grind .] private theorem WF'
     (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
   have := m.WF i a
@@ -851,19 +800,19 @@ If the key is not present, the map is unchanged.
 
 attribute [local grind] getIdx findIdx insert
 
-@[grind] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+@[grind _=_] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m.getIdx (m.findIdx a) = m[a] := by grind
 
-@[grind] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
   grind
 
-@[grind] theorem getElem_insert
+@[grind =] theorem getElem_insert
     (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
   grind
 
-@[grind] theorem findIdx_insert_self
+@[grind =] theorem findIdx_insert_self
     (m : IndexMap α β) (a : α) (b : β) :
     (m.insert a b).findIdx a =
       if h : a ∈ m then m.findIdx a else m.size := by

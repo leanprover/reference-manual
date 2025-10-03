@@ -465,17 +465,16 @@ variable [MonadControlT MetaM m] [MonadLiftT MetaM m] [MonadLiftT IO m]
 def buildTypes := ["debug", "relWithDebInfo", "minSizeRel", "release"]
 
 -- Fail if more types added
-theorem builtTypes_exhaustive : s ∈ buildTypes ↔ (Lake.BuildType.ofString? s).isSome := by
+theorem builtTypes_exhaustive (isLower : s.decapitalize = s) : s ∈ buildTypes ↔ (Lake.BuildType.ofString? s).isSome := by
   simp only [buildTypes]
   constructor
   . intro h
-    simp [Lake.BuildType.ofString?]
-    repeat (cases ‹List.Mem _ _›; simp)
-    contradiction
+    simp only [Lake.BuildType.ofString?]
+    split <;> try (simp; done)
+    simp_all
   . intro h
     simp [Lake.BuildType.ofString?] at h
     split at h <;> simp_all
-
 
 def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM Term  := do
   let env ← getEnv
@@ -812,7 +811,7 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
     let cfg : LoadConfig := {lakeEnv := env, wsDir := "."}
     let .ok (pkg : Lake.Package) errs := Id.run <| (EStateM.run · #[]) <| do
       let name ← stringToLegalOrSimpleName <$> tbl.tryDecode `name
-      let config : PackageConfig name ← PackageConfig.decodeToml tbl
+      let config : PackageConfig name name ← PackageConfig.decodeToml tbl
       let (targetDecls, targetDeclMap) ← decodeTargetDecls name tbl
       let defaultTargets ← tbl.tryDecodeD `defaultTargets #[]
       let defaultTargets := defaultTargets.map stringToLegalOrSimpleName
@@ -826,6 +825,7 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         configFile := cfg.configFile
         config, depConfigs, targetDecls, targetDeclMap
         defaultTargets, name
+        origName := name
       }
 
     .ok <$> report pkg errs

@@ -34,15 +34,27 @@ private def derivableClasses : IO (Array Name) := do
       |>.qsort (·.toString < ·.toString)
   pure derivable
 
+private def checkDerivable (expected : Array Name) : CommandElabM Unit := do
+  let classes ← derivableClasses
+  let extra := classes.filter (· ∉ expected)
+  let missing := expected.filter (· ∉ classes)
+  if extra.isEmpty && missing.isEmpty then
+    Verso.Log.logSilentInfo m!"Derivable classes match!"
+  else
+    unless extra.isEmpty do
+      logError
+        m!"These classes were not expected. If they should appear in the list here, \
+           then add them to the call; otherwise, add them to `{.ofConstName ``hiddenDerivable}`: \
+           {.andList <| extra.toList.map (.ofConstName ·)}"
+    unless missing.isEmpty do
+      logError
+        m!"These classes were expected but not present. Check whether the text needs updating, then \
+           then remove them from the call."
+
 end
 
--- When new deriving handlers are added, check that they should actually appear in the manual and
--- then update either `hiddenDerivable` or this `#guard_msgs`:
-/--
-info: #[`BEq, `DecidableEq, `Hashable, `Inhabited, `Nonempty, `Ord, `Repr, `SizeOf, `TypeName]
--/
-#guard_msgs in
-#eval derivableClasses
+
+#eval checkDerivable #[``BEq, ``DecidableEq, ``Hashable, ``Inhabited, ``Nonempty, ``Ord, ``Repr, ``SizeOf, ``TypeName, ``LawfulBEq, ``ReflBEq]
 
 open Verso Doc Elab ArgParse in
 open Lean in
