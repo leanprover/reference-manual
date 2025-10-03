@@ -141,14 +141,49 @@ tag := "string-api-props"
 
 ## Positions
 %%%
+tag := "string-api-valid-pos"
+%%%
+
+{docstring String.ValidPos}
+
+{docstring String.ValidPos.get}
+
+{docstring String.ValidPos.get!}
+
+{docstring String.ValidPos.get?}
+
+{docstring String.ValidPos.byte}
+
+{docstring String.ValidPos.prev}
+
+{docstring String.ValidPos.prev!}
+
+{docstring String.ValidPos.prev?}
+
+{docstring String.ValidPos.next}
+
+{docstring String.ValidPos.next!}
+
+{docstring String.ValidPos.next?}
+
+{docstring String.ValidPos.cast}
+
+{docstring String.ValidPos.ofCopy}
+
+{docstring String.ValidPos.extract +allowMissing}
+
+{docstring String.ValidPos.toSlice}
+
+## Raw Positions
+%%%
 tag := "string-api-pos"
 %%%
 
-{docstring String.Pos}
+{docstring String.Pos.Raw}
 
-{docstring String.Pos.isValid}
+{docstring String.Pos.Raw.isValid}
 
-{docstring String.Pos.isValidForSlice}
+{docstring String.Pos.Raw.isValidForSlice}
 
 {docstring String.atEnd}
 
@@ -164,11 +199,11 @@ tag := "string-api-pos"
 
 {docstring String.prev}
 
-{docstring String.Pos.min}
+{docstring String.Pos.Raw.min}
 
-{docstring String.Pos.inc}
+{docstring String.Pos.Raw.inc}
 
-{docstring String.Pos.dec}
+{docstring String.Pos.Raw.dec}
 
 ## Lookups and Modifications
 %%%
@@ -380,13 +415,11 @@ tag := "string-api-meta"
 tag := "string-api-encoding"
 %%%
 
-{docstring String.getUtf8Byte}
+{docstring String.getUTF8Byte}
 
 {docstring String.utf8ByteSize}
 
 {docstring String.utf8EncodeChar}
-
-{docstring String.utf8DecodeChar?}
 
 {docstring String.fromUTF8}
 
@@ -395,8 +428,6 @@ tag := "string-api-encoding"
 {docstring String.fromUTF8!}
 
 {docstring String.toUTF8}
-
-{docstring String.validateUTF8}
 
 {docstring String.crlfToLf}
 

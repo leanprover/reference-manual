@@ -92,9 +92,9 @@ tag := "string-api-slice"
 
 ## Bytes
 
-{docstring String.Slice.getUtf8Byte}
+{docstring String.Slice.getUTF8Byte}
 
-{docstring String.Slice.getUtf8Byte!}
+{docstring String.Slice.getUTF8Byte!}
 
 ## Positions
 

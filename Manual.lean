@@ -223,7 +223,9 @@ Substring
 String.Slice
 String.Slice.Pos
 String.Pattern
+String.Pos.Raw
 String.Pos
+String.ValidPos
 String.Iterator
 Char
 Nat
