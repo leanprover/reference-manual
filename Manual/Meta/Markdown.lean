@@ -28,17 +28,31 @@ def Block.noVale.descr : BlockDescr where
     some <| fun _ goB _ _ content => do
       pure {{<div class="no-vale">{{← content.mapM goB}}</div>}}
 
+/-- Closes the last-opened section, throwing an error on failure. -/
+def closeEnclosingSection : PartElabM Unit := do
+  -- We use `default` as the source position because the Markdown doesn't have one
+  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then
+    modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
+  else
+    throwError m!"Failed to close the last-opened explanation part"
+
+/-- Closes as many sections as were created by markdown processing. -/
+def closeEnclosingSections (headerMapping : Markdown.HeaderMapping) : PartElabM Unit := do
+  for _ in headerMapping do
+    closeEnclosingSection
+
 @[part_command Lean.Doc.Syntax.codeblock]
 def markdown : PartCommand
   | `(Lean.Doc.Syntax.codeblock| ``` $markdown:ident $args*| $txt ``` ) => do
      let x ← Lean.Elab.realizeGlobalConstNoOverloadWithInfo markdown
-      if x != by exact decl_name% then Elab.throwUnsupportedSyntax
-      for arg in args do
-        let h ← MessageData.hint m!"Remove it" #[""] (ref? := arg)
-        logErrorAt arg m!"No arguments expected{h}"
+     if x != by exact decl_name% then Elab.throwUnsupportedSyntax
+     for arg in args do
+       let h ← MessageData.hint m!"Remove it" #[""] (ref? := arg)
+       logErrorAt arg m!"No arguments expected{h}"
      let some ast := MD4Lean.parse txt.getString
        | throwError "Failed to parse body of markdown code block"
      let mut currentHeaderLevels : Markdown.HeaderMapping := default
      for block in ast.blocks do
        currentHeaderLevels ← Markdown.addPartFromMarkdown block currentHeaderLevels
+     closeEnclosingSections currentHeaderLevels
   | _ => Elab.throwUnsupportedSyntax

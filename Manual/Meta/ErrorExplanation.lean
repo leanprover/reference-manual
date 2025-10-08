@@ -438,14 +438,6 @@ private def titleOfCodeBlock? (b : MD4Lean.Block) : Option String := do
   let info ← infoOfCodeBlock b |>.toOption
   info.title?
 
-/-- Closes the last-opened section, throwing an error on failure. -/
-def closeEnclosingSection : PartElabM Unit := do
-  -- We use `default` as the source position because the Markdown doesn't have one
-  if let some ctxt' := (← getThe PartElabM.State).partContext.close default then
-    modifyThe PartElabM.State fun st => {st with partContext := ctxt'}
-  else
-    throwError m!"Failed to close the last-opened explanation part"
-
 /-- Adds explanation blocks until the "Examples" header is reached. -/
 def addNonExampleBlocks : ExplanElabM Unit := do
   repeat
@@ -636,8 +628,7 @@ def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
         | throwErrorAt (← getRef) "Failed to parse docstring as Markdown"
       addExplanationMetadata explan.metadata
       let (_, { levels, .. }) ← addExplanationBodyBlocks.run name explan.metadata.severity ast.blocks
-      for _ in levels do
-        closeEnclosingSection
+      closeEnclosingSections levels
     catch
       | .error ref msg => throw <| .error ref m!"Failed to process explanation for {name}: {msg}"
       | e => throw e
