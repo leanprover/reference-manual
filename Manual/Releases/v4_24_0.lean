@@ -21,6 +21,67 @@ file := "v4.24.0"
 ````markdown
 For this release, 377 changes landed. In addition to the 105 feature additions and 75 fixes listed below there were 25 refactoring changes, 9 documentation improvements, 21 performance improvements, 4 improvements to the test suite and 138 other changes.
 
+## Highlights
+
+Lean 4.24.0 release brings continued improvements to the module system and the verification framework,
+strengthens the `grind` tactic, and advances the standard library.
+The release also introduces more efficient constructions of `DecidableEq` instances and `noConfusion` ([#10152](https://github.com/leanprover/lean4/pull/10152) and [#10300](https://github.com/leanprover/lean4/pull/10300)),
+optimizing compilation.
+
+As always, there are plenty of bug fixes and new features, some of which are listed below:
+
+### "Try this" suggestions are rendered under 'Messages'
+
+- [#9966](https://github.com/leanprover/lean4/pull/9966) adjusts the "try this" widget to be rendered as a widget message
+  under 'Messages', not a separate widget under a 'Suggestions' section.
+  The main benefit of this is that the message of the widget is not
+  duplicated between 'Messages' and 'Suggestions'.
+
+### Unicode syntax in pretty-printing
+
+- [#10373](https://github.com/leanprover/lean4/pull/10373) adds a `pp.unicode` option and a `unicode("→", "->")` syntax
+  description alias for the lower-level `unicodeSymbol "→" "->"` parser.
+  The syntax is added to the `notation` command as well. When `pp.unicode`
+  is true (the default) then the first form is used when pretty printing,
+  and otherwise the second ASCII form is used. A variant, `unicode("→", "->", preserveForPP)`
+  causes the `->` form to be preferred; delaborators
+  can insert `→` directly into the syntax, which will be pretty printed
+  as-is; this allows notations like `fun` to use custom options such as
+  `pp.unicode.fun` to opt into the unicode form when pretty printing.
+
+### Library: Dyadic rationals
+
+- [#9993](https://github.com/leanprover/lean4/pull/9993) defines the dyadic rationals, showing they are an ordered ring
+  embedding into the rationals.
+
+### Grind
+
+- [#10322](https://github.com/leanprover/lean4/pull/10322) introduces limited functionality frontends `cutsat` and
+  `grobner` for `grind`.
+
+- [#10105](https://github.com/leanprover/lean4/pull/10105) adds support for detecting associative operators in `grind`. The
+  new AC module also detects whether the operator is commutative,
+  idempotent, and whether it has a neutral element.
+
+### Metaprogramming notes
+
+- [#10306](https://github.com/leanprover/lean4/pull/10306) fixes a few bugs in the `rw` tactic.
+
+  Metaprogramming API: Instead of `Lean.MVarId.rewrite` prefer `Lean.Elab.Tactic.elabRewrite`
+  for elaborating rewrite theorems and applying rewrites to expressions.
+
+### Breaking changes
+
+- [#9749](https://github.com/leanprover/lean4/pull/9749) refactors the Lake codebase to use the new module system
+  throughout. Every module in `Lake` is now a `module`.
+
+  **Breaking change:** Since the module system encourages a `private`-by-default design,
+  the Lake API has switched from its previous `public`-by-default approach. As such,
+  many definitions that were previously public are now private. The newly private definitions
+  are not expected to have had significant user use, nonetheless, important use cases could be missed.
+  If a key API is now inaccessible but seems like it should be public, users are encouraged
+  to report this as an issue on GitHub.
+
 ## Language
 
 * [#8891](https://github.com/leanprover/lean4/pull/8891) improves the error message produced when passing (automatically
