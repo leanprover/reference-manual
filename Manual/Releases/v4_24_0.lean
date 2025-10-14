@@ -75,18 +75,6 @@ As always, there are plenty of bug fixes and new features, some of which are lis
     with grind
   ```
 
-### Unicode syntax in pretty-printing
-
-- [#10373](https://github.com/leanprover/lean4/pull/10373) adds a `pp.unicode` option and a `unicode("→", "->")` syntax
-  description alias for the lower-level `unicodeSymbol "→" "->"` parser.
-  The syntax is added to the `notation` command as well. When `pp.unicode`
-  is true (the default) then the first form is used when pretty printing,
-  and otherwise the second ASCII form is used. A variant, `unicode("→", "->", preserveForPP)`
-  causes the `->` form to be preferred; delaborators
-  can insert `→` directly into the syntax, which will be pretty printed
-  as-is; this allows notations like `fun` to use custom options such as
-  `pp.unicode.fun` to opt into the unicode form when pretty printing.
-
 ### Library: Dyadic rationals
 
 - [#9993](https://github.com/leanprover/lean4/pull/9993) defines the dyadic rationals, showing they are an ordered ring
