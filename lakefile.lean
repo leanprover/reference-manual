@@ -8,7 +8,7 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"v4.24.0-rc1"
+require verso from git "https://github.com/leanprover/verso.git"@"v4.24.0"
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save

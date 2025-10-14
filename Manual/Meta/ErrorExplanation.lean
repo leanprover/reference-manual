@@ -292,7 +292,7 @@ structure ExplanElabM.State where
   /-- The index of the next block in the context's `blocks` to elaborate. -/
   blockIdx : Nat := 0
   /-- Active Markdown header levels that can be closed by subsequent Markdown -/
-  levels : List (Nat × Nat) := []
+  levels : HeaderMapping := {}
   /-- The index of the current code block within this explanation. -/
   codeBlockIdx : Nat := 0
 

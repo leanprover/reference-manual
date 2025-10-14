@@ -588,7 +588,7 @@ def proofStateStyle := r#"
 
 
 @[block_extension Manual.proofState]
-def proofState.descr : BlockDescr where
+def proofState.descr : BlockDescr := withHighlighting {
   traverse id data content := do
     match FromJson.fromJson? data (α := Option String × Array (Highlighted.Goal Highlighted)) with
     | .error e => logError s!"Error deserializing proof state info: {e}"; pure none
@@ -599,10 +599,8 @@ def proofState.descr : BlockDescr where
       pure <| some <| Block.other {Block.proofState with id := some id, data := ToJson.toJson (α := (Option String × _)) (none, v)} content
 
   toTeX := none
-  extraCss := [highlightingStyle, proofStateStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraCss := [proofStateStyle]
+
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ id data _ => do
@@ -624,6 +622,7 @@ def proofState.descr : BlockDescr where
             </div>
           </div>
         }}
+}
 
 structure StateConfig where
   tag : Option String := none
