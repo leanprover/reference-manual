@@ -92,14 +92,22 @@ As always, there are plenty of bug fixes and new features, some of which are lis
 - [#9993](https://github.com/leanprover/lean4/pull/9993) defines the dyadic rationals, showing they are an ordered ring
   embedding into the rationals.
 
-### Grind
+### Grind AC solver
 
-- [#10322](https://github.com/leanprover/lean4/pull/10322) introduces limited functionality frontends `cutsat` and
-  `grobner` for `grind`.
+`grind` can reason about associative, commutative, idempotent, and/or unital operations
+([#10105](https://github.com/leanprover/lean4/pull/10105), [#10146](https://github.com/leanprover/lean4/pull/10146), etc..):
 
-- [#10105](https://github.com/leanprover/lean4/pull/10105) adds support for detecting associative operators in `grind`. The
-  new AC module also detects whether the operator is commutative,
-  idempotent, and whether it has a neutral element.
+```lean
+example (a b c : Nat) : max a (max b c) = max (max b 0) (max a c) := by
+  grind only
+
+example {α} (as bs cs : List α) : as ++ (bs ++ cs) = ((as ++ []) ++ bs) ++ (cs ++ []) := by
+  grind only
+
+example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std.Commutative op] [Std.IdempotentOp op] [Std.LawfulIdentity op u] (a b c : α)
+    : op (op a a) (op b c) = op (op (op b a) (op (op u b) b)) c := by
+  grind only
+```
 
 ### Metaprogramming notes
 
