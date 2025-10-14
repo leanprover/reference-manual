@@ -37,6 +37,39 @@ As always, there are plenty of bug fixes and new features, some of which are lis
   The main benefit of this is that the message of the widget is not
   duplicated between 'Messages' and 'Suggestions'.
 
+### `invariants` and `with` sections in `mvcgen`
+
+- [#9927](https://github.com/leanprover/lean4/pull/9927) implements extended `induction`-inspired syntax for `mvcgen`,
+  allowing optional `invariants` and `with` sections.
+
+  The example below gives the proof that `nodup` correctly checks for duplicates in a list.
+
+  ```lean
+  import Std.Tactic.Do
+  import Std
+
+  open Std Do
+
+  def nodup (l : List Int) : Bool := Id.run do
+    let mut seen : HashSet Int := ∅
+    for x in l do
+      if x ∈ seen then
+        return false
+      seen := seen.insert x
+    return true
+
+  theorem nodup_correct (h : nodup l = r) : r = true ↔ l.Nodup := by
+    unfold nodup at h
+    apply Id.of_wp_run_eq h; clear h
+    mvcgen
+    invariants
+    · Invariant.withEarlyReturn
+        (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
+        (onContinue := fun xs seen =>
+          ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
+    with grind
+  ```
+
 ### Unicode syntax in pretty-printing
 
 - [#10373](https://github.com/leanprover/lean4/pull/10373) adds a `pp.unicode` option and a `unicode("→", "->")` syntax
