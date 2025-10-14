@@ -28,6 +28,11 @@ strengthens the `grind` tactic, and advances the standard library.
 The release also introduces more efficient constructions of `DecidableEq` instances and `noConfusion` ([#10152](https://github.com/leanprover/lean4/pull/10152) and [#10300](https://github.com/leanprover/lean4/pull/10300)),
 optimizing compilation.
 
+As an example for our continuous improvements to performance:
+
+- [#10249](https://github.com/leanprover/lean4/pull/10249) speeds up auto-completion by a factor of ~3.5x through various
+performance improvements in the language server.
+
 As always, there are plenty of bug fixes and new features, some of which are listed below:
 
 ### "Try this" suggestions are rendered under 'Messages'
