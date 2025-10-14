@@ -134,11 +134,11 @@ def LenList.diagonal (square : LenList n (LenList n α)) : LenList n α :=
     lengthOk := by simp
   }
 ```
+::::
 
 ```lean -show
 end
 ```
-::::
 :::::
 
 
