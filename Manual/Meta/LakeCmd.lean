@@ -323,17 +323,13 @@ def lakeMeta : RoleExpander
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.lakeMeta with data := Json.arr #[$(quote mName), .null]} #[Inline.code $(quote mName)])]
 
 @[inline_extension lakeMeta]
-def lakeMeta.descr : InlineDescr where
+def lakeMeta.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX :=
     some <| fun go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
-  extraCss := [highlightingStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ data _ => do
@@ -346,7 +342,7 @@ def lakeMeta.descr : InlineDescr where
         | _ => ("", none)
       let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
       hl.inlineHtml ctx (g := Verso.Genre.Manual)
-
+}
 
 @[role_expander lake]
 def lakeInline : RoleExpander
@@ -416,15 +412,11 @@ def lakeArgs : RoleExpander
         pure #[← ``(Verso.Doc.Inline.other (Inline.lakeArgs $(quote hl)) #[])]
 
 @[inline_extension lakeArgs]
-def lakeArgs.descr : InlineDescr where
+def lakeArgs.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX := none
 
-  extraCss := [highlightingStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ data _ => do
@@ -435,3 +427,4 @@ def lakeArgs.descr : InlineDescr where
           let name := if let Json.str n := name then some n else none
           hl.inlineHtml name (g := Verso.Genre.Manual)
       else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty
+}
