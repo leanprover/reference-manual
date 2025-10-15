@@ -428,6 +428,9 @@ In addition to convenient support for sequential computations with data dependen
 These effects are implemented via transformations of the entire {keywordOf Lean.Parser.Term.do}`do` block in a manner akin to {tech}[monad transformers], rather than via a local desugaring.
 
 ## Early Return
+%%%
+tag := "early-return"
+%%%
 
 Early return terminates a computation immediately with a given value.
 The value is returned from the closest containing {keywordOf Lean.Parser.Term.do}`do` block; however, this may not be the closest `do` keyword.
@@ -452,6 +455,9 @@ Internally, the {keywordOf Lean.Parser.Term.do}`do` elaborator performs a transl
 On its own, {keywordOf Lean.Parser.Term.doReturn}`return` is short for {keywordOf Lean.Parser.Term.doReturn}`return`​` `​{lean}`()`.
 
 ## Local Mutable State
+%%%
+tag := "let-mut"
+%%%
 
 Local mutable state is mutable state that cannot escape the {keywordOf Lean.Parser.Term.do}`do` block in which it is defined.
 The {keywordOf Lean.Parser.Term.doLet}`let mut` binder introduces a locally-mutable binding.
