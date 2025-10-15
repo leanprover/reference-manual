@@ -93,6 +93,9 @@ The most important {name Std.Format}`Format` operations are:
 ::::
 
 :::example "Widths and Newlines"
+```imports
+import Std
+```
 ```lean
 open Std Format
 ```
@@ -112,7 +115,7 @@ def lst : Format := parenSeq nums
 where nums := [1, 2, 3, 4, 5].map (text s!"{·}")
 ```
 
-```lean -show
+```lean -show -keep
 -- check statement in next paragraph
 /-- info: 120 -/
 #check_msgs in
@@ -563,7 +566,7 @@ In some cases, however, it's necessary to write an instance by hand:
 * The derived {name}`Repr` instance for structures uses {tech}[structure instance] notation.
   A hand-written instance can use the constructor's name explicitly or use {tech}[anonymous constructor syntax].
 
-```lean -show
+```lean -show -keep
 /-- info: Std.HashSet.ofList [0, 3, 5] -/
 #check_msgs in
 #eval IO.println <| repr (({} : Std.HashSet Nat).insert 3 |>.insert 5 |>.insert 0)
@@ -754,7 +757,7 @@ protected def AddExpr.reprPrec : AddExpr → Nat → Std.Format
 instance : Repr AddExpr := ⟨AddExpr.reprPrec⟩
 ```
 
-```lean -show
+```lean -show -keep
 -- Test that the guidelines provided for infix operators match Lean's own pretty printer
 /--
 info: 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + 11 + 1 + 2 + 3 + 4 + 5 + 6 + 7 +
