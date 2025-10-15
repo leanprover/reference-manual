@@ -148,7 +148,7 @@ Given a suitable recursive function, such as {lean}`NatTree.beq`:
 ```lean
 def NatTree.beq : NatTree → NatTree → Bool
   | .leaf, .leaf => true
-  | .branch l1 v1 r1, .branch l2 v2 r2 => l1 == l2 && v1 == v2 && r1 == r2
+  | .branch l1 v1 r1, .branch l2 v2 r2 => NatTree.beq l1 l2 && v1 == v2 && NatTree.beq r1 r2
   | _, _ => false
 ```
 the instance can be created in a second step:
