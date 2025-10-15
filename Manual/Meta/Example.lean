@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 import Manual.Meta.Figure
 import Manual.Meta.LzCompress
+import Manual.Meta.ImportsBlock
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab
@@ -69,12 +70,15 @@ def isLeanBlock : TSyntax `block → CoreM Bool
 
 inductive LeanBlockContent where
  | content : String → LeanBlockContent
+ | contentNoElab : String → LeanBlockContent
  | elabWithoutKeep : LeanBlockContent
  | nonLeanBlock : LeanBlockContent
 
 def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
   | `(block|```$nameStx:ident $args*|$contents:str```) => do
     let name ← realizeGlobalConstNoOverload nameStx
+    if name == ``Manual.imports then
+      return .contentNoElab (contents.getString)
     if name != ``Verso.Genre.Manual.InlineLean.lean then
       return .nonLeanBlock
     let args ← Verso.Doc.Elab.parseArgs args
@@ -127,6 +131,9 @@ def «example» : DirectiveExpander
       | LeanBlockContent.content x =>
         modify (· ++ [x])
         pure true
+      | LeanBlockContent.contentNoElab x =>
+        modify (· ++ [x])
+        pure false
 
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     -- Also accumulate text of lean blocks.
@@ -203,7 +210,7 @@ def example.descr : BlockDescr where
               <summary class="description">{{← description.mapM goI}}</summary>
               <div class="example-content">
                 {{← blocks.extract 1 blocks.size |>.mapM goB}}
-                -- {{liveLink}}
+                {{liveLink}} -- XXX
               </div>
             </details>
           }}

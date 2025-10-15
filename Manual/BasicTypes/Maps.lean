@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
+import Manual.Meta.ImportsBlock
 
 import Manual.BasicTypes.Maps.TreeSet
 import Manual.BasicTypes.Maps.TreeMap
@@ -304,6 +305,10 @@ In particular, when possible, operations such as {name Std.HashMap.alter}`alter`
 These operations avoid creating a second reference to the value during modification.
 
 :::example "Modifying Values in Maps"
+
+```imports
+import Std
+```
 
 ```lean
 open Std
