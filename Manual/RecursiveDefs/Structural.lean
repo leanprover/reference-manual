@@ -509,7 +509,7 @@ termination_by?
 ```
 ```leanOutput inferStruct
 Try this:
-  termination_by structural x => x
+  [apply] termination_by structural x => x
 ```
 :::
 

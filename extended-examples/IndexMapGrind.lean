@@ -139,8 +139,9 @@ private theorem getElem_indices_lt {h : a ∈ m} : m.indices[a] < m.size := by
 section
 /--
 info: Try these:
-  • [grind .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
-  • [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
+  [apply] [grind
+    .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
+  [apply] [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
 -/
 #check_msgs in
 -- ANCHOR: getElem_indices_lt_attr

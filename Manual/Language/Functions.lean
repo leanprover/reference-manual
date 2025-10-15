@@ -56,11 +56,13 @@ However, the Lean elaborator does not introduce a local binding for non-dependen
 :::example "Definitional Equality of Dependent and Non-Dependent Functions"
 The types {lean}`(x : Nat) → String` and {lean}`Nat → String` are definitionally equal:
 ```lean
-example : ((x : Nat) → String) = (Nat → String) := rfl
+example : ((x : Nat) → String) = (Nat → String) :=
+  rfl
 ```
 Similarly, the types {lean}`(n : Nat) → n + 1 = 1 + n` and {lean}`(k : Nat) → k + 1 = 1 + k` are definitionally equal:
 ```lean
-example : ((n : Nat) → n + 1 = 1 + n) = ((k : Nat) → k + 1 = 1 + k) := rfl
+example : ((n : Nat) → n + 1 = 1 + n) = ((k : Nat) → k + 1 = 1 + k) :=
+  rfl
 ```
 :::
 

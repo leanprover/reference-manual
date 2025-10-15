@@ -52,7 +52,7 @@ instance : Quote SyntaxError where
 
 -- Based on mkErrorMessage used in Lean upstream - keep them in synch for best UX
 open Lean.Parser in
-private partial def mkSyntaxError (c : InputContext) (pos : String.Pos) (stk : SyntaxStack) (e : Parser.Error) : SyntaxError := Id.run do
+private partial def mkSyntaxError (c : InputContext) (pos : String.Pos.Raw) (stk : SyntaxStack) (e : Parser.Error) : SyntaxError := Id.run do
   let mut pos := pos
   let mut endPos? := none
   let mut e := e

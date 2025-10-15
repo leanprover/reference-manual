@@ -368,8 +368,9 @@ attribute [local grind] getElem_indices_lt
 ```
 ```anchorInfo getElem_indices_lt_attr
 Try these:
-  • [grind .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
-  • [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
+  [apply] [grind
+    .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
+  [apply] [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
 ```
 These patterns are not useful.
 The first is matching on the entire conclusion of the theorem (in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).

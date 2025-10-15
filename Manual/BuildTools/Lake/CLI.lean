@@ -14,6 +14,7 @@ open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+open Verso.Code.External (lit)
 
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
@@ -1019,7 +1020,15 @@ See `lake cache help <command>` for more information on a specific command.
 Download artifacts from a remote service into the Lake cache
 
 USAGE:
-  lake cache get [<mappings>] [--scope=<remote-scope>] [--max-revs=<n>]
+  lake cache get [<mappings>]
+
+OPTIONS:
+  --max-revs=<n>                  backtrack up to n revisions (default: 100)
+  --rev=<commit-hash>             uses this exact revision to lookup artifacts
+  --repo=<github-repo>            GitHub repository of the package or a fork
+  --platform=<target-triple>      with Reservoir or --repo, sets the platform
+  --toolchain=<name>              with Reservoir or --repo, sets the toolchain
+  --scope=<remote-scope>          scope for a custom endpoint
 
 Downloads artifacts for packages in the workspace from a remote cache service.
 The cache service used can be configured via the environment variables:
@@ -1027,37 +1036,54 @@ The cache service used can be configured via the environment variables:
   LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact downloads
   LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping download
 
-If neither of these are set, Lake will use Reservoir instead.
+If neither of these are set, Lake will use Reservoir.
 
-If an input-to-outputs mappings file or a scope is provided, Lake will
-download artifacts for the root package. Otherwise, it will download artifacts
-for each package in the root's dependency tree in order (using Reservoir).
+If an input-to-outputs mappings file, `--scope`, or `--repo` is provided,
+Lake will download artifacts for the root package. Otherwise, it will use
+Reservoir to download artifacts for each dependency in workspace (in order).
 Non-Reservoir dependencies will be skipped.
 
-To determine the artifacts to download, Lake uses the package's Git revision
-(commit hash) to lookup its input-to-outputs mappings on the cache service.
-Lake will download the artifacts for the most recent commit with available
-mappings. It will backtrack up to `--max-revs`, which defaults to 100.
-If set to 0, Lake will search the repository's whole history.
+To determine the artifacts to download, Lake searches for input-to-output
+mappings for a given build of the package via the cache service. This mapping
+is identified by a Git revision and prefixed with a scope derived from the
+package's name, GitHub repository, Lean toolchain, and current platform.
+The exact configuration can be customized using options.
 
-While downloading, Lake will continue on when a download for an artifact
-fails or if the download process for a whole package fails. However, it will
-report this and exit with a nonzero status code in such cases.
+For Reservoir, setting `--repo` will make Lake lookup artifacts for the root
+package by a repository name, rather than the package's. This can be used to
+download artifacts for a fork of the Reservoir package (if such artifacts are
+available). The `--platform` and `--toolchain` options can be used to download
+artifacts for a different platform/toolchain configuration than Lake detects.
+For a custom endpoint, the full prefix Lake uses can be set via  `--scope`.
+
+If `--rev` is not set, Lake uses the package's current revision to lookup
+artifacts. If no mappings are found, Lake will backtrack the Git history up to
+`--max-revs`, looking for a revision with mappings. If `--max-revs` is 0, Lake
+will search the repository's entire history (or as far as Git will allow).
+
+If a download for an artifact fails or the download process for a whole
+package fails, Lake will report this and continue on to the next. Once done,
+if any download failed, Lake will exit with a nonzero status code.
 ```
 
-:::lake cache get "[mappings] [\"--scope=\" «remote-scope»] [\"--max-revs=\" cn]"
+:::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»]"
 Downloads artifacts for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
 The remote cache service used can be configured using {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
 If neither of these are set, Lake will use Reservoir instead.
 
-If an input-to-outputs mappings file or a scope is provided, Lake will download artifacts for the root package.
+If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download artifacts for the root package.
 Otherwise, it will download artifacts for each package in the root's dependency tree in order (using Reservoir).
 Non-Reservoir dependencies will be skipped.
 
-To determine the artifacts to download, Lake uses the package's Git revision (commit hash) to lookup its input-to-outputs mappings on the cache service.
+For Reservoir, setting {lakeOpt}`--repo` will make Lake lookup artifacts for the root package by a repository name, rather than the package's.
+This can be used to download artifacts for a fork of the Reservoir package (if such artifacts are available).
+The {lakeOpt}`--platform` and {lakeOpt}`--toolchain` options can be used to download artifacts for a different platform/toolchain configuration than Lake detects.
+For a custom endpoint, the full prefix Lake uses can be set via {lakeOpt}`--scope`.
+
+If `--rev` is not set, Lake uses the package's current revision to look up artifacts.
 Lake will download the artifacts for the most recent commit with available mappings.
 It will backtrack up to {lakeOptDef option}`--max-revs`, which defaults to 100.
-If set to 0, Lake will search the repository's whole history.
+If set to 0, Lake will search the repository's whole history, or as far back as Git will allow.
 
 While downloading, Lake will continue on when a download for an artifact fails or if the download process for a whole package fails.
 However, it will report this and exit with a nonzero status code in such cases.
@@ -1068,37 +1094,74 @@ However, it will report this and exit with a nonzero status code in such cases.
 Upload artifacts from the Lake cache to a remote service
 
 USAGE:
-  lake cache put <mappings> --scope=<remote-scope>
+  lake cache put <mappings> <scope-option>
 
 Uploads the input-to-outputs mappings contained in the specified file along
 with the corresponding output artifacts to a remote cache. The cache service
 used is configured via the environment variables:
 
-  LAKE_CACHE_KEY                authentication key for requests
-  LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact uploads
-  LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping upload
+  LAKE_CACHE_KEY                  authentication key for requests
+  LAKE_CACHE_ARTIFACT_ENDPOINT    base URL for artifact uploads
+  LAKE_CACHE_REVISION_ENDPOINT    base URL for the mapping upload
 
 Files are uploaded using the AWS Signature Version 4 authentication protocol
 via `curl`. Thus, the service should generally be an S3-compatible bucket.
 
-Artifacts are uploaded to the artifact endpoint under the prefix `scope`
-with a file name corresponding to their Lake content hash. The mappings file
-is uploaded  to the revision endpoint under the prefix `scope` with a file name
-corresponding to the package's current Git revision. As such, the command will
-fail if the the work tree currently has changes.
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
+clashes. This scoped is configured with the following options:
+
+  --scope=<remote-scope>          sets a fixed scope
+  --repo=<github-repo>            uses the repository + toolchain & platform
+  --toolchain=<name>              with --repo, sets the toolchain
+  --platform=<target-triple>      with --repo, sets the platform
+
+At least one of `--scope` or `--repo` must be set. If `--repo` is used, Lake
+will produce a scope by augmenting the repository with toolchain and platform
+information as it deems necessary. If `--scope` is set, Lake will use the
+specified scope verbatim.
+
+Artifacts are uploaded to the artifact endpoint with a file name derived
+from their Lake content hash (and prefixed by the repository or scope).
+The mappings file is uploaded to the revision endpoint with a file name
+derived from the package's current Git revision (and prefixed by the
+full scope). As such, the command will warn if the the work tree currently
+has changes.
 ```
 
-:::lake cache put "mappings \"--scope=\"«remote-scope»"
+::::lake cache put "mappings «scope-option»"
 Uploads the input-to-outputs mappings contained in the specified file along with the corresponding output artifacts to a remote cache.
-The cache service used is configured via the environment variables {envVar}`LAKE_CACHE_KEY`, {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT`, and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
+The remote cache service used can be configured using {envVar}`LAKE_CACHE_KEY`, {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
 
-Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`.
-Thus, the service should generally be an S3-compatible bucket.
+Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`. Thus, the service should generally be an S3-compatible bucket.
 
-Artifacts are uploaded to the artifact endpoint under the prefix {lakeMeta}`remote-scope` with a file name corresponding to their Lake content hash.
-The mappings file is uploaded to the revision endpoint under the prefix {lakeMeta}`remote-scope` with a file name corresponding to the package's current Git revision.
-As such, the command will fail if the the work tree currently has changes.
+Since Lake does not currently use cryptographically secure hashes for
+artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
+clashes. This scoped is configured with the following options:
+
+:::table -header
+*
+  * {lakeOpt}`--scope`{lit}`=`{lakeMeta}`<remote-scope>`
+  * Sets a fixed scope
+*
+  * {lakeOptDef option}`--repo`{lit}`=`{lakeMeta}`<github-repo>`
+  * Uses the repository + toolchain & platform
+*
+  * {lakeOptDef option}`--toolchain`{lit}`=`{lakeMeta}`<name>`
+  * With {lakeOpt}`--repo`, sets the toolchain
+*
+  * {lakeOptDef option}`--platform`{lit}`=`{lakeMeta}`<target-triple>`
+  * With {lakeOpt}`--repo`, sets the platform
 :::
+
+At least one of {lakeOpt}`--scope` or {lakeOpt}`--repo` must be set.
+If {lakeOpt}`--repo` is used, Lake will produce a scope by augmenting the repository with toolchain and platform information as it deems necessary.
+If {lakeOpt}`--scope` is set, Lake will use the specified scope verbatim.
+
+Artifacts are uploaded to the artifact endpoint with a file name derived from their Lake content hash (and prefixed by the repository or scope).
+The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
+As such, the command will warn if the the work tree currently has changes.
+::::
 
 
 # Configuration Files

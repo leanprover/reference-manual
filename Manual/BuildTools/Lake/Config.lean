@@ -187,7 +187,8 @@ name = "example-package"
       reservoir := true,
       enableArtifactCache? := none,
       restoreAllArtifacts := false,
-      libPrefixOnWindows := false},
+      libPrefixOnWindows := false,
+      allowImportAll := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -272,7 +273,8 @@ name = "Sorting"
       reservoir := true,
       enableArtifactCache? := none,
       restoreAllArtifacts := false,
-      libPrefixOnWindows := false},
+      libPrefixOnWindows := false,
+      allowImportAll := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -310,7 +312,8 @@ name = "Sorting"
                 extraDepTargets := #[],
                 precompileModules := false,
                 defaultFacets := #[`lean_lib.leanArts],
-                nativeFacets := #<fun>},
+                nativeFacets := #<fun>,
+                allowImportAll := false},
             wf_data := …},
         pkg_eq := …}],
   targetDeclMap :=
@@ -346,7 +349,8 @@ name = "Sorting"
                       extraDepTargets := #[],
                       precompileModules := false,
                       defaultFacets := #[`lean_lib.leanArts],
-                      nativeFacets := #<fun>},
+                      nativeFacets := #<fun>,
+                      allowImportAll := false},
                   wf_data := …},
               pkg_eq := …},
           name_eq := …},
@@ -566,7 +570,8 @@ name = "TacticTools"
       extraDepTargets := #[],
       precompileModules := false,
       defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+      nativeFacets := #<fun>,
+      allowImportAll := false}}]
 ```
 ::::
 The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
@@ -608,7 +613,8 @@ precompileModules = true
       extraDepTargets := #[],
       precompileModules := true,
       defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+      nativeFacets := #<fun>,
+      allowImportAll := false}}]
 ```
 ::::
 The library's source is located in the directory `src`, in the module hierarchy rooted at `TacticTools`.
