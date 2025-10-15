@@ -210,7 +210,7 @@ def example.descr : BlockDescr where
               <summary class="description">{{← description.mapM goI}}</summary>
               <div class="example-content">
                 {{← blocks.extract 1 blocks.size |>.mapM goB}}
-                {{liveLink}} -- XXX
+                -- {{liveLink}}
               </div>
             </details>
           }}
