@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Jason Reed
+-/
+
 import Manual.Meta.Example
 import VersoManual
 open Lean
@@ -6,8 +12,11 @@ open Verso.Genre Manual
 open Std (HashMap)
 
 /--
-In the `Array (Array String × String)`, the first string is path to
-the example file we're writing, and the second is the body of the example.
+A monad for traversing all example directives in a document, and
+extracting them into individual files in a directory structured as the
+document is structured. In the `Array (Array String × String)`, the
+first string is the path to the example file we're writing, and the
+second is the body of the example.
 -/
 abbrev ExtractM := ReaderT (Array String) (StateT (Array (Array String × String)) IO)
 
