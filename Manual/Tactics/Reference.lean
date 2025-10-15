@@ -492,7 +492,7 @@ invoking {tacticStep}`apply?` suggests:
 
 ```tacticOutput
 Try this:
-  exact Nat.lt_trans h1 h2
+  [apply] exact Nat.lt_trans h1 h2
 ```
 
 ```post -show

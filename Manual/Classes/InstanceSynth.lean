@@ -151,7 +151,9 @@ If they are instance implicit, then they induce further recursive instance searc
 While instances typically take parameters either implicitly or instance-implicitly, explicit parameters may be filled out as if they were implicit during instance synthesis.
 In this example, {name}`aNonemptySumInstance` is found by synthesis, applied explicitly to {lean}`Nat`, which is needed to make it type-correct.
 ```lean
-instance aNonemptySumInstance (α : Type) {β : Type} [inst : Nonempty α] : Nonempty (α ⊕ β) :=
+instance aNonemptySumInstance
+    (α : Type) {β : Type} [inst : Nonempty α] :
+    Nonempty (α ⊕ β) :=
   let ⟨x⟩ := inst
   ⟨.inl x⟩
 ```

@@ -700,7 +700,7 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | ``FreeSyntax.docCommentItem, _, _ =>
       match stx[0][1] with
       | .atom _ val => do
-        let mut str := val.extract 0 (val.endPos - ⟨2⟩)
+        let mut str := val.extract 0 (val.endPos.decreaseBy 2)
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
