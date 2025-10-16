@@ -66,6 +66,9 @@ jobs:
 
       - name: Lean Version
         run: |
+          echo "$PATH" # XXX remove me before merge
+          echo "$GITHUB_PATH" # XXX remove me before merge
+          echo `which lean` # XXX remove me before merge
           lean --version
 
       - name: Cache .lake
@@ -131,7 +134,7 @@ jobs:
             rm parse_times.py
           else
             echo "No build log found" >> $GITHUB_STEP_SUMMARY
-          fi            
+          fi
 
       - name: Save cache for .lake
         uses: actions/cache/save@v4
@@ -396,5 +399,17 @@ jobs:
 
       - name: Check examples
         run: |
+          echo "=== BEFORE"
+          echo "$PATH" # XXX remove me before merge
+          echo "$GITHUB_PATH" # XXX remove me before merge
+          echo `which lean` # XXX remove me before merge
+
+          ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+          echo "=== AFTER"
+          echo "$PATH" # XXX remove me before merge
+          echo "$GITHUB_PATH" # XXX remove me before merge
+          echo `which lean` # XXX remove me before merge
+
           scripts/check-examples-isolated.sh
