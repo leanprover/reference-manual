@@ -66,9 +66,6 @@ jobs:
 
       - name: Lean Version
         run: |
-          echo "$PATH" # XXX remove me before merge
-          echo "$GITHUB_PATH" # XXX remove me before merge
-          echo `which lean` # XXX remove me before merge
           lean --version
 
       - name: Cache .lake
@@ -151,6 +148,10 @@ jobs:
         if: github.event_name == 'release'
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+
+      - name: Check Manual Examples are Isolated
+        run: |
+          scripts/check-examples-isolated.sh
 
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
@@ -383,33 +384,3 @@ jobs:
         run: |
           cd _out/html-multi/-verso-search
           tsc --noEmit -p jsconfig.json
-
-  check-examples:
-    name: Check reference manual examples are isolated
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Get generated HTML from artifact storage
-        uses: actions/download-artifact@v4
-        with:
-          name: 'html'
-          path: '_out/'
-
-      - name: Check examples
-        run: |
-          echo "=== BEFORE"
-          echo "$PATH" # XXX remove me before merge
-          echo "$GITHUB_PATH" # XXX remove me before merge
-          echo `which lean` # XXX remove me before merge
-
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-
-          echo "=== AFTER"
-          echo "$PATH" # XXX remove me before merge
-          echo "$GITHUB_PATH" # XXX remove me before merge
-          echo `which lean` # XXX remove me before merge
-
-          scripts/check-examples-isolated.sh
