@@ -181,7 +181,9 @@ It also rewrites every disequality `p ≠ 0` as the equality `p * p⁻¹ = 1`.
 :::
 
 ::::example "Fields and `grind`"
-
+```lean -show
+open Lean.Grind
+```
 This example requires its {name}`Field` instance:
 
 ```lean

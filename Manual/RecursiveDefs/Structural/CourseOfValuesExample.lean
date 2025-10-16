@@ -130,7 +130,7 @@ def Tree.brecOn' {α : Type u}
   (t.brecOnTable (motive := motive) step).1
 ```
 
-```lean -show
+```lean -show -keep
 -- Proving the above-claimed equivalence is too time consuming, but evaluating a few examples will at least catch silly mistakes!
 
 /--

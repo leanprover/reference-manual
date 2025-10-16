@@ -163,6 +163,9 @@ Its constructor is named {name}`Palindrome.ofString`, rather than `Palindrome.mk
 :::
 
 ::: example "Modifiers on structure constructor"
+```imports
+import Std
+```
 The structure {lean}`NatStringBimap` maintains a finite bijection between natural numbers and strings.
 It consists of a pair of maps, such that the keys each occur as values exactly once in the other map.
 Because the constructor is private, code outside the defining module can't construct new instances and must use the provided API, which maintains the invariants of the type.
