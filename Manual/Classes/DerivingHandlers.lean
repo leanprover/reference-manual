@@ -84,6 +84,11 @@ Lean includes deriving handlers for the following classes:
 
 ::::keepEnv
 :::example "Deriving Handlers"
+
+```imports
+import Lean.Elab
+```
+
 Instances of the {name}`IsEnum` class demonstrate that a type is a finite enumeration by providing a bijection between the type and a suitably-sized {name}`Fin`:
 ```lean
 class IsEnum (α : Type) where

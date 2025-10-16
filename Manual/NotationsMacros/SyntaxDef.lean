@@ -191,6 +191,13 @@ There are three primary ways to inspect {lean}`Syntax` values:
 
 ::::keepEnv
 :::example "Representing Syntax as Constructors"
+```imports
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
+
 The {name}`Repr` instance's representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
 To reduce the size of the example output, the helper {lean}`removeSourceInfo` is used to remove source information prior to display.
 ```lean
@@ -260,6 +267,12 @@ The {name}`ToString` instance represents the constructors of {name}`Syntax` as f
    Otherwise, the node is represented by its kind followed by its child nodes, both surrounded by parentheses.
 
 :::example "Syntax as Strings"
+```imports
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
 The string representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
 
 ```lean (name := toStringStx1)
@@ -290,6 +303,9 @@ However, {name}`ppTerm` can be explicitly invoked if needed.
 
 ::::keepEnv
 :::example "Pretty-Printed Syntax"
+```imports
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Command
 ```

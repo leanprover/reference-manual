@@ -131,7 +131,7 @@ jobs:
             rm parse_times.py
           else
             echo "No build log found" >> $GITHUB_STEP_SUMMARY
-          fi            
+          fi
 
       - name: Save cache for .lake
         uses: actions/cache/save@v4
@@ -148,6 +148,10 @@ jobs:
         if: github.event_name == 'release'
         run: |
           lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+
+      - name: Check Manual Examples are Isolated
+        run: |
+          scripts/check-examples-isolated.sh
 
       - name: Generate proofreading HTML
         if: github.event_name == 'pull_request'
@@ -380,4 +384,3 @@ jobs:
         run: |
           cd _out/html-multi/-verso-search
           tsc --noEmit -p jsconfig.json
-

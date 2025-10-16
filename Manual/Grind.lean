@@ -104,6 +104,9 @@ example (a b c : Nat) (h₁ : a = b) (h₂ : b = c) :
 
 This proof uses {tactic}`grind`'s commutative ring solver.
 
+```lean -show
+open Lean.Grind
+```
 ```lean
 example [CommRing α] [NoNatZeroDivisors α] (a b c : α) :
     a + b + c = 3 →

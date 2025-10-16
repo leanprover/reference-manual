@@ -91,6 +91,12 @@ A command elaborator has type {name}`CommandElab`, which is an abbreviation for 
 Command elaborators may be implicitly defined using {keywordOf Lean.Parser.Command.elab_rules}`elab_rules`, or explicitly by defining a function and applying the {attr}`command_elab` attribute.
 
 :::example "Querying the Environment"
+```imports
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
 
 A command elaborator can be used to query the environment to discover how many constants have a given name.
 This example uses {name}`getEnv` from the {name}`MonadEnv` class to get the current environment.
@@ -137,6 +143,12 @@ The optional {lean}`Expr` parameter is the type expected for the term being elab
 Like command elaborators, term elaborators may be implicitly defined using {keywordOf Lean.Parser.Command.elab_rules}`elab_rules`, or explicitly by defining a function and applying the {attr}`term_elab` attribute.
 
 :::example "Avoiding a Type"
+```imports
+import Lean.Elab
+```
+```lean -show
+open Lean Elab Term
+```
 
 This examples demonstrates an elaborator for syntax that is the opposite of a type ascription.
 The provided term may have any type _other_ than the one indicated, and metavariables are solved pessimistically.
@@ -193,6 +205,12 @@ Got unwanted type String
 :::
 
 :::example "Using Any Local Variable"
+```imports
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
 
 Term elaborators have access to the expected type and to the local context.
 This can be used to create a term analogue of the {tactic}`assumption` tactic.
