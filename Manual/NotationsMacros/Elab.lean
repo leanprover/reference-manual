@@ -92,7 +92,7 @@ Command elaborators may be implicitly defined using {keywordOf Lean.Parser.Comma
 
 :::example "Querying the Environment"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean
@@ -144,7 +144,7 @@ Like command elaborators, term elaborators may be implicitly defined using {keyw
 
 :::example "Avoiding a Type"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Term
@@ -206,7 +206,7 @@ Got unwanted type String
 
 :::example "Using Any Local Variable"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean

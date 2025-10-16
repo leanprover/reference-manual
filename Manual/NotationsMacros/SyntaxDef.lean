@@ -192,7 +192,7 @@ There are three primary ways to inspect {lean}`Syntax` values:
 ::::keepEnv
 :::example "Representing Syntax as Constructors"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean
@@ -268,7 +268,7 @@ The {name}`ToString` instance represents the constructors of {name}`Syntax` as f
 
 :::example "Syntax as Strings"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean
@@ -304,7 +304,7 @@ However, {name}`ppTerm` can be explicitly invoked if needed.
 ::::keepEnv
 :::example "Pretty-Printed Syntax"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean Elab Command

@@ -618,7 +618,7 @@ The optional suffix `?` in syntax and splices correspond with each other.
 ::::keepEnv
 :::example "Suffixed Splices"
 ```imports
-import Lean
+import Lean.Elab
 ```
 ```lean -show
 open Lean
@@ -695,7 +695,7 @@ macro_rules
 ::::keepEnv
 :::example "Optional Splices"
 ```imports
-import Lean
+import Lean.Elab
 ```
 The following syntax declaration optionally matches a term between two tokens.
 The parentheses around the nested `term` are needed because `term?` is a valid identifier.
