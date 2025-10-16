@@ -381,3 +381,19 @@ jobs:
           cd _out/html-multi/-verso-search
           tsc --noEmit -p jsconfig.json
 
+  check-examples:
+    name: Check reference manual examples are isolated
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get generated HTML from artifact storage
+        uses: actions/download-artifact@v4
+        with:
+          name: 'html'
+          path: '_out/'
+
+      - name: Check examples
+        run: |
+          scripts/check-examples-isolated.sh
