@@ -6,6 +6,7 @@ Author: David Thrane Christiansen
 import Manual
 import Manual.Meta
 import VersoManual
+import Manual.ExtractExamples
 
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
@@ -32,7 +33,7 @@ def staticCss := {{
   }}
 
 def main :=
-  manualMain (%doc Manual) (config := config)
+  manualMain (%doc Manual) (config := config) (extraSteps := [extractExamples])
 where
   config := Config.addSearch <| Config.addKaTeX {
     extraFiles := [("static", "static")],
