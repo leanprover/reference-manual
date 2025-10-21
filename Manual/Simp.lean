@@ -430,14 +430,17 @@ example (xs : Array Unit) : xs.size = 2 → xs = #[(), ()] := by
 The suggested rewrite is:
 ```leanOutput simpHuhDemo
 Try this:
-  simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
+  [apply] simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
 ```
 which results in the more maintainable proof:
 ```lean
 example (xs : Array Unit) : xs.size = 2 → xs = #[(), ()] := by
   intros
   ext
-  simp only [List.size_toArray, List.length_cons, List.length_nil, Nat.zero_add, Nat.reduceAdd]
+  simp only [
+    List.size_toArray, List.length_cons, List.length_nil,
+    Nat.zero_add, Nat.reduceAdd
+  ]
   assumption
 ```
 

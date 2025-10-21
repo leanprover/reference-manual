@@ -12,6 +12,9 @@ import Manual.BasicTypes.String.Logical
 import Manual.BasicTypes.String.Literals
 import Manual.BasicTypes.String.FFI
 import Manual.BasicTypes.String.Substrings
+import Manual.BasicTypes.String.Slice
+import Manual.BasicTypes.String.ValidPos
+import Manual.BasicTypes.String.RawPos
 
 open Manual.FFIDocType
 
@@ -28,13 +31,18 @@ tag := "String"
 
 Strings represent Unicode text.
 Strings are specially supported by Lean:
- * They have a _logical model_ that specifies their behavior in terms of lists of characters, which specifies the meaning of each operation on strings.
- * They have an optimized run-time representation in compiled code, as packed arrays of bytes that encode the string as UTF-8, and the Lean runtime specially optimizes string operations.
+ * They have a _logical model_ that specifies their behavior in terms of {name}`ByteArray`s that contain UTF-8 scalar values.
+ * In compiled code, they have a run-time representation that additionally includes a cached length, measured as the number of scalar values.
+   The Lean runtime provides optimized implementations of string operations.
  * There is {ref "string-syntax"}[string literal syntax] for writing strings.
 
-The fact that strings are internally represented as UTF-8-encoded byte arrays is visible in the API:
- * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use a {name}`String.Iterator`] in a loop instead of a {name}`Nat`.
- * Strings are indexed by {name}`String.Pos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time. Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
+UTF-8 is a variable-width encoding.
+A character may be encoded as a one, two, three, or four byte code unit.
+The fact that strings are UTF-8-encoded byte arrays is visible in the API:
+ * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use an iterator] in a loop instead of a {name}`Nat`.
+ * Strings are indexed by {name}`String.ValidPos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time.
+   {name}`String.ValidPos` includes a proof that the byte count in fact points at the beginning of a UTF-8 code unit.
+   Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
 
 {include 0 Manual.BasicTypes.String.Logical}
 
@@ -76,9 +84,9 @@ Otherwise, a new string must be allocated.
 tag := "string-performance"
 %%%
 
+Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.ofByteArray` and {name}`String.bytes` take *time linear in the length of the string*.
+This is because byte arrays and strings do not have an identical representation, so the contents of the byte array must be copied to a new object.
 
-Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.mk` and {name}`String.data` take *time linear in the length of the string*.
-This is because they must implement the conversions between lists of characters and packed arrays of bytes, which must necessarily visit each character.
 
 {include 0 Manual.BasicTypes.String.Literals}
 
@@ -133,45 +141,14 @@ tag := "string-api-props"
 
 {docstring String.length}
 
-## Positions
-%%%
-tag := "string-api-pos"
-%%%
+{include 2 Manual.BasicTypes.String.ValidPos}
 
-{docstring String.Pos}
-
-{docstring String.Pos.isValid}
-
-{docstring String.atEnd}
-
-{docstring String.endPos}
-
-{docstring String.next}
-
-{docstring String.next'}
-
-{docstring String.nextWhile}
-
-{docstring String.nextUntil}
-
-{docstring String.prev}
-
-{docstring String.Pos.min}
+{include 2 Manual.BasicTypes.String.RawPos}
 
 ## Lookups and Modifications
 %%%
 tag := "string-api-lookup"
 %%%
-
-{docstring String.get}
-
-{docstring String.get?}
-
-{docstring String.get!}
-
-{docstring String.get'}
-
-{docstring String.extract}
 
 {docstring String.take}
 
@@ -204,10 +181,6 @@ tag := "string-api-lookup"
 {docstring String.trimRight}
 
 {docstring String.removeLeadingSpaces}
-
-{docstring String.set}
-
-{docstring String.modify}
 
 {docstring String.front}
 
@@ -258,8 +231,6 @@ It is decidable, and the decision procedure is overridden at runtime with effici
 
 {docstring String.firstDiffPos}
 
-{docstring String.substrEq}
-
 {docstring String.isPrefixOf}
 
 {docstring String.startsWith}
@@ -275,7 +246,7 @@ It is decidable, and the decision procedure is overridden at runtime with effici
 tag := "string-api-modify"
 %%%
 
-{docstring String.split}
+{docstring String.splitToList}
 
 {docstring String.splitOn}
 
@@ -308,9 +279,13 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.curr}
 
+{docstring String.Iterator.curr'}
+
 {docstring String.Iterator.hasNext}
 
 {docstring String.Iterator.next}
+
+{docstring String.Iterator.next'}
 
 {docstring String.Iterator.forward}
 
@@ -328,6 +303,10 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.setCurr}
 
+{docstring String.Iterator.find}
+
+{docstring String.Iterator.foldUntil}
+
 {docstring String.Iterator.extract}
 
 {docstring String.Iterator.remainingToString}
@@ -336,8 +315,12 @@ Clients are responsible for checking whether they've reached the beginning or en
 
 {docstring String.Iterator.pos}
 
+{docstring String.Iterator.toString}
+
 
 {include 2 Manual.BasicTypes.String.Substrings}
+
+{include 2 Manual.BasicTypes.String.Slice}
 
 
 
@@ -356,13 +339,11 @@ tag := "string-api-meta"
 tag := "string-api-encoding"
 %%%
 
-{docstring String.getUtf8Byte}
+{docstring String.getUTF8Byte}
 
 {docstring String.utf8ByteSize}
 
 {docstring String.utf8EncodeChar}
-
-{docstring String.utf8DecodeChar?}
 
 {docstring String.fromUTF8}
 
@@ -371,8 +352,6 @@ tag := "string-api-encoding"
 {docstring String.fromUTF8!}
 
 {docstring String.toUTF8}
-
-{docstring String.validateUTF8}
 
 {docstring String.crlfToLf}
 

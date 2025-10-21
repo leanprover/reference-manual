@@ -111,6 +111,7 @@ tag := "string-api-substring"
 
 {docstring Substring.splitOn}
 
+{docstring Substring.repair}
 
 # Conversions
 

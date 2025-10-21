@@ -316,7 +316,7 @@ An immediate problem we can see here is that
 Let's add this fact:
 
 ```anchor mem_indices_of_mem
-@[local grind] private theorem mem_indices_of_mem
+@[local grind =] private theorem mem_indices_of_mem
     {m : IndexMap α β} {a : α} :
     a ∈ m ↔ a ∈ m.indices := Iff.rfl
 ```
@@ -362,20 +362,24 @@ or write `attribute [local grind] getElem_indices_lt` after the theorem statemen
 These will use {tactic}`grind`'s built-in heuristics for deciding a pattern to match the theorem on.
 
 :::paragraph
-In this case, let's use the {attr}`grind?` attribute to see the pattern that is being generated:
+In this case, let's see which patterns the {attr}`grind` attribute generates:
 ```anchor getElem_indices_lt_attr
-attribute [local grind?] getElem_indices_lt
+attribute [local grind] getElem_indices_lt
 ```
 ```anchorInfo getElem_indices_lt_attr
-getElem_indices_lt: [@LE.le `[Nat] `[instLENat] ((@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@indices _ #7 _ _ #4) #3 #0) + 1) (@size _ _ _ _ #4)]
+Try these:
+  [apply] [grind
+    .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (Std.HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@IndexMap.indices _ #7 _ _ #4) #3 #0) + 1) (@IndexMap.size _ _ _ _ #4)]
+  [apply] [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
 ```
-This is not a useful pattern: it's matching on the entire conclusion of the theorem
-(in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).
+These patterns are not useful.
+The first is matching on the entire conclusion of the theorem (in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).
+The second is too general: it will match any term that includes the theorem's assumptions, ignoring the conclusion.
 :::
 
 :::paragraph
-We want something more general: we'd like this theorem to fire whenever {tactic}`grind` sees {anchorTerm getElem_indices_lt_pattern}`m.indices[a]`,
-and so instead of using the attribute we write a custom pattern:
+We want something more general than the entire conclusion, the conclusion should not be ignored.
+We'd like this theorem to fire whenever {tactic}`grind` sees {anchorTerm getElem_indices_lt_pattern}`m.indices[a]`, and so instead of using the attribute we write a custom pattern:
 
 ```anchor getElem_indices_lt_pattern
 grind_pattern getElem_indices_lt => m.indices[a]
@@ -413,20 +417,20 @@ with neither any {lean}`sorry`s, nor any explicitly written proofs.
 :::paragraph
 Next, we want to expose the content of these definitions, but only locally in this file:
 ```anchor getElem_local
-@[local grind] private theorem getElem_def
+@[local grind =] private theorem getElem_def
     (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m[a] = m.values[m.indices[a]'h] :=
   rfl
-@[local grind] private theorem getElem?_def
+@[local grind =] private theorem getElem?_def
     (m : IndexMap α β) (a : α) :
     m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) :=
   rfl
-@[local grind] private theorem getElem!_def
+@[local grind =] private theorem getElem!_def
     [Inhabited β] (m : IndexMap α β) (a : α) :
     m[a]! = (m.indices[a]?.bind (m.values[·]?)).getD default :=
   rfl
 ```
-Again we're using the {anchorTerm getElem_local}`@[local grind] private theorem` pattern to hide these implementation details,
+Again we're using the {anchorTerm getElem_local}`@[local grind =] private theorem` pattern to hide these implementation details,
 but allow {tactic}`grind` to see these facts locally.
 :::
 
@@ -481,7 +485,7 @@ Next let's try `eraseSwap`:
 ```
 ```anchorError eraseSwap_init
 `grind` failed
-case grind.1.1.2.2.1.1.1.1
+case grind.1.1.2.2.1.1
 α : Type u
 β : Type v
 inst : BEq α
@@ -508,10 +512,9 @@ h_4 : ¬i_1 = i_2
 left_1 : ¬m_1.keys[i_2]? = some a_1
 right_1 : ¬m_1.indices[a_1]? = some i_2
 h_6 : (m_1.keys.back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ m_1.keys.pop.size
-left_2 : (m_1.indices.erase a_1).contains a_2 = true
-right_2 : a_2 ∈ m_1.indices.erase a_1
-h_9 : 0 = m_1.indices[a_1]
+left_2 : a_2 ∈ m_1.indices.erase a_1
+left_3 : (a_1 == a_2) = false
+right_3 : a_2 ∈ m_1.indices
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -522,8 +525,6 @@ h_9 : 0 = m_1.indices[a_1]
   [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints
   [ring] Rings
-
-[grind] Issues
 
 [grind] Diagnostics
 ```
@@ -595,7 +596,7 @@ Thinking about the way that we've provided the well-formedness condition, as
 it's expressed in terms of `keys[i]?` and `indices[a]?`.
 Let's add a variant version of the well-formedness condition using {name GetElem.getElem}`getElem` instead of {name GetElem?.getElem?}`getElem?`:
 ```anchor WF'
-@[local grind] private theorem WF'
+@[local grind .] private theorem WF'
     (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
   have := m.WF i a
@@ -634,19 +635,19 @@ the proofs all go through effortlessly:
 
 attribute [local grind] getIdx findIdx insert
 
-@[grind] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+@[grind _=_] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m.getIdx (m.findIdx a) = m[a] := by grind
 
-@[grind] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
   grind
 
-@[grind] theorem getElem_insert
+@[grind =] theorem getElem_insert
     (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
   grind
 
-@[grind] theorem findIdx_insert_self
+@[grind =] theorem findIdx_insert_self
     (m : IndexMap α β) (a : α) (b : β) :
     (m.insert a b).findIdx a =
       if h : a ∈ m then m.findIdx a else m.size := by

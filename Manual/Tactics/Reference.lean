@@ -492,7 +492,7 @@ invoking {tacticStep}`apply?` suggests:
 
 ```tacticOutput
 Try this:
-  exact Nat.lt_trans h1 h2
+  [apply] exact Nat.lt_trans h1 h2
 ```
 
 ```post -show
@@ -549,7 +549,7 @@ tag := "tactic-ref-sat"
 :::tactic "bv_check"
 :::
 
-:::tactic Lean.Parser.Tactic.bvTrace
+:::tactic Lean.Parser.Tactic.bvTraceMacro
 :::
 
 # Controlling Reduction

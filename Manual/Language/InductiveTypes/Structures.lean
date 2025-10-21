@@ -188,7 +188,10 @@ def NatStringBimap.insert
       map.stringToNat.contains string then
     none
   else
-    some (NatStringBimap.mk (map.natToString.insert nat string) (map.stringToNat.insert string nat))
+    some <|
+      NatStringBimap.mk
+        (map.natToString.insert nat string)
+        (map.stringToNat.insert string nat)
 ```
 :::
 

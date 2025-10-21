@@ -23,9 +23,9 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Boolean Equality Tests
 
-The Boolean equality operator `==` is overloaded by defining instances of `BEq`.
-The companion class `Hashable` specifies a hashing procedure for a type.
-When a type has both `BEq` and `Hashable` instances, then the hashes computed should respect the `BEq` instance: two values equated by `BEq.bEq` should always have the same hash.
+The Boolean equality operator `==` is overloaded by defining instances of {name}`BEq`.
+The companion class {name}`Hashable` specifies a hashing procedure for a type.
+When a type has both {name}`BEq` and {name}`Hashable` instances, then the hashes computed should respect the {name}`BEq` instance: two values equated by {name}`BEq.beq` should always have the same hash.
 
 {docstring BEq}
 
@@ -34,6 +34,8 @@ When a type has both `BEq` and `Hashable` instances, then the hashes computed sh
 {docstring mixHash}
 
 {docstring LawfulBEq}
+
+{docstring ReflBEq}
 
 {docstring EquivBEq}
 
@@ -337,9 +339,15 @@ draft := true
 
 {docstring HAnd}
 
+{docstring AndOp}
+
 {docstring HOr}
 
+{docstring OrOp}
+
 {docstring HXor}
+
+{docstring XorOp}
 
 # Append
 

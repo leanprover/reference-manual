@@ -269,7 +269,8 @@ Both match the same region of the file, so the {tech}[local longest-match rule] 
 Term quotation has a higher priority than command quotation, so the quotation is interpreted as a term.
 Terms expect their {tech}[antiquotations] to have type {lean}``TSyntax `term`` rather than {lean}``TSyntax `command``.
 ```lean +error (name := cmdQuot)
-example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $cmd2)
+example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) :=
+  `($cmd1 $cmd2)
 ```
 The result is two type errors like the following:
 ```leanOutput cmdQuot
@@ -286,11 +287,13 @@ in the application
 The type of the quotation ({lean}``MacroM (TSyntax `command)``) is not used to select a result because syntax priorities are applied prior to elaboration.
 In this case, specifying that the antiquotations are commands resolves the ambiguity because function application would require terms in these positions:
 ```lean
-example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1:command $cmd2:command)
+example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) :=
+  `($cmd1:command $cmd2:command)
 ```
 Similarly, inserting a command into the quotation eliminates the possibility that it could be a term:
 ```lean
-example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) := `($cmd1 $cmd2 #eval "hello!")
+example (cmd1 cmd2 : TSyntax `command) : MacroM (TSyntax `command) :=
+  `($cmd1 $cmd2 #eval "hello!")
 ```
 :::
 ::::
