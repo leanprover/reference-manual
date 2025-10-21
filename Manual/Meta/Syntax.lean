@@ -700,13 +700,14 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | ``FreeSyntax.docCommentItem, _, _ =>
       match stx[0][1] with
       | .atom _ val => do
-        let mut str := val.extract 0 (val.endPos - ⟨2⟩)
+        -- TODO: use a slice here. As of nightly-2025-10-20, the code panicked (reported)
+        let mut str := val.dropRight 2
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
           if inVar then
             let pre := str.takeWhile (· != '}')
-            str := str.drop (pre.length + 1)
+            str := str.stripPrefix pre |>.drop 1
             let x := pre.trim.toName
             if let some (c, d?) := (← get).find? x then
               contents := contents ++ (← lift <| tag (.localName x which c d?) x.toString)
@@ -715,7 +716,7 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
             inVar := false
           else
             let pre := str.takeWhile (· != '{')
-            str := str.drop (pre.length + 1)
+            str := str.stripPrefix pre |>.drop 1
             contents := contents ++ pre
             inVar := true
 

@@ -166,7 +166,7 @@ private def hasSubstring (haystack : String) (needle : String) : Bool := Id.run 
   if needle.isEmpty then return true
   if needle.length > haystack.length then return false
   let mut iter := haystack.iter
-  let fst := needle.get 0
+  let fst := String.Pos.Raw.get needle 0
   while h : iter.hasNext do
     if iter.curr' h  == fst then
       let mut iter' := iter
@@ -316,9 +316,9 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
-    let commentStr := s.extract comment s.endPos
+    let commentStr := comment.extract s s.endPos
     let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
-    {{ {{s.extract 0 comment}} {{commentHtml}} }}
+    {{ {{String.Pos.Raw.extract s 0 comment}} {{commentHtml}} }}
   | .key none k => {{
     <span class="key">
       {{k.toHtml tableLink keyLink}}

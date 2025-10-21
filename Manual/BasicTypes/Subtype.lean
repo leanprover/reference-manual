@@ -103,6 +103,7 @@ def s2 : NonEmptyString where
 theorem s1_eq_s2 : s1 = s2 := by
   ext
   dsimp only [s1, s2]
+  rfl
 ```
 :::
 

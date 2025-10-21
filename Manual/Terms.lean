@@ -670,19 +670,35 @@ This means that the remaining arguments can again be passed by name.
 fun x => (fun x y => sum3 x y 8) x 1 : Nat → Nat
 ```
 
-```lean -show
--- This is not shown in the manual pending #6373
--- https://github.com/leanprover/lean4/issues/6373
--- When the issue is fixed, this code will stop working and the text can be updated.
-
-/--
-info: let x := 15;
-fun x y => sum3 x y x : Nat → Nat → Nat
--/
-#guard_msgs in
+Parameter names are taken from the function's _type_, and the names used for function parameters don't need to match the names used in the type.
+This means that local bindings that conflict with a parameter's name don't prevent the use of named parameters, because Lean avoids this conflicts by renaming the function's parameter while leaving the name intact in the type.
+```lean (name := sum15)
 #check let x := 15; sum3 (z := x)
 ```
-
+Here, the `x` that named {name}`sum3`'s first argument has been replaced, so as to not conflict with the surrounding {keywordOf Parser.Term.let}`let`:
+```leanOutput sum15
+let x := 15;
+fun x_1 y => sum3 x_1 y x : Nat → Nat → Nat
+```
+Even though `x` was renamed, it can still be passed by name:
+```lean (name := xNoCapture)
+#check (let x := 15; sum3 (z := x)) (x := 4)
+```
+```leanOutput xNoCapture
+(let x := 15;
+  fun x_1 y => sum3 x_1 y x)
+  4 : Nat → Nat
+```
+This is because the name `x` is still used in the type.
+Enabling the option {option}`pp.piBinderNames` shows the parameter names in the type:
+```lean (name := xRenamed)
+set_option pp.piBinderNames true in
+#check let x := 15; sum3 (z := x)
+```
+```leanOutput xRenamed
+let x := 15;
+fun x_1 y => sum3 x_1 y x : (x y : Nat) → Nat
+```
 :::
 ::::
 

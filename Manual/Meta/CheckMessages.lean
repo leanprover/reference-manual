@@ -69,7 +69,7 @@ def elabCheckMsgs : CommandElab
       modify fun st => { st with messages := initMsgs ++ msgs }
       let feedback :=
         if guard_msgs.diff.get (← getOptions) then
-          let diff := Diff.diff (expected.split (· == '\n')).toArray (res.split (· == '\n')).toArray
+          let diff := Diff.diff (expected.splitToList (· == '\n')).toArray (res.splitToList (· == '\n')).toArray
           Diff.linesToString diff
         else res
       logErrorAt tk m!"❌️ Docstring on `#guard_msgs` does not match generated message:\n\n{feedback}"
