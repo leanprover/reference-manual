@@ -450,8 +450,6 @@ String.Slice.Pos.prevAux.go
 ```exceptions
 String.ValidPos.ctorIdx
 String.ValidPos.mk.noConfusion
-String.ValidPos.modifyOfLE
-String.ValidPos.setOfLE
 ```
 
 ```exceptions

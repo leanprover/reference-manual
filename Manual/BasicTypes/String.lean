@@ -196,6 +196,10 @@ tag := "string-api-valid-pos"
 
 {docstring String.ValidPos.ofCopy}
 
+{docstring String.ValidPos.setOfLE}
+
+{docstring String.ValidPos.modifyOfLE}
+
 {docstring String.ValidPos.toSlice}
 
 ## Raw Positions
