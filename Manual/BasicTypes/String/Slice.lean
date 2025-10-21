@@ -21,6 +21,12 @@ tag := "string-api-slice"
 
 {docstring String.Slice}
 
+{docstring String.toSlice}
+
+{docstring String.replaceStart}
+
+{docstring String.replaceEnd}
+
 {docstring String.Slice.Pos}
 
 # API Reference
@@ -46,6 +52,8 @@ tag := "string-api-slice"
 {docstring String.Slice.startPos}
 
 {docstring String.Slice.endPos}
+
+{docstring String.Slice.rawEndPos}
 
 
 ### Adjustment

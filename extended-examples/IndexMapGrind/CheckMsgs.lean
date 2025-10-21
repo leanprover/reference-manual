@@ -34,8 +34,8 @@ def messagesEq (maxDiff? : Option Nat) (whitespace : WhitespaceMode) (msg1 msg2 
   let msg1 := normalizeLineNums <| normalizeMetavars msg1
   let msg2 := normalizeLineNums <| normalizeMetavars msg2
   if let some maxDiff := maxDiff? then
-    let lines1 := msg1.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
-    let lines2 := msg2.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines1 := msg1.splitToList (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines2 := msg2.splitToList (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
     let maxPercent := maxDiff.toFloat / 100.0
     let lines1 := lines1.toArray
     let lines2 := lines2.toArray
@@ -105,7 +105,7 @@ def elabCheckMsgs : CommandElab
       -- Failed. Put all the messages back on the message log and add an error
       modify fun st => { st with messages := initMsgs ++ msgs ++ msg }
       let feedback :=
-        let diff := Diff.diff (expected.split (· == '\n')).toArray (res.split (· == '\n')).toArray
+        let diff := Diff.diff (expected.splitToList (· == '\n')).toArray (res.splitToList (· == '\n')).toArray
         Diff.linesToString diff
 
       logErrorAt tk m!"❌️ Docstring on `#check_msgs` does not match generated message:\n\n{feedback}"

@@ -19,7 +19,7 @@ def parserInputString [Monad m] [MonadFileMap m]
     (str : TSyntax `str) :
     m String := do
   let text ← getFileMap
-  let preString := text.source.extract 0 (str.raw.getPos?.getD 0)
+  let preString := String.Pos.Raw.extract text.source 0 (str.raw.getPos?.getD 0)
   let mut code := ""
   let mut iter := preString.iter
   while !iter.atEnd do
@@ -30,7 +30,7 @@ def parserInputString [Monad m] [MonadFileMap m]
     iter := iter.next
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
-    text.source.extract start stop
+    start.extract text.source stop
   code := code ++ strOriginal?.getD str.getString
   return code
 
