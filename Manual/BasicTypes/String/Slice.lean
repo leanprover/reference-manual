@@ -21,6 +21,12 @@ tag := "string-api-slice"
 
 {docstring String.Slice}
 
+{docstring String.toSlice}
+
+{docstring String.replaceStart}
+
+{docstring String.replaceEnd}
+
 {docstring String.Slice.Pos}
 
 # API Reference
@@ -46,6 +52,8 @@ tag := "string-api-slice"
 {docstring String.Slice.startPos}
 
 {docstring String.Slice.endPos}
+
+{docstring String.Slice.rawEndPos}
 
 
 ### Adjustment
@@ -171,7 +179,7 @@ tag := "string-api-slice"
 String slices feature generalized search patterns.
 Rather than being defined to work only for characters or for strings, many operations on slices accept arbitrary patterns.
 New types can be made into patterns by defining instances of the classes in this section.
-The Lean standard library instances that allow the following types to be used for both forward and backward searching:
+The Lean standard library provides instances that allow the following types to be used for both forward and backward searching:
 
 :::table +header
 * * Pattern Type

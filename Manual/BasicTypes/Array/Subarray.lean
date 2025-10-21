@@ -26,6 +26,18 @@ tag := "subarray"
 
 {docstring Subarray.empty}
 
+# Array Data
+
+{docstring Subarray.array}
+
+{docstring Subarray.start}
+
+{docstring Subarray.stop}
+
+{docstring Subarray.start_le_stop}
+
+{docstring Subarray.stop_le_array_size}
+
 # Size
 
 {docstring Subarray.size}

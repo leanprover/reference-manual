@@ -31,13 +31,13 @@ Strings represent Unicode text.
 Strings are specially supported by Lean:
  * They have a _logical model_ that specifies their behavior in terms of {name}`ByteArray`s that contain UTF-8 scalar values.
  * In compiled code, they have a run-time representation that additionally includes a cached length, measured as the number of scalar values.
-   Additionally, the Lean runtime contains optimized implementations of string operations.
+   The Lean runtime provides optimized implementations of string operations.
  * There is {ref "string-syntax"}[string literal syntax] for writing strings.
 
 UTF-8 is a variable-width encoding.
 A character may be encoded as a one, two, three, or four byte code unit.
 The fact that strings are UTF-8-encoded byte arrays is visible in the API:
- * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use a {name}`String.Iterator`] in a loop instead of a {name}`Nat`.
+ * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use an iterator] in a loop instead of a {name}`Nat`.
  * Strings are indexed by {name}`String.ValidPos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time.
    {name}`String.ValidPos` includes a proof that the byte count in fact points at the beginning of a UTF-8 code unit.
    Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
@@ -82,9 +82,9 @@ Otherwise, a new string must be allocated.
 tag := "string-performance"
 %%%
 
+Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.ofByteArray` and {name}`String.bytes` take *time linear in the length of the string*.
+This is because byte arrays and strings do not have an identical representation, so the contents of the byte array must be copied to a new object.
 
-Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.mk` and {name}`String.data` take *time linear in the length of the string*.
-This is because they must implement the conversions between lists of characters and packed arrays of bytes, which must necessarily visit each character.
 
 {include 0 Manual.BasicTypes.String.Literals}
 
@@ -146,13 +146,37 @@ tag := "string-api-valid-pos"
 
 {docstring String.ValidPos}
 
+### In Strings
+
+{docstring String.startValidPos}
+
+{docstring String.endValidPos}
+
+{docstring String.pos}
+
+{docstring String.pos?}
+
+{docstring String.pos!}
+
+### Lookups
+
 {docstring String.ValidPos.get}
 
 {docstring String.ValidPos.get!}
 
 {docstring String.ValidPos.get?}
 
+{docstring String.ValidPos.set}
+
+{docstring String.ValidPos.extract +allowMissing}
+
+### Modifications
+
+{docstring String.ValidPos.modify}
+
 {docstring String.ValidPos.byte}
+
+### Adjustment
 
 {docstring String.ValidPos.prev}
 
@@ -166,11 +190,15 @@ tag := "string-api-valid-pos"
 
 {docstring String.ValidPos.next?}
 
+### Other Strings
+
 {docstring String.ValidPos.cast}
 
 {docstring String.ValidPos.ofCopy}
 
-{docstring String.ValidPos.extract +allowMissing}
+{docstring String.ValidPos.setOfLE}
+
+{docstring String.ValidPos.modifyOfLE}
 
 {docstring String.ValidPos.toSlice}
 
@@ -181,44 +209,72 @@ tag := "string-api-pos"
 
 {docstring String.Pos.Raw}
 
+### Validity
+
 {docstring String.Pos.Raw.isValid}
 
 {docstring String.Pos.Raw.isValidForSlice}
 
-{docstring String.atEnd}
+### Boundaries
 
 {docstring String.endPos}
 
-{docstring String.next}
+{docstring String.Pos.Raw.atEnd}
 
-{docstring String.next'}
-
-{docstring String.nextWhile}
-
-{docstring String.nextUntil}
-
-{docstring String.prev}
+### Comparisons
 
 {docstring String.Pos.Raw.min}
 
+{docstring String.Pos.Raw.byteDistance}
+
+{docstring String.Pos.Raw.substrEq}
+
+### Adjustment
+
+{docstring String.Pos.Raw.prev}
+
+{docstring String.Pos.Raw.next}
+
+{docstring String.Pos.Raw.next'}
+
+{docstring String.Pos.Raw.nextUntil}
+
+{docstring String.Pos.Raw.nextWhile}
+
 {docstring String.Pos.Raw.inc}
 
+{docstring String.Pos.Raw.increaseBy}
+
+{docstring String.Pos.Raw.offsetBy}
+
 {docstring String.Pos.Raw.dec}
+
+{docstring String.Pos.Raw.decreaseBy}
+
+{docstring String.Pos.Raw.unoffsetBy}
+
+### String Lookups
+
+{docstring String.Pos.Raw.extract}
+
+{docstring String.Pos.Raw.get}
+
+{docstring String.Pos.Raw.get!}
+
+{docstring String.Pos.Raw.get'}
+
+{docstring String.Pos.Raw.get?}
+
+### String Modifications
+
+{docstring String.Pos.Raw.set}
+
+{docstring String.Pos.Raw.modify}
 
 ## Lookups and Modifications
 %%%
 tag := "string-api-lookup"
 %%%
-
-{docstring String.get}
-
-{docstring String.get?}
-
-{docstring String.get!}
-
-{docstring String.get'}
-
-{docstring String.extract}
 
 {docstring String.take}
 
@@ -251,10 +307,6 @@ tag := "string-api-lookup"
 {docstring String.trimRight}
 
 {docstring String.removeLeadingSpaces}
-
-{docstring String.set}
-
-{docstring String.modify}
 
 {docstring String.front}
 
@@ -305,8 +357,6 @@ It is decidable, and the decision procedure is overridden at runtime with effici
 
 {docstring String.firstDiffPos}
 
-{docstring String.substrEq}
-
 {docstring String.isPrefixOf}
 
 {docstring String.startsWith}
@@ -322,7 +372,7 @@ It is decidable, and the decision procedure is overridden at runtime with effici
 tag := "string-api-modify"
 %%%
 
-{docstring String.split}
+{docstring String.splitToList}
 
 {docstring String.splitOn}
 

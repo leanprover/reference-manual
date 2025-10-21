@@ -7,7 +7,7 @@ import Std.Data.HashMap
 
 def keyStrBase64 := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 
-def getCharFromInt (n : Nat) : Char := keyStrBase64.get ⟨n⟩
+def getCharFromInt (n : Nat) : Char := String.Pos.Raw.get keyStrBase64 ⟨n⟩
 
 open Std
 
@@ -58,7 +58,7 @@ def compress (uncompressed : String)
       w := wc
     else
       if dictionaryToCreate.contains w then
-        let code := w.get! 0 |>.toNat
+        let code := String.Pos.Raw.get! w 0 |>.toNat
         if code < 256 then
           for _ in [:numBits] do
             data_val := data_val <<< 1
@@ -89,7 +89,7 @@ def compress (uncompressed : String)
             else
               data_position := data_position + 1
             value := 0
-          let mut value' := w.get! 0 |> Char.toNat
+          let mut value' := String.Pos.Raw.get! w 0 |> Char.toNat
           for _ in [0:16] do
             data_val := (data_val <<< 1) ||| (value' &&& 1)
             if data_position == bitsPerChar - 1 then
@@ -126,7 +126,7 @@ def compress (uncompressed : String)
   -- Output the code for _w if not empty
   if !w.isEmpty then
     if dictionaryToCreate.contains w then
-      let code := w.get! 0 |>.toNat
+      let code := String.Pos.Raw.get! w 0 |>.toNat
       if code < 256 then
         for _ in [:numBits] do
           data_val := data_val <<< 1

@@ -225,6 +225,8 @@ From this perspective, iteration operators can be understood as performing some 
 
 {docstring Option.filter}
 
+{docstring Option.filterM}
+
 {docstring Option.forM}
 
 {docstring Option.map}

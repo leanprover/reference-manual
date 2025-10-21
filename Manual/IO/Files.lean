@@ -233,6 +233,8 @@ Some operations on paths consult the filesystem.
 
 {docstring System.FilePath.metadata}
 
+{docstring System.FilePath.symlinkMetadata}
+
 {docstring System.FilePath.pathExists}
 
 {docstring System.FilePath.isDir}
