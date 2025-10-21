@@ -1,13 +1,13 @@
 name: "Deploy the 'deploy' branch"
 on:
   workflow_run:
-    workflows: ["Deploy Tagged Version"]
+    workflows: ["Apply Overlays"]
     types:
       - completed
 
   push:
     branches:
-      - 'deploy'
+      - 'postdeploy'
 
   workflow_dispatch:
 
@@ -21,14 +21,14 @@ jobs:
       - name: Checkout deploy branch
         uses: actions/checkout@v4
         with:
-          ref: 'deploy'
+          ref: 'postdeploy'
 
       - name: Upload the current state of the deploy branch
         id: deploy-release
         uses: nwtgck/actions-netlify@v2.0
         with:
           publish-dir: '.'
-          production-branch: deploy
+          production-branch: postdeploy
           production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
