@@ -4,6 +4,11 @@ import os
 from release_utils import run_git_command, is_git_ancestor, find_latest_version, find_latest_stable_version
 from pathlib import Path
 
+# This function is the right thing to change to change the
+# content of the overlays that are applied.
+#
+# See the README.md in this directory for more about the contract
+# that should be satisfied by how overlays change over time.
 def apply_overlays(deploy_dir):
     """
     Apply desired overlays inside current directory.

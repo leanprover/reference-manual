@@ -32,7 +32,7 @@ of the documentation that is being updated in the course of the deploy.
 There is one further step, which is computing the desired state
 of the final `postdeploy` branch from the state in the branch `deploy`.
 This is done by the script `overlay.py`, which is triggered by pushes
-to `deploy`, and therefore run at branch `main` rather than at the tag
+to `deploy`, and therefore runs at branch `main` rather than at the tag
 being pushed.
 
 We might have named the two branches `predeploy` and `deploy`, but
@@ -81,3 +81,32 @@ latest.
 
 A successful push to `postdeploy` in this way triggers a GH Action
 which actually publishes the content to netlify.
+
+## Overlays
+
+The script `overlay.py` computes `postdeploy` from `deploy` any time
+`deploy` changes. Its purpose is to add metadata or make in-place
+changes to `deploy` content that is best thought of as a unified
+overlay on top of the data that exists at the historical tags
+`4.19.0`, `4.20.0`, etc.
+
+Examples of the sorts of things we might like to achieve with this overlay mechanism are:
+- injecting version metadata so that a particular version of the manual knows *that* it is the current latest or latest-stable version
+- global css changes across all versions, for consistency
+- banners appended to sufficiently old versions' manuals describing how they are so old as to be deprecated and unsupported
+
+Interactions between overlays created by `overlay.py` and reference
+manual versions should be carefully considered to ensure
+backwards-compatibility.
+
+An overlay that simply injects a `<div>` inside old versions is
+relatively safe, for the document being injected into doesn't need to
+know about the injection. However, if a document depends rigidly on
+the presence of data created by the overlay mechanism, a problem could
+occur if the overlay changes to not produce that data in the future.
+
+Therefore we can be careful on both sides:
+
+- overlays should, ideally, as time goes on, only monotonically
+produce more data, e.g. it should only add fields to injected javascript values and avoid changing the contract of existing fields.
+- documents should, ideally, fail gracefully if injected data they expect to exist is missing
