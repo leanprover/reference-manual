@@ -1,4 +1,4 @@
-name: "Deploy the 'deploy' branch"
+name: "Deploy the 'postdeploy' branch"
 on:
   workflow_run:
     workflows: ["Apply Overlays"]
@@ -18,12 +18,12 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
 
-      - name: Checkout deploy branch
+      - name: Checkout postdeploy branch
         uses: actions/checkout@v4
         with:
           ref: 'postdeploy'
 
-      - name: Upload the current state of the deploy branch
+      - name: Upload the current state of the postdeploy branch
         id: deploy-release
         uses: nwtgck/actions-netlify@v2.0
         with:
