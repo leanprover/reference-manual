@@ -1,13 +1,13 @@
-name: "Deploy the 'deploy' branch"
+name: "Deploy the 'postdeploy' branch"
 on:
   workflow_run:
-    workflows: ["Deploy Tagged Version"]
+    workflows: ["Apply Overlays"]
     types:
       - completed
 
   push:
     branches:
-      - 'deploy'
+      - 'postdeploy'
 
   workflow_dispatch:
 
@@ -18,17 +18,17 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
 
-      - name: Checkout deploy branch
+      - name: Checkout postdeploy branch
         uses: actions/checkout@v4
         with:
-          ref: 'deploy'
+          ref: 'postdeploy'
 
-      - name: Upload the current state of the deploy branch
+      - name: Upload the current state of the postdeploy branch
         id: deploy-release
         uses: nwtgck/actions-netlify@v2.0
         with:
           publish-dir: '.'
-          production-branch: deploy
+          production-branch: postdeploy
           production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
