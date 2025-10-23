@@ -128,8 +128,8 @@ When it comes to actual code execution, there is no point to a definition withou
 Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier.
 This is automatically done in built-in metaprogramming syntax such as `syntax`, `macro`, and `elab` but may need to be done explicitly when manually applying metaprogramming attributes such as `@[app_delab]`.
 
-A `meta` definition may access (and thus invoke) other `meta` definitions only.
-For imported definitions, this marker can be added after the fact using `meta import`.
+A `meta` definition may access (and thus invoke) other `meta` definitions only; a non-`meta` definition likewise may only access other non-`meta` definitions.
+For imported definitions, the `meta` marker can be added after the fact using `meta import`.
 `meta import`ing a definition already in the meta phase leaves it in that phase.
 In addition, the import must be public if the imported definition may be compile-time executed outside the current module, i.e. if it is reachable from some public `meta` definition in the current module: use `public meta import` or, if already `meta`, `public import`.
 This is usually the case, unless a definition was imported solely for use in `local` metaprograms.
