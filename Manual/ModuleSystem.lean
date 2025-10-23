@@ -128,9 +128,11 @@ When it comes to actual code execution, there is no point to a definition withou
 Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier.
 This is automatically done in built-in metaprogramming syntax such as `syntax`, `macro`, and `elab` but may need to be done explicitly when manually applying metaprogramming attributes such as `@[app_delab]`.
 
-A `meta` definition may access (and thus invoke) any `meta` or non-`meta` definition of the current module.
-For accessing imported definitions, the definition must either have been marked as `meta` when it was declared or the import must be marked as such (`meta import` when the accessing definition is in the private scope and `public meta import` otherwise).
-
+A `meta` definition may access (and thus invoke) other `meta` definitions only.
+For imported definitions, this marker can be added after the fact using `meta import`.
+`meta import`ing a definition already in the meta phase leaves it in that phase.
+In addition, the import must be public if the imported definition may be compile-time executed outside the current module, i.e. if it is reachable from some public `meta` definition in the current module: use `public meta import` or, if already `meta`, `public import`.
+This is usually the case, unless a definition was imported solely for use in `local` metaprograms.
 ```
 module
 
@@ -140,6 +142,10 @@ local elab "my_elab" : command => do
   let m : Std.HashMap := {}
   ...
 ```
+
+As a guideline, it is usually preferable to apply `meta` as late as possible.
+Thus helper definitions not directly registered as metaprograms do not need to be marked if they are located in a separate module.
+Only the final module(s) actually registering metaprograms then should use `public meta import` to import those helpers and define its metaprograms using built-in syntax like `elab`, using `meta def`, or using `meta section`.
 
 # Common Errors and Patterns
 
