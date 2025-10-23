@@ -14,6 +14,8 @@ import Manual.BasicTypes.List.Partitioning
 import Manual.BasicTypes.List.Modification
 import Manual.BasicTypes.List.Transformation
 
+set_option maxHeartbeats 1000000
+
 open Manual.FFIDocType
 
 open Verso.Genre Manual

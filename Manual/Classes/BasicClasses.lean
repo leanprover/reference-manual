@@ -8,6 +8,7 @@ import VersoManual
 
 import Manual.Meta
 
+set_option maxHeartbeats 1000000
 
 open Manual
 open Verso.Genre

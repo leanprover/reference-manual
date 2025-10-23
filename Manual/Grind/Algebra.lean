@@ -10,6 +10,7 @@ import Lean.Parser.Term
 
 import Manual.Meta
 
+set_option maxHeartbeats 1000000
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean

@@ -12,6 +12,7 @@ import Manual.Meta
 import Manual.Papers
 import Manual.Tactics.Reference.Simp
 
+set_option maxHeartbeats 1000000
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean

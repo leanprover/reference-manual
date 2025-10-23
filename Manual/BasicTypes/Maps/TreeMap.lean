@@ -8,10 +8,10 @@ import VersoManual
 
 import Manual.Meta
 
-
 import Std.Data.TreeMap
 import Std.Data.TreeMap.Raw
 
+set_option maxHeartbeats 1000000
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean

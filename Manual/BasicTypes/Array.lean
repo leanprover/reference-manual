@@ -11,6 +11,8 @@ import Manual.Meta
 import Manual.BasicTypes.Array.Subarray
 import Manual.BasicTypes.Array.FFI
 
+set_option maxHeartbeats 1000000
+
 open Manual.FFIDocType
 
 open Verso.Genre Manual
