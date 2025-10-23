@@ -620,6 +620,9 @@ The optional suffix `?` in syntax and splices correspond with each other.
 
 ::::keepEnv
 :::example "Suffixed Splices"
+```imports
+import Lean.Elab
+```
 ```lean -show
 open Lean
 open Lean.Elab.Command (CommandElabM)
@@ -694,6 +697,9 @@ macro_rules
 
 ::::keepEnv
 :::example "Optional Splices"
+```imports
+import Lean.Elab
+```
 The following syntax declaration optionally matches a term between two tokens.
 The parentheses around the nested `term` are needed because `term?` is a valid identifier.
 ```lean -show
@@ -919,6 +925,9 @@ some 4
 
 ::::keepEnv
 :::example "Scoped Macros"
+```lean -show
+open Lean
+```
 Scoped macro rules are active only in their namespace.
 When the namespace `ConfusingNumbers` is open, numeric literals will be assigned an incorrect meaning.
 ```lean
@@ -973,7 +982,6 @@ First, the rules in a {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` a
 Additionally, if an earlier rule in the macro throws the {name Lean.Macro.Exception.unsupportedSyntax}`unsupportedSyntax` exception, then the later rules are not tried; if they were instead in separate {keywordOf Lean.Parser.Command.macro_rules}`macro_rules` commands, then they would be attempted.
 
 ::::example "One vs. Two Sets of Macro Rules"
-
 ```lean -show
 open Lean.Macro
 ```

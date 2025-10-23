@@ -272,8 +272,8 @@ Consider the following three constants:
 
 ```lean
 def addThree (n : Nat) : Nat := 1 + n + 2
-theorem excludedMiddle (P : Prop) : P ∨ ¬ P := Classical.em P
-theorem simpleEquality (P : Prop) : (P ∨ False) = P := or_false P
+theorem excluded_middle (P : Prop) : P ∨ ¬ P := Classical.em P
+theorem simple_equality (P : Prop) : (P ∨ False) = P := or_false P
 ```
 
 Regular functions like {lean}`addThree` that we might want to actually evaluation typically do not depend on any axioms:
@@ -288,35 +288,40 @@ Regular functions like {lean}`addThree` that we might want to actually evaluatio
 The excluded middle theorem is only true if we use classical reasoning, so the foundation for classical reasoning shows up alongside other axioms:
 
 ```lean (name := printAxEx1)
-#print axioms excludedMiddle
+#print axioms excluded_middle
 ```
 ```leanOutput printAxEx1
-'excludedMiddle' depends on axioms: [propext, Classical.choice, Quot.sound]
+'excluded_middle' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
 Finally, the idea that two equivalent propositions are equal directly relies on {tech}[propositional extensionality].
 
 ```lean (name := printAxEx3)
-#print axioms simpleEquality
+#print axioms simple_equality
 ```
 ```leanOutput printAxEx3
-'simpleEquality' depends on axioms: [propext]
+'simple_equality' depends on axioms: [propext]
 ```
 :::
 
 :::example "Using {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` with {keywordOf Lean.guardMsgsCmd}`#guard_msgs`"
 
-You can use {keywordOf Lean.Parser.Command.printAxioms}`#print axioms` together with {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to ensure that updates to libraries from other projects cannot silently introduce unwanted dependencies on axioms.
+You can use {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`
+together with {keywordOf Lean.guardMsgsCmd}`#guard_msgs` to ensure
+that updates to libraries from other projects cannot silently
+introduce unwanted dependencies on axioms.
 
-Perhaps you are worried that some future update to {lean}`or_false` in the previous example's {lean}`simpleEquality` proof might quietly introduce a new axiom dependency.
-You can guard against this by writing a command that will fail if {lean}`simpleEquality` uses any axioms besides {lean}`propext`:
+For example, if the proof of {name}`double_neg_elim` below changed in such a way that it used more
+axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` would report an error.
 
 ```lean
-/--
-info: 'simpleEquality' depends on axioms: [propext]
--/
+theorem double_neg_elim (P : Prop) : (¬ ¬ P) = P :=
+  propext Classical.not_not
+
+/-- info: 'double_neg_elim' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms simpleEquality
+#print axioms double_neg_elim
+
 ```
 :::
 

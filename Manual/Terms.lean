@@ -605,6 +605,9 @@ Finally, instance synthesis is invoked and as many metavariables as possible are
 
 ::::keepEnv
 :::example "Named Arguments"
+```lean -show
+set_option linter.unusedVariables false
+```
 The {keywordOf Lean.Parser.Command.check}`#check` command can be used to inspect the arguments that were inserted for a function call.
 
 The function {name}`sum3` takes three explicit {lean}`Nat` parameters, named `x`, `y`, and `z`.
