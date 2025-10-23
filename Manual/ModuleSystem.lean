@@ -143,6 +143,9 @@ local elab "my_elab" : command => do
   ...
 ```
 
+For convenience, `meta` also implies `partial`.
+This can be overriden by giving an explicit `termination_by` metric (such as one suggested by `termination_by?`), which may be necessary when the type of the definition is not known to be `Nonempty`.
+
 As a guideline, it is usually preferable to apply `meta` as late as possible.
 Thus helper definitions not directly registered as metaprograms do not need to be marked if they are located in a separate module.
 Only the final module(s) actually registering metaprograms then should use `public meta import` to import those helpers and define its metaprograms using built-in syntax like `elab`, using `meta def`, or using `meta section`.
@@ -170,6 +173,11 @@ The following list contains common errors one might encounter when using the mod
   You might also see this as a kernel error when a tactic directly emits proof terms referencing specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using `@[expose] section`s generously on the closure of relevant modules.
 
+: "failed to compile 'partial' definition" on `meta` definition
+
+  This can happen when a definition with a type that is not known to be `Nonempty` is marked `meta` or moved into a `meta section`, which both imply `partial` without a termination metric.
+  Use `termination_by?` to make the previously implicitly inferred termination metric explicit, or provide a `Nonempty` instance.
+  
 ## Recipe for Porting Existing Files
 
 Start by enabling the module system throughout all files with minimal breaking changes:
