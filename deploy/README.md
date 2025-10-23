@@ -75,7 +75,7 @@ A successful push to deploy in this way triggers a GH action that runs
 the `overlay.py` script, which is then responsible for creating a new
 commit to `postdeploy`, based on `deploy`. This commit includes all
 desired overlays. At time of writing, this is just a single file
-`static/version.js` in each version of the reference manual that
+`static/metadata.js` in each version of the reference manual that
 contains information about whether the version is in fact stable or
 latest.
 
