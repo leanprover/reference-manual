@@ -382,7 +382,7 @@ partial def count [Monad m] (p : α → Bool) (act : m α) : m Nat := do
     return 0
 ```
 
-```lean -show
+```lean -show -keep
 /-- info: Nat : Type -/
 #check_msgs in
 #check Nat

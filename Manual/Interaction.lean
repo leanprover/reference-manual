@@ -311,6 +311,9 @@ Lists all axioms that the constant transitively relies on. See {ref "print-axiom
 :::
 
 :::example "Printing Axioms"
+```imports
+import Std.Tactic.BVDecide
+```
 
 These two functions each swap the elements in a pair of bitvectors:
 

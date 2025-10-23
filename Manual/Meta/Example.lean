@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 import Manual.Meta.Figure
 import Manual.Meta.LzCompress
+import Manual.Meta.ImportsBlock
 import Lean.Elab.InfoTree.Types
 
 open Verso Doc Elab
@@ -67,22 +68,23 @@ def isLeanBlock : TSyntax `block → CoreM Bool
     return name == ``Verso.Genre.Manual.InlineLean.lean
   | _ => pure false
 
-inductive LeanBlockContent where
- | content : String → LeanBlockContent
- | elabWithoutKeep : LeanBlockContent
- | nonLeanBlock : LeanBlockContent
+structure LeanBlockContent where
+  content : Option String
+  shouldElab : Bool
 
 def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
   | `(block|```$nameStx:ident $args*|$contents:str```) => do
     let name ← realizeGlobalConstNoOverload nameStx
+    if name == ``Manual.imports then
+      return {content := some contents.getString, shouldElab := false}
     if name != ``Verso.Genre.Manual.InlineLean.lean then
-      return .nonLeanBlock
+      return {content := none, shouldElab := false}
     let args ← Verso.Doc.Elab.parseArgs args
     let args ← parseThe InlineLean.LeanBlockConfig args
     if !args.keep || args.error then
-      return .elabWithoutKeep
-    pure <| .content (contents.getString)
-  | _ => pure .nonLeanBlock
+      return {content := none, shouldElab := true}
+    pure <| {content := some contents.getString, shouldElab := true}
+  | _ => pure {content := none, shouldElab := false}
 
 /--
 Elaborates all Lean blocks first, enabling local forward references
@@ -121,12 +123,10 @@ def «example» : DirectiveExpander
       (detail? := some "Example")
 
     let accumulate (b : TSyntax `block) : StateT (List String) DocElabM Bool := do
-      match ← getLeanBlockContents? b with
-      | LeanBlockContent.elabWithoutKeep => pure true
-      | LeanBlockContent.nonLeanBlock => pure false
-      | LeanBlockContent.content x =>
+      let {content, shouldElab} ← getLeanBlockContents? b
+      if let some x := content then
         modify (· ++ [x])
-        pure true
+      pure shouldElab
 
     -- Elaborate Lean blocks first, so inlines in prior blocks can refer to them
     -- Also accumulate text of lean blocks.
