@@ -81,7 +81,7 @@ where
       IO Highlighted :=
     let termElab : TermElabM Highlighted := do
       let mut hls := Highlighted.empty
-      let mut lastPos : String.Pos := 0
+      let mut lastPos : String.Pos.Raw := 0
       for cmd in cmds do
         let hl ← highlightIncludingUnparsed cmd nonSilentMsgs cmdState.infoState.trees [] lastPos
         hls := hls ++ hl

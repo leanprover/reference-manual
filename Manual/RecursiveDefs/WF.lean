@@ -349,6 +349,7 @@ decreasing_by
 ```leanOutput nestGoal3 (whitespace := lax) -show
 unsolved goals
 xs : Array Nat
+s : Nat := xs.sum
 i : Nat
 h✝ : i ∈ [:xs.size]
 ⊢ sizeOf (xs.take i) < sizeOf xs
@@ -608,7 +609,7 @@ where
 The fact that the inferred termination argument uses some arbitrary measure, rather than an optimal or minimal one, is visible in the inferred measure, which contains a redundant `j`:
 ```leanOutput binarySearch
 Try this:
-  termination_by (j, j - i)
+  [apply] termination_by (j, j - i)
 ```
 
 :::
@@ -694,7 +695,7 @@ Nonetheless, the definition is accepted due to the ordering imposed on the funct
 mutual
   def f : (n : Nat) → Nat
     | 0 => 0
-    | n+1 => g n
+    | n + 1 => g n
   termination_by?
 
   def g (n : Nat) : Nat := (f n) + 1
@@ -705,13 +706,13 @@ end
 The inferred termination argument for {lean}`f` is:
 ```leanOutput fg
 Try this:
-  termination_by (n, 1)
+  [apply] termination_by n => (n, 0)
 ```
 
 The inferred termination argument for {lean}`g` is:
 ```leanOutput fg
 Try this:
-  termination_by (n, 1)
+  [apply] termination_by (n, 1)
 ```
 
 :::

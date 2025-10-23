@@ -489,14 +489,14 @@ This predicate is part of the {name}`UInt32` API.
 
 ## Bitwise Operations
 
-Typically, bitwise operations on fixed-width integers should be accessed using Lean's overloaded operators, particularly their instances of {name}`ShiftLeft`, {name}`ShiftRight`, {name}`AndOp`, {name}`OrOp`, and {name}`Xor`.
+Typically, bitwise operations on fixed-width integers should be accessed using Lean's overloaded operators, particularly their instances of {name}`ShiftLeft`, {name}`ShiftRight`, {name}`AndOp`, {name}`OrOp`, and {name}`XorOp`.
 
 ```lean -show
 -- Check that all those instances really exist
 open Lean Elab Command in
 #eval show CommandElabM Unit from do
   let types := [`ISize, `Int8, `Int16, `Int32, `Int64, `USize, `UInt8, `UInt16, `UInt32, `UInt64]
-  let classes := [`ShiftLeft, `ShiftRight, `AndOp, `OrOp, `Xor]
+  let classes := [`ShiftLeft, `ShiftRight, `AndOp, `OrOp, `XorOp]
   for t in types do
     for c in classes do
       elabCommand <| ← `(example : $(mkIdent c):ident $(mkIdent t) := inferInstance)

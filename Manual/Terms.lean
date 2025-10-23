@@ -605,6 +605,9 @@ Finally, instance synthesis is invoked and as many metavariables as possible are
 
 ::::keepEnv
 :::example "Named Arguments"
+```lean -show
+set_option linter.unusedVariables false
+```
 The {keywordOf Lean.Parser.Command.check}`#check` command can be used to inspect the arguments that were inserted for a function call.
 
 The function {name}`sum3` takes three explicit {lean}`Nat` parameters, named `x`, `y`, and `z`.
@@ -670,19 +673,35 @@ This means that the remaining arguments can again be passed by name.
 fun x => (fun x y => sum3 x y 8) x 1 : Nat → Nat
 ```
 
-```lean -show
--- This is not shown in the manual pending #6373
--- https://github.com/leanprover/lean4/issues/6373
--- When the issue is fixed, this code will stop working and the text can be updated.
-
-/--
-info: let x := 15;
-fun x y => sum3 x y x : Nat → Nat → Nat
--/
-#guard_msgs in
+Parameter names are taken from the function's _type_, and the names used for function parameters don't need to match the names used in the type.
+This means that local bindings that conflict with a parameter's name don't prevent the use of named parameters, because Lean avoids this conflicts by renaming the function's parameter while leaving the name intact in the type.
+```lean (name := sum15)
 #check let x := 15; sum3 (z := x)
 ```
-
+Here, the `x` that named {name}`sum3`'s first argument has been replaced, so as to not conflict with the surrounding {keywordOf Parser.Term.let}`let`:
+```leanOutput sum15
+let x := 15;
+fun x_1 y => sum3 x_1 y x : Nat → Nat → Nat
+```
+Even though `x` was renamed, it can still be passed by name:
+```lean (name := xNoCapture)
+#check (let x := 15; sum3 (z := x)) (x := 4)
+```
+```leanOutput xNoCapture
+(let x := 15;
+  fun x_1 y => sum3 x_1 y x)
+  4 : Nat → Nat
+```
+This is because the name `x` is still used in the type.
+Enabling the option {option}`pp.piBinderNames` shows the parameter names in the type:
+```lean (name := xRenamed)
+set_option pp.piBinderNames true in
+#check let x := 15; sum3 (z := x)
+```
+```leanOutput xRenamed
+let x := 15;
+fun x_1 y => sum3 x_1 y x : (x y : Nat) → Nat
+```
 :::
 ::::
 
@@ -913,7 +932,7 @@ end
 ```
 ::::
 
-# Literals
+# Numeric Literals
 
 There are two kinds of numeric literal: natural number literals and {deftech}[scientific literals].
 Both are overloaded via {tech (key := "type class")}[type classes].
@@ -927,6 +946,17 @@ tag := "nat-literals"
 section
 variable {n : Nat}
 ```
+
+Natural numbers can be specified in several forms:
+
+ - A sequence of digits 0 through 9 is a decimal literal
+ - `0b` or `0B` followed by a sequence of one or more 0s and 1s is a binary literal
+ - `0o` or `0O` followed by a sequence of one or more digits 0 through 7 is an octal literal
+ - `0x` or `0X` followed by a sequence of one or more hex digits (0 through 9 and A through F, case-insensitive) is a hexadecimal literal
+
+All numeric literals can also contain internal underscores, except for between the first two characters in a binary, octal, or hexadecimal literal.
+These are intended to help groups of digits in natural ways, for instance {lean}`1_000_000` or {lean}`0x_c0de_cafe`.
+(While it is possible to write the number 123 as {lean}`1_2__3`, this is not recommended.)
 
 When Lean encounters a natural number literal {lean}`n`, it interprets it via the overloaded method {lean}`OfNat.ofNat n`.
 A {tech}[default instance] of {lean}`OfNat Nat n` ensures that the type {lean}`Nat` can be inferred when no other type information is present.
@@ -961,6 +991,12 @@ instance : OfNat NatInterval n where
 ```leanOutput eval8Interval
 { low := 8, high := 8, low_le_high := _ }
 ```
+```lean (name := eval7Interval)
+#eval (0b111 : NatInterval)
+```
+```leanOutput eval7Interval
+{ low := 7, high := 7, low_le_high := _ }
+```
 :::
 
 There are no separate integer literals.
@@ -968,8 +1004,7 @@ Terms such as {lean}`-5` consist of a prefix negation (which can be overloaded v
 
 ## Scientific Numbers
 
-Scientific number literals consist of a sequence of digits followed by an optional period and decimal part and an optional exponent.
-If no period or exponent is present, then the term is instead a natural number literal.
+Scientific number literals consist of a sequence of decimal digits followed (without intervening whitespace) by an optional decimal part (a period followed by zero or more decimal digits) and an optional exponent part (the letter `e` followed by an optional `+` or `-` and then followed by one or more decimal digits).
 Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}

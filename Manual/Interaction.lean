@@ -307,10 +307,13 @@ Adds the string literal to Lean's {tech}[message log].
 #print axioms $t
 ```
 
-Lists all axioms that the constant transitively relies on.
+Lists all axioms that the constant transitively relies on. See {ref "print-axioms"}[the documentation for axioms] for more information.
 :::
 
 :::example "Printing Axioms"
+```imports -show
+import Std.Tactic.BVDecide
+```
 
 These two functions each swap the elements in a pair of bitvectors:
 

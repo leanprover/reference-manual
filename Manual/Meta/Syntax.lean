@@ -123,7 +123,7 @@ def keywordOf : RoleExpander
     return #[← `(Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Inline.code $kw])]
 
 @[inline_extension keywordOf]
-def keywordOf.descr : InlineDescr where
+def keywordOf.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX := none
@@ -173,7 +173,6 @@ r#".keyword-of .kw {
 "#
   ]
   extraJs := [
-    highlightingJs,
 r#"
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -210,8 +209,7 @@ window.addEventListener("load", () => {
 });
 "#
   ]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+}
 
 @[role_expander keyword]
 def keyword : RoleExpander
@@ -702,13 +700,14 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | ``FreeSyntax.docCommentItem, _, _ =>
       match stx[0][1] with
       | .atom _ val => do
-        let mut str := val.extract 0 (val.endPos - ⟨2⟩)
+        -- TODO: use a slice here. As of nightly-2025-10-20, the code panicked (reported)
+        let mut str := val.dropRight 2
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
           if inVar then
             let pre := str.takeWhile (· != '}')
-            str := str.drop (pre.length + 1)
+            str := str.stripPrefix pre |>.drop 1
             let x := pre.trim.toName
             if let some (c, d?) := (← get).find? x then
               contents := contents ++ (← lift <| tag (.localName x which c d?) x.toString)
@@ -717,7 +716,7 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
             inVar := false
           else
             let pre := str.takeWhile (· != '{')
-            str := str.drop (pre.length + 1)
+            str := str.stripPrefix pre |>.drop 1
             contents := contents ++ pre
             inVar := true
 
@@ -1424,7 +1423,7 @@ def productionDomainMapper : DomainMapper where
 
 open Verso.Output Html in
 @[block_extension grammar]
-partial def grammar.descr : BlockDescr where
+partial def grammar.descr : BlockDescr := withHighlighting {
   init s := s.addQuickJumpMapper productionDomain (productionDomainMapper.setFont { family := .code })
 
   traverse id info _ := do
@@ -1457,9 +1456,7 @@ partial def grammar.descr : BlockDescr where
         Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
-  extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraJs := [grammarJs]
   localContentItem _ json _ := open Verso.Output.Html in do
     if let .arr #[_, .arr #[_, .arr toks]] := json then
       let toks ← toks.mapM fun v => do
@@ -1475,6 +1472,7 @@ partial def grammar.descr : BlockDescr where
       else
         pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
     else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
+}
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
@@ -1545,7 +1543,7 @@ def syntaxKind : RoleExpander
 
 
 @[inline_extension syntaxKind]
-def syntaxKind.inlinedescr : InlineDescr where
+def syntaxKind.inlinedescr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX :=
@@ -1553,9 +1551,7 @@ def syntaxKind.inlinedescr : InlineDescr where
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
   extraCss := [grammarCss]
-  extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraJs := [grammarJs]
   toHtml :=
     open Verso.Output.Html in
     some <| fun goI _ data inls => do
@@ -1569,3 +1565,4 @@ def syntaxKind.inlinedescr : InlineDescr where
             {{← nonTermHtmlOf k doc? showAs}}
           </code>
         }}
+}

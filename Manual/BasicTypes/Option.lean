@@ -38,6 +38,10 @@ The {lean}`Option` API makes frequent use of this perspective.
 
 :::example "Options as Nullability"
 
+```imports -show
+import Std
+```
+
 ```lean -show
 open Std (HashMap)
 variable {Coll} [BEq α] [Hashable α] (a : α) (b : β) {xs : Coll} [GetElem Coll α β fun _ _ => True] {i : α} {m : HashMap α β}
@@ -63,6 +67,10 @@ If {lean}`m`﻿` : `﻿{lean}`HashMap α β` and {lean}`a`﻿` : `﻿{lean}`α`,
 In many programming languages, it is important to remember to check for the null value.
 When using {name}`Option`, the type system requires these checks in the right places: {lean}`Option α` and {lean}`α` are not the same type, and converting from one to the other requires handling the case of {lean  (type := "Option α")}`none`.
 This can be done via helpers such as {name}`Option.getD`, or with pattern matching.
+
+```imports -show
+import Std
+```
 
 ```lean
 def postalCodes : Std.HashMap Nat String :=
@@ -224,6 +232,8 @@ From this perspective, iteration operators can be understood as performing some 
 {docstring Option.any}
 
 {docstring Option.filter}
+
+{docstring Option.filterM}
 
 {docstring Option.forM}
 

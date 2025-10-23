@@ -31,7 +31,7 @@ def castPaper : ArXiv where
 
 def constructionsOnConstructors : InProceedings where
   title := inlines!"A Few Constructions on Constructors"
-  authors := #[inlines!"Conor McBrid,", inlines!"Healfdene Goguen", inlines!"James McKinna"]
+  authors := #[inlines!"Conor McBride", inlines!"Healfdene Goguen", inlines!"James McKinna"]
   year := 2004
   booktitle := inlines!"Types for Proofs and Programs, International Workshop, TYPES 2004"
   series := some (inlines!"LNCS 3839")

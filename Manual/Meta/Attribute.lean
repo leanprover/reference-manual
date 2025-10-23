@@ -128,12 +128,12 @@ def attrs : RoleExpander
         let mod : Highlighted :=
           if let some tok := scopedOrLocal then
             let ⟨s, e⟩ := tok.raw.getRange?.get!
-            let str := text.source.extract s e
+            let str := s.extract text.source e
             .token ⟨.keyword none none none, str⟩ ++ .text " "
           else .empty
 
         let ⟨s, e⟩ := stx.getRange?.get!
-        let attrTok := text.source.extract s e
+        let attrTok := s.extract text.source e
 
         unless hl.isEmpty do hl := hl ++ mod ++ .token ⟨.keyword ``Term.attributes none none, ", "⟩
         hl := hl ++ attrToken ref descr attrTok

@@ -38,6 +38,12 @@ It can be disabled using the option `grind -linarith`.
 
 
 :::example "Goals Decided by `linarith`" (open := true)
+```imports -show
+import Std
+```
+```lean -show
+open Lean.Grind
+```
 All of these examples rely on instances of the following ordering notation and `linarith` classes:
 ```lean
 variable [LE α] [LT α] [Std.LawfulOrderLT α]  [Std.IsLinearOrder α]
@@ -69,7 +75,12 @@ example {a b c d e : α} :
 :::
 
 :::example "Commutative Ring Goals Decided by `linarith`" (open := true)
-
+```imports -show
+import Std
+```
+```lean -show
+open Lean.Grind
+```
 For types that are commmutative rings (that is, types in which the multiplication operator is commutative) with {name}`CommRing` instances, `linarith` has more capabilities.
 
 ```lean

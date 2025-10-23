@@ -168,7 +168,7 @@ def Bin.ofNat (n : Nat) : Bin :=
   | n + 1 => (Bin.ofNat n).succ
 ```
 
-```lean -show
+```lean -show -keep
 --- Internal tests
 /-- info: [0, 1, 10, 11, 100, 101, 110, 111, 1000] -/
 #check_msgs in
@@ -182,7 +182,8 @@ def Bin.ofNat (n : Nat) : Bin :=
   Bin.done.succ.succ.succ.succ.succ.succ,
   Bin.done.succ.succ.succ.succ.succ.succ.succ,
   Bin.done.succ.succ.succ.succ.succ.succ.succ.succ]
-
+```
+```lean -show
 def Bin.toNat : Bin → Nat
   | .done => 0
   | .zero b => 2 * b.toNat
@@ -206,12 +207,13 @@ theorem Bin.ofNat_toNat_eq {n : Nat} : (Bin.ofNat n).toNat = n := by
 
 
 Even if {lean}`Bin.ofNat` is registered as a coercion, natural number literals cannot be used for {lean}`Bin`:
-```lean (name := nineFail) +error
+```lean
 attribute [coe] Bin.ofNat
 
 instance : Coe Nat Bin where
   coe := Bin.ofNat
-
+```
+``` lean (name := nineFail) +error
 #eval (9 : Bin)
 ```
 ```leanOutput nineFail
@@ -346,7 +348,7 @@ Printing the resulting definition shows that the computation is inside the funct
 ```
 ```leanOutput tomorrow
 def tomorrow : Later String :=
-{ get := fun x => Nat.fold 10000 (fun x x s => s ++ "tomorrow") "" }
+{ get := fun x => Nat.fold 10000 (fun x x_1 s => s ++ "tomorrow") "" }
 ```
 :::
 

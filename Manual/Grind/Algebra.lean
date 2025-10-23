@@ -37,6 +37,9 @@ open Lean Grind
 ```
 
 :::example "Commutative Rings" (open := true)
+```lean -show
+open Lean.Grind
+```
 ```lean
 example [CommRing α] (x : α) : (x + 1) * (x - 1) = x ^ 2 - 1 := by
   grind
@@ -45,6 +48,9 @@ example [CommRing α] (x : α) : (x + 1) * (x - 1) = x ^ 2 - 1 := by
 :::example "Ring Characteristics" (open := true)
 The solver “knows” that `16*16 = 0` because the [ring characteristic](https://en.wikipedia.org/wiki/Characteristic_%28algebra%29) (that is, the minimum number of copies of the multiplicative identity that sum to the additive identity) is `256`, which is provided by the {name}`IsCharP` instance.
 
+```lean -show
+open Lean.Grind
+```
 ```lean
 example [CommRing α] [IsCharP α 256] (x : α) :
     (x + 16)*(x - 16) = x^2 := by
@@ -53,6 +59,9 @@ example [CommRing α] [IsCharP α 256] (x : α) :
 :::
 
 :::example "Standard Library Types" (open := true)
+```lean -show
+open Lean.Grind
+```
 Types in the standard library are supported by the solver out of the box.
 `UInt8` is a commutative ring with characteristic `256`, and thus has instances of {inst}`CommRing UInt8` and {inst}`IsCharP UInt8 256`.
 ```lean
@@ -62,6 +71,9 @@ example (x : UInt8) : (x + 16) * (x - 16) = x ^ 2 := by
 :::
 
 :::example "More Commutative Ring Proofs" (open := true)
+```lean -show
+open Lean.Grind
+```
 The axioms of a commutative ring are sufficient to prove these statements.
 
 ```lean
@@ -83,6 +95,9 @@ example [CommRing α] (x y : α) :
 :::
 
 :::example "Characteristic Zero" (open := true)
+```lean -show
+open Lean.Grind
+```
 `ring` proves that `a + 1 = 2 + a` is unsatisfiable because the characteristic is known to be 0.
 
 ```lean
@@ -93,6 +108,9 @@ example [CommRing α] [IsCharP α 0] (a : α) :
 :::
 
 :::example "Inferred Characteristic" (open := true)
+```lean -show
+open Lean.Grind
+```
 Even when the characteristic is not initially known, when `grind` discovers that `n = 0` for some numeral `n`, it makes inferences about the characteristic:
 ```lean
 example [CommRing α] (a b c : α)
@@ -163,7 +181,9 @@ It also rewrites every disequality `p ≠ 0` as the equality `p * p⁻¹ = 1`.
 :::
 
 ::::example "Fields and `grind`"
-
+```lean -show
+open Lean.Grind
+```
 This example requires its {name}`Field` instance:
 
 ```lean
@@ -198,6 +218,9 @@ For example, the polynomial `2 * x * y + 4 * z = 0` is simplified to `x * y + 2 
 It also used when processing disequalities.
 
 :::example "Using `NoNatZeroDivisors`"
+```lean -show
+open Lean.Grind
+```
 In this example, {tactic}`grind` relies on the {name}`NoNatZeroDivisors` instance to simplify the goal:
 ```lean
 example [CommRing α] [NoNatZeroDivisors α] (a b : α) :
@@ -310,6 +333,9 @@ example (x y : Nat) :
 Gröbner basis computation can be very expensive. You can limit the number of steps performed by the `ring` solver using the option `grind (ringSteps := <num>)`
 
 :::example "Limiting `ring` Steps"
+```lean -show
+open Lean.Grind
+```
 This example cannot be solved by performing at most 100 steps:
 ```lean +error (name := ring100)
 example [CommRing α] [IsCharP α 0] (d t c : α) (d_inv PSO3_inv : α) :

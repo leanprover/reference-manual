@@ -247,13 +247,9 @@ def answerOtherUser (n : Nat) : String :=
     toString (nextPrime n)
   ]
 ```
-The proof contains two {tactic}`simp` steps to demonstrate that the two functions are not syntactically identical.
-In particular, the desugaring of string interpolation resulted in an extra {lean}`toString ""` at the end of {lean}`answerUser`'s result.
+In fact, the proof is by {tactic}`rfl`:
 ```lean
 theorem answer_eq_other : answerUser = answerOtherUser := by
-  funext n
-  simp only [answerUser, answerOtherUser]
-  simp only [toString, String.append_empty]
   rfl
 ```
 :::

@@ -12,7 +12,7 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.24.0-rc1 (2025-09-15)" =>
+#doc (Manual) "Lean 4.24.0 (2025-10-14)" =>
 %%%
 tag := "release-v4.24.0"
 file := "v4.24.0"
@@ -20,6 +20,101 @@ file := "v4.24.0"
 
 ````markdown
 For this release, 377 changes landed. In addition to the 105 feature additions and 75 fixes listed below there were 25 refactoring changes, 9 documentation improvements, 21 performance improvements, 4 improvements to the test suite and 138 other changes.
+
+## Highlights
+
+Lean 4.24.0 release brings continued improvements to the module system and the verification framework,
+strengthens the `grind` tactic, and advances the standard library.
+The release also introduces more efficient constructions of `DecidableEq` instances and `noConfusion` ([#10152](https://github.com/leanprover/lean4/pull/10152) and [#10300](https://github.com/leanprover/lean4/pull/10300)),
+optimizing compilation.
+
+As an example for our continuous improvements to performance:
+
+- [#10249](https://github.com/leanprover/lean4/pull/10249) speeds up auto-completion by a factor of ~3.5x through various
+performance improvements in the language server.
+
+As always, there are plenty of bug fixes and new features, some of which are listed below:
+
+### "Try this" suggestions are rendered under 'Messages'
+
+- [#9966](https://github.com/leanprover/lean4/pull/9966) adjusts the "try this" widget to be rendered as a widget message
+  under 'Messages', not a separate widget under a 'Suggestions' section.
+  The main benefit of this is that the message of the widget is not
+  duplicated between 'Messages' and 'Suggestions'.
+
+### `invariants` and `with` sections in `mvcgen`
+
+- [#9927](https://github.com/leanprover/lean4/pull/9927) implements extended `induction`-inspired syntax for `mvcgen`,
+  allowing optional `invariants` and `with` sections.
+
+  The example below gives the proof that `nodup` correctly checks for duplicates in a list.
+
+  ```lean
+  import Std.Tactic.Do
+  import Std
+
+  open Std Do
+
+  def nodup (l : List Int) : Bool := Id.run do
+    let mut seen : HashSet Int := ∅
+    for x in l do
+      if x ∈ seen then
+        return false
+      seen := seen.insert x
+    return true
+
+  theorem nodup_correct (h : nodup l = r) : r = true ↔ l.Nodup := by
+    unfold nodup at h
+    apply Id.of_wp_run_eq h; clear h
+    mvcgen
+    invariants
+    · Invariant.withEarlyReturn
+        (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
+        (onContinue := fun xs seen =>
+          ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
+    with grind
+  ```
+
+### Library: Dyadic rationals
+
+- [#9993](https://github.com/leanprover/lean4/pull/9993) defines the dyadic rationals, showing they are an ordered ring
+  embedding into the rationals.
+
+### Grind AC solver
+
+`grind` can reason about associative, commutative, idempotent, and/or unital operations
+([#10105](https://github.com/leanprover/lean4/pull/10105), [#10146](https://github.com/leanprover/lean4/pull/10146), etc..):
+
+```lean
+example (a b c : Nat) : max a (max b c) = max (max b 0) (max a c) := by
+  grind only
+
+example {α} (as bs cs : List α) : as ++ (bs ++ cs) = ((as ++ []) ++ bs) ++ (cs ++ []) := by
+  grind only
+
+example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std.Commutative op] [Std.IdempotentOp op] [Std.LawfulIdentity op u] (a b c : α)
+    : op (op a a) (op b c) = op (op (op b a) (op (op u b) b)) c := by
+  grind only
+```
+
+### Metaprogramming notes
+
+- [#10306](https://github.com/leanprover/lean4/pull/10306) fixes a few bugs in the `rw` tactic.
+
+  Metaprogramming API: Instead of `Lean.MVarId.rewrite` prefer `Lean.Elab.Tactic.elabRewrite`
+  for elaborating rewrite theorems and applying rewrites to expressions.
+
+### Breaking changes
+
+- [#9749](https://github.com/leanprover/lean4/pull/9749) refactors the Lake codebase to use the new module system
+  throughout. Every module in `Lake` is now a `module`.
+
+  **Breaking change:** Since the module system encourages a `private`-by-default design,
+  the Lake API has switched from its previous `public`-by-default approach. As such,
+  many definitions that were previously public are now private. The newly private definitions
+  are not expected to have had significant user use, nonetheless, important use cases could be missed.
+  If a key API is now inaccessible but seems like it should be public, users are encouraged
+  to report this as an issue on GitHub.
 
 ## Language
 

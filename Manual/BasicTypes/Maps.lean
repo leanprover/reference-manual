@@ -176,6 +176,10 @@ A nested inductive type that occurs inside a map or set should be defined in thr
 
 :::example "Nested Inductive Types with `Std.HashMap`"
 
+```imports -show
+import Std
+```
+
 This example requires that `Std.Data.HashMap.RawLemmas` is imported.
 To keep the code shorter, the `Std` namespace is opened:
 ```lean
@@ -304,6 +308,10 @@ In particular, when possible, operations such as {name Std.HashMap.alter}`alter`
 These operations avoid creating a second reference to the value during modification.
 
 :::example "Modifying Values in Maps"
+
+```imports -show
+import Std
+```
 
 ```lean
 open Std
