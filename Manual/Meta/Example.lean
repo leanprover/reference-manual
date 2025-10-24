@@ -186,24 +186,17 @@ def example.descr : BlockDescr where
           let liveLink := match liveText with
           | .none => Output.Html.empty
           | .some content =>
-            let href := "https://live.lean-lang.org/#codez=" ++ lzCompress content
-            {{ <div class="live-link"><a target="_blank" href={{href}}>"Live ↪"</a></div> }}
-          -- TODO(https://github.com/leanprover/verso/issues/569):
-          -- We compute but do not yet add the liveLink inside
-          -- the div.example-content below. That is, we consider this
-          -- "feature-flagged off".
-          --
-          -- We should actually add the link when mechanisms are in place to
-          -- ensure that
-          -- * all reference manual examples yield correct code
-          --   that can be run in a fresh copy of lean
-          -- * we don't produce stale links
+            let href := s!"javascript:openLiveLink(\"{lzCompress content}\")"
+            -- This link is `display: none` hidden by default, and enabled by maybeShowLiveLinks,
+            -- assuming we detect that we're a sufficiently recent version of the manual
+            -- to be compatible with the versions served by https://live.lean-lang.org
+            {{ <div class="live-link"><a href={{href}}>"Live ↪"</a></div> }}
           pure {{
             <details class="example" {{attrs}}>
               <summary class="description">{{← description.mapM goI}}</summary>
               <div class="example-content">
                 {{← blocks.extract 1 blocks.size |>.mapM goB}}
-                -- {{liveLink}}
+                  {{liveLink}}
               </div>
             </details>
           }}
@@ -233,17 +226,53 @@ r#"function openDetailsForHashTarget() {
   }
 }
 
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
 // Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+document.addEventListener('DOMContentLoaded', pageInit);
 
 // Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
+window.addEventListener('hashchange', pageInit);
 
 // Run immediately in case the script loads after DOMContentLoaded
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
+  document.addEventListener('DOMContentLoaded', pageInit);
 } else {
-  openDetailsForHashTarget();
+  pageInit();
 }
 "#
   ]
@@ -293,6 +322,7 @@ r#".example {
   border-top: 1px solid #98B2C0;
   border-left: 1px solid #98B2C0;
   border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
 }
 .live-link a {
   text-decoration: none;
