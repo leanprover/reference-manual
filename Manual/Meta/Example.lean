@@ -76,15 +76,15 @@ def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
   | `(block|```$nameStx:ident $args*|$contents:str```) => do
     let name ← realizeGlobalConstNoOverload nameStx
     if name == ``Manual.imports then
-      return {content := some contents.getString, shouldElab := false}
+      return { content := some contents.getString, shouldElab := false }
     if name != ``Verso.Genre.Manual.InlineLean.lean then
-      return {content := none, shouldElab := false}
+      return { content := none, shouldElab := false }
     let args ← Verso.Doc.Elab.parseArgs args
     let args ← parseThe InlineLean.LeanBlockConfig args
     if !args.keep || args.error then
-      return {content := none, shouldElab := true}
-    pure <| {content := some contents.getString, shouldElab := true}
-  | _ => pure {content := none, shouldElab := false}
+      return { content := none, shouldElab := true }
+    pure <| { content := some contents.getString, shouldElab := true }
+  | _ => pure { content := none, shouldElab := false }
 
 /--
 Elaborates all Lean blocks first, enabling local forward references

@@ -122,7 +122,7 @@ Instances for recursive inductive types are common, however.
 There is a standard idiom to work around this limitation: define a recursive function independently of the instance, and then refer to it in the instance definition.
 By convention, these recursive functions have the name of the corresponding method, but are defined in the type's namespace.
 
-::: example "Instances are not recursive"
+:::example "Instances are not recursive"
 Given this definition of {lean}`NatTree`:
 ```lean
 inductive NatTree where
@@ -153,7 +153,7 @@ def NatTree.beq : NatTree → NatTree → Bool
   | .leaf, .leaf =>
     true
   | .branch l1 v1 r1, .branch l2 v2 r2 =>
-    l1 == l2 && v1 == v2 && r1 == r2
+    NatTree.beq l1 l2 && v1 == v2 && NatTree.beq r1 r2
   | _, _ =>
     false
 ```
