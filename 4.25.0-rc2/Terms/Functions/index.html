@@ -989,56 +989,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1137,6 +1087,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2106,6 +2107,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2180,45 +2256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       
 window.onload = () => {
@@ -2415,6 +2452,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2560,25 +2598,27 @@ Implicit parameters come in three varieties:</p>
     Most instance implicit parameters omit the parameter name because instances synthesized as parameters to functions are already available in the functions' bodies, even without being named explicitly.</p>
                   </dd></dl><details class="example"><summary class="description">Ordinary vs Strict Implicit Parameters</summary><div class="example-content">
                   <p>
-                    The difference between the functions <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1611">f</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1612">g</span></a></code> is that <code>α</code> is strictly implicit in <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1611">f</span></a></code>:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16205">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="1611" id="f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⦃</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">⦄</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16242">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16253">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="1612" id="g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16286">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="48">x</span><span class="inter-text">
+                    The difference between the functions <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1613">f</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1614">g</span></a></code> is that <code>α</code> is strictly implicit in <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1613">f</span></a></code>:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16205">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="1613" id="f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⦃</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">⦄</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16242">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16253">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="1614" id="g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-16286">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.59" data-verso-hover="48">x</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     These functions are elaborated identically when applied to concrete arguments:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16389">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1611">f</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1612">g</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16389">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1613">f</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1614">g</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                    However, when the explicit argument is not provided, uses of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1611">f</span></a></code> do not require the implicit <code>α</code> to be solved:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16547">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1611">f</span></a><span class="inter-text">
+                    However, when the explicit argument is not provided, uses of <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1613">f</span></a></code> do not require the implicit <code>α</code> to be solved:</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16547">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Terms/Functions/#f-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="1613">f</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     However, uses of <code>g</code> do require it to be solved, and fail to elaborate if there is insufficient information available:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Failed to infer type of </span><span class="text">example</span><span class="text"></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-16716">example</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">don't know how to synthesize implicit argument</span><span class="text"></span><span class="text"> `</span><span class="text">α</span><span class="text">`</span><span class="text">
-  </span><span class="highlighted"><span class="unknown token" data-binding="">@</span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1612">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">@</span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1614">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text">
 </span><span class="text">context:</span><span class="text">
-</span><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"></span></span></span></span></code></span></span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1612">g</span></a></span><span class="inter-text">
+</span><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"></span></span></span></span></code></span></span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1614">g</span></a></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">don't know how to synthesize implicit argument</span><span class="text"></span><span class="text"> `</span><span class="text">α</span><span class="text">`</span><span class="text">
-  </span><span class="highlighted"><span class="unknown token" data-binding="">@</span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1612">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">@</span><a href="Terms/Functions/#g-_LPAR_in-Ordinary-vs-Strict-Implicit-Parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="1614">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text">
 </span><span class="text">context:</span><span class="text">
-</span><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span></span></span></span></span></pre></div>
+</span><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span></span></span></span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;CYUwZgBJjBlIjcAQLggFQJ4AcSBDKRF6CTCPRAXigFcA7CADwmID4aAoUSAcwgG94k1MBfXASIJSYSjTqNqTJiGoBDALboANiFyQATHQgcdoiACcwq2fOVqNhsEA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next">
                 <span class="label">syntax</span><span class="title">Functions with Varying Binders</span><div class="text">
                   <p>
@@ -2680,13 +2720,15 @@ This is because the implicit parameters are added automatically.</p>
                   <p>
                     The identity function can be written with a single explicit parameter.
 As long as its type is known, the implicit type parameter is added automatically.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-18932">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-18940">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="1613">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="1613">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-18932">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-18940">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="1615">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="1615">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></span></pre><p>
                     The following are all equivalent:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19123">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19131">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></span></pre><code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19285">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19293">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></span></pre><code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-19453">#check</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-19461">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></span></pre></div>
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.6" data-verso-hover="295">α</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.7" data-verso-hover="48">x</span></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="295">α</span></span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;MQYwFgpiDWAEAUAzArgO1gD1gXgHydgC5YBvQRuAjYAVATwAcIBfWQJMJYK2yBKAKB9EgwEKdOWZY8BYuUq0GzTq3a9+4KHCRpSZZvCzFuOfPu2z6TJR2V8B64VpnE5FvZUOSTj6uYXtLXIA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             </section>
           <nav class="prev-next-buttons">

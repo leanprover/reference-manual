@@ -989,56 +989,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1137,6 +1087,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2106,6 +2107,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2180,45 +2256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       
 window.onload = () => {
@@ -2415,6 +2452,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2554,7 +2592,9 @@ In other words, propositions feature <span id="--tech-term-impredicative" class=
                     A proposition may also quantify over all types, at any given level:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-9349">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="295">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="295">α</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="48">x</span><span class="inter-text">
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-9404">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="348">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-5" data-verso-hover="342">5</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.16" data-verso-hover="348">α</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="48">x</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAueAFATgeykgvPQAETwAUKSqmUAlMVAIzxQBMZKlANA/XkwFA+iRYCZOiy4CxQI3AZACoBPKMHYSiIMpOVq8IfuGhwWFcYSLTk8xfACsyk2uQaOW+CCA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><p>
                 For universes at <a class="technical-term" href="The-Type-System/Universes/#--tech-term-level">level</a> <code>1</code> and higher (that is, the <code>Type u</code> hierarchy), quantification is <span id="--tech-term-predicative" class="def-technical-term"><em>predicative</em></span>. <span id="--index--next-next-next-next-next-next-next-next-next"></span><span id="--index--next-next-next-next-next-next-next-next-next-next"></span>
 For these universes, the universe of a function type is the least upper bound of the argument and return types' universes.</p>
@@ -2563,7 +2603,9 @@ For these universes, the universe of a function type is the least upper bound of
                     Both of these types are in <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-2" data-verso-hover="344">2</span></code>:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-9921">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="349">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="345">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="350">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-2" data-verso-hover="344">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-2" data-verso-hover="344">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="349">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="350">β</span><span class="inter-text">
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-9979">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="350">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-2" data-verso-hover="344">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="349">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-1" data-verso-hover="345">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-2" data-verso-hover="344">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13" data-verso-hover="350">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="349">β</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAKQjcDwFzwCoE8oIIwCUSgTcDpa4IBMxGOe8V6AvPKoEmE8JAUKJLAhTl61YojJ1K8IsKlM0rDlyA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><details class="example"><summary class="description">Predicativity of <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span></code></summary><div class="example-content">
                   <p>
                     This example is not accepted, because <code>α</code>'s level is greater than <code>1</code>. In other words, the annotated universe is smaller than the function type's universe:</p>
@@ -2636,7 +2678,9 @@ In the following example, it is not necessary to annotate the type as <code clas
       </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-12741" data-verso-hover="368">return</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.187" data-verso-hover="360">ch</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.37" data-verso-hover="9">i</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
     </span><span class="keyword token" data-binding="kw-occ-null-12764">else</span><span class="inter-text">
       </span><span class="const token" data-binding="const-Alternative.failure" data-verso-hover="369">failure</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgMIHsAm8oDoDeEBfRALkQBUBPAByQAoJEBqRARgEpEB3AC3gQChEiENSSlKNRBEGJ4AOygYxiAIJgwAQwqIAqgEk5IAMwAmRICTCYaIur1W3QeMmZmRZhK3N2/YdM2AchogNgDyVCAAlqhyiLQikgDriIEgbPz8mABmKEo4UNwaYB5orly8AkLxYgC8KAVgMvJuSABGENn5JLVtmdhUEMDciPnYAG4aADYuWEqIPYgRXYjoqDJCE/DBo4iACYRz7QDaEQC6APxrC9lDpKPYEcAAapMR6Mj1wrxyF+ubw9d1hSWgAvyUYAGkQ3EAl+TfRAIWBgGK0fLgxbMdgXeATYDwGGZDQRCZweBAA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><p>
                 Universe-polymorphic definitions in fact create a <em>schematic definition</em> that can be instantiated at a variety of levels, and different instantiations of universes create incompatible values.</p>
               <details class="example"><summary class="description">Universe polymorphism and definitional equality</summary><div class="example-content">
@@ -2678,7 +2722,9 @@ Defining the identity function as follows:</p>
     </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-14506" data-verso-hover="368">return</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">←</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#count-_LPAR_in-Universe-monomorphism-in-auto-bound-implicit-parameters_RPAR_" title="Definition of example"><span class="const token" data-binding="const-count" data-verso-hover="375">count</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.25" data-verso-hover="377">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.27" data-verso-hover="378">act</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
   </span><span class="keyword token" data-binding="kw-occ-null-14537">else</span><span class="inter-text">
     </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.doReturn-14546" data-verso-hover="368">return</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;A4QwTgLgliA2AEATApgM3gYwPYFcB2E8A2gLJZ4iLwC2AuvABTDwBc8gjcDyBJhPAEJZZYASkYgMhNtQ4jJ8AHIgJAXiRYAUPHhR0zBoATCeGIgiIAC2R4Nm+GGQQcYPPACM8ANSMD2fIWZGhVsiwAM7IVpq29o7wAAxAA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><section>
                 <h3 id="level-expressions">
                   4.3.2.1. Level Expressions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=level-expressions" title="Permalink">🔗</a></span></h3>
@@ -2711,12 +2757,14 @@ Universe parameters are defined or provided by suffixing the name of a constant 
                 <details class="example"><summary class="description">Universe-polymorphic <code>map</code></summary><div class="example-content">
                     <p>
                       The following declaration of <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Universes/#map-_LPAR_in-Universe-polymorphic--map_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="379">map</span></a></code> declares two universe parameters (<code>u</code> and <code>v</code>) and instantiates the polymorphic <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a></code> with each in turn:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16493">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="379" id="map-_LPAR_in-Universe-polymorphic--map_RPAR_">map</span><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-16499">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="379" id="map-_LPAR_in-Universe-polymorphic--map_RPAR_">map</span><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text">
     </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
     </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.52" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="54">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.52" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><a href="The-Type-System/Universes/#map-_LPAR_in-Universe-polymorphic--map_RPAR_" title="Definition of example"><span class="const token" data-binding="const-map" data-verso-hover="382">map</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.53" data-verso-hover="54">xs</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                      <a href="javascript:openLiveLink(&quot;CYUwZgBAtghgDgOgN4FcA0EBuBfCTCNwBAFwQAqAnnCBCrkoE3AxZl1OAUBJxABSQmGAkwgj0AlMQ5cAMgEsAzgBdktCIIgyFyHMIkAfCAG0AuhAC8APgOHdEAB7ESN2aYuQ7RErDgRXsoA&quot;)">Live ↪</a></div>
+                    </div>
                   </details><p>
                   Just as Lean automatically instantiates implicit parameters, it also automatically instantiates universe parameters.
 When <a href="Definitions/Headers-and-Signatures/#automatic-implicit-parameters">automatic implicit parameter insertion</a> is enabled (i.e. the <code class="hl lean inline" data-lean-context="examples"><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a></code> option is set to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="43">true</span></a></code>, which is the default), it is not necessary to explicitly bind universe variables; they are inserted automatically.
@@ -2724,14 +2772,14 @@ When it is set to <code class="hl lean inline" data-lean-context="examples"><a h
                 <details class="example"><summary class="description">Automatic Implicit Parameters and Universe Polymorphism</summary><div class="example-content">
                     <p>
                       When <code>autoImplicit</code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.true"><span class="const token" data-binding="const-Bool.true" data-verso-hover="43">true</span></a></code> (which is the default setting), this definition is accepted even though it does not bind its universe parameters:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17402" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17402" data-verso-hover="93">true</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-17431">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="379">map</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17408" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17408" data-verso-hover="93">true</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-17437">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="379">map</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="380">β</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.54" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.55" data-verso-hover="54">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.54" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="379">map</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.8" data-verso-hover="312">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.55" data-verso-hover="54">xs</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                       When <code>autoImplicit</code> is <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Booleans/#Bool___false" title="Documentation for Bool.false"><span class="const token" data-binding="const-Bool.false" data-verso-hover="42">false</span></a></code>, the definition is rejected because <code>u</code> and <code>v</code> are not in scope:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17685" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17685" data-verso-hover="93">false</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-17715">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="384">map</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="385">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">v</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span></span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="385">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">β</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="385">β</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17691" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-17691" data-verso-hover="93">false</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-17721">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="384">map</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="385">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">v</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-v" data-verso-hover="381">v</span></span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="385">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">β</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3" data-verso-hover="385">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6" data-verso-hover="385">β</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.323" data-verso-hover="385">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.324" data-verso-hover="386">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="385">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">::</span><span class="inter-text"> </span><span class="const token" data-binding="const-map" data-verso-hover="384">map</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.15" data-verso-hover="385">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.324" data-verso-hover="386">xs</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></span></pre><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">unknown universe level `</span><span class="text">v</span><span class="text">`</span></span></pre></div>
@@ -2804,32 +2852,34 @@ structure Pair (α : Type u) (β : Type v) : Type (max u v) where
                     </div>
                   </div>
                 <details class="example"><summary class="description">The <code>universe</code> command when <code>autoImplicit</code> is <code>false</code></summary><div class="example-content">
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-18715" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-18715" data-verso-hover="93">false</span><span class="inter-text">
-</span><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-18745" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-18756">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-id₃" data-verso-hover="388" id="id___-_LPAR_in-The--universe--command-when--autoImplicit--is--false_RPAR_">id₃</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="48">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="48">a</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-18721" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-18721" data-verso-hover="93">false</span><span class="inter-text">
+</span><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-18751" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-18762">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-id₃" data-verso-hover="388" id="id___-_LPAR_in-The--universe--command-when--autoImplicit--is--false_RPAR_">id₃</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="48">a</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="48">a</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code></div>
                   </details><p>
                   Because the automatic implicit parameter feature only inserts parameters that are used in the declaration's <a class="technical-term" href="Definitions/Headers-and-Signatures/#--tech-term-header">header</a>, universe variables that occur only on the right-hand side of a definition are not inserted as arguments unless they have been declared with <code>universe</code> even when <code>autoImplicit</code> is <code>true</code>.</p>
                 <details class="example"><summary class="description">Automatic universe parameters and the <code>universe</code> command</summary><div class="example-content">
                     <p>
                       This definition with an explicit universe parameter is accepted:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19272">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="389">L</span><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19278">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="389">L</span><span class="unknown token" data-binding="">.{</span><span class="unknown token" data-binding="">u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                       Even with automatic implicit parameters, this definition is rejected, because <code>u</code> is not mentioned in the header, which precedes the <code>:=</code>:</p>
-                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-19484" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-19484" data-verso-hover="93">true</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19513">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="390">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-19490" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Definitions/Headers-and-Signatures/#autoImplicit" title="Documentation for option autoImplicit"><span class="option token" data-binding="option-autoImplicit" data-verso-hover="383">autoImplicit</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-19490" data-verso-hover="93">true</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19519">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="390">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></code></span></span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">unknown universe level `</span><span class="text">u</span><span class="text">`</span></span></pre><p>
                       With a universe declaration, <code>u</code> is accepted as a parameter even on the right-hand side:</p>
-                    <code class="hl lean block" data-lean-context="examples"><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-19699" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19710">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="389">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                    <code class="hl lean block" data-lean-context="examples"><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-19705" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-19716">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="389">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                       The resulting definition of <code>L</code> is universe-polymorphic, with <code>u</code> inserted as a universe parameter.</p>
                     <p>
                       Declarations in the scope of a <code>universe</code> command are not made polymorphic if the universe variables do not occur in them or in other automatically-inserted arguments.</p>
-                    <code class="hl lean block" data-lean-context="examples"><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-20014" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-20025">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="341">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type 1</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-20048">#check</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+                    <code class="hl lean block" data-lean-context="examples"><a href="The-Type-System/Universes/#Lean___Parser___Command___universe-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.universe-20020" data-verso-hover="387">universe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">u</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-20031">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List"><span class="const token" data-binding="const-List" data-verso-hover="45">List</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type</span><span class="inter-text"> </span><span class="level-const token" data-binding="level-const-0" data-verso-hover="341">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type 1</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___check" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.check-20054">#check</span></a></span><span class="inter-text"> </span><span class="const token" data-binding="const-L" data-verso-hover="391">L</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                      <a href="javascript:openLiveLink(&quot;K4OwlgbgpgTgzlABMAUAEygM0QGUQLgF5cw4AXRACgBUBPAByQAYBKFAYgGMALKTga1xA&quot;)">Live ↪</a></div>
+                    </div>
                   </details></section>
               <section>
                 <h3 id="The-Lean-Language-Reference--The-Type-System--Universes--Polymorphism--Universe-Lifting">

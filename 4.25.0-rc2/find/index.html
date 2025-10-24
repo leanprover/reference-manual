@@ -988,56 +988,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1136,6 +1086,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2105,6 +2106,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2179,45 +2255,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       let xref = {"Verso.Genre.Manual.section":
  {"title": "Sections or chapters of the manual",
@@ -9849,7 +9886,7 @@ if (document.readyState === 'loading') {
   "contents":
   {"α (in Mutual Block Scope and Automatic Implicit Parameters)":
    [{"id":
-     "___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_-next",
+     "___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_-next":
       {"display": "α",
@@ -9869,7 +9906,7 @@ if (document.readyState === 'loading') {
         "Mutual Block Scope and Automatic Implicit Parameters"]}},
      "address": "/Definitions/Recursive-Definitions/"},
     {"id":
-     "___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_",
+     "___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#___-_LPAR_in-Mutual-Block-Scope-and-Automatic-Implicit-Parameters_RPAR_-next":
       {"display": "α",
@@ -10442,7 +10479,7 @@ if (document.readyState === 'loading') {
         "Reducibility and Tactics"]}},
      "address": "/Definitions/Recursive-Definitions/"}],
    "synack (in No Backtracking of Lexicographic Order)":
-   [{"id": "synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_",
+   [{"id": "synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_-next":
       {"display": "synack",
@@ -10463,7 +10500,7 @@ if (document.readyState === 'loading') {
         "Default Termination Proof Tactic",
         "No Backtracking of Lexicographic Order"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_-next",
+    {"id": "synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#synack-_LPAR_in-No-Backtracking-of-Lexicographic-Order_RPAR_-next":
       {"display": "synack",
@@ -10557,7 +10594,7 @@ if (document.readyState === 'loading') {
         "Printing Axioms"]}},
      "address": "/Interacting-with-Lean/"}],
    "sum_eq_add (in Reducibility and Tactics)":
-   [{"id": "sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_-next",
+   [{"id": "sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_-next":
       {"display": "sum_eq_add",
@@ -10578,7 +10615,7 @@ if (document.readyState === 'loading') {
         "Reducibility and Tactics",
         "Reducibility and Tactics"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_",
+    {"id": "sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#sum_eq_add-_LPAR_in-Reducibility-and-Tactics_RPAR_-next":
       {"display": "sum_eq_add",
@@ -10798,12 +10835,12 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "Integrating  grind 's Features"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
-   "simpleEquality (in Printing Axioms of Simple Definitions)":
+   "simple_equality (in Printing Axioms of Simple Definitions)":
    [{"id":
-     "simpleEquality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_",
+     "simple_equality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_",
      "data":
-     {"/Axioms/#simpleEquality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_":
-      {"display": "simpleEquality",
+     {"/Axioms/#simple_equality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_":
+      {"display": "simple_equality",
        "context":
        ["The Lean Language Reference",
         "Axioms",
@@ -10812,42 +10849,6 @@ if (document.readyState === 'loading') {
      "address": "/Axioms/"}],
    "select (in Relaxed vs Non-Relaxed Automatic Implicit Parameters)":
    [{"id":
-     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next",
-     "data":
-     {"/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next":
-      {"display": "select",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Headers and Signatures",
-        "Automatic Implicit Parameters",
-        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
-      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next":
-      {"display": "select",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Headers and Signatures",
-        "Automatic Implicit Parameters",
-        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
-      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next":
-      {"display": "select",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Headers and Signatures",
-        "Automatic Implicit Parameters",
-        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
-      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_":
-      {"display": "select",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Headers and Signatures",
-        "Automatic Implicit Parameters",
-        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]}},
-     "address": "/Definitions/Headers-and-Signatures/"},
-    {"id":
      "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next",
      "data":
      {"/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next":
@@ -10884,7 +10885,7 @@ if (document.readyState === 'loading') {
         "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]}},
      "address": "/Definitions/Headers-and-Signatures/"},
     {"id":
-     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next",
+     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_",
      "data":
      {"/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next":
       {"display": "select",
@@ -10920,7 +10921,43 @@ if (document.readyState === 'loading') {
         "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]}},
      "address": "/Definitions/Headers-and-Signatures/"},
     {"id":
-     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_",
+     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next",
+     "data":
+     {"/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next":
+      {"display": "select",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Headers and Signatures",
+        "Automatic Implicit Parameters",
+        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
+      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next":
+      {"display": "select",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Headers and Signatures",
+        "Automatic Implicit Parameters",
+        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
+      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next":
+      {"display": "select",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Headers and Signatures",
+        "Automatic Implicit Parameters",
+        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]},
+      "/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_":
+      {"display": "select",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Headers and Signatures",
+        "Automatic Implicit Parameters",
+        "Relaxed vs Non-Relaxed Automatic Implicit Parameters"]}},
+     "address": "/Definitions/Headers-and-Signatures/"},
+    {"id":
+     "select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next",
      "data":
      {"/Definitions/Headers-and-Signatures/#select-_LPAR_in-Relaxed-vs-Non-Relaxed-Automatic-Implicit-Parameters_RPAR_-next-next-next":
       {"display": "select",
@@ -11879,7 +11916,7 @@ if (document.readyState === 'loading') {
      "address": "/Definitions/Recursive-Definitions/"}],
    "min' (in Simultaneous Matching vs Matching Pairs for Structural Recursion)":
    [{"id":
-     "min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_-next",
+     "min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_-next":
       {"display": "min'",
@@ -11901,7 +11938,7 @@ if (document.readyState === 'loading') {
         "Simultaneous Matching vs Matching Pairs for Structural Recursion"]}},
      "address": "/Definitions/Recursive-Definitions/"},
     {"id":
-     "min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_",
+     "min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#min___-_LPAR_in-Simultaneous-Matching-vs-Matching-Pairs-for-Structural-Recursion_RPAR_-next":
       {"display": "min'",
@@ -11936,7 +11973,7 @@ if (document.readyState === 'loading') {
         "Universe-polymorphic  map"]}},
      "address": "/The-Type-System/Universes/"}],
    "map (in No Automatic Implicit Parameters)":
-   [{"id": "map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_-next",
+   [{"id": "map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_",
      "data":
      {"/Definitions/Headers-and-Signatures/#map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_-next-next":
       {"display": "map",
@@ -11990,7 +12027,7 @@ if (document.readyState === 'loading') {
         "Automatic Implicit Parameters",
         "No Automatic Implicit Parameters"]}},
      "address": "/Definitions/Headers-and-Signatures/"},
-    {"id": "map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_",
+    {"id": "map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_-next",
      "data":
      {"/Definitions/Headers-and-Signatures/#map-_LPAR_in-No-Automatic-Implicit-Parameters_RPAR_-next-next":
       {"display": "map",
@@ -12155,7 +12192,7 @@ if (document.readyState === 'loading') {
         "One File, Multiple Handles"]}},
      "address": "/IO/Files___-File-Handles___-and-Streams/"}],
    "main (in Observing Uniqueness)":
-   [{"id": "main-_LPAR_in-Observing-Uniqueness_RPAR_",
+   [{"id": "main-_LPAR_in-Observing-Uniqueness_RPAR_-next",
      "data":
      {"/Run-Time-Code/Reference-Counting/#main-_LPAR_in-Observing-Uniqueness_RPAR_-next":
       {"display": "main",
@@ -12174,7 +12211,7 @@ if (document.readyState === 'loading') {
         "Observing Uniqueness",
         "Observing Uniqueness"]}},
      "address": "/Run-Time-Code/Reference-Counting/"},
-    {"id": "main-_LPAR_in-Observing-Uniqueness_RPAR_-next",
+    {"id": "main-_LPAR_in-Observing-Uniqueness_RPAR_",
      "data":
      {"/Run-Time-Code/Reference-Counting/#main-_LPAR_in-Observing-Uniqueness_RPAR_-next":
       {"display": "main",
@@ -12595,7 +12632,7 @@ if (document.readyState === 'loading') {
         "Lifting Transformed Monads"]}},
      "address": "/Functors___-Monads-and--do--Notation/Lifting-Monads/"}],
    "incrBy (in Lifting Transformed Monads)":
-   [{"id": "incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_-next",
+   [{"id": "incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_",
      "data":
      {"/Functors___-Monads-and--do--Notation/Lifting-Monads/#incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_-next":
       {"display": "incrBy",
@@ -12612,7 +12649,7 @@ if (document.readyState === 'loading') {
         "Lifting Monads",
         "Lifting Transformed Monads"]}},
      "address": "/Functors___-Monads-and--do--Notation/Lifting-Monads/"},
-    {"id": "incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_",
+    {"id": "incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_-next",
      "data":
      {"/Functors___-Monads-and--do--Notation/Lifting-Monads/#incrBy-_LPAR_in-Lifting-Transformed-Monads_RPAR_-next":
       {"display": "incrBy",
@@ -12906,7 +12943,7 @@ if (document.readyState === 'loading') {
         "Elaboration Using Course-of-Values Recursion",
         "Elaboration Walkthrough"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "half______-_LPAR_in-Elaboration-Walkthrough_RPAR_",
+    {"id": "half______-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next",
      "data":
      {"/Definitions/Recursive-Definitions/#half______-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next-next":
       {"display": "half''",
@@ -12984,7 +13021,7 @@ if (document.readyState === 'loading') {
         "Elaboration Using Course-of-Values Recursion",
         "Elaboration Walkthrough"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "half______-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next",
+    {"id": "half______-_LPAR_in-Elaboration-Walkthrough_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#half______-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next-next":
       {"display": "half''",
@@ -13107,7 +13144,7 @@ if (document.readyState === 'loading') {
      "address": "/Definitions/Recursive-Definitions/"}],
    "half (in Matching on Complex Expressions Can Prevent Elaboration)":
    [{"id":
-     "half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_-next",
+     "half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_-next":
       {"display": "half",
@@ -13129,7 +13166,7 @@ if (document.readyState === 'loading') {
         "Matching on Complex Expressions Can Prevent Elaboration"]}},
      "address": "/Definitions/Recursive-Definitions/"},
     {"id":
-     "half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_",
+     "half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Matching-on-Complex-Expressions-Can-Prevent-Elaboration_RPAR_-next":
       {"display": "half",
@@ -13175,37 +13212,7 @@ if (document.readyState === 'loading') {
         "Inaccessible Patterns"]}},
      "address": "/Terms/Pattern-Matching/"}],
    "half (in Elaboration Walkthrough)":
-   [{"id": "half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next",
-     "data":
-     {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next":
-      {"display": "half",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Recursive Definitions",
-        "Structural Recursion",
-        "Elaboration Using Course-of-Values Recursion",
-        "Elaboration Walkthrough"]},
-      "/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next":
-      {"display": "half",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Recursive Definitions",
-        "Structural Recursion",
-        "Elaboration Using Course-of-Values Recursion",
-        "Elaboration Walkthrough"]},
-      "/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_":
-      {"display": "half",
-       "context":
-       ["The Lean Language Reference",
-        "Definitions",
-        "Recursive Definitions",
-        "Structural Recursion",
-        "Elaboration Using Course-of-Values Recursion",
-        "Elaboration Walkthrough"]}},
-     "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "half-_LPAR_in-Elaboration-Walkthrough_RPAR_",
+   [{"id": "half-_LPAR_in-Elaboration-Walkthrough_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next":
       {"display": "half",
@@ -13236,6 +13243,36 @@ if (document.readyState === 'loading') {
         "Elaboration Walkthrough"]}},
      "address": "/Definitions/Recursive-Definitions/"},
     {"id": "half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next",
+     "data":
+     {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next":
+      {"display": "half",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Recursive Definitions",
+        "Structural Recursion",
+        "Elaboration Using Course-of-Values Recursion",
+        "Elaboration Walkthrough"]},
+      "/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next":
+      {"display": "half",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Recursive Definitions",
+        "Structural Recursion",
+        "Elaboration Using Course-of-Values Recursion",
+        "Elaboration Walkthrough"]},
+      "/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_":
+      {"display": "half",
+       "context":
+       ["The Lean Language Reference",
+        "Definitions",
+        "Recursive Definitions",
+        "Structural Recursion",
+        "Elaboration Using Course-of-Values Recursion",
+        "Elaboration Walkthrough"]}},
+     "address": "/Definitions/Recursive-Definitions/"},
+    {"id": "half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#half-_LPAR_in-Elaboration-Walkthrough_RPAR_-next-next":
       {"display": "half",
@@ -13497,7 +13534,7 @@ if (document.readyState === 'loading') {
         "Provided Operator Names"]}},
      "address": "/Notations-and-Macros/Custom-Operators/"}],
    "getBytes' (in Exceptions and Lifting)":
-   [{"id": "getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_-next",
+   [{"id": "getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_",
      "data":
      {"/Functors___-Monads-and--do--Notation/Lifting-Monads/#getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_-next":
       {"display": "getBytes'",
@@ -13518,7 +13555,7 @@ if (document.readyState === 'loading') {
         "Reversible Lifting with  MonadControl",
         "Exceptions and Lifting"]}},
      "address": "/Functors___-Monads-and--do--Notation/Lifting-Monads/"},
-    {"id": "getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_",
+    {"id": "getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_-next",
      "data":
      {"/Functors___-Monads-and--do--Notation/Lifting-Monads/#getBytes___-_LPAR_in-Exceptions-and-Lifting_RPAR_-next":
       {"display": "getBytes'",
@@ -13731,7 +13768,7 @@ if (document.readyState === 'loading') {
         "Grouping and Filling"]}},
      "address": "/Interacting-with-Lean/"}],
    "fib (in Termination Proof Obligations)":
-   [{"id": "fib-_LPAR_in-Termination-Proof-Obligations_RPAR_",
+   [{"id": "fib-_LPAR_in-Termination-Proof-Obligations_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#fib-_LPAR_in-Termination-Proof-Obligations_RPAR_-next":
       {"display": "fib",
@@ -13752,7 +13789,7 @@ if (document.readyState === 'loading') {
         "Termination proofs",
         "Termination Proof Obligations"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "fib-_LPAR_in-Termination-Proof-Obligations_RPAR_-next",
+    {"id": "fib-_LPAR_in-Termination-Proof-Obligations_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#fib-_LPAR_in-Termination-Proof-Obligations_RPAR_-next":
       {"display": "fib",
@@ -14070,12 +14107,12 @@ if (document.readyState === 'loading') {
         "The Macro Attribute",
         "The Macro Attribute"]}},
      "address": "/Notations-and-Macros/Macros/"}],
-   "excludedMiddle (in Printing Axioms of Simple Definitions)":
+   "excluded_middle (in Printing Axioms of Simple Definitions)":
    [{"id":
-     "excludedMiddle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_",
+     "excluded_middle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_",
      "data":
-     {"/Axioms/#excludedMiddle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_":
-      {"display": "excludedMiddle",
+     {"/Axioms/#excluded_middle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_":
+      {"display": "excluded_middle",
        "context":
        ["The Lean Language Reference",
         "Axioms",
@@ -14241,6 +14278,18 @@ if (document.readyState === 'loading') {
         "Notations",
         "Duplicated Terms in Notation Expansion"]}},
      "address": "/Notations-and-Macros/Notations/"}],
+   "double_neg_elim (in Using  #print axioms  with  #guard_msgs)":
+   [{"id":
+     "double_neg_elim-_LPAR_in-Using--___print-axioms--with--___guard_msgs_RPAR_",
+     "data":
+     {"/Axioms/#double_neg_elim-_LPAR_in-Using--___print-axioms--with--___guard_msgs_RPAR_":
+      {"display": "double_neg_elim",
+       "context":
+       ["The Lean Language Reference",
+        "Axioms",
+        "Displaying Axiom Dependencies",
+        "Using  #print axioms  with  #guard_msgs"]}},
+     "address": "/Axioms/"}],
    "double_inj (in Injectivity Patterns)":
    [{"id": "double_inj-_LPAR_in-Injectivity-Patterns_RPAR_",
      "data":
@@ -14449,8 +14498,7 @@ if (document.readyState === 'loading') {
         "Patterns for Constructors"]}},
      "address": "/The--grind--tactic/E___matching/"}],
    "countdown' (in Structural Recursion vs Subtraction)":
-   [{"id":
-     "countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_-next",
+   [{"id": "countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_-next":
       {"display": "countdown'",
@@ -14469,7 +14517,8 @@ if (document.readyState === 'loading') {
         "Structural Recursion",
         "Structural Recursion vs Subtraction"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_",
+    {"id":
+     "countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#countdown___-_LPAR_in-Structural-Recursion-vs-Subtraction_RPAR_-next":
       {"display": "countdown'",
@@ -14846,7 +14895,7 @@ if (document.readyState === 'loading') {
         "Idiom Brackets"]}},
      "address": "/Notations-and-Macros/Macros/"}],
    "addAll (in Section Variables)":
-   [{"id": "addAll-_LPAR_in-Section-Variables_RPAR_-next",
+   [{"id": "addAll-_LPAR_in-Section-Variables_RPAR_",
      "data":
      {"/Namespaces-and-Sections/#addAll-_LPAR_in-Section-Variables_RPAR_-next":
       {"display": "addAll",
@@ -14865,7 +14914,7 @@ if (document.readyState === 'loading') {
         "Section Variables",
         "Section Variables"]}},
      "address": "/Namespaces-and-Sections/"},
-    {"id": "addAll-_LPAR_in-Section-Variables_RPAR_",
+    {"id": "addAll-_LPAR_in-Section-Variables_RPAR_-next",
      "data":
      {"/Namespaces-and-Sections/#addAll-_LPAR_in-Section-Variables_RPAR_-next":
       {"display": "addAll",
@@ -15281,31 +15330,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "_private.0.IndexMap.size_keys":
-   [{"id": "_private___0___IndexMap___size_keys-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys-next-next":
-      {"display": "size_keys",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys-next":
-      {"display": "size_keys",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys":
-      {"display": "size_keys",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "_private___0___IndexMap___size_keys-next",
+   [{"id": "_private___0___IndexMap___size_keys-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys-next-next":
       {"display": "size_keys",
@@ -15352,6 +15377,30 @@ if (document.readyState === 'loading') {
         "The  grind  tactic",
         "Bigger Examples",
         "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "_private___0___IndexMap___size_keys-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys-next-next":
+      {"display": "size_keys",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys-next":
+      {"display": "size_keys",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___size_keys":
+      {"display": "size_keys",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "_private.0.IndexMap.mem_indices_of_mem":
    [{"id": "_private___0___IndexMap___mem_indices_of_mem",
@@ -15365,7 +15414,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "_private.0.IndexMap.keys":
-   [{"id": "_private___0___IndexMap___keys",
+   [{"id": "_private___0___IndexMap___keys-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___keys-next-next":
       {"display": "keys",
@@ -15413,7 +15462,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "_private___0___IndexMap___keys-next",
+    {"id": "_private___0___IndexMap___keys",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___keys-next-next":
       {"display": "keys",
@@ -15504,69 +15553,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "_private.0.IndexMap.WF":
-   [{"id": "_private___0___IndexMap___WF-next-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "_private___0___IndexMap___WF-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF":
-      {"display": "WF",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "_private___0___IndexMap___WF",
+   [{"id": "_private___0___IndexMap___WF-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
       {"display": "WF",
@@ -15598,6 +15585,68 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
     {"id": "_private___0___IndexMap___WF-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "_private___0___IndexMap___WF-next-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF":
+      {"display": "WF",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "_private___0___IndexMap___WF",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#_private___0___IndexMap___WF-next-next-next":
       {"display": "WF",
@@ -16579,7 +16628,8 @@ if (document.readyState === 'loading') {
         "Preprocessing for a custom data type"]}},
      "address": "/Definitions/Recursive-Definitions/"}],
    "Tree.map (in Preprocessing for a custom data type)":
-   [{"id": "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_",
+   [{"id":
+     "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next-next",
      "data":
      {"/Definitions/Recursive-Definitions/#Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next-next-next":
       {"display": "Tree.map",
@@ -16658,8 +16708,7 @@ if (document.readyState === 'loading') {
         "Preprocessing Function Definitions",
         "Preprocessing for a custom data type"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id":
-     "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next",
+    {"id": "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next-next-next":
       {"display": "Tree.map",
@@ -16699,7 +16748,7 @@ if (document.readyState === 'loading') {
         "Preprocessing for a custom data type"]}},
      "address": "/Definitions/Recursive-Definitions/"},
     {"id":
-     "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next-next",
+     "Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#Tree___map-_LPAR_in-Preprocessing-for-a-custom-data-type_RPAR_-next-next-next":
       {"display": "Tree.map",
@@ -20424,7 +20473,7 @@ if (document.readyState === 'loading') {
         "Partial Correctness Theorem"]}},
      "address": "/Definitions/Recursive-Definitions/"}],
    "List.findIndex (in Monadic functions)":
-   [{"id": "List___findIndex-_LPAR_in-Monadic-functions_RPAR_-next",
+   [{"id": "List___findIndex-_LPAR_in-Monadic-functions_RPAR_",
      "data":
      {"/Definitions/Recursive-Definitions/#List___findIndex-_LPAR_in-Monadic-functions_RPAR_-next":
       {"display": "List.findIndex",
@@ -20445,7 +20494,7 @@ if (document.readyState === 'loading') {
         "Monadic functions",
         "Monadic functions"]}},
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "List___findIndex-_LPAR_in-Monadic-functions_RPAR_",
+    {"id": "List___findIndex-_LPAR_in-Monadic-functions_RPAR_-next",
      "data":
      {"/Definitions/Recursive-Definitions/#List___findIndex-_LPAR_in-Monadic-functions_RPAR_-next":
       {"display": "List.findIndex",
@@ -21034,7 +21083,38 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.size":
-   [{"id": "IndexMap___size",
+   [{"id": "IndexMap___size-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next-next":
+      {"display": "size",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next":
+      {"display": "size",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___size-next":
+      {"display": "size",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___size":
+      {"display": "size",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap___size-next-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next-next":
       {"display": "size",
@@ -21096,38 +21176,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___size-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next-next":
-      {"display": "size",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next":
-      {"display": "size",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___size-next":
-      {"display": "size",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___size":
-      {"display": "size",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___size-next-next-next",
+    {"id": "IndexMap___size",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___size-next-next-next":
       {"display": "size",
@@ -21159,7 +21208,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.mem_insert":
-   [{"id": "IndexMap___mem_insert",
+   [{"id": "IndexMap___mem_insert-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___mem_insert-next-next":
       {"display": "mem_insert",
@@ -21207,7 +21256,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___mem_insert-next-next",
+    {"id": "IndexMap___mem_insert",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___mem_insert-next-next":
       {"display": "mem_insert",
@@ -21243,7 +21292,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.insert":
-   [{"id": "IndexMap___insert-next-next-next",
+   [{"id": "IndexMap___insert-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___insert-next-next-next-next":
       {"display": "insert",
@@ -21319,7 +21368,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___insert-next-next",
+    {"id": "IndexMap___insert",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___insert-next-next-next-next":
       {"display": "insert",
@@ -21395,7 +21444,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___insert",
+    {"id": "IndexMap___insert-next-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___insert-next-next-next-next":
       {"display": "insert",
@@ -21445,7 +21494,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.getIdx_findIdx":
-   [{"id": "IndexMap___getIdx_findIdx",
+   [{"id": "IndexMap___getIdx_findIdx-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___getIdx_findIdx-next-next":
       {"display": "getIdx_findIdx",
@@ -21469,7 +21518,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___getIdx_findIdx-next",
+    {"id": "IndexMap___getIdx_findIdx",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___getIdx_findIdx-next-next":
       {"display": "getIdx_findIdx",
@@ -21518,7 +21567,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.getIdx?":
-   [{"id": "IndexMap___getIdx___-next",
+   [{"id": "IndexMap___getIdx___",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___getIdx___-next":
       {"display": "getIdx?",
@@ -21535,7 +21584,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___getIdx___",
+    {"id": "IndexMap___getIdx___-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___getIdx___-next":
       {"display": "getIdx?",
@@ -21588,31 +21637,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.getElem_insert":
-   [{"id": "IndexMap___getElem_insert-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert-next-next":
-      {"display": "getElem_insert",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert-next":
-      {"display": "getElem_insert",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert":
-      {"display": "getElem_insert",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___getElem_insert",
+   [{"id": "IndexMap___getElem_insert",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert-next-next":
       {"display": "getElem_insert",
@@ -21659,9 +21684,33 @@ if (document.readyState === 'loading') {
         "The  grind  tactic",
         "Bigger Examples",
         "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap___getElem_insert-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert-next-next":
+      {"display": "getElem_insert",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert-next":
+      {"display": "getElem_insert",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___getElem_insert":
+      {"display": "getElem_insert",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.findIdx_insert_self":
-   [{"id": "IndexMap___findIdx_insert_self-next-next",
+   [{"id": "IndexMap___findIdx_insert_self-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx_insert_self-next-next":
       {"display": "findIdx_insert_self",
@@ -21685,7 +21734,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___findIdx_insert_self-next",
+    {"id": "IndexMap___findIdx_insert_self-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx_insert_self-next-next":
       {"display": "findIdx_insert_self",
@@ -21734,7 +21783,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.findIdx?":
-   [{"id": "IndexMap___findIdx___",
+   [{"id": "IndexMap___findIdx___-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx___-next":
       {"display": "findIdx?",
@@ -21751,7 +21800,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___findIdx___-next",
+    {"id": "IndexMap___findIdx___",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx___-next":
       {"display": "findIdx?",
@@ -21769,7 +21818,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.findIdx":
-   [{"id": "IndexMap___findIdx",
+   [{"id": "IndexMap___findIdx-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx-next":
       {"display": "findIdx",
@@ -21786,7 +21835,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___findIdx-next",
+    {"id": "IndexMap___findIdx",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___findIdx-next":
       {"display": "findIdx",
@@ -21804,52 +21853,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.eraseSwap":
-   [{"id": "IndexMap___eraseSwap",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___eraseSwap-next-next-next-next",
+   [{"id": "IndexMap___eraseSwap-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
       {"display": "eraseSwap",
@@ -21939,51 +21943,6 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___eraseSwap-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap":
-      {"display": "eraseSwap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
     {"id": "IndexMap___eraseSwap-next-next-next-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
@@ -22029,7 +21988,97 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___eraseSwap-next",
+    {"id": "IndexMap___eraseSwap-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap___eraseSwap-next-next-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap":
+      {"display": "eraseSwap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap___eraseSwap",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___eraseSwap-next-next-next-next-next":
       {"display": "eraseSwap",
@@ -22075,7 +22124,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.emptyWithCapacity":
-   [{"id": "IndexMap___emptyWithCapacity",
+   [{"id": "IndexMap___emptyWithCapacity-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___emptyWithCapacity-next-next-next":
       {"display": "emptyWithCapacity",
@@ -22137,7 +22186,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___emptyWithCapacity-next-next",
+    {"id": "IndexMap___emptyWithCapacity",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___emptyWithCapacity-next-next-next":
       {"display": "emptyWithCapacity",
@@ -22168,7 +22217,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___emptyWithCapacity-next",
+    {"id": "IndexMap___emptyWithCapacity-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___emptyWithCapacity-next-next-next":
       {"display": "emptyWithCapacity",
@@ -22200,7 +22249,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap.contains":
-   [{"id": "IndexMap___contains-next",
+   [{"id": "IndexMap___contains",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___contains-next":
       {"display": "contains",
@@ -22217,7 +22266,7 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap___contains",
+    {"id": "IndexMap___contains-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap___contains-next":
       {"display": "contains",
@@ -22246,302 +22295,7 @@ if (document.readyState === 'loading') {
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IndexMap":
-   [{"id": "IndexMap-next-next-next-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap-next-next-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap-next-next-next-next-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap-next-next-next-next-next-next-next",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]},
-      "/The--grind--tactic/Bigger-Examples/#IndexMap":
-      {"display": "IndexMap",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "IndexMap"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap",
+   [{"id": "IndexMap-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
       {"display": "IndexMap",
@@ -22659,7 +22413,302 @@ if (document.readyState === 'loading') {
         "Bigger Examples",
         "IndexMap"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IndexMap-next",
+    {"id": "IndexMap-next-next-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap-next-next-next-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap-next-next-next-next-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap-next":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]},
+      "/The--grind--tactic/Bigger-Examples/#IndexMap":
+      {"display": "IndexMap",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "IndexMap"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IndexMap-next-next-next-next-next-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IndexMap-next-next-next-next-next-next-next":
       {"display": "IndexMap",
@@ -22794,7 +22843,7 @@ if (document.readyState === 'loading') {
         "if - then - else  Normalization",
         "The solution using  grind"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IfExpr___normalize_spec",
+    {"id": "IfExpr___normalize_spec-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize_spec-next-next":
       {"display": "normalize_spec",
@@ -22821,7 +22870,7 @@ if (document.readyState === 'loading') {
         "if - then - else  Normalization",
         "The solution using  grind"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IfExpr___normalize_spec-next",
+    {"id": "IfExpr___normalize_spec",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize_spec-next-next":
       {"display": "normalize_spec",
@@ -22849,7 +22898,34 @@ if (document.readyState === 'loading') {
         "The solution using  grind"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"}],
    "IfExpr.normalize":
-   [{"id": "IfExpr___normalize-next",
+   [{"id": "IfExpr___normalize-next-next",
+     "data":
+     {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next-next":
+      {"display": "normalize",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "if - then - else  Normalization",
+        "The solution using  grind"]},
+      "/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next":
+      {"display": "normalize",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "if - then - else  Normalization",
+        "The solution using  grind"]},
+      "/The--grind--tactic/Bigger-Examples/#IfExpr___normalize":
+      {"display": "normalize",
+       "context":
+       ["The Lean Language Reference",
+        "The  grind  tactic",
+        "Bigger Examples",
+        "if - then - else  Normalization",
+        "The solution using  grind"]}},
+     "address": "/The--grind--tactic/Bigger-Examples/"},
+    {"id": "IfExpr___normalize-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next-next":
       {"display": "normalize",
@@ -22877,33 +22953,6 @@ if (document.readyState === 'loading') {
         "The solution using  grind"]}},
      "address": "/The--grind--tactic/Bigger-Examples/"},
     {"id": "IfExpr___normalize",
-     "data":
-     {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next-next":
-      {"display": "normalize",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "if - then - else  Normalization",
-        "The solution using  grind"]},
-      "/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next":
-      {"display": "normalize",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "if - then - else  Normalization",
-        "The solution using  grind"]},
-      "/The--grind--tactic/Bigger-Examples/#IfExpr___normalize":
-      {"display": "normalize",
-       "context":
-       ["The Lean Language Reference",
-        "The  grind  tactic",
-        "Bigger Examples",
-        "if - then - else  Normalization",
-        "The solution using  grind"]}},
-     "address": "/The--grind--tactic/Bigger-Examples/"},
-    {"id": "IfExpr___normalize-next-next",
      "data":
      {"/The--grind--tactic/Bigger-Examples/#IfExpr___normalize-next-next":
       {"display": "normalize",
@@ -25827,12 +25876,12 @@ if (document.readyState === 'loading') {
      "data": {"term": "well-founded relation"},
      "address": "/Definitions/Recursive-Definitions/"}],
    "well founded recursion":
-   [{"id": "--tech-term-well-founded-recursion-next",
+   [{"id": "--tech-term-well-founded-recursion",
      "data": {"term": "well-founded recursion"},
-     "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "--tech-term-well-founded-recursion",
+     "address": "/Elaboration-and-Compilation/"},
+    {"id": "--tech-term-well-founded-recursion-next",
      "data": {"term": "well-founded recursion"},
-     "address": "/Elaboration-and-Compilation/"}],
+     "address": "/Definitions/Recursive-Definitions/"}],
    "upward propagation":
    [{"id": "--tech-term-Upward-propagation",
      "data": {"term": "Upward propagation"},
@@ -26127,13 +26176,13 @@ if (document.readyState === 'loading') {
      "data": {"term": "Right-associative"},
      "address": "/Notations-and-Macros/Custom-Operators/"}],
    "resolve":
-   [{"id": "--tech-term-resolving-next",
+   [{"id": "--tech-term-resolve",
      "data": {"term": "resolving"},
      "address": "/IO/Tasks-and-Threads/"},
     {"id": "--tech-term-resolving",
      "data": {"term": "resolving"},
      "address": "/Terms/Identifiers/"},
-    {"id": "--tech-term-resolve",
+    {"id": "--tech-term-resolving-next",
      "data": {"term": "resolving"},
      "address": "/IO/Tasks-and-Threads/"}],
    "require":
@@ -26245,12 +26294,12 @@ if (document.readyState === 'loading') {
      "data": {"term": "private"},
      "address": "/Definitions/Modifiers/"}],
    "priority":
-   [{"id": "--tech-term-priorities",
+   [{"id": "--tech-term-priority",
      "data": {"term": "priority"},
-     "address": "/Type-Classes/Instance-Declarations/"},
-    {"id": "--tech-term-priority",
+     "address": "/IO/Tasks-and-Threads/"},
+    {"id": "--tech-term-priorities",
      "data": {"term": "priority"},
-     "address": "/IO/Tasks-and-Threads/"}],
+     "address": "/Type-Classes/Instance-Declarations/"}],
    "prelude":
    [{"id": "--tech-term-prelude",
      "data": {"term": "prelude"},
@@ -26364,10 +26413,10 @@ if (document.readyState === 'loading') {
      "data": {"term": ".olean file"},
      "address": "/Source-Files-and-Modules/"}],
    "notation item":
-   [{"id": "--tech-term-notation-items",
+   [{"id": "--tech-term-notation-items-next",
      "data": {"term": "notation items"},
      "address": "/Notations-and-Macros/Notations/"},
-    {"id": "--tech-term-notation-items-next",
+    {"id": "--tech-term-notation-items",
      "data": {"term": "notation items"},
      "address": "/Notations-and-Macros/Notations/"}],
    "notation":
@@ -26577,12 +26626,12 @@ if (document.readyState === 'loading') {
      "data": {"term": "library directories"},
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "library":
-   [{"id": "--tech-term-libraries",
+   [{"id": "--tech-term-Libraries",
      "data": {"term": "Libraries"},
-     "address": "/Source-Files-and-Modules/"},
-    {"id": "--tech-term-Libraries",
+     "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "--tech-term-libraries",
      "data": {"term": "Libraries"},
-     "address": "/Build-Tools-and-Distribution/Lake/"}],
+     "address": "/Source-Files-and-Modules/"}],
    "left fold":
    [{"id": "--tech-term-Left-folds",
      "data": {"term": "Left folds"},
@@ -26859,12 +26908,12 @@ if (document.readyState === 'loading') {
      "data": {"term": "expansion"},
      "address": "/Notations-and-Macros/Custom-Operators/"}],
    "executable":
-   [{"id": "--tech-term-Executables",
+   [{"id": "--tech-term-executables",
      "data": {"term": "Executables"},
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "--tech-term-executables",
+     "address": "/Source-Files-and-Modules/"},
+    {"id": "--tech-term-Executables",
      "data": {"term": "Executables"},
-     "address": "/Source-Files-and-Modules/"}],
+     "address": "/Build-Tools-and-Distribution/Lake/"}],
    "exception monad":
    [{"id": "--tech-term-Exception-monads",
      "data": {"term": "Exception monads"},
@@ -27534,26 +27583,26 @@ if (document.readyState === 'loading') {
      "data": {"userName": "exists"},
      "address": "/Tactic-Proofs/Tactic-Reference/"}],
    "Lean.Parser.Tactic.withUnfoldingAll":
-   [{"id": "with_unfolding_all-next",
+   [{"id": "with_unfolding_all",
      "data": {"userName": "with_unfolding_all"},
-     "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id": "with_unfolding_all",
-     "data": {"userName": "with_unfolding_all"},
-     "address": "/Tactic-Proofs/The-Tactic-Language/"}],
-   "Lean.Parser.Tactic.withReducibleAndInstances":
-   [{"id": "with_reducible_and_instances-next",
-     "data": {"userName": "with_reducible_and_instances"},
-     "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id": "with_reducible_and_instances",
-     "data": {"userName": "with_reducible_and_instances"},
-     "address": "/Tactic-Proofs/The-Tactic-Language/"}],
-   "Lean.Parser.Tactic.withReducible":
-   [{"id": "with_reducible",
-     "data": {"userName": "with_reducible"},
      "address": "/Tactic-Proofs/The-Tactic-Language/"},
-    {"id": "with_reducible-next",
-     "data": {"userName": "with_reducible"},
+    {"id": "with_unfolding_all-next",
+     "data": {"userName": "with_unfolding_all"},
      "address": "/Tactic-Proofs/Tactic-Reference/"}],
+   "Lean.Parser.Tactic.withReducibleAndInstances":
+   [{"id": "with_reducible_and_instances",
+     "data": {"userName": "with_reducible_and_instances"},
+     "address": "/Tactic-Proofs/The-Tactic-Language/"},
+    {"id": "with_reducible_and_instances-next",
+     "data": {"userName": "with_reducible_and_instances"},
+     "address": "/Tactic-Proofs/Tactic-Reference/"}],
+   "Lean.Parser.Tactic.withReducible":
+   [{"id": "with_reducible-next",
+     "data": {"userName": "with_reducible"},
+     "address": "/Tactic-Proofs/Tactic-Reference/"},
+    {"id": "with_reducible",
+     "data": {"userName": "with_reducible"},
+     "address": "/Tactic-Proofs/The-Tactic-Language/"}],
    "Lean.Parser.Tactic.unfold":
    [{"id": "unfold",
      "data": {"userName": "unfold"},
@@ -28231,10 +28280,10 @@ if (document.readyState === 'loading') {
      "data": {"userName": "ac_nf0"},
      "address": "/Tactic-Proofs/Tactic-Reference/"}],
    "Lean.Parser.Tactic.Conv.convTactic":
-   [{"id": "conv___",
+   [{"id": "conv___-next",
      "data": {"userName": "conv'"},
      "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"},
-    {"id": "conv___-next",
+    {"id": "conv___",
      "data": {"userName": "conv'"},
      "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"}],
    "Lean.Parser.Tactic.Conv.conv":
@@ -28258,10 +28307,10 @@ if (document.readyState === 'loading') {
   "description": null,
   "contents":
   {"«term∃_,_»":
-   [{"id": "_FLQQ_term_________FLQQ_-next",
+   [{"id": "_FLQQ_term_________FLQQ_",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"},
-    {"id": "_FLQQ_term_________FLQQ_",
+    {"id": "_FLQQ_term_________FLQQ_-next",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"}],
    "«term‹_›»":
@@ -28269,17 +28318,17 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Tactic-Proofs/Reading-Proof-States/"}],
    "«termΣ_,_»":
-   [{"id": "_FLQQ_term_________FLQQ_-next-next-next-next-next",
+   [{"id": "_FLQQ_term_________FLQQ_-next-next-next-next-next-next",
      "data": null,
      "address": "/Basic-Types/Tuples/"},
-    {"id": "_FLQQ_term_________FLQQ_-next-next-next-next-next-next",
+    {"id": "_FLQQ_term_________FLQQ_-next-next-next-next-next",
      "data": null,
      "address": "/Basic-Types/Tuples/"}],
    "«termΣ'_,_»":
-   [{"id": "_FLQQ_term____________FLQQ_",
+   [{"id": "_FLQQ_term____________FLQQ_-next",
      "data": null,
      "address": "/Basic-Types/Tuples/"},
-    {"id": "_FLQQ_term____________FLQQ_-next",
+    {"id": "_FLQQ_term____________FLQQ_",
      "data": null,
      "address": "/Basic-Types/Tuples/"}],
    "«term¬_»":
@@ -28287,10 +28336,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Basic-Propositions/Logical-Connectives/"}],
    "«term{_:_//_}»":
-   [{"id": "_FLQQ_term___________________FLQQ_-next",
+   [{"id": "_FLQQ_term___________________FLQQ_",
      "data": null,
      "address": "/Basic-Types/Subtypes/"},
-    {"id": "_FLQQ_term___________________FLQQ_",
+    {"id": "_FLQQ_term___________________FLQQ_-next",
      "data": null,
      "address": "/Basic-Types/Subtypes/"}],
    "«term_⊕_»":
@@ -28414,17 +28463,17 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Basic-Types/Booleans/"}],
    "«term[_]»":
-   [{"id": "_FLQQ_term_LSQ___RSQ__FLQQ_-next",
+   [{"id": "_FLQQ_term_LSQ___RSQ__FLQQ_",
      "data": null,
-     "address": "/Basic-Types/Linked-Lists/"},
-    {"id": "_FLQQ_term_LSQ___RSQ__FLQQ_",
+     "address": "/Terms/Numeric-Literals/"},
+    {"id": "_FLQQ_term_LSQ___RSQ__FLQQ_-next",
      "data": null,
-     "address": "/Terms/Numeric-Literals/"}],
+     "address": "/Basic-Types/Linked-Lists/"}],
    "«termExists_,_»":
-   [{"id": "_FLQQ_termExists______FLQQ_",
+   [{"id": "_FLQQ_termExists______FLQQ_-next",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"},
-    {"id": "_FLQQ_termExists______FLQQ_-next",
+    {"id": "_FLQQ_termExists______FLQQ_",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"}],
    "«term#[_,]»":
@@ -28548,10 +28597,10 @@ if (document.readyState === 'loading') {
    "boolIfThenElse":
    [{"id": "boolIfThenElse", "data": null, "address": "/Terms/Conditionals/"}],
    "Std.HashMap.«term_~m_»":
-   [{"id": "Std___HashMap____FLQQ_term____m__FLQQ_-next",
+   [{"id": "Std___HashMap____FLQQ_term____m__FLQQ_",
      "data": null,
      "address": "/Basic-Types/Maps-and-Sets/"},
-    {"id": "Std___HashMap____FLQQ_term____m__FLQQ_",
+    {"id": "Std___HashMap____FLQQ_term____m__FLQQ_-next",
      "data": null,
      "address": "/Basic-Types/Maps-and-Sets/"}],
    "Std.DHashMap.«term_~m_»":
@@ -28562,15 +28611,15 @@ if (document.readyState === 'loading') {
    [{"id": "Manual___FreeSyntax___more-next",
      "data": null,
      "address": "/Terms/Function-Application/"},
-    {"id": "Manual___FreeSyntax___more",
+    {"id": "Manual___FreeSyntax___more-next-next-next",
      "data": null,
-     "address": "/Terms/Function-Application/"},
+     "address": "/Notations-and-Macros/Macros/"},
     {"id": "Manual___FreeSyntax___more-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Macros/"},
-    {"id": "Manual___FreeSyntax___more-next-next-next",
+    {"id": "Manual___FreeSyntax___more",
      "data": null,
-     "address": "/Notations-and-Macros/Macros/"}],
+     "address": "/Terms/Function-Application/"}],
    "Manual.FreeSyntax.embed":
    [{"id": "Manual___FreeSyntax___embed",
      "data": null,
@@ -28579,12 +28628,12 @@ if (document.readyState === 'loading') {
    [{"id": "Manual___FreeSyntax___done-next-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Manual___FreeSyntax___done-next",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
     {"id": "Manual___FreeSyntax___done",
      "data": null,
-     "address": "/Notations-and-Macros/Macros/"}],
+     "address": "/Notations-and-Macros/Macros/"},
+    {"id": "Manual___FreeSyntax___done-next",
+     "data": null,
+     "address": "/Build-Tools-and-Distribution/Lake/"}],
    "List.«term_~_»":
    [{"id": "List____FLQQ_term______FLQQ_",
      "data": null,
@@ -28663,10 +28712,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"}],
    "Lean.Parser.Termination.terminationBy":
-   [{"id": "Lean___Parser___Termination___terminationBy-next-next-next",
+   [{"id": "Lean___Parser___Termination___terminationBy-next",
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "Lean___Parser___Termination___terminationBy-next",
+    {"id": "Lean___Parser___Termination___terminationBy-next-next-next",
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"}],
    "Lean.Parser.Term.typeAscription":
@@ -28709,13 +28758,13 @@ if (document.readyState === 'loading') {
    [{"id": "Lean___Parser___Term___strictImplicitBinder-next-next",
      "data": null,
      "address": "/Terms/Functions/"},
-    {"id": "Lean___Parser___Term___strictImplicitBinder",
-     "data": null,
-     "address": "/Definitions/Headers-and-Signatures/"},
     {"id": "Lean___Parser___Term___strictImplicitBinder-next-next-next",
      "data": null,
      "address": "/Terms/Functions/"},
     {"id": "Lean___Parser___Term___strictImplicitBinder-next",
+     "data": null,
+     "address": "/Definitions/Headers-and-Signatures/"},
+    {"id": "Lean___Parser___Term___strictImplicitBinder",
      "data": null,
      "address": "/Definitions/Headers-and-Signatures/"}],
    "Lean.Parser.Term.stateRefT":
@@ -28774,12 +28823,12 @@ if (document.readyState === 'loading') {
    [{"id": "Lean___Parser___Term___instBinder-next",
      "data": null,
      "address": "/Terms/Functions/"},
-    {"id": "Lean___Parser___Term___instBinder-next-next",
-     "data": null,
-     "address": "/Terms/Functions/"},
     {"id": "Lean___Parser___Term___instBinder",
      "data": null,
-     "address": "/Definitions/Headers-and-Signatures/"}],
+     "address": "/Definitions/Headers-and-Signatures/"},
+    {"id": "Lean___Parser___Term___instBinder-next-next",
+     "data": null,
+     "address": "/Terms/Functions/"}],
    "Lean.Parser.Term.inaccessible":
    [{"id": "Lean___Parser___Term___inaccessible",
      "data": null,
@@ -28818,16 +28867,16 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Terms/Functions/"}],
    "Lean.Parser.Term.forall":
-   [{"id": "Lean___Parser___Term___forall-next-next-next",
-     "data": null,
-     "address": "/Basic-Propositions/Quantifiers/"},
-    {"id": "Lean___Parser___Term___forall-next",
-     "data": null,
-     "address": "/Basic-Propositions/Quantifiers/"},
-    {"id": "Lean___Parser___Term___forall-next-next",
+   [{"id": "Lean___Parser___Term___forall-next",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"},
     {"id": "Lean___Parser___Term___forall",
+     "data": null,
+     "address": "/Basic-Propositions/Quantifiers/"},
+    {"id": "Lean___Parser___Term___forall-next-next-next",
+     "data": null,
+     "address": "/Basic-Propositions/Quantifiers/"},
+    {"id": "Lean___Parser___Term___forall-next-next",
      "data": null,
      "address": "/Basic-Propositions/Quantifiers/"}],
    "Lean.Parser.Term.explicitBinder":
@@ -28838,45 +28887,11 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Definitions/Headers-and-Signatures/"}],
    "Lean.Parser.Term.doSeqItem":
-   [{"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doSeqItem-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doSeqItem-next-next-next-next",
+   [{"id": "Lean___Parser___Term___doSeqItem-next-next-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
      "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
@@ -28888,11 +28903,14 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
-     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
      "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id": "Lean___Parser___Term___doSeqItem-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
@@ -28900,10 +28918,41 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
     {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
      "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doSeqItem-next-next-next",
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id": "Lean___Parser___Term___doSeqItem-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id": "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
+    {"id":
+     "Lean___Parser___Term___doSeqItem-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"}],
    "Lean.Parser.Term.doReassignArrow":
@@ -28914,10 +28963,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"}],
    "Lean.Parser.Term.doReassign":
-   [{"id": "Lean___Parser___Term___doReassign-next",
+   [{"id": "Lean___Parser___Term___doReassign",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doReassign",
+    {"id": "Lean___Parser___Term___doReassign-next",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"}],
    "Lean.Parser.Term.do":
@@ -28950,10 +28999,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Terms/Function-Types/"}],
    "Lean.Parser.Term.byTactic":
-   [{"id": "Lean___Parser___Term___byTactic-next",
+   [{"id": "Lean___Parser___Term___byTactic-next-next",
      "data": null,
      "address": "/Tactic-Proofs/Running-Tactics/"},
-    {"id": "Lean___Parser___Term___byTactic-next-next",
+    {"id": "Lean___Parser___Term___byTactic-next",
      "data": null,
      "address": "/Tactic-Proofs/Running-Tactics/"}],
    "Lean.Parser.Term.borrowed":
@@ -28995,26 +29044,26 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Tactic-Proofs/The-Tactic-Language/"}],
    "Lean.Parser.Tactic.configItem":
-   [{"id": "Lean___Parser___Tactic___configItem-next-next",
+   [{"id": "Lean___Parser___Tactic___configItem-next",
+     "data": null,
+     "address": "/Tactic-Proofs/The-Tactic-Language/"},
+    {"id": "Lean___Parser___Tactic___configItem-next-next-next",
      "data": null,
      "address": "/Tactic-Proofs/The-Tactic-Language/"},
     {"id": "Lean___Parser___Tactic___configItem-next-next-next-next",
      "data": null,
      "address": "/Tactic-Proofs/The-Tactic-Language/"},
-    {"id": "Lean___Parser___Tactic___configItem-next",
-     "data": null,
-     "address": "/Tactic-Proofs/The-Tactic-Language/"},
-    {"id": "Lean___Parser___Tactic___configItem-next-next-next",
+    {"id": "Lean___Parser___Tactic___configItem-next-next",
      "data": null,
      "address": "/Tactic-Proofs/The-Tactic-Language/"}],
    "Lean.Parser.Tactic.Conv.enterArg":
-   [{"id": "Lean___Parser___Tactic___Conv___enterArg-next-next",
-     "data": null,
-     "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"},
-    {"id": "Lean___Parser___Tactic___Conv___enterArg-next",
+   [{"id": "Lean___Parser___Tactic___Conv___enterArg-next",
      "data": null,
      "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"},
     {"id": "Lean___Parser___Tactic___Conv___enterArg-next-next-next",
+     "data": null,
+     "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"},
+    {"id": "Lean___Parser___Tactic___Conv___enterArg-next-next",
      "data": null,
      "address": "/Tactic-Proofs/Targeted-Rewriting-with--conv/"}],
    "Lean.Parser.Syntax.unary":
@@ -29036,20 +29085,20 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Notations-and-Macros/Precedence/"}],
    "Lean.Parser.Syntax.sepBy1":
-   [{"id": "Lean___Parser___Syntax___sepBy1-next-next",
+   [{"id": "Lean___Parser___Syntax___sepBy1",
+     "data": null,
+     "address": "/Notations-and-Macros/Defining-New-Syntax/"},
+    {"id": "Lean___Parser___Syntax___sepBy1-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Defining-New-Syntax/"},
     {"id": "Lean___Parser___Syntax___sepBy1-next",
      "data": null,
-     "address": "/Notations-and-Macros/Defining-New-Syntax/"},
-    {"id": "Lean___Parser___Syntax___sepBy1",
-     "data": null,
      "address": "/Notations-and-Macros/Defining-New-Syntax/"}],
    "Lean.Parser.Syntax.sepBy":
-   [{"id": "Lean___Parser___Syntax___sepBy-next",
+   [{"id": "Lean___Parser___Syntax___sepBy-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Defining-New-Syntax/"},
-    {"id": "Lean___Parser___Syntax___sepBy-next-next",
+    {"id": "Lean___Parser___Syntax___sepBy-next",
      "data": null,
      "address": "/Notations-and-Macros/Defining-New-Syntax/"},
     {"id": "Lean___Parser___Syntax___sepBy",
@@ -29197,13 +29246,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"}],
    "Lean.Parser.Command.mixfix":
-   [{"id": "Lean___Parser___Command___mixfix-next-next-next",
+   [{"id": "Lean___Parser___Command___mixfix-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Custom-Operators/"},
-    {"id": "Lean___Parser___Command___mixfix-next-next-next-next",
-     "data": null,
-     "address": "/Notations-and-Macros/Custom-Operators/"},
-    {"id": "Lean___Parser___Command___mixfix-next-next",
+    {"id": "Lean___Parser___Command___mixfix-next-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Custom-Operators/"},
     {"id": "Lean___Parser___Command___mixfix-next",
@@ -29211,16 +29257,19 @@ if (document.readyState === 'loading') {
      "address": "/Notations-and-Macros/Custom-Operators/"},
     {"id": "Lean___Parser___Command___mixfix",
      "data": null,
+     "address": "/Notations-and-Macros/Custom-Operators/"},
+    {"id": "Lean___Parser___Command___mixfix-next-next-next-next",
+     "data": null,
      "address": "/Notations-and-Macros/Custom-Operators/"}],
    "Lean.Parser.Command.macro_rules":
    [{"id": "Lean___Parser___Command___macro_rules",
      "data": null,
      "address": "/Notations-and-Macros/Macros/"}],
    "Lean.Parser.Command.macroArg":
-   [{"id": "Lean___Parser___Command___macroArg-next",
+   [{"id": "Lean___Parser___Command___macroArg-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Macros/"},
-    {"id": "Lean___Parser___Command___macroArg-next-next",
+    {"id": "Lean___Parser___Command___macroArg-next",
      "data": null,
      "address": "/Notations-and-Macros/Macros/"}],
    "Lean.Parser.Command.macro":
@@ -29299,46 +29348,36 @@ if (document.readyState === 'loading') {
      "address": "/Type-Classes/Deriving-Instances/"}],
    "Lean.Parser.Command.declaration":
    [{"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next",
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
-     "address": "/Definitions/Definitions/"},
+     "address": "/Definitions/Example-Declarations/"},
     {"id":
      "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Definitions/Definitions/"},
     {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
-     "address": "/Definitions/Example-Declarations/"},
-    {"id": "Lean___Parser___Command___declaration-next-next-next-next",
-     "data": null,
-     "address": "/Definitions/Definitions/"},
-    {"id": "Lean___Parser___Command___declaration-next-next-next",
-     "data": null,
-     "address": "/Definitions/Definitions/"},
+     "address": "/Definitions/Theorems/"},
     {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Definitions/Example-Declarations/"},
     {"id":
      "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Type-Classes/Class-Declarations/"},
-    {"id": "Lean___Parser___Command___declaration-next-next-next-next-next",
+    {"id": "Lean___Parser___Command___declaration-next-next-next-next",
      "data": null,
      "address": "/Definitions/Definitions/"},
-    {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Definitions/Definitions/"},
-    {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Definitions/Theorems/"},
     {"id":
      "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Type-Classes/Class-Declarations/"},
+    {"id":
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Definitions/Definitions/"},
     {"id":
      "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next",
      "data": null,
@@ -29349,22 +29388,32 @@ if (document.readyState === 'loading') {
     {"id": "Lean___Parser___Command___declaration-next",
      "data": null,
      "address": "/The-Type-System/Inductive-Types/"},
+    {"id": "Lean___Parser___Command___declaration-next-next-next-next-next",
+     "data": null,
+     "address": "/Definitions/Definitions/"},
     {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Definitions/Definitions/"},
+    {"id":
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Definitions/Example-Declarations/"},
     {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Definitions/Definitions/"},
+    {"id":
+     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Definitions/Theorems/"},
     {"id":
      "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Definitions/Theorems/"},
-    {"id":
-     "Lean___Parser___Command___declaration-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+    {"id": "Lean___Parser___Command___declaration-next-next-next",
      "data": null,
-     "address": "/Definitions/Theorems/"}],
+     "address": "/Definitions/Definitions/"}],
    "Lean.Parser.Command.declSig":
    [{"id": "Lean___Parser___Command___declSig",
      "data": null,
@@ -29374,10 +29423,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Definitions/Modifiers/"}],
    "Lean.Parser.Command.declId":
-   [{"id": "Lean___Parser___Command___declId-next",
+   [{"id": "Lean___Parser___Command___declId",
      "data": null,
      "address": "/Definitions/Headers-and-Signatures/"},
-    {"id": "Lean___Parser___Command___declId",
+    {"id": "Lean___Parser___Command___declId-next",
      "data": null,
      "address": "/Definitions/Headers-and-Signatures/"}],
    "Lean.Parser.Command.check_failure":
@@ -29402,76 +29451,76 @@ if (document.readyState === 'loading') {
      "address": "/Definitions/Recursive-Definitions/"}],
    "Lean.Parser.Attr.simple":
    [{"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Notations-and-Macros/Elaborators/"},
-    {"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Extending-Lean___s-Output/"},
-    {"id": "Lean___Parser___Attr___simple-next-next",
+    {"id":
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Tactic-Proofs/Tactic-Reference/"},
+    {"id": "Lean___Parser___Attr___simple-next-next-next",
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"},
     {"id":
      "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Elaborators/"},
+    {"id": "Lean___Parser___Attr___simple-next",
+     "data": null,
+     "address": "/Definitions/Recursive-Definitions/"},
+    {"id":
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Notations-and-Macros/Elaborators/"},
     {"id":
      "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Notations-and-Macros/Elaborators/"},
-    {"id": "Lean___Parser___Attr___simple-next-next-next-next",
-     "data": null,
-     "address": "/Terms/Function-Application/"},
-    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next",
-     "data": null,
-     "address": "/Terms/Pattern-Matching/"},
     {"id":
      "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "Lean___Parser___Attr___simple-next-next-next-next",
+     "data": null,
+     "address": "/Terms/Function-Application/"},
     {"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
-     "address": "/Notations-and-Macros/Extending-Lean___s-Output/"},
-    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next-next",
-     "data": null,
-     "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id": "Lean___Parser___Attr___simple-next-next-next",
-     "data": null,
-     "address": "/Definitions/Recursive-Definitions/"},
+     "address": "/Build-Tools-and-Distribution/Lake/"},
     {"id": "Lean___Parser___Attr___simple",
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"},
-    {"id":
-     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next",
+    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next",
+     "data": null,
+     "address": "/Terms/Pattern-Matching/"},
+    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next-next",
      "data": null,
      "address": "/Tactic-Proofs/Tactic-Reference/"},
-    {"id": "Lean___Parser___Attr___simple-next",
+    {"id": "Lean___Parser___Attr___simple-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Tactic-Proofs/Tactic-Reference/"},
+    {"id":
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Notations-and-Macros/Extending-Lean___s-Output/"},
+    {"id":
+     "Lean___Parser___Attr___simple-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/Tactic-Proofs/Tactic-Reference/"},
+    {"id": "Lean___Parser___Attr___simple-next-next",
      "data": null,
      "address": "/Definitions/Recursive-Definitions/"}],
    "Lean.Parser.Attr.simp":
-   [{"id": "Lean___Parser___Attr___simp",
+   [{"id": "Lean___Parser___Attr___simp-next-next",
      "data": null,
      "address": "/The-Simplifier/Simp-sets/"},
     {"id": "Lean___Parser___Attr___simp-next-next-next",
      "data": null,
      "address": "/The-Simplifier/Simp-sets/"},
-    {"id": "Lean___Parser___Attr___simp-next-next",
+    {"id": "Lean___Parser___Attr___simp-next",
      "data": null,
      "address": "/The-Simplifier/Simp-sets/"},
-    {"id": "Lean___Parser___Attr___simp-next",
+    {"id": "Lean___Parser___Attr___simp",
      "data": null,
      "address": "/The-Simplifier/Simp-sets/"}],
    "Lean.Parser.Attr.macro":
@@ -29484,33 +29533,10 @@ if (document.readyState === 'loading') {
      "address": "/Type-Classes/Instance-Declarations/"}],
    "Lean.Parser.Attr.grindMod":
    [{"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id": "Lean___Parser___Attr___grindMod-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id":
      "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
-    {"id": "Lean___Parser___Attr___grindMod-next",
+    {"id": "Lean___Parser___Attr___grindMod-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
     {"id":
@@ -29518,25 +29544,48 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
     {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
     {"id":
      "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
+    {"id":
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id":
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id":
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id": "Lean___Parser___Attr___grindMod-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id":
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id": "Lean___Parser___Attr___grindMod-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id":
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
+     "data": null,
+     "address": "/The--grind--tactic/E___matching/"},
     {"id": "Lean___Parser___Attr___grindMod-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
     {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
-     "data": null,
-     "address": "/The--grind--tactic/E___matching/"},
-    {"id": "Lean___Parser___Attr___grindMod-next-next-next-next-next-next",
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"},
     {"id":
-     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next",
+     "Lean___Parser___Attr___grindMod-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next",
      "data": null,
      "address": "/The--grind--tactic/E___matching/"}],
    "Lean.Parser.Attr.grind?":
@@ -29555,12 +29604,12 @@ if (document.readyState === 'loading') {
    [{"id": "Lean___Parser___Attr___grind-next",
      "data": null,
      "address": "/The--grind--tactic/Case-Analysis/"},
-    {"id": "Lean___Parser___Attr___grind",
-     "data": null,
-     "address": "/The--grind--tactic/Case-Analysis/"},
     {"id": "Lean___Parser___Attr___grind-next-next",
      "data": null,
-     "address": "/The--grind--tactic/E___matching/"}],
+     "address": "/The--grind--tactic/E___matching/"},
+    {"id": "Lean___Parser___Attr___grind",
+     "data": null,
+     "address": "/The--grind--tactic/Case-Analysis/"}],
    "Lean.Parser.Attr.extern":
    [{"id": "Lean___Parser___Attr___extern",
      "data": null,
@@ -29602,13 +29651,13 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.packageCommand":
-   [{"id": "Lake___DSL___packageCommand-next",
+   [{"id": "Lake___DSL___packageCommand-next-next",
+     "data": null,
+     "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "Lake___DSL___packageCommand-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
     {"id": "Lake___DSL___packageCommand",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___DSL___packageCommand-next-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.moduleFacetDecl":
@@ -29624,23 +29673,23 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.leanLibCommand":
-   [{"id": "Lake___DSL___leanLibCommand",
+   [{"id": "Lake___DSL___leanLibCommand-next",
+     "data": null,
+     "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "Lake___DSL___leanLibCommand",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
     {"id": "Lake___DSL___leanLibCommand-next-next",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___DSL___leanLibCommand-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.leanExeCommand":
    [{"id": "Lake___DSL___leanExeCommand-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___DSL___leanExeCommand",
+    {"id": "Lake___DSL___leanExeCommand-next-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___DSL___leanExeCommand-next-next",
+    {"id": "Lake___DSL___leanExeCommand",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.getConfig":
@@ -29667,10 +29716,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.DSL.cmdDo":
-   [{"id": "Lake___DSL___cmdDo",
+   [{"id": "Lake___DSL___cmdDo-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___DSL___cmdDo-next",
+    {"id": "Lake___DSL___cmdDo",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Int.«term-[_+1]»":
@@ -30082,67 +30131,67 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Basic-Propositions/Logical-Connectives/"}],
    "[anonymous]":
-   [{"id": "LawfulMonad___mk",
+   [{"id": "Alternative___mk",
      "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Laws/"},
-    {"id": "Lean___Grind___IntModule___mk",
+     "address": "/Functors___-Monads-and--do--Notation/"},
+    {"id": "Lean___Order___CCPO___mk",
      "data": null,
-     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
+     "address": "/Definitions/Recursive-Definitions/"},
+    {"id": "Lean___Grind___CommSemiring___mk",
+     "data": null,
+     "address":
+     "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
     {"id": "LawfulBEq___mk",
      "data": null,
      "address": "/Type-Classes/Basic-Classes/"},
     {"id": "EquivBEq___mk",
      "data": null,
      "address": "/Type-Classes/Basic-Classes/"},
-    {"id": "LawfulApplicative___mk",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/Laws/"},
-    {"id": "Lean___Grind___NatModule___mk",
-     "data": null,
-     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
     {"id": "Lean___Grind___Field___mk",
-     "data": null,
-     "address":
-     "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
-    {"id": "Lean___Grind___CommSemiring___mk",
-     "data": null,
-     "address":
-     "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
-    {"id": "GetElem______mk",
-     "data": null,
-     "address": "/Type-Classes/Basic-Classes/"},
-    {"id": "Lake___LeanLibConfig___mk",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lean___Grind___Ring___mk",
      "data": null,
      "address":
      "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
     {"id": "IO___Process___SpawnArgs___mk",
      "data": null,
      "address": "/IO/Processes/"},
+    {"id": "Lean___Grind___NatModule___mk",
+     "data": null,
+     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
+    {"id": "Lake___LeanExeConfig___mk",
+     "data": null,
+     "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "GetElem______mk",
+     "data": null,
+     "address": "/Type-Classes/Basic-Classes/"},
+    {"id": "Lake___LeanLibConfig___mk",
+     "data": null,
+     "address": "/Build-Tools-and-Distribution/Lake/"},
+    {"id": "Lean___Grind___IntModule___mk",
+     "data": null,
+     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
+    {"id": "Applicative___mk",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/"},
+    {"id": "Lean___Grind___Ring___mk",
+     "data": null,
+     "address":
+     "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
+    {"id": "LawfulMonad___mk",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Laws/"},
     {"id": "Lean___Grind___CommRing___mk",
      "data": null,
      "address":
      "/The--grind--tactic/Algebraic-Solver-_LPAR_Commutative-Rings___-Fields_RPAR_/"},
-    {"id": "Lake___LeanExeConfig___mk",
-     "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lean___Grind___OrderedRing___mk",
-     "data": null,
-     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
-    {"id": "Lean___Order___CCPO___mk",
-     "data": null,
-     "address": "/Definitions/Recursive-Definitions/"},
-    {"id": "Alternative___mk",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/"},
-    {"id": "Applicative___mk",
-     "data": null,
-     "address": "/Functors___-Monads-and--do--Notation/"},
     {"id": "Monad___mk",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/"},
+    {"id": "LawfulApplicative___mk",
+     "data": null,
+     "address": "/Functors___-Monads-and--do--Notation/Laws/"},
+    {"id": "Lean___Grind___OrderedRing___mk",
+     "data": null,
+     "address": "/The--grind--tactic/Linear-Arithmetic-Solver/"},
     {"id": "Lean___Grind___Semiring___mk",
      "data": null,
      "address":
@@ -35814,10 +35863,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Varieties-of-Monads/"}],
    "MonadState.get":
-   [{"id": "MonadState___mk",
+   [{"id": "MonadState___get",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Varieties-of-Monads/"},
-    {"id": "MonadState___get",
+    {"id": "MonadState___mk",
      "data": null,
      "address": "/Functors___-Monads-and--do--Notation/Varieties-of-Monads/"}],
    "MonadState":
@@ -38026,10 +38075,10 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.ScriptM":
-   [{"id": "Lake___ScriptM-next",
+   [{"id": "Lake___ScriptM",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Lake___ScriptM",
+    {"id": "Lake___ScriptM-next",
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "Lake.MonadWorkspace.mk":
@@ -44081,13 +44130,12 @@ if (document.readyState === 'loading') {
      "data": null,
      "address": "/Build-Tools-and-Distribution/Lake/"}],
    "ELAN_HOME":
-   [{"id": "ELAN_HOME",
+   [{"id": "ELAN_HOME-next",
      "data": null,
-     "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "ELAN_HOME-next",
+     "address": "/Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/"},
+    {"id": "ELAN_HOME",
      "data": null,
-     "address":
-     "/Build-Tools-and-Distribution/Managing-Toolchains-with-Elan/"}],
+     "address": "/Build-Tools-and-Distribution/Lake/"}],
    "ELAN":
    [{"id": "ELAN",
      "data": null,
@@ -44775,7 +44823,7 @@ if (document.readyState === 'loading') {
       "category": null},
      "address": "/Basic-Types/Booleans/"}],
    "«term[_]» [{\"string\": \"[\", \"kind\": \"keyword\"},\n {\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \"]\", \"kind\": \"keyword\"}]":
-   [{"id": "_FLQQ_term_LSQ___RSQ__FLQQ_-next",
+   [{"id": "_FLQQ_term_LSQ___RSQ__FLQQ_",
      "data":
      {"kind": "«term[_]»",
       "forms":
@@ -44783,8 +44831,8 @@ if (document.readyState === 'loading') {
        {"string": "…", "kind": "meta"},
        {"string": "]", "kind": "keyword"}],
       "category": null},
-     "address": "/Basic-Types/Linked-Lists/"},
-    {"id": "_FLQQ_term_LSQ___RSQ__FLQQ_",
+     "address": "/Terms/Numeric-Literals/"},
+    {"id": "_FLQQ_term_LSQ___RSQ__FLQQ_-next",
      "data":
      {"kind": "«term[_]»",
       "forms":
@@ -44792,7 +44840,7 @@ if (document.readyState === 'loading') {
        {"string": "…", "kind": "meta"},
        {"string": "]", "kind": "keyword"}],
       "category": null},
-     "address": "/Terms/Numeric-Literals/"}],
+     "address": "/Basic-Types/Linked-Lists/"}],
    "«termExists_,_» [{\"string\": \"exists\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \",\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"}]":
    [{"id": "_FLQQ_termExists______FLQQ_-next",
      "data":
@@ -45159,7 +45207,7 @@ if (document.readyState === 'loading') {
       "category": null},
      "address": "/Terms/Conditionals/"}],
    "Std.HashMap.«term_~m_» [{\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"~m\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"}]":
-   [{"id": "Std___HashMap____FLQQ_term____m__FLQQ_-next",
+   [{"id": "Std___HashMap____FLQQ_term____m__FLQQ_",
      "data":
      {"kind": "Std.HashMap.«term_~m_»",
       "forms":
@@ -45170,7 +45218,7 @@ if (document.readyState === 'loading') {
        {"string": "…", "kind": "meta"}],
       "category": null},
      "address": "/Basic-Types/Maps-and-Sets/"},
-    {"id": "Std___HashMap____FLQQ_term____m__FLQQ_",
+    {"id": "Std___HashMap____FLQQ_term____m__FLQQ_-next",
      "data":
      {"kind": "Std.HashMap.«term_~m_»",
       "forms":
@@ -45197,15 +45245,15 @@ if (document.readyState === 'loading') {
    [{"id": "Manual___FreeSyntax___more-next",
      "data": {"kind": "Manual.FreeSyntax.more", "forms": [], "category": null},
      "address": "/Terms/Function-Application/"},
-    {"id": "Manual___FreeSyntax___more",
+    {"id": "Manual___FreeSyntax___more-next-next-next",
      "data": {"kind": "Manual.FreeSyntax.more", "forms": [], "category": null},
-     "address": "/Terms/Function-Application/"},
+     "address": "/Notations-and-Macros/Macros/"},
     {"id": "Manual___FreeSyntax___more-next-next",
      "data": {"kind": "Manual.FreeSyntax.more", "forms": [], "category": null},
      "address": "/Notations-and-Macros/Macros/"},
-    {"id": "Manual___FreeSyntax___more-next-next-next",
+    {"id": "Manual___FreeSyntax___more",
      "data": {"kind": "Manual.FreeSyntax.more", "forms": [], "category": null},
-     "address": "/Notations-and-Macros/Macros/"}],
+     "address": "/Terms/Function-Application/"}],
    "Manual.FreeSyntax.embed [{\"string\": \"fun \", \"kind\": \"keyword\"},\n {\"string\": \"(\", \"kind\": \"keyword\"},\n {\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \": \", \"kind\": \"keyword\"},\n {\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \")\", \"kind\": \"keyword\"},\n {\"string\": \" =>\", \"kind\": \"keyword\"},\n {\"string\": \"…\", \"kind\": \"meta\"}]":
    [{"id": "Manual___FreeSyntax___embed",
      "data":
@@ -45226,12 +45274,12 @@ if (document.readyState === 'loading') {
    [{"id": "Manual___FreeSyntax___done-next-next",
      "data": {"kind": "Manual.FreeSyntax.done", "forms": [], "category": null},
      "address": "/Build-Tools-and-Distribution/Lake/"},
-    {"id": "Manual___FreeSyntax___done-next",
-     "data": {"kind": "Manual.FreeSyntax.done", "forms": [], "category": null},
-     "address": "/Build-Tools-and-Distribution/Lake/"},
     {"id": "Manual___FreeSyntax___done",
      "data": {"kind": "Manual.FreeSyntax.done", "forms": [], "category": null},
-     "address": "/Notations-and-Macros/Macros/"}],
+     "address": "/Notations-and-Macros/Macros/"},
+    {"id": "Manual___FreeSyntax___done-next",
+     "data": {"kind": "Manual.FreeSyntax.done", "forms": [], "category": null},
+     "address": "/Build-Tools-and-Distribution/Lake/"}],
    "List.«term_~_» [{\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"~\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"}]":
    [{"id": "List____FLQQ_term______FLQQ_",
      "data":
@@ -46503,7 +46551,7 @@ if (document.readyState === 'loading') {
       "category": null},
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"}],
    "Lean.Parser.Term.doReassign [{\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \"(\", \"kind\": \"meta\"},\n {\"string\": \":\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"},\n {\"string\": \")?\", \"kind\": \"meta\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \":=\", \"kind\": \"keyword\"},\n {\"string\": \" \", \"kind\": \"ws\"},\n {\"string\": \"…\", \"kind\": \"meta\"}]":
-   [{"id": "Lean___Parser___Term___doReassign-next",
+   [{"id": "Lean___Parser___Term___doReassign",
      "data":
      {"kind": "Lean.Parser.Term.doReassign",
       "forms":
@@ -46519,7 +46567,7 @@ if (document.readyState === 'loading') {
        {"string": "…", "kind": "meta"}],
       "category": null},
      "address": "/Functors___-Monads-and--do--Notation/Syntax/"},
-    {"id": "Lean___Parser___Term___doReassign",
+    {"id": "Lean___Parser___Term___doReassign-next",
      "data":
      {"kind": "Lean.Parser.Term.doReassign",
       "forms":
@@ -49838,6 +49886,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">

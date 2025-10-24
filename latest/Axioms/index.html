@@ -989,56 +989,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1137,6 +1087,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2106,6 +2107,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2180,45 +2256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       
 window.onload = () => {
@@ -2415,6 +2452,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2555,7 +2593,9 @@ This can be used to define polymorphic functions that are not parametric:</p>
 
   </span><span class="tactic"><label for="tactic-state-6592953505262177490-4091-4117-465"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticHave__-4091" data-verso-hover="1251">have</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#congrFun" title="Documentation for congrFun"><span class="const token" data-binding="const-congrFun" data-verso-hover="1555">congrFun</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.823" data-verso-hover="1554">this</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-6592953505262177490-4091-4117-465"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.823" data-verso-hover="1554">this✝</span></span><span class="colon">:</span><span class="type"><a href="The-Type-System/Functions/#Function___comp" title="Documentation for Function.comp"><span class="const token" data-binding="const-Function.comp" data-verso-hover="313">(</span></a><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.869" data-verso-hover="1172">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="547">[</span></a><a href="Basic-Types/Linked-Lists/#List___nil" title="Documentation for List.nil"><span class="const token" data-binding="const-List.nil" data-verso-hover="547">]</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="The-Type-System/Functions/#Function___comp" title="Documentation for Function.comp"><span class="const token" data-binding="const-Function.comp" data-verso-hover="313">∘</span></a><span class="inter-text"> </span><a href="Basic-Types/Linked-Lists/#List___map" title="Documentation for List.map"><span class="const token" data-binding="const-List.map" data-verso-hover="170">List.map</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.875" data-verso-hover="1552">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">42</span><a href="The-Type-System/Functions/#Function___comp" title="Documentation for Function.comp"><span class="const token" data-binding="const-Function.comp" data-verso-hover="313">)</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Linked-Lists/#List___map" title="Documentation for List.map"><span class="const token" data-binding="const-List.map" data-verso-hover="170">List.map</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.881" data-verso-hover="1552">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">42</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="The-Type-System/Functions/#Function___comp" title="Documentation for Function.comp"><span class="const token" data-binding="const-Function.comp" data-verso-hover="313">∘</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.883" data-verso-hover="1553">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.883" data-verso-hover="1553">xs</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.847" data-verso-hover="1556">this</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">?_mvar.828</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">congrFun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.823" data-verso-hover="919">_fvar.823</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="284">()</span></a><span class="unknown token" data-binding="">]</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="inter-text"></span></span></span></span></span></span><span class="inter-text">
   </span><span class="tactic"><label for="tactic-state-7-4120-4133-467"><a href="Tactic-Proofs/Tactic-Reference/#contradiction" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.contradiction-4120" data-verso-hover="1329">contradiction</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-4120-4133-467"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;IYDwlg9gtgBAZsANgZwKYH0zPQFwE4CuqMAXDAGJJoBQ1OAFqhHqrDgO4TqoCO6cYAG7EyAJhgBeGAFZSUhCgxZchVADpUiMFFqhIsADJYcauCwwMmLWAG9AjcAxATcABfajBgAKOKRj2f6ZxhAJMIYI2QcGAcQsIi7AEpPAHMfKKcEkjd4GEAMIk8YtShgAAcYRISpD3zCkrKc+FoIItQAOxgAYURgZGQwAGMkGDBm6maIZt7oIoIcYAAjRGIAE1RvUeaABWA8YChUfD7M9z8yAM8QZB8YyPTD0ONIuUywbwcpADlgCMtWgG0AXRgmjQMHOtEszFYMAIzTAOHQozhzU+PgAqjCIoADIhgHwiJCkswAnk9mvgIICeJl6MBhDBABfkSEQAFEeIBL8jk5JggA7SQbNOCoPAASWa4WA41QAEELh4AMoEWY9ZqJBY4MYwNGwuKZZBNXpgJBgABexAZzJgAAYYABGTITEnbRZ9HCQYbUVAgHZFBY+SiKdmEynUkRSfJmVAWRgQ2BrTbbXb7XqeODQzzlAB8MAALKJNZloXAIIhFjBo1sdns8H0YMiGFgtdoSj9obD4RBEZ8AdX6LWAzS8TBbYk8ORkzWLj8PHE/jaxvhgA7ek6xkA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="axiom-reduction">
@@ -2572,7 +2612,9 @@ In this example, two <code class="hl lean inline" data-lean-context="examples"><
                   <code class="hl lean block" data-lean-context="examples"><a href="Axioms/#Lean___Parser___Command___axiom-next" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.axiom-5001">axiom</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Nat.otherZero" data-verso-hover="1557" id="Nat___otherZero-_LPAR_in-Axioms-and-Stuck-Reduction_RPAR_">Nat.otherZero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text">
 
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Nat.rec" data-verso-hover="104">Nat.rec</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit.unit"><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="105">PUnit.unit</span></a><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.20" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">⟩</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="Axioms/#Nat___otherZero-_LPAR_in-Axioms-and-Stuck-Reduction_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.otherZero" data-verso-hover="1557">Nat.otherZero</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a></span></code></span></span><a href="Interacting-with-Lean/#Lean___reduceCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.reduceCmd-5028" data-verso-hover="103">#reduce</span></a></span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Axioms/#Nat___otherZero-_LPAR_in-Axioms-and-Stuck-Reduction_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.otherZero" data-verso-hover="1557">Nat.otherZero</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Nat.rec" data-verso-hover="104">Nat.rec</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit.unit"><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="105">PUnit.unit</span></a><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.20" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">⟩</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="Axioms/#Nat___otherZero-_LPAR_in-Axioms-and-Stuck-Reduction_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.otherZero" data-verso-hover="1557">Nat.otherZero</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a></span></span></pre></div>
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-Nat.rec" data-verso-hover="104">Nat.rec</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.18" data-verso-hover="9">x</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit.unit"><span class="const token" data-binding="const-PUnit.unit" data-verso-hover="105">PUnit.unit</span></a><span class="unknown token" data-binding="">⟩</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.20" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⟨</span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.22" data-verso-hover="9">x</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.21" data-verso-hover="106">n_ih</span><span class="unknown token" data-binding="">⟩</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><a href="Axioms/#Nat___otherZero-_LPAR_in-Axioms-and-Stuck-Reduction_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Nat.otherZero" data-verso-hover="1557">Nat.otherZero</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">4</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">succ</span></a></span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;IYDwlg9gtgBAcsALgOgogFgUwE4C0cQwBc8SAUGQMTaYAmArgMaYwAsMA1DABQIppY8BTjABMASiA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><p>
                 Furthermore, the Lean compiler is not able to generate code for axioms.
 At runtime, Lean values must be represented by concrete data in memory, but axioms do not have a concrete representation.
@@ -2607,7 +2649,9 @@ The compiler does not generate code for proofs, so axioms in proofs are no probl
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">nextOdd</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">,</span><span class="text"> </span><span class="text">Classical.choice</span><span class="text">,</span><span class="text"> </span><span class="text">Quot.sound</span><span class="text">]</span></span></pre><p>
                     Because they occur only in a proof, the compiler has no problem generating code:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">(5, 5)</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6931" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Axioms/#nextOdd-_LPAR_in-Axioms-and-Compilation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nextOdd" data-verso-hover="1559">nextOdd</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">4</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Axioms/#nextOdd-_LPAR_in-Axioms-and-Compilation_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nextOdd" data-verso-hover="1559">nextOdd</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">5</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">(5, 5)</span></span></pre></div>
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">(5, 5)</span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;CYUwZgBAdiAeAuB5YwIAoDWEBcEByAhvAJQ4BQElEA3tDvkRAPRN0CkEATBALwQCMEQORE6KLwhZAFER0+WANQDSAXwgB3ABYgATiAoQAbgQA2OPgEtIWDtz6D4msVhBGAziAkQF/PQActAex9teABPUwgAIxC9SiiAfQBjAjcXD2txQQAeAG4APhiIFzMAWx8IAG0AKgBdCBzciH9ikABzAjIyAGI/Myh4CAJYMybUmARkYA7OkEMTNDGkFAgAFgAaaDhF1ABWYiA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="standard-axioms">
@@ -2656,7 +2700,9 @@ Uses of this axiom are not intended to occur in finished proofs, as it can be us
                     The most common way that proofs end up trusting the compiler is through the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#native_decide" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="1575">native_decide</span></a></code> tactic:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-9269">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-bigSum" data-verso-hover="1576" id="bigSum-_LPAR_in-Creating-and-Tracking-Proofs-That-Trust-the-Compiler_RPAR_">bigSum</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Linked-Lists/#List___range" title="Documentation for List.range"><span class="const token" data-binding="const-List.range" data-verso-hover="249">List.range</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1_001</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___sum" title="Documentation for List.sum"><span class="const token" data-binding="const-List.sum" data-verso-hover="1174">sum</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">500_500</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2585783449293028414-9318-9320-481"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-9318" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2585783449293028414-9318-9320-481"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Linked-Lists/#List___range" title="Documentation for List.range"><span class="const token" data-binding="const-List.range" data-verso-hover="249">List.range</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1001</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Linked-Lists/#List___sum" title="Documentation for List.sum"><span class="const token" data-binding="const-List.sum" data-verso-hover="1174">sum</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">500500</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-9321-9334-483"><a href="Tactic-Proofs/Tactic-Reference/#native_decide" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.nativeDecide-9321" data-verso-hover="1575">native_decide</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-9321-9334-483"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">bigSum</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">Lean.ofReduceBool</span><span class="text">,</span><span class="text"> </span><span class="text">Lean.trustCompiler</span><span class="text">]</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-9335">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-9335">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#bigSum-_LPAR_in-Creating-and-Tracking-Proofs-That-Trust-the-Compiler_RPAR_" title="Definition of example"><span class="const token" data-binding="const-bigSum" data-verso-hover="1576">bigSum</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">bigSum</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">Lean.ofReduceBool</span><span class="text">,</span><span class="text"> </span><span class="text">Lean.trustCompiler</span><span class="text">]</span></span></pre></div>
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">bigSum</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">Lean.ofReduceBool</span><span class="text">,</span><span class="text"> </span><span class="text">Lean.trustCompiler</span><span class="text">]</span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;CYUwZgBANghgTgcxAOQK4FsBGI4QFwTIwAu+AvBADIgwB2AdHCMKgMYokQAUATAMwAGAPoDREANQQALEICsYyQEYRokQDYA7AEoAUDoDEABzgBLWqRgAPEwHt0AZ2jwkaLDj2hImEwgDKGfG5KE3tiRjokCGVRRS16ewCKeWFk8ghMAE8IWhITADcQIVBWE1ADYzMLaztHbz8MIA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             <section>
               <h2 id="print-axioms">
@@ -2672,18 +2718,20 @@ In other words, if a proof uses another proof, which itself uses an axiom, then 
                   <p>
                     Consider the following three constants:</p>
                   <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-10318">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-addThree" data-verso-hover="1578" id="addThree-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_">addThree</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10360">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-excludedMiddle" data-verso-hover="1579" id="excludedMiddle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_">excludedMiddle</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∨</span><span class="inter-text"> </span><span class="unknown token" data-binding="">¬</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-Classical.em" data-verso-hover="1580">Classical.em</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10425">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-simpleEquality" data-verso-hover="1581" id="simpleEquality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_">simpleEquality</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∨</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-or_false" data-verso-hover="1582">or_false</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10360">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-excluded_middle" data-verso-hover="1579" id="excluded_middle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_">excluded_middle</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∨</span><span class="inter-text"> </span><span class="unknown token" data-binding="">¬</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-Classical.em" data-verso-hover="1580">Classical.em</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.144" data-verso-hover="338">P</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-10426">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-simple_equality" data-verso-hover="1581" id="simple_equality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_">simple_equality</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">∨</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-or_false" data-verso-hover="1582">or_false</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.149" data-verso-hover="338">P</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     Regular functions like <code class="hl lean inline" data-lean-context="examples"><a href="Axioms/#addThree-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-addThree" data-verso-hover="1578">addThree</span></a></code> that we might want to actually evaluation typically do not depend on any axioms:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">addThree</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10649">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10649">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#addThree-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-addThree" data-verso-hover="1578">addThree</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">addThree</span><span class="text">' does not depend on any axioms</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10651">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10651">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#addThree-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-addThree" data-verso-hover="1578">addThree</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">addThree</span><span class="text">' does not depend on any axioms</span></span></pre><p>
                     The excluded middle theorem is only true if we use classical reasoning, so the foundation for classical reasoning shows up alongside other axioms:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">excludedMiddle</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">,</span><span class="text"> </span><span class="text">Classical.choice</span><span class="text">,</span><span class="text"> </span><span class="text">Quot.sound</span><span class="text">]</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10924">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10924">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#excludedMiddle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-excludedMiddle" data-verso-hover="1579">excludedMiddle</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">excludedMiddle</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">,</span><span class="text"> </span><span class="text">Classical.choice</span><span class="text">,</span><span class="text"> </span><span class="text">Quot.sound</span><span class="text">]</span></span></pre><p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">excluded_middle</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">,</span><span class="text"> </span><span class="text">Classical.choice</span><span class="text">,</span><span class="text"> </span><span class="text">Quot.sound</span><span class="text">]</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10926">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-10926">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#excluded_middle-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-excluded_middle" data-verso-hover="1579">excluded_middle</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">excluded_middle</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">,</span><span class="text"> </span><span class="text">Classical.choice</span><span class="text">,</span><span class="text"> </span><span class="text">Quot.sound</span><span class="text">]</span></span></pre><p>
                     Finally, the idea that two equivalent propositions are equal directly relies on <a class="technical-term" href="The-Type-System/Propositions/#--tech-term-Extensionality">propositional extensionality</a>.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">simpleEquality</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">]</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-11211">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-11211">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#simpleEquality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-simpleEquality" data-verso-hover="1581">simpleEquality</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">simpleEquality</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">]</span></span></pre></div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">'</span><span class="text">simple_equality</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">]</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-11215">#print</span></a></span><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-11215">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#simple_equality-_LPAR_in-Printing-Axioms-of-Simple-Definitions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-simple_equality" data-verso-hover="1581">simple_equality</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">'</span><span class="text">simple_equality</span><span class="text">' depends on axioms: </span><span class="text">[</span><span class="text">propext</span><span class="text">]</span></span></pre><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;CYUwZgBAhswCoAsBOIQQBQDsIC4IDkoAXASlwONwF4IBGCAagmyYCYAoIhEAexQFsIIAB4BjADYBXUMAD6/AJaxxadAAVyapDwAOZPBsAURBAA1EDThoBhcVADOdhaKjiAdCEFrO3Ph4iP+HRVZEABHSRcFIgBPDAtzbT1ydQhjADEXOxAyGgsaPlkwTLQvdgBiHSQFTCJoYQUefjtoWEQUEHZyyuraqHrG5pEJaRA5RWUOrqqauoam/wVA4LCI8SjooA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><details class="example"><summary class="description">Using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span> with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.guardMsgsCmd : command</code><span class="sep"></span><code class="docstring">`/-- ... -/ #guard_msgs in cmd` captures the messages generated by the command `cmd`
 and checks that they match the contents of the docstring.
 
@@ -2765,7 +2813,8 @@ which would include `#guard_msgs` itself, and would cause duplicate and/or uncap
 The top-level command elaborator only runs the linters if `#guard_msgs` is not present.
 </code></code><a href="Interacting-with-Lean/#Lean___guardMsgsCmd"><code class="kw">#guard_msgs</code></a></span></summary><div class="example-content">
                   <p>
-                    You can use <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span> together with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.guardMsgsCmd : command</code><span class="sep"></span><code class="docstring">`/-- ... -/ #guard_msgs in cmd` captures the messages generated by the command `cmd`
+                    You can use <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.printAxioms : command</code></code><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms"><code class="kw">#print axioms</code></a></span>
+together with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.guardMsgsCmd : command</code><span class="sep"></span><code class="docstring">`/-- ... -/ #guard_msgs in cmd` captures the messages generated by the command `cmd`
 and checks that they match the contents of the docstring.
 
 Basic example:
@@ -2844,16 +2893,101 @@ so it elaborates the command it is attached to as if it were a top-level command
 However, the command elaborator runs linters for *all* top-level commands,
 which would include `#guard_msgs` itself, and would cause duplicate and/or uncaptured linter warnings.
 The top-level command elaborator only runs the linters if `#guard_msgs` is not present.
-</code></code><a href="Interacting-with-Lean/#Lean___guardMsgsCmd"><code class="kw">#guard_msgs</code></a></span> to ensure that updates to libraries from other projects cannot silently introduce unwanted dependencies on axioms.</p>
+</code></code><a href="Interacting-with-Lean/#Lean___guardMsgsCmd"><code class="kw">#guard_msgs</code></a></span> to ensure
+that updates to libraries from other projects cannot silently
+introduce unwanted dependencies on axioms.</p>
                   <p>
-                    Perhaps you are worried that some future update to <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-or_false" data-verso-hover="1582">or_false</span></code> in the previous example's <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-simpleEquality" data-verso-hover="1581">simpleEquality</span></code> proof might quietly introduce a new axiom dependency.
-You can guard against this by writing a command that will fail if <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-simpleEquality" data-verso-hover="1581">simpleEquality</span></code> uses any axioms besides <code class="hl lean inline" data-lean-context="examples"><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="337">propext</span></a></code>:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="doc-comment token" data-binding="">/--
-info: 'simpleEquality' depends on axioms: [propext]
--/</span><span class="inter-text">
-</span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-12005" data-verso-hover="134">#guard_msgs</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-12005" data-verso-hover="134">in</span></a><span class="inter-text">
-</span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-12079">#print</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-12079">axioms</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-simpleEquality" data-verso-hover="1581">simpleEquality</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+                    For example, if the proof of <code class="hl lean inline" data-lean-context="examples"><a href="Axioms/#double_neg_elim-_LPAR_in-Using--___print-axioms--with--___guard_msgs_RPAR_" title="Definition of example"><span class="const token" data-binding="const-double_neg_elim" data-verso-hover="1583">double_neg_elim</span></a></code> below changed in such a way that it used more
+axioms than those listed, then the <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.guardMsgsCmd : command</code><span class="sep"></span><code class="docstring">`/-- ... -/ #guard_msgs in cmd` captures the messages generated by the command `cmd`
+and checks that they match the contents of the docstring.
+
+Basic example:
+```lean
+/--
+error: Unknown identifier `x`
+-/
+#guard_msgs in
+example : α := x
+```
+This checks that there is such an error and then consumes the message.
+
+By default, the command captures all messages, but the filter condition can be adjusted.
+For example, we can select only warnings:
+```lean
+/--
+warning: declaration uses 'sorry'
+-/
+#guard_msgs(warning) in
+example : α := sorry
+```
+or only errors
+```lean
+#guard_msgs(error) in
+example : α := sorry
+```
+In the previous example, since warnings are not captured there is a warning on `sorry`.
+We can drop the warning completely with
+```lean
+#guard_msgs(error, drop warning) in
+example : α := sorry
+```
+
+In general, `#guard_msgs` accepts a comma-separated list of configuration clauses in parentheses:
+```
+#guard_msgs (configElt,*) in cmd
+```
+By default, the configuration list is
+`(check all, whitespace := normalized, ordering := exact, positions := false)`.
+
+Message filters select messages by severity:
+- `info`, `warning`, `error`: (non-trace) messages with the given severity level.
+- `trace`: trace messages
+- `all`: all messages.
+
+The filters can be prefixed with the action to take:
+- `check` (the default): capture and check the message
+- `drop`: drop the message
+- `pass`: let the message pass through
+
+If no filter is specified, `check all` is assumed.  Otherwise, these filters are processed in
+left-to-right order, with an implicit `pass all` at the end.
+
+Whitespace handling (after trimming leading and trailing whitespace):
+- `whitespace := exact` requires an exact whitespace match.
+- `whitespace := normalized` converts all newline characters to a space before matching
+  (the default). This allows breaking long lines.
+- `whitespace := lax` collapses whitespace to a single space before matching.
+
+Message ordering:
+- `ordering := exact` uses the exact ordering of the messages (the default).
+- `ordering := sorted` sorts the messages in lexicographic order.
+  This helps with testing commands that are non-deterministic in their ordering.
+
+Position reporting:
+- `positions := true` reports the ranges of all messages relative to the line on which
+  `#guard_msgs` appears.
+- `positions := false` does not report position info.
+
+For example, `#guard_msgs (error, drop all) in cmd` means to check warnings and drop
+everything else.
+
+The command elaborator has special support for `#guard_msgs` for linting.
+The `#guard_msgs` itself wants to capture linter warnings,
+so it elaborates the command it is attached to as if it were a top-level command.
+However, the command elaborator runs linters for *all* top-level commands,
+which would include `#guard_msgs` itself, and would cause duplicate and/or uncaptured linter warnings.
+The top-level command elaborator only runs the linters if `#guard_msgs` is not present.
+</code></code><a href="Interacting-with-Lean/#Lean___guardMsgsCmd"><code class="kw">#guard_msgs</code></a></span> would report an error.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-11910">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-double_neg_elim" data-verso-hover="1583" id="double_neg_elim-_LPAR_in-Using--___print-axioms--with--___guard_msgs_RPAR_">double_neg_elim</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">¬</span><span class="inter-text"> </span><span class="unknown token" data-binding="">¬</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="338">P</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="338">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><a href="The-Type-System/Propositions/#propext" title="Documentation for propext"><span class="const token" data-binding="const-propext" data-verso-hover="337">propext</span></a><span class="inter-text"> </span><span class="const token" data-binding="const-Classical.not_not" data-verso-hover="1584">Classical.not_not</span><span class="inter-text">
+
+</span><span class="doc-comment token" data-binding="">/-- info: 'double_neg_elim' depends on axioms: [propext, Classical.choice, Quot.sound] -/</span><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-11993" data-verso-hover="134">#guard_msgs</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___guardMsgsCmd" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.guardMsgsCmd-11993" data-verso-hover="134">in</span></a><span class="inter-text">
+</span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-12098">#print</span></a><span class="inter-text"> </span><a href="Interacting-with-Lean/#Lean___Parser___Command___printAxioms" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.printAxioms-12098">axioms</span></a><span class="inter-text"> </span><a href="Axioms/#double_neg_elim-_LPAR_in-Using--___print-axioms--with--___guard_msgs_RPAR_" title="Definition of example"><span class="const token" data-binding="const-double_neg_elim" data-verso-hover="1583">double_neg_elim</span></a><span class="inter-text">
+
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;C4Cwpg9gTmC2AEATCBXARgGzAfQHZgHNswMBLBACgAV4AueKqCABwEo74KAa+Hq9gLwM6AgFDx4zJszAAPYPADCGAIYBnNaQDGKjADpcEYHiOjRAegC0l+KVwAzCPQDkydFjyFiZWM6RgZXEQ1eAhceBVZUghYNXoAbSkWOWAAGiVVDW1dPS0QCG0wdIBFFCM9NVQggF14S3NRAGICFBUoRGxYghC7Jqk7BUjo2KRUTBx8IhJyIA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             </section>
           <nav class="prev-next-buttons">

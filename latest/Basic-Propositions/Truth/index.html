@@ -989,56 +989,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1137,6 +1087,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2106,6 +2107,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2180,45 +2256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       
 window.onload = () => {
@@ -2415,6 +2452,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2502,7 +2540,7 @@ For more information: <a href="https://lean-lang.org/theorem_proving_in_lean4/pr
                 <div class="constructor">
                   <pre class="name-and-type hl lean"><span class="unknown token" data-binding="">intro</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="397">True</span></a></pre><div class="docs">
                     <p>
-                      <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="397">True</span></a></code> is true, and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True.intro"><span class="const token" data-binding="const-True.intro" data-verso-hover="559">True.intro</span></a></code> (or more commonly, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-trivial" data-verso-hover="2464">trivial</span></code>)
+                      <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True"><span class="const token" data-binding="const-True" data-verso-hover="397">True</span></a></code> is true, and <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Propositions/Truth/#True___intro" title="Documentation for True.intro"><span class="const token" data-binding="const-True.intro" data-verso-hover="559">True.intro</span></a></code> (or more commonly, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-trivial" data-verso-hover="2466">trivial</span></code>)
 is the proof.</p>
                     </div>
                   </div>
@@ -2537,35 +2575,37 @@ anyway, which you can only do using <code class="hl lean inline" data-lean-conte
               </div>
             <details class="example"><summary class="description">Dead Code and Subsingleton Elimination</summary><div class="example-content">
                 <p>
-                  The fourth branch in the definition of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#f-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="4025">f</span></a></code> is unreachable, so no concrete <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code> value needs to be provided:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2148">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="4025" id="f-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39" data-verso-hover="4026">h1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">11</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4027">"Small"</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.76" data-verso-hover="4028">h2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&gt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">13</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4029">"Large"</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.160" data-verso-hover="4030">h3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">%</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4031">"Odd"</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.196" data-verso-hover="4032">h4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">12</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">then</span></a><span class="inter-text">
-    </span><a href="Basic-Propositions/Truth/#False___elim" title="Documentation for False.elim"><span class="const token" data-binding="const-False.elim" data-verso-hover="1539">False.elim</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="tactic"><label for="tactic-state-10483654767117635431-2334-2336-1492"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2334" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10483654767117635431-2334-2336-1492"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.39" data-verso-hover="4033">h1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#LT___mk" title="Documentation for LT.lt"><span class="const token" data-binding="const-LT.lt" data-verso-hover="294">&lt;</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">11</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.76" data-verso-hover="4034">h2</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="const token" data-binding="const-GT.gt" data-verso-hover="1280">&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">13</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.160" data-verso-hover="4035">h3</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HMod___mk" title="Documentation for HMod.hMod"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="1562">%</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.196" data-verso-hover="4032">h4</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="const token" data-binding="const-Ne" data-verso-hover="653">≠</span><span class="inter-text"> </span><span class="unknown token" data-binding="">12</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="inter-text"></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2337-2342-1494"><a href="Tactic-Proofs/Tactic-Reference/#omega" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.omega-2337" data-verso-hover="522">omega</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2337-2342-1494"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="4036">"Twelve"</span><span class="inter-text">
+                  The fourth branch in the definition of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#f-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-f" data-verso-hover="4027">f</span></a></code> is unreachable, so no concrete <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code> value needs to be provided:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2148">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-f" data-verso-hover="4027" id="f-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39" data-verso-hover="4028">h1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">11</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">then</span></a><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4029">"Small"</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2178" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.76" data-verso-hover="4030">h2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&gt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">13</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">then</span></a><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4031">"Large"</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2217" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.160" data-verso-hover="4032">h3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">%</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">then</span></a><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4033">"Odd"</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2256" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.196" data-verso-hover="4034">h4</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">12</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">then</span></a><span class="inter-text">
+    </span><a href="Basic-Propositions/Truth/#False___elim" title="Documentation for False.elim"><span class="const token" data-binding="const-False.elim" data-verso-hover="1539">False.elim</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="tactic"><label for="tactic-state-10483654767117635431-2334-2336-1492"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2334" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-10483654767117635431-2334-2336-1492"><span class="tactic-state"><span class="goal"><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.39" data-verso-hover="4035">h1</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#LT___mk" title="Documentation for LT.lt"><span class="const token" data-binding="const-LT.lt" data-verso-hover="294">&lt;</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">11</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.76" data-verso-hover="4036">h2</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="const token" data-binding="const-GT.gt" data-verso-hover="1280">&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">13</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.160" data-verso-hover="4037">h3</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Logical-Connectives/#Not" title="Documentation for Not"><span class="const token" data-binding="const-Not" data-verso-hover="784">¬</span></a><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HMod___mk" title="Documentation for HMod.hMod"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="1562">%</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.196" data-verso-hover="4034">h4</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="const token" data-binding="const-Ne" data-verso-hover="653">≠</span><span class="inter-text"> </span><span class="unknown token" data-binding="">12</span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a><span class="inter-text"></span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2337-2342-1494"><a href="Tactic-Proofs/Tactic-Reference/#omega" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.omega-2337" data-verso-hover="522">omega</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2337-2342-1494"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termDepIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termDepIfThenElse-2296" data-verso-hover="1159">else</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="4038">"Twelve"</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   In this example, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#False___elim" title="Documentation for False.elim"><span class="const token" data-binding="const-False.elim" data-verso-hover="1539">False.elim</span></a></code> indicates to Lean that the current local context is logically inconsistent: proving <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#False" title="Documentation for False"><span class="const token" data-binding="const-False" data-verso-hover="11">False</span></a></code> suffices to abandon the branch.</p>
                 <p>
-                  Similarly, the definition of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="4037">g</span></a></code> appears to have the potential to be non-terminating.
+                  Similarly, the definition of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Propositions/Truth/#g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="4039">g</span></a></code> appears to have the potential to be non-terminating.
 However, the recursive call occurs on an unreachable path through the program.
 The proof automation used for producing termination proofs can detect that the local assumptions are inconsistent.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2825">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="4037" id="g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2825">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-g" data-verso-hover="4039" id="g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_">g</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
   </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2855" data-verso-hover="146">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&lt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">11</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2855" data-verso-hover="146">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4027">"Small"</span><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4029">"Small"</span><span class="inter-text">
   </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2855" data-verso-hover="146">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2889" data-verso-hover="146">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">&gt;</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">13</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2889" data-verso-hover="146">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4029">"Large"</span><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4031">"Large"</span><span class="inter-text">
   </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2889" data-verso-hover="146">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2923" data-verso-hover="146">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">%</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2923" data-verso-hover="146">then</span></a><span class="inter-text">
-    </span><span class="literal string token" data-binding="" data-verso-hover="4031">"Odd"</span><span class="inter-text">
+    </span><span class="literal string token" data-binding="" data-verso-hover="4033">"Odd"</span><span class="inter-text">
   </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2923" data-verso-hover="146">else</span></a><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2958" data-verso-hover="146">if</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">12</span><span class="inter-text"> </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2958" data-verso-hover="146">then</span></a><span class="inter-text">
-    </span><a href="Basic-Propositions/Truth/#g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="4037">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2958" data-verso-hover="146">else</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="4036">"Twelve"</span><span class="inter-text">
+    </span><a href="Basic-Propositions/Truth/#g-_LPAR_in-Dead-Code-and-Subsingleton-Elimination_RPAR_" title="Definition of example"><span class="const token" data-binding="const-g" data-verso-hover="4039">g</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">1</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><a href="Terms/Conditionals/#termIfThenElse" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-termIfThenElse-2958" data-verso-hover="146">else</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="4038">"Twelve"</span><span class="inter-text">
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Termination.terminationBy-3005" data-verso-hover="1050">termination_by</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="9">n</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                  <a href="javascript:openLiveLink(&quot;CYUwZgBJAUB2EC4IDkCGAXAlIiBldATgJawDmiAvAFAQRGQAWAjDvADwRMvoMiw20IAIlwBbVABsJQgSAkBnEHUYAmVhAB8nAMwQefAbSEAZVAVIgZtOYuUQGupPACkENRU57e/QcIDywMBWEDZK9PYALOqABkScavo+ggBikooAdHJEohDQAEYAnhAA9qIgpKiYsgpKQgAqAO5yAG6WVFSgkORwOGhYOPjEZJQC4eyc3N6GwmKS0lW2o5o6Xga+JmYWwaF2Lm4QHhOrgkIBQfNhkPCxTPGTvl3wANScldbVwg3NreggBKIkGCIRVgAH0ChBYEA&quot;)">Live ↪</a></div>
+                </div>
               </details></section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="Basic-Propositions/#basic-props" rel="prev" title="18. Basic Propositions"><span class="arrow">←</span><span class="where">18. Basic Propositions</span></a><a class="local-button active" href="Basic-Propositions/Logical-Connectives/#The-Lean-Language-Reference--Basic-Propositions--Logical-Connectives" rel="next" title="18.2. Logical Connectives"><span class="where">18.2. Logical Connectives</span><span class="arrow">→</span></a></nav>

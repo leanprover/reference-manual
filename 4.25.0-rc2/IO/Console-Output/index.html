@@ -989,56 +989,6 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
 </style><style>.keyword-of .kw {
   font-weight: 500;
 }
@@ -1137,6 +1087,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 }
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
+}
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
 }
 </style><style>
 div.TODO {
@@ -2106,6 +2107,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2180,45 +2256,6 @@ window.addEventListener('DOMContentLoaded', () => {
   })
 })
   </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script>
       
 window.onload = () => {
@@ -2415,6 +2452,7 @@ window.onload = () => {
 }
 </script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2484,13 +2522,13 @@ window.onload = () => {
               Lean includes convenience functions for writing to <a class="technical-term" href="IO/Files___-File-Handles___-and-Streams/#--tech-term-standard-output">standard output</a> and <a class="technical-term" href="IO/Files___-File-Handles___-and-Streams/#--tech-term-standard-error">standard error</a>.
 All make use of <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span></code> instances, and the varieties whose names end in <code>-ln</code> add a newline after the output.
 These convenience functions only expose a part of the functionality available <a href="IO/Files___-File-Handles___-and-Streams/#stdio">using the standard I/O streams</a>.
-In particular, to read a line from standard input, use a combination of <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2956">IO.getStdin</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2957">IO.FS.Stream.getLine</span></a></code>.</p>
+In particular, to read a line from standard input, use a combination of <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdin" title="Documentation for IO.getStdin"><span class="const token" data-binding="const-IO.getStdin" data-verso-hover="2958">IO.getStdin</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___FS___Stream___mk" title="Documentation for IO.FS.Stream.getLine"><span class="const token" data-binding="const-IO.FS.Stream.getLine" data-verso-hover="2959">IO.FS.Stream.getLine</span></a></code>.</p>
             <div class="namedocs" id="IO___print">
               <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=IO.print" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">IO.print.{u_1}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.321" data-verso-hover="48">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></div><div class="narrow-only"><span class="unknown token" data-binding="">IO.print.{u_1}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type u_1</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.321" data-verso-hover="48">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.319" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></div></pre><div class="text">
                 <p>
                   Converts <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.316" data-verso-hover="48">s</span></code> to a string using its <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.314" data-verso-hover="46">α</span></code> instance, and prints it to the current standard
-output (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdout" title="Documentation for IO.getStdout"><span class="const token" data-binding="const-IO.getStdout" data-verso-hover="3158">IO.getStdout</span></a></code>).</p>
+output (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdout" title="Documentation for IO.getStdout"><span class="const token" data-binding="const-IO.getStdout" data-verso-hover="3160">IO.getStdout</span></a></code>).</p>
                 </div>
               </div>
             <div class="namedocs" id="IO___println">
@@ -2498,7 +2536,7 @@ output (as determined by <code class="hl lean inline" data-lean-context="docstri
   </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.457" data-verso-hover="46">α</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.459" data-verso-hover="48">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.457" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></div></pre><div class="text">
                 <p>
                   Converts <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.454" data-verso-hover="48">s</span></code> to a string using its <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.452" data-verso-hover="46">α</span></code> instance, and prints it with a trailing newline to
-the current standard output (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdout" title="Documentation for IO.getStdout"><span class="const token" data-binding="const-IO.getStdout" data-verso-hover="3158">IO.getStdout</span></a></code>).</p>
+the current standard output (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStdout" title="Documentation for IO.getStdout"><span class="const token" data-binding="const-IO.getStdout" data-verso-hover="3160">IO.getStdout</span></a></code>).</p>
                 </div>
               </div>
             <div class="namedocs" id="IO___eprint">
@@ -2506,7 +2544,7 @@ the current standard output (as determined by <code class="hl lean inline" data-
   </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.595" data-verso-hover="46">α</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.597" data-verso-hover="48">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.595" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></div></pre><div class="text">
                 <p>
                   Converts <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.592" data-verso-hover="48">s</span></code> to a string using its <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.590" data-verso-hover="46">α</span></code> instance, and prints it to the current standard
-error (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStderr" title="Documentation for IO.getStderr"><span class="const token" data-binding="const-IO.getStderr" data-verso-hover="3159">IO.getStderr</span></a></code>).</p>
+error (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStderr" title="Documentation for IO.getStderr"><span class="const token" data-binding="const-IO.getStderr" data-verso-hover="3161">IO.getStderr</span></a></code>).</p>
                 </div>
               </div>
             <div class="namedocs" id="IO___eprintln">
@@ -2514,20 +2552,20 @@ error (as determined by <code class="hl lean inline" data-lean-context="docstrin
   </span><span class="unknown token" data-binding="">[</span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.733" data-verso-hover="46">α</span><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.735" data-verso-hover="48">s</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.733" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></div></pre><div class="text">
                 <p>
                   Converts <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.730" data-verso-hover="48">s</span></code> to a string using its <code class="hl lean inline" data-lean-context="docstring-examples"><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.728" data-verso-hover="46">α</span></code> instance, and prints it with a trailing newline to
-the current standard error (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStderr" title="Documentation for IO.getStderr"><span class="const token" data-binding="const-IO.getStderr" data-verso-hover="3159">IO.getStderr</span></a></code>).</p>
+the current standard error (as determined by <code class="hl lean inline" data-lean-context="docstring-examples"><a href="IO/Files___-File-Handles___-and-Streams/#IO___getStderr" title="Documentation for IO.getStderr"><span class="const token" data-binding="const-IO.getStderr" data-verso-hover="3161">IO.getStderr</span></a></code>).</p>
                 </div>
               </div>
             <details class="example"><summary class="description">Printing</summary><div class="example-content">
                 <p>
                   This program demonstrates all four convenience functions for console I/O.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2952" id="main-_LPAR_in-Printing_RPAR_">main</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___print" title="Documentation for IO.print"><span class="const token" data-binding="const-IO.print" data-verso-hover="271">IO.print</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3160">"This is the "</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___print" title="Documentation for IO.print"><span class="const token" data-binding="const-IO.print" data-verso-hover="271">IO.print</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3161">"Lean"</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="5">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3162">" language reference."</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="5">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3163">"Thank you for reading it!"</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___eprint" title="Documentation for IO.eprint"><span class="const token" data-binding="const-IO.eprint" data-verso-hover="3164">IO.eprint</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3165">"Please report any "</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___eprint" title="Documentation for IO.eprint"><span class="const token" data-binding="const-IO.eprint" data-verso-hover="3164">IO.eprint</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3166">"errors"</span><span class="inter-text">
-  </span><a href="IO/Console-Output/#IO___eprintln" title="Documentation for IO.eprintln"><span class="const token" data-binding="const-IO.eprintln" data-verso-hover="3167">IO.eprintln</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3168">" so they can be corrected."</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-0">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-main" data-verso-hover="2954" id="main-_LPAR_in-Printing_RPAR_">main</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.do-22">do</span></a><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___print" title="Documentation for IO.print"><span class="const token" data-binding="const-IO.print" data-verso-hover="271">IO.print</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3162">"This is the "</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___print" title="Documentation for IO.print"><span class="const token" data-binding="const-IO.print" data-verso-hover="271">IO.print</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3163">"Lean"</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="5">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3164">" language reference."</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___println" title="Documentation for IO.println"><span class="const token" data-binding="const-IO.println" data-verso-hover="5">IO.println</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3165">"Thank you for reading it!"</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___eprint" title="Documentation for IO.eprint"><span class="const token" data-binding="const-IO.eprint" data-verso-hover="3166">IO.eprint</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3167">"Please report any "</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___eprint" title="Documentation for IO.eprint"><span class="const token" data-binding="const-IO.eprint" data-verso-hover="3166">IO.eprint</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3168">"errors"</span><span class="inter-text">
+  </span><a href="IO/Console-Output/#IO___eprintln" title="Documentation for IO.eprintln"><span class="const token" data-binding="const-IO.eprintln" data-verso-hover="3169">IO.eprintln</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="3170">" so they can be corrected."</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   It outputs the following to the standard output:</p>
                 <div class="example-file">
