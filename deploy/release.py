@@ -4,8 +4,7 @@ import sys
 import shutil
 import tempfile
 import argparse
-from release_utils import run_git_command, find_latest_version,
-  find_latest_stable_version, git_has_changes
+from release_utils import run_git_command, find_latest_version, find_latest_stable_version, git_has_changes
 
 def deploy_version(source_dir, version, branch):
     """
