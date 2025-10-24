@@ -91,7 +91,7 @@ A command elaborator has type {name}`CommandElab`, which is an abbreviation for 
 Command elaborators may be implicitly defined using {keywordOf Lean.Parser.Command.elab_rules}`elab_rules`, or explicitly by defining a function and applying the {attr}`command_elab` attribute.
 
 :::example "Querying the Environment"
-```imports
+```imports -show
 import Lean.Elab
 ```
 ```lean -show
@@ -143,7 +143,7 @@ The optional {lean}`Expr` parameter is the type expected for the term being elab
 Like command elaborators, term elaborators may be implicitly defined using {keywordOf Lean.Parser.Command.elab_rules}`elab_rules`, or explicitly by defining a function and applying the {attr}`term_elab` attribute.
 
 :::example "Avoiding a Type"
-```imports
+```imports -show
 import Lean.Elab
 ```
 ```lean -show
@@ -205,7 +205,7 @@ Got unwanted type String
 :::
 
 :::example "Using Any Local Variable"
-```imports
+```imports -show
 import Lean.Elab
 ```
 ```lean -show

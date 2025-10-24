@@ -38,7 +38,7 @@ The {lean}`Option` API makes frequent use of this perspective.
 
 :::example "Options as Nullability"
 
-```imports
+```imports -show
 import Std
 ```
 
@@ -68,7 +68,7 @@ In many programming languages, it is important to remember to check for the null
 When using {name}`Option`, the type system requires these checks in the right places: {lean}`Option α` and {lean}`α` are not the same type, and converting from one to the other requires handling the case of {lean  (type := "Option α")}`none`.
 This can be done via helpers such as {name}`Option.getD`, or with pattern matching.
 
-```imports
+```imports -show
 import Std
 ```
 

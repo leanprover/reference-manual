@@ -170,7 +170,7 @@ The resulting proofs rely only on the axiom {name}`Lean.ofReduceBool`; the exter
 
 :::example "Popcount"
 
-```imports
+```imports -show
 import Std.Tactic.BVDecide
 ```
 

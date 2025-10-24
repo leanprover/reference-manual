@@ -7,7 +7,6 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Manual.Meta
-import Manual.Meta.ImportsBlock
 
 import Manual.BasicTypes.Maps.TreeSet
 import Manual.BasicTypes.Maps.TreeMap
@@ -177,7 +176,7 @@ A nested inductive type that occurs inside a map or set should be defined in thr
 
 :::example "Nested Inductive Types with `Std.HashMap`"
 
-```imports
+```imports -show
 import Std
 ```
 
@@ -310,7 +309,7 @@ These operations avoid creating a second reference to the value during modificat
 
 :::example "Modifying Values in Maps"
 
-```imports
+```imports -show
 import Std
 ```
 

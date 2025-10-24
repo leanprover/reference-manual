@@ -93,7 +93,7 @@ The most important {name Std.Format}`Format` operations are:
 ::::
 
 :::example "Widths and Newlines"
-```imports
+```imports -show
 import Std
 ```
 ```lean
