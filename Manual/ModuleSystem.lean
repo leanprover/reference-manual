@@ -144,7 +144,7 @@ local elab "my_elab" : command => do
 ```
 
 For convenience, `meta` also implies `partial`.
-This can be overriden by giving an explicit `termination_by` metric (such as one suggested by `termination_by?`), which may be necessary when the type of the definition is not known to be `Nonempty`.
+This can be overridden by giving an explicit `termination_by` metric (such as one suggested by `termination_by?`), which may be necessary when the type of the definition is not known to be `Nonempty`.
 
 As a guideline, it is usually preferable to apply `meta` as late as possible.
 Thus helper definitions not directly registered as metaprograms do not need to be marked if they are located in a separate module.
