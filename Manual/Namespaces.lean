@@ -286,7 +286,7 @@ variable $b:bracketedBinder $b:bracketedBinder*
 
 The bracketed binders allowed after `variable` match the {ref "bracketed-parameter-syntax"}[syntax used in definition headers].
 
-:::example "Section Variables"
+::::example "Section Variables"
 In this section, automatic implicit parameters are disabled, but a number of section variables are defined.
 
 ```lean
@@ -296,7 +296,8 @@ universe u
 variable {α : Type u} (xs : List α) [Zero α] [Add α]
 ```
 
-Because automatic implicit parameters are disabled, the following definition fails:
+
+Because automatic implicit parameters are disabled and `β` is neither a section variable nor bound as a parameter of the function, the following definition fails:
 ```lean +error (name := secvars) -keep
 def addAll (lst : List β) : β :=
   lst.foldr (init := 0) (· + ·)
@@ -305,14 +306,16 @@ def addAll (lst : List β) : β :=
 Unknown identifier `β`
 ```
 
-On the other hand, not even {lean}`xs` needs to be written directly in the definition:
+
+:::paragraph
+On the other hand, not even {lean}`xs` needs to be written directly in the definition when it uses the section variables:
 
 ```lean
 def addAll :=
   xs.foldr (init := 0) (· + ·)
 ```
-
 :::
+::::
 
 To add a section variable to a theorem even if it is not explicitly mentioned in the statement, mark the variable with the {keywordOf Lean.Parser.Command.include}`include` command.
 All variables marked for inclusion are added to all theorems.

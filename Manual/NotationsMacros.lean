@@ -620,7 +620,7 @@ The optional suffix `?` in syntax and splices correspond with each other.
 
 ::::keepEnv
 :::example "Suffixed Splices"
-```imports
+```imports -show
 import Lean.Elab
 ```
 ```lean -show
@@ -697,7 +697,7 @@ macro_rules
 
 ::::keepEnv
 :::example "Optional Splices"
-```imports
+```imports -show
 import Lean.Elab
 ```
 The following syntax declaration optionally matches a term between two tokens.

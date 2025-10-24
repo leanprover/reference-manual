@@ -97,7 +97,7 @@ Lean includes deriving handlers for the following classes:
 ::::keepEnv
 :::example "Deriving Handlers"
 
-```imports
+```imports -show
 import Lean.Elab
 ```
 

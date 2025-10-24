@@ -163,7 +163,7 @@ Its constructor is named {name}`Palindrome.ofString`, rather than `Palindrome.mk
 :::
 
 ::: example "Modifiers on structure constructor"
-```imports
+```imports -show
 import Std
 ```
 The structure {lean}`NatStringBimap` maintains a finite bijection between natural numbers and strings.
