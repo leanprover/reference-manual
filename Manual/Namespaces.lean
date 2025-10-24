@@ -296,8 +296,8 @@ universe u
 variable {α : Type u} (xs : List α) [Zero α] [Add α]
 ```
 
-:::leanFirst
-Because automatic implicit parameters are disabled and `β` is neither a section variable nor bound as a parameter to {name}`addAll`, the following definition fails:
+
+Because automatic implicit parameters are disabled and `β` is neither a section variable nor bound as a parameter of the function, the following definition fails:
 ```lean +error (name := secvars) -keep
 def addAll (lst : List β) : β :=
   lst.foldr (init := 0) (· + ·)
@@ -305,7 +305,7 @@ def addAll (lst : List β) : β :=
 ```leanOutput secvars
 Unknown identifier `β`
 ```
-:::
+
 
 :::paragraph
 On the other hand, not even {lean}`xs` needs to be written directly in the definition when it uses the section variables:
