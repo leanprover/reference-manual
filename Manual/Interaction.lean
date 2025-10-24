@@ -311,7 +311,7 @@ Lists all axioms that the constant transitively relies on. See {ref "print-axiom
 :::
 
 :::example "Printing Axioms"
-```imports
+```imports -show
 import Std.Tactic.BVDecide
 ```
 

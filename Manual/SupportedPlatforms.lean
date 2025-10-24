@@ -13,6 +13,7 @@ open Verso.Genre Manual
 tag := "platforms"
 file := "platforms"
 number := false
+htmlSplit := .never
 %%%
 
 

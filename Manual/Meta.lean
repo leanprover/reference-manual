@@ -33,6 +33,8 @@ import Manual.Meta.Syntax
 import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
+import Manual.Meta.Imports
+import Manual.Meta.Namespace
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets

@@ -18,6 +18,7 @@ def plausible := {{
 
 open Verso.Output.Html in
 def staticJs := {{
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
   }}
 

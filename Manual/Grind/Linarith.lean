@@ -38,7 +38,7 @@ It can be disabled using the option `grind -linarith`.
 
 
 :::example "Goals Decided by `linarith`" (open := true)
-```imports
+```imports -show
 import Std
 ```
 ```lean -show
@@ -75,7 +75,7 @@ example {a b c d e : α} :
 :::
 
 :::example "Commutative Ring Goals Decided by `linarith`" (open := true)
-```imports
+```imports -show
 import Std
 ```
 ```lean -show
