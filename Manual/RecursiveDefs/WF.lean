@@ -576,7 +576,6 @@ A non-decreasing measure is one that the termination tactic could not show to be
 A suitable tuple is chosen based on the table.{margin}[This approach is based on {citehere bulwahn2007}[].]
 This table shows up in the error message when no automatic measure could be found.
 
-{spliceContents Manual.RecursiveDefs.WF.GuessLexExample}
 
 ```lean -show
 section
@@ -813,7 +812,6 @@ To see the preprocessed function definition, before and after the removal of {na
 
 {optionDocs trace.Elab.definition.wf}
 
-{spliceContents Manual.RecursiveDefs.WF.PreprocessExample}
 
 # Theory and Construction
 
