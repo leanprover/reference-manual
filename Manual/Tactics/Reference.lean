@@ -428,7 +428,7 @@ The {attr}`induction_eliminator` attribute registers an eliminator for use by th
 induction_eliminator
 ```
 
-The {attr}`induction_eliminator` attribute registers an eliminator for use by the {tactic}`cases` tactic.
+The {attr}`cases_eliminator` attribute registers an eliminator for use by the {tactic}`cases` tactic.
 ```grammar
 cases_eliminator
 ```
