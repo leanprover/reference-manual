@@ -195,6 +195,9 @@ Some constants are lower priority than others; in particular, the arithmetic ope
 An indexable subexpression is {deftech}_minimal_ if there is no smaller indexable subexpression whose head constant has at least as high priority.
 
 :::syntax attr (title := "Grind Patterns")
+When the {attr}`grind` attribute is added to a definition, it causes `grind` to unfold that definition to its body whenever it is encountered.
+When using the module system, if the body of the theorem is not exposed (via {attr}`expose`), then the {attr}`grind` attribute is ignored.
+
 ```grammar
 grind $[$_:grindMod]?
 ```
