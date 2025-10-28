@@ -356,7 +356,7 @@ Exports a Lean constant with the unmangled symbol name `sym`.
 :::
 
 
-For simple examples of how to call foreign code from Lean and vice versa, see [the FFI](https://github.com/leanprover/lean4/blob/master/src/lake/examples/ffi) and [reverse FFI](https://github.com/leanprover/lean4/blob/master/src/lake/examples/reverse-ffi) examples in the Lean source repository.
+For simple examples of how to call foreign code from Lean and vice versa, see [the FFI](https://github.com/leanprover/lean4/tree/master/tests/lake/examples/ffi) and [reverse FFI](https://github.com/leanprover/lean4/tree/master/tests/lake/examples/reverse-ffi) examples in the Lean source repository.
 
 ## The Lean ABI
 
