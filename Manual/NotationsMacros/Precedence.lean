@@ -59,7 +59,7 @@ This level is useful for defining syntax that should be treated as an argument t
 arg
 ```
 
-Lead precedence is less that argument precedence, and should be used for custom syntax that should not occur as a function argument, such as {keywordOf Lean.Parser.Term.let}`let`.
+Lead precedence is less than argument precedence, and should be used for custom syntax that should not occur as a function argument, such as {keywordOf Lean.Parser.Term.let}`let`.
 ```grammar
 lead
 ```

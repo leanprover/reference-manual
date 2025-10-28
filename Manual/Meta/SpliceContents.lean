@@ -29,7 +29,8 @@ def spliceContents : PartCommand
     let moduleIdent ←
       mkIdentFrom moduleName <$>
       realizeGlobalConstNoOverloadWithInfo (mkIdentFrom moduleName (docName moduleName.getId))
-    let contentsAsBlock ← ``(Block.concat (Part.content $moduleIdent))
+    let modulePart ← `(($moduleIdent).toPart)
+    let contentsAsBlock ← ``(Block.concat (Part.content $modulePart))
     PartElabM.addBlock contentsAsBlock
   | _ =>
     throwUnsupportedSyntax
