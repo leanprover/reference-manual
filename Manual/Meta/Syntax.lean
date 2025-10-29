@@ -830,7 +830,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run (← ``(Manual)) (.const ``Manual []) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run (← moduleGenreElabContext) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 namespace Tests
