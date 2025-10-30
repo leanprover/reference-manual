@@ -20,6 +20,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 1000000
 
 
 #doc (Manual) "Linked Lists" =>
