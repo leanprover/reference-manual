@@ -17,6 +17,7 @@ open Verso.Doc.Elab (CodeBlockExpander)
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
+set_option maxHeartbeats 1000000
 -- Due to Lean.Grind.Semiring.nsmul_eq_natCast_mul
 set_option verso.docstring.allowMissing true
 

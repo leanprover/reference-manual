@@ -14,6 +14,8 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
+set_option maxHeartbeats 1000000
+
 #doc (Manual) "Basic Classes" =>
 %%%
 tag := "basic-classes"
