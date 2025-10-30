@@ -17,7 +17,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
-
+set_option maxHeartbeats 1000000
 set_option linter.unusedVariables false
 
 #doc (Manual) "Tactic Reference" =>

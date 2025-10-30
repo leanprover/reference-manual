@@ -10,7 +10,6 @@ import Lean.Parser.Term
 
 import Manual.Meta
 
-
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 open Verso.Doc.Elab (CodeBlockExpander)
@@ -19,6 +18,7 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
 -- Due to Lean.Grind.Semiring.nsmul_eq_natCast_mul
 set_option verso.docstring.allowMissing true
+set_option maxHeartbeats 1000000
 
 #doc (Manual) "Algebraic Solver (Commutative Rings, Fields)" =>
 %%%
