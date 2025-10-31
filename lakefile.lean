@@ -14,8 +14,9 @@ require "leanprover-community" / "mathlib" @ git leanVersion
 
 require MD4Lean from git "https://github.com/acmepjz/md4lean"@"main"
 require verso from git "https://github.com/leanprover/verso.git"@leanVersion
+require «verso-manual» from git "https://github.com/leanprover/reference-manual.git"@leanVersion
 
-package "verso-manual" where
+package "mathlib-manual" where
   -- building the C code cost much more than the optimizations save
   -- In particular, the Localizer pass of LLVM takes tons of time (ca 90% for many chapters) and these flags disable it
   -- This is a circa 20% overall speedup (build and execute) at the time of writing
@@ -29,7 +30,7 @@ package "verso-manual" where
   leanOptions := #[⟨`weak.verso.code.warnLineLength, .ofNat 72⟩]
 
 @[default_target]
-lean_lib Manual where
+lean_lib MathlibManual where
   leanOptions := #[
     ⟨`linter.all, false⟩
   ]

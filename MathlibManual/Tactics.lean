@@ -8,22 +8,22 @@ import VersoManual
 import Manual.Meta
 import Mathlib
 
-import Manual.Tactics.All
-import Manual.Tactics.Algebra
-import Manual.Tactics.Analysis
-import Manual.Tactics.Assumptions
-import Manual.Tactics.Automation
-import Manual.Tactics.CategoryTheory
-import Manual.Tactics.Coercions
-import Manual.Tactics.Control
-import Manual.Tactics.Conv
-import Manual.Tactics.DefEq
-import Manual.Tactics.Induction
-import Manual.Tactics.Interactive
-import Manual.Tactics.Logic
-import Manual.Tactics.Miscellaneous
-import Manual.Tactics.Rewriting
-import Manual.Tactics.Test
+import MathlibManual.Tactics.All
+import MathlibManual.Tactics.Algebra
+import MathlibManual.Tactics.Analysis
+import MathlibManual.Tactics.Assumptions
+import MathlibManual.Tactics.Automation
+import MathlibManual.Tactics.CategoryTheory
+import MathlibManual.Tactics.Coercions
+import MathlibManual.Tactics.Control
+import MathlibManual.Tactics.Conv
+import MathlibManual.Tactics.DefEq
+import MathlibManual.Tactics.Induction
+import MathlibManual.Tactics.Interactive
+import MathlibManual.Tactics.Logic
+import MathlibManual.Tactics.Miscellaneous
+import MathlibManual.Tactics.Rewriting
+import MathlibManual.Tactics.Test
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -59,32 +59,32 @@ The section prior to the {ref "all_tactics"}[last section] are not final in any 
 Feel free to add/delete/rename/restructure any of these section and modify their content
 freely to make them more useful! PR go to the [repository of this manual](https://github.com/leanprover-community/mathlib-manual).
 
-{include 0 Manual.Tactics.Interactive}
+{include 0 MathlibManual.Tactics.Interactive}
 
-{include 0 Manual.Tactics.Automation}
+{include 0 MathlibManual.Tactics.Automation}
 
-{include 0 Manual.Tactics.Algebra}
+{include 0 MathlibManual.Tactics.Algebra}
 
-{include 0 Manual.Tactics.Analysis}
+{include 0 MathlibManual.Tactics.Analysis}
 
-{include 0 Manual.Tactics.Coercions}
+{include 0 MathlibManual.Tactics.Coercions}
 
-{include 0 Manual.Tactics.CategoryTheory}
+{include 0 MathlibManual.Tactics.CategoryTheory}
 
-{include 0 Manual.Tactics.Logic}
+{include 0 MathlibManual.Tactics.Logic}
 
-{include 0 Manual.Tactics.Induction}
+{include 0 MathlibManual.Tactics.Induction}
 
-{include 0 Manual.Tactics.Assumptions}
+{include 0 MathlibManual.Tactics.Assumptions}
 
-{include 0 Manual.Tactics.DefEq}
+{include 0 MathlibManual.Tactics.DefEq}
 
-{include 0 Manual.Tactics.Conv}
+{include 0 MathlibManual.Tactics.Conv}
 
-{include 0 Manual.Tactics.Control}
+{include 0 MathlibManual.Tactics.Control}
 
-{include 0 Manual.Tactics.Test}
+{include 0 MathlibManual.Tactics.Test}
 
-{include 0 Manual.Tactics.Miscellaneous}
+{include 0 MathlibManual.Tactics.Miscellaneous}
 
-{include 0 Manual.Tactics.All}
+{include 0 MathlibManual.Tactics.All}
