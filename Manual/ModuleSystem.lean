@@ -120,8 +120,6 @@ The module system's `import all` is more powerful than `import` without the modu
 It makes imported private definitions accessible directly by name, as if they were defined in the current module.
 Thus another use case of `import all` is to make declarations available that need to be used in multiple modules but should not leak outside the current library.
 
-`public import all M` behaves like `public import M` followed by `import all M`, i.e. the `all` modifier becomes irrelevant for downstream modules.
-
 # The `meta` Phase
 
 When it comes to actual code execution, there is no point to a definition without a body.
