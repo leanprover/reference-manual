@@ -5,9 +5,9 @@ Author: David Thrane Christiansen
 -/
 import VersoManual
 
-import Manual.Tweaks
-import Manual.Tactics
-import Manual.Guides
+import MathlibManual.Tweaks
+import MathlibManual.Tactics
+import MathlibManual.Guides
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -32,6 +32,6 @@ This document has been last updated at *{now}[]* using Lean *{versionString}[]* 
 If you would like to contribute content, please create a PR using the two github links
 at the bottom left of this page!
 
-{include 0 Manual.Tactics}
+{include 0 MathlibManual.Tactics}
 
-{include 0 Manual.Guides}
+{include 0 MathlibManual.Guides}

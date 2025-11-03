@@ -8,9 +8,9 @@ import VersoManual
 import Manual.Meta
 import Mathlib
 
-import Manual.Guides.LocalDevDependency
-import Manual.Guides.SharedMathlib
-import Manual.Guides.StableDependencies
+import MathlibManual.Guides.LocalDevDependency
+import MathlibManual.Guides.SharedMathlib
+import MathlibManual.Guides.StableDependencies
 
 open Verso.Genre Manual
 
@@ -33,8 +33,8 @@ by Lean or Mathlib. Rather, they are notes by users.
 
 If they don't work please ask on Zulip or contribute improvements to the guides here.
 
-{include 0 Manual.Guides.SharedMathlib}
+{include 0 MathlibManual.Guides.SharedMathlib}
 
-{include 0 Manual.Guides.StableDependencies}
+{include 0 MathlibManual.Guides.StableDependencies}
 
-{include 0 Manual.Guides.LocalDevDependency}
+{include 0 MathlibManual.Guides.LocalDevDependency}

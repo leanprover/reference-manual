@@ -58,7 +58,7 @@ even though they appear to be one to the user.
 
 -- TODO: The `set` docstring ought to be on the `syntax`, not the `elab_rules`
 -- remove the replace below once that's fixed
-:::tactic Mathlib.Tactic.setTactic (replace := true)
+:::tactic Mathlib.Tactic.setTactic +replace
 :::
 
 :::tactic Lean.Parser.Tactic.replace
