@@ -512,9 +512,8 @@ h_4 : ¬i_1 = i_2
 left_1 : ¬m_1.keys[i_2]? = some a_1
 right_1 : ¬m_1.indices[a_1]? = some i_2
 h_6 : (m_1.keys.back ⋯ == a_2) = true
-left_2 : a_2 ∈ m_1.indices.erase a_1
-left_3 : (a_1 == a_2) = false
-right_3 : a_2 ∈ m_1.indices
+left_2 : (m_1.indices.erase a_1).contains a_2 = true
+right_2 : a_2 ∈ m_1.indices.erase a_1
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts

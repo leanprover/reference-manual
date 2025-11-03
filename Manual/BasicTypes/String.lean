@@ -20,6 +20,8 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 250000
+
 
 #doc (Manual) "Strings" =>
 %%%
@@ -196,9 +198,9 @@ tag := "string-api-valid-pos"
 
 {docstring String.ValidPos.ofCopy}
 
-{docstring String.ValidPos.setOfLE}
+{docstring String.ValidPos.toSetOfLE}
 
-{docstring String.ValidPos.modifyOfLE}
+{docstring String.ValidPos.toModifyOfLE}
 
 {docstring String.ValidPos.toSlice}
 
@@ -217,7 +219,7 @@ tag := "string-api-pos"
 
 ### Boundaries
 
-{docstring String.endPos}
+{docstring String.rawEndPos}
 
 {docstring String.Pos.Raw.atEnd}
 

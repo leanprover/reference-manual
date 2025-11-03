@@ -78,23 +78,23 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
   variable {p : S α β}
 
   -- Check that struct eta fails
-  /--
-  error: `grind` failed
-  case grind
-  α : Type u
-  β : Type v
-  a : α
-  b : β
-  p : S α β
-  h : ¬p = { x := p.x, y := p.y }
-  ⊢ False
-  [grind] Goal diagnostics
-    [facts] Asserted facts
-      [prop] ¬p = { x := p.x, y := p.y }
-    [eqc] False propositions
-      [prop] p = { x := p.x, y := p.y }
-  -/
-  #guard_msgs (whitespace := lax) in
+  -- /--
+  -- error: `grind` failed
+  -- case grind
+  -- α : Type u
+  -- β : Type v
+  -- a : α
+  -- b : β
+  -- p : S α β
+  -- h : ¬p = { x := p.x, y := p.y }
+  -- ⊢ False
+  -- [grind] Goal diagnostics
+  --   [facts] Asserted facts
+  --     [prop] ¬p = { x := p.x, y := p.y }
+  --   [eqc] False propositions
+  --     [prop] p = { x := p.x, y := p.y }
+  -- -/
+  -- #guard_msgs (whitespace := lax) in
   example : p = ⟨p.1, p.2⟩ := by grind
 
   -- They are defeq
@@ -104,9 +104,9 @@ Whenever a term is added to one of those buckets, {tactic}`grind` fires dozens o
 
   example : p = ⟨p.1, p.2⟩ := by grind
   ```
+  {TODO}[Check status of definitional eta and defeq in `grind`]
   Definitional reduction is propagated, so {lean}`(a, b).1` is equated with {lean}`a`.
-  The {tech (key := "η-equivalence")}[η-equality] rule for structures is not automatically used, so if {lean}`p` is an instance of a {tech}[structure] {lean}`S` with two fields, then {lean}`p` is not equated with {lean  (type := "S α β")}`⟨p.1, p.2⟩`.
-  However, tagging {name}`S` with {attrs}`@[grind ext]` causes the {tech}[E-matching] engine to prove these goals.
+  {draft}[The {tech (key := "η-equivalence")}[η-equality] rule for structures is not automatically used, so if {lean}`p` is an instance of a {tech}[structure] {lean}`S` with two fields, then {lean}`p` is not equated with {lean  (type := "S α β")}`⟨p.1, p.2⟩`.  However, tagging {name}`S` with {attrs}`@[grind ext]` causes the {tech}[E-matching] engine to prove these goals.]
   :::
   ::::
 

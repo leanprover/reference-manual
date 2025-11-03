@@ -347,7 +347,7 @@ theorem List.findIndex_implies_pred
       have : r = 0 := by simp_all
       simp_all
     next =>
-      simp only [Option.map_eq_map, Option.map_eq_some'] at hsome
+      simp only [Option.map_eq_map, Option.map_eq_some_iff] at hsome
       obtain ⟨r', hr, rfl⟩ := hsome
       specialize ih _ _ hr
       simpa

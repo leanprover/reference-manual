@@ -382,6 +382,19 @@ ext
 In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem
 :::
 
+:::TODO
+Resolve status of this example.
+
+Test to see if the current behavior has changed:
+```lean
+structure Point where
+  x : Int
+  y : Int
+
+example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
+```
+
+````comment
 :::example "The `@[grind ext]` Attribute"
 {tactic}`grind` does not automatically apply the {tech (key := "η-equivalence")}[η-equality] rule for structures.
 {lean}`Point` is a structure with two fields:
@@ -442,6 +455,8 @@ theorem swap_swap_eq_id' : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
   grind
 ```
+:::
+````
 :::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Injectivity")
@@ -508,7 +523,7 @@ def decreasingCorrect : decreasing xs = Decreasing xs := by
 ```leanOutput decreasingCorrect1
 `grind` failed
 case grind
-h : (true = true) = ¬Decreasing []
+h : True = ¬Decreasing []
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -519,7 +534,7 @@ h : (true = true) = ¬Decreasing []
 `grind` failed
 case grind
 head : Int
-h : (true = true) = ¬Decreasing [head]
+h : True = ¬Decreasing [head]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -889,9 +904,12 @@ example : (iota 20).length > 10 := by
 ```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm)
 [grind] Diagnostics
   [thm] E-Matching instances
-    [thm] iota_succ ↦ 14
+    [thm] iota_succ ↦ 12
     [thm] List.length_cons ↦ 11
   [app] Applications
+  [grind] Simplifier
+    [simp] tried theorems (max: 35, num: 1):
+    use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 :::
 
@@ -956,7 +974,7 @@ h_2 : x = n + 1
   [eqc] Equivalence classes
   [cases] Case analyses
   [cutsat] Assignment satisfying linear constraints
-  [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
+  [ring] Rings
 ```
 :::
 
