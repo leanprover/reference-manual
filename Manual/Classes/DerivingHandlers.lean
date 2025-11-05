@@ -54,7 +54,7 @@ private def checkDerivable (expected : Array Name) : CommandElabM Unit := do
 end
 
 
-#eval checkDerivable #[``BEq, ``DecidableEq, ``Hashable, ``Inhabited, ``Nonempty, ``Ord, ``Repr, ``SizeOf, ``TypeName, ``LawfulBEq, ``ReflBEq]
+#eval checkDerivable #[``BEq, ``DecidableEq, ``Hashable, ``Inhabited, ``Nonempty, ``Ord, ``Repr, ``SizeOf, ``TypeName, ``LawfulBEq, ``ReflBEq, ``Plausible.Arbitrary]
 
 open Verso Doc Elab ArgParse in
 open Lean in
