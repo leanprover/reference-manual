@@ -126,9 +126,11 @@ When it comes to actual code execution, there is no point to a definition withou
 Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new `meta` modifier.
 This is automatically done in built-in metaprogramming syntax such as `syntax`, `macro`, and `elab` but may need to be done explicitly when manually applying metaprogramming attributes such as `@[app_delab]`.
 
-A `meta` definition may access (and thus invoke) any `meta` or non-`meta` definition of the current module.
-For accessing imported definitions, the definition must either have been marked as `meta` when it was declared or the import must be marked as such (`meta import` when the accessing definition is in the private scope and `public meta import` otherwise).
-
+A `meta` definition may only access (and thus invoke) other `meta` definitions; a non-`meta` definition likewise may only access other non-`meta` definitions.
+For imported definitions, the `meta` marker can be added after the fact using `meta import`.
+`meta import`ing a definition already in the meta phase leaves it in that phase.
+In addition, the import must be public if the imported definition may be compile-time executed outside the current module, i.e. if it is reachable from some public `meta` definition in the current module: use `public meta import` or, if already `meta`, `public import`.
+This is usually the case, unless a definition was imported solely for use in local metaprograms such as `local syntax/macro/elab/...`.
 ```
 module
 
@@ -138,6 +140,15 @@ local elab "my_elab" : command => do
   let m : Std.HashMap := {}
   ...
 ```
+
+For convenience, `meta` also implies `partial`.
+This can be overridden by giving an explicit `termination_by` metric (such as one suggested by `termination_by?`), which may be necessary when the type of the definition is not known to be `Nonempty`.
+
+As a guideline, it is usually preferable to keep the amount of `meta` annotations as small as possible.
+This avoids locking otherwise-reusable declarations into the meta phase and it helps the build system avoid more rebuilds.
+Thus, when a metaprogram depends on other code that does not itself need to be marked `meta`, this other code should be located in a separate module and not marked `meta`.
+Only the final module that actually registers a metaprogram needs the helpers as `meta` definitions.
+It should use `public meta import` to import those helpers and then define its metaprograms using built-in syntax like `elab`, using `meta def`, or using `meta section`.
 
 # Common Errors and Patterns
 
@@ -162,6 +173,11 @@ The following list contains common errors one might encounter when using the mod
   You might also see this as a kernel error when a tactic directly emits proof terms referencing specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using `@[expose] section`s generously on the closure of relevant modules.
 
+: "failed to compile 'partial' definition" on `meta` definition
+
+  This can happen when a definition with a type that is not known to be `Nonempty` is marked `meta` or moved into a `meta section`, which both imply `partial` without a termination metric.
+  Use `termination_by?` to make the previously implicitly inferred termination metric explicit, or provide a `Nonempty` instance.
+  
 ## Recipe for Porting Existing Files
 
 Start by enabling the module system throughout all files with minimal breaking changes:
