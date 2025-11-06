@@ -4,10 +4,16 @@ import os
 from release_utils import run_git_command, is_git_ancestor, find_latest_version, find_latest_stable_version
 from pathlib import Path
 
-def add_noindex_meta(directory, extensions=(".html", ".htm")):
+def add_metadata(directory, version_name, extensions=(".html", ".htm")):
     """
     Recursively walk through `directory`, find all HTML files,
-    and insert <meta name="robots" content="noindex"> right after <head>.
+    and insert extra elements at the beginning of `<head>`.
+
+    Presently we insert an instruction to robots not to crawl
+
+    Args:
+      directory (Path): The directory in which to recursively modify files
+      version_name (str): The version name of the reference manual, e.g. "4.25.0-rc2", "latest", "stable".
     """
     for root, _, files in os.walk(directory):
         for filename in files:
@@ -18,9 +24,13 @@ def add_noindex_meta(directory, extensions=(".html", ".htm")):
 
                 # Only edit if <head> exists and we haven't already added the meta tag
                 if "<head>" in content and 'name="robots"' not in content:
+                    href = f"https://lean-lang.org/doc/reference/{root}/{filename}".removesuffix("index.html")
+                    noindex = '' if version_name == "latest" else '\n<meta name="robots" content="noindex">'
                     new_content = content.replace(
                         "<head>",
-                        '<head>\n<meta name="robots" content="noindex">'
+                        f'''<head>{noindex}
+                        <link rel="canonical" href="{href}" />
+                        '''
                     )
 
                     # Write back the modified file
@@ -56,9 +66,8 @@ def apply_overlays(deploy_dir):
         with open(filename, 'a') as file:
           file.write(content)
 
-        # Tell robots not to index anything other than latest
-        if str(inner) != "latest":
-           add_noindex_meta(inner)
+        # Add appropriate metadata to every file at every version
+        add_metadata(inner, str(inner))
 
 def deploy_overlays(deploy_dir, src_branch, tgt_branch):
     """
