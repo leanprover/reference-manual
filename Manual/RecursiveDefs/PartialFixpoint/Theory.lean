@@ -101,4 +101,6 @@ end
 
 The following monotonicity lemmas are registered, and should allow recursive calls under the given higher-order functions in the arguments indicated by `·` (but not the other arguments, shown as `_`).
 
+```
 {monotonicityLemmas}
+```
