@@ -379,44 +379,40 @@ ext
 ```
 {includeDocstring Lean.Parser.Attr.grindExt}
 
-In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem
+In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem.
 :::
 
-:::TODO
-Resolve status of this example.
 
-Test to see if the current behavior has changed:
-```lean
-structure Point where
-  x : Int
-  y : Int
+::::example "The `@[grind ext]` Attribute"
 
-example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
-```
-
-````comment
-:::example "The `@[grind ext]` Attribute"
-{tactic}`grind` does not automatically apply the {tech (key := "η-equivalence")}[η-equality] rule for structures.
 {lean}`Point` is a structure with two fields:
 ```lean
 structure Point where
   x : Int
   y : Int
 ```
-By default, {tactic}`grind` can't solve goals like this one:
-```lean +error (name := noExt)
+By default, {tactic}`grind` can solve goals like this one, because definitional equality includes {tech (key := "η-equivalence")}[η-equivalence] for product types:
+```lean
 example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
+```
+However, it can't solve goals like this one that require an appeal to propositional equalities:
+```lean +error (name := noExt)
+example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by grind
 ```
 ```leanOutput noExt
 `grind` failed
 case grind
 p : Point
-h : ¬p = { x := p.x, y := p.y }
+a : Int
+h : a = p.x
+h_1 : ¬p = { x := a, y := p.y }
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] False propositions
+  [eqc] Equivalence classes
 ```
+
 
 This kind of goal may come up when proving theorems like the fact that swapping the fields of a point twice is the identity:
 ```lean
@@ -448,16 +444,14 @@ Adding the {attrs}`@[grind ext]` attribute to {name}`Point` enables {tactic}`gri
 ```lean
 attribute [grind ext] Point
 
-example (p : Point) : p = ⟨p.x, p.y⟩ := by
+example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by
   grind
 
 theorem swap_swap_eq_id' : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
   grind
 ```
-:::
-````
-:::
+::::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Injectivity")
 ```grammar
