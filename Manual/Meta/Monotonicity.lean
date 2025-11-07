@@ -24,7 +24,7 @@ namespace Manual
 A table for monotonicity lemmas. Likely some of this logic can be extracted to a helper
 in `Manual/Meta/Table.lean`.
 -/
-private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Term := do
+private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Name := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -84,10 +84,8 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
       name := blockName, levelParams := [], type := blockType, value := v2, hints := .opaque, safety := .safe
     }
 
-    if ((← getEnv).find? blockName).isSome then
-      return mkIdent blockName
-    else
-      throwError "Failed to construct monotonicity lemma table"
+    return blockName
+
 
 
 
@@ -303,15 +301,10 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
 where
   tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
 
-
-@[block_command]
-def monotonicityLemmas : BlockCommandOf Unit
-  | () => do
-    dbg_trace "elaborating lemma list"
+open Lean Elab Command Term
+def mkMonotonicityLemmas : TermElabM Name := do
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
-    dbg_trace "got {names.size} names"
     let names := names.qsort (toString · < toString ·)
-    dbg_trace "sorted names"
 
     let mut rows := #[]
     for name in names do
@@ -356,11 +349,22 @@ def monotonicityLemmas : BlockCommandOf Unit
 
     dbg_trace "now there's {rows.size} rows"
 
-    let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
-    dbg_trace "tableStx created"
+    mkInlineTable rows (tag := "--monotonicity-lemma-table")
+
+elab "def_mono_entries" name:ident : command => do
+  elabCommand <| ← `(def $name := $(mkIdent (← runTermElabM <| fun _ => mkMonotonicityLemmas)))
+
+def_mono_entries x
+
+#check x
+
+@[block_command]
+def monotonicityLemmas : BlockCommandOf Unit
+  | () => do
+
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
     dbg_trace "extraCss created"
-    ``(Block.concat #[$extraCss, $tableStx])
+    ``(Block.concat #[$extraCss, x])
 where
   css := r#"
 table#--monotonicity-lemma-table {
