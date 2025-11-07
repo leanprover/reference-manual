@@ -350,7 +350,7 @@ def mkMonotonicityLemmas : TermElabM Name := do
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged''' none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
+              renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
             let n ← mkFreshUserName `monotonicity.hl
             addAndCompile <| .defnDecl {name := n, levelParams := [], type := mkConst ``Highlighted, value := toExpr hlCall, hints := .regular 0, safety := .safe}
 
