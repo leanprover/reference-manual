@@ -302,6 +302,14 @@ nonrec def renderTagged''' [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m
 where
   tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
 
+deriving instance ToExpr for Token.Kind
+deriving instance ToExpr for Token
+deriving instance ToExpr for Highlighted.Hypothesis
+deriving instance ToExpr for Goal
+deriving instance ToExpr for MessageContents
+deriving instance ToExpr for Span.Kind
+deriving instance ToExpr for Highlighted
+
 open Lean Elab Command Term
 def mkMonotonicityLemmas : TermElabM Name := do
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
@@ -343,7 +351,8 @@ def mkMonotonicityLemmas : TermElabM Name := do
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
               renderTagged''' none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
-            let hlCall := hlCall.simplifyInternals
+            let n ← mkFreshUserName `monotonicity.hl
+            addAndCompile <| .defnDecl {name := n, levelParams := [], type := mkConst ``Highlighted, value := toExpr hlCall, hints := .regular 0, safety := .safe}
 
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
