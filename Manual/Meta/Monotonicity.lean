@@ -110,6 +110,65 @@ open PrettyPrinter.Delaborator
 
 end delabhelpers
 
+inductive TokenState where
+  | start
+  | ws (pos : String.Iterator)
+  | alphaNum (pos : String.Iterator)
+  | other (pos : String.Iterator)
+
+nonrec def tokenize (s : String) (outer : Option Token.Kind) : Highlighted := Id.run do
+  let mut out := .empty
+  let mut state := TokenState.start
+  let mut iter := s.iter
+  while iter.hasNext do
+    let c := iter.curr
+    match state, c.isWhitespace, c.isAlphanum with
+    | .start, true, _ =>
+      state := .ws iter
+    | .start, false, true =>
+      state := .alphaNum iter
+    | .start, false, false =>
+      state := .other iter
+    | .ws _, true, _ =>
+      pure ()
+    | .ws pos, false, isA =>
+      out := out ++ .text (pos.extract iter)
+      state := if isA then .alphaNum iter else .other iter
+    | .alphaNum _, _, true =>
+      pure ()
+    | .alphaNum pos, isWs, false =>
+      let tok := pos.extract iter
+      if tok ∈ kws then
+        out := out ++ .token ⟨.keyword none none none, tok⟩
+      else
+        out := out ++ .token ⟨outer.getD .unknown, tok⟩
+      state := if isWs then .ws iter else .other iter
+    | .other pos, true, _ =>
+      out := out ++ .token ⟨outer.getD .unknown, pos.extract iter⟩
+      state := .ws iter
+    | .other pos, _, true =>
+      out := out ++ .token ⟨outer.getD .unknown, pos.extract iter⟩
+      state := .alphaNum iter
+    | .other .., _, _ =>
+      pure ()
+    iter := iter.next
+  match state with
+  | .start =>
+    out := out ++ .text s
+  | .ws pos =>
+    out := out ++ .text (pos.extract iter)
+  | .alphaNum pos =>
+    let tok := pos.extract iter
+    if tok ∈ kws then
+      out := out ++ .token ⟨.keyword none none none, tok⟩
+    else
+      out := out ++ .token ⟨outer.getD .unknown, tok⟩
+  | .other pos =>
+    let tok := pos.extract iter
+    out := out ++ .token ⟨outer.getD .unknown, tok⟩
+  return out
+where
+  kws := ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"]
 
 nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (outer : Option Token.Kind) (doc : Widget.CodeWithInfos) :
@@ -127,29 +186,7 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
       todo := todo'
       match d with
       | .text txt =>
-        let mut txt := txt
-        while !txt.isEmpty do
-          let ws := txt.takeWhile (·.isWhitespace)
-          unless ws.isEmpty do
-            out := out ++ .text ws
-            txt := txt.drop ws.length
-          let mut foundKw := false
-          for kw in ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"] do
-            if kw.isPrefixOf txt && tokenEnder (txt.drop kw.length) then
-              foundKw := true
-              out := out ++ .token ⟨.keyword none none none, kw⟩
-              txt := txt.drop kw.length
-              break
-          if foundKw then continue -- for whitespace or subsequent keywords
-
-          -- It's not enough to just push a text node when the token kind isn't set, because that breaks
-          -- the code that matches Highlighted against strings for extraction. Instead, we need to split
-          -- into tokens vs whitespace here. This assumes there's no comments, because it's used for
-          -- pretty printer output.
-          let tok := txt.takeWhile (!·.isWhitespace)
-          unless tok.isEmpty do
-            out := out ++ .token ⟨outer.getD .unknown, tok⟩
-            txt := txt.drop tok.length
+        out := out ++ tokenize txt outer
       | .tag t doc' =>
         let {ctx, info, children := _} := t.info.val
         if let .text tok := doc' then
@@ -161,11 +198,12 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
           todo := .inl doc' :: .inr outer :: todo
           outer ← infoKind ctx info
       | .append xs =>
-        --todo := xs.toList.map (.inl ·) ++ todo
-        pure ()
+        todo := xs.toList.map (.inl ·) ++ todo
+
   return out
 where
   tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
+
 
 @[block_command]
 def monotonicityLemmas : BlockCommandOf Unit
