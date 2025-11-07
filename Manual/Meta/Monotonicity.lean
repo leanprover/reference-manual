@@ -133,31 +133,32 @@ def monotonicityLemmas : BlockCommandOf Unit
       let nameStx ← `(Inline.other {Verso.Genre.Manual.InlineLean.Inline.name with data := ToJson.toJson $(quote hl)}
         #[Inline.code $(quote nameStr)])
 
-      let patternStx : TSyntax `term ← ``(Inline.text "test")
-        -- forallTelescope ci.type fun _ concl => do
-        --   unless concl.isAppOfArity ``Lean.Order.monotone 5 do
-        --     throwError "Unexpected conclusion of {name}"
-        --   let f := concl.appArg!
-        --   unless f.isLambda do
-        --     throwError "Unexpected conclusion of {name}"
-        --   lambdaBoundedTelescope f 1 fun x call => do
-        --     -- Monotone arguments are the free variables applied to `x`,
-        --     -- Other arguments the other
-        --     -- This is an ad-hoc transformation and may fail in cases more complex
-        --     -- than we need right now (e.g. binders in the goal).
-        --     let call' ← Meta.transform call (pre := fun e => do
-        --       if e.isApp && e.appFn!.isFVar && e.appArg! == x[0]! then
-        --         .done <$> mkAppM ``monoArg #[e]
-        --       else if e.isFVar then
-        --         .done <$> mkAppM ``otherArg #[e]
-        --       else
-        --         pure .continue)
+      let patternStx : TSyntax `term ←
+        forallTelescope ci.type fun _ concl => do
+          unless concl.isAppOfArity ``Lean.Order.monotone 5 do
+            throwError "Unexpected conclusion of {name}"
+          let f := concl.appArg!
+          unless f.isLambda do
+            throwError "Unexpected conclusion of {name}"
+          lambdaBoundedTelescope f 1 fun x call => do
+            -- Monotone arguments are the free variables applied to `x`,
+            -- Other arguments the other
+            -- This is an ad-hoc transformation and may fail in cases more complex
+            -- than we need right now (e.g. binders in the goal).
+            let call' ← Meta.transform call (pre := fun e => do
+              if e.isApp && e.appFn!.isFVar && e.appArg! == x[0]! then
+                .done <$> mkAppM ``monoArg #[e]
+              else if e.isFVar then
+                .done <$> mkAppM ``otherArg #[e]
+              else
+                pure .continue)
 
-        --     let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
-        --       let fmt ← Lean.Widget.ppExprTagged call'
-        --       renderTagged none fmt ⟨{}, false, false, []⟩
-        --     let fmt ← ppExpr call'
-        --     ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
+            -- let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
+            --   let fmt ← Lean.Widget.ppExprTagged call'
+            --   renderTagged none fmt ⟨{}, false, false, []⟩
+            let hlCall : Highlighted := .text "test"
+            let fmt ← ppExpr call'
+            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
       rows := rows.push #[nameStx, patternStx]
 
