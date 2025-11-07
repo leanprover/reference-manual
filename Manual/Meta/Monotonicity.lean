@@ -355,7 +355,7 @@ def mkMonotonicityLemmas : TermElabM Name := do
             addAndCompile <| .defnDecl {name := n, levelParams := [], type := mkConst ``Highlighted, value := toExpr hlCall, hints := .regular 0, safety := .safe}
 
             let fmt ← ppExpr call'
-            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
+            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(mkIdent n)) #[(Inline.code $(quote fmt.pretty))])
 
       rows := rows.push #[nameStx, patternStx]
 
