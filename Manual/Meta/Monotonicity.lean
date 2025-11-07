@@ -265,7 +265,7 @@ nonrec def tokenize (s : String) (outer : Option Token.Kind) : Highlighted := Id
 where
   kws := ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"]
 
-nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
+nonrec def renderTagged''' [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (outer : Option Token.Kind) (doc : Widget.CodeWithInfos) :
     ReaderT SubVerso.Highlighting.Context m Highlighted := do
   let mut out : Highlighted := .empty
@@ -281,7 +281,7 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
       todo := todo'
       match d with
       | .text txt =>
-        out := out ++ tokenize txt outer
+        out := out ++ .text txt --tokenize txt outer
       | .tag t doc' =>
         todo := .inl doc' :: todo
         let {ctx, info, children := _} := t.info.val
@@ -341,8 +341,8 @@ def mkMonotonicityLemmas : TermElabM Name := do
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              --renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
-              pure <| Highlighted.text fmt.pretty
+              renderTagged''' none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
+
 
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
