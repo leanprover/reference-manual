@@ -188,15 +188,16 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
       | .text txt =>
         out := out ++ .text txt --tokenize txt outer
       | .tag t doc' =>
-        let {ctx, info, children := _} := t.info.val
-        if let .text tok := doc' then
-          let wsPre := tok.takeWhile (·.isWhitespace)
-          let wsPost := tok.takeRightWhile (·.isWhitespace)
-          let k := (← infoKind ctx info).getD .unknown
-          out := out ++ .seq #[.text wsPre, .token ⟨k, tok.trim⟩, .text wsPost]
-        else
-          todo := .inl doc' :: .inr outer :: todo
-          outer ← infoKind ctx info
+        todo := .inl doc' :: todo
+        -- let {ctx, info, children := _} := t.info.val
+        -- if let .text tok := doc' then
+        --   let wsPre := tok.takeWhile (·.isWhitespace)
+        --   let wsPost := tok.takeRightWhile (·.isWhitespace)
+        --   let k := (← infoKind ctx info).getD .unknown
+        --   out := out ++ .seq #[.text wsPre, .token ⟨k, tok.trim⟩, .text wsPost]
+        -- else
+        --   todo := .inl doc' :: .inr outer :: todo
+        --   outer ← infoKind ctx info
       | .append xs =>
         todo := xs.toList.map (.inl ·) ++ todo
 
