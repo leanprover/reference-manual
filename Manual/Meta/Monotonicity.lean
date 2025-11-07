@@ -165,11 +165,12 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
       let sig ← ppSig name
       return some <| .const name sig docs false
     | Expr.sort _ =>
-      if let some stx := stx? then
-        let k := stx.getKind
-        let docs? ← findDocString? (← getEnv) k
-        return some (.sort docs?)
-      else return some (.sort none)
+      return none
+      -- if let some stx := stx? then
+      --   let k := stx.getKind
+      --   let docs? ← findDocString? (← getEnv) k
+      --   return some (.sort docs?)
+      -- else return some (.sort none)
     | Expr.lit (.strVal s) => return none --some <| .str s
     | Expr.mdata _ e => return none
       --findKind e
