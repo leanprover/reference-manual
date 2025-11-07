@@ -131,34 +131,34 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
   let rec findKind e := do
     match e with
     | Expr.fvar id =>
-      if let some y := (← read).ids[(← Compat.mkRefIdentFVar id)]? then return none
-        -- Compat.refIdentCase y
-        --   (onFVar := fun x => do
-        --     let tyStr ← runMeta do
-        --       try -- Needed for robustness in the face of tactics that create strange contexts
-        --         let ty ← instantiateMVars (← Meta.inferType expr)
-        --         ToString.toString <$> Meta.ppExpr ty
-        --       catch | _ => pure ""
-        --     if let some localDecl := lctx.find? x then
-        --       if localDecl.isAuxDecl then
-        --         let e ← runMeta <| Meta.ppExpr expr
-        --         -- FIXME the mkSimple is a bit of a kludge
-        --         return some <| .const (.mkSimple (toString e)) tyStr none false
-        --     return some <| .var x tyStr)
-        --   (onConst := fun x => do
-        --     -- This is a bit of a hack. The environment in the ContextInfo may not have some
-        --     -- helper constants from where blocks yet, so we retry in the final environment if the
-        --     -- first one fails.
-        --     let sig ← ppSig x <|> ppSig (env := (← getEnv)) x
-        --     let docs ← findDocString? (← getEnv) x
-        --     return some <| .const x sig docs false)
-      else
-        let tyStr ← runMeta do
-          try -- Needed for robustness in the face of tactics that create strange contexts
-            let ty ← instantiateMVars (← Meta.inferType expr)
-            ToString.toString <$> Meta.ppExpr ty
-          catch | _ => pure ""
-        return some <| .var id tyStr
+      if let some y := (← read).ids[(← Compat.mkRefIdentFVar id)]? then
+        Compat.refIdentCase y
+          (onFVar := fun x => do
+            let tyStr ← runMeta do
+              try -- Needed for robustness in the face of tactics that create strange contexts
+                let ty ← instantiateMVars (← Meta.inferType expr)
+                ToString.toString <$> Meta.ppExpr ty
+              catch | _ => pure ""
+            if let some localDecl := lctx.find? x then
+              if localDecl.isAuxDecl then
+                let e ← runMeta <| Meta.ppExpr expr
+                -- FIXME the mkSimple is a bit of a kludge
+                return some <| .const (.mkSimple (toString e)) tyStr none false
+            return some <| .var x tyStr)
+          (onConst := fun x => do
+            -- This is a bit of a hack. The environment in the ContextInfo may not have some
+            -- helper constants from where blocks yet, so we retry in the final environment if the
+            -- first one fails.
+            let sig ← ppSig x <|> ppSig (env := (← getEnv)) x
+            let docs ← findDocString? (← getEnv) x
+            return some <| .const x sig docs false)
+      else return none
+        -- let tyStr ← runMeta do
+        --   try -- Needed for robustness in the face of tactics that create strange contexts
+        --     let ty ← instantiateMVars (← Meta.inferType expr)
+        --     ToString.toString <$> Meta.ppExpr ty
+        --   catch | _ => pure ""
+        -- return some <| .var id tyStr
     | Expr.const name _ =>
       let docs ← findDocString? (← getEnv) name
       let sig ← ppSig name
