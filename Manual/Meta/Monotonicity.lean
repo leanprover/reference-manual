@@ -307,7 +307,7 @@ def mkMonotonicityLemmas : TermElabM Name := do
     let names := names.qsort (toString · < toString ·)
 
     let mut rows := #[]
-    for name in names[0:32] do
+    for name in names[0:32] ++ names[33:] do
       dbg_trace "making row for {name}"
       -- Extract the target pattern
       let ci ← getConstInfo name
