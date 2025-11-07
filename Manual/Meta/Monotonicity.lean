@@ -114,51 +114,55 @@ end delabhelpers
 partial def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (outer : Option Token.Kind) (doc : Widget.CodeWithInfos) :
     ReaderT SubVerso.Highlighting.Context m Highlighted := do
-  match doc with
-  | .text txt => do
-    let mut todo := txt
-    let mut toks : Highlighted := .empty
-    while !todo.isEmpty do
-      let ws := todo.takeWhile (·.isWhitespace)
-      unless ws.isEmpty do
-        toks := toks ++ .text ws
-        todo := todo.drop ws.length
+  let mut out : Highlighted := .empty
+  let mut todo : List (Widget.CodeWithInfos ⊕ Option Token.Kind):= [.inl doc]
+  let mut outer := outer
+  repeat
+    match todo with
+    | [] => return out
+    | .inr outer' :: todo' =>
+      todo := todo'
+      outer := outer'
+    | .inl d :: todo' =>
+      todo := todo'
+      match d with
+      | .text txt =>
+        let mut txt := txt
+        while !txt.isEmpty do
+          let ws := txt.takeWhile (·.isWhitespace)
+          unless ws.isEmpty do
+            out := out ++ .text ws
+            txt := txt.drop ws.length
+          let mut foundKw := false
+          for kw in ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"] do
+            if kw.isPrefixOf txt && tokenEnder (txt.drop kw.length) then
+              foundKw := true
+              out := out ++ .token ⟨.keyword none none none, kw⟩
+              txt := txt.drop kw.length
+              break
+          if foundKw then continue -- for whitespace or subsequent keywords
 
-      let mut foundKw := false
-      for kw in ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"] do
-        if kw.isPrefixOf todo && tokenEnder (todo.drop kw.length) then
-          foundKw := true
-          toks := toks ++ .token ⟨.keyword none none none, kw⟩
-          todo := todo.drop kw.length
-          break
-      if foundKw then continue -- for whitespace or subsequent keywords
-
-      -- It's not enough to just push a text node when the token kind isn't set, because that breaks
-      -- the code that matches Highlighted against strings for extraction. Instead, we need to split
-      -- into tokens vs whitespace here. This assumes there's no comments, because it's used for
-      -- pretty printer output.
-      let tok := todo.takeWhile (!·.isWhitespace)
-      unless tok.isEmpty do
-        toks := toks ++ .token ⟨outer.getD .unknown, tok⟩
-        todo := todo.drop tok.length
-
-    pure toks
-  | .tag t doc' =>
-    let {ctx, info, children := _} := t.info.val
-    if let .text tok := doc' then
-      let wsPre := tok.takeWhile (·.isWhitespace)
-      let wsPost := tok.takeRightWhile (·.isWhitespace)
-      let k := (← infoKind ctx info).getD .unknown
-      pure <| .seq #[.text wsPre, .token ⟨k, tok.trim⟩, .text wsPost]
-    else
-      let k? ← infoKind ctx info
-      renderTagged k? doc'
-  | .append xs =>
-    let mut out := Highlighted.empty
-    for x in xs do
-      out := out ++ (← renderTagged outer x)
-    return out
-
+          -- It's not enough to just push a text node when the token kind isn't set, because that breaks
+          -- the code that matches Highlighted against strings for extraction. Instead, we need to split
+          -- into tokens vs whitespace here. This assumes there's no comments, because it's used for
+          -- pretty printer output.
+          let tok := txt.takeWhile (!·.isWhitespace)
+          unless tok.isEmpty do
+            out := out ++ .token ⟨outer.getD .unknown, tok⟩
+            txt := txt.drop tok.length
+      | .tag t doc' =>
+        let {ctx, info, children := _} := t.info.val
+        if let .text tok := doc' then
+          let wsPre := tok.takeWhile (·.isWhitespace)
+          let wsPost := tok.takeRightWhile (·.isWhitespace)
+          let k := (← infoKind ctx info).getD .unknown
+          out := out ++ .seq #[.text wsPre, .token ⟨k, tok.trim⟩, .text wsPost]
+        else
+          todo := .inl doc' :: .inr outer :: todo
+          outer ← infoKind ctx info
+      | .append xs =>
+        todo := xs.toList.map (.inl ·) ++ todo
+  return out
 where
   tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
 
