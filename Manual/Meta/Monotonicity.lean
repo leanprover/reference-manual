@@ -188,7 +188,7 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
       -- else
       --   return none
 
-  findKind (← instantiateMVars expr)
+  findKind expr --(← instantiateMVars expr)
 
 def termInfoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (ci : ContextInfo) (termInfo : TermInfo) (allowUnknownTyped : Bool := false) :
