@@ -281,7 +281,7 @@ nonrec def renderTagged''' [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m
       todo := todo'
       match d with
       | .text txt =>
-        --out := out ++ .text txt --tokenize txt outer
+        out := out ++ .text txt --tokenize txt outer
         pure ()
       | .tag t doc' =>
         todo := .inl doc' :: todo
@@ -343,7 +343,7 @@ def mkMonotonicityLemmas : TermElabM Name := do
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
               renderTagged''' none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
-
+            let hlCall := hlCall.simplifyInternals
 
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
