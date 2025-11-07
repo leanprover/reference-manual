@@ -160,9 +160,10 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
           catch | _ => pure ""
         return some <| .var id tyStr
     | Expr.const name _ =>
-      let docs ← findDocString? (← getEnv) name
-      let sig ← ppSig name
-      return some <| .const name sig docs false
+      -- let docs ← findDocString? (← getEnv) name
+      -- let sig ← ppSig name
+      -- return some <| .const name sig docs false
+      return none
     | Expr.sort _ =>
       if let some stx := stx? then
         let k := stx.getKind
