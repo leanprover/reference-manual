@@ -190,15 +190,14 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
       | .tag t doc' =>
         todo := .inl doc' :: todo
         let {ctx, info, children := _} := t.info.val
-        dbg_trace "Found: {← info.format ctx}"
-        -- if let .text tok := doc' then
-        --   let wsPre := tok.takeWhile (·.isWhitespace)
-        --   let wsPost := tok.takeRightWhile (·.isWhitespace)
-        --   let k := (← infoKind ctx info).getD .unknown
-        --   out := out ++ .seq #[.text wsPre, .token ⟨k, tok.trim⟩, .text wsPost]
-        -- else
-        --   todo := .inl doc' :: .inr outer :: todo
-        --   outer ← infoKind ctx info
+        if let .text tok := doc' then
+          out := out ++ .text (tok.takeWhile (·.isWhitespace))
+          let k := (← infoKind ctx info).getD .unknown
+          out := out ++ .token ⟨k, tok.trim⟩
+          out := out ++ .text (tok.takeRightWhile (·.isWhitespace))
+        else
+          todo := .inl doc' :: .inr outer :: todo
+          outer ← infoKind ctx info
       | .append xs =>
         todo := xs.toList.map (.inl ·) ++ todo
 
@@ -250,7 +249,7 @@ def monotonicityLemmas : BlockCommandOf Unit
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged none fmt ⟨{}, false, false, []⟩
+              renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
 
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
