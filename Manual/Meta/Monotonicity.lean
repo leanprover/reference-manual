@@ -111,7 +111,7 @@ open PrettyPrinter.Delaborator
 end delabhelpers
 
 
-partial def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
+nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (outer : Option Token.Kind) (doc : Widget.CodeWithInfos) :
     ReaderT SubVerso.Highlighting.Context m Highlighted := do
   let mut out : Highlighted := .empty
@@ -161,7 +161,8 @@ partial def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] 
           todo := .inl doc' :: .inr outer :: todo
           outer ← infoKind ctx info
       | .append xs =>
-        todo := xs.toList.map (.inl ·) ++ todo
+        --todo := xs.toList.map (.inl ·) ++ todo
+        pure ()
   return out
 where
   tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
