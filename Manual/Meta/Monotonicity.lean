@@ -281,7 +281,8 @@ nonrec def renderTagged''' [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m
       todo := todo'
       match d with
       | .text txt =>
-        out := out ++ .text txt --tokenize txt outer
+        --out := out ++ .text txt --tokenize txt outer
+        pure ()
       | .tag t doc' =>
         todo := .inl doc' :: todo
         let {ctx, info, children := _} := t.info.val
