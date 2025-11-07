@@ -110,6 +110,106 @@ open PrettyPrinter.Delaborator
 
 end delabhelpers
 
+section debug
+open SubVerso
+
+/--
+Finds the appropriate token kind for a token whose meaning is the expression `expr`.
+-/
+def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative m]
+    (ci : ContextInfo) (lctx : LocalContext) (stx? : Option Syntax) (expr : Expr)
+    (allowUnknownTyped : Bool := false) :
+    ReaderT Highlighting.Context m (Option Token.Kind) := do
+  let runMeta {α} (act : MetaM α) (env := ci.env) (lctx := lctx) : m α := {ci with env := env}.runMetaM lctx act
+  -- Print the signature in an empty local context to avoid local auxiliary definitions from
+  -- elaboration, which may otherwise shadow in recursive occurrences, leading to spurious `_root_.`
+  -- qualifiers
+  let ppSig (x : Name) (env := ci.env) : ReaderT Highlighting.Context m String := do
+    let sig ← runMeta (env := env) (lctx := {}) (PrettyPrinter.ppSignature x)
+    return toString (← stripNamespaces sig)
+
+  let rec findKind e := do
+    match e with
+    | Expr.fvar id =>
+      if let some y := (← read).ids[(← Compat.mkRefIdentFVar id)]? then
+        Compat.refIdentCase y
+          (onFVar := fun x => do
+            let tyStr ← runMeta do
+              try -- Needed for robustness in the face of tactics that create strange contexts
+                let ty ← instantiateMVars (← Meta.inferType expr)
+                ToString.toString <$> Meta.ppExpr ty
+              catch | _ => pure ""
+            if let some localDecl := lctx.find? x then
+              if localDecl.isAuxDecl then
+                let e ← runMeta <| Meta.ppExpr expr
+                -- FIXME the mkSimple is a bit of a kludge
+                return some <| .const (.mkSimple (toString e)) tyStr none false
+            return some <| .var x tyStr)
+          (onConst := fun x => do
+            -- This is a bit of a hack. The environment in the ContextInfo may not have some
+            -- helper constants from where blocks yet, so we retry in the final environment if the
+            -- first one fails.
+            let sig ← ppSig x <|> ppSig (env := (← getEnv)) x
+            let docs ← findDocString? (← getEnv) x
+            return some <| .const x sig docs false)
+      else
+        let tyStr ← runMeta do
+          try -- Needed for robustness in the face of tactics that create strange contexts
+            let ty ← instantiateMVars (← Meta.inferType expr)
+            ToString.toString <$> Meta.ppExpr ty
+          catch | _ => pure ""
+        return some <| .var id tyStr
+    | Expr.const name _ =>
+      let docs ← findDocString? (← getEnv) name
+      let sig ← ppSig name
+      return some <| .const name sig docs false
+    | Expr.sort _ =>
+      if let some stx := stx? then
+        let k := stx.getKind
+        let docs? ← findDocString? (← getEnv) k
+        return some (.sort docs?)
+      else return some (.sort none)
+    | Expr.lit (.strVal s) => return some <| .str s
+    | Expr.mdata _ e =>
+      findKind e
+    | other =>
+      if allowUnknownTyped then
+        runMeta do
+          try
+            let t ← Meta.inferType other >>= instantiateMVars >>= Meta.ppExpr
+            return some <| .withType <| toString t
+          catch _ =>
+            return none
+      else
+        return none
+
+  findKind (← instantiateMVars expr)
+
+def termInfoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
+    (ci : ContextInfo) (termInfo : TermInfo) (allowUnknownTyped : Bool := false) :
+    ReaderT Highlighting.Context m (Option Token.Kind) := do
+  exprKind ci termInfo.lctx termInfo.stx termInfo.expr (allowUnknownTyped := allowUnknownTyped)
+
+def infoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
+    (ci : ContextInfo) (info : Info) (allowUnknownTyped : Bool := false) :
+    ReaderT Highlighting.Context m (Option Token.Kind) := do
+  match info with
+    | .ofTermInfo termInfo => termInfoKind ci termInfo (allowUnknownTyped := allowUnknownTyped)
+    | .ofFieldInfo fieldInfo => some <$> fieldInfoKind ci fieldInfo
+    | .ofOptionInfo oi =>
+      let doc := (← getOptionDecls).find? oi.optionName |>.map (·.descr)
+      pure <| some <| .option oi.optionName oi.declName doc
+    | .ofCompletionInfo _ => pure none
+    | .ofTacticInfo _ => pure none
+    | .ofCommandInfo _ => pure none
+    | .ofMacroExpansionInfo _ => pure none
+    | .ofUserWidgetInfo _ => pure none
+    | _ =>
+      pure none
+
+
+end debug
+
 inductive TokenState where
   | start
   | ws (pos : String.Iterator)
@@ -192,7 +292,7 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
         let {ctx, info, children := _} := t.info.val
         if let .text tok := doc' then
           out := out ++ .text (tok.takeWhile (·.isWhitespace))
-          let k := .unknown --(← infoKind ctx info).getD .unknown
+          let k := (← infoKind ctx info).getD .unknown
           out := out ++ .token ⟨k, tok.trim⟩
           out := out ++ .text (tok.takeRightWhile (·.isWhitespace))
         else
