@@ -307,8 +307,8 @@ def mkMonotonicityLemmas : TermElabM Name := do
     let names := names.qsort (toString · < toString ·)
 
     let mut rows := #[]
-    dbg_trace names[32]!
-    for name in names[0:32]  do
+
+    for name in names do
       dbg_trace "making row for {name}"
       -- Extract the target pattern
       let ci ← getConstInfo name
@@ -341,7 +341,8 @@ def mkMonotonicityLemmas : TermElabM Name := do
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
+              --renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
+              pure <| Highlighted.text fmt.pretty
 
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
