@@ -23,7 +23,7 @@ set_option maxRecDepth 1024
 set_option maxHeartbeats 650_000
 
 /-- Classes that are part of the manual, not to be shown -/
-private def hiddenDerivable : Array Name := #[``Manual.Toml.Test]
+private def hiddenDerivable : Array Name := #[``Manual.Toml.Test, ``Plausible.Arbitrary]
 
 private def derivableClasses : IO (Array Name) := do
   let handlers ← derivingHandlersRef.get

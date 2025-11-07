@@ -1178,7 +1178,7 @@ syntax (name := rep) "[" num " !!! " term "]" : term
 @[macro rep]
 def expandRep : Macro
   | `([ $n:num !!! $e:term]) =>
-    let e' := Array.mkArray n.getNat e
+    let e' := Array.replicate n.getNat e
     `([$e',*])
   | _ =>
     throwUnsupported

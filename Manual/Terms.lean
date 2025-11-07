@@ -977,7 +977,8 @@ structure NatInterval where
 
 instance : Add NatInterval where
   add
-    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ => ⟨lo1 + lo2, hi1 + hi2, by omega⟩
+    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ =>
+      ⟨lo1 + lo2, hi1 + hi2, by grind⟩
 ```
 
 An {name}`OfNat` instance allows natural number literals to be used to represent intervals:
@@ -1410,7 +1411,8 @@ def ggg : OnlyThreeOrFive → Nat
 
 /--
 error: Missing cases:
-(OnlyThreeOrFive.mk _ true _)
+(OnlyThreeOrFive.mk _ true (Or.inr Eq.refl))
+(OnlyThreeOrFive.mk _ true (Or.inl Eq.refl))
 -/
 #check_msgs in
 def hhh : OnlyThreeOrFive → Nat

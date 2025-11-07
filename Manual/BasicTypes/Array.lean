@@ -17,6 +17,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 500000
 
 example := Char
 
@@ -330,6 +331,8 @@ tag := "array-api"
 {docstring Array.binSearch}
 
 {docstring Array.binSearchContains}
+
+
 
 ## Iteration
 

@@ -313,7 +313,7 @@ declare_syntax_cat syntax_sep
 open Lean Elab Command in
 run_cmd do
   for i in [5:40] do
-    let sep := Syntax.mkStrLit <| String.mk (List.replicate i '*')
+    let sep := Syntax.mkStrLit <| String.ofList (List.replicate i '*')
     let cmd ← `(scoped syntax (name := $(mkIdent s!"sep{i}".toName)) $sep:str : syntax_sep)
     elabCommand cmd
   pure ()
@@ -646,7 +646,7 @@ def keywordParsers : List (Name × String) :=
   [(``«private», "private"), (``«protected», "protected"), (``«partial», "partial"), (``«nonrec», "nonrec")]
 
 open StateT (lift) in
-partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
+partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
   | .atom info str => infoWrap info <$> lift (tag GrammarTag.keyword str)
   | .missing => lift <| tag GrammarTag.error "<missing>"
