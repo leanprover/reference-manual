@@ -183,3 +183,30 @@ Therefore we can be careful on both sides:
 - overlays should, ideally, as time goes on, only monotonically
 produce more data, e.g. it should only add fields to injected javascript values and avoid changing the contract of existing fields.
 - documents should, ideally, fail gracefully if injected data they expect to exist is missing
+
+### Local Testing
+
+To test `overlay.py` locally before pushing, do the following.
+- Ensure branches `deploy` and `postdeploy` exist locally.
+- You'll probably want to do
+```
+git fetch
+git checkout deploy
+git reset --hard remotes/upstream/deploy
+git checkout postdeploy
+git reset --hard remotes/upstream/postdeploy
+```
+- From the `reference-manual` checkout directory, on branch `main`, from a clean
+working directory (i.e. make sure to commit any changes you've made) run
+```shell
+python3 -B deploy/overlay.py . deploy postdeploy
+```
+- Inspect whatever `postdeploy` results you're interested in, e.g.
+```
+git show postdeploy:4.25.0-rc2/Type-Classes/Basic-Classes/index.html
+# Expect to see <meta name="robots" content="noindex">
+```
+```
+git show postdeploy:latest/Type-Classes/Basic-Classes/index.html
+# Expect to *not* see <meta name="robots" content="noindex">
+```
