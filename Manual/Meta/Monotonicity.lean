@@ -9,6 +9,7 @@ import Verso
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
+import Manual.Meta.Instances
 
 open scoped Lean.Doc.Syntax
 
@@ -108,207 +109,6 @@ open PrettyPrinter.Delaborator
 
 end delabhelpers
 
-section debug
-open SubVerso
-
-/--
-Finds the appropriate token kind for a token whose meaning is the expression `expr`.
--/
-def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative m]
-    (ci : ContextInfo) (lctx : LocalContext) (stx? : Option Syntax) (expr : Expr)
-    (allowUnknownTyped : Bool := false) :
-    ReaderT Highlighting.Context m (Option Token.Kind) := do
-  let runMeta {α} (act : MetaM α) (env := ci.env) (lctx := lctx) : m α := {ci with env := env}.runMetaM lctx act
-  -- Print the signature in an empty local context to avoid local auxiliary definitions from
-  -- elaboration, which may otherwise shadow in recursive occurrences, leading to spurious `_root_.`
-  -- qualifiers
-  let ppSig (x : Name) (env := ci.env) : ReaderT Highlighting.Context m String := do
-    -- let sig ← runMeta (env := env) (lctx := {}) (PrettyPrinter.ppSignature x)
-    -- return toString (← stripNamespaces sig)
-    return "sig"
-
-  let rec findKind e := do
-    match e with
-    | Expr.fvar id =>
-      return none
-      -- if let some y := (← read).ids[(← Compat.mkRefIdentFVar id)]? then
-      --   Compat.refIdentCase y
-      --     (onFVar := fun x => do
-      --       let tyStr ← runMeta do
-      --         try -- Needed for robustness in the face of tactics that create strange contexts
-      --           let ty ← instantiateMVars (← Meta.inferType expr)
-      --           ToString.toString <$> Meta.ppExpr ty
-      --         catch | _ => pure ""
-      --       if let some localDecl := lctx.find? x then
-      --         if localDecl.isAuxDecl then
-      --           let e ← runMeta <| Meta.ppExpr expr
-      --           -- FIXME the mkSimple is a bit of a kludge
-      --           return some <| .const (.mkSimple (toString e)) tyStr none false
-      --       return some <| .var x tyStr)
-      --     (onConst := fun x => do
-      --       -- This is a bit of a hack. The environment in the ContextInfo may not have some
-      --       -- helper constants from where blocks yet, so we retry in the final environment if the
-      --       -- first one fails.
-      --       let sig ← ppSig x <|> ppSig (env := (← getEnv)) x
-      --       let docs ← findDocString? (← getEnv) x
-      --       return some <| .const x sig docs false)
-      -- else
-      --   let tyStr ← runMeta do
-      --     try -- Needed for robustness in the face of tactics that create strange contexts
-      --       let ty ← instantiateMVars (← Meta.inferType expr)
-      --       ToString.toString <$> Meta.ppExpr ty
-      --     catch | _ => pure ""
-      --   return some <| .var id tyStr
-    | Expr.const name _ =>
-      return none
-      -- let docs ← findDocString? (← getEnv) name
-      -- let sig ← ppSig name
-      -- return some <| .const name sig docs false
-    | Expr.sort _ =>
-      return none
-      -- if let some stx := stx? then
-      --   let k := stx.getKind
-      --   let docs? ← findDocString? (← getEnv) k
-      --   return some (.sort docs?)
-      -- else return some (.sort none)
-    | Expr.lit (.strVal s) => return none --some <| .str s
-    | Expr.mdata _ e => return none
-      --findKind e
-    | other =>
-      return none
-      -- if allowUnknownTyped then
-      --   runMeta do
-      --     try
-      --       let t ← Meta.inferType other >>= instantiateMVars >>= Meta.ppExpr
-      --       return some <| .withType <| toString t
-      --     catch _ =>
-      --       return none
-      -- else
-      --   return none
-
-  findKind expr --(← instantiateMVars expr)
-
-def termInfoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
-    (ci : ContextInfo) (termInfo : TermInfo) (allowUnknownTyped : Bool := false) :
-    ReaderT Highlighting.Context m (Option Token.Kind) := do
-  exprKind ci termInfo.lctx termInfo.stx termInfo.expr (allowUnknownTyped := allowUnknownTyped)
-
-def infoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
-    (ci : ContextInfo) (info : Info) (allowUnknownTyped : Bool := false) :
-    ReaderT Highlighting.Context m (Option Token.Kind) := do
-  return none
-  -- match info with
-  --   | .ofTermInfo termInfo => termInfoKind ci termInfo (allowUnknownTyped := allowUnknownTyped)
-  --   | _ =>
-  --     pure none
-
-
-end debug
-
-inductive TokenState where
-  | start
-  | ws (pos : String.Iterator)
-  | alphaNum (pos : String.Iterator)
-  | other (pos : String.Iterator)
-
-nonrec def tokenize (s : String) (outer : Option Token.Kind) : Highlighted := Id.run do
-  let mut out := .empty
-  let mut state := TokenState.start
-  let mut iter := s.iter
-  while iter.hasNext do
-    let c := iter.curr
-    match state, c.isWhitespace, c.isAlphanum with
-    | .start, true, _ =>
-      state := .ws iter
-    | .start, false, true =>
-      state := .alphaNum iter
-    | .start, false, false =>
-      state := .other iter
-    | .ws _, true, _ =>
-      pure ()
-    | .ws pos, false, isA =>
-      out := out ++ .text (pos.extract iter)
-      state := if isA then .alphaNum iter else .other iter
-    | .alphaNum _, _, true =>
-      pure ()
-    | .alphaNum pos, isWs, false =>
-      let tok := pos.extract iter
-      if tok ∈ kws then
-        out := out ++ .token ⟨.keyword none none none, tok⟩
-      else
-        out := out ++ .token ⟨outer.getD .unknown, tok⟩
-      state := if isWs then .ws iter else .other iter
-    | .other pos, true, _ =>
-      out := out ++ .token ⟨outer.getD .unknown, pos.extract iter⟩
-      state := .ws iter
-    | .other pos, _, true =>
-      out := out ++ .token ⟨outer.getD .unknown, pos.extract iter⟩
-      state := .alphaNum iter
-    | .other .., _, _ =>
-      pure ()
-    iter := iter.next
-  match state with
-  | .start =>
-    out := out ++ .text s
-  | .ws pos =>
-    out := out ++ .text (pos.extract iter)
-  | .alphaNum pos =>
-    let tok := pos.extract iter
-    if tok ∈ kws then
-      out := out ++ .token ⟨.keyword none none none, tok⟩
-    else
-      out := out ++ .token ⟨outer.getD .unknown, tok⟩
-  | .other pos =>
-    let tok := pos.extract iter
-    out := out ++ .token ⟨outer.getD .unknown, tok⟩
-  return out
-where
-  kws := ["let", "fun", "do", "match", "with", "if", "then", "else", "break", "continue", "for", "in", "mut"]
-
-nonrec def renderTagged''' [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
-    (outer : Option Token.Kind) (doc : Widget.CodeWithInfos) :
-    ReaderT SubVerso.Highlighting.Context m Highlighted := do
-  let mut out : Highlighted := .empty
-  let mut todo : List (Widget.CodeWithInfos ⊕ Option Token.Kind):= [.inl doc]
-  let mut outer := outer
-  repeat
-    match todo with
-    | [] => return out
-    | .inr outer' :: todo' =>
-      todo := todo'
-      outer := outer'
-    | .inl d :: todo' =>
-      todo := todo'
-      match d with
-      | .text txt =>
-        out := out ++ .text txt --tokenize txt outer
-        pure ()
-      | .tag t doc' =>
-        todo := .inl doc' :: todo
-        let {ctx, info, children := _} := t.info.val
-        if let .text tok := doc' then
-          out := out ++ .text (tok.takeWhile (·.isWhitespace))
-          let k := .unknown --(← infoKind ctx info).getD .unknown
-          out := out ++ .token ⟨k, tok.trim⟩
-          out := out ++ .text (tok.takeRightWhile (·.isWhitespace))
-        else
-          todo := .inl doc' :: .inr outer :: todo
-          --outer ← infoKind ctx info
-          outer := none
-      | .append xs =>
-        todo := xs.toList.map (.inl ·) ++ todo
-
-  return out
-where
-  tokenEnder str := str.isEmpty || !(SubVerso.Compat.String.Pos.get str 0 |>.isAlphanum)
-
-deriving instance ToExpr for Token.Kind
-deriving instance ToExpr for Token
-deriving instance ToExpr for Highlighted.Hypothesis
-deriving instance ToExpr for Goal
-deriving instance ToExpr for MessageContents
-deriving instance ToExpr for Span.Kind
-deriving instance ToExpr for Highlighted
 
 open Lean Elab Command Term
 def mkMonotonicityLemmas : TermElabM Name := do
@@ -318,7 +118,6 @@ def mkMonotonicityLemmas : TermElabM Name := do
     let mut rows := #[]
 
     for name in names do
-      dbg_trace "making row for {name}"
       -- Extract the target pattern
       let ci ← getConstInfo name
 
@@ -359,16 +158,12 @@ def mkMonotonicityLemmas : TermElabM Name := do
 
       rows := rows.push #[nameStx, patternStx]
 
-    dbg_trace "now there's {rows.size} rows"
-
     mkInlineTable rows (tag := "--monotonicity-lemma-table")
 
-elab "def_mono_entries" name:ident : command => do
-  elabCommand <| ← `(def $name := $(mkIdent (← runTermElabM <| fun _ => mkMonotonicityLemmas)))
 
-def_mono_entries x
+run_cmd do
+  elabCommand <| ← `(def $(mkIdent `monoTable) := $(mkIdent (← runTermElabM <| fun _ => mkMonotonicityLemmas)))
 
-#check x
 
 @[block_command]
 def monotonicityLemmas : BlockCommandOf Unit
@@ -376,7 +171,7 @@ def monotonicityLemmas : BlockCommandOf Unit
 
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
     dbg_trace "extraCss created"
-    ``(Block.concat #[$extraCss, x])
+    ``(Block.concat #[$extraCss, monoTable])
 where
   css := r#"
 table#--monotonicity-lemma-table {
