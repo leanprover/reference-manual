@@ -153,10 +153,11 @@ def monotonicityLemmas : BlockCommandOf Unit
               else
                 pure .continue)
 
-            -- let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
-            --   let fmt ← Lean.Widget.ppExprTagged call'
-            --   renderTagged none fmt ⟨{}, false, false, []⟩
-            let hlCall : Highlighted := .text "test"
+            let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
+              -- let fmt ← Lean.Widget.ppExprTagged call'
+              pure <| Highlighted.text (toString call')
+              --renderTagged none fmt ⟨{}, false, false, []⟩
+
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
