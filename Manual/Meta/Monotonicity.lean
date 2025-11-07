@@ -189,7 +189,8 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
         out := out ++ .text txt --tokenize txt outer
       | .tag t doc' =>
         todo := .inl doc' :: todo
-        -- let {ctx, info, children := _} := t.info.val
+        let {ctx, info, children := _} := t.info.val
+        dbg_trace "Found: {← info.format ctx}"
         -- if let .text tok := doc' then
         --   let wsPre := tok.takeWhile (·.isWhitespace)
         --   let wsPost := tok.takeRightWhile (·.isWhitespace)
