@@ -198,10 +198,11 @@ def termInfoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFi
 def infoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMap m] [Alternative m]
     (ci : ContextInfo) (info : Info) (allowUnknownTyped : Bool := false) :
     ReaderT Highlighting.Context m (Option Token.Kind) := do
-  match info with
-    | .ofTermInfo termInfo => termInfoKind ci termInfo (allowUnknownTyped := allowUnknownTyped)
-    | _ =>
-      pure none
+  return none
+  -- match info with
+  --   | .ofTermInfo termInfo => termInfoKind ci termInfo (allowUnknownTyped := allowUnknownTyped)
+  --   | _ =>
+  --     pure none
 
 
 end debug
