@@ -116,7 +116,8 @@ def monotonicityLemmas : BlockCommandOf Unit
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
-    let rows : Array (Array Term) ← names.mapM fun name => do
+    let mut rows := #[]
+    for name in names do
       -- Extract the target pattern
       let ci ← getConstInfo name
 
@@ -152,7 +153,8 @@ def monotonicityLemmas : BlockCommandOf Unit
             let fmt ← ppExpr call'
             ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
 
-      pure #[nameStx, patternStx]
+      rows := rows.push #[nameStx, patternStx]
+
     let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
     ``(Block.concat #[$extraCss, $tableStx])
