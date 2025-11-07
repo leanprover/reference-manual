@@ -23,7 +23,7 @@ set_option maxRecDepth 1024
 set_option maxHeartbeats 650_000
 
 /-- Classes that are part of the manual, not to be shown -/
-private def hiddenDerivable : Array Name := #[``Manual.Toml.Test]
+private def hiddenDerivable : Array Name := #[``Manual.Toml.Test, ``Plausible.Arbitrary]
 
 private def derivableClasses : IO (Array Name) := do
   let handlers ← derivingHandlersRef.get
@@ -54,7 +54,7 @@ private def checkDerivable (expected : Array Name) : CommandElabM Unit := do
 end
 
 
-#eval checkDerivable #[``BEq, ``DecidableEq, ``Hashable, ``Inhabited, ``Nonempty, ``Ord, ``Repr, ``SizeOf, ``TypeName, ``LawfulBEq, ``ReflBEq, ``Plausible.Arbitrary]
+#eval checkDerivable #[``BEq, ``DecidableEq, ``Hashable, ``Inhabited, ``Nonempty, ``Ord, ``Repr, ``SizeOf, ``TypeName, ``LawfulBEq, ``ReflBEq]
 
 open Verso Doc Elab ArgParse in
 open Lean in
