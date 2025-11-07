@@ -170,7 +170,7 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
         let docs? ← findDocString? (← getEnv) k
         return some (.sort docs?)
       else return some (.sort none)
-    | Expr.lit (.strVal s) => return some <| .str s
+    | Expr.lit (.strVal s) => return none --some <| .str s
     | Expr.mdata _ e =>
       findKind e
     | other =>
