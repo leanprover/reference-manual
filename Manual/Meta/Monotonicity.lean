@@ -151,10 +151,11 @@ def mkMonotonicityLemmas : TermElabM Name := do
               let fmt ← Lean.Widget.ppExprTagged call'
               renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
             let n ← mkFreshUserName `monotonicity.hl
+
+            -- This used to be a call to quote in the next quasiquotation, but that led to stack overflows in CI (but not locally)
             addAndCompile <| .defnDecl {name := n, levelParams := [], type := mkConst ``Highlighted, value := toExpr hlCall, hints := .regular 0, safety := .safe}
 
-            let fmt ← ppExpr call'
-            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(mkIdent n)) #[(Inline.code $(quote fmt.pretty))])
+            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(mkIdent n)) #[(Inline.code $(quote hlCall.toString))])
 
       rows := rows.push #[nameStx, patternStx]
 
