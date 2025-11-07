@@ -113,11 +113,15 @@ end delabhelpers
 @[block_command]
 def monotonicityLemmas : BlockCommandOf Unit
   | () => do
+    dbg_trace "elaborating lemma list"
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
+    dbg_trace "got {names.size} names"
     let names := names.qsort (toString · < toString ·)
+    dbg_trace "sorted names"
 
     let mut rows := #[]
     for name in names do
+      dbg_trace "making row for {name}"
       -- Extract the target pattern
       let ci ← getConstInfo name
 
@@ -155,8 +159,12 @@ def monotonicityLemmas : BlockCommandOf Unit
 
       rows := rows.push #[nameStx, patternStx]
 
+    dbg_trace "now there's {rows.size} rows"
+
     let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
+    dbg_trace "tableStx created"
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
+    dbg_trace "extraCss created"
     ``(Block.concat #[$extraCss, $tableStx])
 where
   css := r#"
