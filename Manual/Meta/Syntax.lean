@@ -646,7 +646,7 @@ def keywordParsers : List (Name × String) :=
   [(``«private», "private"), (``«protected», "protected"), (``«partial», "partial"), (``«nonrec», "nonrec")]
 
 open StateT (lift) in
-partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
+partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
   | .atom info str => infoWrap info <$> lift (tag GrammarTag.keyword str)
   | .missing => lift <| tag GrammarTag.error "<missing>"
