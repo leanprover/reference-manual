@@ -197,7 +197,7 @@ nonrec def renderTagged [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [
           out := out ++ .text (tok.takeRightWhile (·.isWhitespace))
         else
           todo := .inl doc' :: .inr outer :: todo
-          outer ← infoKind ctx info
+          --outer ← infoKind ctx info
       | .append xs =>
         todo := xs.toList.map (.inl ·) ++ todo
 
