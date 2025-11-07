@@ -195,15 +195,6 @@ def infoKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [MonadFileMa
     ReaderT Highlighting.Context m (Option Token.Kind) := do
   match info with
     | .ofTermInfo termInfo => termInfoKind ci termInfo (allowUnknownTyped := allowUnknownTyped)
-    | .ofFieldInfo fieldInfo => some <$> fieldInfoKind ci fieldInfo
-    | .ofOptionInfo oi =>
-      let doc := (← getOptionDecls).find? oi.optionName |>.map (·.descr)
-      pure <| some <| .option oi.optionName oi.declName doc
-    | .ofCompletionInfo _ => pure none
-    | .ofTacticInfo _ => pure none
-    | .ofCommandInfo _ => pure none
-    | .ofMacroExpansionInfo _ => pure none
-    | .ofUserWidgetInfo _ => pure none
     | _ =>
       pure none
 
