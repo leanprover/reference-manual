@@ -39,8 +39,6 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
       #[ ← ``(Inline.text "Theorem"), ← ``(Inline.text "Pattern") ] ++
       rows.flatten
 
-    dbg_trace blocks.size
-
     -- The new compiler has a stack overflow when compiling the table unless we split it up. This
     -- section is an elaborator to get good control over which parts of the table end up in their
     -- own defs.
@@ -169,9 +167,7 @@ run_cmd do
 @[block_command]
 def monotonicityLemmas : BlockCommandOf Unit
   | () => do
-
     let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
-    dbg_trace "extraCss created"
     ``(Block.concat #[$extraCss, monoTable])
 where
   css := r#"
