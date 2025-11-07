@@ -125,8 +125,9 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
   -- elaboration, which may otherwise shadow in recursive occurrences, leading to spurious `_root_.`
   -- qualifiers
   let ppSig (x : Name) (env := ci.env) : ReaderT Highlighting.Context m String := do
-    let sig ← runMeta (env := env) (lctx := {}) (PrettyPrinter.ppSignature x)
-    return toString (← stripNamespaces sig)
+    -- let sig ← runMeta (env := env) (lctx := {}) (PrettyPrinter.ppSignature x)
+    -- return toString (← stripNamespaces sig)
+    return "sig"
 
   let rec findKind e := do
     match e with
@@ -152,18 +153,17 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
             let sig ← ppSig x <|> ppSig (env := (← getEnv)) x
             let docs ← findDocString? (← getEnv) x
             return some <| .const x sig docs false)
-      else return none
-        -- let tyStr ← runMeta do
-        --   try -- Needed for robustness in the face of tactics that create strange contexts
-        --     let ty ← instantiateMVars (← Meta.inferType expr)
-        --     ToString.toString <$> Meta.ppExpr ty
-        --   catch | _ => pure ""
-        -- return some <| .var id tyStr
+      else
+        let tyStr ← runMeta do
+          try -- Needed for robustness in the face of tactics that create strange contexts
+            let ty ← instantiateMVars (← Meta.inferType expr)
+            ToString.toString <$> Meta.ppExpr ty
+          catch | _ => pure ""
+        return some <| .var id tyStr
     | Expr.const name _ =>
       let docs ← findDocString? (← getEnv) name
       let sig ← ppSig name
       return some <| .const name sig docs false
-
     | Expr.sort _ =>
       if let some stx := stx? then
         let k := stx.getKind
