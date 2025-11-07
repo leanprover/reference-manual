@@ -171,18 +171,19 @@ def exprKind [Monad m] [MonadLiftT IO m] [MonadMCtx m] [MonadEnv m] [Alternative
         return some (.sort docs?)
       else return some (.sort none)
     | Expr.lit (.strVal s) => return none --some <| .str s
-    | Expr.mdata _ e =>
-      findKind e
+    | Expr.mdata _ e => return none
+      --findKind e
     | other =>
-      if allowUnknownTyped then
-        runMeta do
-          try
-            let t ← Meta.inferType other >>= instantiateMVars >>= Meta.ppExpr
-            return some <| .withType <| toString t
-          catch _ =>
-            return none
-      else
-        return none
+      return none
+      -- if allowUnknownTyped then
+      --   runMeta do
+      --     try
+      --       let t ← Meta.inferType other >>= instantiateMVars >>= Meta.ppExpr
+      --       return some <| .withType <| toString t
+      --     catch _ =>
+      --       return none
+      -- else
+      --   return none
 
   findKind (← instantiateMVars expr)
 
