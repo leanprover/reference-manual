@@ -5,6 +5,7 @@ Author: Sebastian Graf
 -/
 
 import VersoManual
+import VersoTutorial
 
 import Manual.Meta
 import Manual.Papers
@@ -24,14 +25,14 @@ set_option linter.unusedVariables false
 set_option linter.typography.quotes true
 set_option linter.typography.dashes true
 
-set_option mvcgen.warning false
-
 open Manual (comment)
 
-#doc (Manual) "The `mvcgen` tactic" =>
+#doc (Tutorial) "The `mvcgen` tactic" =>
 %%%
 tag := "mvcgen-tactic"
-htmlSplit := .never
+slug := "mvcgen"
+summary := "summary here"
+exampleStyle := .inlineLean `MVCGenTutorial
 %%%
 
 The {tactic}`mvcgen` tactic implements a _monadic verification condition generator_:
@@ -43,15 +44,27 @@ In order to use the {tactic}`mvcgen` tactic, {module}`Std.Tactic.Do` must be imp
 
 # Verifying Imperative Programs Using `mvcgen`
 
+:::paragraph
 This section is a tutorial that introduces the most important concepts of {tactic}`mvcgen` top-down.
-Recall that you need to import {module}`Std.Tactic.Do` and open {namespace}`Std.Do` to run these examples:
-
+A little preparation is required.
+Recall that you need to import {module}`Std.Tactic.Do` to use the tactic:
 ```imports
 import Std.Tactic.Do
 ```
+The code also makes use of hash sets from the standard library:
+```imports
+import Std.Data.HashSet
+```
+Because {tactic}`mvcgen` is presently an experimental feature, a warning is issued when it is used.
+The warning can be disabled as follows:
+```lean
+set_option mvcgen.warning false
+```
+Finally, the namespace {namespace}`Std.Do` must be opened in order to run these examples:
 ```lean
 open Std.Do
 ```
+:::
 
 ## Preconditions and Postconditions
 
@@ -69,7 +82,7 @@ This means that the postcondition holds no matter what.
 ## Loops and Invariants
 
 :::leanFirst
-As a first example of {tactic}`mvcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut"}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
+As a first example of {tactic}`mvcgen`, the function {name}`mySum` computes the sum of an array using {ref "let-mut" (remote:="reference")}[local mutable state] and a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 
 ```lean
 def mySum (l : Array Nat) : Nat := Id.run do
@@ -241,7 +254,7 @@ axiom onExcept : ExceptConds PostShape.pure
 ```
 The proof has the same succinct structure as for the initial {name}`mySum` example, because we again offload all proofs to {tactic}`grind` and its existing automation around {name}`List.Nodup`.
 Therefore, the only difference is in the {tech}[loop invariant].
-Since our loop has an {ref "early-return"}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturn`.
+Since our loop has an {ref "early-return" (remote:="reference")}[early return], we construct the invariant using the helper function {lean}`Invariant.withEarlyReturn`.
 This function allows us to specify the invariant in three parts:
 
 * {lean}`onReturn ret seen` holds after the loop was left through an early return with value {lean}`ret`.
@@ -296,7 +309,7 @@ Some observations:
 * The proof is even shorter than the one with {tactic}`mvcgen`.
 * The use of {tactic}`generalize` to generalize the accumulator relies on there being exactly one occurrence of {lean (type := "Std.HashSet Int")}`∅` to generalize. If that were not the case, we would have to copy parts of the program into the proof. This is a no-go for larger functions.
 * {tactic}`grind` splits along the control flow of the function and reasons about {name}`Id`, given the right lemmas.
-  While this works for {name}`Id.run_pure` and {name}`Id.run_bind`, it would not work for {name}`Id.run_seq`, for example, because that lemma is not {tech (key := "E-matching")}[E-matchable].
+  While this works for {name}`Id.run_pure` and {name}`Id.run_bind`, it would not work for {name}`Id.run_seq`, for example, because that lemma is not {tech (key := "E-matching") (remote := "reference")}[E-matchable].
   If {tactic}`grind` would fail, we would be forced to do all the control flow splitting and monadic reasoning by hand until {tactic}`grind` could pick up again.
 :::
 
@@ -570,7 +583,7 @@ Hypotheses in the Lean context are part of the immutable {deftech}_frame_ of the
 
 ## Monad Transformers and Lifting
 
-Real-world programs often use monads that are built from multiple {tech}[monad transformers], with operations being frequently {ref "lifting-monads"}[lifted] from one monad to another.
+Real-world programs often use monads that are built from multiple {tech (remote := "reference")}[monad transformers], with operations being frequently {ref "lifting-monads" (remote:="reference")}[lifted] from one monad to another.
 Verification of these programs requires taking this into account.
 We can tweak the previous example to demonstrate this.
 
@@ -1026,6 +1039,6 @@ A common case for when a VC of the form {lean}`H ⊢ₛ T` is left behind is whe
 In this case, the proof will depend on a {lean}`WP m ps` instance which governs the translation into the {name}`Assertion` language, but the exact correspondence to `σs : List (Type u)` is yet unknown.
 To successfully discharge such a VC, `mvcgen` comes with an entire proof mode that is inspired by that of the Iris concurrent separation logic.
 (In fact, the proof mode was adapted in large part from its Lean clone, [`iris-lean`](https://github.com/leanprover-community/iris-lean).)
-The {ref "tactic-ref-spred"}[tactic reference] contains a list of all proof mode tactics.
+The {ref "tactic-ref-spred" (remote:="reference")}[tactic reference] contains a list of all proof mode tactics.
 
 :::

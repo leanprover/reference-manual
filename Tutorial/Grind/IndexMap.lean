@@ -5,13 +5,14 @@ Author: Leo de Moura, Kim Morrison
 -/
 
 import VersoManual
+import VersoTutorial
 
 import Lean.Parser.Term
 
 import Manual.Meta
 
 
-open Verso.Genre Manual
+open Verso.Genre Manual Tutorial
 open Verso.Genre.Manual.InlineLean hiding module
 open Verso.Doc.Elab (CodeBlockExpander)
 open Verso.Code.External
@@ -30,8 +31,12 @@ set_option verso.exampleProject "."
 set_option verso.exampleModule "IndexMapGrind"
 
 
-#doc (Manual) "`IndexMap`" =>
-
+#doc (Tutorial) "`IndexMap`" =>
+%%%
+slug := "grind-index-map"
+summary := "A walkthrough of ..."
+exampleStyle := .inlineLean `IndexMap
+%%%
 
 In this section we'll build an example of a new data structure and basic API for it, illustrating the use of {tactic}`grind`.
 The example will be derived from Rust's [`indexmap`](https://docs.rs/indexmap/latest/indexmap/) data structure.
@@ -59,6 +64,18 @@ Our goals will be:
 : Use auto-parameters as much as possible
 
   Ideally, we don't even need to see the proofs; they should mostly be handled invisibly by {tactic}`grind`.
+
+
+:::paragraph
+The first step is to import the necessary data structures:
+```anchor imports
+import Std.Data.HashMap
+```
+:::
+
+# Skeleton
+
+:::displayOnly
 
 To begin with, we'll write out a skeleton of what we want to achieve, liberally using {lean}`sorry` as a placeholder for all proofs.
 In particular, this version makes no use of {tactic}`grind`.
@@ -212,6 +229,9 @@ theorem findIdx_insert_self
 end IndexMap
 ```
 
+:::
+
+# Header 2
 
 Let's get started.
 We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
@@ -219,6 +239,8 @@ so we can omit these fields whenever `grind` can prove them.
 While we're modifying the definition of `IndexMap` itself, lets make all the fields private, since we're planning on having complete encapsulation.
 
 ```anchor IndexMap
+open Std
+
 structure IndexMap
     (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   private indices : HashMap α Nat
@@ -227,6 +249,14 @@ structure IndexMap
   private size_keys' : keys.size = values.size := by grind
   private WF : ∀ (i : Nat) (a : α),
     keys[i]? = some a ↔ indices[a]? = some i := by grind
+```
+
+For the rest of this tutorial, the following namespace and variable declarations are in effect:
+```anchor variables
+namespace IndexMap
+
+variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
+variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
 ```
 
 Let's give {tactic}`grind` access to the definition of `size`, and `size_keys` private field:
@@ -250,6 +280,21 @@ def emptyWithCapacity (capacity := 8) : IndexMap α β where
 ```
 :::
 
+:::codeOnly
+```anchor Membership
+@[inline] def contains (m : IndexMap α β)
+    (a : α) : Bool :=
+  m.indices.contains a
+
+instance : Membership α (IndexMap α β) where
+  mem m a := a ∈ m.indices
+
+instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
+  inferInstanceAs (Decidable (a ∈ m.indices))
+```
+:::
+
+:::displayOnly
 Our next task is to deal with the {lean}`sorry` in our construction of the original {anchorTerm GetElem?}`GetElem?` instance:
 ```anchor GetElem? (module := IndexMap)
 instance :
@@ -261,6 +306,7 @@ instance :
   getElem! m a :=
     m.indices[a]?.bind (m.values[·]?) |>.getD default
 ```
+:::
 
 The goal at this sorry is
 ```
@@ -331,7 +377,7 @@ However this proof is going to work, we know the following:
 * It must use the well-formedness condition of the map.
 * It can't do so without relating `m.indices[a]` and `m.indices[a]?` (because the later is what appears in the well-formedness condition).
 * The expected relationship there doesn't even hold unless the map `m.indices` satisfies {lean}`LawfulGetElem`,
-  for which we need {tech}[instances] of {lean}`LawfulBEq α` and {lean}`LawfulHashable α`.
+  for which we need {tech (remote:="reference")}[instances] of {lean}`LawfulBEq α` and {lean}`LawfulHashable α`.
 
 :::
 :::TODO
@@ -401,7 +447,13 @@ macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| grind)
 :::
 
 :::paragraph
-We can now return to constructing our {anchorName GetElem?}`GetElem?` instance, and simply write:
+We can now return to constructing our {anchorName GetElem?}`GetElem?` instance.
+In order to use the well-formedness condition, {tactic}`grind` must be able to unfold {anchorName size}`size`:
+```anchor local_grind_size
+attribute [local grind] size
+```
+The {anchorTerm local_grind_size}`local` modifier restricts this unfolding to the current file.
+With this in place, we can simply write:
 ```anchor GetElem?
 instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem m a h :=
@@ -626,6 +678,23 @@ Trying again with {anchorName eraseSwap}`eraseSwap`, everything goes through cle
   | none => m
 ```
 
+:::codeOnly
+```anchor getFindIdx
+@[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
+  m.indices[a]?
+
+@[inline] def findIdx (m : IndexMap α β) (a : α)
+    (h : a ∈ m := by get_elem_tactic) : Nat :=
+  m.indices[a]
+
+@[inline] def getIdx? (m : IndexMap α β) (i : Nat) : Option β :=
+  m.values[i]?
+
+@[inline] def getIdx (m : IndexMap α β) (i : Nat)
+    (h : i < m.size := by get_elem_tactic) : β :=
+  m.values[i]
+```
+:::
 
 Finally we turn to the verification theorems about the basic operations, relating {anchorName Verification}`getIdx`, {anchorName Verification}`findIdx`, and {anchorName Verification}`insert`.
 By adding a {anchorTerm Verification}`local grind` annotation allowing {tactic}`grind` to unfold the definitions of these operations,
