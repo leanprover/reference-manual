@@ -213,7 +213,7 @@ Thus, the elaborator must translate definitions that use pattern matching and re
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
 The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
-These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration].]
+These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use variants of the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration], specialized to reduce code size.]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
 A definition that still includes recursion, but has otherwise been elaborated to the core language, is called a {deftech}[pre-definition].
 To see auxiliary pattern matching functions in Lean's output, set the option {option}`pp.match` to {lean}`false`.
@@ -226,6 +226,18 @@ def third_of_five : List α → Option α
   | [_, _, x, _, _] => some x
   | _ => none
 set_option pp.match false
+
+/--
+info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} →
+  {motive : List α → Sort u_1} →
+    (t : List α) → ((head : α) → (tail : List α) → motive (head :: tail)) → (t.ctorIdx ≠ 1 → motive t) → motive t :=
+fun {α} {motive} t cons =>
+  List.rec (motive := fun t => (t.ctorIdx ≠ 1 → motive t) → motive t) (fun x => x ⋯)
+    (fun head tail tail_ih x => cons head tail) t
+-/
+#check_msgs in
+#print third_of_five._sparseCasesOn_1
+
 /--
 info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
   third_of_five x✝ =
@@ -233,6 +245,7 @@ info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
 -/
 #check_msgs in
 #check third_of_five.eq_def
+
 /--
 info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
   (motive : List α → Sort u_2) →
@@ -240,13 +253,23 @@ info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
       ((head head_1 x head_2 head_3 : α) → motive [head, head_1, x, head_2, head_3]) →
         ((x : List α) → motive x) → motive x :=
 fun {α} motive x h_1 h_2 =>
-  List.casesOn x (h_2 []) fun head tail =>
-    List.casesOn tail (h_2 [head]) fun head_1 tail =>
-      List.casesOn tail (h_2 [head, head_1]) fun head_2 tail =>
-        List.casesOn tail (h_2 [head, head_1, head_2]) fun head_3 tail =>
-          List.casesOn tail (h_2 [head, head_1, head_2, head_3]) fun head_4 tail =>
-            List.casesOn tail (h_1 head head_1 head_2 head_3 head_4) fun head_5 tail =>
-              h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: head_5 :: tail)
+  third_of_five._sparseCasesOn_1 x
+    (fun head tail =>
+      third_of_five._sparseCasesOn_1 tail
+        (fun head_1 tail =>
+          third_of_five._sparseCasesOn_1 tail
+            (fun head_2 tail =>
+              third_of_five._sparseCasesOn_1 tail
+                (fun head_3 tail =>
+                  third_of_five._sparseCasesOn_1 tail
+                    (fun head_4 tail =>
+                      third_of_five._sparseCasesOn_2 tail (h_1 head head_1 head_2 head_3 head_4) fun h_0 =>
+                        h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: tail))
+                    fun h_0 => h_2 (head :: head_1 :: head_2 :: head_3 :: tail))
+                fun h_0 => h_2 (head :: head_1 :: head_2 :: tail))
+            fun h_0 => h_2 (head :: head_1 :: tail))
+        fun h_0 => h_2 (head :: tail))
+    fun h_0 => h_2 x
 -/
 #check_msgs in
 #print third_of_five.match_1
