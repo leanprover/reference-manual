@@ -8,7 +8,7 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
+require verso from "../leandoc" -- git "https://github.com/leanprover/verso.git"@"tutorials"
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -283,3 +283,10 @@ end ExplanationPreprocessing
 lean_exe "generate-manual" where
   needs := #[`@/figures, `@/subversoExtractMod]
   root := `Main
+
+@[default_target]
+lean_lib Tutorial where
+
+@[default_target]
+lean_exe "generate-tutorials" where
+  root := `TutorialMain

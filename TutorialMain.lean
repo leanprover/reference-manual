@@ -1,15 +1,14 @@
 /-
-Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
+Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-import Manual
-import Manual.Meta
-import VersoManual
-import Manual.ExtractExamples
+
+import VersoTutorial
+import Tutorial
 
 open Verso.Genre.Manual
-open Verso.Genre.Manual.InlineLean
+open Verso.Genre.Tutorial
 
 open Verso.Output.Html in
 def plausible := {{
@@ -33,15 +32,21 @@ def staticCss := {{
     <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css" />
   }}
 
+open Verso.Doc Concrete in
+def tutorials : Tutorials where
+  content :=
+  (verso (.none) "foo"
+   :::::::
+   abc
+   :::::::).toPart
+
+  topics := #[
+    { title := "Tactics"
+      description := #[blocks!"..."]
+      tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.Grind.IndexMap]
+    }
+
+  ]
+
 def main :=
-  manualMain (%doc Manual) (config := config) (extraSteps := [extractExamples])
-where
-  config := {
-    extraFiles := [("static", "static")],
-    extraHead := #[plausible, staticJs, staticCss],
-    emitTeX := false,
-    emitHtmlSingle := .immediately, -- for proofreading
-    logo := some "/static/lean_logo.svg",
-    sourceLink := some "https://github.com/leanprover/reference-manual",
-    issueLink := some "https://github.com/leanprover/reference-manual/issues",
-  }
+  tutorialsMain tutorials (config := {remoteConfigFile := "tutorial-remotes.json", destination := "_tutorial-out"})
