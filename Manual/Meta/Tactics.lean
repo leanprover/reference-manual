@@ -618,7 +618,7 @@ def proofState.descr : BlockDescr := withHighlighting {
               {{← if goals.isEmpty then
                   pure {{"All goals completed! 🐙"}}
                 else
-                  .seq <$> goals.mapIndexedM (fun ⟨i, _⟩ x => withCollapsedSubgoals .never <| x.toHtml (g := Verso.Genre.Manual) (·.toHtml) i)}}
+                  .seq <$> goals.mapIdxM fun i x => withCollapsedSubgoals (g := Verso.Genre.Manual) .never <| x.toHtml (·.toHtml) i}}
             </div>
           </div>
         }}
