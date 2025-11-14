@@ -402,11 +402,6 @@ by setting:
 set_option backward.grind.inferPattern true
 ```
 
-#### Improved diagnostics
-
-[#10466](https://github.com/leanprover/lean4/pull/10466) reduces noise in the 'Equivalence classes' section of the
-`grind` diagnostics. It now uses a notion of _support expressions_. See the PR description for the details.
-
 ### Overhaul of the String Type
 
 - [#10304](https://github.com/leanprover/lean4/pull/10304) redefines `String` to be the type of byte arrays `b`
