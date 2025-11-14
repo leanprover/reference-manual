@@ -248,7 +248,7 @@ In the interactive mode, it is possible to do the following:
 - Inspect with filtering; each tactic may optionally have a suffix of the form `| filter?`
   ([#10828](https://github.com/leanprover/lean4/pull/10828));
 
-- Make local declarations with `have` ([#10706](https://github.com/leanprover/lean4/pull/10706));
+- Make local assertions with `have` ([#10706](https://github.com/leanprover/lean4/pull/10706));
 
 - Use tactics ([#10731](https://github.com/leanprover/lean4/pull/10731)):
 
