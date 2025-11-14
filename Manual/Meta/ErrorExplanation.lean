@@ -699,7 +699,7 @@ def getBreakableSuffix (name : Name) : Option String := do
     | .str _ s => s
     | .num _ n => toString n
     | .anonymous => none
-  let breakableHtml := softHyphenateIdentifiers.rwText (.text false suffix)
+  let breakableHtml := softHyphenateText false suffix
   htmlText breakableHtml
 where
   htmlText : Verso.Output.Html → String
