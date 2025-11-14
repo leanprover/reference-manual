@@ -24,7 +24,7 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 ## Highlights
 
 Lean v4.25.0 release brings several exciting new features.
-Editor integration now allows interactive application of "try this" suggestions,
+Editor integration adds interactivity to "try this" suggestions,
 and Lake adds support for remote caching.
 New language features include automated generation of specification theorems for
 type class methods, coinductive predicates, and invariant suggestions in `mvcgen`.
