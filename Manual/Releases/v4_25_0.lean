@@ -101,10 +101,8 @@ Lean now provides automated generation of specification theorems for custom and 
   ```
 
 - [#10351](https://github.com/leanprover/lean4/pull/10351) adds the ability to do `deriving ReflBEq, LawfulBEq`. Both
-  classes have to be listed in the `deriving` clause. For `ReflBEq`, a simple
-  `simp`-based proof is used. For `LawfulBEq`, a dedicated,
-  syntax-directed tactic is used that should work for derived `BEq`
-  instances. This is meant to work with `deriving BEq` (but you can try to
+  classes have to be listed in the `deriving` clause.
+  This is meant to work with `deriving BEq` (but you can try to
   use it on hand-rolled `@[methods_specs] instance : BEq…` instances).
   Does not support mutual or nested inductives.
 
