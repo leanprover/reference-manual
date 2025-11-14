@@ -42,14 +42,6 @@ messages that were introduced in [#9966](https://github.com/leanprover/lean4/pul
 to apply a suggestion to a separate `[apply]` button in front of the
 suggestion.
 
-### Remote Caching with Lake
-
-[#10188](https://github.com/leanprover/lean4/pull/10188) adds support for remote artifact caches (e.g., Reservoir) to
-Lake. As part of this support, a new suite of `lake cache` CLI commands
-has been introduced to help manage Lake's cache. Also, the existing
-local cache support has been overhauled for better interplay with the
-new remote support.
-
 ### Specifications Derivation
 
 Lean now provides automated generation of specification theorems for custom and derived type class instances:
@@ -401,6 +393,14 @@ by setting:
 ```lean
 set_option backward.grind.inferPattern true
 ```
+
+### Remote Caching with Lake
+
+[#10188](https://github.com/leanprover/lean4/pull/10188) adds support for remote artifact caches (e.g., Reservoir) to
+Lake. As part of this support, a new suite of `lake cache` CLI commands
+has been introduced to help manage Lake's cache. Also, the existing
+local cache support has been overhauled for better interplay with the
+new remote support.
 
 ### Overhaul of the String Type
 
