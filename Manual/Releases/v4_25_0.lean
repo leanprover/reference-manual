@@ -454,7 +454,7 @@ Async framework has been extended with:
 ### InfoView Trace Search
 
 [#10365](https://github.com/leanprover/lean4/pull/10365) implements the server-side for a new trace search mechanism in
-the InfoView.
+the InfoView. See the PR description for a demo video.
 
 ### Linear Construction of Instances
 
