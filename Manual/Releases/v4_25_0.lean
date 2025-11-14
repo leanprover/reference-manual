@@ -37,7 +37,7 @@ Read on for the details!
 
 ### Apply "try this" Suggestions
 
-[#10524](https://github.com/leanprover/lean4/pull/10524) adds support for interactivity to the combined "try this"
+[#10524](https://github.com/leanprover/lean4/pull/10524) adds support for interactivity (hover, go-to-definitions) for "try this"
 messages that were introduced in [#9966](https://github.com/leanprover/lean4/pull/9966). In doing so, it moves the link
 to apply a suggestion to a separate `[apply]` button in front of the
 suggestion.
