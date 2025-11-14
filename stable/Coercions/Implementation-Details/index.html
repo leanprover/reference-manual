@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Implementation Details</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,7 +2479,7 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-coercions" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-coercions" checked="checked"></label><span class="number">12.</span> <span class=""><a href="Coercions/#coercions">Coercions</a></span></div>
@@ -2484,7 +2531,7 @@ Similarly, <a class="technical-term" href="Coercions/Coercing-Between-Types/#--t
               <p>
                 The coercion insertion mechanism unfolds applications of coercions, which allows them to control the specific shape of the resulting term.
 This is important both to ensure readable proof goals and to control evaluation of the coerced term in compiled code.
-Unfolding coercions is controlled by the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2351">coe_decl</span></code> attribute, which is applied to each coercion method (e.g. <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2145">Coe.coe</span></a></code>).
+Unfolding coercions is controlled by the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2365">coe_decl</span></code> attribute, which is applied to each coercion method (e.g. <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2158">Coe.coe</span></a></code>).
 This attribute should be considered part of the internals of the coercion mechanism, rather than part of the public coercion API.</p>
               </section>
             <section>
@@ -2494,56 +2541,56 @@ This attribute should be considered part of the internals of the coercion mechan
                 <p>
                   Coercion chaining is implemented through a collection of auxiliary type classes.
 Users should not write instances of these classes directly, but knowledge of their structure can be useful when diagnosing the reason why a coercion was not inserted as expected.
-The specific rules governing the ordering of instances in the chain (namely, that it should match <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2182">CoeHead</span></a></code>﻿<code>?</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk" title="Documentation for CoeOut"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2183">CoeOut</span></a></code>﻿<code>*</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code>﻿<code>*</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2148">CoeTail</span></a></code>﻿<code>?</code>) are implemented by the following type classes:</p>
+The specific rules governing the ordering of instances in the chain (namely, that it should match <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2196">CoeHead</span></a></code>﻿<code>?</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk" title="Documentation for CoeOut"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2197">CoeOut</span></a></code>﻿<code>*</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code>﻿<code>*</code><code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2161">CoeTail</span></a></code>﻿<code>?</code>) are implemented by the following type classes:</p>
                 <ul>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC"><span class="const token" data-binding="const-CoeTC" data-verso-hover="2352">CoeTC</span></a></code> is the transitive closure of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code> instances.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC"><span class="const token" data-binding="const-CoeTC" data-verso-hover="2366">CoeTC</span></a></code> is the transitive closure of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code> instances.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC"><span class="const token" data-binding="const-CoeOTC" data-verso-hover="2353">CoeOTC</span></a></code> is the middle of the chain, consisting of the transitive closure of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk" title="Documentation for CoeOut"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2183">CoeOut</span></a></code> instances followed by <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC"><span class="const token" data-binding="const-CoeTC" data-verso-hover="2352">CoeTC</span></a></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC"><span class="const token" data-binding="const-CoeOTC" data-verso-hover="2367">CoeOTC</span></a></code> is the middle of the chain, consisting of the transitive closure of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeOut___mk" title="Documentation for CoeOut"><span class="const token" data-binding="const-CoeOut" data-verso-hover="2197">CoeOut</span></a></code> instances followed by <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC"><span class="const token" data-binding="const-CoeTC" data-verso-hover="2366">CoeTC</span></a></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTC___mk" title="Documentation for CoeHTC"><span class="const token" data-binding="const-CoeHTC" data-verso-hover="2354">CoeHTC</span></a></code> is the start of the chain, consisting of at most one <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2182">CoeHead</span></a></code> instance followed by <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC"><span class="const token" data-binding="const-CoeOTC" data-verso-hover="2353">CoeOTC</span></a></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTC___mk" title="Documentation for CoeHTC"><span class="const token" data-binding="const-CoeHTC" data-verso-hover="2368">CoeHTC</span></a></code> is the start of the chain, consisting of at most one <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2196">CoeHead</span></a></code> instance followed by <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC"><span class="const token" data-binding="const-CoeOTC" data-verso-hover="2367">CoeOTC</span></a></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT"><span class="const token" data-binding="const-CoeHTCT" data-verso-hover="2355">CoeHTCT</span></a></code> is the whole chain, consisting of <code>CoeHTC</code> followed by at most one <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2148">CoeTail</span></a></code> instance. Alternatively, it might be a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#NatCast___mk" title="Documentation for NatCast"><span class="const token" data-binding="const-NatCast" data-verso-hover="2197">NatCast</span></a></code> instance.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT"><span class="const token" data-binding="const-CoeHTCT" data-verso-hover="2369">CoeHTCT</span></a></code> is the whole chain, consisting of <code>CoeHTC</code> followed by at most one <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeTail___mk" title="Documentation for CoeTail"><span class="const token" data-binding="const-CoeTail" data-verso-hover="2161">CoeTail</span></a></code> instance. Alternatively, it might be a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#NatCast___mk" title="Documentation for NatCast"><span class="const token" data-binding="const-NatCast" data-verso-hover="2211">NatCast</span></a></code> instance.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeT___mk" title="Documentation for CoeT"><span class="const token" data-binding="const-CoeT" data-verso-hover="2166">CoeT</span></a></code> represents the entire chain: it is either a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT"><span class="const token" data-binding="const-CoeHTCT" data-verso-hover="2355">CoeHTCT</span></a></code> chain or a single <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeDep___mk" title="Documentation for CoeDep"><span class="const token" data-binding="const-CoeDep" data-verso-hover="2172">CoeDep</span></a></code> instance.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeT___mk" title="Documentation for CoeT"><span class="const token" data-binding="const-CoeT" data-verso-hover="2180">CoeT</span></a></code> represents the entire chain: it is either a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT"><span class="const token" data-binding="const-CoeHTCT" data-verso-hover="2369">CoeHTCT</span></a></code> chain or a single <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/Coercing-Between-Types/#CoeDep___mk" title="Documentation for CoeDep"><span class="const token" data-binding="const-CoeDep" data-verso-hover="2186">CoeDep</span></a></code> instance.</p>
                     </li>
                   </ul>
                 </div>
               <figure id="coe-aux-classes"><p>
                   <img src="static/figures/coe-chain.svg" alt="A graphical representation of the relationships between the coercion transitive closure auxiliary classes"></p>
                 <figcaption>Auxiliary Classes for Coercions</figcaption></figure><div class="namedocs" id="CoeHTCT___mk">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeHTCT.mk" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeHTCT.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.29820" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.29821" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeHTCT.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.29820" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.29821" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeHTCT.mk" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeHTCT.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5569" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5570" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeHTCT.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5569" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5570" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div></pre><div class="text">
                   <p>
-                    Auxiliary class implementing <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2182">CoeHead</span></a><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">CoeTail?</span></code>.
+                    Auxiliary class implementing <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/Coercing-Between-Types/#CoeHead___mk" title="Documentation for CoeHead"><span class="const token" data-binding="const-CoeHead" data-verso-hover="2196">CoeHead</span></a><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">CoeTail?</span></code>.
 Users should generally not implement this directly.</p>
                   <h1>
                     Instance Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT.mk"><span class="const token" data-binding="const-CoeHTCT.mk" data-verso-hover="2356">CoeHTCT.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeHTCT___mk" title="Documentation for CoeHTCT.mk"><span class="const token" data-binding="const-CoeHTCT.mk" data-verso-hover="2370">CoeHTCT.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Methods</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeHTCT.coe" data-verso-hover="2144">coe</span> : <span class="var token" data-binding="var-_uniq.29812" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29813" data-verso-hover="309">β</span></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeHTCT.coe" data-verso-hover="2157">coe</span> : <span class="var token" data-binding="var-_uniq.5561" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5562" data-verso-hover="309">β</span></pre><div class="docs">
                       <p>
-                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29824" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.29825" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
-or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.29838" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29824" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.29825" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5573" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5574" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
+or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5587" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5573" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5574" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
                       </div>
                     </section>
                   </div>
                 </div>
               <div class="namedocs" id="CoeHTC___mk">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeHTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeHTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30253" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30254" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeHTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30253" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30254" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeHTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeHTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5720" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5721" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeHTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5720" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5721" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div></pre><div class="text">
                   <p>
                     Auxiliary class implementing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">CoeHead</span><span class="inter-text"> </span><span class="unknown token" data-binding="">CoeOut</span><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Coe</span><span class="unknown token" data-binding="">*</span></code>.
@@ -2551,21 +2598,21 @@ Users should generally not implement this directly.</p>
                   <h1>
                     Instance Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeHTC___mk" title="Documentation for CoeHTC.mk"><span class="const token" data-binding="const-CoeHTC.mk" data-verso-hover="2357">CoeHTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeHTC___mk" title="Documentation for CoeHTC.mk"><span class="const token" data-binding="const-CoeHTC.mk" data-verso-hover="2371">CoeHTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Methods</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeHTC.coe" data-verso-hover="2144">coe</span> : <span class="var token" data-binding="var-_uniq.30245" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30246" data-verso-hover="309">β</span></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeHTC.coe" data-verso-hover="2157">coe</span> : <span class="var token" data-binding="var-_uniq.5712" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5713" data-verso-hover="309">β</span></pre><div class="docs">
                       <p>
-                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.30257" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.30258" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
-or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30271" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30257" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30258" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5724" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5725" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
+or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5738" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5724" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5725" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
                       </div>
                     </section>
                   </div>
                 </div>
               <div class="namedocs" id="CoeOTC___mk">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeOTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeOTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30682" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30683" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeOTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30682" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30683" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeOTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeOTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5871" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5872" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeOTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5871" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5872" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div></pre><div class="text">
                   <p>
                     Auxiliary class implementing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">CoeOut</span><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="unknown token" data-binding="">Coe</span><span class="unknown token" data-binding="">*</span></code>.
@@ -2573,21 +2620,21 @@ Users should generally not implement this directly.</p>
                   <h1>
                     Instance Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC.mk"><span class="const token" data-binding="const-CoeOTC.mk" data-verso-hover="2358">CoeOTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeOTC___mk" title="Documentation for CoeOTC.mk"><span class="const token" data-binding="const-CoeOTC.mk" data-verso-hover="2372">CoeOTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Methods</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeOTC.coe" data-verso-hover="2144">coe</span> : <span class="var token" data-binding="var-_uniq.30674" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30675" data-verso-hover="309">β</span></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeOTC.coe" data-verso-hover="2157">coe</span> : <span class="var token" data-binding="var-_uniq.5863" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5864" data-verso-hover="309">β</span></pre><div class="docs">
                       <p>
-                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.30686" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.30687" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
-or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.30700" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30686" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.30687" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5875" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.5876" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
+or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5889" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5875" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5876" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
                       </div>
                     </section>
                   </div>
                 </div>
               <div class="namedocs" id="CoeTC___mk">
-                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.31111" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.31112" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.31111" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.31112" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+                <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=CoeTC.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">CoeTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6022" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6023" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">CoeTC.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6022" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6023" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
   </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div></pre><div class="text">
                   <p>
                     Auxiliary class implementing <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">Coe</span><span class="unknown token" data-binding="">*</span></code>.
@@ -2595,15 +2642,15 @@ Users should generally not implement this directly.</p>
                   <h1>
                     Instance Constructor</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC.mk"><span class="const token" data-binding="const-CoeTC.mk" data-verso-hover="2359">CoeTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
+                    <pre class="name-and-type hl lean"><a href="Coercions/Implementation-Details/#CoeTC___mk" title="Documentation for CoeTC.mk"><span class="const token" data-binding="const-CoeTC.mk" data-verso-hover="2373">CoeTC.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
                     </section>
                   <h1>
                     Methods</h1>
                   <section class="subdocs">
-                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeTC.coe" data-verso-hover="2144">coe</span> : <span class="var token" data-binding="var-_uniq.31103" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.31104" data-verso-hover="309">β</span></pre><div class="docs">
+                    <pre class="name-and-type hl lean"><span class="const token" data-binding="const-CoeTC.coe" data-verso-hover="2157">coe</span> : <span class="var token" data-binding="var-_uniq.6014" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6015" data-verso-hover="309">β</span></pre><div class="docs">
                       <p>
-                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.31115" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.31116" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
-or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.31129" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.31115" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.31116" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                        Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.6026" data-verso-hover="301">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.6027" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
+or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.6040" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6026" data-verso-hover="301">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.6027" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
                       </div>
                     </section>
                   </div>

@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Lean 4.18.0 (2025-04-02)</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,15 +2479,15 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0-rc1 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></span></div>
-              </div>
+                <label for="--verso-manual-toc-release-v4___18___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___18___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></span></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Highlights">Highlights</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language">Language</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Library">Library</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Compiler">Compiler</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Pretty-Printing">Pretty Printing</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Documentation">Documentation</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Server">Server</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Lake">Lake</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Other">Other</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2458,11 +2505,11 @@ if (document.readyState === 'loading') {
           <section>
             <h1>
               Lean 4.18.0 (2025-04-02)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.18.0" title="Permalink">🔗</a></span></h1>
-            <div class="no-vale">
-              <p>
-                For this release, 344 changes landed. In addition to the 166 feature additions and 38 fixes listed below there were 13 refactoring changes, 10 documentation improvements, 3 performance improvements, 4 improvements to the test suite and 109 other changes.</p>
-              <p>
-                <strong>Highlights</strong></p>
+            <p>
+              For this release, 344 changes landed. In addition to the 166 feature additions and 38 fixes listed below there were 13 refactoring changes, 10 documentation improvements, 3 performance improvements, 4 improvements to the test suite and 109 other changes.</p>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Highlights">
+                Highlights</h2>
               <p>
                 Lean v4.18 release brings a number of exciting new features:</p>
               <ul>
@@ -2628,8 +2675,10 @@ been strengthened.</p>
                 <a href="https://github.com/leanprover/lean4/pull/6950">#6950</a> adds <a href="https://github.com/leanprover/lean4/blob/master/doc/std/style.md">a style guide</a> and <a href="https://github.com/leanprover/lean4/blob/master/doc/std/naming.md">a naming convention</a> for the standard library.</p>
               <p>
                 <em>This summary of highlights was contributed by Violetta Sim.</em></p>
-              <p>
-                <strong>Language</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language">
+                Language</h2>
               <ul>
                 <li>
                   <p>
@@ -2808,25 +2857,26 @@ targets were given than expected by that eliminator.</p>
 <code>Std.Internal.Rat.ceil</code>.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Updates to the <code>try?</code> Tactic</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6961">#6961</a> adds the auxiliary tactic <code>evalAndSuggest</code>. It will be used to
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--Updates-to-the-try___-Tactic">
+                  Updates to the <code>try?</code> Tactic</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6961">#6961</a> adds the auxiliary tactic <code>evalAndSuggest</code>. It will be used to
 refactor <code>try?</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6965">#6965</a> re-implements the <code>try?</code> tactic using the new <code>evalAndSuggest</code>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6965">#6965</a> re-implements the <code>try?</code> tactic using the new <code>evalAndSuggest</code>
 infrastructure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6967">#6967</a> ensures <code>try?</code> can suggest tactics that need to reference
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6967">#6967</a> ensures <code>try?</code> can suggest tactics that need to reference
 inaccessible local names.
 Example:</p>
-                  <pre>/--
+                    <pre>/--
 info: Try these:
 • · expose_names; induction as, bs_1 using app.induct &lt;;&gt; grind [= app]
 • · expose_names; induction as, bs_1 using app.induct &lt;;&gt; grind only [app]
@@ -2836,467 +2886,482 @@ example : app (app as bs) cs = app as (app bs cs) := by
   have bs := 20 -- shadows `bs` in the target
   try?
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6979">#6979</a> adds support for more complex suggestions in <code>try?</code>.
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6979">#6979</a> adds support for more complex suggestions in <code>try?</code>.
 Example:</p>
-                  <pre>example (as : List α) (a : α) : concat as a = as ++ [a] := by
+                    <pre>example (as : List α) (a : α) : concat as a = as ++ [a] := by
   try?
 </pre><p>
-                    suggestion</p>
-                  <pre>Try this: · induction as, a using concat.induct
+                      suggestion</p>
+                    <pre>Try this: · induction as, a using concat.induct
   · rfl
   · simp_all
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6980">#6980</a> improves the <code>try?</code> tactic runtime validation and error
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6980">#6980</a> improves the <code>try?</code> tactic runtime validation and error
 messages. It also simplifies the implementation, and removes unnecessary
 code.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6981">#6981</a> adds new configuration options to <code>try?</code>.</p>
-                  <ul>
-                    <li>
-                      <p>
-                        <code>try? -only</code> omits <code>simp only</code> and <code>grind only</code> suggestions</p>
-                      </li>
-                    <li>
-                      <p>
-                        <code>try? +missing</code> enables partial solutions where some subgoals are
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6981">#6981</a> adds new configuration options to <code>try?</code>.</p>
+                    <ul>
+                      <li>
+                        <p>
+                          <code>try? -only</code> omits <code>simp only</code> and <code>grind only</code> suggestions</p>
+                        </li>
+                      <li>
+                        <p>
+                          <code>try? +missing</code> enables partial solutions where some subgoals are
 "solved" using <code>sorry</code>, and must be manually proved by the user.</p>
-                      </li>
-                    <li>
-                      <p>
-                        <code>try? (max:=&lt;num&gt;)</code> sets the maximum number of suggestions produced
+                        </li>
+                      <li>
+                        <p>
+                          <code>try? (max:=&lt;num&gt;)</code> sets the maximum number of suggestions produced
 (default is 8).</p>
-                      </li>
-                    </ul>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6991">#6991</a> improves how suggestions for the <code>&lt;;&gt;</code> combinator are generated.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6994">#6994</a> adds the <code>Try.Config.merge</code> flag (<code>true</code> by default) to the
+                        </li>
+                      </ul>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6991">#6991</a> improves how suggestions for the <code>&lt;;&gt;</code> combinator are generated.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6994">#6994</a> adds the <code>Try.Config.merge</code> flag (<code>true</code> by default) to the
 <code>try?</code> tactic. When set to <code>true</code>, <code>try?</code> compresses suggestions such
 as:</p>
-                  <pre>· induction xs, ys using bla.induct
+                    <pre>· induction xs, ys using bla.induct
     · grind only [List.length_reverse]
     · grind only [bla]
 </pre><p>
-                    into:</p>
-                  <pre>induction xs, ys using bla.induct &lt;;&gt; grind only [List.length_reverse, bla]
+                      into:</p>
+                    <pre>induction xs, ys using bla.induct &lt;;&gt; grind only [List.length_reverse, bla]
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6995">#6995</a> implements support for <code>exact?</code> in the <code>try?</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7082">#7082</a> makes <code>try?</code> use <code>fun_induction</code> instead of <code>induction … using foo.induct</code>. It uses the argument-free short-hand <code>fun_induction foo</code> if
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6995">#6995</a> implements support for <code>exact?</code> in the <code>try?</code> tactic.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7082">#7082</a> makes <code>try?</code> use <code>fun_induction</code> instead of <code>induction … using foo.induct</code>. It uses the argument-free short-hand <code>fun_induction foo</code> if
 that is unambiguous. Avoids <code>expose_names</code> if not necessary by simply
 trying without first.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Functional Induction Tactic</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7069">#7069</a> adds the <code>fun_induction</code> and <code>fun_cases</code> tactics, which add
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--Functional-Induction-Tactic">
+                  Functional Induction Tactic</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7069">#7069</a> adds the <code>fun_induction</code> and <code>fun_cases</code> tactics, which add
 convenience around using functional induction and functional cases
 principles.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7101">#7101</a> implements <code>fun_induction foo</code>, which is like <code>fun_induction foo x y z</code>, only that it picks the arguments to use from a unique suitable
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7101">#7101</a> implements <code>fun_induction foo</code>, which is like <code>fun_induction foo x y z</code>, only that it picks the arguments to use from a unique suitable
 call to <code>foo</code> in the goal.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7127">#7127</a> follows up on #7103 which changes the generaliziation behavior
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7127">#7127</a> follows up on #7103 which changes the generaliziation behavior
 of <code>induction</code>, to keep <code>fun_induction</code> in sync. Also fixes a <code>Syntax</code>
 indexing off-by-one error.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong><code>bv_decide</code> Tactic</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6741">#6741</a> implements two rules for bv_decide's preprocessor, lowering
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--bv_decide-Tactic">
+                  <code>bv_decide</code> Tactic</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6741">#6741</a> implements two rules for bv_decide's preprocessor, lowering
 <code>|||</code> to <code>&&&</code> in order to enable more term sharing + application of
 rules about <code>&&&</code> as well as rewrites of the form <code>(a &&& b == -1#w) = (a == -1#w && b == -1#w)</code> in order to preserve rewriting behavior that
 already existed before this lowering.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6924">#6924</a> adds the EQUAL_ITE rules from Bitwuzla to the preprocessor of
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6924">#6924</a> adds the EQUAL_ITE rules from Bitwuzla to the preprocessor of
 bv_decide.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6926">#6926</a> adds the BV_EQUAL_CONST_NOT rules from Bitwuzla to the
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6926">#6926</a> adds the BV_EQUAL_CONST_NOT rules from Bitwuzla to the
 preprocessor of bv_decide.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6946">#6946</a> implements basic support for handling of enum inductives in
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6946">#6946</a> implements basic support for handling of enum inductives in
 <code>bv_decide</code>. It now supports equality on enum inductive variables (or
 other uninterpreted atoms) and constants.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7009">#7009</a> ensures users get an error message saying which module to import
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7009">#7009</a> ensures users get an error message saying which module to import
 when they try to use <code>bv_decide</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7019">#7019</a> properly spells out the trace nodes in bv_decide so they are
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7019">#7019</a> properly spells out the trace nodes in bv_decide so they are
 visible with just <code>trace.Meta.Tactic.bv</code> and <code>trace.Meta.Tactic.sat</code>
 instead of always having to enable the profiler.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7021">#7021</a> adds theorems for interactions of extractLsb with <code>&&&</code>, <code>^^^</code>,
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7021">#7021</a> adds theorems for interactions of extractLsb with <code>&&&</code>, <code>^^^</code>,
 <code>~~~</code> and <code>bif</code> to bv_decide's preprocessor.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7029">#7029</a> adds simprocs to bv_decide's preprocessor that rewrite
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7029">#7029</a> adds simprocs to bv_decide's preprocessor that rewrite
 multiplication with powers of two to constant shifts.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7033">#7033</a> improves presentation of counter examples for UIntX and enum
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7033">#7033</a> improves presentation of counter examples for UIntX and enum
 inductives in bv_decide.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7242">#7242</a> makes sure bv_decide can work with projections applied to <code>ite</code>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7242">#7242</a> makes sure bv_decide can work with projections applied to <code>ite</code>
 and <code>cond</code> in its structures pass.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7257">#7257</a> improves performance of LRAT trimming in bv_decide.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7269">#7269</a> implements support for <code>IntX</code> and <code>ISize</code> in <code>bv_decide</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7275">#7275</a> adds all level 1 rewrites from Bitwuzla to the preprocessor of
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7257">#7257</a> improves performance of LRAT trimming in bv_decide.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7269">#7269</a> implements support for <code>IntX</code> and <code>ISize</code> in <code>bv_decide</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7275">#7275</a> adds all level 1 rewrites from Bitwuzla to the preprocessor of
 bv_decide.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Parallelizing Elaboration</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6770">#6770</a> enables code generation to proceed in parallel to further
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--Parallelizing-Elaboration">
+                  Parallelizing Elaboration</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6770">#6770</a> enables code generation to proceed in parallel to further
 elaboration.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6988">#6988</a> ensures interrupting the kernel does not lead to wrong, sticky
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6988">#6988</a> ensures interrupting the kernel does not lead to wrong, sticky
 error messages in the editor</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7047">#7047</a> removes the <code>save</code> and <code>checkpoint</code> tactics that have been
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7047">#7047</a> removes the <code>save</code> and <code>checkpoint</code> tactics that have been
 superseded by incremental elaboration</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7076">#7076</a> introduces the central parallelism API for ensuring that helper
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7076">#7076</a> introduces the central parallelism API for ensuring that helper
 declarations can be generated lazily without duplicating work or
 creating conflicts across threads.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Linear Integer Normalization in <code>simp +arith</code></strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7000">#7000</a> adds helper theorems for justifying the linear integer
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--Linear-Integer-Normalization-in-simp-___arith">
+                  Linear Integer Normalization in <code>simp +arith</code></h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7000">#7000</a> adds helper theorems for justifying the linear integer
 normalizer.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7002">#7002</a> implements the normalizer for linear integer arithmetic
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7002">#7002</a> implements the normalizer for linear integer arithmetic
 expressions. It is not connect to <code>simp +arith</code> yet because of some
 spurious <code>[simp]</code> attributes.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7011">#7011</a> adds <code>simp +arith</code> for integers. It uses the new <code>grind</code>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7011">#7011</a> adds <code>simp +arith</code> for integers. It uses the new <code>grind</code>
 normalizer for linear integer arithmetic. We still need to implement
 support for dividing the coefficients by their GCD. It also fixes
 several bugs in the normalizer.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7015">#7015</a> makes sure <code>simp +arith</code> normalizes coefficients in linear
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7015">#7015</a> makes sure <code>simp +arith</code> normalizes coefficients in linear
 integer polynomials. There is still one todo: tightening the bound of
 inequalities.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7030">#7030</a> adds completes the linear integer inequality normalizer for
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7030">#7030</a> adds completes the linear integer inequality normalizer for
 <code>grind</code>. The missing normalization step replaces a linear inequality of
 the form <code>a_1*x_1 + ... + a_n*x_n + b &lt;= 0</code> with <code>a_1/k * x_1 + ... + a_n/k * x_n + ceil(b/k) &lt;= 0</code> where <code>k = gcd(a_1, ..., a_n)</code>.
 <code>ceil(b/k)</code> is implemented using the helper <code>cdiv b k</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7040">#7040</a> ensures that terms such as <code>f (2*x + y)</code> and <code>f (y + x + x)</code>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7040">#7040</a> ensures that terms such as <code>f (2*x + y)</code> and <code>f (y + x + x)</code>
 have the same normal form when using <code>simp +arith</code></p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7043">#7043</a> deprecates the tactics <code>simp_arith</code>, <code>simp_arith!</code>,
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7043">#7043</a> deprecates the tactics <code>simp_arith</code>, <code>simp_arith!</code>,
 <code>simp_all_arith</code> and <code>simp_all_arith!</code>. Users can just use the <code>+arith</code>
 option.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong><code>grind</code> Tactic</strong></p>
-              <p>
-                The <code>grind</code> tactic is still is experimental and still under development. Avoid using it in production projects</p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6902">#6902</a> ensures <code>simp</code> diagnostic information in included in the <code>grind</code>
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--grind-Tactic">
+                  <code>grind</code> Tactic</h3>
+                <p>
+                  The <code>grind</code> tactic is still is experimental and still under development. Avoid using it in production projects</p>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6902">#6902</a> ensures <code>simp</code> diagnostic information in included in the <code>grind</code>
 diagnostic message.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6937">#6937</a> improves <code>grind</code> error and trace messages by cleaning up local
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6937">#6937</a> improves <code>grind</code> error and trace messages by cleaning up local
 declaration names.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/6940">#6940</a> improves how the <code>grind</code> tactic performs case splits on <code>p &lt;-&gt; q</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7102">#7102</a> modifies <code>grind</code> to run with the <code>reducible</code> transparency
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/6940">#6940</a> improves how the <code>grind</code> tactic performs case splits on <code>p &lt;-&gt; q</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7102">#7102</a> modifies <code>grind</code> to run with the <code>reducible</code> transparency
 setting. We do not want <code>grind</code> to unfold arbitrary terms during
 definitional equality tests. also fixes several issues
 introduced by this change. The most common problem was the lack of a
 hint in proofs, particularly in those constructed using proof by
 reflection. also introduces new sanity checks when <code>set_option grind.debug true</code> is used.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7231">#7231</a> implements functions for constructing disequality proofs in
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/7231">#7231</a> implements functions for constructing disequality proofs in
 <code>grind</code>.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Cutsat Procedure (Solver for Linear Integer Arithmetic Problems)</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7077">#7077</a> proves the helper theorems for justifying the "Div-Solve" rule
-in the cutsat procedure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7091">#7091</a> adds helper theorems for normalizing divisibility constraints.
-They are going to be used to implement the cutsat procedure in the
-<code>grind</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7092">#7092</a> implements divisibility constraint normalization in <code>simp +arith</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7097">#7097</a> implements several modifications for the cutsat procedure in
-<code>grind</code>.</p>
+                    </li>
+                  </ul>
+                <section>
+                  <h4 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Language--grind-Tactic--Cutsat-Procedure-_LPAR_Solver-for-Linear-Integer-Arithmetic-Problems_RPAR_">
+                    Cutsat Procedure (Solver for Linear Integer Arithmetic Problems)</h4>
                   <ul>
                     <li>
                       <p>
-                        The maximal variable is now at the beginning of linear polynomials.</p>
+                        <a href="https://github.com/leanprover/lean4/pull/7077">#7077</a> proves the helper theorems for justifying the "Div-Solve" rule
+in the cutsat procedure.</p>
                       </li>
                     <li>
                       <p>
-                        The old <code>LinearArith.Solver</code> was deleted, and the normalizer was moved
-to <code>Simp</code>.</p>
+                        <a href="https://github.com/leanprover/lean4/pull/7091">#7091</a> adds helper theorems for normalizing divisibility constraints.
+They are going to be used to implement the cutsat procedure in the
+<code>grind</code> tactic.</p>
                       </li>
                     <li>
                       <p>
-                        cutsat first files were created, and basic infrastructure for
-representing divisibility constraints was added.</p>
+                        <a href="https://github.com/leanprover/lean4/pull/7092">#7092</a> implements divisibility constraint normalization in <code>simp +arith</code>.</p>
                       </li>
-                    </ul>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7122">#7122</a> implements the divisibility constraint solver for the cutsat
-procedure in the <code>grind</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7124">#7124</a> adds the helper theorems for justifying the divisibility
-constraint solver in the cutsat procedure used by the <code>grind</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7138">#7138</a> implements proof generation for the divisibility constraint
-solver in <code>grind</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7139">#7139</a> uses a <code>let</code>-expression for storing the (shared) context in
-proofs produced by the cutsat procedure in <code>grind</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7152">#7152</a> implements the infrastructure for supporting integer inequality
-constraints in the cutsat procedure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7155">#7155</a> implements some infrastructure for the model search procedure in
-cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7156">#7156</a> adds a helper theorem that will be used in divisibility
-constraint conflict resolution during model construction.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7176">#7176</a> implements model construction for divisibility constraints in
-the cutsat procedure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7183">#7183</a> improves the cutsat model search procedure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7186">#7186</a> simplifies the proofs and data structures used by cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7193">#7193</a> adds basic infrastructure for adding support for equalities in
-cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7194">#7194</a> adds support theorems for solving equality in cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7202">#7202</a> adds support for internalizing terms relevant to the cutsat
-module. This is required to implement equality propagation.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7203">#7203</a> improves the support for equalities in cutsat. It also
-simplifies a few support theorems used to justify cutsat rules.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7217">#7217</a> improves the support for equalities in cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7220">#7220</a> implements the missing cases for equality propagation from the
-<code>grind</code> core to the cutsat module.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7234">#7234</a> implements dIsequality propagation from <code>grind</code> core module to
-cutsat.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7244">#7244</a> adds support for disequalities in the cutsat procedure used in
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7097">#7097</a> implements several modifications for the cutsat procedure in
 <code>grind</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7248">#7248</a> implements simple equality propagation in cutsat <code>p &lt;= 0 -&gt; -p &lt;= 0 -&gt; p = 0</code></p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7252">#7252</a> implements inequality refinement using disequalities. It
+                      <ul>
+                        <li>
+                          <p>
+                            The maximal variable is now at the beginning of linear polynomials.</p>
+                          </li>
+                        <li>
+                          <p>
+                            The old <code>LinearArith.Solver</code> was deleted, and the normalizer was moved
+to <code>Simp</code>.</p>
+                          </li>
+                        <li>
+                          <p>
+                            cutsat first files were created, and basic infrastructure for
+representing divisibility constraints was added.</p>
+                          </li>
+                        </ul>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7122">#7122</a> implements the divisibility constraint solver for the cutsat
+procedure in the <code>grind</code> tactic.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7124">#7124</a> adds the helper theorems for justifying the divisibility
+constraint solver in the cutsat procedure used by the <code>grind</code> tactic.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7138">#7138</a> implements proof generation for the divisibility constraint
+solver in <code>grind</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7139">#7139</a> uses a <code>let</code>-expression for storing the (shared) context in
+proofs produced by the cutsat procedure in <code>grind</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7152">#7152</a> implements the infrastructure for supporting integer inequality
+constraints in the cutsat procedure.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7155">#7155</a> implements some infrastructure for the model search procedure in
+cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7156">#7156</a> adds a helper theorem that will be used in divisibility
+constraint conflict resolution during model construction.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7176">#7176</a> implements model construction for divisibility constraints in
+the cutsat procedure.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7183">#7183</a> improves the cutsat model search procedure.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7186">#7186</a> simplifies the proofs and data structures used by cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7193">#7193</a> adds basic infrastructure for adding support for equalities in
+cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7194">#7194</a> adds support theorems for solving equality in cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7202">#7202</a> adds support for internalizing terms relevant to the cutsat
+module. This is required to implement equality propagation.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7203">#7203</a> improves the support for equalities in cutsat. It also
+simplifies a few support theorems used to justify cutsat rules.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7217">#7217</a> improves the support for equalities in cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7220">#7220</a> implements the missing cases for equality propagation from the
+<code>grind</code> core to the cutsat module.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7234">#7234</a> implements dIsequality propagation from <code>grind</code> core module to
+cutsat.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7244">#7244</a> adds support for disequalities in the cutsat procedure used in
+<code>grind</code>.</p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7248">#7248</a> implements simple equality propagation in cutsat <code>p &lt;= 0 -&gt; -p &lt;= 0 -&gt; p = 0</code></p>
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7252">#7252</a> implements inequality refinement using disequalities. It
 minimizes the number of case splits cutsat will have to perform.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7267">#7267</a> improves the cutsat search procedure. It adds support for find
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7267">#7267</a> improves the cutsat search procedure. It adds support for find
 an approximate rational solution, checks disequalities, and adds stubs
 for all missing cases.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7278">#7278</a> adds counterexamples for linear integer constraints in the
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7278">#7278</a> adds counterexamples for linear integer constraints in the
 <code>grind</code> tactic. This feature is implemented in the cutsat procedure.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7279">#7279</a> adds support theorems for the <strong>Cooper-Dvd-Left</strong> conflict
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7279">#7279</a> adds support theorems for the <strong>Cooper-Dvd-Left</strong> conflict
 resolution rule used in the cutsat procedure. During model construction,
 when attempting to extend the model to a variable <code>x</code>, cutsat may find a
 conflict that involves two inequalities (the lower and upper bounds for
 <code>x</code>) and a divisibility constraint:</p>
-                  <pre>a * x + p ≤ 0
+                      <pre>a * x + p ≤ 0
 b * x + q ≤ 0
 d ∣ c * x + s
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7284">#7284</a> implements non-choronological backtracking for the cutsat
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7284">#7284</a> implements non-choronological backtracking for the cutsat
 procedure. The procedure has two main kinds of case-splits:
 disequalities and Cooper resolvents. focus on the first kind.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7290">#7290</a> adds support theorems for the <strong>Cooper-Left</strong> conflict
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7290">#7290</a> adds support theorems for the <strong>Cooper-Left</strong> conflict
 resolution rule used in the cutsat procedure. During model
 construction,when attempting to extend the model to a variable <code>x</code>,
 cutsat may find a conflict that involves two inequalities (the lower and
 upper bounds for <code>x</code>). This is a special case of Cooper-Dvd-Left when
 there is no divisibility constraint.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7292">#7292</a> adds support theorems for the <strong>Cooper-Dvd-Right</strong> conflict
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7292">#7292</a> adds support theorems for the <strong>Cooper-Dvd-Right</strong> conflict
 resolution rule used in the cutsat procedure. During model construction,
 when attempting to extend the model to a variable <code>x</code>, cutsat may find a
 conflict that involves two inequalities (the lower and upper bounds for
 <code>x</code>) and a divisibility constraint.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7293">#7293</a> adds support theorems for the Cooper-Right conflict resolution
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7293">#7293</a> adds support theorems for the Cooper-Right conflict resolution
 rule used in the cutsat procedure. During model construction, when
 attempting to extend the model to a variable x, cutsat may find a
 conflict that involves two inequalities (the lower and upper bounds for
 x). This is a special case of Cooper-Dvd-Right when there is no
 divisibility constraint.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/7409">#7409</a> allows the use of <code>dsimp</code> during preprocessing of well-founded
+                      </li>
+                    <li>
+                      <p>
+                        <a href="https://github.com/leanprover/lean4/pull/7409">#7409</a> allows the use of <code>dsimp</code> during preprocessing of well-founded
 definitions. This fixes regressions when using <code>if-then-else</code> without
 giving a name to the condition, but where the condition is needed for
 the termination proof, in cases where that subexpression is reachable
 only by dsimp, but not by simp (e.g. inside a dependent let)</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Library</strong></p>
+                      </li>
+                    </ul>
+                  </section>
+                </section>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Library">
+                Library</h2>
               <ul>
                 <li>
                   <p>
@@ -3722,8 +3787,10 @@ consistent with the API of <code>List</code>.</p>
 Float(64).</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Compiler</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Compiler">
+                Compiler</h2>
               <ul>
                 <li>
                   <p>
@@ -3767,8 +3834,10 @@ would get evaluated unconditionally during initialization. This actually
 happens when initializing Init.Core built with the new code generator.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Pretty Printing</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Pretty-Printing">
+                Pretty Printing</h2>
               <ul>
                 <li>
                   <p>
@@ -3777,8 +3846,10 @@ for parameters in binders. This makes the binders be consistent with the
 hovers in pi types.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Documentation</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Documentation">
+                Documentation</h2>
               <ul>
                 <li>
                   <p>
@@ -3813,8 +3884,10 @@ universe variables, notations and Unicode usage, and structure
 definitions.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Server</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Server">
+                Server</h2>
               <ul>
                 <li>
                   <p>
@@ -3979,8 +4052,10 @@ cancelled on document edit even though their result may be reused in the
 new document version, reporting an incomplete result.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Lake</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Lake">
+                Lake</h2>
               <ul>
                 <li>
                   <p>
@@ -4060,8 +4135,10 @@ Lake back to non-builtin.</p>
 configuration files.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Other</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___18___0-_LPAR_2025-04-02_RPAR_--Other">
+                Other</h2>
               <ul>
                 <li>
                   <p>
@@ -4088,7 +4165,7 @@ added this OLEAN_OUT to LEAN_PATH no oleans were found there and the
 search fell back to the stage1 installation location.</p>
                   </li>
                 </ul>
-              </div>
+              </section>
             </section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="releases/v4.19.0/#release-v4___19___0" rel="prev" title="Lean 4.19.0 (2025-05-01)"><span class="arrow">←</span><span class="where">Lean 4.19.0 (2025-05-01)</span></a><a class="local-button active" href="releases/v4.17.0/#release-v4___17___0" rel="next" title="Lean 4.17.0 (2025-03-03)"><span class="where">Lean 4.17.0 (2025-03-03)</span><span class="arrow">→</span></a></nav>

@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>The Unit Type</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,14 +2479,14 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">19.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
-              <table><tr class="numbered"><td class="num">19.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">19.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">19.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">19.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">19.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">19.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">19.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">19.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="current numbered"><td class="num">19.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">19.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">19.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">19.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">19.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">19.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">19.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">19.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">19.17.</td><td><a href="Basic-Types/Maps-and-Sets/#maps">Maps and Sets</a></td></tr><tr class="numbered"><td class="num">19.18.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">19.19.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
+                <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">20.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
+              <table><tr class="numbered"><td class="num">20.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">20.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">20.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">20.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">20.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">20.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="current numbered"><td class="num">20.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">20.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">20.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">20.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">20.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">20.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">20.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">20.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">20.17.</td><td><a href="Basic-Types/Byte-Arrays/#ByteArray">Byte Arrays</a></td></tr><tr class="numbered"><td class="num">20.18.</td><td><a href="Basic-Types/Maps-and-Sets/#maps">Maps and Sets</a></td></tr><tr class="numbered"><td class="num">20.19.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">20.20.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-The-Lean-Language-Reference--Basic-Types--The-Unit-Type" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--Basic-Types--The-Unit-Type" checked="checked"></label><span class="number">19.9.</span> <span class="current"><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></span></div>
+                <label for="--verso-manual-toc-The-Lean-Language-Reference--Basic-Types--The-Unit-Type" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-The-Lean-Language-Reference--Basic-Types--The-Unit-Type" checked="checked"></label><span class="number">20.9.</span> <span class="current"><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></span></div>
               <ol>
                 <li>
                   <a href="Basic-Types/The-Unit-Type/#Unit"><code>Unit</code></a></li>
@@ -2464,21 +2511,21 @@ if (document.readyState === 'loading') {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Strings/#String" rel="prev" title="19.8. Strings"><span class="arrow">←</span><span class="where">19.8. Strings</span></a><a class="local-button active" href="Basic-Types/The-Empty-Type/#empty" rel="next" title="19.10. The Empty Type"><span class="where">19.10. The Empty Type</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Strings/#String" rel="prev" title="20.8. Strings"><span class="arrow">←</span><span class="where">20.8. Strings</span></a><a class="local-button active" href="Basic-Types/The-Empty-Type/#empty" rel="next" title="20.10. The Empty Type"><span class="where">20.10. The Empty Type</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              19.9. The Unit Type</h1>
+              20.9. The Unit Type</h1>
             <p>
               The unit type is the canonical type with exactly one element, named <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit___unit" title="Documentation for Unit.unit"><span class="const token" data-binding="const-Unit.unit" data-verso-hover="284">unit</span></a></code> and represented by the empty tuple <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">)</span></code>.
 It describes only a single value, which consists of said constructor applied to no arguments whatsoever.</p>
             <p>
               <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is analogous to <code>void</code> in languages derived from C: even though <code>void</code> has no elements that can be named, it represents the return of control flow from a function with no additional information.
 In functional programming, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is the return type of things that "return nothing".
-Mathematically, this is represented by a single completely uninformative value, as opposed to an empty type such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="401">Empty</span></a></code>, which represents unreachable code.</p>
+Mathematically, this is represented by a single completely uninformative value, as opposed to an empty type such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Empty-Type/#Empty" title="Documentation for Empty"><span class="const token" data-binding="const-Empty" data-verso-hover="403">Empty</span></a></code>, which represents unreachable code.</p>
             <p>
               When programming with <a href="Functors___-Monads-and--do--Notation/#monads-and-do">monads</a>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is especially useful.
-For any type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.212" data-verso-hover="295">α</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.216" data-verso-hover="82">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.225" data-verso-hover="295">α</span></code> represents an action that has side effects and returns a value of type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.238" data-verso-hover="295">α</span></code>.
-The type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.242" data-verso-hover="82">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> represents an action that has some side effects but does not return a value.</p>
+For any type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.26" data-verso-hover="295">α</span></code>, <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.30" data-verso-hover="82">m</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.39" data-verso-hover="295">α</span></code> represents an action that has side effects and returns a value of type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="295">α</span></code>.
+The type <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.56" data-verso-hover="82">m</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> represents an action that has some side effects but does not return a value.</p>
             <p>
               There are two variants of the unit type:</p>
             <ul>
@@ -2546,7 +2593,7 @@ field.</p>
               </div>
             <section>
               <h2 id="The-Lean-Language-Reference--Basic-Types--The-Unit-Type--Definitional-Equality">
-                19.9.1. Definitional Equality</h2>
+                20.9.1. Definitional Equality</h2>
               <p>
                 <span id="--tech-term-Unit-like-types" class="def-technical-term"><em>Unit-like types</em></span> are inductive types that have a single constructor which takes no non-proof parameters.
 <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#PUnit___unit" title="Documentation for PUnit"><span class="const token" data-binding="const-PUnit" data-verso-hover="279">PUnit</span></a></code> is one such type.
@@ -2554,52 +2601,56 @@ All elements of unit-like types are <a class="technical-term" href="The-Type-Sys
               <details class="example"><summary class="description">Definitional Equality of <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code></summary><div class="example-content">
                   <p>
                     Every term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is definitionally equal to every other term with type <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code>:</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3686">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1555">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1555">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1555">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1555">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3721">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1552">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1552">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="1552">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="1552">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAKYBGewBM8Bc8CqAdgJYAuAlDumgLzpba0BOAZjEA&quot;)">Live ↪</a></div>
+                  </div>
                 </details><details class="example"><summary class="description">Definitional Equality of Unit-Like Types</summary><div class="example-content">
                   <p>
-                    Both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="4651">CustomUnit</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="4652">AlsoUnit</span></a></code> are unit-like types, with a single constructor that takes no parameters.
+                    Both <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5092">CustomUnit</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5093">AlsoUnit</span></a></code> are unit-like types, with a single constructor that takes no parameters.
 Every pair of terms with either type is definitionally equal.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-3991" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit" data-verso-hover="4651" id="CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">CustomUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4012">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit.customUnit" data-verso-hover="4653" id="CustomUnit___customUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">customUnit</span><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4026" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5092" id="CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">CustomUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4047">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-CustomUnit.customUnit" data-verso-hover="5094" id="CustomUnit___customUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">customUnit</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4034">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.101" data-verso-hover="4654">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.103" data-verso-hover="4654">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="4651">CustomUnit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.101" data-verso-hover="4654">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.103" data-verso-hover="4654">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4069">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.102" data-verso-hover="5095">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="5095">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#CustomUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-CustomUnit" data-verso-hover="5092">CustomUnit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.102" data-verso-hover="5095">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.104" data-verso-hover="5095">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4081">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="4652" id="AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">AlsoUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4100">where</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-4116">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5093" id="AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">AlsoUnit</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4135">where</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4107">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.215" data-verso-hover="4655">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="4655">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="4652">AlsoUnit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.215" data-verso-hover="4655">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.217" data-verso-hover="4655">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4142">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.216" data-verso-hover="5096">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.218" data-verso-hover="5096">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#AlsoUnit-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-AlsoUnit" data-verso-hover="5093">AlsoUnit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.216" data-verso-hover="5096">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.218" data-verso-hover="5096">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                    Types with parameters, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="4656">WithParam</span></a></code>, are also unit-like if they have a single constructor that does not take parameters.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4299" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam" data-verso-hover="4656" id="WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">WithParam</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4329">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam.mk" data-verso-hover="4657" id="WithParam___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text">
+                    Types with parameters, such as <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5097">WithParam</span></a></code>, are also unit-like if they have a single constructor that does not take parameters.</p>
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4334" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam" data-verso-hover="5097" id="WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">WithParam</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4364">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-WithParam.mk" data-verso-hover="5098" id="WithParam___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4343">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="4658">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="4658">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="4656">WithParam</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.120" data-verso-hover="4658">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.125" data-verso-hover="4658">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4378">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="5099">x</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.126" data-verso-hover="5099">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#WithParam-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-WithParam" data-verso-hover="5097">WithParam</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.121" data-verso-hover="5099">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.126" data-verso-hover="5099">y</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                     Constructors with non-proof parameters are not unit-like, even if the parameters are all unit-like types.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4505" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="4659" id="NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">NotUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4527">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike.mk" data-verso-hover="4660" id="NotUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1555">u</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4593">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="4661">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="4661">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="4659">NotUnitLike</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="4661">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="4661">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Type mismatch</span><span class="text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4540" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5100" id="NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">NotUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4562">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-NotUnitLike.mk" data-verso-hover="5101" id="NotUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="1552">u</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4628">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5102">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5102">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#NotUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NotUnitLike" data-verso-hover="5100">NotUnitLike</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5102">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5102">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Type mismatch</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">?m.3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="4661">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="4661">e2</span></span><span class="text"></span><span class="text"></span></code></span></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a></span><span class="inter-text">
+  </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="5102">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.4" data-verso-hover="5102">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></code></span></span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Type mismatch</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><span class="unknown token" data-binding="">?m.3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">?m.3</span></span><span class="text"></span><span class="text">
 </span><span class="text">but is expected to have type</span><span class="text">
-  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.9" data-verso-hover="4661">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="4661">e2</span></span><span class="text"></span><span class="text"></span></span></pre><p>
+  </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.9" data-verso-hover="5102">e1</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.10" data-verso-hover="5102">e2</span></span><span class="text"></span><span class="text"></span><span class="text"></span></span></pre><p>
                     Constructors of unit-like types may take parameters that are proofs.</p>
-                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4836" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="4662" id="ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">ProofUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4860">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike.mk" data-verso-hover="4663" id="ProofUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="4662">ProofUnitLike</span></a><span class="inter-text">
+                  <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4871" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5103" id="ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">ProofUnitLike</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4895">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-ProofUnitLike.mk" data-verso-hover="5104" id="ProofUnitLike___mk-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_">mk</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5103">ProofUnitLike</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4900">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="4664">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="4664">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="4662">ProofUnitLike</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="4664">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="4664">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code></div>
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4935">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="5105">e1</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="5105">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/The-Unit-Type/#ProofUnitLike-_LPAR_in-Definitional-Equality-of-Unit-Like-Types_RPAR_" title="Definition of example"><span class="const token" data-binding="const-ProofUnitLike" data-verso-hover="5103">ProofUnitLike</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.88" data-verso-hover="5105">e1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="5105">e2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><div class="live-link">
+                    <a href="javascript:openLiveLink(&quot;JYOwJgrgxgLsBuBTABAYQgZxgewLYFURgZkB3AC0QCdEAoZZAH2SkxwKJltsQA8BDXAAcANigAUiAIzJEAJmQAuNGzyFiASiWyZAXlkLF+qgDMR3LFWgwINZAEERGbOpIVqdHgOFjkkmfLajs6uWsrSyPqBRsim5rSgkLAIKADqxOQACvxUgn4g2gBy/DBa7jT0TMi4ANbcfIKiErzIAJ7a6TBZOXkAzGHILfrtMXHcidYpyIXYMK4AMsA1KOV0DMy1fhDaoePgk0jImVTY2CYLSyuUFevVNdoK+gqASYRHJ2cXy/XeTX4R0W9TudOItlgMIlFDMYzEA&quot;)">Live ↪</a></div>
+                  </div>
                 </details></section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Strings/#String" rel="prev" title="19.8. Strings"><span class="arrow">←</span><span class="where">19.8. Strings</span></a><a class="local-button active" href="Basic-Types/The-Empty-Type/#empty" rel="next" title="19.10. The Empty Type"><span class="where">19.10. The Empty Type</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Strings/#String" rel="prev" title="20.8. Strings"><span class="arrow">←</span><span class="where">20.8. Strings</span></a><a class="local-button active" href="Basic-Types/The-Empty-Type/#empty" rel="next" title="20.10. The Empty Type"><span class="where">20.10. The Empty Type</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

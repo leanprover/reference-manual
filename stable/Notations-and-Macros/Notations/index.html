@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Notations</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,14 +2479,14 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="current numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="current numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-language-extension" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-language-extension" checked="checked"></label><span class="number">20.</span> <span class=""><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></span></div>
-              <table><tr class="numbered"><td class="num">20.1.</td><td><a href="Notations-and-Macros/Custom-Operators/#operators">Custom Operators</a></td></tr><tr class="numbered"><td class="num">20.2.</td><td><a href="Notations-and-Macros/Precedence/#precedence">Precedence</a></td></tr><tr class="current numbered"><td class="num">20.3.</td><td><a href="Notations-and-Macros/Notations/#notations">Notations</a></td></tr><tr class="numbered"><td class="num">20.4.</td><td><a href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext">Defining New Syntax</a></td></tr><tr class="numbered"><td class="num">20.5.</td><td><a href="Notations-and-Macros/Macros/#macros">Macros</a></td></tr><tr class="numbered"><td class="num">20.6.</td><td><a href="Notations-and-Macros/Elaborators/#elaborators">Elaborators</a></td></tr><tr class="numbered"><td class="num">20.7.</td><td><a href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab">Extending Lean's Output</a></td></tr></table></div>
+                <label for="--verso-manual-toc-language-extension" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-language-extension" checked="checked"></label><span class="number">21.</span> <span class=""><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></span></div>
+              <table><tr class="numbered"><td class="num">21.1.</td><td><a href="Notations-and-Macros/Custom-Operators/#operators">Custom Operators</a></td></tr><tr class="numbered"><td class="num">21.2.</td><td><a href="Notations-and-Macros/Precedence/#precedence">Precedence</a></td></tr><tr class="current numbered"><td class="num">21.3.</td><td><a href="Notations-and-Macros/Notations/#notations">Notations</a></td></tr><tr class="numbered"><td class="num">21.4.</td><td><a href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext">Defining New Syntax</a></td></tr><tr class="numbered"><td class="num">21.5.</td><td><a href="Notations-and-Macros/Macros/#macros">Macros</a></td></tr><tr class="numbered"><td class="num">21.6.</td><td><a href="Notations-and-Macros/Elaborators/#elaborators">Elaborators</a></td></tr><tr class="numbered"><td class="num">21.7.</td><td><a href="Notations-and-Macros/Extending-Lean___s-Output/#unexpand-and-delab">Extending Lean's Output</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-notations" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-notations" checked="checked"></label><span class="number">20.3.</span> <span class="current"><a href="Notations-and-Macros/Notations/#notations">Notations</a></span></div>
+                <label for="--verso-manual-toc-notations" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-notations" checked="checked"></label><span class="number">21.3.</span> <span class="current"><a href="Notations-and-Macros/Notations/#notations">Notations</a></span></div>
               <ol>
                 <li>
                   <a href="Notations-and-Macros/Notations/#Lean___Parser___Command___notation"><span class="syntax"><span class="keyword">notation</span><span class="meta">(</span><span class="keyword">:</span><span class="meta">…</span><span class="meta">)?</span><span class="ws"> </span><span class="meta">(</span><span class="keyword">(</span><span class="keyword">name</span><span class="ws"> </span><span class="keyword">:=</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">)</span><span class="meta">)?</span><span class="ws"> </span><span class="meta">(</span><span class="keyword">(</span><span class="keyword">priority</span><span class="ws"> </span><span class="keyword">:=</span><span class="ws"> </span><span class="meta">…</span><span class="keyword">)</span><span class="meta">)?</span><span class="ws"> </span><span class="meta">…</span><span class="ws"> </span><span class="keyword">=&gt;</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
@@ -2462,10 +2509,10 @@ if (document.readyState === 'loading') {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Notations-and-Macros/Precedence/#precedence" rel="prev" title="20.2. Precedence"><span class="arrow">←</span><span class="where">20.2. Precedence</span></a><a class="local-button active" href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext" rel="next" title="20.4. Defining New Syntax"><span class="where">20.4. Defining New Syntax</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Notations-and-Macros/Precedence/#precedence" rel="prev" title="21.2. Precedence"><span class="arrow">←</span><span class="where">21.2. Precedence</span></a><a class="local-button active" href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext" rel="next" title="21.4. Defining New Syntax"><span class="where">21.4. Defining New Syntax</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              20.3. Notations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=notations" title="Permalink">🔗</a></span></h1>
+              21.3. Notations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=notations" title="Permalink">🔗</a></span></h1>
             <p>
               The term <span id="--tech-term-notation" class="def-technical-term"><em>notation</em></span> is used in two ways in Lean: it can refer to the general concept of concise ways of writing down ideas, and it is the name of a language feature that allows notations to be conveniently implemented with little code.
 Like custom operators, Lean notations allow the grammar of terms to be extended with new forms.
@@ -2480,10 +2527,16 @@ Because notations may define operators that use a mix of prefix, infix, and post
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Command.notation"><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><a href="Definitions/Modifiers/#Lean___Parser___Command___docComment"><span class="nonterminal documented" data-kind="Lean.Parser.Command.docComment"><code class="hover-info"><code class="docstring">A `docComment` parses a "documentation comment" like `/-- foo -/`. This is not treated like
 a regular comment (that is, as whitespace); it is parsed and forms part of the syntax tree structure.
 
-A `docComment` node contains a `/--` atom and then the remainder of the comment, `foo -/` in this
-example. Use `TSyntax.getDocString` to extract the body text from a doc string syntax node. </code></code>docComment</span></a></span><span class="bnf">?</span>
+At parse time, `docComment` checks the value of the `doc.verso` option. If it is true, the contents
+are parsed as Verso markup. If not, the contents are treated as plain text or Markdown. Use
+`plainDocComment` to always treat the contents as plain text.
+
+A plain text doc comment node contains a `/--` atom and then the remainder of the comment, `foo -/`
+in this example. Use `TSyntax.getDocString` to extract the body text from a doc string syntax node.
+A Verso comment node contains the `/--` atom, the document's syntax tree, and a closing `-/` atom.
+</code></code>docComment</span></a></span><span class="bnf">?</span>
       </span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><a href="Attributes/#Lean___Parser___Term___attributes-next"><span class="nonterminal" data-kind="Lean.Parser.Term.attributes">attributes</span></a></span><span class="bnf">?</span>
-      </span><span class="nonterminal documented" data-kind="Lean.Parser.Term.attrKind"><code class="hover-info"><code class="docstring">`attrKind` matches `("scoped" &lt;|&gt; "local")?`, used before an attribute like `@[local simp]`. </code></code>attrKind</span> <span class="keyword">notation</span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.precedence"><span class="keyword">:</span><span class="nonterminal" data-kind="prec.pseudo">prec</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Command.namedName"><span class="keyword">(</span><span class="keyword">name</span> <span class="keyword">:=</span> <span class="nonterminal" data-kind="ident">ident</span><span class="keyword">)</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Command.namedPrio"><span class="keyword">(</span><span class="keyword">priority</span> <span class="keyword">:=</span> <span class="nonterminal" data-kind="prio.pseudo">prio</span><span class="keyword">)</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="Lean.Parser.Command.notationItem">notationItem</span></span><span class="bnf">*</span> </span><span class="keyword">=&gt;</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre></div>
+      </span><span class="nonterminal documented" data-kind="Lean.Parser.Term.attrKind"><code class="hover-info"><code class="docstring">`attrKind` matches `("scoped" &lt;|&gt; "local")?`, used before an attribute like `@[local simp]`. </code></code>attrKind</span> <span class="keyword">notation</span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.precedence"><span class="keyword">:</span><span class="nonterminal" data-kind="prec.pseudo">prec</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Command.namedName"><span class="keyword">(</span><span class="keyword">name</span> <span class="keyword">:=</span> <span class="nonterminal" data-kind="ident">ident</span><span class="keyword">)</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="bnf">(</span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Command.namedPrio"><span class="keyword">(</span><span class="keyword">priority</span> <span class="keyword">:=</span> <span class="nonterminal" data-kind="prio.pseudo">prio</span><span class="keyword">)</span></span></span><span class="bnf">)?</span> </span><span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="null"><span class="nonterminal" data-kind="Lean.Parser.Command.notationItem.pseudo">notationItem</span></span><span class="bnf">*</span> </span><span class="keyword">=&gt;</span> <span class="nonterminal" data-kind="term.pseudo">term</span></span></pre></div>
               </div>
             <div class="namedocs" id="Lean___Parser___Command___notationItem">
               <span class="label">syntax</span><span class="title">Notation Items</span><div class="text">
@@ -2495,7 +2548,7 @@ example. Use `TSyntax.getDocString` to extract the body text from a doc string s
               </div>
             <p>
               As with operator declarations, the contents of the documentation comments are shown to users while they interact with the new syntax.
-Adding the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5428">inherit_doc</span></code> attribute causes the documentation comment of the function at the head of the term into which the notation expands to be copied to the new syntax.
+Adding the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="5894">inherit_doc</span></code> attribute causes the documentation comment of the function at the head of the term into which the notation expands to be copied to the new syntax.
 Other attributes may be added to invoke other compile-time metaprograms on the resulting definition.</p>
             <p>
               Notations interact with <a class="technical-term" href="Namespaces-and-Sections/#--tech-term-section-scope">section scopes</a> in the same manner as attributes and operators.
@@ -2530,33 +2583,37 @@ Because notation expansion is a purely syntactic process that occurs prior to el
             <details class="example"><summary class="description">Ignored Terms in Notation Expansion</summary><div class="example-content">
                 <p>
                   This notation ignores its first parameter:</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Notations/#Lean___Parser___Command___notation" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.notation-7048">notation</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-7057">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-ignore" data-verso-hover="5439" id="ignore-_LPAR_in-Ignored-Terms-in-Notation-Expansion_RPAR_">ignore</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5440">"ignore "</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.172" data-verso-hover="966">_ign</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7089" data-verso-hover="5441">arg</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.165" data-verso-hover="966">e</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7095" data-verso-hover="5441">arg</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.165" data-verso-hover="966">e</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Notations/#Lean___Parser___Command___notation" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.notation-7048">notation</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-7057">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-ignore" data-verso-hover="5905" id="ignore-_LPAR_in-Ignored-Terms-in-Notation-Expansion_RPAR_">ignore</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5906">"ignore "</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.182" data-verso-hover="967">_ign</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7089" data-verso-hover="5907">arg</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.175" data-verso-hover="967">e</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7095" data-verso-hover="5907">arg</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.175" data-verso-hover="967">e</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   The term in the ignored position is discarded, and Lean never attempts to elaborate it, so terms that would otherwise result in errors can be used here:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">5</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7287" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-ignore-7293">ignore</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5442">"whatever"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">5</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">5</span><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7287" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-ignore-7293">ignore</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5908">"whatever"</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">5</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">5</span></span></span></pre><p>
                   However, the ignored term must still be syntactically valid:</p>
-                <pre class="syntax-error hl lean"><code class="line">#eval ignore (2 +<span class="parse-message has-info error"><code class="hover-info">unexpected token ')'; expected term</code>)</span> 5</code></pre><pre class="hl lean lean-output error"><span class="verso-message"><span class="text">&lt;example&gt;:1:17-1:18: unexpected token ')'; expected term</span></span></pre></div>
+                <pre class="syntax-error hl lean"><code class="line">#eval ignore (2 +<span class="parse-message has-info error"><code class="hover-info">unexpected token ')'; expected term</code>)</span> 5</code></pre><pre class="hl lean lean-output error"><span class="verso-message"><span class="text">&lt;example&gt;:1:17-1:18: unexpected token ')'; expected term</span></span></pre><div class="live-link">
+                  <a href="javascript:openLiveLink(&quot;HYewLghmCWLABACmBAtgU3gLgLz2gOagBO6AlPAESEmaXwD6NWExB86Lb8OAfBwCgBAYnQA3CABt8REKSQAmeAGoqAdwAWUcemKUKAViA&quot;)">Live ↪</a></div>
+                </div>
               </details><details class="example"><summary class="description">Duplicated Terms in Notation Expansion</summary><div class="example-content">
                 <p>
                   The <span class="hl lean keyword-of"><code class="hover-info"><code>dup : term</code></code><code class="kw">dup!</code></span> notation duplicates its sub-term.</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Notations/#Lean___Parser___Command___notation" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.notation-7709">notation</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-7718">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-dup" data-verso-hover="5443" id="dup-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_">dup</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5444">"dup!"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="966">t</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7741" data-verso-hover="5441">arg</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="966">t</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.148" data-verso-hover="966">t</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><a href="Notations-and-Macros/Notations/#Lean___Parser___Command___notation" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.notation-7709">notation</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.namedName-7718">name</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="const token" data-binding="const-dup" data-verso-hover="5909" id="dup-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_">dup</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5910">"dup!"</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="967">t</span><span class="unknown token" data-binding="">:</span><a href="Notations-and-Macros/Precedence/#precArg" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-precArg-7741" data-verso-hover="5907">arg</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="967">t</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.158" data-verso-hover="967">t</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Because the term is duplicated, it can be elaborated separately with different types:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7854">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-e" data-verso-hover="5445" id="e-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">×</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-dup-7876">dup!</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7854">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-e" data-verso-hover="5911" id="e-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_">e</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">×</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-dup-7876">dup!</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Printing the resulting definition demonstrates that the work of addition will be performed twice:</p>
                 <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">e</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="321">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">(</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">)</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-8014">#print</span></span><span class="inter-text"> </span><a href="Notations-and-Macros/Notations/#e-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_" title="Definition of example"><span class="const token" data-binding="const-e" data-verso-hover="5445">e</span></a><span class="inter-text">
+</span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">(</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">)</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-8014">#print</span></span><span class="inter-text"> </span><a href="Notations-and-Macros/Notations/#e-_LPAR_in-Duplicated-Terms-in-Notation-Expansion_RPAR_" title="Definition of example"><span class="const token" data-binding="const-e" data-verso-hover="5911">e</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">e</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod"><span class="const token" data-binding="const-Prod" data-verso-hover="321">×</span></a><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">(</span></a><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">)</span></a></span></span></pre></div>
+</span><span class="highlighted"><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">(</span></a><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">,</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HAdd___mk" title="Documentation for HAdd.hAdd"><span class="const token" data-binding="const-HAdd.hAdd" data-verso-hover="19">+</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><a href="Basic-Types/Tuples/#Prod___mk" title="Documentation for Prod.mk"><span class="const token" data-binding="const-Prod.mk" data-verso-hover="285">)</span></a></span></span></pre><div class="live-link">
+                  <a href="javascript:openLiveLink(&quot;HYewLghmCWLABACmBAtgU3gLgLzwCYCuADgJTwBERxAhBfGFhAE4Dm8OAfEmADQOkAUIPzoAZvExZ4AOSjwA6/ACSwMNjzUaSAEzwA1PB1DBAYmLNoayUA&quot;)">Live ↪</a></div>
+                </div>
               </details><p>
               When the expansion consists of the application of a function defined in the global environment and each term in the notation occurs exactly once, an <a class="technical-term" href="Notations-and-Macros/Extending-Lean___s-Output/#--tech-term-unexpanders">unexpander</a> is generated.
 The new notation will be displayed in <a class="technical-term" href="Tactic-Proofs/#--tech-term-proof-state">proof states</a>, error messages, and other output from Lean when matching function application terms otherwise would have been displayed.
 As with custom operators, Lean does not track whether the notation was used in the original term; it is used at every opportunity in Lean's output.</p>
             <section>
               <h2 id="operators-and-notations">
-                20.3.1. Operators and Notations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=operators-and-notations" title="Permalink">🔗</a></span></h2>
+                21.3.1. Operators and Notations<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=operators-and-notations" title="Permalink">🔗</a></span></h2>
               <p>
                 Internally, operator declarations are translated into notation declarations.
 Term notation items are inserted where the operator would expect arguments, and in the corresponding positions in the expansion.
@@ -2568,7 +2625,7 @@ Left-associative operators use the higher precedence for their right argument, w
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Notations-and-Macros/Precedence/#precedence" rel="prev" title="20.2. Precedence"><span class="arrow">←</span><span class="where">20.2. Precedence</span></a><a class="local-button active" href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext" rel="next" title="20.4. Defining New Syntax"><span class="where">20.4. Defining New Syntax</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Notations-and-Macros/Precedence/#precedence" rel="prev" title="21.2. Precedence"><span class="arrow">←</span><span class="where">21.2. Precedence</span></a><a class="local-button active" href="Notations-and-Macros/Defining-New-Syntax/#syntax-ext" rel="next" title="21.4. Defining New Syntax"><span class="where">21.4. Defining New Syntax</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Lean 4.0.0-m4 (2022-03-27)</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,11 +2479,11 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0-rc1 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></span></div>
@@ -2458,13 +2505,12 @@ if (document.readyState === 'loading') {
           <section>
             <h1>
               Lean 4.0.0-m4 (2022-03-27)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.0.0-m4" title="Permalink">🔗</a></span></h1>
-            <div class="no-vale">
-              <p>
-                This is the fourth milestone release of Lean 4. It contains many improvements and many new features.
+            <p>
+              This is the fourth milestone release of Lean 4. It contains many improvements and many new features.
 We had more than 600 commits since the last milestone.</p>
-              <p>
-                Contributors:</p>
-              <pre>$ git shortlog -s -n v4.0.0-m3..v4.0.0-m4
+            <p>
+              Contributors:</p>
+            <pre>$ git shortlog -s -n v4.0.0-m3..v4.0.0-m4
    501  Leonardo de Moura
     65  Sebastian Ullrich
     11  Daniel Fabian
@@ -2485,22 +2531,22 @@ We had more than 600 commits since the last milestone.</p>
      1  casavaca
      1  zygi
 </pre><ul>
-                <li>
-                  <p>
-                    <code>simp</code> now takes user-defined simp-attributes. You can define a new <code>simp</code> attribute by creating a file (e.g., <code>MySimp.lean</code>) containing</p>
-                  <pre>import Lean
+              <li>
+                <p>
+                  <code>simp</code> now takes user-defined simp-attributes. You can define a new <code>simp</code> attribute by creating a file (e.g., <code>MySimp.lean</code>) containing</p>
+                <pre>import Lean
 open Lean.Meta
 
 initialize my_ext : SimpExtension ← registerSimpAttr `my_simp "my own simp attribute"
 </pre><p>
-                    If you don't need to access <code>my_ext</code>, you can also use the macro</p>
-                  <pre>import Lean
+                  If you don't need to access <code>my_ext</code>, you can also use the macro</p>
+                <pre>import Lean
 
 register_simp_attr my_simp "my own simp attribute"
 </pre><p>
-                    Recall that the new <code>simp</code> attribute is not active in the Lean file where it was defined.
+                  Recall that the new <code>simp</code> attribute is not active in the Lean file where it was defined.
 Here is a small example using the new feature.</p>
-                  <pre>import MySimp
+                <pre>import MySimp
 
 def f (x : Nat) := x + 2
 def g (x : Nat) := x + 1
@@ -2511,15 +2557,15 @@ def g (x : Nat) := x + 1
 example : f x + g x = 2*x + 3 := by
   simp_arith [my_simp]
 </pre></li>
-                <li>
-                  <p>
-                    Extend <code>match</code> syntax: multiple left-hand-sides in a single alternative. Example:</p>
-                  <pre>def fib : Nat → Nat
+              <li>
+                <p>
+                  Extend <code>match</code> syntax: multiple left-hand-sides in a single alternative. Example:</p>
+                <pre>def fib : Nat → Nat
 | 0 | 1 =&gt; 1
 | n+2 =&gt; fib n + fib (n+1)
 </pre><p>
-                    This feature was discussed at <a href="https://github.com/leanprover/lean4/issues/371">issue 371</a>. It was implemented as a macro expansion. Thus, the following is accepted.</p>
-                  <pre>inductive StrOrNum where
+                  This feature was discussed at <a href="https://github.com/leanprover/lean4/issues/371">issue 371</a>. It was implemented as a macro expansion. Thus, the following is accepted.</p>
+                <pre>inductive StrOrNum where
   | S (s : String)
   | I (i : Int)
 
@@ -2527,125 +2573,125 @@ def StrOrNum.asString (x : StrOrNum) :=
   match x with
   | I a | S a =&gt; toString a
 </pre></li>
-                <li>
-                  <p>
-                    Improve <code>#eval</code> command. Now, when it fails to synthesize a <code>Lean.MetaEval</code> instance for the result type, it reduces the type and tries again. The following example now works without additional annotations</p>
-                  <pre>def Foo := List Nat
+              <li>
+                <p>
+                  Improve <code>#eval</code> command. Now, when it fails to synthesize a <code>Lean.MetaEval</code> instance for the result type, it reduces the type and tries again. The following example now works without additional annotations</p>
+                <pre>def Foo := List Nat
 
 def test (x : Nat) : Foo :=
   [x, x+1, x+2]
 
 #eval test 4
 </pre></li>
-                <li>
-                  <p>
-                    <code>rw</code> tactic can now apply auto-generated equation theorems for a given definition. Example:</p>
-                  <pre>example (a : Nat) (h : n = 1) : [a].length = n := by
+              <li>
+                <p>
+                  <code>rw</code> tactic can now apply auto-generated equation theorems for a given definition. Example:</p>
+                <pre>example (a : Nat) (h : n = 1) : [a].length = n := by
   rw [List.length]
   trace_state -- .. |- [].length + 1 = n
   rw [List.length]
   trace_state -- .. |- 0 + 1 = n
   rw [h]
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1023">Fuzzy matching for auto completion</a></p>
-                  </li>
-                <li>
-                  <p>
-                    Extend dot-notation <code>x.field</code> for arrow types. If type of <code>x</code> is an arrow, we look up for <code>Function.field</code>.
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1023">Fuzzy matching for auto completion</a></p>
+                </li>
+              <li>
+                <p>
+                  Extend dot-notation <code>x.field</code> for arrow types. If type of <code>x</code> is an arrow, we look up for <code>Function.field</code>.
 For example, given <code>f : Nat → Nat</code> and <code>g : Nat → Nat</code>, <code>f.comp g</code> is now notation for <code>Function.comp f g</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    The new <code>.&lt;identifier&gt;</code> notation is now also accepted where a function type is expected.</p>
-                  <pre>example (xs : List Nat) : List Nat := .map .succ xs
+                </li>
+              <li>
+                <p>
+                  The new <code>.&lt;identifier&gt;</code> notation is now also accepted where a function type is expected.</p>
+                <pre>example (xs : List Nat) : List Nat := .map .succ xs
 example (xs : List α) : Std.RBTree α ord := xs.foldl .insert ∅
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1014">Add code folding support to the language server</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Support notation <code>let &lt;pattern&gt; := &lt;expr&gt; | &lt;else-case&gt;</code> in <code>do</code> blocks.</p>
-                  </li>
-                <li>
-                  <p>
-                    Remove support for "auto" <code>pure</code>. In the <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/for.2C.20unexpected.20need.20for.20type.20ascription/near/269083574">Zulip thread</a>, the consensus seemed to be that "auto" <code>pure</code> is more confusing than it's worth.</p>
-                  </li>
-                <li>
-                  <p>
-                    Remove restriction in <code>congr</code> theorems that all function arguments on the left-hand-side must be free variables. For example, the following theorem is now a valid <code>congr</code> theorem.</p>
-                  <pre>@[congr]
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1014">Add code folding support to the language server</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Support notation <code>let &lt;pattern&gt; := &lt;expr&gt; | &lt;else-case&gt;</code> in <code>do</code> blocks.</p>
+                </li>
+              <li>
+                <p>
+                  Remove support for "auto" <code>pure</code>. In the <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/for.2C.20unexpected.20need.20for.20type.20ascription/near/269083574">Zulip thread</a>, the consensus seemed to be that "auto" <code>pure</code> is more confusing than it's worth.</p>
+                </li>
+              <li>
+                <p>
+                  Remove restriction in <code>congr</code> theorems that all function arguments on the left-hand-side must be free variables. For example, the following theorem is now a valid <code>congr</code> theorem.</p>
+                <pre>@[congr]
 theorem dep_congr [DecidableEq ι] {p : ι → Set α} [∀ i, Inhabited (p i)] :
                   ∀ {i j} (h : i = j) (x : p i) (y : α) (hx : x = y), Pi.single (f := (p ·)) i x = Pi.single (f := (p ·)) j ⟨y, hx ▸ h ▸ x.2⟩ :=
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/issues/988">Partially applied congruence theorems.</a></p>
-                  </li>
-                <li>
-                  <p>
-                    Improve elaboration postponement heuristic when expected type is a metavariable. Lean now reduces the expected type before performing the test.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/985">Remove deprecated leanpkg</a> in favor of <a href="https://github.com/leanprover/lake">Lake</a> now bundled with Lean.</p>
-                  </li>
-                <li>
-                  <p>
-                    Various improvements to go-to-definition & find-all-references accuracy.</p>
-                  </li>
-                <li>
-                  <p>
-                    Auto generated congruence lemmas with support for casts on proofs and <code>Decidable</code> instances (see <a href="https://github.com/leanprover/lean4/issues/988">wishlist</a>).</p>
-                  </li>
-                <li>
-                  <p>
-                    Rename option <code>autoBoundImplicitLocal</code> =&gt; <code>autoImplicit</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1011">Relax auto-implicit restrictions</a>. The command <code>set_option relaxedAutoImplicit false</code> disables the relaxations.</p>
-                  </li>
-                <li>
-                  <p>
-                    <code>contradiction</code> tactic now closes the goal if there is a <code>False.elim</code> application in the target.</p>
-                  </li>
-                <li>
-                  <p>
-                    Renamed tatic <code>byCases</code> =&gt; <code>by_cases</code> (motivation: enforcing naming convention).</p>
-                  </li>
-                <li>
-                  <p>
-                    Local instances occurring in patterns are now considered by the type class resolution procedure. Example:</p>
-                  <pre>def concat : List ((α : Type) × ToString α × α) → String
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/issues/988">Partially applied congruence theorems.</a></p>
+                </li>
+              <li>
+                <p>
+                  Improve elaboration postponement heuristic when expected type is a metavariable. Lean now reduces the expected type before performing the test.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/985">Remove deprecated leanpkg</a> in favor of <a href="https://github.com/leanprover/lake">Lake</a> now bundled with Lean.</p>
+                </li>
+              <li>
+                <p>
+                  Various improvements to go-to-definition & find-all-references accuracy.</p>
+                </li>
+              <li>
+                <p>
+                  Auto generated congruence lemmas with support for casts on proofs and <code>Decidable</code> instances (see <a href="https://github.com/leanprover/lean4/issues/988">wishlist</a>).</p>
+                </li>
+              <li>
+                <p>
+                  Rename option <code>autoBoundImplicitLocal</code> =&gt; <code>autoImplicit</code>.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1011">Relax auto-implicit restrictions</a>. The command <code>set_option relaxedAutoImplicit false</code> disables the relaxations.</p>
+                </li>
+              <li>
+                <p>
+                  <code>contradiction</code> tactic now closes the goal if there is a <code>False.elim</code> application in the target.</p>
+                </li>
+              <li>
+                <p>
+                  Renamed tatic <code>byCases</code> =&gt; <code>by_cases</code> (motivation: enforcing naming convention).</p>
+                </li>
+              <li>
+                <p>
+                  Local instances occurring in patterns are now considered by the type class resolution procedure. Example:</p>
+                <pre>def concat : List ((α : Type) × ToString α × α) → String
   | [] =&gt; ""
   | ⟨_, _, a⟩ :: as =&gt; toString a ++ concat as
 </pre></li>
-                <li>
-                  <p>
-                    Notation for providing the motive for <code>match</code> expressions has changed.
+              <li>
+                <p>
+                  Notation for providing the motive for <code>match</code> expressions has changed.
 before:</p>
-                  <pre>match x, rfl : (y : Nat) → x = y → Nat with
+                <pre>match x, rfl : (y : Nat) → x = y → Nat with
 | 0,   h =&gt; ...
 | x+1, h =&gt; ...
 </pre><p>
-                    now:</p>
-                  <pre>match (motive := (y : Nat) → x = y → Nat) x, rfl with
+                  now:</p>
+                <pre>match (motive := (y : Nat) → x = y → Nat) x, rfl with
 | 0,   h =&gt; ...
 | x+1, h =&gt; ...
 </pre><p>
-                    With this change, the notation for giving names to equality proofs in <code>match</code>-expressions is not whitespace sensitive anymore. That is,
+                  With this change, the notation for giving names to equality proofs in <code>match</code>-expressions is not whitespace sensitive anymore. That is,
 we can now write</p>
-                  <pre>match h : sort.swap a b with
+                <pre>match h : sort.swap a b with
 | (r₁, r₂) =&gt; ... -- `h : sort.swap a b = (r₁, r₂)`
 </pre></li>
-                <li>
-                  <p>
-                    <code>(generalizing := true)</code> is the default behavior for <code>match</code> expressions even if the expected type is not a proposition. In the following example, we used to have to include <code>(generalizing := true)</code> manually.</p>
-                  <pre>inductive Fam : Type → Type 1 where
+              <li>
+                <p>
+                  <code>(generalizing := true)</code> is the default behavior for <code>match</code> expressions even if the expected type is not a proposition. In the following example, we used to have to include <code>(generalizing := true)</code> manually.</p>
+                <pre>inductive Fam : Type → Type 1 where
   | any : Fam α
   | nat : Nat → Fam Nat
 
@@ -2654,103 +2700,103 @@ example (a : α) (x : Fam α) : α :=
   | Fam.any   =&gt; a
   | Fam.nat n =&gt; n
 </pre></li>
-                <li>
-                  <p>
-                    We now use <code>PSum</code> (instead of <code>Sum</code>) when compiling mutually recursive definitions using well-founded recursion.</p>
-                  </li>
-                <li>
-                  <p>
-                    Better support for parametric well-founded relations. See <a href="https://github.com/leanprover/lean4/issues/1017">issue #1017</a>. This change affects the low-level <code>termination_by'</code> hint because the fixed prefix of the function parameters in not "packed" anymore when constructing the well-founded relation type. For example, in the following definition, <code>as</code> is part of the fixed prefix, and is not packed anymore. In previous versions, the <code>termination_by'</code> term would be written as <code>measure fun ⟨as, i, _⟩ =&gt; as.size - i</code></p>
-                  <pre>def sum (as : Array Nat) (i : Nat) (s : Nat) : Nat :=
+              <li>
+                <p>
+                  We now use <code>PSum</code> (instead of <code>Sum</code>) when compiling mutually recursive definitions using well-founded recursion.</p>
+                </li>
+              <li>
+                <p>
+                  Better support for parametric well-founded relations. See <a href="https://github.com/leanprover/lean4/issues/1017">issue #1017</a>. This change affects the low-level <code>termination_by'</code> hint because the fixed prefix of the function parameters in not "packed" anymore when constructing the well-founded relation type. For example, in the following definition, <code>as</code> is part of the fixed prefix, and is not packed anymore. In previous versions, the <code>termination_by'</code> term would be written as <code>measure fun ⟨as, i, _⟩ =&gt; as.size - i</code></p>
+                <pre>def sum (as : Array Nat) (i : Nat) (s : Nat) : Nat :=
   if h : i &lt; as.size then
     sum as (i+1) (s + as.get ⟨i, h⟩)
   else
     s
 termination_by' measure fun ⟨i, _⟩ =&gt; as.size - i
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>while &lt;cond&gt; do &lt;do-block&gt;</code>, <code>repeat &lt;do-block&gt;</code>, and <code>repeat &lt;do-block&gt; until &lt;cond&gt;</code> macros for <code>do</code>-block. These macros are based on <code>partial</code> definitions, and consequently are useful only for writing programs we don't want to prove anything about.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add <code>arith</code> option to <code>Simp.Config</code>, the macro <code>simp_arith</code> expands to <code>simp (config := { arith := true })</code>. Only <code>Nat</code> and linear arithmetic is currently supported. Example:</p>
-                  <pre>example : 0 &lt; 1 + x ∧ x + y + 2 ≥ y + 1 := by
+              <li>
+                <p>
+                  Add <code>while &lt;cond&gt; do &lt;do-block&gt;</code>, <code>repeat &lt;do-block&gt;</code>, and <code>repeat &lt;do-block&gt; until &lt;cond&gt;</code> macros for <code>do</code>-block. These macros are based on <code>partial</code> definitions, and consequently are useful only for writing programs we don't want to prove anything about.</p>
+                </li>
+              <li>
+                <p>
+                  Add <code>arith</code> option to <code>Simp.Config</code>, the macro <code>simp_arith</code> expands to <code>simp (config := { arith := true })</code>. Only <code>Nat</code> and linear arithmetic is currently supported. Example:</p>
+                <pre>example : 0 &lt; 1 + x ∧ x + y + 2 ≥ y + 1 := by
   simp_arith
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>fail &lt;string&gt;?</code> tactic that always fail.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add support for acyclicity at dependent elimination. See <a href="https://github.com/leanprover/lean4/issues/1022">issue #1022</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add <code>trace &lt;string&gt;</code> tactic for debugging purposes.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add nontrivial <code>SizeOf</code> instance for types <code>Unit → α</code>, and add support for them in the auto-generated <code>SizeOf</code> instances for user-defined inductive types. For example, given the inductive datatype</p>
-                  <pre>inductive LazyList (α : Type u) where
+              <li>
+                <p>
+                  Add <code>fail &lt;string&gt;?</code> tactic that always fail.</p>
+                </li>
+              <li>
+                <p>
+                  Add support for acyclicity at dependent elimination. See <a href="https://github.com/leanprover/lean4/issues/1022">issue #1022</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Add <code>trace &lt;string&gt;</code> tactic for debugging purposes.</p>
+                </li>
+              <li>
+                <p>
+                  Add nontrivial <code>SizeOf</code> instance for types <code>Unit → α</code>, and add support for them in the auto-generated <code>SizeOf</code> instances for user-defined inductive types. For example, given the inductive datatype</p>
+                <pre>inductive LazyList (α : Type u) where
   | nil                               : LazyList α
   | cons (hd : α) (tl : LazyList α)   : LazyList α
   | delayed (t : Thunk (LazyList α))  : LazyList α
 </pre><p>
-                    we now have <code>sizeOf (LazyList.delayed t) = 1 + sizeOf t</code> instead of <code>sizeOf (LazyList.delayed t) = 2</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add support for guessing (very) simple well-founded relations when proving termination. For example, the following function does not require a <code>termination_by</code> annotation anymore.</p>
-                  <pre>def Array.insertAtAux (i : Nat) (as : Array α) (j : Nat) : Array α :=
+                  we now have <code>sizeOf (LazyList.delayed t) = 1 + sizeOf t</code> instead of <code>sizeOf (LazyList.delayed t) = 2</code>.</p>
+                </li>
+              <li>
+                <p>
+                  Add support for guessing (very) simple well-founded relations when proving termination. For example, the following function does not require a <code>termination_by</code> annotation anymore.</p>
+                <pre>def Array.insertAtAux (i : Nat) (as : Array α) (j : Nat) : Array α :=
   if h : i &lt; j then
     let as := as.swap! (j-1) j;
     insertAtAux i as (j-1)
   else
     as
 </pre></li>
-                <li>
-                  <p>
-                    Add support for <code>for h : x in xs do ...</code> notation where <code>h : x ∈ xs</code>. This is mainly useful for showing termination.</p>
-                  </li>
-                <li>
-                  <p>
-                    Auto implicit behavior changed for inductive families. An auto implicit argument occurring in inductive family index is also treated as an index (IF it is not fixed, see next item). For example</p>
-                  <pre>inductive HasType : Index n → Vector Ty n → Ty → Type where
+              <li>
+                <p>
+                  Add support for <code>for h : x in xs do ...</code> notation where <code>h : x ∈ xs</code>. This is mainly useful for showing termination.</p>
+                </li>
+              <li>
+                <p>
+                  Auto implicit behavior changed for inductive families. An auto implicit argument occurring in inductive family index is also treated as an index (IF it is not fixed, see next item). For example</p>
+                <pre>inductive HasType : Index n → Vector Ty n → Ty → Type where
 </pre><p>
-                    is now interpreted as</p>
-                  <pre>inductive HasType : {n : Nat} → Index n → Vector Ty n → Ty → Type where
+                  is now interpreted as</p>
+                <pre>inductive HasType : {n : Nat} → Index n → Vector Ty n → Ty → Type where
 </pre></li>
-                <li>
-                  <p>
-                    To make the previous feature more convenient to use, we promote a fixed prefix of inductive family indices to parameters. For example, the following declaration is now accepted by Lean</p>
-                  <pre>inductive Lst : Type u → Type u
+              <li>
+                <p>
+                  To make the previous feature more convenient to use, we promote a fixed prefix of inductive family indices to parameters. For example, the following declaration is now accepted by Lean</p>
+                <pre>inductive Lst : Type u → Type u
   | nil  : Lst α
   | cons : α → Lst α → Lst α
 </pre><p>
-                    and <code>α</code> in <code>Lst α</code> is a parameter. The actual number of parameters can be inspected using the command <code>#print Lst</code>. This feature also makes sure we still accept the declaration</p>
-                  <pre>inductive Sublist : List α → List α → Prop
+                  and <code>α</code> in <code>Lst α</code> is a parameter. The actual number of parameters can be inspected using the command <code>#print Lst</code>. This feature also makes sure we still accept the declaration</p>
+                <pre>inductive Sublist : List α → List α → Prop
   | slnil : Sublist [] []
   | cons l₁ l₂ a : Sublist l₁ l₂ → Sublist l₁ (a :: l₂)
   | cons2 l₁ l₂ a : Sublist l₁ l₂ → Sublist (a :: l₁) (a :: l₂)
 </pre></li>
-                <li>
-                  <p>
-                    Added auto implicit "chaining". Unassigned metavariables occurring in the auto implicit types now become new auto implicit locals. Consider the following example:</p>
-                  <pre>inductive HasType : Fin n → Vector Ty n → Ty → Type where
+              <li>
+                <p>
+                  Added auto implicit "chaining". Unassigned metavariables occurring in the auto implicit types now become new auto implicit locals. Consider the following example:</p>
+                <pre>inductive HasType : Fin n → Vector Ty n → Ty → Type where
   | stop : HasType 0 (ty :: ctx) ty
   | pop  : HasType k ctx ty → HasType k.succ (u :: ctx) ty
 </pre><p>
-                    <code>ctx</code> is an auto implicit local in the two constructors, and it has type <code>ctx : Vector Ty ?m</code>. Without auto implicit "chaining", the metavariable <code>?m</code> will remain unassigned. The new feature creates yet another implicit local <code>n : Nat</code> and assigns <code>n</code> to <code>?m</code>. So, the declaration above is shorthand for</p>
-                  <pre>inductive HasType : {n : Nat} → Fin n → Vector Ty n → Ty → Type where
+                  <code>ctx</code> is an auto implicit local in the two constructors, and it has type <code>ctx : Vector Ty ?m</code>. Without auto implicit "chaining", the metavariable <code>?m</code> will remain unassigned. The new feature creates yet another implicit local <code>n : Nat</code> and assigns <code>n</code> to <code>?m</code>. So, the declaration above is shorthand for</p>
+                <pre>inductive HasType : {n : Nat} → Fin n → Vector Ty n → Ty → Type where
   | stop : {ty : Ty} → {n : Nat} → {ctx : Vector Ty n} → HasType 0 (ty :: ctx) ty
   | pop  : {n : Nat} → {k : Fin n} → {ctx : Vector Ty n} → {ty : Ty} → HasType k ctx ty → HasType k.succ (u :: ctx) ty
 </pre></li>
-                <li>
-                  <p>
-                    Eliminate auxiliary type annotations (e.g, <code>autoParam</code> and <code>optParam</code>) from recursor minor premises and projection declarations. Consider the following example</p>
-                  <pre>structure A :=
+              <li>
+                <p>
+                  Eliminate auxiliary type annotations (e.g, <code>autoParam</code> and <code>optParam</code>) from recursor minor premises and projection declarations. Consider the following example</p>
+                <pre>structure A :=
   x : Nat
   h : x = 1 := by trivial
 
@@ -2765,10 +2811,10 @@ example (a : A) : a.x = 1 := by
     -- `h` has now type `x = 1` instead of `autoParam (x = 1) auto✝`
     assumption
 </pre></li>
-                <li>
-                  <p>
-                    We now accept overloaded notation in patterns, but we require the set of pattern variables in each alternative to be the same. Example:</p>
-                  <pre>inductive Vector (α : Type u) : Nat → Type u
+              <li>
+                <p>
+                  We now accept overloaded notation in patterns, but we require the set of pattern variables in each alternative to be the same. Example:</p>
+                <pre>inductive Vector (α : Type u) : Nat → Type u
   | nil : Vector α 0
   | cons : α → Vector α n → Vector α (n+1)
 
@@ -2782,10 +2828,10 @@ def head2 (x : Vector α (n+1)) : α :=
   match x with
   | a :: as =&gt; a -- `::` is `Vector.cons` here
 </pre></li>
-                <li>
-                  <p>
-                    New notation <code>.&lt;identifier&gt;</code> based on Swift. The namespace is inferred from the expected type. See <a href="https://github.com/leanprover/lean4/issues/944">issue #944</a>. Examples:</p>
-                  <pre>def f (x : Nat) : Except String Nat :=
+              <li>
+                <p>
+                  New notation <code>.&lt;identifier&gt;</code> based on Swift. The namespace is inferred from the expected type. See <a href="https://github.com/leanprover/lean4/issues/944">issue #944</a>. Examples:</p>
+                <pre>def f (x : Nat) : Except String Nat :=
   if x &gt; 0 then
     .ok x
   else
@@ -2807,8 +2853,7 @@ def isImplicit (bi : BinderInfo) : Bool :=
 
 end Lean.Elab
 </pre></li>
-                </ul>
-              </div>
+              </ul>
             </section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="releases/v4.0.0-m5/#release-v4___0___0-m5" rel="prev" title="Lean 4.0.0-m5 (2022-08-22)"><span class="arrow">←</span><span class="where">Lean 4.0.0-m5 (2022-08-22)</span></a><a class="local-button active" href="releases/v4.0.0-m3/#release-v4___0___0-m3" rel="next" title="Lean 4.0.0-m3 (2022-01-31)"><span class="where">Lean 4.0.0-m3 (2022-01-31)</span><span class="arrow">→</span></a></nav>

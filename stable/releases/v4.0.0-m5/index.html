@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Lean 4.0.0-m5 (2022-08-22)</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,11 +2479,11 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0-rc1 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></span></div>
@@ -2458,13 +2505,12 @@ if (document.readyState === 'loading') {
           <section>
             <h1>
               Lean 4.0.0-m5 (2022-08-22)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.0.0-m5" title="Permalink">🔗</a></span></h1>
-            <div class="no-vale">
-              <p>
-                This is the fifth milestone release of Lean 4. It contains many improvements and many new features.
+            <p>
+              This is the fifth milestone release of Lean 4. It contains many improvements and many new features.
 We had  1495 commits since the last milestone.</p>
-              <p>
-                Contributors:</p>
-              <pre>   885  Leonardo de Moura
+            <p>
+              Contributors:</p>
+            <pre>   885  Leonardo de Moura
    310  Sebastian Ullrich
     69  E.W.Ayers
     66  Wojciech Nawrocki
@@ -2499,14 +2545,14 @@ We had  1495 commits since the last milestone.</p>
      1  asdasd1dsadsa
      1  kzvi
 </pre><ul>
-                <li>
-                  <p>
-                    Update Lake to v4.0.0. See the <a href="https://github.com/leanprover/lake/releases/tag/v4.0.0">v4.0.0 release notes</a> for detailed changes.</p>
-                  </li>
-                <li>
-                  <p>
-                    Mutual declarations in different namespaces are now supported. Example:</p>
-                  <pre>mutual
+              <li>
+                <p>
+                  Update Lake to v4.0.0. See the <a href="https://github.com/leanprover/lake/releases/tag/v4.0.0">v4.0.0 release notes</a> for detailed changes.</p>
+                </li>
+              <li>
+                <p>
+                  Mutual declarations in different namespaces are now supported. Example:</p>
+                <pre>mutual
   def Foo.boo (x : Nat) :=
     match x with
     | 0 =&gt; 1
@@ -2518,58 +2564,58 @@ We had  1495 commits since the last milestone.</p>
     | x+1 =&gt; 3*Foo.boo x
 end
 </pre><p>
-                    A <code>namespace</code> is automatically created for the common prefix. Example:</p>
-                  <pre>mutual
+                  A <code>namespace</code> is automatically created for the common prefix. Example:</p>
+                <pre>mutual
   def Tst.Foo.boo (x : Nat) := ...
   def Tst.Boo.bla (x : Nat) := ...
 end
 </pre><p>
-                    expands to</p>
-                  <pre>namespace Tst
+                  expands to</p>
+                <pre>namespace Tst
 mutual
   def Foo.boo (x : Nat) := ...
   def Boo.bla (x : Nat) := ...
 end
 end Tst
 </pre></li>
-                <li>
-                  <p>
-                    Allow users to install their own <code>deriving</code> handlers for existing type classes.
+              <li>
+                <p>
+                  Allow users to install their own <code>deriving</code> handlers for existing type classes.
 See example at <a href="https://github.com/leanprover/lean4/blob/master/tests/pkg/deriving/UserDeriving/Simple.lean">Simple.lean</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add tactic <code>congr (num)?</code>. See doc string for additional details.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1390">Missing doc linter</a></p>
-                  </li>
-                <li>
-                  <p>
-                    <code>match</code>-syntax notation now checks for unused alternatives. See issue <a href="https://github.com/leanprover/lean4/issues/1371">#1371</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Auto-completion for structure instance fields. Example:</p>
-                  <pre>example : Nat × Nat := {
+                </li>
+              <li>
+                <p>
+                  Add tactic <code>congr (num)?</code>. See doc string for additional details.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1390">Missing doc linter</a></p>
+                </li>
+              <li>
+                <p>
+                  <code>match</code>-syntax notation now checks for unused alternatives. See issue <a href="https://github.com/leanprover/lean4/issues/1371">#1371</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Auto-completion for structure instance fields. Example:</p>
+                <pre>example : Nat × Nat := {
   f -- HERE
 }
 </pre><p>
-                    <code>fst</code> now appears in the list of auto-completion suggestions.</p>
-                  </li>
-                <li>
-                  <p>
-                    Auto-completion for dotted identifier notation. Example:</p>
-                  <pre>example : Nat :=
+                  <code>fst</code> now appears in the list of auto-completion suggestions.</p>
+                </li>
+              <li>
+                <p>
+                  Auto-completion for dotted identifier notation. Example:</p>
+                <pre>example : Nat :=
   .su -- HERE
 </pre><p>
-                    <code>succ</code> now appears in the list of auto-completion suggestions.</p>
-                  </li>
-                <li>
-                  <p>
-                    <code>nat_lit</code> is not needed anymore when declaring <code>OfNat</code> instances. See issues <a href="https://github.com/leanprover/lean4/issues/1389">#1389</a> and <a href="https://github.com/leanprover/lean4/issues/875">#875</a>. Example:</p>
-                  <pre>inductive Bit where
+                  <code>succ</code> now appears in the list of auto-completion suggestions.</p>
+                </li>
+              <li>
+                <p>
+                  <code>nat_lit</code> is not needed anymore when declaring <code>OfNat</code> instances. See issues <a href="https://github.com/leanprover/lean4/issues/1389">#1389</a> and <a href="https://github.com/leanprover/lean4/issues/875">#875</a>. Example:</p>
+                <pre>inductive Bit where
   | zero
   | one
 
@@ -2582,64 +2628,64 @@ instance : OfNat Bit 1 where
 example : Bit := 0
 example : Bit := 1
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>[elabAsElim]</code> attribute (it is called <code>elab_as_eliminator</code> in Lean 3). Motivation: simplify the Mathlib port to Lean 4.</p>
-                  </li>
-                <li>
-                  <p>
-                    <code>Trans</code> type class now accepts relations in <code>Type u</code>. See this <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Calc.20mode/near/291214574">Zulip issue</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Accept unescaped keywords as inductive constructor names. Escaping can often be avoided at use sites via dot notation.</p>
-                  <pre>inductive MyExpr
+              <li>
+                <p>
+                  Add <code>[elabAsElim]</code> attribute (it is called <code>elab_as_eliminator</code> in Lean 3). Motivation: simplify the Mathlib port to Lean 4.</p>
+                </li>
+              <li>
+                <p>
+                  <code>Trans</code> type class now accepts relations in <code>Type u</code>. See this <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Calc.20mode/near/291214574">Zulip issue</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Accept unescaped keywords as inductive constructor names. Escaping can often be avoided at use sites via dot notation.</p>
+                <pre>inductive MyExpr
   | let : ...
 
 def f : MyExpr → MyExpr
   | .let ... =&gt; .let ...
 </pre></li>
-                <li>
-                  <p>
-                    Throw an error message at parametric local instances such as <code>[Nat -&gt; Decidable p]</code>. The type class resolution procedure
+              <li>
+                <p>
+                  Throw an error message at parametric local instances such as <code>[Nat -&gt; Decidable p]</code>. The type class resolution procedure
 cannot use this kind of local instance because the parameter does not have a forward dependency.
 This check can be disabled using <code>set_option checkBinderAnnotations false</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add option <code>pp.showLetValues</code>. When set to <code>false</code>, the info view hides the value of <code>let</code>-variables in a goal.
+                </li>
+              <li>
+                <p>
+                  Add option <code>pp.showLetValues</code>. When set to <code>false</code>, the info view hides the value of <code>let</code>-variables in a goal.
 By default, it is <code>true</code> when visualizing tactic goals, and <code>false</code> otherwise.
 See <a href="https://github.com/leanprover/lean4/issues/1345">issue #1345</a> for additional details.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add option <code>warningAsError</code>. When set to true, warning messages are treated as errors.</p>
-                  </li>
-                <li>
-                  <p>
-                    Support dotted notation and named arguments in patterns. Example:</p>
-                  <pre>def getForallBinderType (e : Expr) : Expr :=
+                </li>
+              <li>
+                <p>
+                  Add option <code>warningAsError</code>. When set to true, warning messages are treated as errors.</p>
+                </li>
+              <li>
+                <p>
+                  Support dotted notation and named arguments in patterns. Example:</p>
+                <pre>def getForallBinderType (e : Expr) : Expr :=
   match e with
   | .forallE (binderType := type) .. =&gt; type
   | _ =&gt; panic! "forall expected"
 </pre></li>
-                <li>
-                  <p>
-                    "jump-to-definition" now works for function names embedded in the following attributes
+              <li>
+                <p>
+                  "jump-to-definition" now works for function names embedded in the following attributes
 <code>@[implementedBy funName]</code>, <code>@[tactic parserName]</code>, <code>@[termElab parserName]</code>, <code>@[commandElab parserName]</code>,
 <code>@[builtinTactic parserName]</code>, <code>@[builtinTermElab parserName]</code>, and <code>@[builtinCommandElab parserName]</code>.
 See <a href="https://github.com/leanprover/lean4/issues/1350">issue #1350</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Improve <code>MVarId</code> methods discoverability. See <a href="https://github.com/leanprover/lean4/issues/1346">issue #1346</a>.
+                </li>
+              <li>
+                <p>
+                  Improve <code>MVarId</code> methods discoverability. See <a href="https://github.com/leanprover/lean4/issues/1346">issue #1346</a>.
 We still have to add similar methods for <code>FVarId</code>, <code>LVarId</code>, <code>Expr</code>, and other objects.
 Many existing methods have been marked as deprecated.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add attribute <code>[deprecated]</code> for marking deprecated declarations. Examples:</p>
-                  <pre>def g (x : Nat) := x + 1
+                </li>
+              <li>
+                <p>
+                  Add attribute <code>[deprecated]</code> for marking deprecated declarations. Examples:</p>
+                <pre>def g (x : Nat) := x + 1
 
 -- Whenever `f` is used, a warning message is generated suggesting to use `g` instead.
 @[deprecated g]
@@ -2653,23 +2699,23 @@ def h (x : Nat) := x + 1
 
 #check h 0 -- warning: `h` has been deprecated
 </pre></li>
-                <li>
-                  <p>
-                    Add type <code>LevelMVarId</code> (and abbreviation <code>LMVarId</code>) for universe level metavariable ids.
+              <li>
+                <p>
+                  Add type <code>LevelMVarId</code> (and abbreviation <code>LMVarId</code>) for universe level metavariable ids.
 Motivation: prevent meta-programmers from mixing up universe and expression metavariable ids.</p>
-                  </li>
-                <li>
-                  <p>
-                    Improve <code>calc</code> term and tactic. See <a href="https://github.com/leanprover/lean4/issues/1342">issue #1342</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1272">Relaxed antiquotation parsing</a> further reduces the need for explicit <code>$x:p</code> antiquotation kind annotations.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add support for computed fields in inductives. Example:</p>
-                  <pre>inductive Exp
+                </li>
+              <li>
+                <p>
+                  Improve <code>calc</code> term and tactic. See <a href="https://github.com/leanprover/lean4/issues/1342">issue #1342</a>.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1272">Relaxed antiquotation parsing</a> further reduces the need for explicit <code>$x:p</code> antiquotation kind annotations.</p>
+                </li>
+              <li>
+                <p>
+                  Add support for computed fields in inductives. Example:</p>
+                <pre>inductive Exp
   | var (i : Nat)
   | app (a b : Exp)
 with
@@ -2677,29 +2723,29 @@ with
     | .var i =&gt; i
     | .app a b =&gt; a.hash * b.hash + 1
 </pre><p>
-                    The result of the <code>Exp.hash</code> function is then stored as an extra "computed" field in the <code>.var</code> and <code>.app</code> constructors;
+                  The result of the <code>Exp.hash</code> function is then stored as an extra "computed" field in the <code>.var</code> and <code>.app</code> constructors;
 <code>Exp.hash</code> accesses this field and thus runs in constant time (even on dag-like values).</p>
-                  </li>
-                <li>
-                  <p>
-                    Update <code>a[i]</code> notation. It is now based on the typeclass</p>
-                  <pre>class GetElem (cont : Type u) (idx : Type v) (elem : outParam (Type w)) (dom : outParam (cont → idx → Prop)) where
+                </li>
+              <li>
+                <p>
+                  Update <code>a[i]</code> notation. It is now based on the typeclass</p>
+                <pre>class GetElem (cont : Type u) (idx : Type v) (elem : outParam (Type w)) (dom : outParam (cont → idx → Prop)) where
   getElem (xs : cont) (i : idx) (h : dom xs i) : Elem
 </pre><p>
-                    The notation <code>a[i]</code> is now defined as follows</p>
-                  <pre>macro:max x:term noWs "[" i:term "]" : term =&gt; `(getElem $x $i (by get_elem_tactic))
+                  The notation <code>a[i]</code> is now defined as follows</p>
+                <pre>macro:max x:term noWs "[" i:term "]" : term =&gt; `(getElem $x $i (by get_elem_tactic))
 </pre><p>
-                    The proof that <code>i</code> is a valid index is synthesized using the tactic <code>get_elem_tactic</code>.
+                  The proof that <code>i</code> is a valid index is synthesized using the tactic <code>get_elem_tactic</code>.
 For example, the type <code>Array α</code> has the following instances</p>
-                  <pre>instance : GetElem (Array α) Nat α fun xs i =&gt; LT.lt i xs.size where ...
+                <pre>instance : GetElem (Array α) Nat α fun xs i =&gt; LT.lt i xs.size where ...
 instance : GetElem (Array α) USize α fun xs i =&gt; LT.lt i.toNat xs.size where ...
 </pre><p>
-                    You can use the notation <code>a[i]'h</code> to provide the proof manually.
+                  You can use the notation <code>a[i]'h</code> to provide the proof manually.
 Two other notations were introduced: <code>a[i]!</code> and <code>a[i]?</code>, For <code>a[i]!</code>, a panic error message is produced at
 runtime if <code>i</code> is not a valid index. <code>a[i]?</code> has type <code>Option α</code>, and <code>a[i]?</code> evaluates to <code>none</code> if the
 index <code>i</code> is not valid.
 The three new notations are defined as follows:</p>
-                  <pre>@[inline] def getElem' [GetElem cont idx elem dom] (xs : cont) (i : idx) (h : dom xs i) : elem :=
+                <pre>@[inline] def getElem' [GetElem cont idx elem dom] (xs : cont) (i : idx) (h : dom xs i) : elem :=
 getElem xs i h
 
 @[inline] def getElem! [GetElem cont idx elem dom] [Inhabited elem] (xs : cont) (i : idx) [Decidable (dom xs i)] : elem :=
@@ -2712,9 +2758,9 @@ macro:max x:term noWs "[" i:term "]" noWs "?" : term =&gt; `(getElem? $x $i)
 macro:max x:term noWs "[" i:term "]" noWs "!" : term =&gt; `(getElem! $x $i)
 macro x:term noWs "[" i:term "]'" h:term:max : term =&gt; `(getElem' $x $i $h)
 </pre><p>
-                    See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/String.2EgetOp/near/287855425">Zulip</a>.
+                  See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/String.2EgetOp/near/287855425">Zulip</a>.
 Examples:</p>
-                  <pre>example (a : Array Int) (i : Nat) : Int :=
+                <pre>example (a : Array Int) (i : Nat) : Int :=
   a[i] -- Error: failed to prove index is valid ...
 
 example (a : Array Int) (i : Nat) (h : i &lt; a.size) : Int :=
@@ -2737,46 +2783,46 @@ example (a : Array Int) (h : a.size = 2) : Int :=
 example (a : Array Int) (i : USize) (h : i.toNat &lt; a.size) : Int :=
   a[i] -- Ok
 </pre><p>
-                    The <code>get_elem_tactic</code> is defined as</p>
-                  <pre>macro "get_elem_tactic" : tactic =&gt;
+                  The <code>get_elem_tactic</code> is defined as</p>
+                <pre>macro "get_elem_tactic" : tactic =&gt;
   `(first
     | get_elem_tactic_trivial
     | fail "failed to prove index is valid, ..."
    )
 </pre><p>
-                    The <code>get_elem_tactic_trivial</code> auxiliary tactic can be extended using <code>macro_rules</code>. By default, it tries <code>trivial</code>, <code>simp_arith</code>, and a special case for <code>Fin</code>. In the future, it will also try <code>linarith</code>.
+                  The <code>get_elem_tactic_trivial</code> auxiliary tactic can be extended using <code>macro_rules</code>. By default, it tries <code>trivial</code>, <code>simp_arith</code>, and a special case for <code>Fin</code>. In the future, it will also try <code>linarith</code>.
 You can extend <code>get_elem_tactic_trivial</code> using <code>my_tactic</code> as follows</p>
-                  <pre>macro_rules
+                <pre>macro_rules
 | `(tactic| get_elem_tactic_trivial) =&gt; `(tactic| my_tactic)
 </pre><p>
-                    Note that <code>Idx</code>'s type in <code>GetElem</code> does not depend on <code>Cont</code>. So, you cannot write the instance <code>instance : GetElem (Array α) (Fin ??) α fun xs i =&gt; ...</code>, but the Lean library comes equipped with the following auxiliary instance:</p>
-                  <pre>instance [GetElem cont Nat elem dom] : GetElem cont (Fin n) elem fun xs i =&gt; dom xs i where
+                  Note that <code>Idx</code>'s type in <code>GetElem</code> does not depend on <code>Cont</code>. So, you cannot write the instance <code>instance : GetElem (Array α) (Fin ??) α fun xs i =&gt; ...</code>, but the Lean library comes equipped with the following auxiliary instance:</p>
+                <pre>instance [GetElem cont Nat elem dom] : GetElem cont (Fin n) elem fun xs i =&gt; dom xs i where
   getElem xs i h := getElem xs i.1 h
 </pre><p>
-                    and helper tactic</p>
-                  <pre>macro_rules
+                  and helper tactic</p>
+                <pre>macro_rules
 | `(tactic| get_elem_tactic_trivial) =&gt; `(tactic| apply Fin.val_lt_of_le; get_elem_tactic_trivial; done)
 </pre><p>
-                    Example:</p>
-                  <pre>example (a : Array Nat) (i : Fin a.size) :=
+                  Example:</p>
+                <pre>example (a : Array Nat) (i : Fin a.size) :=
   a[i] -- Ok
 
 example (a : Array Nat) (h : n ≤ a.size) (i : Fin n) :=
   a[i] -- Ok
 </pre></li>
-                <li>
-                  <p>
-                    Better support for qualified names in recursive declarations. The following is now supported:</p>
-                  <pre>namespace Nat
+              <li>
+                <p>
+                  Better support for qualified names in recursive declarations. The following is now supported:</p>
+                <pre>namespace Nat
   def fact : Nat → Nat
   | 0 =&gt; 1
   | n+1 =&gt; (n+1) * Nat.fact n
 end Nat
 </pre></li>
-                <li>
-                  <p>
-                    Add support for <code>CommandElabM</code> monad at <code>#eval</code>. Example:</p>
-                  <pre>import Lean
+              <li>
+                <p>
+                  Add support for <code>CommandElabM</code> monad at <code>#eval</code>. Example:</p>
+                <pre>import Lean
 
 open Lean Elab Command
 
@@ -2786,35 +2832,35 @@ open Lean Elab Command
 
 #eval foo -- 10
 </pre></li>
-                <li>
-                  <p>
-                    Try to elaborate <code>do</code> notation even if the expected type is not available. We still delay elaboration when the expected type
+              <li>
+                <p>
+                  Try to elaborate <code>do</code> notation even if the expected type is not available. We still delay elaboration when the expected type
 is not available. This change is particularly useful when writing examples such as</p>
-                  <pre>#eval do
+                <pre>#eval do
   IO.println "hello"
   IO.println "world"
 </pre><p>
-                    That is, we don't have to use the idiom <code>#eval show IO _ from do ...</code> anymore.
+                  That is, we don't have to use the idiom <code>#eval show IO _ from do ...</code> anymore.
 Note that auto monadic lifting is less effective when the expected type is not available.
 Monadic polymorphic functions (e.g., <code>ST.Ref.get</code>) also require the expected type.</p>
-                  </li>
-                <li>
-                  <p>
-                    On Linux, panics now print a backtrace by default, which can be disabled by setting the environment variable <code>LEAN_BACKTRACE</code> to <code>0</code>.
+                </li>
+              <li>
+                <p>
+                  On Linux, panics now print a backtrace by default, which can be disabled by setting the environment variable <code>LEAN_BACKTRACE</code> to <code>0</code>.
 Other platforms are TBD.</p>
-                  </li>
-                <li>
-                  <p>
-                    The <code>group(·)</code> <code>syntax</code> combinator is now introduced automatically where necessary, such as when using multiple parsers inside <code>(...)+</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add <a href="https://github.com/leanprover/lean4/pull/1251">"Typed Macros"</a>: syntax trees produced and accepted by syntax antiquotations now remember their syntax kinds, preventing accidental production of ill-formed syntax trees and reducing the need for explicit <code>:kind</code> antiquotation annotations. See PR for details.</p>
-                  </li>
-                <li>
-                  <p>
-                    Aliases of protected definitions are protected too. Example:</p>
-                  <pre>protected def Nat.double (x : Nat) := 2*x
+                </li>
+              <li>
+                <p>
+                  The <code>group(·)</code> <code>syntax</code> combinator is now introduced automatically where necessary, such as when using multiple parsers inside <code>(...)+</code>.</p>
+                </li>
+              <li>
+                <p>
+                  Add <a href="https://github.com/leanprover/lean4/pull/1251">"Typed Macros"</a>: syntax trees produced and accepted by syntax antiquotations now remember their syntax kinds, preventing accidental production of ill-formed syntax trees and reducing the need for explicit <code>:kind</code> antiquotation annotations. See PR for details.</p>
+                </li>
+              <li>
+                <p>
+                  Aliases of protected definitions are protected too. Example:</p>
+                <pre>protected def Nat.double (x : Nat) := 2*x
 
 namespace Ex
 export Nat (double) -- Add alias Ex.double for Nat.double
@@ -2824,15 +2870,15 @@ open Ex
 #check Ex.double -- Ok
 #check double -- Error, `Ex.double` is alias for `Nat.double` which is protected
 </pre></li>
-                <li>
-                  <p>
-                    Use <code>IO.getRandomBytes</code> to initialize random seed for <code>IO.rand</code>. See discussion at <a href="https://github.com/leanprover/lean4-samples/pull/2">this PR</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Improve dot notation and aliases interaction. See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Namespace-based.20overloading.20does.20not.20find.20exports/near/282946185">Zulip</a> for additional details.
+              <li>
+                <p>
+                  Use <code>IO.getRandomBytes</code> to initialize random seed for <code>IO.rand</code>. See discussion at <a href="https://github.com/leanprover/lean4-samples/pull/2">this PR</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Improve dot notation and aliases interaction. See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Namespace-based.20overloading.20does.20not.20find.20exports/near/282946185">Zulip</a> for additional details.
 Example:</p>
-                  <pre>def Set (α : Type) := α → Prop
+                <pre>def Set (α : Type) := α → Prop
 def Set.union (s₁ s₂ : Set α) : Set α := fun a =&gt; s₁ a ∨ s₂ a
 def FinSet (n : Nat) := Fin n → Prop
 
@@ -2843,10 +2889,10 @@ end FinSet
 example (x y : FinSet 10) : FinSet 10 :=
   x.union y -- Works
 </pre></li>
-                <li>
-                  <p>
-                    <code>ext</code> and <code>enter</code> conv tactics can now go inside let-declarations. Example:</p>
-                  <pre>example (g : Nat → Nat) (y : Nat) (h : let x := y + 1; g (0+x) = x) : g (y + 1) = y + 1 := by
+              <li>
+                <p>
+                  <code>ext</code> and <code>enter</code> conv tactics can now go inside let-declarations. Example:</p>
+                <pre>example (g : Nat → Nat) (y : Nat) (h : let x := y + 1; g (0+x) = x) : g (y + 1) = y + 1 := by
   conv at h =&gt; enter [x, 1, 1]; rw [Nat.zero_add]
   /-
     g : Nat → Nat
@@ -2857,10 +2903,10 @@ example (x y : FinSet 10) : FinSet 10 :=
   -/
   exact h
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>zeta</code> conv tactic to expand let-declarations. Example:</p>
-                  <pre>example (h : let x := y + 1; 0 + x = y) : False := by
+              <li>
+                <p>
+                  Add <code>zeta</code> conv tactic to expand let-declarations. Example:</p>
+                <pre>example (h : let x := y + 1; 0 + x = y) : False := by
   conv at h =&gt; zeta; rw [Nat.zero_add]
   /-
     y : Nat
@@ -2869,21 +2915,21 @@ example (x y : FinSet 10) : FinSet 10 :=
   -/
   simp_arith at h
 </pre></li>
-                <li>
-                  <p>
-                    Improve namespace resolution. See issue <a href="https://github.com/leanprover/lean4/issues/1224">#1224</a>. Example:</p>
-                  <pre>import Lean
+              <li>
+                <p>
+                  Improve namespace resolution. See issue <a href="https://github.com/leanprover/lean4/issues/1224">#1224</a>. Example:</p>
+                <pre>import Lean
 open Lean Parser Elab
 open Tactic -- now opens both `Lean.Parser.Tactic` and `Lean.Elab.Tactic`
 </pre></li>
-                <li>
-                  <p>
-                    Rename <code>constant</code> command to <code>opaque</code>. See discussion at <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/What.20is.20.60opaque.60.3F/near/284926171">Zulip</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Extend <code>induction</code> and <code>cases</code> syntax: multiple left-hand-sides in a single alternative. This extension is very similar to the one implemented for <code>match</code> expressions. Examples:</p>
-                  <pre>inductive Foo where
+              <li>
+                <p>
+                  Rename <code>constant</code> command to <code>opaque</code>. See discussion at <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/What.20is.20.60opaque.60.3F/near/284926171">Zulip</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Extend <code>induction</code> and <code>cases</code> syntax: multiple left-hand-sides in a single alternative. This extension is very similar to the one implemented for <code>match</code> expressions. Examples:</p>
+                <pre>inductive Foo where
   | mk1 (x : Nat) | mk2 (x : Nat) | mk3
 
 def f (v : Foo) :=
@@ -2897,23 +2943,23 @@ theorem f_gt_zero : f v &gt; 0 := by
   | mk1 x | mk2 x =&gt; simp_arith!  -- New feature used here!
   | mk3 =&gt; decide
 </pre></li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/issues/1120"><code>let/if</code> indentation in <code>do</code> blocks in now supported.</a></p>
-                  </li>
-                <li>
-                  <p>
-                    Add unnamed antiquotation <code>$_</code> for use in syntax quotation patterns.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/1159">Add unused variables linter</a>. Feedback welcome!</p>
-                  </li>
-                <li>
-                  <p>
-                    Lean now generates an error if the body of a declaration body contains a universe parameter that does not occur in the declaration type, nor is an explicit parameter.
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/issues/1120"><code>let/if</code> indentation in <code>do</code> blocks in now supported.</a></p>
+                </li>
+              <li>
+                <p>
+                  Add unnamed antiquotation <code>$_</code> for use in syntax quotation patterns.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/1159">Add unused variables linter</a>. Feedback welcome!</p>
+                </li>
+              <li>
+                <p>
+                  Lean now generates an error if the body of a declaration body contains a universe parameter that does not occur in the declaration type, nor is an explicit parameter.
 Examples:</p>
-                  <pre>/-
+                <pre>/-
 The following declaration now produces an error because `PUnit` is universe polymorphic,
 but the universe parameter does not occur in the function type `Nat → Nat`
 -/
@@ -2929,19 +2975,19 @@ def g.{u} (n : Nat) : Nat :=
   let aux (_ : PUnit.{u}) : Nat := n + 1
   aux ⟨⟩
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>subst_vars</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/issues/1158">Fix <code>autoParam</code> in structure fields lost in multiple inheritance.</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add <code>[eliminator]</code> attribute. It allows users to specify default recursor/eliminators for the <code>induction</code> and <code>cases</code> tactics.
+              <li>
+                <p>
+                  Add <code>subst_vars</code> tactic.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/issues/1158">Fix <code>autoParam</code> in structure fields lost in multiple inheritance.</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Add <code>[eliminator]</code> attribute. It allows users to specify default recursor/eliminators for the <code>induction</code> and <code>cases</code> tactics.
 It is an alternative for the <code>using</code> notation. Example:</p>
-                  <pre>@[eliminator] protected def recDiag {motive : Nat → Nat → Sort u}
+                <pre>@[eliminator] protected def recDiag {motive : Nat → Nat → Sort u}
     (zero_zero : motive 0 0)
     (succ_zero : (x : Nat) → motive x 0 → motive (x + 1) 0)
     (zero_succ : (y : Nat) → motive 0 y → motive 0 (y + 1))
@@ -2966,11 +3012,11 @@ termination_by f x y =&gt; (x, y)
 example (x y : Nat) : f x y &gt; 0 := by
   induction x, y &lt;;&gt; simp [f, *]
 </pre></li>
-                <li>
-                  <p>
-                    Add support for <code>casesOn</code> applications to structural and well-founded recursion modules.
+              <li>
+                <p>
+                  Add support for <code>casesOn</code> applications to structural and well-founded recursion modules.
 This feature is useful when writing definitions using tactics. Example:</p>
-                  <pre>inductive Foo where
+                <pre>inductive Foo where
   | a | b | c
   | pair: Foo × Foo → Foo
 
@@ -2986,20 +3032,20 @@ def Foo.deq (a b : Foo) : Decidable (a = b) := by
     | isFalse h₁, _ =&gt; isFalse (fun h =&gt; by cases h; cases (h₁ rfl))
     | _, isFalse h₂ =&gt; isFalse (fun h =&gt; by cases h; cases (h₂ rfl))
 </pre></li>
-                <li>
-                  <p>
-                    <code>Option</code> is again a monad. The auxiliary type <code>OptionM</code> has been removed. See <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Do.20we.20still.20need.20OptionM.3F/near/279761084">Zulip thread</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Improve <code>split</code> tactic. It used to fail on <code>match</code> expressions of the form <code>match h : e with ...</code> where <code>e</code> is not a free variable.
+              <li>
+                <p>
+                  <code>Option</code> is again a monad. The auxiliary type <code>OptionM</code> has been removed. See <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Do.20we.20still.20need.20OptionM.3F/near/279761084">Zulip thread</a>.</p>
+                </li>
+              <li>
+                <p>
+                  Improve <code>split</code> tactic. It used to fail on <code>match</code> expressions of the form <code>match h : e with ...</code> where <code>e</code> is not a free variable.
 The failure used to occur during generalization.</p>
-                  </li>
-                <li>
-                  <p>
-                    New encoding for <code>match</code>-expressions that use the <code>h :</code> notation for discriminants. The information is not lost during delaboration,
+                </li>
+              <li>
+                <p>
+                  New encoding for <code>match</code>-expressions that use the <code>h :</code> notation for discriminants. The information is not lost during delaboration,
 and it is the foundation for a better <code>split</code> tactic. at delaboration time. Example:</p>
-                  <pre>#print Nat.decEq
+                <pre>#print Nat.decEq
 /-
 protected def Nat.decEq : (n m : Nat) → Decidable (n = m) :=
 fun n m =&gt;
@@ -3008,58 +3054,58 @@ fun n m =&gt;
   | false =&gt; isFalse (_ : ¬n = m)
 -/
 </pre></li>
-                <li>
-                  <p>
-                    <code>exists</code> tactic is now takes a comma separated list of terms.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add <code>dsimp</code> and <code>dsimp!</code> tactics. They guarantee the result term is definitionally equal, and only apply
+              <li>
+                <p>
+                  <code>exists</code> tactic is now takes a comma separated list of terms.</p>
+                </li>
+              <li>
+                <p>
+                  Add <code>dsimp</code> and <code>dsimp!</code> tactics. They guarantee the result term is definitionally equal, and only apply
 <code>rfl</code>-theorems.</p>
-                  </li>
-                <li>
-                  <p>
-                    Fix binder information for <code>match</code> patterns that use definitions tagged with <code>[matchPattern]</code> (e.g., <code>Nat.add</code>).
+                </li>
+              <li>
+                <p>
+                  Fix binder information for <code>match</code> patterns that use definitions tagged with <code>[matchPattern]</code> (e.g., <code>Nat.add</code>).
 We now have proper binder information for the variable <code>y</code> in the following example.</p>
-                  <pre>def f (x : Nat) : Nat :=
+                <pre>def f (x : Nat) : Nat :=
   match x with
   | 0 =&gt; 1
   | y + 1 =&gt; y
 </pre></li>
-                <li>
-                  <p>
-                    (Fix) the default value for structure fields may now depend on the structure parameters. Example:</p>
-                  <pre>structure Something (i: Nat) where
+              <li>
+                <p>
+                  (Fix) the default value for structure fields may now depend on the structure parameters. Example:</p>
+                <pre>structure Something (i: Nat) where
 n1: Nat := 1
 n2: Nat := 1 + i
 
 def s : Something 10 := {}
 example : s.n2 = 11 := rfl
 </pre></li>
-                <li>
-                  <p>
-                    Apply <code>rfl</code> theorems at the <code>dsimp</code> auxiliary method used by <code>simp</code>. <code>dsimp</code> can be used anywhere in an expression
+              <li>
+                <p>
+                  Apply <code>rfl</code> theorems at the <code>dsimp</code> auxiliary method used by <code>simp</code>. <code>dsimp</code> can be used anywhere in an expression
 because it preserves definitional equality.</p>
-                  </li>
-                <li>
-                  <p>
-                    Refine auto bound implicit feature. It does not consider anymore unbound variables that have the same
+                </li>
+              <li>
+                <p>
+                  Refine auto bound implicit feature. It does not consider anymore unbound variables that have the same
 name of a declaration being defined. Example:</p>
-                  <pre>def f : f → Bool := -- Error at second `f`
+                <pre>def f : f → Bool := -- Error at second `f`
   fun _ =&gt; true
 
 inductive Foo : List Foo → Type -- Error at second `Foo`
   | x : Foo []
 </pre><p>
-                    Before this refinement, the declarations above would be accepted and the
+                  Before this refinement, the declarations above would be accepted and the
 second <code>f</code> and <code>Foo</code> would be treated as auto implicit variables. That is,
 <code>f : {f : Sort u} → f → Bool</code>, and
 <code>Foo : {Foo : Type u} → List Foo → Type</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Fix syntax highlighting for recursive declarations. Example</p>
-                  <pre>inductive List (α : Type u) where
+                </li>
+              <li>
+                <p>
+                  Fix syntax highlighting for recursive declarations. Example</p>
+                <pre>inductive List (α : Type u) where
   | nil : List α  -- `List` is not highlighted as a variable anymore
   | cons (head : α) (tail : List α) : List α
 
@@ -3067,42 +3113,42 @@ def List.map (f : α → β) : List α → List β
   | []    =&gt; []
   | a::as =&gt; f a :: map f as -- `map` is not highlighted as a variable anymore
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>autoUnfold</code> option to <code>Lean.Meta.Simp.Config</code>, and the following macros</p>
-                  <ul>
-                    <li>
-                      <p>
-                        <code>simp!</code> for <code>simp (config := { autoUnfold := true })</code></p>
-                      </li>
-                    <li>
-                      <p>
-                        <code>simp_arith!</code> for <code>simp (config := { autoUnfold := true, arith := true })</code></p>
-                      </li>
-                    <li>
-                      <p>
-                        <code>simp_all!</code> for <code>simp_all (config := { autoUnfold := true })</code></p>
-                      </li>
-                    <li>
-                      <p>
-                        <code>simp_all_arith!</code> for <code>simp_all (config := { autoUnfold := true, arith := true })</code></p>
-                      </li>
-                    </ul>
-                  <p>
-                    When the <code>autoUnfold</code> is set to true, <code>simp</code> tries to unfold the following kinds of definition</p>
-                  <ul>
-                    <li>
-                      <p>
-                        Recursive definitions defined by structural recursion.</p>
-                      </li>
-                    <li>
-                      <p>
-                        Non-recursive definitions where the body is a <code>match</code>-expression. This
+              <li>
+                <p>
+                  Add <code>autoUnfold</code> option to <code>Lean.Meta.Simp.Config</code>, and the following macros</p>
+                <ul>
+                  <li>
+                    <p>
+                      <code>simp!</code> for <code>simp (config := { autoUnfold := true })</code></p>
+                    </li>
+                  <li>
+                    <p>
+                      <code>simp_arith!</code> for <code>simp (config := { autoUnfold := true, arith := true })</code></p>
+                    </li>
+                  <li>
+                    <p>
+                      <code>simp_all!</code> for <code>simp_all (config := { autoUnfold := true })</code></p>
+                    </li>
+                  <li>
+                    <p>
+                      <code>simp_all_arith!</code> for <code>simp_all (config := { autoUnfold := true, arith := true })</code></p>
+                    </li>
+                  </ul>
+                <p>
+                  When the <code>autoUnfold</code> is set to true, <code>simp</code> tries to unfold the following kinds of definition</p>
+                <ul>
+                  <li>
+                    <p>
+                      Recursive definitions defined by structural recursion.</p>
+                    </li>
+                  <li>
+                    <p>
+                      Non-recursive definitions where the body is a <code>match</code>-expression. This
 kind of definition is only unfolded if the <code>match</code> can be reduced.
 Example:</p>
-                      </li>
-                    </ul>
-                  <pre>def append (as bs : List α) : List α :=
+                    </li>
+                  </ul>
+                <pre>def append (as bs : List α) : List α :=
   match as with
   | [] =&gt; bs
   | a :: as =&gt; a :: append as bs
@@ -3113,79 +3159,79 @@ theorem append_nil (as : List α) : append as [] = as := by
 theorem append_assoc (as bs cs : List α) : append (append as bs) cs = append as (append bs cs) := by
   induction as &lt;;&gt; simp_all!
 </pre></li>
-                <li>
-                  <p>
-                    Add <code>save</code> tactic for creating checkpoints more conveniently. Example:</p>
-                  <pre>example : &lt;some-proposition&gt; := by
+              <li>
+                <p>
+                  Add <code>save</code> tactic for creating checkpoints more conveniently. Example:</p>
+                <pre>example : &lt;some-proposition&gt; := by
   tac_1
   tac_2
   save
   tac_3
   ...
 </pre><p>
-                    is equivalent to</p>
-                  <pre>example : &lt;some-proposition&gt; := by
+                  is equivalent to</p>
+                <pre>example : &lt;some-proposition&gt; := by
   checkpoint
     tac_1
     tac_2
   tac_3
   ...
 </pre></li>
-                <li>
-                  <p>
-                    Remove support for <code>{}</code> annotation from inductive datatype constructors. This annotation was barely used, and we can control the binder information for parameter bindings using the new inductive family indices to parameter promotion. Example: the following declaration using <code>{}</code></p>
-                  <pre>inductive LE' (n : Nat) : Nat → Prop where
+              <li>
+                <p>
+                  Remove support for <code>{}</code> annotation from inductive datatype constructors. This annotation was barely used, and we can control the binder information for parameter bindings using the new inductive family indices to parameter promotion. Example: the following declaration using <code>{}</code></p>
+                <pre>inductive LE' (n : Nat) : Nat → Prop where
   | refl {} : LE' n n -- Want `n` to be explicit
   | succ  : LE' n m → LE' n (m+1)
 </pre><p>
-                    can now be written as</p>
-                  <pre>inductive LE' : Nat → Nat → Prop where
+                  can now be written as</p>
+                <pre>inductive LE' : Nat → Nat → Prop where
   | refl (n : Nat) : LE' n n
   | succ : LE' n m → LE' n (m+1)
 </pre><p>
-                    In both cases, the inductive family has one parameter and one index.
+                  In both cases, the inductive family has one parameter and one index.
 Recall that the actual number of parameters can be retrieved using the command <code>#print</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Remove support for <code>{}</code> annotation in the <code>structure</code> command.</p>
-                  </li>
-                <li>
-                  <p>
-                    Several improvements to LSP server. Examples: "jump to definition" in mutually recursive sections, fixed incorrect hover information in "match"-expression patterns, "jump to definition" for pattern variables, fixed auto-completion in function headers, etc.</p>
-                  </li>
-                <li>
-                  <p>
-                    In <code>macro ... xs:p* ...</code> and similar macro bindings of combinators, <code>xs</code> now has the correct type <code>Array Syntax</code></p>
-                  </li>
-                <li>
-                  <p>
-                    Identifiers in syntax patterns now ignore macro scopes during matching.</p>
-                  </li>
-                <li>
-                  <p>
-                    Improve binder names for constructor auto implicit parameters. Example, given the inductive datatype</p>
-                  <pre>inductive Member : α → List α → Type u
+                </li>
+              <li>
+                <p>
+                  Remove support for <code>{}</code> annotation in the <code>structure</code> command.</p>
+                </li>
+              <li>
+                <p>
+                  Several improvements to LSP server. Examples: "jump to definition" in mutually recursive sections, fixed incorrect hover information in "match"-expression patterns, "jump to definition" for pattern variables, fixed auto-completion in function headers, etc.</p>
+                </li>
+              <li>
+                <p>
+                  In <code>macro ... xs:p* ...</code> and similar macro bindings of combinators, <code>xs</code> now has the correct type <code>Array Syntax</code></p>
+                </li>
+              <li>
+                <p>
+                  Identifiers in syntax patterns now ignore macro scopes during matching.</p>
+                </li>
+              <li>
+                <p>
+                  Improve binder names for constructor auto implicit parameters. Example, given the inductive datatype</p>
+                <pre>inductive Member : α → List α → Type u
   | head : Member a (a::as)
   | tail : Member a bs → Member a (b::bs)
 </pre><p>
-                    before:</p>
-                  <pre>#check @Member.head
+                  before:</p>
+                <pre>#check @Member.head
 -- @Member.head : {x : Type u_1} → {a : x} → {as : List x} → Member a (a :: as)
 </pre><p>
-                    now:</p>
-                  <pre>#check @Member.head
+                  now:</p>
+                <pre>#check @Member.head
 -- @Member.head : {α : Type u_1} → {a : α} → {as : List α} → Member a (a :: as)
 </pre></li>
-                <li>
-                  <p>
-                    Improve error message when constructor parameter universe level is too big.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add support for <code>for h : i in [start:stop] do .. </code> where <code>h : i ∈ [start:stop]</code>. This feature is useful for proving
+              <li>
+                <p>
+                  Improve error message when constructor parameter universe level is too big.</p>
+                </li>
+              <li>
+                <p>
+                  Add support for <code>for h : i in [start:stop] do .. </code> where <code>h : i ∈ [start:stop]</code>. This feature is useful for proving
 termination of functions such as:</p>
-                  <pre>inductive Expr where
+                <pre>inductive Expr where
   | app (f : String) (args : Array Expr)
 
 def Expr.size (e : Expr) : Nat := Id.run do
@@ -3197,25 +3243,25 @@ def Expr.size (e : Expr) : Nat := Id.run do
       sz := sz + size (args.get ⟨i, h.upper⟩)
     return sz
 </pre></li>
-                <li>
-                  <p>
-                    Add tactic <code>case'</code>. It is similar to <code>case</code>, but does not admit the goal on failure.
+              <li>
+                <p>
+                  Add tactic <code>case'</code>. It is similar to <code>case</code>, but does not admit the goal on failure.
 For example, the new tactic is useful when writing tactic scripts where we need to use <code>case'</code>
 at <code>first | ... | ...</code>, and we want to take the next alternative when <code>case'</code> fails.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add tactic macro</p>
-                  <pre>macro "stop" s:tacticSeq : tactic =&gt; `(repeat sorry)
+                </li>
+              <li>
+                <p>
+                  Add tactic macro</p>
+                <pre>macro "stop" s:tacticSeq : tactic =&gt; `(repeat sorry)
 </pre><p>
-                    See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Partial.20evaluation.20of.20a.20file">Zulip</a>.</p>
-                  </li>
-                <li>
-                  <p>
-                    When displaying goals, we do not display inaccessible proposition names
+                  See discussion on <a href="https://leanprover.zulipchat.com/#narrow/stream/270676-lean4/topic/Partial.20evaluation.20of.20a.20file">Zulip</a>.</p>
+                </li>
+              <li>
+                <p>
+                  When displaying goals, we do not display inaccessible proposition names
 if they do not have forward dependencies. We still display their types.
 For example, the goal</p>
-                  <pre>case node.inl.node
+                <pre>case node.inl.node
 β : Type u_1
 b : BinTree β
 k : Nat
@@ -3233,8 +3279,8 @@ a✝¹ : BST right
 a✝ : ForallTree (fun k v =&gt; key &lt; k) right
 ⊢ BST left
 </pre><p>
-                    is now displayed as</p>
-                  <pre>case node.inl.node
+                  is now displayed as</p>
+                <pre>case node.inl.node
 β : Type u_1
 b : BinTree β
 k : Nat
@@ -3252,40 +3298,40 @@ ihr : BST right → Tree.find? (Tree.insert right k v) k = some v
  : ForallTree (fun k v =&gt; key &lt; k) right
 ⊢ BST left
 </pre></li>
-                <li>
-                  <p>
-                    The hypothesis name is now optional in the <code>by_cases</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/issues/1090">Fix inconsistency between <code>syntax</code> and kind names</a>.
+              <li>
+                <p>
+                  The hypothesis name is now optional in the <code>by_cases</code> tactic.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/issues/1090">Fix inconsistency between <code>syntax</code> and kind names</a>.
 The node kinds <code>numLit</code>, <code>charLit</code>, <code>nameLit</code>, <code>strLit</code>, and <code>scientificLit</code> are now called
 <code>num</code>, <code>char</code>, <code>name</code>, <code>str</code>, and <code>scientific</code> respectively. Example: we now write</p>
-                  <pre>macro_rules | `($n:num) =&gt; `("hello")
+                <pre>macro_rules | `($n:num) =&gt; `("hello")
 </pre><p>
-                    instead of</p>
-                  <pre>macro_rules | `($n:numLit) =&gt; `("hello")
+                  instead of</p>
+                <pre>macro_rules | `($n:numLit) =&gt; `("hello")
 </pre></li>
-                <li>
-                  <p>
-                    (Experimental) New <code>checkpoint &lt;tactic-seq&gt;</code> tactic for big interactive proofs.</p>
-                  </li>
-                <li>
-                  <p>
-                    Rename tactic <code>nativeDecide</code> =&gt; <code>native_decide</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Antiquotations are now accepted in any syntax. The <code>incQuotDepth</code> <code>syntax</code> parser is therefore obsolete and has been removed.</p>
-                  </li>
-                <li>
-                  <p>
-                    Renamed tactic <code>nativeDecide</code> =&gt; <code>native_decide</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    "Cleanup" local context before elaborating a <code>match</code> alternative right-hand-side. Examples:</p>
-                  <pre>example (x : Nat) : Nat :=
+              <li>
+                <p>
+                  (Experimental) New <code>checkpoint &lt;tactic-seq&gt;</code> tactic for big interactive proofs.</p>
+                </li>
+              <li>
+                <p>
+                  Rename tactic <code>nativeDecide</code> =&gt; <code>native_decide</code>.</p>
+                </li>
+              <li>
+                <p>
+                  Antiquotations are now accepted in any syntax. The <code>incQuotDepth</code> <code>syntax</code> parser is therefore obsolete and has been removed.</p>
+                </li>
+              <li>
+                <p>
+                  Renamed tactic <code>nativeDecide</code> =&gt; <code>native_decide</code>.</p>
+                </li>
+              <li>
+                <p>
+                  "Cleanup" local context before elaborating a <code>match</code> alternative right-hand-side. Examples:</p>
+                <pre>example (x : Nat) : Nat :=
   match g x with
   | (a, b) =&gt; _ -- Local context does not contain the auxiliary `_discr := g x` anymore
 
@@ -3293,25 +3339,24 @@ example (x : Nat × Nat) (h : x.1 &gt; 0) : f x &gt; 0 := by
   match x with
   | (a, b) =&gt; _ -- Local context does not contain the `h✝ : x.fst &gt; 0` anymore
 </pre></li>
-                <li>
-                  <p>
-                    Improve <code>let</code>-pattern (and <code>have</code>-pattern) macro expansion. In the following example,</p>
-                  <pre>example (x : Nat × Nat) : f x &gt; 0 := by
+              <li>
+                <p>
+                  Improve <code>let</code>-pattern (and <code>have</code>-pattern) macro expansion. In the following example,</p>
+                <pre>example (x : Nat × Nat) : f x &gt; 0 := by
   let (a, b) := x
   done
 </pre><p>
-                    The resulting goal is now <code>... |- f (a, b) &gt; 0</code> instead of <code>... |- f x &gt; 0</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    Add cross-compiled <a href="https://github.com/leanprover/lean4/pull/1066">aarch64 Linux</a> and <a href="https://github.com/leanprover/lean4/pull/1076">aarch64 macOS</a> releases.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/tree/master/doc/examples">Add tutorial-like examples to our documentation</a>, rendered using LeanInk+Alectryon.</p>
-                  </li>
-                </ul>
-              </div>
+                  The resulting goal is now <code>... |- f (a, b) &gt; 0</code> instead of <code>... |- f x &gt; 0</code>.</p>
+                </li>
+              <li>
+                <p>
+                  Add cross-compiled <a href="https://github.com/leanprover/lean4/pull/1066">aarch64 Linux</a> and <a href="https://github.com/leanprover/lean4/pull/1076">aarch64 macOS</a> releases.</p>
+                </li>
+              <li>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/tree/master/doc/examples">Add tutorial-like examples to our documentation</a>, rendered using LeanInk+Alectryon.</p>
+                </li>
+              </ul>
             </section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="releases/v4.0.0/#release-v4___0___0" rel="prev" title="Lean 4.0.0 (2023-09-08)"><span class="arrow">←</span><span class="where">Lean 4.0.0 (2023-09-08)</span></a><a class="local-button active" href="releases/v4.0.0-m4/#release-v4___0___0-m4" rel="next" title="Lean 4.0.0-m4 (2022-03-27)"><span class="where">Lean 4.0.0-m4 (2022-03-27)</span><span class="arrow">→</span></a></nav>

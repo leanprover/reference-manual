@@ -12,8 +12,6 @@
     <meta name="viewport" content="height=device-height, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Lean 4.22.0 (2025-08-14)</title><link rel="stylesheet" href="book.css">
     <link rel="stylesheet" href="verso-vars.css">
-    <script>
-      const __versoSiteRoot = document.baseURI;</script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
     <script src="-verso-search/fuzzysort.js"></script>
@@ -22,11 +20,8 @@
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
-    <script src="-verso-data/katex/katex.js"></script>
-    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/popper.min.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
-    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
     <style>
 a.elan-command {
@@ -1090,6 +1085,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
 .lake-opt a:hover {
   text-decoration: currentcolor underline solid;
 }
+</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
 div.TODO {
   border: 5px solid red;
@@ -1920,41 +1966,6 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
 </style><style>.plain-keyword {
   font-weight: 500;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
 </style><style>
 a.technical-term {
   color: inherit;
@@ -2093,6 +2104,81 @@ window.addEventListener("load", () => {
 });
 </script>
     <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
       
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -2128,6 +2214,45 @@ window.addEventListener("load", () => {
   });
 });
 </script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.onload = () => {
@@ -2195,8 +2320,7 @@ window.onload = () => {
         }
     }
     // Add hovers
-    let siteRoot = typeof __versoSiteRoot !== 'undefined' ? __versoSiteRoot : "/";
-    let docsJson = siteRoot + "-verso-docs.json";
+    let docsJson = "-verso-docs.json";
     fetch(docsJson).then((resp) => resp.json()).then((versoDocData) => {
 
       function hideParentTooltips(element) {
@@ -2324,85 +2448,8 @@ window.onload = () => {
   });
 }
 </script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', openDetailsForHashTarget);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', openDetailsForHashTarget);
-} else {
-  openDetailsForHashTarget();
-}
-</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
+    <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
     <link rel="stylesheet" href="static/colors.css">
     <link rel="stylesheet" href="static/theme.css">
@@ -2432,15 +2479,15 @@ if (document.readyState === 'loading') {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0-rc1 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <span class="no-toggle"></span><span class="unnumbered"></span><span class="current"><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></span></div>
-              </div>
+                <label for="--verso-manual-toc-release-v4___22___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___22___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></span></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights">Highlights</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Language">Language</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Library">Library</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Compiler">Compiler</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Pretty-Printing">Pretty Printing</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Documentation">Documentation</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Server">Server</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Lake">Lake</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Other">Other</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2458,281 +2505,315 @@ if (document.readyState === 'loading') {
           <section>
             <h1>
               Lean 4.22.0 (2025-08-14)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.22.0" title="Permalink">🔗</a></span></h1>
-            <div class="no-vale">
-              <p>
-                For this release, 468 changes landed. In addition to the 185 feature additions and 85 fixes listed below there were 15 refactoring changes, 5 documentation improvements, 4 performance improvements, 0 improvements to the test suite and 174 other changes.</p>
-              <p>
-                <strong>Highlights</strong></p>
-              <p>
-                <strong>Grind is released!</strong></p>
-              <p>
-                Lean now includes a new SMT-style tactic <code>grind</code>, along with annotations for the Lean standard library.
+            <p>
+              For this release, 468 changes landed. In addition to the 185 feature additions and 85 fixes listed below there were 15 refactoring changes, 5 documentation improvements, 4 performance improvements, 0 improvements to the test suite and 174 other changes.</p>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights">
+                Highlights</h2>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Grind-is-released___">
+                  Grind is released!</h3>
+                <p>
+                  Lean now includes a new SMT-style tactic <code>grind</code>, along with annotations for the Lean standard library.
 <code>grind</code> ships theory-specific solvers, including cutsat (superseding <code>omega</code>, with model construction)
 and a new Gröbner basis solver.</p>
-              <p>
-                Also see the <a href="https://lean-lang.org/doc/reference/latest//The--grind--tactic/#grind">chapter on grind in the reference manual</a>.</p>
-              <p>
-                <strong>New compiler</strong></p>
-              <p>
-                The old compiler has been replaced by the new compiler (<a href="https://github.com/leanprover/lean4/pull/8577">#8577</a>)!
+                <p>
+                  Also see the <a href="https://lean-lang.org/doc/reference/latest//The--grind--tactic/#grind">chapter on grind in the reference manual</a>.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--New-compiler">
+                  New compiler</h3>
+                <p>
+                  The old compiler has been replaced by the new compiler (<a href="https://github.com/leanprover/lean4/pull/8577">#8577</a>)!
 This closes many long-standing issues, and lays the foundation for many
 future features and performance improvements.</p>
-              <p>
-                <strong>New <code>math</code> project template</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8866">#8866</a> upgrades the <code>math</code> template for <code>lake init</code> and
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--New-math-project-template">
+                  New <code>math</code> project template</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8866">#8866</a> upgrades the <code>math</code> template for <code>lake init</code> and
 <code>lake new</code> to meet rigorous Mathlib maintenance standards.
 In comparison with the previous version (now available as <code>lake new ... math-lax</code>), the new template automatically provides:</p>
-              <ul>
-                <li>
-                  <p>
-                    Strict linting options matching Mathlib.</p>
-                  </li>
-                <li>
-                  <p>
-                    GitHub workflow for automatic upgrades to newer Lean and Mathlib releases.</p>
-                  </li>
-                <li>
-                  <p>
-                    Automatic release tagging for toolchain upgrades.</p>
-                  </li>
-                <li>
-                  <p>
-                    API documentation generated by <a href="https://github.com/leanprover/doc-gen4">doc-gen4</a> and hosted on <code>github.io</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    README with some GitHub-specific instructions.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Signature help</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8511">#8511</a> implements signature help support in the editors.
+                <ul>
+                  <li>
+                    <p>
+                      Strict linting options matching Mathlib.</p>
+                    </li>
+                  <li>
+                    <p>
+                      GitHub workflow for automatic upgrades to newer Lean and Mathlib releases.</p>
+                    </li>
+                  <li>
+                    <p>
+                      Automatic release tagging for toolchain upgrades.</p>
+                    </li>
+                  <li>
+                    <p>
+                      API documentation generated by <a href="https://github.com/leanprover/doc-gen4">doc-gen4</a> and hosted on <code>github.io</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      README with some GitHub-specific instructions.</p>
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Signature-help">
+                  Signature help</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8511">#8511</a> implements signature help support in the editors.
 See the demo in the PR description.</p>
-              <p>
-                <strong>Displaying import hierarchy</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8654">#8654</a> (together with <a href="https://github.com/leanprover/vscode-lean4/pull/620">#620</a> for vscode-lean4) adds
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Displaying-import-hierarchy">
+                  Displaying import hierarchy</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8654">#8654</a> (together with <a href="https://github.com/leanprover/vscode-lean4/pull/620">#620</a> for vscode-lean4) adds
 a new module hierarchy component in
 VS Code that can be used to navigate both the import tree of a module
 and the imported-by tree of a module.</p>
-              <p>
-                <strong>Refactor of <code>have</code>/<code>let</code> semantics</strong></p>
-              <p>
-                TL;DR: nondependent <code>let</code> bindings are now transformed to <code>have</code> bindings for better performance.
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Refactor-of-have___let-semantics">
+                  Refactor of <code>have</code>/<code>let</code> semantics</h3>
+                <p>
+                  TL;DR: nondependent <code>let</code> bindings are now transformed to <code>have</code> bindings for better performance.
 Syntax of <code>have</code> and <code>let</code> is unified, and new options are added.</p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8373">#8373</a> enables transforming nondependent <code>let</code>s into <code>have</code>s
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8373">#8373</a> enables transforming nondependent <code>let</code>s into <code>have</code>s
 so <code>simp</code> works better without zeta reduction. Disable with <code>set_option cleanup.letToHave false</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8804">#8804</a> implements first-class support for nondependent <code>let</code> expressions
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8804">#8804</a> implements first-class support for nondependent <code>let</code> expressions
 in the elaborator. This has been given full support throughout the metaprogramming interface and the
 elaborator.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8914">#8914</a> modifies <code>let</code> and <code>have</code> term syntaxes to be consistent with
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8914">#8914</a> modifies <code>let</code> and <code>have</code> term syntaxes to be consistent with
 each other. Adds configuration options; for example, <code>have</code> is
 equivalent to <code>let +nondep</code>, for <em>nondependent</em> lets. Other options
 include <code>+usedOnly</code> (for <code>let_tmp</code>), <code>+zeta</code> (for <code>letI</code>/<code>haveI</code>), and
 <code>+postponeValue</code> (for <code>let_delayed</code>). There is also <code>let (eq := h) x := v; b</code>
 for introducing <code>h : x = v</code> when elaborating <code>b</code>. The <code>eq</code> option
 works for pattern matching as well, for example <code>let (eq := h) (x, y) := p; b</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8935">#8935</a> adds the <code>+generalize</code> option to the <code>let</code> and <code>have</code> syntaxes.
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8935">#8935</a> adds the <code>+generalize</code> option to the <code>let</code> and <code>have</code> syntaxes.
 For example, <code>have +generalize n := a + b; body</code> replaces all instances
 of <code>a + b</code> in the expected type with <code>n</code> when elaborating <code>body</code>. This
 can be likened to a term version of the <code>generalize</code> tactic. One can
 combine this with <code>eq</code> in <code>have +generalize (eq := h) n := a + b; body</code>
 as an analogue of <code>generalize h : n = a + b</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8954">#8954</a> adds a procedure that efficiently transforms <code>let</code> expressions
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8954">#8954</a> adds a procedure that efficiently transforms <code>let</code> expressions
 into <code>have</code> expressions (<code>Meta.letToHave</code>). This is exposed as the
 <code>let_to_have</code> tactic.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9086">#9086</a> deprecates <code>let_fun</code> syntax in favor of <code>have</code> and removes
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/9086">#9086</a> deprecates <code>let_fun</code> syntax in favor of <code>have</code> and removes
 <code>letFun</code> support from WHNF and <code>simp</code>.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Simp</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <strong>Flagging unused <code>simp</code> arguments</strong></p>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8901">#8901</a> adds a linter (<code>linter.unusedSimpArgs</code>) that complains when a
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Simp">
+                  Simp</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <strong>Flagging unused <code>simp</code> arguments</strong></p>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8901">#8901</a> adds a linter (<code>linter.unusedSimpArgs</code>) that complains when a
 simp argument (<code>simp [foo]</code>) is unused, with a clickable suggestion to remove it.
 Handles repeated simp calls correctly (e.g., inside <code>all_goals</code>), but skips macros.</p>
-                  </li>
-                <li>
-                  <p>
-                    <strong>Detection of possibly looping lemmas</strong></p>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8865">#8865</a> allows <code>simp</code> to recognize and warn about simp lemmas that are
+                    </li>
+                  <li>
+                    <p>
+                      <strong>Detection of possibly looping lemmas</strong></p>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8865">#8865</a> allows <code>simp</code> to recognize and warn about simp lemmas that are
 likely looping in the current simp set. It does so automatically
 whenever simplification fails with the dreaded “max recursion depth”
 error, but it can be made to do it always with <code>set_option linter.loopingSimpArgs true</code>. This check is not on by default because it
 is somewhat costly, and can warn about simp calls that still happen to
 work.</p>
-                  </li>
-                <li>
-                  <p>
-                    <strong>Faster <code>simp</code> via cache reuse</strong></p>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8880">#8880</a> makes <code>simp</code> consult
+                    </li>
+                  <li>
+                    <p>
+                      <strong>Faster <code>simp</code> via cache reuse</strong></p>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8880">#8880</a> makes <code>simp</code> consult
 its own cache more often, to avoid replicating work.</p>
-                  </li>
-                <li>
-                  <p>
-                    <strong>Explicit <code>defeq</code> attribute for <code>dsimp</code></strong></p>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8419">#8419</a> introduces an explicit <code>defeq</code> attribute to mark theorems that
+                    </li>
+                  <li>
+                    <p>
+                      <strong>Explicit <code>defeq</code> attribute for <code>dsimp</code></strong></p>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8419">#8419</a> introduces an explicit <code>defeq</code> attribute to mark theorems that
 can be used by <code>dsimp</code>. The benefit of an explicit attribute over the
 prior logic of looking at the proof body is that we can reliably omit
 theorem bodies across module boundaries. It also helps with intra-file
 parallelism.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Named errors with explanations</strong></p>
-              <p>
-                Lean now supports named error messages with associated explanations.</p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8649">#8649</a> and <a href="https://github.com/leanprover/lean4/pull/8730">#8730</a> add
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Named-errors-with-explanations">
+                  Named errors with explanations</h3>
+                <p>
+                  Lean now supports named error messages with associated explanations.</p>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8649">#8649</a> and <a href="https://github.com/leanprover/lean4/pull/8730">#8730</a> add
 macro syntax for registering
 and throwing named errors, mechanisms for displaying error names in the Infoview and at the command line,
 and the ability to link to <a href="https://lean-lang.org/doc/reference/latest/Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">error explanations in the reference manual</a>.</p>
-              <p>
-                This infrastructure lays the foundation for a searchable error index and improved diagnostics.</p>
-              <p>
-                <strong><code>finally</code> section</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8723">#8723</a> implements a <code>finally</code> section following a (potentially empty)
+                <p>
+                  This infrastructure lays the foundation for a searchable error index and improved diagnostics.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--finally-section">
+                  <code>finally</code> section</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8723">#8723</a> implements a <code>finally</code> section following a (potentially empty)
 <code>where</code> block. <code>where ... finally</code> opens a tactic sequence block in
 which the goals are the unassigned metavariables from the definition
 body and its auxiliary definitions that arise from use of <code>let rec</code> and
 <code>where</code>.
 This can be useful for discharging multiple proof obligations in the definition body
 by a single invocation of a tactic such as <code>all_goals</code>:</p>
-              <pre>example (i j : Nat) (xs : Array Nat) (hi : i &lt; xs.size) (hj: j &lt; xs.size) :=
+                <pre>example (i j : Nat) (xs : Array Nat) (hi : i &lt; xs.size) (hj: j &lt; xs.size) :=
   match i with
   | 0 =&gt; x
   | _ =&gt; xs[i]'?_ + xs[j]'?_
 where x := 13
 finally all_goals assumption
-</pre><p>
-                <strong>Polymorphic ranges and slices</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8784">#8784</a> introduces new syntax for ranges:
+</pre></section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Polymorphic-ranges-and-slices">
+                  Polymorphic ranges and slices</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8784">#8784</a> introduces new syntax for ranges:
 <code>1...*</code>, <code>1...=3</code>, <code>1...&lt;3</code>, <code>1&lt;...=2</code>, <code>*...=3.</code>.</p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8947">#8947</a> extends this syntax to slices, allowing expressions like <code>xs[*...end]</code>.</p>
-              <p>
-                <strong>Library highlights</strong></p>
-              <p>
-                Notable additions to the standard library are:</p>
-              <ul>
-                <li>
-                  <p>
-                    Iterators (<a href="https://github.com/leanprover/lean4/pull/8420">#8420</a>, <a href="https://github.com/leanprover/lean4/pull/8545">#8545</a>, <a href="https://github.com/leanprover/lean4/pull/8615">#8615</a>, <a href="https://github.com/leanprover/lean4/pull/8629">#8629</a>, <a href="https://github.com/leanprover/lean4/pull/8768">#8768</a>),</p>
-                  </li>
-                <li>
-                  <p>
-                    monadic interface for <code>Async</code> operations (<a href="https://github.com/leanprover/lean4/pull/8003">#8003</a>),</p>
-                  </li>
-                <li>
-                  <p>
-                    DNS functions (<a href="https://github.com/leanprover/lean4/pull/8072">#8072</a>),</p>
-                  </li>
-                <li>
-                  <p>
-                    system information functions (<a href="https://github.com/leanprover/lean4/pull/8109">#8109</a>).</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Experimental: monadic verification framework</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8995">#8995</a> introduces a Hoare logic for monadic programs in
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8947">#8947</a> extends this syntax to slices, allowing expressions like <code>xs[*...end]</code>.</p>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Library-highlights">
+                  Library highlights</h3>
+                <p>
+                  Notable additions to the standard library are:</p>
+                <ul>
+                  <li>
+                    <p>
+                      Iterators (<a href="https://github.com/leanprover/lean4/pull/8420">#8420</a>, <a href="https://github.com/leanprover/lean4/pull/8545">#8545</a>, <a href="https://github.com/leanprover/lean4/pull/8615">#8615</a>, <a href="https://github.com/leanprover/lean4/pull/8629">#8629</a>, <a href="https://github.com/leanprover/lean4/pull/8768">#8768</a>),</p>
+                    </li>
+                  <li>
+                    <p>
+                      monadic interface for <code>Async</code> operations (<a href="https://github.com/leanprover/lean4/pull/8003">#8003</a>),</p>
+                    </li>
+                  <li>
+                    <p>
+                      DNS functions (<a href="https://github.com/leanprover/lean4/pull/8072">#8072</a>),</p>
+                    </li>
+                  <li>
+                    <p>
+                      system information functions (<a href="https://github.com/leanprover/lean4/pull/8109">#8109</a>).</p>
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Experimental___-monadic-verification-framework">
+                  Experimental: monadic verification framework</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8995">#8995</a> introduces a Hoare logic for monadic programs in
 <code>Std.Do.Triple</code>, and assorted tactics:</p>
-              <ul>
-                <li>
-                  <p>
-                    <code>mspec</code> for applying Hoare triple specifications,</p>
-                  </li>
-                <li>
-                  <p>
-                    <code>mvcgen</code> to turn a Hoare triple proof obligation <code>⦃P⦄ prog ⦃Q⦄</code> into
+                <ul>
+                  <li>
+                    <p>
+                      <code>mspec</code> for applying Hoare triple specifications,</p>
+                    </li>
+                  <li>
+                    <p>
+                      <code>mvcgen</code> to turn a Hoare triple proof obligation <code>⦃P⦄ prog ⦃Q⦄</code> into
 pure verification conditions.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Experimental: module system</strong></p>
-              <p>
-                The new module system (enabled by the <code>module</code> keyword before import statements) is available
+                    </li>
+                  </ul>
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Experimental___-module-system">
+                  Experimental: module system</h3>
+                <p>
+                  The new module system (enabled by the <code>module</code> keyword before import statements) is available
 for experimentation.</p>
-              <p>
-                <strong>Experimental: sharing oleans between different checkouts of the same repository</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8922">#8922</a> introduces a local artifact cache for Lake. When enabled, Lake
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Experimental___-sharing-oleans-between-different-checkouts-of-the-same-repository">
+                  Experimental: sharing oleans between different checkouts of the same repository</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8922">#8922</a> introduces a local artifact cache for Lake. When enabled, Lake
 will share build artifacts (built files) across different instances of
 the same package using an input- and content-addressed cache. Requires <code>export LAKE_ARTIFACT_CACHE=true</code> for now.</p>
-              <p>
-                <strong>Warnings about <code>sorry</code>s</strong></p>
-              <p>
-                <a href="https://github.com/leanprover/lean4/pull/8662">#8662</a> adds a <code>warn.sorry</code> option (default true) that logs the
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Warnings-about-sorrys">
+                  Warnings about <code>sorry</code>s</h3>
+                <p>
+                  <a href="https://github.com/leanprover/lean4/pull/8662">#8662</a> adds a <code>warn.sorry</code> option (default true) that logs the
 "declaration uses 'sorry'" warning when declarations contain <code>sorryAx</code>.
 When false, the warning is not logged.</p>
-              <p>
-                <strong>Breaking changes</strong></p>
-              <ul>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8751">#8751</a> adds the <code>nondep</code> field of <code>Expr.letE</code> to the C++ data model.</p>
-                  <p>
-                    Breaking change: <code>Expr.updateLet!</code> is renamed to <code>Expr.updateLetE!</code>.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8105">#8105</a> adds support for server-sided <code>RpcRef</code> reuse and fixes a bug
+                </section>
+              <section>
+                <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Highlights--Breaking-changes">
+                  Breaking changes</h3>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8751">#8751</a> adds the <code>nondep</code> field of <code>Expr.letE</code> to the C++ data model.</p>
+                    <p>
+                      Breaking change: <code>Expr.updateLet!</code> is renamed to <code>Expr.updateLetE!</code>.</p>
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8105">#8105</a> adds support for server-sided <code>RpcRef</code> reuse and fixes a bug
 where trace nodes in the InfoView would close while the file was still being processed.</p>
-                  <p>
-                    Breaking change: Since <code>WithRpcRef</code> is now capable of tracking its identity
+                    <p>
+                      Breaking change: Since <code>WithRpcRef</code> is now capable of tracking its identity
 to decide which <code>WithRpcRef</code> usage constitutes a reuse, the constructor of
 <code>WithRpcRef</code> has been made <code>private</code> to discourage downstream users from
 creating <code>WithRpcRef</code> instances with manually-set <code>id</code>s. Instead, <code>WithRpcRef.mk</code>
 (which lives in <code>BaseIO</code>) is now the preferred way to create <code>WithRpcRef</code> instances.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8654">#8654</a> adds server-side support for a new module hierarchy component in
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8654">#8654</a> adds server-side support for a new module hierarchy component in
 VS Code.</p>
-                  <p>
-                    Breaking change: This PR augments the .ilean format with the direct imports of a file
+                    <p>
+                      Breaking change: This PR augments the .ilean format with the direct imports of a file
 in order to implement the <code>$/lean/moduleHierarchy/importedBy</code> request and bumps the .ilean format version.</p>
-                  </li>
-                <li>
-                  <p>
-                    <a href="https://github.com/leanprover/lean4/pull/8804">#8804</a> implements first-class support for nondependent <code>let</code> expressions
+                    </li>
+                  <li>
+                    <p>
+                      <a href="https://github.com/leanprover/lean4/pull/8804">#8804</a> implements first-class support for nondependent <code>let</code> expressions
 in the elaborator.</p>
-                  <p>
-                    Breaking change: Uses of <code>letLambdaTelescope</code>/<code>mkLetFVars</code> need to use <code>generalizeNondepLet := false</code>;
+                    <p>
+                      Breaking change: Uses of <code>letLambdaTelescope</code>/<code>mkLetFVars</code> need to use <code>generalizeNondepLet := false</code>;
 see the PR description for more info.</p>
-                  </li>
-                </ul>
-              <p>
-                <strong>Language</strong></p>
+                    </li>
+                  </ul>
+                </section>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Language">
+                Language</h2>
               <ul>
                 <li>
                   <p>
@@ -3767,10 +3848,10 @@ clutter in the diagnostic information produced by <code>grind</code>. Example:</
 step toward removing special <code>letFun</code> support; part of #9086.</p>
                   </li>
                 </ul>
-              </div>
-            <div class="no-vale">
-              <p>
-                <strong>Library</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Library">
+                Library</h2>
               <ul>
                 <li>
                   <p>
@@ -4220,8 +4301,10 @@ used in <code>for i in xs, j in ys do</code> notation.</p>
 <code>DecidableEq</code> instance for <code>ByteArray</code>).</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Compiler</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Compiler">
+                Compiler</h2>
               <ul>
                 <li>
                   <p>
@@ -4441,8 +4524,10 @@ identity (rather than the pointer identity of the old compiler).</p>
 compiler. There were no tests for this, so it slipped under the radar.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Pretty Printing</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Pretty-Printing">
+                Pretty Printing</h2>
               <ul>
                 <li>
                   <p>
@@ -4474,8 +4559,10 @@ metaprograms generating Syntax with comments should be sure to include
 newlines at the ends of <code>--</code> comments.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Documentation</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Documentation">
+                Documentation</h2>
               <ul>
                 <li>
                   <p>
@@ -4493,8 +4580,10 @@ typeclasses, for inclusion in the reference manual.</p>
 consistent formatting and style, and adds missing docstrings.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Server</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Server">
+                Server</h2>
               <ul>
                 <li>
                   <p>
@@ -4540,8 +4629,10 @@ keywords that started with an alphanumeric character. Now, it uses
 <code>Lean.isIdFirst</code>.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Lake</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Lake">
+                Lake</h2>
               <ul>
                 <li>
                   <p>
@@ -4658,8 +4749,10 @@ from the module input trace and some entries were dropped from the
 module job log.</p>
                   </li>
                 </ul>
-              <p>
-                <strong>Other</strong></p>
+              </section>
+            <section>
+              <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___22___0-_LPAR_2025-08-14_RPAR_--Other">
+                Other</h2>
               <ul>
                 <li>
                   <p>
@@ -4689,7 +4782,7 @@ line. It's been tested on <code>v4.21.0</code> (i.e. the easy case of a stable
 release), and we'll debug its behaviour on <code>v4.22.0-rc1</code> tonight.</p>
                   </li>
                 </ul>
-              </div>
+              </section>
             </section>
           <nav class="prev-next-buttons">
             <a class="local-button active" href="releases/v4.23.0/#release-v4___23___0" rel="prev" title="Lean 4.23.0 (2025-09-15)"><span class="arrow">←</span><span class="where">Lean 4.23.0 (2025-09-15)</span></a><a class="local-button active" href="releases/v4.21.0/#release-v4___21___0" rel="next" title="Lean 4.21.0 (2025-06-30)"><span class="where">Lean 4.21.0 (2025-06-30)</span><span class="arrow">→</span></a></nav>
