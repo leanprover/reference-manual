@@ -121,6 +121,6 @@ tag := "string-api-substring"
 
 {docstring Substring.toNat? +allowMissing}
 
-{docstring Substring.toIterator}
+{docstring Substring.toLegacyIterator}
 
 {docstring Substring.toName}
