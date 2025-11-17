@@ -547,12 +547,12 @@ fun {m} [Monad m] [Lean.MonadQuotation m] x n => do
           raw :=
             Syntax.node2 info `Lean.Parser.Term.fun (Syntax.atom info "fun")
               (Syntax.node4 info `Lean.Parser.Term.basicFun
-                (Syntax.node1 info `null (Syntax.ident info "k".toSubstring' (Lean.addMacroScope quotCtx `k scp) []))
+                (Syntax.node1 info `null (Syntax.ident info "k".toRawSubstring' (Lean.addMacroScope quotCtx `k scp) []))
                 (Syntax.node info `null #[]) (Syntax.atom info "=>")
                 (Syntax.node3 info `«term_+_»
                   (Syntax.node3 info `«term_+_» x.raw (Syntax.atom info "+") (Lean.quote `term (n + 2)).raw)
                   (Syntax.atom info "+")
-                  (Syntax.ident info "k".toSubstring' (Lean.addMacroScope quotCtx `k scp) []))) }.raw
+                  (Syntax.ident info "k".toRawSubstring' (Lean.addMacroScope quotCtx `k scp) []))) }.raw
 ```
 
 :::paragraph

@@ -485,7 +485,7 @@ Next let's try `eraseSwap`:
 ```
 ```anchorError eraseSwap_init
 `grind` failed
-case grind.1.1.2.2.1.1
+case grind.1.1.2.2.1.1.1
 α : Type u
 β : Type v
 inst : BEq α
@@ -512,8 +512,10 @@ h_4 : ¬i_1 = i_2
 left_1 : ¬m_1.keys[i_2]? = some a_1
 right_1 : ¬m_1.indices[a_1]? = some i_2
 h_6 : (m_1.keys.back ⋯ == a_2) = true
-left_2 : (m_1.indices.erase a_1).contains a_2 = true
-right_2 : a_2 ∈ m_1.indices.erase a_1
+h_7 : i_1 + 1 ≤ m_1.keys.pop.size
+left_2 : a_2 ∈ m_1.indices.erase a_1
+left_3 : (a_1 == a_2) = false
+right_3 : a_2 ∈ m_1.indices
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts

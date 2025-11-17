@@ -217,10 +217,14 @@ example := ser (2, 3)
 ```
 Instance synthesis can't select the {lean}`Serialize Nat String` instance, and thus the {lean}`Append String` instance, because that would require instantiating the output type as {lean}`String`, so the search gets stuck:
 ```leanOutput noOutputType
-typeclass instance problem is stuck, it is often due to metavariables
-  Serialize (Nat × Nat) ?m.16
+typeclass instance problem is stuck
+  Serialize (Nat × Nat) ?m.5
+
+Note: Lean will not try to resolve this typeclass instance problem because the second type argument to `Serialize` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.
+
+Hint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck.
 ```
-One way to fix the problem is to supply an expected type:
+As the message indicates, one way to fix the problem is to supply an expected type:
 ```lean
 example : String := ser (2, 3)
 ```

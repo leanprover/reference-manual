@@ -390,65 +390,68 @@ tag := "string-api-modify"
 
 {docstring String.toLower}
 
-## Iterators
+## Legacy Iterators
 %%%
 tag := "string-iterators"
 %%%
 
-Fundamentally, a {name}`String.Iterator` is a pair of a string and a valid position in the string.
-Iterators provide functions for getting the current character ({name String.Iterator.curr}`curr`), replacing the current character ({name String.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Iterator.hasPrev}`hasPrev` and {name String.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Iterator.prev}`prev` and {name String.Iterator.next}`next`, respectively).
+For backwards compatiblity, Lean includes legacy string interators.
+Fundamentally, a {name}`String.Legacy.Iterator` is a pair of a string and a valid position in the string.
+Iterators provide functions for getting the current character ({name String.Legacy.Iterator.curr}`curr`), replacing the current character ({name String.Legacy.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Legacy.Iterator.hasPrev}`hasPrev` and {name String.Legacy.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Legacy.Iterator.prev}`prev` and {name String.Legacy.Iterator.next}`next`, respectively).
 Clients are responsible for checking whether they've reached the beginning or end of the string; otherwise, the iterator ensures that its position always points at a character.
+However, {name}`String.Legacy.Iterator` does not include proofs of these well-formedness conditions, which can make it more difficult to use in verified code.
 
-{docstring String.Iterator}
+{docstring String.Legacy.Iterator}
 
-{docstring String.iter}
+{docstring String.Legacy.iter}
 
-{docstring String.mkIterator}
+{docstring String.Legacy.mkIterator}
 
-{docstring String.Iterator.curr}
+{docstring String.Legacy.Iterator.curr}
 
-{docstring String.Iterator.curr'}
+{docstring String.Legacy.Iterator.curr'}
 
-{docstring String.Iterator.hasNext}
+{docstring String.Legacy.Iterator.hasNext}
 
-{docstring String.Iterator.next}
+{docstring String.Legacy.Iterator.next}
 
-{docstring String.Iterator.next'}
+{docstring String.Legacy.Iterator.next'}
 
-{docstring String.Iterator.forward}
+{docstring String.Legacy.Iterator.forward}
 
-{docstring String.Iterator.nextn}
+{docstring String.Legacy.Iterator.nextn}
 
-{docstring String.Iterator.hasPrev}
+{docstring String.Legacy.Iterator.hasPrev}
 
-{docstring String.Iterator.prev}
+{docstring String.Legacy.Iterator.prev}
 
-{docstring String.Iterator.prevn}
+{docstring String.Legacy.Iterator.prevn}
 
-{docstring String.Iterator.atEnd}
+{docstring String.Legacy.Iterator.atEnd}
 
-{docstring String.Iterator.toEnd}
+{docstring String.Legacy.Iterator.toEnd}
 
-{docstring String.Iterator.setCurr}
+{docstring String.Legacy.Iterator.setCurr}
 
-{docstring String.Iterator.find}
+{docstring String.Legacy.Iterator.find}
 
-{docstring String.Iterator.foldUntil}
+{docstring String.Legacy.Iterator.foldUntil}
 
-{docstring String.Iterator.extract}
+{docstring String.Legacy.Iterator.extract}
 
-{docstring String.Iterator.remainingToString}
+{docstring String.Legacy.Iterator.remainingToString}
 
-{docstring String.Iterator.remainingBytes}
+{docstring String.Legacy.Iterator.remainingBytes}
 
-{docstring String.Iterator.pos}
+{docstring String.Legacy.Iterator.pos}
 
-{docstring String.Iterator.toString}
+{docstring String.Legacy.Iterator.toString}
 
+{include 2 Manual.BasicTypes.String.Slice}
 
 {include 2 Manual.BasicTypes.String.Substrings}
 
-{include 2 Manual.BasicTypes.String.Slice}
+
 
 
 
