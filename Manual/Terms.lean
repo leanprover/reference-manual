@@ -977,7 +977,8 @@ structure NatInterval where
 
 instance : Add NatInterval where
   add
-    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ => ⟨lo1 + lo2, hi1 + hi2, by omega⟩
+    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ =>
+        ⟨lo1 + lo2, hi1 + hi2, by omega⟩
 ```
 
 An {name}`OfNat` instance allows natural number literals to be used to represent intervals:
@@ -1498,7 +1499,10 @@ inductive BalancedTree (α : Type u) : Nat → Type u where
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
 ```lean -keep (name := fill1) +error
-def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth := _
+def BalancedTree.filledWith
+    (x : α) (depth : Nat) :
+    BalancedTree α depth :=
+  _
 ```
 The error message demonstrates that the tree should have the indicated depth.
 ```leanOutput fill1

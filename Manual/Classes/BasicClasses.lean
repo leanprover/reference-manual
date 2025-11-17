@@ -254,7 +254,8 @@ Hint: Additional diagnostic information may be available using the `set_option d
 Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.
 ```lean
 open Classical
-noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
+noncomputable example (f g : Nat → Nat) : Decidable (f = g) :=
+  inferInstance
 ```
 
 :::

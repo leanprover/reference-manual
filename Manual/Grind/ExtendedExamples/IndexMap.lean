@@ -732,7 +732,8 @@ variable [LawfulBEq α] [LawfulHashable α]
 
 attribute [local grind _=_] IndexMap.WF
 
-private theorem getElem_indices_lt {h : a ∈ m} : m.indices[a] < m.size := by
+private theorem getElem_indices_lt
+    {h : a ∈ m} : m.indices[a] < m.size := by
   have : m.indices[a]? = some m.indices[a] := by grind
   grind
 
