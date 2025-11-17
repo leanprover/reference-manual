@@ -40,7 +40,7 @@ where
     extraFiles := [("static", "static")],
     extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
-    emitHtmlSingle := .immediately, -- for proofreading
+    emitHtmlSingle := .no,
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover/reference-manual",
     issueLink := some "https://github.com/leanprover/reference-manual/issues",

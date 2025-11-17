@@ -290,3 +290,27 @@ lean_lib Tutorial where
 @[default_target]
 lean_exe "generate-tutorials" where
   root := `TutorialMain
+
+def lakeExe (prog : String) (args : Array String) : IO Unit := do
+  IO.println s!"Running {prog} with args {args}"
+  -- Using spawn and wait here causes the process to inherit stdio streams from Lake, so output is immediately visible
+  let code ← IO.Process.Child.wait <| (← IO.Process.spawn { cmd := "lake", args := #["--quiet", "exe", prog] ++ args })
+  if code ≠ 0 then
+    let code' := code.toUInt8
+    let code := if code' ≠ 0 then code' else 1
+    IO.eprintln s!"Failed to run {prog} with args {args}"
+    IO.Process.exit code
+
+
+script generate args := do
+  if !args.isEmpty then
+    IO.eprintln "No args expected"
+    return 1
+
+  lakeExe "generate-manual" #["--depth", "2", "--verbose", "--delay-html-multi", "multi.json"]
+  lakeExe "generate-tutorials" #["--verbose", "--delay", "tutorials.json"]
+  lakeExe "generate-manual" #["--resume-html-multi", "multi.json"]
+  lakeExe "generate-tutorials" #["--resume", "tutorials.json"]
+
+
+  return 0
