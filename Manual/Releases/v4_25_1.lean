@@ -18,6 +18,6 @@ tag := "release-v4.25.1"
 file := "v4.25.1"
 %%%
 
-````markdown
+```markdown
 Lean `v4.25.1` is a bug fix release fixing a caching problem in `lake`, affecting certain downstream dependencies of `ProofWidgets4`.
 ```
