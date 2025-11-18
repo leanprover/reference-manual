@@ -50,62 +50,6 @@ has been introduced to help manage Lake's cache. Also, the existing
 local cache support has been overhauled for better interplay with the
 new remote support.
 
-### Specifications Derivation
-
-Lean now provides automated generation of specification theorems for custom and derived type class instances:
-
-- [#10302](https://github.com/leanprover/lean4/pull/10302) introduces the `@[method_specs]` attribute. It can be applied to
-  (certain) type class instances and define “specification theorems” for
-  the class’ operations, by taking the equational theorems of the
-  implementation function mentioned in the type class instance and
-  rephrasing them in terms of the overloaded operations. Fixes [#5295](https://github.com/leanprover/lean4/issues/5295).
-
-  ```lean
-  inductive L α where
-    | nil  : L α
-    | cons : α → L α → L α
-
-  def L.beqImpl [BEq α] : L α → L α → Bool
-    | nil, nil           => true
-    | cons x xs, cons y ys => x == y && L.beqImpl xs ys
-    | _, _               => false
-
-  @[method_specs] instance [BEq α] : BEq (L α) := ⟨L.beqImpl⟩
-
-  /--
-  info: theorem instBEqL.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (x_2 : α) (xs : L α) (y : α) (ys : L α),
-    (L.cons x_2 xs == L.cons y ys) = (x_2 == y && xs == ys)
-  -/
-  #guard_msgs(pass trace, all) in
-  #print sig instBEqL.beq_spec_2
-  ```
-
-- [#10346](https://github.com/leanprover/lean4/pull/10346) lets `deriving BEq` and `deriving Ord` use `@[method_specs]`
-  from [#10302](https://github.com/leanprover/lean4/pull/10302) when applicable (i.e. when not using `partial`).
-
-  ```lean
-  inductive O (α : Type u) where
-    | none
-    | some : α → O α
-  deriving BEq, Ord
-
-  /--
-  info: theorem instBEqO.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (a b : α), (O.some a == O.some b) = (a == b)
-  -/
-  #guard_msgs in #print sig instBEqO.beq_spec_2
-  /--
-  info: theorem instOrdO.compare_spec_2.{u_1} : ∀ {α : Type u_1} [inst : Ord α] (x : O α),
-    (x = O.none → False) → compare O.none x = Ordering.lt
-  -/
-  #guard_msgs in #print sig instOrdO.compare_spec_2
-  ```
-
-- [#10351](https://github.com/leanprover/lean4/pull/10351) adds the ability to do `deriving ReflBEq, LawfulBEq`. Both
-  classes have to be listed in the `deriving` clause.
-  This is meant to work with `deriving BEq` (but you can try to
-  use it on hand-rolled `@[methods_specs] instance : BEq…` instances).
-  Does not support mutual or nested inductives.
-
 ### Coinductive Predicates
 
 [#10333](https://github.com/leanprover/lean4/pull/10333) introduces a `coinductive` keyword, that can be used to define
@@ -401,6 +345,62 @@ by setting:
 ```lean
 set_option backward.grind.inferPattern true
 ```
+
+### Specifications Derivation
+
+Lean now provides automated generation of specification theorems for custom and derived type class instances:
+
+- [#10302](https://github.com/leanprover/lean4/pull/10302) introduces the `@[method_specs]` attribute. It can be applied to
+  (certain) type class instances and define “specification theorems” for
+  the class’ operations, by taking the equational theorems of the
+  implementation function mentioned in the type class instance and
+  rephrasing them in terms of the overloaded operations. Fixes [#5295](https://github.com/leanprover/lean4/issues/5295).
+
+  ```lean
+  inductive L α where
+    | nil  : L α
+    | cons : α → L α → L α
+
+  def L.beqImpl [BEq α] : L α → L α → Bool
+    | nil, nil           => true
+    | cons x xs, cons y ys => x == y && L.beqImpl xs ys
+    | _, _               => false
+
+  @[method_specs] instance [BEq α] : BEq (L α) := ⟨L.beqImpl⟩
+
+  /--
+  info: theorem instBEqL.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (x_2 : α) (xs : L α) (y : α) (ys : L α),
+    (L.cons x_2 xs == L.cons y ys) = (x_2 == y && xs == ys)
+  -/
+  #guard_msgs(pass trace, all) in
+  #print sig instBEqL.beq_spec_2
+  ```
+
+- [#10346](https://github.com/leanprover/lean4/pull/10346) lets `deriving BEq` and `deriving Ord` use `@[method_specs]`
+  from [#10302](https://github.com/leanprover/lean4/pull/10302) when applicable (i.e. when not using `partial`).
+
+  ```lean
+  inductive O (α : Type u) where
+    | none
+    | some : α → O α
+  deriving BEq, Ord
+
+  /--
+  info: theorem instBEqO.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (a b : α), (O.some a == O.some b) = (a == b)
+  -/
+  #guard_msgs in #print sig instBEqO.beq_spec_2
+  /--
+  info: theorem instOrdO.compare_spec_2.{u_1} : ∀ {α : Type u_1} [inst : Ord α] (x : O α),
+    (x = O.none → False) → compare O.none x = Ordering.lt
+  -/
+  #guard_msgs in #print sig instOrdO.compare_spec_2
+  ```
+
+- [#10351](https://github.com/leanprover/lean4/pull/10351) adds the ability to do `deriving ReflBEq, LawfulBEq`. Both
+  classes have to be listed in the `deriving` clause.
+  This is meant to work with `deriving BEq` (but you can try to
+  use it on hand-rolled `@[methods_specs] instance : BEq…` instances).
+  Does not support mutual or nested inductives.
 
 ### Overhaul of the String Type
 
