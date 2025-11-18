@@ -276,7 +276,7 @@ If it succeeds, then the resulting instance term is output.
 
 :::example "Synthesizing a type class instance"
 
-This example shows that Lean will let us add two integers, and the result will be an integer.
+This example shows that Lean will let us add two integers, and the result will be an integer:
 
 ```lean (name := synthInstHAddNat)
 #synth HAdd Int Int Int

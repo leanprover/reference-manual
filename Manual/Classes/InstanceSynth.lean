@@ -98,7 +98,8 @@ set_option trace.Meta.synthInstance true in
 
 The online version of the manual, the Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol which will iteratively allow a more thorough investigation of how Lean succeeds, or fails, at type class instance synthesis.
 By expanding these arrows, it is possible to retrace the depth-first, backtracking search that Lean uses for type class instance search.
-This can take a little practice; in this case, the story begins like this:
+This can take a little practice to get used to!
+For the example above, the story begins like this:
 
 * Lean considers the first goal, {lean}`Nonempty (Sum Nat Empty)`. Lean sees four ways of possibly satisfying this goal:
   - The {name}`Sum.nonemptyRight` instance, which would create a sub-goal {lean}`Nonempty Empty`.
