@@ -66,6 +66,9 @@ Default instances may take instance-implicit parameters, which induce further re
 Successful branches in which the problem is fully known (that is, in which there are no unsolved metavariables) are pruned, and further potentially-successful instances are not attempted, because no later instance could cause the previously-succeeding branch to fail.
 
 # Instance Search Problems
+%%%
+tag := "instance-search"
+%%%
 
 Instance search occurs during the elaboration of (potentially nullary) function applications.
 Some of the implicit parameters' values are forced by others; for instance, an implicit type parameter may be solved using the type of a later value argument that is explicitly provided.
