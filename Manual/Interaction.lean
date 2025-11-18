@@ -269,9 +269,44 @@ tag := "hash-synth"
 ```grammar
 #synth $t
 ```
+:::
 
-The {keywordOf Lean.Parser.Command.synth}`#synth` command attempts to synthesize an instance for the provided class.
+The {keywordOf Lean.Parser.Command.synth}`#synth` command invokes Lean's {tech}[type class] resolution machinery and attempts to perform {ref "instance-synth"}[instance synthesis] to find an instance for the given type class.
 If it succeeds, then the resulting instance term is output.
+
+:::example "Synthesizing a type class instance"
+
+This example shows that Lean will let us add two integers, and the result will be an integer.
+
+```lean (name := synthInstHAddNat)
+#synth HAdd Int Int Int
+```
+```leanOutput synthInstHAddNat
+instHAdd
+```
+By default the output term does not show its arguments.
+Setting the {option}`pp.explicit` option lets us see more:
+
+```lean (name := synthInstHAddNat2)
+set_option pp.explicit true in
+#synth HAdd Int Int Int
+```
+```leanOutput synthInstHAddNat2
+@instHAdd Int Int.instAdd
+```
+
+Lean does not allow the addition of integers and strings, as demonstrated by this failure of type class instance synthesis:
+
+```lean (name := synthInstHAddNatInt) +error
+#synth HAdd Int String String
+```
+```leanOutput synthInstHAddNatInt
+failed to synthesize
+  HAdd Int String String
+
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
 
 :::
 

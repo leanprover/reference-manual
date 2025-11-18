@@ -16,7 +16,6 @@ open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
 
-
 #doc (Manual) "Instance Synthesis" =>
 %%%
 tag := "instance-synth"
@@ -81,6 +80,40 @@ Search may succeed, fail, or get stuck; a stuck search may occur when an unknown
 Stuck searches may be re-invoked when the elaborator has discovered one of the previously-unknown implicit arguments.
 If this does not occur, stuck searches become failures.
 
+:::example "Tracing instance search"
+
+The {option}`trace.Meta.synthInstance` option provides a powerful tool for
+
+```lean (name := trace)
+set_option pp.explicit true in
+set_option trace.Meta.synthInstance true in
+#synth Nonempty (Nat ⊕ Empty)
+```
+```leanOutput trace
+[Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
+```
+
+The online version of the manual, the Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol which will iteratively allow a more thorough investigation of how Lean succeeds, or fails, at type class instance synthesis.
+By expanding these arrows, it is possible to retrace the depth-first, backtracking search that Lean uses for type class instance search.
+This can take a little practice; in this case, the story begins like this:
+
+* Lean considers the first goal, {lean}`Nonempty (Sum Nat Empty)`. Lean sees four ways of possibly satisfying this goal:
+  - The {name}`Sum.nonemptyRight` instance, which would create a sub-goal {lean}`Nonempty Empty`.
+  - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
+  - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
+  - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
+* The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
+  - The {name}`instNonemptyOfMonad` instance, though this is a non-starter because {lean}`Empty` does not have the structure of a monadic type, which must be a type constructor applied to another type. Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
+  - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
+* The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered. Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is a non-starter because {lean}`Empty` does not have the structure of a monadic type.
+* Backtracking to the second original sub-goal, {lean}`Nonempty Nat`. This sub-goal eventually succeeds.
+
+The third and fourth original sub-goals are never considered.
+Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` outputs the solution:
+```leanOutput trace
+@Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
+```
+:::
 
 # Candidate Instances
 
