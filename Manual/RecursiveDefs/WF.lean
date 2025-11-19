@@ -465,7 +465,7 @@ In particular, it tries the following tactics and theorems:
 * {tactic}`omega`
 * {tactic}`array_get_dec` and {tactic}`array_mem_dec`, which prove that the size of array elements is less than the size of the array
 * {tactic}`sizeOf_list_dec` that the size of list elements is less than the size of the list
-* {name}`String.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`
+* {name}`String.Legacy.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Legacy.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`
 
 This tactic is intended to be extended with further heuristics using {keywordOf Lean.Parser.Command.macro_rules}`macro_rules`.
 

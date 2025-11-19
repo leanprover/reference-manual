@@ -33,9 +33,9 @@ At the same time, it is close enough to the real run-time representation to avoi
 # Backwards Compatibility
 
 In prior versions of Lean, the logical model of strings was a structure that contained a list of characters.
-This model is accessible using {name}`String.mk`, which converts a list of characters into a {name}`String`, and {name}`String.data`, which converts a {name}`String` into a list of characters.
-Their names reflect their prior status as the constructor of and projection from the logical model of strings.
+This model is still useful.
+It is still accessible using {name}`String.ofList`, which converts a list of characters into a {name}`String`, and {name}`String.toList`, which converts a {name}`String` into a list of characters.
 
-{docstring String.mk}
+{docstring String.ofList}
 
-{docstring String.data +allowMissing}
+{docstring String.toList}

@@ -13,8 +13,6 @@ import Manual.BasicTypes.String.Literals
 import Manual.BasicTypes.String.FFI
 import Manual.BasicTypes.String.Substrings
 import Manual.BasicTypes.String.Slice
-import Manual.BasicTypes.String.ValidPos
-import Manual.BasicTypes.String.RawPos
 
 open Manual.FFIDocType
 
@@ -22,6 +20,8 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 250000
+
 
 #doc (Manual) "Strings" =>
 %%%
@@ -141,9 +141,137 @@ tag := "string-api-props"
 
 {docstring String.length}
 
-{include 2 Manual.BasicTypes.String.ValidPos}
+## Positions
+%%%
+tag := "string-api-valid-pos"
+%%%
 
-{include 2 Manual.BasicTypes.String.RawPos}
+{docstring String.ValidPos}
+
+### In Strings
+
+{docstring String.startValidPos}
+
+{docstring String.endValidPos}
+
+{docstring String.pos}
+
+{docstring String.pos?}
+
+{docstring String.pos!}
+
+### Lookups
+
+{docstring String.ValidPos.get}
+
+{docstring String.ValidPos.get!}
+
+{docstring String.ValidPos.get?}
+
+{docstring String.ValidPos.set}
+
+{docstring String.ValidPos.extract +allowMissing}
+
+### Modifications
+
+{docstring String.ValidPos.modify}
+
+{docstring String.ValidPos.byte}
+
+### Adjustment
+
+{docstring String.ValidPos.prev}
+
+{docstring String.ValidPos.prev!}
+
+{docstring String.ValidPos.prev?}
+
+{docstring String.ValidPos.next}
+
+{docstring String.ValidPos.next!}
+
+{docstring String.ValidPos.next?}
+
+### Other Strings
+
+{docstring String.ValidPos.cast}
+
+{docstring String.ValidPos.ofCopy}
+
+{docstring String.ValidPos.toSetOfLE}
+
+{docstring String.ValidPos.toModifyOfLE}
+
+{docstring String.ValidPos.toSlice}
+
+## Raw Positions
+%%%
+tag := "string-api-pos"
+%%%
+
+{docstring String.Pos.Raw}
+
+### Validity
+
+{docstring String.Pos.Raw.isValid}
+
+{docstring String.Pos.Raw.isValidForSlice}
+
+### Boundaries
+
+{docstring String.rawEndPos}
+
+{docstring String.Pos.Raw.atEnd}
+
+### Comparisons
+
+{docstring String.Pos.Raw.min}
+
+{docstring String.Pos.Raw.byteDistance}
+
+{docstring String.Pos.Raw.substrEq}
+
+### Adjustment
+
+{docstring String.Pos.Raw.prev}
+
+{docstring String.Pos.Raw.next}
+
+{docstring String.Pos.Raw.next'}
+
+{docstring String.Pos.Raw.nextUntil}
+
+{docstring String.Pos.Raw.nextWhile}
+
+{docstring String.Pos.Raw.inc}
+
+{docstring String.Pos.Raw.increaseBy}
+
+{docstring String.Pos.Raw.offsetBy}
+
+{docstring String.Pos.Raw.dec}
+
+{docstring String.Pos.Raw.decreaseBy}
+
+{docstring String.Pos.Raw.unoffsetBy}
+
+### String Lookups
+
+{docstring String.Pos.Raw.extract}
+
+{docstring String.Pos.Raw.get}
+
+{docstring String.Pos.Raw.get!}
+
+{docstring String.Pos.Raw.get'}
+
+{docstring String.Pos.Raw.get?}
+
+### String Modifications
+
+{docstring String.Pos.Raw.set}
+
+{docstring String.Pos.Raw.modify}
 
 ## Lookups and Modifications
 %%%
@@ -262,65 +390,68 @@ tag := "string-api-modify"
 
 {docstring String.toLower}
 
-## Iterators
+## Legacy Iterators
 %%%
 tag := "string-iterators"
 %%%
 
-Fundamentally, a {name}`String.Iterator` is a pair of a string and a valid position in the string.
-Iterators provide functions for getting the current character ({name String.Iterator.curr}`curr`), replacing the current character ({name String.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Iterator.hasPrev}`hasPrev` and {name String.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Iterator.prev}`prev` and {name String.Iterator.next}`next`, respectively).
+For backwards compatiblity, Lean includes legacy string interators.
+Fundamentally, a {name}`String.Legacy.Iterator` is a pair of a string and a valid position in the string.
+Iterators provide functions for getting the current character ({name String.Legacy.Iterator.curr}`curr`), replacing the current character ({name String.Legacy.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Legacy.Iterator.hasPrev}`hasPrev` and {name String.Legacy.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Legacy.Iterator.prev}`prev` and {name String.Legacy.Iterator.next}`next`, respectively).
 Clients are responsible for checking whether they've reached the beginning or end of the string; otherwise, the iterator ensures that its position always points at a character.
+However, {name}`String.Legacy.Iterator` does not include proofs of these well-formedness conditions, which can make it more difficult to use in verified code.
 
-{docstring String.Iterator}
+{docstring String.Legacy.Iterator}
 
-{docstring String.iter}
+{docstring String.Legacy.iter}
 
-{docstring String.mkIterator}
+{docstring String.Legacy.mkIterator}
 
-{docstring String.Iterator.curr}
+{docstring String.Legacy.Iterator.curr}
 
-{docstring String.Iterator.curr'}
+{docstring String.Legacy.Iterator.curr'}
 
-{docstring String.Iterator.hasNext}
+{docstring String.Legacy.Iterator.hasNext}
 
-{docstring String.Iterator.next}
+{docstring String.Legacy.Iterator.next}
 
-{docstring String.Iterator.next'}
+{docstring String.Legacy.Iterator.next'}
 
-{docstring String.Iterator.forward}
+{docstring String.Legacy.Iterator.forward}
 
-{docstring String.Iterator.nextn}
+{docstring String.Legacy.Iterator.nextn}
 
-{docstring String.Iterator.hasPrev}
+{docstring String.Legacy.Iterator.hasPrev}
 
-{docstring String.Iterator.prev}
+{docstring String.Legacy.Iterator.prev}
 
-{docstring String.Iterator.prevn}
+{docstring String.Legacy.Iterator.prevn}
 
-{docstring String.Iterator.atEnd}
+{docstring String.Legacy.Iterator.atEnd}
 
-{docstring String.Iterator.toEnd}
+{docstring String.Legacy.Iterator.toEnd}
 
-{docstring String.Iterator.setCurr}
+{docstring String.Legacy.Iterator.setCurr}
 
-{docstring String.Iterator.find}
+{docstring String.Legacy.Iterator.find}
 
-{docstring String.Iterator.foldUntil}
+{docstring String.Legacy.Iterator.foldUntil}
 
-{docstring String.Iterator.extract}
+{docstring String.Legacy.Iterator.extract}
 
-{docstring String.Iterator.remainingToString}
+{docstring String.Legacy.Iterator.remainingToString}
 
-{docstring String.Iterator.remainingBytes}
+{docstring String.Legacy.Iterator.remainingBytes}
 
-{docstring String.Iterator.pos}
+{docstring String.Legacy.Iterator.pos}
 
-{docstring String.Iterator.toString}
+{docstring String.Legacy.Iterator.toString}
 
+{include 2 Manual.BasicTypes.String.Slice}
 
 {include 2 Manual.BasicTypes.String.Substrings}
 
-{include 2 Manual.BasicTypes.String.Slice}
+
 
 
 
