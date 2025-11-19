@@ -2020,8 +2020,12 @@ example := do
   return 5
 ```
 ```leanOutput doBusted
-typeclass instance problem is stuck, it is often due to metavariables
-  Pure ?m.64
+typeclass instance problem is stuck
+  Pure ?m.12
+
+Note: Lean will not try to resolve this typeclass instance problem because the type argument to `Pure` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.
+
+Hint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck.
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
