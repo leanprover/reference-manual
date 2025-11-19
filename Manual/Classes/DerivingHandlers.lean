@@ -23,7 +23,9 @@ set_option maxRecDepth 1024
 set_option maxHeartbeats 650_000
 
 /-- Classes that are part of the manual, not to be shown -/
-private def hiddenDerivable : Array Name := #[``Manual.Toml.Test, ``Plausible.Arbitrary]
+-- TODO: When moving to v4.26.0-rc1, @kim-em removed `Plausible.Arbitrary` from this list.
+-- Should it be restored?
+private def hiddenDerivable : Array Name := #[``Manual.Toml.Test]
 
 private def derivableClasses : IO (Array Name) := do
   let handlers ← derivingHandlersRef.get
