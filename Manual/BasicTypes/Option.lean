@@ -74,7 +74,7 @@ import Std
 
 ```lean
 def postalCodes : Std.HashMap Nat String :=
-  .empty |>.insert 12345 "Schenectady"
+  Std.HashMap.emptyWithCapacity 1 |>.insert 12345 "Schenectady"
 ```
 
 ```lean (name := getD)
