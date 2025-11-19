@@ -395,7 +395,7 @@ tag := "string-api-modify"
 tag := "string-iterators"
 %%%
 
-For backwards compatiblity, Lean includes legacy string interators.
+For backwards compatibility, Lean includes legacy string iterators.
 Fundamentally, a {name}`String.Legacy.Iterator` is a pair of a string and a valid position in the string.
 Iterators provide functions for getting the current character ({name String.Legacy.Iterator.curr}`curr`), replacing the current character ({name String.Legacy.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Legacy.Iterator.hasPrev}`hasPrev` and {name String.Legacy.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Legacy.Iterator.prev}`prev` and {name String.Legacy.Iterator.next}`next`, respectively).
 Clients are responsible for checking whether they've reached the beginning or end of the string; otherwise, the iterator ensures that its position always points at a character.
