@@ -83,18 +83,56 @@ Search may succeed, fail, or get stuck; a stuck search may occur when an unknown
 Stuck searches may be re-invoked when the elaborator has discovered one of the previously-unknown implicit arguments.
 If this does not occur, stuck searches become failures.
 
-:::example "Tracing instance search"
+:::example "Tracing Instance Search"
 
-Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit an interactive trace of instance synthesis.
-This trace can be used to optimize instance synthesis and to understand failures. 
+Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit a trace of the process it goes through attempting to synthesize an instance of a type class.
+This trace can be used to understand how instance synthesis succeeds and why it fails.
+
+Here, we can see a trace of the process Lean follows to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
 
 ```lean (name := trace)
 set_option pp.explicit true in
 set_option trace.Meta.synthInstance true in
 #synth Nonempty (Nat ⊕ Empty)
 ```
-```leanOutput trace
+```leanOutput trace (expandTrace := Meta.synthInstance)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
+  [Meta.synthInstance] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] new goal Nonempty Empty
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
+  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
+  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
+    [Meta.synthInstance] new goal Inhabited Empty
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual]
+  [Meta.synthInstance] ❌️ apply @instInhabitedOfApplicative_manual to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
+  [Meta.synthInstance] ✅️ apply @Lake.inhabitedOfNilTrace to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ✅️ Inhabited Empty ≟ Inhabited Empty
+    [Meta.synthInstance] no instances for Lake.NilTrace Empty
+      [Meta.synthInstance.instances] #[]
+  [Meta.synthInstance] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
+  [Meta.synthInstance] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] new goal Nonempty Nat
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
+  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
+  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
+    [Meta.synthInstance] new goal Inhabited Nat
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual, instInhabitedNat]
+  [Meta.synthInstance] ✅️ apply instInhabitedNat to Inhabited Nat
+    [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
+    [Meta.synthInstance.answer] ✅️ Inhabited Nat
+  [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+  [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 ```
 
 The online version of the manual, the Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol which will iteratively allow a more thorough investigation of how Lean succeeds, or fails, at type class instance synthesis.
