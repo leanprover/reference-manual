@@ -96,7 +96,11 @@ jobs:
       - name: Save cache for .lake
         uses: actions/cache/save@v4
         with:
-          path: .lake
+          path: |
+            .lake/packages
+            .lake/build/bin
+            .lake/build/ir
+            .lake/build/lib
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
 
       - name: Generate HTML using generate.sh (output goes into /html in repo root)

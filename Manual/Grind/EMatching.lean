@@ -419,31 +419,40 @@ ext
 ```
 {includeDocstring Lean.Parser.Attr.grindExt}
 
-In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem
+In addition, adding {attrs}`@[grind ext]` to a structure registers a its extensionality theorem.
 :::
 
-:::example "The `@[grind ext]` Attribute"
-{tactic}`grind` does not automatically apply the {tech (key := "η-equivalence")}[η-equality] rule for structures.
+
+::::example "The `@[grind ext]` Attribute"
+
 {lean}`Point` is a structure with two fields:
 ```lean
 structure Point where
   x : Int
   y : Int
 ```
-By default, {tactic}`grind` can't solve goals like this one:
-```lean +error (name := noExt)
+By default, {tactic}`grind` can solve goals like this one, because definitional equality includes {tech (key := "η-equivalence")}[η-equivalence] for product types:
+```lean
 example (p : Point) : p = ⟨p.x, p.y⟩ := by grind
+```
+However, it can't solve goals like this one that require an appeal to propositional equalities:
+```lean +error (name := noExt)
+example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by grind
 ```
 ```leanOutput noExt
 `grind` failed
 case grind
 p : Point
-h : ¬p = { x := p.x, y := p.y }
+a : Int
+h : a = p.x
+h_1 : ¬p = { x := a, y := p.y }
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] False propositions
+  [eqc] Equivalence classes
 ```
+
 
 This kind of goal may come up when proving theorems like the fact that swapping the fields of a point twice is the identity:
 ```lean
@@ -475,14 +484,14 @@ Adding the {attrs}`@[grind ext]` attribute to {name}`Point` enables {tactic}`gri
 ```lean
 attribute [grind ext] Point
 
-example (p : Point) : p = ⟨p.x, p.y⟩ := by
+example (p : Point) (a : Int) : a = p.x → p = ⟨a, p.y⟩ := by
   grind
 
 theorem swap_swap_eq_id' : Point.swap ∘ Point.swap = id := by
   unfold Point.swap
   grind
 ```
-:::
+::::
 
 :::syntax Lean.Parser.Attr.grindMod (title := "Injectivity")
 ```grammar
@@ -548,7 +557,7 @@ def decreasingCorrect : decreasing xs = Decreasing xs := by
 ```leanOutput decreasingCorrect1
 `grind` failed
 case grind
-h : (true = true) = ¬Decreasing []
+h : True = ¬Decreasing []
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -559,7 +568,7 @@ h : (true = true) = ¬Decreasing []
 `grind` failed
 case grind
 head : Int
-h : (true = true) = ¬Decreasing [head]
+h : True = ¬Decreasing [head]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -929,9 +938,12 @@ example : (iota 20).length > 10 := by
 ```leanOutput grindDiagnostics (expandTrace := grind) (expandTrace := thm)
 [grind] Diagnostics
   [thm] E-Matching instances
-    [thm] iota_succ ↦ 14
+    [thm] iota_succ ↦ 12
     [thm] List.length_cons ↦ 11
   [app] Applications
+  [grind] Simplifier
+    [simp] tried theorems (max: 35, num: 1):
+    use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 :::
 
@@ -996,7 +1008,7 @@ h_2 : x = n + 1
   [eqc] Equivalence classes
   [cases] Case analyses
   [cutsat] Assignment satisfying linear constraints
-  [ring] Ring `Lean.Grind.Ring.OfSemiring.Q Nat`
+  [ring] Rings
 ```
 :::
 

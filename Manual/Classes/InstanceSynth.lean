@@ -16,7 +16,6 @@ open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
 
-
 #doc (Manual) "Instance Synthesis" =>
 %%%
 tag := "instance-synth"
@@ -67,6 +66,9 @@ Default instances may take instance-implicit parameters, which induce further re
 Successful branches in which the problem is fully known (that is, in which there are no unsolved metavariables) are pruned, and further potentially-successful instances are not attempted, because no later instance could cause the previously-succeeding branch to fail.
 
 # Instance Search Problems
+%%%
+tag := "instance-search"
+%%%
 
 Instance search occurs during the elaboration of (potentially nullary) function applications.
 Some of the implicit parameters' values are forced by others; for instance, an implicit type parameter may be solved using the type of a later value argument that is explicitly provided.
@@ -81,6 +83,97 @@ Search may succeed, fail, or get stuck; a stuck search may occur when an unknown
 Stuck searches may be re-invoked when the elaborator has discovered one of the previously-unknown implicit arguments.
 If this does not occur, stuck searches become failures.
 
+::::example "Tracing Instance Search"
+
+Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit a trace of the process for synthesizing an instance of a type class.
+This trace can be used to understand how instance synthesis succeeds and why it fails.
+
+:::paragraph
+Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
+Clicking a "▶" symbol expands that branch of the trace, and clicking the "▼" collapses an expanded branch.
+
+```lean (name := trace)
+set_option pp.explicit true in
+set_option trace.Meta.synthInstance true in
+#synth Nonempty (Nat ⊕ Empty)
+```
+```comment
+IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
+```
+```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.resume)
+[Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
+  [Meta.synthInstance] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] new goal Nonempty Empty
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
+  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
+  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
+    [Meta.synthInstance] new goal Inhabited Empty
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual]
+  [Meta.synthInstance] ❌️ apply @instInhabitedOfApplicative_manual to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
+  [Meta.synthInstance] ✅️ apply @Lake.inhabitedOfNilTrace to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ✅️ Inhabited Empty ≟ Inhabited Empty
+    [Meta.synthInstance] no instances for Lake.NilTrace Empty
+      [Meta.synthInstance.instances] #[]
+  [Meta.synthInstance] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
+    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
+  [Meta.synthInstance] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
+    [Meta.synthInstance] new goal Nonempty Nat
+      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
+  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
+  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
+    [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
+    [Meta.synthInstance] new goal Inhabited Nat
+      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual, instInhabitedNat]
+  [Meta.synthInstance] ✅️ apply instInhabitedNat to Inhabited Nat
+    [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
+    [Meta.synthInstance.answer] ✅️ Inhabited Nat
+  [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+    [Meta.synthInstance.resume] size: 1
+    [Meta.synthInstance.answer] ✅️ Nonempty Nat
+  [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.resume] size: 2
+    [Meta.synthInstance.answer] ✅️ Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
+```
+:::
+
+:::paragraph
+By exploring the trace, it is possible to follow the depth-first, backtracking search that Lean uses for type class instance search.
+This can take a little practice to get used to!
+In the example above, Lean follows these steps:
+
+* Lean considers the first goal, {lean}`Nonempty (Sum Nat Empty)`. Lean sees four ways of possibly satisfying this goal:
+  - The {name}`Sum.nonemptyRight` instance, which would create a sub-goal {lean}`Nonempty Empty`.
+  - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
+  - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
+  - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
+* The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
+  - The {name}`instNonemptyOfMonad` instance, which is rejected.
+    It can't be used because the type {lean}`Empty` is not the application of a monad to a type.
+    Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
+  - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
+* The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered.
+  Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is rejected.
+  As before, this is because the type {lean}`Empty` is not the application of a monad to a type.
+* At this point, there are no remaining options for achieving the original first sub-goal.
+  The search backtracks to the second original sub-goal, {lean}`Nonempty Nat`.
+  This search eventually succeeds.
+:::
+
+The third and fourth original sub-goals are never considered.
+Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` command finishes and outputs the solution:
+```leanOutput trace
+@Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
+```
+::::
 
 # Candidate Instances
 
@@ -217,10 +310,14 @@ example := ser (2, 3)
 ```
 Instance synthesis can't select the {lean}`Serialize Nat String` instance, and thus the {lean}`Append String` instance, because that would require instantiating the output type as {lean}`String`, so the search gets stuck:
 ```leanOutput noOutputType
-typeclass instance problem is stuck, it is often due to metavariables
-  Serialize (Nat × Nat) ?m.16
+typeclass instance problem is stuck
+  Serialize (Nat × Nat) ?m.5
+
+Note: Lean will not try to resolve this typeclass instance problem because the second type argument to `Serialize` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.
+
+Hint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck.
 ```
-One way to fix the problem is to supply an expected type:
+As the message indicates, one way to fix the problem is to supply an expected type:
 ```lean
 example : String := ser (2, 3)
 ```

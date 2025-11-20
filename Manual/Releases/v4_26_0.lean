@@ -1,0 +1,825 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Anne Baanen
+-/
+
+import VersoManual
+
+import Manual.Meta.Markdown
+
+open Manual
+open Verso.Genre
+
+
+#doc (Manual) "Lean 4.26.0-rc1 (2025-11-19)" =>
+%%%
+tag := "release-v4.26.0"
+file := "v4.26.0"
+%%%
+
+````markdown
+For this release, 264 changes landed. In addition to the 84 feature additions and 73 fixes listed below there were 10 refactoring changes, 7 documentation improvements, 13 performance improvements, 8 improvements to the test suite and 69 other changes.
+
+## Language
+
+* [#10763](https://github.com/leanprover/lean4/pull/10763) improves match compilation: Branch on variables in the order
+  suggested by the first remaining alternative, and do not branch when the
+  first remaining alternative does not require it. This fixes
+  https://github.com/leanprover/lean4/issues/10749. With `set_option
+  backwards.match.rowMajor false` the old behavior can be turned on.
+
+* [#10823](https://github.com/leanprover/lean4/pull/10823) lets the match compilation procedure use sparse case analysis
+  when the patterns only match on some but not all constructors of an
+  inductive type. This way, less code is produce. Before, code handling
+  each of the other cases was then optimized and commoned-up by later
+  compilation pipeline, but that is wasteful to do.
+
+* [#10826](https://github.com/leanprover/lean4/pull/10826) fixes the location of the “deprecated constant” and similar
+  error messages on field notation (`e.f`, `(e).f`, `e |>. f`). Fixes
+  #10821.
+
+* [#10851](https://github.com/leanprover/lean4/pull/10851) lets match compilation use exfalso as soon as no alternatives
+  are left. This way, the compiler does not have to look at subsequent
+  case splits.
+
+* [#10865](https://github.com/leanprover/lean4/pull/10865) makes the spec `Std.Do.Spec.forIn'_list` and friends more
+  universe polymorphic.
+
+* [#10872](https://github.com/leanprover/lean4/pull/10872) improves the performance of `mvcgen` by an optimized
+  implementation for `try (mpure_intro; trivial)`. This tactic sequence is
+  used to eagerly discharge VCs and in the process instantiates schematic
+  variables.
+
+* [#10926](https://github.com/leanprover/lean4/pull/10926) topologically sorts abstracted vars in
+  `Meta.Closure.mkValueTypeClosure` if MVars are being abstracted.
+  Fixes #10705
+
+* [#10931](https://github.com/leanprover/lean4/pull/10931) strips the `Expr.mdata` that `WF.Fix` uses to associate goal
+  with recursive calls from the goal presented to the tactics.
+  Fixes #10895.
+
+* [#10944](https://github.com/leanprover/lean4/pull/10944) runs enableRealizationsForConst on sizeOf declarations. Fixes
+  #10573.
+
+* [#10980](https://github.com/leanprover/lean4/pull/10980) tries to preserve names of pattern variables in match
+  alternatives in `decreasing_by`, by telescoping into the concrete
+  alternative rather than the type of the matcher's alt. Fixes #10976.
+
+* [#11011](https://github.com/leanprover/lean4/pull/11011) extracts some refactorings from #10763, including dropping dead
+  code and not failing in `inaccessibleAsCtor`, which leadas to (slightly)
+  better error messages, and also on the grounds that the failing
+  alternative may actually be unreachable.
+
+* [#11024](https://github.com/leanprover/lean4/pull/11024) lets `Bool` have `.ctorIdx` like any other inductive.
+
+* [#11068](https://github.com/leanprover/lean4/pull/11068) removes the `verifyEnum` functions from the bv_decide frontend.
+  These functions looked at the implementation of matchers to see if they
+  really do the matching that they claim to do. This breaks that
+  abstraction barrier, and should not be necessary, as only functions with
+  a `MatcherInfo` env entry are considered here, which should all play
+  nicely.
+
+* [#11072](https://github.com/leanprover/lean4/pull/11072) adds “sparse casesOn” constructions. They are similar to
+  `.casesOn`, but have arms only for some constructors and a catch-all
+  (providing `t.ctorIdx ≠ 42` assumptions). The compiler has native
+  support for these constructors and now (because of the similarity) also
+  the per-constructor elimination principles.
+
+* [#11094](https://github.com/leanprover/lean4/pull/11094) makes workspaceSymbol benchmarks `module`s, so that they are
+  less sensitive to additions of private symbols in the standard library.
+
+* [#11095](https://github.com/leanprover/lean4/pull/11095) makes use of `hasIndepIndices`. That function was unused since
+  commit 54f6517ca36b237b40e02aac62ea36dbd4179758, but it seems it should
+  be used.
+
+* [#11107](https://github.com/leanprover/lean4/pull/11107) tests the missing cases error.
+
+* [#11122](https://github.com/leanprover/lean4/pull/11122) fixes a problem for structures with diamond inheritance: rather
+  than copying doc-strings (which are not available unless `.server.olean`
+  is loaded), we link to them. Adds tests.
+
+* [#11125](https://github.com/leanprover/lean4/pull/11125) adds a filter for premise selectors to ensure deprecated
+  theorems are not returned.
+
+* [#11132](https://github.com/leanprover/lean4/pull/11132) adds support for `grind +suggestions` and `simp_all?
+  +suggestions` in `try?`. It outputs `grind only [X, Y, Z]` or `simp_all
+  only [X, Y, Z]` suggestions (rather than just `+suggestions`).
+
+* [#11146](https://github.com/leanprover/lean4/pull/11146) fixes a bug in #11125. Added a test this time ...
+
+* [#11150](https://github.com/leanprover/lean4/pull/11150) adds a new, inactive and unused `doElem_elab` attribute that
+  will allow users to register custom elaborators for `doElem`s in the
+  form of the new type `DoElab`. The old `do` elaborator is active by
+  default but can be switched off by disabling the new option
+  `backward.do.legacy`.
+
+* [#11161](https://github.com/leanprover/lean4/pull/11161) adds getEntry/getEntry?/getEntry!/getEntryD operation on
+  DTreeMap.
+
+* [#11184](https://github.com/leanprover/lean4/pull/11184) modifies the error message that is returned when more than one
+  synthetic metavariable can't be resolved.
+
+* [#11190](https://github.com/leanprover/lean4/pull/11190) avoids running into an “unknown free variable” when printing the
+  “Failed to compile pattern matching” error. Fixes #11186.
+
+* [#11191](https://github.com/leanprover/lean4/pull/11191) makes sure that inside a `realizeConst` the `maxHeartbeat`
+  option is effective.
+
+## Library
+
+* [#9515](https://github.com/leanprover/lean4/pull/9515) adds a missing lemma for the `List` API.
+
+* [#10739](https://github.com/leanprover/lean4/pull/10739) adds two missing `NeZero` instances for `n^0` where `n : Nat`
+  and `n : Int`.
+
+* [#10743](https://github.com/leanprover/lean4/pull/10743) renames theorems that use `sorted` in their name to instead use
+  `pairwise`.
+
+* [#10765](https://github.com/leanprover/lean4/pull/10765) extends the `all`/`any` functions from hash sets to hash maps
+  and dependent hash maps and verifies them.
+
+* [#10769](https://github.com/leanprover/lean4/pull/10769) adds a `find?` consumer in analogy to `List.find?` and variants
+  thereof.
+
+* [#10776](https://github.com/leanprover/lean4/pull/10776) adds iterators and slices for `DTreeMap`/`TreeMap`/`TreeSet`
+  based on zippers and provides basic lemmas about them.
+
+* [#10820](https://github.com/leanprover/lean4/pull/10820) shows that the iterators returned by `String.Slice.split` and
+  `String.Slice.splitInclusive` are finite as long as the forward matcher
+  iterator for the pattern is finite (which we already know for all of our
+  patterns).
+
+* [#10852](https://github.com/leanprover/lean4/pull/10852) renames `String.Range` to `Lean.Syntax.Range`, to reflect that
+  it is not part of the standard library.
+
+* [#10853](https://github.com/leanprover/lean4/pull/10853) renames `String.endPos` to `String.rawEndPos`, as in a future
+  release the name `String.endPos` will be taken by the function that is
+  currently called `String.endValidPos`.
+
+* [#10854](https://github.com/leanprover/lean4/pull/10854) fixes the IPv4 address encoding from libuv to lean
+
+* [#10865](https://github.com/leanprover/lean4/pull/10865) makes the spec `Std.Do.Spec.forIn'_list` and friends more
+  universe polymorphic.
+
+* [#10896](https://github.com/leanprover/lean4/pull/10896) adds union operations on DTreeMap/TreeMap/TreeSet and their raw
+  variants and provides lemmas about union operations.
+
+* [#10933](https://github.com/leanprover/lean4/pull/10933) adds the basic infrastructure to perform termination proofs
+  about `String.ValidPos` and `String.Slice.Pos`.
+
+* [#10941](https://github.com/leanprover/lean4/pull/10941) removes a redundant instance requirement from
+  `Std.instIrreflLtOfIsPreorderOfLawfulOrderLT`.
+
+* [#10946](https://github.com/leanprover/lean4/pull/10946) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet nd
+  provides lemmas about union operations.
+
+* [#10952](https://github.com/leanprover/lean4/pull/10952) replaces `Iter(M).size` with the `Iter(M).count`. While the
+  former used a special `IteratorSize` type class, the latter relies on
+  `IteratorLoop`. The `IteratorSize` class is deprecated. The PR also
+  renames lemmas about ranges be replacing `_Rcc` with `_rcc`, `_Rco` with
+  `_roo` (and so on) in names, in order to be more consistent with the
+  naming convention.
+
+* [#10966](https://github.com/leanprover/lean4/pull/10966) fixes some mis-stated lemmas which should have been about the
+  `.Raw` variants of maps.
+
+* [#10986](https://github.com/leanprover/lean4/pull/10986) defines `String.Slice.replace` and redefines `String.replace` to
+  use the `Slice` version.
+
+* [#10993](https://github.com/leanprover/lean4/pull/10993) allows `grind` to work extensionally on extensional maps/sets.
+
+* [#11006](https://github.com/leanprover/lean4/pull/11006) removes the duplicate lemmas
+  `Std.Do.SPred.{and_pure,or_pure,imp_pure,entails_pure_intro}`.
+
+* [#11008](https://github.com/leanprover/lean4/pull/11008) inlines several Decidable instances for performance reasons.
+
+* [#11017](https://github.com/leanprover/lean4/pull/11017) establishes `String.ofList` and `String.toList` as the preferred
+  method for converting between strings and lists of characters and
+  deprecates the alternatives `String.mk`, `List.asString` and
+  `String.data`.
+
+* [#11019](https://github.com/leanprover/lean4/pull/11019) introduces slices of lists that are available via slice notation
+  (e.g., `xs[1...5]`).
+
+* [#11021](https://github.com/leanprover/lean4/pull/11021) adds more theory about `Splits` for strings and deduces the
+  first user-facing `String` lemma, `String.toList_map`.
+
+* [#11058](https://github.com/leanprover/lean4/pull/11058) changes `Nat.ble` by joining the two `Nat.ble Nat.zero _` cases
+  into one, allowing `decide (0 <= x) = true` and `decide (0 < succ x) =
+  true` to be solvable by `rfl`.
+
+* [#11060](https://github.com/leanprover/lean4/pull/11060) add list `min` and `max` operations to complement `min?` and
+  `max?` ones in the same vain as `head?` and `head`.
+
+* [#11070](https://github.com/leanprover/lean4/pull/11070) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet nd
+  provides lemmas about union operations.
+
+* [#11076](https://github.com/leanprover/lean4/pull/11076) adds `getEntry`/`getEntry?`/`getEntry!`/`getEntryD` operation on
+  DHashMap.
+
+* [#11100](https://github.com/leanprover/lean4/pull/11100) adds `theorem Int.ediv_pow {a b : Int} {n : Nat} (hab : b ∣ a) :
+  (a / b) ^ n = a ^ n / b ^ n` and related lemmas.
+
+* [#11102](https://github.com/leanprover/lean4/pull/11102) adds some annotations missing in the Array bootstrapping files.
+
+* [#11113](https://github.com/leanprover/lean4/pull/11113) adds some small missing lemmas.
+
+* [#11123](https://github.com/leanprover/lean4/pull/11123) adds theorems about folds over flatMaps, for
+  `List`/`Array`/`Vector`.
+
+* [#11127](https://github.com/leanprover/lean4/pull/11127) removes all uses of `String.Iterator` from core, preferring
+  `String.ValidPos` instead.
+
+* [#11138](https://github.com/leanprover/lean4/pull/11138) adds a `csimp` lemma for faster runtime evaluation of `Int.pow`
+  in terms of `Nat.pow`.
+
+* [#11139](https://github.com/leanprover/lean4/pull/11139) replaces #11138, which just added a `@[csimp]` lemma for
+  `Int.pow`, this time actually replacing the definition. This means we
+  not only get fast runtime behaviour, but take advantage of the special
+  kernel support for `Nat.pow`.
+
+* [#11150](https://github.com/leanprover/lean4/pull/11150) adds a new, inactive and unused `doElem_elab` attribute that
+  will allow users to register custom elaborators for `doElem`s in the
+  form of the new type `DoElab`. The old `do` elaborator is active by
+  default but can be switched off by disabling the new option
+  `backward.do.legacy`.
+
+* [#11152](https://github.com/leanprover/lean4/pull/11152) renames `String.Iterator` to `String.Legacy.Iterator`.
+
+* [#11154](https://github.com/leanprover/lean4/pull/11154) renames `Substring`  to `Substring.Raw`.
+
+* [#11159](https://github.com/leanprover/lean4/pull/11159) adds lemmas about the sizes of ranges of Ints, analogous to the
+  Nat lemmas in `Init.Data.Range.Polymorphic.NatLemmas`. See also
+  https://leanprover.zulipchat.com/#narrow/channel/270676-lean4/topic/Reasonning.20about.20PRange.20sizes.20.28with.20.60Int.60.29/with/546466339.
+
+## Tactics
+
+* [#10848](https://github.com/leanprover/lean4/pull/10848) fixes an issue where adding a missing case name after the pipe
+  in `induction` would not remove the now-obsolete error message.
+
+* [#10858](https://github.com/leanprover/lean4/pull/10858) improves the `done` tactic in `grind` interactive mode. It now
+  displays the `grind` state diagnostics for all unsolved subgoals.
+
+* [#10859](https://github.com/leanprover/lean4/pull/10859) fixes auto-completion for `set_option` in `grind` interactive
+  mode.
+
+* [#10862](https://github.com/leanprover/lean4/pull/10862) implements the `show_term` combinator in `grind` interactive
+  mode.
+
+* [#10874](https://github.com/leanprover/lean4/pull/10874) uses the correct context for elaborating the `grind` state
+  filter.
+
+* [#10877](https://github.com/leanprover/lean4/pull/10877) fixes theory propagation issue in `grind order`.
+
+* [#10881](https://github.com/leanprover/lean4/pull/10881) fixes a proof instability source in `grind`.
+
+* [#10887](https://github.com/leanprover/lean4/pull/10887) uses the new `TermInfo.isDisplayableTerm` when hovering over
+  `cases` tactic anchors in the `grind` interactive mode.
+
+* [#10890](https://github.com/leanprover/lean4/pull/10890) adds a `+lax` configuration option for `grind`, causing it to
+  ignore parameters referring to non-existent theorems, or to theorems for
+  which we can't generate a pattern. This allows throwing large sets of
+  theorems (e.g. from a premise selection enginre) into `grind` to see
+  what happens.
+
+* [#10899](https://github.com/leanprover/lean4/pull/10899) ensures the generated `instantiate` tactic instantiates the
+  theorems using the same order used by `finish?`
+
+* [#10916](https://github.com/leanprover/lean4/pull/10916) implements parameter optimization for the generated
+  `instantiate` tactics produced by `finish?`.
+  We use a simple parameter optimizer that takes two sets as input: the
+  lower and upper bounds.
+  The lower bound consists of the theorems actually used in the proof
+  term, while the upper bound includes all the theorems instantiated in a
+  particular theorem instantiation step.
+  The lower bound is often sufficient to replay the proof, but in some
+  cases, additional theorems must be included because a theorem
+  instantiation may contribute to the proof by providing terms and many
+  not be present in the final proof term.
+
+* [#10919](https://github.com/leanprover/lean4/pull/10919) implements the `have <ident>? : <prop>` tactic for the `grind`
+  interactive mode. The proposition is proved using the default `grind`
+  search strategy. This tactic is also useful for inspecting or querying
+  the current `grind` state.
+
+* [#10920](https://github.com/leanprover/lean4/pull/10920) adds support for `grind +premises`, calling the currently
+  configured premise selection algorithm and including the results as
+  parameters to `grind`. (Recall that there is not currently a default
+  premise selector provided by Lean4: you need a downstream premise
+  selector to make use of this.)
+
+* [#10936](https://github.com/leanprover/lean4/pull/10936) fixes issues in `grind => finish?` that were preventing
+  generated `grind` tactic scripts from being successfully replayed.
+
+* [#10937](https://github.com/leanprover/lean4/pull/10937) fixes a missing counter reset at the `cases` tactic in `grind`
+  interactive mode.
+
+* [#10938](https://github.com/leanprover/lean4/pull/10938) ensures solver `grind` tactics (e.g., `ac`, `ring`, `lia`, etc)
+  process pending facts after making progress.
+
+* [#10939](https://github.com/leanprover/lean4/pull/10939) fixes another instance of the “default parameter value in
+  constructor” footgun, which was affecting the `cases` tactic in the
+  `grind` interactive mode.
+
+* [#10948](https://github.com/leanprover/lean4/pull/10948) ensures that `finish?` produces partial tactic scripts
+  containing `sorry`s.
+  We may add an option to disable this feature in the future.
+  It is enabled by default because it provides a useful way to debug
+  `grind` failures.
+
+* [#10949](https://github.com/leanprover/lean4/pull/10949) ensures that solver propagation steps are necessary in the
+  generated tactic script to close the goal.
+
+* [#10950](https://github.com/leanprover/lean4/pull/10950) adds the `mbtc` tactic to the `grind` interactive mode. It
+  implements model-based theory combination. It also ensures `finish?` is
+  capable of generating it.
+
+* [#10951](https://github.com/leanprover/lean4/pull/10951) fixes a bug in the `cutsat` incremental model construction. The
+  model was not being reset when new (unsatisfied) equalities were
+  asserted.
+
+* [#10955](https://github.com/leanprover/lean4/pull/10955) fixes a regression in the `grind order` module introduced by
+
+* [#10956](https://github.com/leanprover/lean4/pull/10956) fixes a bug in the equality propagation procedure in
+  `grind.order`. Specifically, it affects the procedure that asserts
+  equalities in the `grind` core state that are implied by (ring)
+  inequalities in the `grind.order` module.
+
+* [#10960](https://github.com/leanprover/lean4/pull/10960) fixes a bug in the `grind linarith` model/counterexample
+  construction.
+
+* [#10961](https://github.com/leanprover/lean4/pull/10961) adds support for scientific literals for `Rat` in `grind`.
+  `grind` does not yet add support for this kind of literal in arbitrary
+  fields.
+
+* [#10962](https://github.com/leanprover/lean4/pull/10962) fixes a spurious warning message in `grind`.
+
+* [#10964](https://github.com/leanprover/lean4/pull/10964) adds a propagator for `a^(n+m)` and removes its normalizer. This
+  change was motivated by issue #10661
+
+* [#10965](https://github.com/leanprover/lean4/pull/10965) ensures that model-based theory combination in `grind cutsat`
+  considers nonlinear terms. Nonlinear multiplications such as `x * y` are
+  treated as uninterpreted symbols in `cutsat`.
+
+* [#10971](https://github.com/leanprover/lean4/pull/10971) adds a `LawfulOfScientific` class, providing compatibility with
+  a `Lean.Grind.Field` structure.
+
+* [#10975](https://github.com/leanprover/lean4/pull/10975) adds the combinator ` · t_1 ... t_n` to the `grind` interactive
+  mode. The `finish?` tactic now generates scripts using this combinator
+  to conform to Mathlib coding standards. The new format is also more
+  compact. Example:
+  ```lean
+  /--
+  info: Try this:
+    [apply] ⏎
+      instantiate only [= mem_indices_of_mem, insert, = getElem_def]
+      instantiate only [= getElem?_neg, = getElem?_pos]
+      cases #f590
+      · cases #ffdf
+        · instantiate only
+          instantiate only [= Array.getElem_set]
+        · instantiate only
+          instantiate only [size, = HashMap.mem_insert, = HashMap.getElem_insert, = Array.getElem_push]
+      · instantiate only [= mem_indices_of_mem, = getElem_def]
+        instantiate only [usr getElem_indices_lt]
+        instantiate only [size]
+        cases #ffdf
+        · instantiate only [=_ WF]
+          instantiate only [= getElem?_neg, = getElem?_pos, = Array.getElem_set]
+          instantiate only [WF']
+        · instantiate only
+          instantiate only [= HashMap.mem_insert, = HashMap.getElem_insert, = Array.getElem_push]
+  -/
+  #guard_msgs in
+  example (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
+      (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
+    grind => finish?
+  ```
+
+* [#10978](https://github.com/leanprover/lean4/pull/10978) implements the following `grind` improvements:
+  1. `set_option` can now be used to set `grind` configuration options in
+  the interactive mode.
+  2. Fixes a bug in the repeated theorem instantiation detection.
+  3. Adds the macro `use [...]` as a shorthand for `instantiate only
+  [...]`.
+
+* [#10990](https://github.com/leanprover/lean4/pull/10990) adds the `set_config` tactic for setting `grind` configuration
+  options. It uses the same syntax used for setting configuration options
+  in the `grind` main tactic.
+
+* [#10991](https://github.com/leanprover/lean4/pull/10991) renames `cutsat` in configuration options and trace messages to
+  `lia`.
+
+* [#10992](https://github.com/leanprover/lean4/pull/10992) ensures that `grind +premises` silently drops warnings and
+  errors about bad suggestions.
+
+* [#10997](https://github.com/leanprover/lean4/pull/10997) adds support for configuration options at `finish` and
+  `finish?`.
+
+* [#11003](https://github.com/leanprover/lean4/pull/11003) adds support for specifying anchors to restrict the search space
+  in `grind` when using `grind only`. Anchors can limit which case splits
+  are performed and which local lemmas are instantiated.
+
+* [#11012](https://github.com/leanprover/lean4/pull/11012) ensures the `grind` tactics `finish` and `finish?` can take
+  parameters.
+
+* [#11026](https://github.com/leanprover/lean4/pull/11026) fixes a nontermination and missing propagation bug in `grind
+  order`. It also register relevant case-splits for arithmetic.
+
+* [#11028](https://github.com/leanprover/lean4/pull/11028) ensures that `grind? +premises` removes `+premises` from the
+  "Try this" suggestion.
+
+* [#11029](https://github.com/leanprover/lean4/pull/11029) changes the terminology used from "premise selection" to
+  "library suggestions". This will be more understandable to users (we
+  don't assume anyone is familiar with the premise selection literature),
+  and avoids a conflict with the existing use of "premise" in Lean
+  terminology (e.g. "major premise" in induction, as well as generally the
+  synonym for "hypothesis"/"argument").
+
+* [#11030](https://github.com/leanprover/lean4/pull/11030) adds a library suggestion engine for local theorems. To be
+  useful, I still need to write more combinators to re-rank and combine
+  suggestions from multiple engines.
+
+* [#11032](https://github.com/leanprover/lean4/pull/11032) implements `simp? +suggestions`, which uses the configured
+  library suggestion engine to add relevant theorems to the `simp` call.
+  `simp +suggestions` without the `?` prints a message requiring adding
+  the `?`.
+
+* [#11034](https://github.com/leanprover/lean4/pull/11034) adds a new suggestion to `finish?`. It now generates the `grind`
+  tactic script as before, and a `finish only` tactic. Example:
+  ```lean
+  /--
+  info: Try these:
+    [apply] ⏎
+      instantiate only [findIdx, insert, = mem_indices_of_mem]
+      instantiate only [= getElem?_neg, = getElem?_pos]
+      cases #1bba
+      · instantiate only [findIdx]
+      · instantiate only
+        instantiate only [= HashMap.mem_insert, = HashMap.getElem_insert]
+    [apply] finish only [findIdx, insert, = mem_indices_of_mem, = getElem?_neg, = getElem?_pos, = HashMap.mem_insert,
+      = HashMap.getElem_insert, #1bba]
+  -/
+  example (m : IndexMap α β) (a : α) (b : β) :
+      (m.insert a b).findIdx a = if h : a ∈ m then m.findIdx a else m.size := by
+    grind => finish?
+  ```
+
+* [#11039](https://github.com/leanprover/lean4/pull/11039) fixes the `grind` invalid universe level regression reported in
+  #11036
+
+* [#11040](https://github.com/leanprover/lean4/pull/11040) fixes a panic that occurred during the processing of generalized
+  E-matching patterns in `grind`.
+
+* [#11047](https://github.com/leanprover/lean4/pull/11047) implements (nested term) equality propagation in `grind order`.
+  That is, it propagates implied equalities from `grind order` back to the
+  `grind` core. Examples:
+  ```lean
+  open Lean Grind Std
+
+* [#11049](https://github.com/leanprover/lean4/pull/11049) implements equality propagation for `Nat` in `grind order`.
+  `grind order` supports offset equalities for rings, but it has an
+  adapter for `Nat`. Example:
+  ```lean
+  example (a b : Nat) (f : Nat → Int) : a ≤ b + 1 → b + 1 ≤ a → f (1 + a) = f (1 + b + 1) := by
+    grind -offset -mbtc -lia -linarith (splits := 0)
+  ```
+
+* [#11050](https://github.com/leanprover/lean4/pull/11050) fixes equality propagation for `Nat` in `grind order`.
+
+* [#11051](https://github.com/leanprover/lean4/pull/11051) removes the `grind offset` module because it is (now) subsumed
+  by `grind order`.
+
+* [#11057](https://github.com/leanprover/lean4/pull/11057) implements `grind?` using the new `grind => finish?`
+  infrastructure.
+
+* [#11061](https://github.com/leanprover/lean4/pull/11061) fixes a deep recursion issue in the kernel when type-checking a
+  proof term produced by `grind`.
+
+* [#11071](https://github.com/leanprover/lean4/pull/11071) ensures that the `denote` functions used to implement
+  proof-by-reflection terms in `grind` are abbreviations. This change
+  eliminates the need for the `withAbstractAtoms` gadget.
+
+* [#11075](https://github.com/leanprover/lean4/pull/11075) updates `simp? +suggestions` so that if a name is ambiguous
+  (because of namespaces) all alternatives are used, rather than erroring.
+
+* [#11077](https://github.com/leanprover/lean4/pull/11077) fixes the anchor values produced by `grind?`
+
+* [#11080](https://github.com/leanprover/lean4/pull/11080) fixes a panic during equality propagation in the `grind ring`
+  module. If the maximum number of steps has been reached, the polynomials
+  may not be fully simplified.
+
+* [#11084](https://github.com/leanprover/lean4/pull/11084) fixes a stack overflow that occurs when constructing a proof
+  term in `grind`.
+
+* [#11087](https://github.com/leanprover/lean4/pull/11087) enables `grind` to case bash on `Sum` and `PSum`.
+
+* [#11092](https://github.com/leanprover/lean4/pull/11092) ensures that `grind ac` denotation functions used in proof by
+  reflection are marked as `abbrev`.
+
+* [#11098](https://github.com/leanprover/lean4/pull/11098) updates the `suggestions` tactic so the printed message includes
+  hoverable type information (and displays scores and flags when
+  relevant).
+
+* [#11099](https://github.com/leanprover/lean4/pull/11099) improves the support for universe-metavariables in `grind`.
+
+* [#11101](https://github.com/leanprover/lean4/pull/11101) fixes an initialization issue for local `Function.Injective f`
+  hypotheses.
+
+* [#11126](https://github.com/leanprover/lean4/pull/11126) ensures `grind` does not fail when applying `injection` to a
+  hypothesis that cannot be cleared because of forward dependencies.
+
+* [#11133](https://github.com/leanprover/lean4/pull/11133) fixes disequality propagation for constructor applications in
+  `grind`. The equivalence class representatives may be distinct
+  constructor applications, but we must ensure they have the same type.
+  Examples that were panic'ing before this PR:
+  ```lean
+  example (a b : List Nat)
+      : a ≍ ([] : List Int) → b ≍ ([1] : List Int) → a = b ∨ p → p := by
+    grind
+
+* [#11135](https://github.com/leanprover/lean4/pull/11135) ensures that `checkExp` is used in `grind lia` (formerly known
+  as `grind cutsat`) and `grind ring` to prevent stack overflows.
+
+* [#11136](https://github.com/leanprover/lean4/pull/11136) adds support for `try?` to use induction; it will only perform
+  induction on inductive types defined in the current namespace and/or
+  module; so in particular for now it will not induct on built-in
+  inductives such as `Nat` or `List`.
+
+* [#11137](https://github.com/leanprover/lean4/pull/11137) fixes a stackoverflow during proof construction in `grind`.
+
+* [#11145](https://github.com/leanprover/lean4/pull/11145) fixes a bug in `isMatchCondCandidate` used in `grind`. The
+  missing condition was causing a "not internalized term" `grind` internal
+  error.
+
+* [#11147](https://github.com/leanprover/lean4/pull/11147) refactors the implementation of the symmetric equality
+  congruence rule used in `grind`.
+
+* [#11148](https://github.com/leanprover/lean4/pull/11148) addst the `cases_next` tactic to the `grind` interactive mode.
+
+* [#11149](https://github.com/leanprover/lean4/pull/11149) adds a user-extension mechanism for the `try?` tactic. You can
+  either use the `@[try_suggestion]` attribute on a declaration with
+  signature ``MVarId -> Try.Info -> MetaM (Array (TSyntax `tactic))`` to
+  produce suggestions, or the `register_try?_tactic <stx>` command with a
+  fixed piece of syntax. User-extensions are only tried *after* the
+  built-in try strategies have been tried and failed.
+
+* [#11157](https://github.com/leanprover/lean4/pull/11157) implements the `#grind_lint` command, a diagnostic tool for
+  analyzing the behavior of theorems annotated for theorem instantiation.
+  The command helps identify problematic theorems that produce excessive
+  or unbounded instance generation during E-matching, which can lead to
+  performance issues.
+  The main entry point is:
+  ```
+  #grind_lint check
+  ```
+  which analyzes all theorems marked with the `@[grind]` attribute.
+  For each theorem, it creates an artificial goal and runs `grind`,
+  collecting statistics about the number of instances produced.
+  Results are summarized using info messages, and detailed breakdowns are
+  shown for lemmas exceeding a configurable threshold.
+  Additional subcommands are provided for targeted inspection and control:
+
+  * `#grind_lint inspect thm`: analyzes one or more specific theorems in
+  detail
+  * `#grind_lint mute thm`: excludes a theorem from instantiation during
+  analysis
+  * `#grind_lint skip thm`: omits a theorem from being analyzed by
+  `#grind_lint check`
+
+* [#11166](https://github.com/leanprover/lean4/pull/11166) implements the following improvements to the `#grind_lint`
+  command:
+  1. More informative messages when the number of instances exceeds the
+  minimum threshold.
+  2. A code action for `#grind_lint inspect` that inserts
+  `set_option trace.grind.ematch.instance true` whenever the number of
+  instances exceeds
+     the minimum threshold.
+  3. Displaying doc strings for `grind` configuration options in
+  `#grind_lint`.
+  4. Improve doc strings for `#grind_lint inspect` and `#grind_lint
+  check`.
+
+* [#11167](https://github.com/leanprover/lean4/pull/11167) implements support for `#grind_lint check in module <module>`.
+  Mathlib does not use namespaces, so we need to restrict the
+  `#grind_lint` search space using module (prefix) names. Example:
+
+  ```lean
+  /--
+  info: instantiating `Array.filterMap_some` triggers more than 100 additional `grind` theorem instantiations
+  ---
+  info: Array.filterMap_some
+  [thm] instances
+    [thm] Array.filterMap_filterMap ↦ 94
+    [thm] Array.size_filterMap_le ↦ 5
+    [thm] Array.filterMap_some ↦ 1
+  ---
+  info: instantiating `Array.range_succ` triggers 22 additional `grind` theorem instantiations
+  -/
+  #guard_msgs in
+  #grind_lint check (min := 20) in module Init.Data.Array
+  ```
+
+* [#11168](https://github.com/leanprover/lean4/pull/11168) changes the default library suggestions (e.g. for `grind
+  +suggestions` or `simp_all? +suggestions) to include the theorems from
+  the current file in addition to the output of Sine Qua Non.
+
+* [#11170](https://github.com/leanprover/lean4/pull/11170) adds tactic and term mode macros for `∎` (typed `\qed`) which
+  expand to `try?`. The term mode version captures any produced
+  suggestions and prepends `by`.
+
+* [#11171](https://github.com/leanprover/lean4/pull/11171) ensures that tactics using library suggestions set the caller
+  field, so the premise selection engine has access to this. We'll later
+  use this to filter out some modules for grind, which we know have
+  already been fully annotated.
+
+* [#11172](https://github.com/leanprover/lean4/pull/11172) removes `simp_all? +suggestions` from `try?` for now. It's
+  really slow out in Mathlib; too often the suggestions cause `simp` to
+  loop. Until we have the ability for `try?` to move past a timeing-out
+  tactic (or maybe even until we have parallelism), it needs to be
+  removed.
+
+* [#11174](https://github.com/leanprover/lean4/pull/11174) modifies the `try?` framework, so each subsidiary tactic runs
+  with a separate `maxHeartbeats` budget.
+
+* [#11187](https://github.com/leanprover/lean4/pull/11187) adds syntax for specifying `grind_pattern` constraints and
+  extends the `EMatchTheorem` object.
+
+* [#11189](https://github.com/leanprover/lean4/pull/11189) implements `grind_pattern` constraints. They are useful for
+  controlling theorem instantiation in `grind`. As an example, consider
+  the following two theorems:
+  ```lean
+  theorem extract_empty {start stop : Nat} :
+      (#[] : Array α).extract start stop = #[] := …
+
+* [#11193](https://github.com/leanprover/lean4/pull/11193) uses the new `grind_pattern` constraints to fix cases where an
+  unbounded number of theorem instantiations would be generated for
+  certain theorems in the standard library.
+
+* [#11194](https://github.com/leanprover/lean4/pull/11194) the redundant `grind` parameter warning message. It now checks
+  the `grind` theorem instantiation constraints too.
+
+* [#11197](https://github.com/leanprover/lean4/pull/11197) implements `try?` using the new `finish?` infrastructure. It
+  also removes the old tracing infrastructure, which is now obsolete.
+  Example:
+
+  ```lean
+  /--
+  info: Try these:
+    [apply] grind
+    [apply] grind only [findIdx, insert, = mem_indices_of_mem, = getElem?_neg, = getElem?_pos, = HashMap.mem_insert,
+      = HashMap.getElem_insert, #1bba]
+    [apply] grind only [findIdx, insert, = mem_indices_of_mem, = getElem?_neg, = getElem?_pos, = HashMap.mem_insert,
+      = HashMap.getElem_insert]
+    [apply] grind =>
+      instantiate only [findIdx, insert, = mem_indices_of_mem]
+      instantiate only [= getElem?_neg, = getElem?_pos]
+      cases #1bba
+      · instantiate only [findIdx]
+      · instantiate only
+        instantiate only [= HashMap.mem_insert, = HashMap.getElem_insert]
+  -/
+  #guard_msgs in
+  example (m : IndexMap α β) (a : α) (b : β) :
+      (m.insert a b).findIdx a = if h : a ∈ m then m.findIdx a else m.size := by
+    try?
+  ```
+
+* [#11203](https://github.com/leanprover/lean4/pull/11203) fixes a few minor issues in the new `Action` framework used in
+  `grind`. The goal is to eventually delete the old `SearchM`
+  infrastructure. The main `solve` function used by `grind` is now based
+  on the `Action` framework. The PR also deletes dead code in `SearchM`.
+
+* [#11204](https://github.com/leanprover/lean4/pull/11204) has `#grind_list check` produce a "Try this:" suggestion with
+  `#grind_list inspect` commands, as this is usually the next step in
+  dealing with problematic cases. We also fix the grind pattern for one
+  theorem, as part of testing the workflow. More to follow.
+
+## Compiler
+
+* [#10625](https://github.com/leanprover/lean4/pull/10625) implements zero cost `BaseIO` by erasing the `IO.RealWorld`
+  parameter from argument lists and structures. This is a **major breaking
+  change for FFI**.
+
+* [#10727](https://github.com/leanprover/lean4/pull/10727) fixes name mangling to be unambiguous / injective by adding `00`
+  for disambiguation where necessary. Additionally, the inverse function,
+  `Lean.Name.unmangle` has been added which can be used to unmangle a
+  mangled identifier. This unmangler has been added to demonstrate the
+  injectivity but also to allow unmangling identifiers e.g. for debugging
+  purposes.
+
+* [#10856](https://github.com/leanprover/lean4/pull/10856) performs more widening in ElimDeadBranches in an attempt to
+  improve performance in situations with a lot of local precision.
+
+* [#10864](https://github.com/leanprover/lean4/pull/10864) reduces the amount of symbols in our DLLs by cutting open a
+  linking cycle of the shape:
+
+  `Environment -> Compiler -> Meta -> Environment`
+
+* [#10982](https://github.com/leanprover/lean4/pull/10982) changes the closure allocator to use the general allocator
+  instead of the small object one.
+  This is because users may create closures with a gigantic amount of
+  closed variables which in turn
+  boost the size of the closure beyond the small object threshold.
+
+* [#11000](https://github.com/leanprover/lean4/pull/11000) fixes a memleak caused by the Lean based `IO.waitAny`
+  implementation by reverting it.
+
+* [#11010](https://github.com/leanprover/lean4/pull/11010) makes the eager lambda lifting heuristic more predictable by
+  blocking it from lifting from
+  any kind of inlineable function, not just `@[inline]`. It also adapts
+  the doc-string to describe
+  what is actually going on.
+
+* [#11020](https://github.com/leanprover/lean4/pull/11020) improves the detection of situations where we branch multiple
+  times on the same value in the
+  code generator. Previously this would only consider repeated branching
+  on function arguments, now on
+  arbitrary values.
+
+* [#11042](https://github.com/leanprover/lean4/pull/11042) fixes a case of overeager constant folding on UInts where the
+  compiler would mistakenly
+  assume `0 - x = x`.
+
+* [#11043](https://github.com/leanprover/lean4/pull/11043) fixes a case of overeager constant folding on Nat where the
+  compiler would mistakenly assume `0 - x = x` (see also #11042 for the
+  same bug on UInts).
+
+* [#11044](https://github.com/leanprover/lean4/pull/11044) enforces users of the constant folder API to provide proofs of
+  their algebraic properties,
+  thus hopefully avoiding bugs such as #11042 and #11043 in the future.
+
+* [#11056](https://github.com/leanprover/lean4/pull/11056) fixes `ST.Ref.ptrEq` to act as described in the docs. This fixes
+  two bugs:
+  1. The recent `IO.RealWorld` elimination PR overlooked this function
+  (afaik this is the only one),
+     causing its return value to be generally wrong.
+  2. The implementation of `ptrEq` would previously always consider two
+  different cells with pointer
+  equivalent value to be pointer equal. However, the function is supposed
+  to check whether two
+     `Ref` are the same cell, not whether the contained elements are.
+
+* [#11151](https://github.com/leanprover/lean4/pull/11151) fixes some details in the Markdown renderings of Verso
+  docstrings, and adds tests to keep them correct. Also adds tests for
+  Verso docstring metadata.
+
+## Documentation
+
+* [#11179](https://github.com/leanprover/lean4/pull/11179) removes most cases where an error message explained that it was
+  "probably due to metavariables," giving more explanation and a hint.
+
+## Server
+
+* [#10787](https://github.com/leanprover/lean4/pull/10787) revamps the server logging mechanism to allow filtering the log
+  output by LSP method.
+
+* [#10805](https://github.com/leanprover/lean4/pull/10805) adds a field `isDisplayableTerm` to `TermInfo` and all utility
+  functions which create `TermInfo` that can be set to force the language
+  server to render the term in hover popups.
+
+## Lake
+
+* [#10861](https://github.com/leanprover/lean4/pull/10861) fixes `input_dir` tracking to also recurse through
+  subdirectories. The `filter` of an `input_dir` will be applied to each
+  file in the directory tree (the path names of directories will not be
+  checked).
+
+* [#10883](https://github.com/leanprover/lean4/pull/10883) fixes a bug with Lake's cache where revisions were stored at the
+  incorrect path. Revisions were stored at `<rev>/<pkg>.jsonl` rather than
+  the correct `<pkg>/<rev>.jsonl`.
+
+* [#10959](https://github.com/leanprover/lean4/pull/10959) enables Lake users to require Reservoir dependencies by a
+  semantic version range. On a `lake update`, Lake will fetch the
+  package's version information from Reservoir and select the newest
+  version of the package that satisfies the range.
+
+* [#11062](https://github.com/leanprover/lean4/pull/11062) changes Lake's debug build type to use `-O0` instead of `-Og`
+  when compiling C code. `-Og` was found to be insufficient for debugging
+  compiled Lean code -- relevant code was stilled optimized out.
+
+* [#11063](https://github.com/leanprover/lean4/pull/11063) changes the `math` and `math-lax` templates for `lake new` and
+  `lake init` to use the version of Mathlib corresponding to the current
+  Lean toolchain. Thus, `lake +x.y.z new <pkg> math` will use the Mathlib
+  for Lean `x.y.z`. On the other hand, `lake update` on such packages will
+  no longer update Mathlib automatically. Users will need to change the
+  Mathlib revision in the configuration file before updating.
+
+* [#11117](https://github.com/leanprover/lean4/pull/11117) fixes a bug where Lake ignored `moreLinkObjs` and `moreLinkLibs`
+  on a `lean_exe`.
+
+* [#11118](https://github.com/leanprover/lean4/pull/11118) adds `Job.sync` as a standard way of declaring a synchronous
+  job.
+
+* [#11169](https://github.com/leanprover/lean4/pull/11169) changes all module build keys in Lake to be scoped by their
+  package. This enables building modules with the same name in different
+  packages (something previously only well-supported for executable
+  roots).
+
+## Other
+
+* [#11074](https://github.com/leanprover/lean4/pull/11074) adds a `.claude/claude.md`, with basic development instructions
+  for Claude Code to operate in this repository.
+
+````

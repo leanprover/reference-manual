@@ -22,6 +22,10 @@ jobs:
     runs-on: nscloud-ubuntu-22.04-amd64-8x16
 
     steps:
+      - name: Display usage limits
+        run: |
+          ulimit -a
+
       - name: Install deps for figures (OS packages)
         run: |
           sudo apt update && sudo apt install -y poppler-utils
@@ -72,7 +76,11 @@ jobs:
       - name: Cache .lake
         uses: actions/cache/restore@v4
         with:
-          path: .lake
+          path: |
+            .lake/packages
+            .lake/build/bin
+            .lake/build/ir
+            .lake/build/lib
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
@@ -137,7 +145,11 @@ jobs:
       - name: Save cache for .lake
         uses: actions/cache/save@v4
         with:
-          path: .lake
+          path: |
+            .lake/packages
+            .lake/build/bin
+            .lake/build/ir
+            .lake/build/lib
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
 
       - name: Generate HTML (non-release)

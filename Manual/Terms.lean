@@ -977,7 +977,8 @@ structure NatInterval where
 
 instance : Add NatInterval where
   add
-    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ => ⟨lo1 + lo2, hi1 + hi2, by omega⟩
+    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ =>
+      ⟨lo1 + lo2, hi1 + hi2, by grind⟩
 ```
 
 An {name}`OfNat` instance allows natural number literals to be used to represent intervals:
@@ -1410,7 +1411,8 @@ def ggg : OnlyThreeOrFive → Nat
 
 /--
 error: Missing cases:
-(OnlyThreeOrFive.mk _ true _)
+(OnlyThreeOrFive.mk _ true (Or.inr Eq.refl))
+(OnlyThreeOrFive.mk _ true (Or.inl Eq.refl))
 -/
 #check_msgs in
 def hhh : OnlyThreeOrFive → Nat
@@ -1498,7 +1500,10 @@ inductive BalancedTree (α : Type u) : Nat → Type u where
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
 ```lean -keep (name := fill1) +error
-def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth := _
+def BalancedTree.filledWith
+    (x : α) (depth : Nat) :
+    BalancedTree α depth :=
+  _
 ```
 The error message demonstrates that the tree should have the indicated depth.
 ```leanOutput fill1
@@ -2018,8 +2023,12 @@ example := do
   return 5
 ```
 ```leanOutput doBusted
-typeclass instance problem is stuck, it is often due to metavariables
-  Pure ?m.64
+typeclass instance problem is stuck
+  Pure ?m.12
+
+Note: Lean will not try to resolve this typeclass instance problem because the type argument to `Pure` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.
+
+Hint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck.
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
