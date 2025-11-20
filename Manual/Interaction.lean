@@ -284,7 +284,8 @@ This example shows that Lean will let us add two integers, and the result will b
 ```leanOutput synthInstHAddNat
 instHAdd
 ```
-By default the output term does not show its arguments.
+By default, Lean does not show the implicit arguments in the output term.
+Instance arguments are implicit, however, which decreases the usefulness of this output for understanding instance synthesis.
 Setting the {option}`pp.explicit` option lets us see more:
 
 ```lean (name := synthInstHAddNat2)
