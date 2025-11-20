@@ -90,6 +90,7 @@ This trace can be used to understand how instance synthesis succeeds and why it 
 
 :::paragraph
 Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
+Clicking a "▶" symbol expands that branch of the trace, and clicking the "▼" collapses an expanded branch.
 
 ```lean (name := trace)
 set_option pp.explicit true in
@@ -99,7 +100,7 @@ set_option trace.Meta.synthInstance true in
 ```comment
 IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
 ```
-```leanOutput trace (expandTrace := Meta.synthInstance)
+```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.resume)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
     [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
@@ -135,17 +136,19 @@ IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATI
     [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
     [Meta.synthInstance.answer] ✅️ Inhabited Nat
   [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+    [Meta.synthInstance.resume] size: 1
+    [Meta.synthInstance.answer] ✅️ Nonempty Nat
   [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+    [Meta.synthInstance.resume] size: 2
+    [Meta.synthInstance.answer] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 ```
 :::
 
 :::paragraph
-The Lean InfoView and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol in traces.
-Clicking the "▶" symbol expands that branch of the trace.
-By expanding these arrows, it is possible to retrace the depth-first, backtracking search that Lean uses for type class instance search.
+By exploring the trace, it is possible to follow the depth-first, backtracking search that Lean uses for type class instance search.
 This can take a little practice to get used to!
-For the example above, Lean follows these steps:
+In the example above, Lean follows these steps:
 
 * Lean considers the first goal, {lean}`Nonempty (Sum Nat Empty)`. Lean sees four ways of possibly satisfying this goal:
   - The {name}`Sum.nonemptyRight` instance, which would create a sub-goal {lean}`Nonempty Empty`.
@@ -166,7 +169,7 @@ For the example above, Lean follows these steps:
 :::
 
 The third and fourth original sub-goals are never considered.
-Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` outputs the solution:
+Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` command finishes and outputs the solution:
 ```leanOutput trace
 @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 ```
