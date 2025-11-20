@@ -85,7 +85,7 @@ If this does not occur, stuck searches become failures.
 
 ::::example "Tracing Instance Search"
 
-Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit a trace of the process it goes through attempting to synthesize an instance of a type class.
+Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit a trace of the process for synthesizing an instance of a type class.
 This trace can be used to understand how instance synthesis succeeds and why it fails.
 
 :::paragraph
