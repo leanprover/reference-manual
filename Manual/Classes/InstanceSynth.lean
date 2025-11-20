@@ -160,7 +160,9 @@ For the example above, Lean follows these steps:
 * The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered.
   Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is rejected.
   As before, this is because the type {lean}`Empty` is not the application of a monad to a type.
-* Backtracking to the second original sub-goal, {lean}`Nonempty Nat`. This sub-goal eventually succeeds.
+* At this point, there are no remaining options for achieving the original first sub-goal.
+  The search backtracks to the second original sub-goal, {lean}`Nonempty Nat`.
+  This search eventually succeeds.
 :::
 
 The third and fourth original sub-goals are never considered.
