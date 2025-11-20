@@ -85,7 +85,8 @@ If this does not occur, stuck searches become failures.
 
 :::example "Tracing instance search"
 
-The {option}`trace.Meta.synthInstance` option provides a powerful tool for
+Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit an interactive trace of instance synthesis.
+This trace can be used to optimize instance synthesis and to understand failures. 
 
 ```lean (name := trace)
 set_option pp.explicit true in
