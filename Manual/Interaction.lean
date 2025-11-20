@@ -269,11 +269,53 @@ tag := "hash-synth"
 ```grammar
 #synth $t
 ```
+:::
 
-The {keywordOf Lean.Parser.Command.synth}`#synth` command attempts to synthesize an instance for the provided class.
+The {keywordOf Lean.Parser.Command.synth}`#synth` command invokes Lean's {tech}[type class] resolution machinery and attempts to perform {ref "instance-synth"}[instance synthesis] to find an instance for the given type class.
 If it succeeds, then the resulting instance term is output.
 
+::::example "Synthesizing a Type Class Instance"
+
+:::paragraph
+Lean uses type classes to overload operations like addition.
+The `+` operator is notation for a call to {name}`HAdd.hAdd`, which is the single method in the {name}`HAdd` type class.
+This example shows that Lean will let us add two integers, and the result will be an integer:
+```lean (name := synthInstHAddNat)
+#synth HAdd Int Int Int
+```
+```leanOutput synthInstHAddNat
+instHAdd
+```
 :::
+
+:::paragraph
+By default, Lean does not show the implicit arguments in the output term.
+Instance arguments are implicit, however, which decreases the usefulness of this output for understanding instance synthesis.
+Setting the option {option}`pp.explicit` to {name}`true` causes Lean to display implicit arguments, including instances:
+```lean (name := synthInstHAddNat2)
+set_option pp.explicit true in
+#synth HAdd Int Int Int
+```
+```leanOutput synthInstHAddNat2
+@instHAdd Int Int.instAdd
+```
+:::
+
+:::paragraph
+Lean does not allow the addition of integers and strings, as demonstrated by this failure of type class instance synthesis:
+```lean (name := synthInstHAddNatInt) +error
+#synth HAdd Int String String
+```
+```leanOutput synthInstHAddNatInt
+failed to synthesize
+  HAdd Int String String
+
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+:::
+
+
+::::
 
 # Querying the Context
 %%%
