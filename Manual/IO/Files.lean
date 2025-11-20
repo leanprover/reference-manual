@@ -118,7 +118,7 @@ In this case, the buffers don't need to be flushed during execution because modi
 open IO.FS (Handle)
 
 def main : IO Unit := do
-  IO.println s!"Starting contents: '{(← IO.FS.readFile "data").trim}'"
+  IO.println s!"Starting contents: '{(← IO.FS.readFile "data").trimAscii}'"
 
   let h ← Handle.mk "data" .read
   let h' ← Handle.mk "data" .readWrite
@@ -137,7 +137,7 @@ def main : IO Unit := do
   h'.flush
 
   IO.println s!"Count: {count}"
-  IO.println s!"Contents: '{(← IO.FS.readFile "data").trim}'"
+  IO.println s!"Contents: '{(← IO.FS.readFile "data").trimAscii}'"
 ```
 
 When run on this file:

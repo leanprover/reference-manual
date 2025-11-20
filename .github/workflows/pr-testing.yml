@@ -62,7 +62,11 @@ jobs:
       - name: Cache .lake
         uses: actions/cache/restore@v4
         with:
-          path: .lake
+          path: |
+            .lake/packages
+            .lake/build/bin
+            .lake/build/ir
+            .lake/build/lib
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
@@ -82,7 +86,11 @@ jobs:
       - name: Save cache for .lake
         uses: actions/cache/save@v4
         with:
-          path: .lake
+          path: |
+            .lake/packages
+            .lake/build/bin
+            .lake/build/ir
+            .lake/build/lib
           key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
 
       - name: Generate HTML (non-release)

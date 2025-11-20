@@ -114,8 +114,8 @@ def checkTacticExample'
   let st1 := goalsToMessageData remainingGoals
   --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
-  if pre.getString.trim != goodPre.trim then
-    Verso.Doc.Suggestion.saveSuggestion pre (goodPre.take 30 ++ "…") (goodPre ++ "\n")
+  if pre.getString.trimAscii != goodPre.trimAscii then
+    Verso.Doc.Suggestion.saveSuggestion pre ((goodPre.take 30).copy ++ "…") (goodPre ++ "\n")
     logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getString}"
 
   let ci : ContextInfo := {
@@ -142,8 +142,8 @@ def checkTacticExample'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
 
-  if post.getString.trim != goodPost.trim then
-    Verso.Doc.Suggestion.saveSuggestion post (goodPost.take 30 ++ "…") (goodPost ++ "\n")
+  if post.getString.trimAscii != goodPost.trimAscii then
+    Verso.Doc.Suggestion.saveSuggestion post ((goodPost.take 30).copy ++ "…") (goodPost ++ "\n")
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
 
   let ci : ContextInfo := { ci with
@@ -166,7 +166,7 @@ def checkTacticExample'
               throwErrorAt wantedOut s!"Expected severity {sevStr s}, but got {sevStr sev}"
           return sev
       for (_, m) in processed do
-        Verso.Doc.Suggestion.saveSuggestion wantedOut (m.take 30 ++ "…") m
+        Verso.Doc.Suggestion.saveSuggestion wantedOut ((m.take 30).copy ++ "…") m
       throwErrorAt wantedOut "Didn't match - expected one of: {indentD (toMessageData <| processed.map (·.2))}\nbut got:{indentD (toMessageData wantedOut.getString)}"
     else pure .information
 
@@ -180,7 +180,7 @@ where
     | .warning => "warning"
 
   mostlyEqual (ws : WhitespaceMode) (s1 s2 : String) : Bool :=
-    ws.apply s1.trim == ws.apply s2.trim
+    ws.apply s1.trimAscii.copy == ws.apply s2.trimAscii.copy
 
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : TermElabM InfoTree := do
     let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
@@ -531,9 +531,9 @@ def proofState : CodeBlockExpander
       --logInfoAt proofPrefix st1
       let stStr ← (← addMessageContext st).toString
       if let some s := desired then
-        if normalizeMetavars stStr.trim != normalizeMetavars s.getDocString.trim then
+        if normalizeMetavars stStr.trimAscii.copy != normalizeMetavars s.getDocString.trimAscii.copy then
           logErrorAt s m!"Expected: {indentD stStr}\n\nGot: {indentD s.getDocString}"
-          Verso.Doc.Suggestion.saveSuggestion s (stStr.take 30 ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
+          Verso.Doc.Suggestion.saveSuggestion s ((stStr.take 30).copy ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
       pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Block.code $(quote stStr)])]
 
 where

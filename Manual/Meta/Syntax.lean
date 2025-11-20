@@ -437,7 +437,7 @@ def lined (ws : String) : Format :=
 
 def noTrailing (info : SourceInfo) : Option SourceInfo :=
   match info with
-  | .original leading p1 _ p2 => some <| .original leading p1 "".toSubstring p2
+  | .original leading p1 _ p2 => some <| .original leading p1 "".toRawSubstring p2
   | .synthetic .. => some info
   | .none => none
 
@@ -477,15 +477,15 @@ def infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format 
 def longestSuffix (strs : Array String) : String := Id.run do
   if h : strs.size = 0 then ""
   else
-    let mut suff := strs[0]
+    let mut suff := strs[0].toSlice
 
     repeat
-      if suff == "" then return ""
+      if suff.isEmpty then return ""
       let suff' := suff
       for s in strs do
         unless s.dropSuffix? suff |>.isSome do
           suff := suff.drop 1
-      if suff' == suff then return suff'
+      if suff' == suff then return suff'.copy
     return ""
 
 /-- info: "abc" -/
@@ -510,15 +510,15 @@ def longestSuffix (strs : Array String) : String := Id.run do
 def longestPrefix (strs : Array String) : String := Id.run do
   if h : strs.size = 0 then ""
   else
-    let mut pref := strs[0]
+    let mut pref := strs[0].toSlice
 
     repeat
-      if pref == "" then return ""
+      if pref.isEmpty then return ""
       let pref' := pref
       for s in strs do
         unless s.dropPrefix? pref |>.isSome do
-          pref := pref.dropRight 1
-      if pref' == pref then return pref'
+          pref := pref.dropEnd 1
+      if pref' == pref then return pref'.copy
     return ""
 
 /-- info: "abc" -/
@@ -578,7 +578,7 @@ def removeLeadingString (string : String) : Syntax → Syntax
 where
   remove : SourceInfo → String × SourceInfo
   | .original leading pos trailing pos' =>
-    (string.take leading.toString.length, .original (leading.drop string.length) pos trailing pos')
+    (string.take leading.toString.length |>.copy, .original (leading.drop string.length) pos trailing pos')
   | other => (string, other)
 
 partial def removeTrailingString (string : String) : Syntax → Syntax :=
@@ -609,7 +609,7 @@ partial def removeTrailingString (string : String) : Syntax → Syntax :=
 where
   remove : SourceInfo → String × SourceInfo
   | .original leading pos trailing pos' =>
-    (string.dropRight trailing.toString.length, .original leading pos (trailing.dropRight string.length) pos')
+    (string.dropEnd trailing.toString.length |>.copy, .original leading pos (trailing.dropRight string.length) pos')
   | other => (string, other)
 
 /--
@@ -701,14 +701,14 @@ partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name
       match stx[0][1] with
       | .atom _ val => do
         -- TODO: use a slice here. As of nightly-2025-10-20, the code panicked (reported)
-        let mut str := val.dropRight 2
+        let mut str := val.dropEnd 2
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
           if inVar then
             let pre := str.takeWhile (· != '}')
-            str := str.stripPrefix pre |>.drop 1
-            let x := pre.trim.toName
+            str := str.dropPrefix pre |>.drop 1
+            let x := pre.trimAscii.toName
             if let some (c, d?) := (← get).find? x then
               contents := contents ++ (← lift <| tag (.localName x which c d?) x.toString)
             else
@@ -716,8 +716,8 @@ partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name
             inVar := false
           else
             let pre := str.takeWhile (· != '{')
-            str := str.stripPrefix pre |>.drop 1
-            contents := contents ++ pre
+            str := str.dropPrefix pre |>.drop 1
+            contents := contents ++ pre.copy
             inVar := true
 
         lift <| tag .comment contents
@@ -982,11 +982,11 @@ where
       pure x'
     | .tag .lhs _ => pure ""
     | .tag (.nonterminal (.str (.str .anonymous "token") _) _) (.text txt) => do
-      let txt := txt.trim
+      let txt := txt.trimAscii.copy
       modify (·.push (.keyword, txt))
       pure txt
     | .tag (.nonterminal ``Lean.Parser.Attr.simple ..) txt => do
-      let kw := txt.stripTags.trim
+      let kw := txt.stripTags.trimAscii.copy
       modify (·.push (.keyword, kw))
       pure kw
     | .tag (.nonterminal ..) _ => do
@@ -996,7 +996,7 @@ where
       modify (·.push (.literalIdent, s))
       return s
     | .tag .bnf (.text s) => do
-      let s := s.trim
+      let s := s.trimAscii.copy
       modify fun st => Id.run do
         match s with
         -- Suppress leading |

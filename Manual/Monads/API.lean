@@ -38,7 +38,7 @@ def main : IO Unit := do
   let filtered ← values.filterM fun v => do
     repeat
       IO.println s!"Keep {v}? [y/n]"
-      let answer := (← (← IO.getStdin).getLine).trim
+      let answer := (← (← IO.getStdin).getLine).trimAscii.copy
       if answer == "y" then return true
       if answer == "n" then return false
     return false

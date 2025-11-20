@@ -55,6 +55,7 @@ where
     let mut s := s
     let mut cmdState := cmdState
     let mut stxs := #[]
+    let mut msgs := {}
     repeat
       let scope := cmdState.scopes.head!
       let pmctx : Parser.ParserModuleContext := {
@@ -65,13 +66,13 @@ where
       }
       let (stx, s', msgs') := Parser.parseCommand inputCtx pmctx s cmdState.messages
       s := s'
-      cmdState := {cmdState with messages := msgs'}
+      msgs := msgs ++ msgs'
       stxs := stxs.push stx
       if doElab then
         (_, cmdState) ← runCommandElabM (Command.elabCommandTopLevel stx) inputCtx cmdState s
       if Parser.isTerminalCommand stx then
         break
-    return (cmdState, stxs)
+    return ({ cmdState with messages := msgs }, stxs)
 
   withNewline (str : String) :=
     if str == "" || str.back != '\n' then str ++ "\n" else str

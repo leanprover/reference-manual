@@ -21,13 +21,12 @@ def parserInputString [Monad m] [MonadFileMap m]
   let text ← getFileMap
   let preString := String.Pos.Raw.extract text.source 0 (str.raw.getPos?.getD 0)
   let mut code := ""
-  let mut iter := preString.iter
-  while !iter.atEnd do
-    if iter.curr == '\n' then code := code.push '\n'
+  for c in preString.toSlice.chars do
+    if c == '\n' then code := code.push '\n'
     else
-      for _ in [0:iter.curr.utf8Size] do
+      for _ in [0:c.utf8Size] do
         code := code.push ' '
-    iter := iter.next
+
   let strOriginal? : Option String := do
     let ⟨start, stop⟩ ← str.raw.getRange?
     start.extract text.source stop
@@ -78,7 +77,7 @@ private partial def mkSyntaxError (c : InputContext) (pos : String.Pos.Raw) (stk
   }
 where
   -- Error recovery might lead to there being some "junk" on the stack
-  lastTrailing (s : SyntaxStack) : Option Substring :=
+  lastTrailing (s : SyntaxStack) : Option Substring.Raw :=
     s.toSubarray.findSomeRevM? (m := Id) fun stx =>
       if let .original (trailing := trailing) .. := stx.getTailInfo then pure (some trailing)
         else none
