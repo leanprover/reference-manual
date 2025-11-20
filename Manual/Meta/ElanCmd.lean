@@ -91,7 +91,7 @@ def elan : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← ElanCommandOptions.parse.run args
     let spec ←
-      if spec.getString.trim.isEmpty then
+      if spec.getString.trimAscii.isEmpty then
         pure []
       else
         match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with

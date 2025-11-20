@@ -55,7 +55,7 @@ def elanHelp : CodeBlockExpander
         m!"Stderr:\n{out.stderr}\n\nStdout:\n{out.stdout}\n\n"
     let elanOutput := out.stdout
 
-    discard <| expectString "'elan --help' output" str elanOutput (useLine := useLine) (preEq := String.trimRight)
+    discard <| expectString "'elan --help' output" str elanOutput (useLine := useLine) (preEq := (·.trimAsciiEnd.copy))
 
     return #[]
 where

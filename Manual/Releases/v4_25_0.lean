@@ -12,7 +12,7 @@ open Manual
 open Verso.Genre
 
 
-#doc (Manual) "Lean 4.25.0-rc2 (2025-10-22)" =>
+#doc (Manual) "Lean 4.25.0 (2025-11-14)" =>
 %%%
 tag := "release-v4.25.0"
 file := "v4.25.0"
@@ -20,6 +20,488 @@ file := "v4.25.0"
 
 ````markdown
 For this release, 398 changes landed. In addition to the 141 feature additions and 83 fixes listed below there were 21 refactoring changes, 9 documentation improvements, 4 performance improvements, 5 improvements to the test suite and 135 other changes.
+
+## Highlights
+
+Lean v4.25.0 release brings several exciting new features.
+Editor integration adds interactivity to "try this" suggestions,
+and Lake adds support for remote caching.
+New language features include automated generation of specification theorems for
+type class methods, coinductive predicates, and invariant suggestions in `mvcgen`.
+`grind` receives an interactive mode that gives the user control over proof search
+and can suggest reproducible proofs.
+Its reasoning capabilities have been extended with support for injective
+functions, non-commutative (semi)rings, and preorder and ordered ring structures.
+The standard library features a redesigned `String` type and expanded async primitives.
+Read on for the details!
+
+### Apply "try this" Suggestions
+
+[#10524](https://github.com/leanprover/lean4/pull/10524) adds support for interactivity (hover, go-to-definitions) for "try this"
+messages that were introduced in [#9966](https://github.com/leanprover/lean4/pull/9966). In doing so, it moves the link
+to apply a suggestion to a separate `[apply]` button in front of the
+suggestion.
+
+### Remote Caching with Lake
+
+[#10188](https://github.com/leanprover/lean4/pull/10188) adds support for remote artifact caches (e.g., Reservoir) to
+Lake. As part of this support, a new suite of `lake cache` CLI commands
+has been introduced to help manage Lake's cache. Also, the existing
+local cache support has been overhauled for better interplay with the
+new remote support.
+
+### Coinductive Predicates
+
+[#10333](https://github.com/leanprover/lean4/pull/10333) introduces a `coinductive` keyword, that can be used to define
+coinductive predicates via a syntax identical to the one for `inductive`
+keyword.
+
+For example, infinite sequence of transitions in a relation can be given by the following:
+
+```lean
+section
+variable (α : Type)
+coinductive infSeq (r : α → α → Prop) : α → Prop where
+  | step : r a b → infSeq r b → infSeq r a
+
+/--
+info: infSeq.coinduct (α : Type) (r : α → α → Prop) (pred : α → Prop) (hyp : ∀ (a : α), pred a → ∃ b, r a b ∧ pred b)
+  (a✝ : α) : pred a✝ → infSeq α r a✝
+-/
+#guard_msgs in
+#check infSeq.coinduct
+
+/--
+info: infSeq.step (α : Type) (r : α → α → Prop) {a b : α} : r a b → infSeq α r b → infSeq α r a
+-/
+#guard_msgs in
+#check infSeq.step
+end
+```
+
+The machinery also supports `mutual` blocks, as well as mixing inductive and coinductive predicate definitions:
+
+```lean
+mutual
+  coinductive tick : Prop where
+  | mk : ¬tock → tick
+
+  inductive tock : Prop where
+  | mk : ¬tick → tock
+end
+
+/--
+info: tick.mutual_induct (pred_1 pred_2 : Prop) (hyp_1 : pred_1 → pred_2 → False) (hyp_2 : (pred_1 → False) → pred_2) :
+  (pred_1 → tick) ∧ (tock → pred_2)
+-/
+#guard_msgs in
+#check tick.mutual_induct
+```
+
+### Mvcgen Invariants Suggestions
+
+[#10456](https://github.com/leanprover/lean4/pull/10456) and [#10566](https://github.com/leanprover/lean4/pull/10566)
+implement `mvcgen invariants?` to suggest concrete invariants
+based on how invariants are used in VCs.
+These suggestions are intentionally simplistic and boil down to "this
+holds at the start of the loop and this must hold at the end of the
+loop":
+
+```lean
+import Std.Tactic.Do
+open Std Do
+
+def mySum (l : List Nat) : Nat := Id.run do
+  let mut acc := 0
+  for x in l do
+    acc := acc + x
+  return acc
+
+/--
+info: Try this:
+  [apply] invariants
+  · ⇓⟨xs, letMuts⟩ => ⌜xs.prefix = [] ∧ letMuts = 0 ∨ xs.suffix = [] ∧ letMuts = l.sum⌝
+-/
+#guard_msgs (info) in
+theorem mySum_suggest_invariant (l : List Nat) : mySum l = l.sum := by
+  generalize h : mySum l = r
+  apply Id.of_wp_run_eq h
+  mvcgen invariants?
+  all_goals admit
+```
+
+When the loop body has an early return, it will helpfully suggest `Invariant.withEarlyReturn ...` as a skeleton:
+
+```lean
+import Std.Tactic.Do
+import Std
+
+open Std Do
+
+def nodup (l : List Int) : Bool := Id.run do
+  let mut seen : HashSet Int := ∅
+  for x in l do
+    if x ∈ seen then
+      return false
+    seen := seen.insert x
+  return true
+
+/--
+info: Try this:
+  [apply] invariants
+  ·
+    Invariant.withEarlyReturn (onReturn := fun r letMuts => ⌜l.Nodup ∧ (r = true ↔ l.Nodup)⌝) (onContinue :=
+      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
+-/
+-- #guard_msgs (info) in
+theorem nodup_suggest_invariant (l : List Int) : nodup l ↔ l.Nodup := by
+  generalize h : nodup l = r
+  apply Id.of_wp_run_eq h
+  mvcgen invariants?
+  all_goals admit
+```
+
+It still is the user's job to weaken this invariant such that it interpolates over all loop iterations,
+but it is a good starting point for iterating. It is also useful because the user does not need to remember
+the exact syntax.
+
+### Grind
+
+#### Interactive mode
+
+`grind` has been extended with an interactive mode `grind => …`
+([#10607](https://github.com/leanprover/lean4/pull/10607), [#10677](https://github.com/leanprover/lean4/pull/10677), ...)
+
+```lean
+example (x y : Nat) : x ≥ y + 1 → x > 0 := by
+  grind => skip; lia; done
+```
+
+Interactive mode comes with _anchors_ (also known as stable hash codes) for referencing terms occurring in a `grind` goal
+([#10709](https://github.com/leanprover/lean4/pull/10709)).
+
+In the interactive mode, it is possible to do the following:
+
+- `instantiate` global and local theorems
+  ([#10746](https://github.com/leanprover/lean4/pull/10746) and [#10841](https://github.com/leanprover/lean4/pull/10841));
+
+- Inspect the state with `show_splits` and `show_state` ([#10709](https://github.com/leanprover/lean4/pull/10709)),
+  `show_true`, `show_false`, `show_asserted`, and `show_eqcs`
+  ([#10690](https://github.com/leanprover/lean4/pull/10690));
+
+- Inspect with filtering; each tactic may optionally have a suffix of the form `| filter?`
+  ([#10828](https://github.com/leanprover/lean4/pull/10828));
+
+- Make local assertions with `have` ([#10706](https://github.com/leanprover/lean4/pull/10706));
+
+- Use tactics ([#10731](https://github.com/leanprover/lean4/pull/10731)):
+
+  - `focus <grind_tac_seq>`
+  - `next => <grind_tac_seq>`
+  - `any_goals <grind_tac_seq>`
+  - `all_goals <grind_tac_seq>`
+  - `grind_tac <;> grind_tac`
+  - `cases <anchor>`
+  - `tactic => <tac_seq>`
+
+- Select anchors with `cases?`
+  ([#10824](https://github.com/leanprover/lean4/pull/10824) - there's a screenshot in the PR description);
+
+- Use grind solvers `ac`, `linarith`, `lia`, `ring` as actions
+  ([#10812](https://github.com/leanprover/lean4/pull/10812) & [#10834](https://github.com/leanprover/lean4/pull/10834));
+
+- Produce, when possible, a concrete grind script that closes the goal, using explicit grind tactic
+  steps, i.e., without any search, with `finish?` ([#10837](https://github.com/leanprover/lean4/pull/10837)):
+
+  ```lean
+  /--
+  info: Try this:
+    [apply] ⏎
+      cases #b0f4
+      next => cases #50fc
+      next => cases #50fc <;> lia
+  -/
+  #guard_msgs in
+  example (p : Nat → Prop) (x y z w : Int) :
+      (x = 1 ∨ x = 2) →
+      (w = 1 ∨ w = 4) →
+      (y = 1 ∨ (∃ x : Nat, y = 3 - x ∧ p x)) →
+      (z = 1 ∨ z = 0) → x + y ≤ 6 := by
+    grind => finish?
+  ```
+
+  The anchors in the generated script are based on stable hash codes.
+  Moreover, users can hover over them to see the exact term used in the case split.
+
+#### Non-commutative (semi)ring normalization
+
+- [#10375](https://github.com/leanprover/lean4/pull/10375) adds support for non-commutative ring normalization in `grind`.
+  The new normalizer also accounts for the `IsCharP` type class.
+
+  ```lean
+  open Lean Grind
+
+  variable (R : Type u) [Ring R]
+  example (a b : R) : (a + 2 * b)^2 = a^2 + 2 * a * b + 2 * b * a + 4 * b^2 := by grind
+
+  variable [IsCharP R 4]
+  example (a b : R) : (a - b)^2 = a^2 - a * b - b * 5 * a + b^2 := by grind
+  ```
+
+- [#10421](https://github.com/leanprover/lean4/pull/10421) adds a normalizer for non-commutative semirings to `grind`.
+
+  ```lean
+  open Lean.Grind
+  variable (R : Type u) [Semiring R]
+
+  example (a b : R) : (a + 2 * b)^2 = a^2 + 2 * a * b + 2 * b * a + 4 * b^2 := by grind
+  ```
+
+#### Injective functions
+
+[#10445](https://github.com/leanprover/lean4/pull/10445),
+[#10447](https://github.com/leanprover/lean4/pull/10447),
+[#10482](https://github.com/leanprover/lean4/pull/10482), and
+[#10483](https://github.com/leanprover/lean4/pull/10483) add support for injective functions in grind.
+
+```lean
+/-! Add some injectivity theorems. -/
+
+def double (x : Nat) := 2*x
+
+@[grind inj] theorem double_inj : Function.Injective double := by
+  grind [Function.Injective, double]
+
+structure InjFn (α : Type) (β : Type) where
+  f : α → β
+  h : Function.Injective f
+
+instance : CoeFun (InjFn α β) (fun _ => α → β) where
+  coe s := s.f
+
+@[grind inj] theorem fn_inj (F : InjFn α β) : Function.Injective (F : α → β) := by
+  grind [Function.Injective, cases InjFn]
+
+def toList (a : α) : List α := [a]
+
+@[grind inj] theorem toList_inj : Function.Injective (toList : α → List α) := by
+  grind [Function.Injective, toList]
+
+/-! Examples -/
+
+example (x y : Nat) : toList (double x) = toList (double y) → x = y := by
+  grind
+
+example (f : InjFn (List Nat) α) (x y z : Nat)
+    : f (toList (double x)) = f (toList y) →
+      y = double z →
+      x = z := by
+  grind
+```
+
+#### Grind order solver
+
+Grind can now solve preorder and ordered ring problems
+([#10562](https://github.com/leanprover/lean4/pull/10562), [#10598](https://github.com/leanprover/lean4/pull/10598) and [#10600](https://github.com/leanprover/lean4/pull/10600)).
+The new solver, `grind order`, supports `Nat`, and handles positive and negative constraints.
+
+```lean
+open Lean Grind
+example [LE α] [LT α] [Std.LawfulOrderLT α] [Std.IsLinearPreorder α] [CommRing α] [OrderedRing α]
+    (a b c d : α) : a - b ≤ 5 → ¬ (c ≤ b) → ¬ (d ≤ c + 2) → d ≤ a - 8 → False := by
+  grind -linarith (splits := 0)
+```
+
+#### New pattern inference heuristic
+
+[#10422](https://github.com/leanprover/lean4/pull/10422) and [#10432](https://github.com/leanprover/lean4/pull/10432)
+implement the new E-matching pattern inference heuristic for
+`grind`. Here is a summary of the
+new behavior.
+
+- `[grind =]`, `[grind =_]`, `[grind _=_]`, `[grind <-=]`: no changes; we keep the current behavior.
+- `[grind ->]`, `[grind <-]`, `[grind =>]`, `[grind <=]`: we stop using the _minimal indexable subexpression_ and instead use the first indexable one.
+- `[grind! <mod>]`: behaves like `[grind <mod>]` but uses the minimal indexable subexpression restriction. We generate an error if the user writes `[grind! =]`, `[grind! =_]`, `[grind! _=_]`, or `[grind! <-=]`, since there is no pattern search in these cases.
+- `[grind]`: it tries `=`, `=_`, `<-`, `->`, `<=`, `=>` with and without the minimal indexable subexpression restriction. For the ones that work, we generate a code action to encourage users to select the one they prefer.
+- `[grind!]`: it tries `<-`, `->`, `<=`, `=>` using the minimal indexable subexpression restriction. For the ones that work, we generate a code action to encourage users to select the one they prefer.
+- `[grind? <mod>]`: where `<mod>` is one of the modifiers above, it behaves like `[grind <mod>]` but also displays the pattern.
+
+Example:
+
+```lean
+/--
+info: Try these:
+  • [grind =] for pattern: [f (g #0)]
+  • [grind =_] for pattern: [r #0 #0]
+  • [grind! ←] for pattern: [g #0]
+-/
+#guard_msgs in
+@[grind] axiom fg₇ : f (g x) = r x x
+```
+
+**Important**: Users can still use the old pattern inference heuristic
+by setting:
+
+```lean
+set_option backward.grind.inferPattern true
+```
+
+### Specifications Derivation
+
+Lean now provides automated generation of specification theorems for custom and derived type class instances:
+
+- [#10302](https://github.com/leanprover/lean4/pull/10302) introduces the `@[method_specs]` attribute. It can be applied to
+  (certain) type class instances and define “specification theorems” for
+  the class’ operations, by taking the equational theorems of the
+  implementation function mentioned in the type class instance and
+  rephrasing them in terms of the overloaded operations. Fixes [#5295](https://github.com/leanprover/lean4/issues/5295).
+
+  ```lean
+  inductive L α where
+    | nil  : L α
+    | cons : α → L α → L α
+
+  def L.beqImpl [BEq α] : L α → L α → Bool
+    | nil, nil           => true
+    | cons x xs, cons y ys => x == y && L.beqImpl xs ys
+    | _, _               => false
+
+  @[method_specs] instance [BEq α] : BEq (L α) := ⟨L.beqImpl⟩
+
+  /--
+  info: theorem instBEqL.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (x_2 : α) (xs : L α) (y : α) (ys : L α),
+    (L.cons x_2 xs == L.cons y ys) = (x_2 == y && xs == ys)
+  -/
+  #guard_msgs(pass trace, all) in
+  #print sig instBEqL.beq_spec_2
+  ```
+
+- [#10346](https://github.com/leanprover/lean4/pull/10346) lets `deriving BEq` and `deriving Ord` use `@[method_specs]`
+  from [#10302](https://github.com/leanprover/lean4/pull/10302) when applicable (i.e. when not using `partial`).
+
+  ```lean
+  inductive O (α : Type u) where
+    | none
+    | some : α → O α
+  deriving BEq, Ord
+
+  /--
+  info: theorem instBEqO.beq_spec_2.{u_1} : ∀ {α : Type u_1} [inst : BEq α] (a b : α), (O.some a == O.some b) = (a == b)
+  -/
+  #guard_msgs in #print sig instBEqO.beq_spec_2
+  /--
+  info: theorem instOrdO.compare_spec_2.{u_1} : ∀ {α : Type u_1} [inst : Ord α] (x : O α),
+    (x = O.none → False) → compare O.none x = Ordering.lt
+  -/
+  #guard_msgs in #print sig instOrdO.compare_spec_2
+  ```
+
+- [#10351](https://github.com/leanprover/lean4/pull/10351) adds the ability to do `deriving ReflBEq, LawfulBEq`. Both
+  classes have to be listed in the `deriving` clause.
+  This is meant to work with `deriving BEq` (but you can try to
+  use it on hand-rolled `@[methods_specs] instance : BEq…` instances).
+  Does not support mutual or nested inductives.
+
+### Overhaul of the String Type
+
+- [#10304](https://github.com/leanprover/lean4/pull/10304) redefines `String` to be the type of byte arrays `b`
+  for which `b.IsValidUtf8`. This moves the data model of strings much closer to the actual data representation at runtime.
+
+- [#10457](https://github.com/leanprover/lean4/pull/10457) introduces safe alternatives to `String.Pos` and `Substring`
+  that can only represent valid positions/slices. Specifically, the PR
+
+  - introduces the predicate `String.Pos.IsValid`;
+  - proves several nontrivial equivalent conditions for `String.Pos.IsValid`;
+  - introduces `String.ValidPos`, which is a `String.Pos` with an `IsValid` proof;
+  - introduces `String.Slice`, which is like `Substring` but made from `String.ValidPos` instead of `Pos`;
+  - introduces `String.Pos.IsValidForSlice`, which is like `String.Pos.IsValid` but for slices;
+  - introduces `String.Slice.Pos`, which is like `String.ValidPos` but for slices;
+  - introduces various functions for converting between the two types of positions.
+
+- [#10514](https://github.com/leanprover/lean4/pull/10514) defines the new `String.Slice` API.
+
+- [#10713](https://github.com/leanprover/lean4/pull/10713) enforces rules around arithmetic of `String.Pos.Raw`.
+
+  **Breaking Change**: The `HAdd` and `HSub` instances for `String.Pos.Raw` are have been removed.
+  See the PR description for more information.
+
+- [#10735](https://github.com/leanprover/lean4/pull/10735) moves many operations involving `String.Pos.Raw` to a the
+  `String.Pos.Raw` namespace.
+
+  **Breaking Change**: After this PR, `String.pos_lt_eq` is no longer a `simp` lemma.
+  Add `String.Pos.Raw.lt_iff` as a `simp` lemma if your proofs break.
+
+### Async Framework
+
+Async framework has been extended with:
+
+- POSIX signal handlers ([#9258](https://github.com/leanprover/lean4/pull/9258));
+- `Std.Sync.Notify`, an alternative to `CondVar` suited for concurrency ([#10368](https://github.com/leanprover/lean4/pull/10368));
+- `Std.Broadcast`, a multi-consumer, multi-producer channel to `Std.Sync` ([#10369](https://github.com/leanprover/lean4/pull/10369));
+- `StreamMap`, a type that enables multiplexing in asynchronous streams ([#10400](https://github.com/leanprover/lean4/pull/10400));
+- `Std.CancellationToken` ([#10510](https://github.com/leanprover/lean4/pull/10510)).
+
+### Iterators
+
+- [#10686](https://github.com/leanprover/lean4/pull/10686) introduces `any`, `anyM`, `all` and `allM` for pure and monadic
+  iterators. It also provides lemmas about them.
+
+- [#10728](https://github.com/leanprover/lean4/pull/10728) introduces the `flatMap` iterator combinator. It also adds
+  lemmas relating `flatMap` to `toList` and `toArray`.
+
+- [#10761](https://github.com/leanprover/lean4/pull/10761) provides iterators on hash maps.
+
+### InfoView Trace Search
+
+[#10365](https://github.com/leanprover/lean4/pull/10365) implements the server-side for a new trace search mechanism in
+the InfoView. See the PR description for a demo video.
+
+### Linear Construction of Instances
+
+There are now alternative implementations of `DerivingBEq` ([#10268](https://github.com/leanprover/lean4/pull/10268))
+and `Deriving Ord` ([#10270](https://github.com/leanprover/lean4/pull/10270))
+based on comparing `.ctorIdx` and using a dedicated matcher for comparing same constructors
+(added in [#10152](https://github.com/leanprover/lean4/pull/10152)), to avoid the quadratic overhead of the
+default match implementation.
+New options `deriving.beq.linear_construction_threshold` and `deriving.ord.linear_construction_threshold`
+set the constructor count threshold (10 by default) for using the new construction.
+
+### Porting to the Module System
+
+[#10807](https://github.com/leanprover/lean4/pull/10807) introduces the `backward.privateInPublic` option to aid in
+porting projects to the module system by temporarily allowing access to
+private declarations from the public scope, even across modules. A
+warning will be generated by such accesses unless
+`backward.privateInPublic.warn` is disabled.
+
+### Breaking Changes
+
+- [#10714](https://github.com/leanprover/lean4/pull/10714) removes support for reducible well-founded recursion, a Breaking
+  Change. Using `@[semireducible]` on a definition by well-founded
+  recursion prints a warning that this is no longer effective.
+
+- [#10319](https://github.com/leanprover/lean4/pull/10319) "monomorphizes" the structure `Std.PRange shape α`, replacing it
+  with nine distinct structures `Std.Rcc`, `Std.Rco`, `Std.Rci` etc., one
+  for each possible shape of a range's bounds. This change was necessary
+  because the shape polymorphism is detrimental to attempts of automation.
+
+  **BREAKING CHANGE:** While range/slice notation itself is unchanged, this
+  essentially breaks the entire remaining (polymorphic) range and slice API
+  except for the dot-notation(`toList`, `iter`, ...). It is not possible to deprecate old
+  declarations that were formulated in a shape-polymorphic way that is not available anymore.
+
+- [#10645](https://github.com/leanprover/lean4/pull/10645) renames `Stream` to `Std.Stream` so that the name becomes
+  available to mathlib after a deprecation cycle.
+
+- [#10468](https://github.com/leanprover/lean4/pull/10468) refactors the Lake log monads to take a `LogConfig` structure
+  when run (rather than multiple arguments). This breaking change should
+  help minimize future breakages due to changes in configurations options.
+
+- [#10660](https://github.com/leanprover/lean4/pull/10660) adds auto-completion for identifiers after `end`. It also fixes
+  a bug where completion in the whitespace after `set_option` would not
+  yield the full option list.
+
+  Breaking change: the `«end»` syntax is adjusted to take an `identWithPartialTrailingDot` instead of an `ident`.
 
 ## Language
 
@@ -526,10 +1008,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 
 * [#10761](https://github.com/leanprover/lean4/pull/10761) provides iterators on hash maps.
 
-````
-
-```markdown
-
 ## Tactics
 
 * [#10445](https://github.com/leanprover/lean4/pull/10445) adds helper definitions in preparation for the upcoming
@@ -584,10 +1062,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
   The goal is to reuse it to implement the injective function module.
 
 * [#10482](https://github.com/leanprover/lean4/pull/10482) fixes symbol collection for the `@[grind inj]` attribute.
-
-```
-
-````markdown
 
 * [#10483](https://github.com/leanprover/lean4/pull/10483) completes support for injective functions in grind. See
   examples:
@@ -702,10 +1176,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 * [#10604](https://github.com/leanprover/lean4/pull/10604) implements the method `processNewEq` in `grind order`. It is
   responsible for processing equalities propagated by the `grind` E-graph.
 
-````
-
-````markdown
-
 * [#10607](https://github.com/leanprover/lean4/pull/10607) adds infrastructure for the upcoming `grind` tactic mode, which
   will be similar to the `conv` mode. The goal is to extend `grind` from a
   terminal tactic into an interactive mode: `grind => …`.
@@ -775,10 +1245,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 * [#10715](https://github.com/leanprover/lean4/pull/10715) improves anchor stability (aka stable hash codes) used to
   reference terms in a `grind` goal.
 
-````
-
-````markdown
-
 * [#10731](https://github.com/leanprover/lean4/pull/10731) adds the following tactics to the `grind` interactive mode:
   - `focus <grind_tac_seq>`
   - `next => <grind_tac_seq>`
@@ -817,10 +1283,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
       instantiate Array.getElem_set
   ```
 
-````
-
-```markdown
-
 * [#10747](https://github.com/leanprover/lean4/pull/10747) implements infrastructure for `finish?` and `grind?` tactics.
 
 * [#10748](https://github.com/leanprover/lean4/pull/10748) implements the `repeat` tactical for the `grind` interactive
@@ -851,10 +1313,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 
 * [#10808](https://github.com/leanprover/lean4/pull/10808) implements support for compressing auto-generated `grind` tactic
   sequences.
-
-```
-
-```markdown
 
 * [#10811](https://github.com/leanprover/lean4/pull/10811) implements proper case-split anchor generation in the
   `splitNext` action, which will be used to implement `grind?` and
@@ -902,10 +1360,6 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
 
 * [#10846](https://github.com/leanprover/lean4/pull/10846) fixes a few issues on `instance only [...]` tactic generation at
   `finish?`.
-
-```
-
-```markdown
 
 ## Compiler
 
@@ -1077,4 +1531,4 @@ For this release, 398 changes landed. In addition to the 141 feature additions a
   reporting CI status of open PRs, and adding documentation), and adds a
   `.claude/commands/release.md` prompt file so Claude can assist.
 
-```
+````

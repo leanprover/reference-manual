@@ -211,6 +211,10 @@ tag := "string-api-pos"
 
 {docstring String.Pos.Raw}
 
+### Byte Position
+
+{docstring String.Pos.Raw.offsetOfPos}
+
 ### Validity
 
 {docstring String.Pos.Raw.isValid}
@@ -278,35 +282,38 @@ tag := "string-api-pos"
 tag := "string-api-lookup"
 %%%
 
+Operations that select a sub-region of a string (for example, a prefix or suffix of it) return a {ref "string-api-slice"}[slice] into the original string rather than allocating a new string.
+Use {name}`String.Slice.copy` to convert the slice into a new string.
+
 {docstring String.take}
 
 {docstring String.takeWhile}
 
-{docstring String.takeRight}
+{docstring String.takeEnd}
 
-{docstring String.takeRightWhile}
+{docstring String.takeEndWhile}
 
 {docstring String.drop}
 
 {docstring String.dropWhile}
 
-{docstring String.dropRight}
+{docstring String.dropEnd}
 
-{docstring String.dropRightWhile}
+{docstring String.dropEndWhile}
 
 {docstring String.dropPrefix?}
 
-{docstring String.stripPrefix}
+{docstring String.dropPrefix}
 
 {docstring String.dropSuffix?}
 
-{docstring String.stripSuffix}
+{docstring String.dropSuffix}
 
-{docstring String.trim}
+{docstring String.trimAscii}
 
-{docstring String.trimLeft}
+{docstring String.trimAsciiStart}
 
-{docstring String.trimRight}
+{docstring String.trimAsciiEnd}
 
 {docstring String.removeLeadingSpaces}
 
@@ -319,8 +326,6 @@ tag := "string-api-lookup"
 {docstring String.revPosOf}
 
 {docstring String.contains}
-
-{docstring String.offsetOfPos}
 
 {docstring String.replace}
 
@@ -395,7 +400,7 @@ tag := "string-api-modify"
 tag := "string-iterators"
 %%%
 
-For backwards compatiblity, Lean includes legacy string interators.
+For backwards compatibility, Lean includes legacy string iterators.
 Fundamentally, a {name}`String.Legacy.Iterator` is a pair of a string and a valid position in the string.
 Iterators provide functions for getting the current character ({name String.Legacy.Iterator.curr}`curr`), replacing the current character ({name String.Legacy.Iterator.setCurr}`setCurr`), checking whether the iterator can move to the left or the right ({name String.Legacy.Iterator.hasPrev}`hasPrev` and {name String.Legacy.Iterator.hasNext}`hasNext`, respectively), and moving the iterator ({name String.Legacy.Iterator.prev}`prev` and {name String.Legacy.Iterator.next}`next`, respectively).
 Clients are responsible for checking whether they've reached the beginning or end of the string; otherwise, the iterator ensures that its position always points at a character.

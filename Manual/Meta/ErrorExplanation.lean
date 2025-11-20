@@ -69,6 +69,23 @@ def explanationMWE : CodeBlockExpander
       (Block.lean $(quote hls) (some $(quote (← getFileName))) none)
       #[Block.code $str])]
 
+open Verso.Output Html in
+/-
+A block used to render error messages that don't match what they're expected to (rather than falling
+back to a placeholder message). These need to be fixed upstream.
+-/
+block_extension Block.errorFallback (messageString : String) where
+  data := .str messageString
+  traverse _ _ _ := return none
+  toHtml := some fun _goI _goB _id data _contents => do
+    let .str messageString := data
+      | HtmlT.logError "Failed to deserialize fallback message"
+        return .empty
+    return {{
+      <pre class="lean-output error"><span class="verso-message">{{messageString}}</span></pre>
+    }}
+  toTeX := none
+
 /-
 A tabbed container for MWEs in an error explanation example. Must satisfy the
 invariant that `titles.size` is equal to the number of children of this block.
@@ -254,7 +271,7 @@ def tryElabErrorExplanationCodeBlock (errorName : Name) (errorSev : MessageSever
             else logWarningAt
           logFailure ref m!"Invalid output for {(← read).name} code block \
             #{codeBlockIdx}{kindStr}: {msg}"
-          ``(Verso.Doc.Block.code "<invalid output>")
+          ``(Verso.Doc.Block.other (Block.errorFallback $(quote str)) #[])
         | e@(.internal ..) => throw e
       return block
     else if lang == "" || lang == "lean" then
@@ -699,7 +716,7 @@ def getBreakableSuffix (name : Name) : Option String := do
     | .str _ s => s
     | .num _ n => toString n
     | .anonymous => none
-  let breakableHtml := softHyphenateIdentifiers.rwText (.text false suffix)
+  let breakableHtml := softHyphenateText false suffix
   htmlText breakableHtml
 where
   htmlText : Verso.Output.Html → String

@@ -135,7 +135,7 @@ def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit
   IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
 
 def main : IO Unit := do
-  let line := (← (← IO.getStdin).getLine).trim
+  let line := (← (← IO.getStdin).getLine).trimAscii.copy
   if h : line.startValidPos ≠ line.endValidPos then
     process line h
 ```
@@ -163,7 +163,7 @@ def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit
   IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
 
 def main : IO Unit := do
-  let line := (← (← IO.getStdin).getLine).trim
+  let line := (← (← IO.getStdin).getLine).trimAscii.copy
   if h : line.startValidPos ≠ line.endValidPos then
     process line h
   IO.println "Original input:"
