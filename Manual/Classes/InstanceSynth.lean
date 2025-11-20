@@ -153,9 +153,13 @@ For the example above, Lean follows these steps:
   - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
 * The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
-  - The {name}`instNonemptyOfMonad` instance, though this is a non-starter because {lean}`Empty` does not have the structure of a monadic type, which must be a type constructor applied to another type. Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
+  - The {name}`instNonemptyOfMonad` instance, which is rejected.
+    It can't be used because the type {lean}`Empty` is not the application of a monad to a type.
+    Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
-* The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered. Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is a non-starter because {lean}`Empty` does not have the structure of a monadic type.
+* The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered.
+  Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is rejected.
+  As before, this is because the type {lean}`Empty` is not the application of a monad to a type.
 * Backtracking to the second original sub-goal, {lean}`Nonempty Nat`. This sub-goal eventually succeeds.
 :::
 
