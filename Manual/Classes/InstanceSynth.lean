@@ -83,17 +83,21 @@ Search may succeed, fail, or get stuck; a stuck search may occur when an unknown
 Stuck searches may be re-invoked when the elaborator has discovered one of the previously-unknown implicit arguments.
 If this does not occur, stuck searches become failures.
 
-:::example "Tracing Instance Search"
+::::example "Tracing Instance Search"
 
 Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lean to emit a trace of the process it goes through attempting to synthesize an instance of a type class.
 This trace can be used to understand how instance synthesis succeeds and why it fails.
 
+:::paragraph
 Here, we can see a trace of the process Lean follows to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
 
 ```lean (name := trace)
 set_option pp.explicit true in
 set_option trace.Meta.synthInstance true in
 #synth Nonempty (Nat ⊕ Empty)
+```
+```comment
+IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
 ```
 ```leanOutput trace (expandTrace := Meta.synthInstance)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
@@ -134,8 +138,11 @@ set_option trace.Meta.synthInstance true in
   [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
   [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 ```
+:::
 
-The online version of the manual, the Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol which will iteratively allow a more thorough investigation of how Lean succeeds, or fails, at type class instance synthesis.
+:::paragraph
+The Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol in traces.
+Clicking the "▶" symbol expands that branch of the trace.
 By expanding these arrows, it is possible to retrace the depth-first, backtracking search that Lean uses for type class instance search.
 This can take a little practice to get used to!
 For the example above, Lean follows these steps:
@@ -150,13 +157,14 @@ For the example above, Lean follows these steps:
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
 * The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered. Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is a non-starter because {lean}`Empty` does not have the structure of a monadic type.
 * Backtracking to the second original sub-goal, {lean}`Nonempty Nat`. This sub-goal eventually succeeds.
+:::
 
 The third and fourth original sub-goals are never considered.
 Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` outputs the solution:
 ```leanOutput trace
 @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
 ```
-:::
+::::
 
 # Candidate Instances
 
