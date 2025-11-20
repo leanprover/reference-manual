@@ -141,7 +141,7 @@ IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATI
 :::
 
 :::paragraph
-The Lean InfoView, and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol in traces.
+The Lean InfoView and the live lean editor (available via the "Live ↪" button below) show a clickable "▶" symbol in traces.
 Clicking the "▶" symbol expands that branch of the trace.
 By expanding these arrows, it is possible to retrace the depth-first, backtracking search that Lean uses for type class instance search.
 This can take a little practice to get used to!
