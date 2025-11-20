@@ -89,7 +89,7 @@ Setting the {option}`trace.Meta.synthInstance` option to {lean}`true` causes Lea
 This trace can be used to understand how instance synthesis succeeds and why it fails.
 
 :::paragraph
-Here, we can see a trace of the process Lean follows to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
+Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
 
 ```lean (name := trace)
 set_option pp.explicit true in
