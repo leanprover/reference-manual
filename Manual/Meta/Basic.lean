@@ -3,8 +3,12 @@ Copyright (c) 2024 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
-
-import Lean.Data.Position
+module
+public import Lean.Data.Position
+public import Lean.Syntax
+public import Lean.Environment
+public import Lean.Parser.Types
+public import Lean.Elab.Command
 import Lean.Parser
 
 import Verso.Parser
@@ -15,7 +19,7 @@ open Lean
 
 namespace Manual
 
-def parserInputString [Monad m] [MonadFileMap m]
+public def parserInputString [Monad m] [MonadFileMap m]
     (str : TSyntax `str) :
     m String := do
   let text ← getFileMap
@@ -33,19 +37,19 @@ def parserInputString [Monad m] [MonadFileMap m]
   code := code ++ strOriginal?.getD str.getString
   return code
 
-structure SyntaxError where
+public structure SyntaxError where
   pos : Position
   endPos : Position
   text : String
 deriving ToJson, FromJson, BEq, Repr
 
 open Lean.Syntax in
-instance : Quote Position where
+public instance : Quote Position where
   quote
     | .mk l c => mkCApp ``Position.mk #[quote l, quote c]
 
 open Lean.Syntax in
-instance : Quote SyntaxError where
+public instance : Quote SyntaxError where
   quote
     | .mk pos endPos text => mkCApp ``SyntaxError.mk #[quote pos, quote endPos, quote text]
 
@@ -83,7 +87,7 @@ where
         else none
 
 open Lean.Parser in
-def runParserCategory (env : Environment) (opts : Lean.Options) (catName : Name) (input : String) (fileName : String := "<example>") : Except (List (Position × String)) Syntax :=
+public def runParserCategory (env : Environment) (opts : Lean.Options) (catName : Name) (input : String) (fileName : String := "<example>") : Except (List (Position × String)) Syntax :=
     let p := andthenFn whitespace (categoryParserFnImpl catName)
     let ictx := mkInputContext input fileName
     let s := p.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
@@ -106,7 +110,7 @@ open Lean.Parser in
 /--
 A version of `Manual.runParserCategory` that returns syntax errors located the way Lean does.
 -/
-def runParserCategory' (env : Environment) (opts : Lean.Options) (catName : Name) (input : String) (fileName : String := "<example>") : Except (Array SyntaxError) Syntax :=
+public def runParserCategory' (env : Environment) (opts : Lean.Options) (catName : Name) (input : String) (fileName : String := "<example>") : Except (Array SyntaxError) Syntax :=
     let p := andthenFn whitespace (categoryParserFnImpl catName)
     let ictx := mkInputContext input fileName
     let s := p.run ictx { env, options := opts } (getTokenTable env) (mkParserState input)
@@ -121,7 +125,7 @@ where
     s.allErrors.map fun (pos, stk, e) => (mkSyntaxError ictx pos stk e)
 
 open Lean.Parser in
-def runParser
+public def runParser
     (env : Environment) (opts : Lean.Options)
     (p : Parser) (input : String) (fileName : String := "<example>")
     (currNamespace : Name := .anonymous) (openDecls : List OpenDecl := [])
@@ -145,9 +149,27 @@ where
     errs.reverse
 
 open Lean Elab Command in
-def commandWithoutAsync : (act : CommandElabM α) → CommandElabM α :=
+public def commandWithoutAsync : (act : CommandElabM α) → CommandElabM α :=
   withScope fun sc =>
     {sc with opts := Elab.async.set sc.opts false}
 
-def withoutAsync [Monad m] [MonadWithOptions m] : (act : m α) → m α :=
+public def withoutAsync [Monad m] [MonadWithOptions m] : (act : m α) → m α :=
   withOptions (Elab.async.set · false)
+
+open scoped Lean.Doc.Syntax in
+/--
+If the array of inlines contains a single code element, it is returned. Otherwise, an error is
+logged and `none` is returned.
+-/
+public def oneCodeStr? [Monad m] [MonadError m] [MonadLog m] [AddMessageContext m] [MonadOptions m]
+    (inlines : Array (TSyntax `inline)) : m (Option StrLit) := do
+  let #[code] := inlines
+    | if inlines.size == 0 then
+        Lean.logError "Expected a code element"
+      else
+        logErrorAt (mkNullNode inlines) "Expected one code element"
+      return none
+  let `(inline|code($code)) := code
+    | logErrorAt code "Expected a code element"
+      return none
+  return some code
