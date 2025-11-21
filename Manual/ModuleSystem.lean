@@ -142,8 +142,7 @@ In addition, the import must be public if the imported definition may be compile
 This is usually the case, unless a definition was imported solely for use in local metaprograms such as {keywordOf Parser.Command.syntax}`local syntax`/{keywordOf Parser.Command.macro}`macro`/{keywordOf Parser.Command.elab}`elab`/....
 ```leanModule
 module
-import Lean
-public import Lean.Elab.Command
+public meta import Lean.Elab.Command
 meta import Std.Data.HashMap
 
 local elab "my_elab" : command => do
