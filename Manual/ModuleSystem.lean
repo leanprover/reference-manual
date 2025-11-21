@@ -20,12 +20,12 @@ The module system is an experimental feature that allows for more fine-grained c
 
 The main benefits of doing so are:
 
-: Average build times
+: Much-improved average build times
 
-  Changes to files that affect only non-exported information (e.g. proofs) will not trigger rebuilds outside of these files.
-  Even when dependent files have to be rebuilt, those files that cannot be affected according to the `import` annotations can be skipped.
+  Changes to files that affect only non-exported information (e.g. proofs, comments, and docstrings) will not trigger rebuilds outside of these files.
+  Even when some dependent files have to be rebuilt, those files that cannot be affected according to the `import` annotations can be skipped.
 
-: API evolution
+: Control over API evolution
 
   Library authors can trust that changes to non-exported information will not affect downstream users of their library.
 
@@ -33,16 +33,21 @@ The main benefits of doing so are:
 
   Limiting the scope in which definitions can be unfolded allows for avoiding both reductions that should be replaced by application of more specific theorems as well as unproductive reductions that were not in fact necessary.
 
-: Smaller executables
+: Smaller executables (TBD)
 
-  Separating compile-time and run-time code allows for more aggressive dead code elimination.
+  Separating compile-time and run-time code allows for more aggressive dead code elimination, guaranteeing that metaprograms such as tactics do not make it into the final binary.
+
+: Reduced memory usage
+
+  Excluding private information such as proofs from importing can improve Lean's memory use both while building and editing a project.
+  Porting mathlib4 to the module system has shown savings close to 50% from this even before imports are further minimized.
 
 The module system is activated by prefixing a Lean file with the `module` keyword.
 `module`s can only import other `module`s so adoption has to be done top-down.
 Non-`module`s can import `module`s and will ignore all module-system-specific annotations.
 
 At the time of writing, the module system is considered experimental and additionally guarded by the `experimental.module` option that has to be set to `true` in the project's Lake configuration file.
-Of libraries shipped with Lean, only `Init` is currently fully ported.
+All libraries shipped with Lean are fully ported.
 The language semantics described below are close to final, but not all benefits described above are implemented yet.
 
 # Visibility
@@ -65,6 +70,7 @@ def priv : Nat := 0
 
 public abbrev pub : Nat := priv  -- error: Unknown identifier `priv`
 ```
+See option `backward.privateInPublic` for disabling/weakening this check while porting larger projects to the module system.
 
 `public section` can be used to switch the default scope for declarations, with `private` locally negating it.
 This is mostly intended to ease porting while avoiding merge conflicts.
@@ -72,6 +78,8 @@ This is mostly intended to ease porting while avoiding merge conflicts.
 Marking a declaration as public at minimum makes its "signature", i.e. its name and type, visible.
 Some specific declarations/terms may still put other parts in the private scope as follows:
 * `by` used in the public scope to prove a proposition puts the resulting proof in the private scope (by wrapping it in a public helper theorem).
+  In special cases, this may break existing code as such a `by` can no longer fill in metavariables in its expected type, which would allow information to leak from the private to the public scope.
+  The option `backward.proofsInPublic` can be used to disable this new behavior; it should usually be paired with `backward.privateInPublic` so that private references in the `by` now elaborated in the public scope do not break.
 * `def` puts its body in the private scope by default. The defined constant cannot be unfolded when used in the public scope.
 This can be changed with the `@[expose]` attribute.
 `@[expose] section` can be used to apply the attribute to all `def`s in the section and can locally be negated by `@[no_expose]`.
@@ -91,12 +99,12 @@ public instance : ToString Nat where
 
 ## Import Visibility
 
-The basic form `public import M` makes the public scope of `M` available in the public scope of the current module. The private scope of `M` is discarded.
-Without `public`, the public scope of `M` is instead imported into the {tech}[private scope].
+The basic form `public import M` makes the {tech}[public scope] of `M` available in the public scope of the current module. The {tech}[private scope] of `M` is discarded.
+Without `public`, the public scope of `M` is instead imported into the private scope.
 The import thus is irrelevant to downstream modules and ignored by them.
 
 `import all M` behaves like `import M` but additionally imports the private scope of `M` into the private scope of the current module.
-This is only allowed if `M` and the current module have the same module name root, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
+This is only allowed by default if `M` and the current module have the same module name root, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
 ```
 -- Module M.Defs
 module
