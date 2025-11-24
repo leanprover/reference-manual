@@ -76,7 +76,7 @@ Unknown identifier `priv`
 
 Note: A private declaration `priv` (from the current module) exists but would need to be public to access here.
 ```
-See option `backward.privateInPublic` for disabling/weakening this check while porting larger projects to the module system.
+See option {option}`backward.privateInPublic` for disabling/weakening this check while porting larger projects to the module system.
 
 {keywordOf Lean.Parser.Command.section}`public section` can be used to switch the default scope for declarations, with {keywordOf Lean.Parser.Command.declModifiers}`private` locally negating it.
 This is mostly intended to ease porting while avoiding merge conflicts.
@@ -85,7 +85,7 @@ Marking a declaration as public at minimum makes its “signature”, i.e. its n
 Some specific declarations/terms may still put other parts in the private scope as follows:
 * {keywordOf Parser.Term.by}`by` used in the public scope to prove a proposition puts the resulting proof in the private scope (by wrapping it in a public helper theorem).
   In special cases, this may break existing code as such a `by` can no longer fill in metavariables in its expected type, which would allow information to leak from the private to the public scope.
-  The option `backward.proofsInPublic` can be used to disable this new behavior; it should usually be paired with `backward.privateInPublic` so that private references in the `by` now elaborated in the public scope do not break.
+  The option {option}`backward.proofsInPublic` can be used to disable this new behavior; it should usually be paired with {option}`backward.privateInPublic` so that private references in the `by` now elaborated in the public scope do not break.
 * {keywordOf Parser.Command.declaration}`def` puts its body in the private scope by default. The defined constant cannot be unfolded when used in the public scope.
   This can be changed with the {attrs}`@[expose]` attribute.
   {attrs}`@[expose]`‍` `{keywordOf Lean.Parser.Command.section}`section` can be used to apply the attribute to all {keywordOf Lean.Parser.Command.declaration}`def`s in the section and can locally be negated by {attrs}`@[no_expose]`.
@@ -93,6 +93,7 @@ Some specific declarations/terms may still put other parts in the private scope 
   Consider using {attrs}`@[expose]`‍` `{keywordOf Parser.Command.declaration}`def` instead if exposition is absolutely necessary.
 * {keywordOf Lean.Parser.Command.declaration}`abbrev` and {keywordOf Lean.Parser.Command.declaration}`instance` always expose their body.
   For {keywordOf Parser.Command.instance}`instance`, individual field values can be marked {keywordOf Lean.Parser.Term.structInstFieldDef}`private`, which can be useful for programming purposes.
+  The value is wrapped in a public but non-exposed helper definition.
   For proof fields, {keywordOf Parser.Term.by}`by` already does the trick.
   ```leanModule
   module
@@ -110,7 +111,8 @@ Without {keywordOf Lean.Parser.Module.import}`public`, the public scope of {modu
 The import thus is irrelevant to downstream modules and ignored by them.
 
 {import}`import all M` behaves like {import}`import M` but additionally imports the private scope of {module}`M` into the private scope of the current module.
-This is only allowed by default if {module}`M` and the current module have the same module name root, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
+This is only allowed by default if {module}`M` and the current module are from the same Lake package, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
+The Lake package option {lakeOpt}`allowImportAll` can be set to allow other packages to access to the current package's private scopes via {import}`import all`.
 :::leanModules (moduleRoot := M)
 ```leanModule (moduleName := M.Defs)
 -- Module M.Defs
@@ -135,23 +137,23 @@ That is, the set of private scopes accessible to the current module is the trans
 
 The module system's {keywordOf Lean.Parser.Module.import}`import all` is more powerful than {keywordOf Lean.Parser.Module.import}`import` without the module system.
 It makes imported private definitions accessible directly by name, as if they were defined in the current module.
-Thus another use case of {keywordOf Lean.Parser.Module.import}`import all` is to make declarations available that need to be used in multiple modules but should not leak outside the current library.
+Thus another use case of {keywordOf Lean.Parser.Module.import}`import all` is to make declarations available that need to be used in multiple modules but should not leak outside the current package.
 
 # The `meta` Phase
 
-When it comes to actual code execution, there is no point to a definition without a body.
+When it comes to actual code execution, there is no point to a definition without an accessible body.
 Thus, in order to eagerly know what definitions _might_ be executed at compile time and so need to be available including their bodies (in some executable shape), any definition used as an entry point to compile-time execution has to be tagged with the new {keywordOf Lean.Parser.Module.import}`meta` modifier.
-This is automatically done in built-in metaprogramming syntax such as {keywordOf Lean.Parser.Command.syntax}`syntax`, {keywordOf Lean.Parser.Command.macro}`macro`, and {keywordOf Lean.Parser.Command.elab}`elab` but may need to be done explicitly when manually applying metaprogramming attributes such as {keyword}`app_delab`.
+This is automatically done in built-in metaprogramming syntax such as {keywordOf Lean.Parser.Command.syntax}`syntax`, {keywordOf Lean.Parser.Command.macro}`macro`, and {keywordOf Lean.Parser.Command.elab}`elab` but may need to be done explicitly when manually applying metaprogramming attributes such as {keyword}`app_delab` or when defining helper declarations.
 
-A {keywordOf Parser.Command.declModifiers}`meta` definition may only access (and thus invoke) other {keywordOf Parser.Command.declModifiers}`meta` definitions; a non-{keywordOf Parser.Command.declModifiers}`meta` definition likewise may only access other non-{keywordOf Parser.Command.declModifiers}`meta` definitions.
-For imported definitions, the {keywordOf Parser.Command.declModifiers}`meta` marker can be added after the fact using {keywordOf Parser.Module.import}`meta import`.
+A {keywordOf Parser.Command.declModifiers}`meta` definition may only access (and thus invoke) other {keywordOf Parser.Command.declModifiers}`meta` definitions in execution-relevant positions; a non-{keywordOf Parser.Command.declModifiers}`meta` definition likewise may only access other non-{keywordOf Parser.Command.declModifiers}`meta` definitions.
+For imported definitions, the {keywordOf Parser.Command.declModifiers}`meta` marker can be added after the fact using {keywordOf Parser.Module.import}`meta import` such that a definition needed in both phases does not have to be defined twice.
 {keywordOf Parser.Module.import}`meta import`ing a definition already in the meta phase leaves it in that phase.
 In addition, the import must be public if the imported definition may be compile-time executed outside the current module, i.e. if it is reachable from some public {keywordOf Parser.Command.declModifiers}`meta` definition in the current module: use {keywordOf Parser.Module.import}`public meta import` or, if already {keywordOf Parser.Command.declModifiers}`meta`, {keywordOf Parser.Module.import}`public import`.
 This is usually the case, unless a definition was imported solely for use in local metaprograms such as {keywordOf Parser.Command.syntax}`local syntax`/{keywordOf Parser.Command.macro}`macro`/{keywordOf Parser.Command.elab}`elab`/....
 ```leanModule
 module
 public meta import Lean.Elab.Command
-meta import Std.Data.HashMap
+meta import Std.Data.HashMap  -- does not need to be public
 
 local elab "my_elab" : command => do
   let m : Std.HashMap String Nat := {}
@@ -173,20 +175,14 @@ The following list contains common errors one might encounter when using the mod
 
 : Unknown constant
 
-  Check whether you might be trying to access a private definition in the public scope.
+  Check whether you are trying to access a private definition in the public scope.
   If so, you might want to make the current declaration private as well or otherwise enter the private scope such as through {keywordOf Lean.Parser.Term.structInstFieldDef}`private` on a field or {keywordOf Lean.Parser.Term.by}`by` for a proof.
-  TODO: improve error message.
-
-  If the message is prefixed with `(interpreter)`, this suggests a missing {keywordOf Lean.Parser.Module.import}`meta import`.
-  The new import should be placed in the file defining the metaprogram depending on the missing constant, which is not necessarily the file triggering the error.
-  Note that the language server always does {keywordOf Lean.Parser.Module.import}`meta import`s for the benefit of {keywordOf Lean.Parser.Command.eval}`#eval` etc., so the error might only occur in a cmdline build.
-  TODO: better, static `meta` checking.
 
 : Definitional equality errors, especially after porting
 
   You are likely missing an {attr}`expose` attribute on a definition or alternatively, if imported, an {keywordOf Lean.Parser.Module.import}`import all`.
   Prefer the former if anyone outside your library might feasible require the same access.
-  {keywordOf Lean.reduceCmd}`#reduce` and/or {option}`trace.Meta.isDefEq` can help with finding the blocking definition.
+  The error message should list non-exposed definitions that could not be unfolded.
   You might also see this as a kernel error when a tactic directly emits proof terms referencing specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using {attrs}`@[expose]`‍` `{keywordOf Parser.Command.section}`section`s generously on the closure of relevant modules.
 
