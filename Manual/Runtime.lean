@@ -131,12 +131,12 @@ Replacing characters in a string uses an in-place update if the string is not sh
 The {name}`dbgTraceIfShared` call does nothing, indicating that the string will indeed be updated in place rather than copied.
 
 ```ioLean
-def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit := do
-  IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
+def process (str : String) (h : str.startPos ≠ str.endPos) : IO Unit := do
+  IO.println ((dbgTraceIfShared "String update" str).startPos.set ' ' h)
 
 def main : IO Unit := do
   let line := (← (← IO.getStdin).getLine).trimAscii.copy
-  if h : line.startValidPos ≠ line.endValidPos then
+  if h : line.startPos ≠ line.endPos then
     process line h
 ```
 
@@ -159,12 +159,12 @@ This version of the program retains a reference to the original string, which ne
 This fact is visible in its standard error output.
 
 ```ioLean
-def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit := do
-  IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
+def process (str : String) (h : str.startPos ≠ str.endPos) : IO Unit := do
+  IO.println ((dbgTraceIfShared "String update" str).startPos.set ' ' h)
 
 def main : IO Unit := do
   let line := (← (← IO.getStdin).getLine).trimAscii.copy
-  if h : line.startValidPos ≠ line.endValidPos then
+  if h : line.startPos ≠ line.endPos then
     process line h
   IO.println "Original input:"
   IO.println line

@@ -165,18 +165,18 @@ where
 private def hasSubstring (haystack : String) (needle : String) : Bool := Id.run do
   if needle.isEmpty then return true
   if needle.length > haystack.length then return false
-  let mut iter := haystack.startValidPos
+  let mut iter := haystack.startPos
   let fst := String.Pos.Raw.get needle 0
-  while h : iter ≠ haystack.endValidPos do
+  while h : iter ≠ haystack.endPos do
     if iter.get h  == fst then
       let mut iter' := iter
-      let mut iter'' := needle.startValidPos
-      while h : iter'≠ haystack.endValidPos ∧ iter'' ≠ needle.endValidPos do
+      let mut iter'' := needle.startPos
+      while h : iter'≠ haystack.endPos ∧ iter'' ≠ needle.endPos do
         if iter'.get h.1 == iter''.get h.2 then
           iter' := iter'.next h.1
           iter'' := iter''.next h.2
         else break
-      if iter'' ≠ needle.endValidPos then
+      if iter'' ≠ needle.endPos then
         iter := iter.next h
         continue
       else return true
@@ -316,9 +316,9 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
-    let commentStr := comment.extract s.endValidPos
+    let commentStr := comment.extract s.endPos
     let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
-    {{ {{s.startValidPos.extract comment}} {{commentHtml}} }}
+    {{ {{s.startPos.extract comment}} {{commentHtml}} }}
   | .key none k => {{
     <span class="key">
       {{k.toHtml tableLink keyLink}}

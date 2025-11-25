@@ -428,7 +428,7 @@ private def expectExplanationCodeInfo
 private def isExamplesHeaderText (txt : Array MD4Lean.Text) : Bool :=
   if _ : txt.size = 1 then
     match txt[0] with
-    | .normal str => str.trim == "Examples"
+    | .normal str => str.trimAscii.copy == "Examples"
     | _ => false
   else false
 
