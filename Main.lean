@@ -36,7 +36,7 @@ def staticCss := {{
 def main :=
   manualMain (%doc Manual) (config := config) (extraSteps := [extractExamples])
 where
-  config := Config.addSearch <| Config.addKaTeX {
+  config := {
     extraFiles := [("static", "static")],
     extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
