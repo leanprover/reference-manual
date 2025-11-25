@@ -20,6 +20,7 @@ import Manual.Simp
 import Manual.Grind
 import Manual.VCGen
 import Manual.BasicTypes
+import Manual.Iterators
 import Manual.BasicProps
 import Manual.NotationsMacros
 import Manual.IO
@@ -119,6 +120,7 @@ draft := true
 
 {docstring Dynamic.get?}
 
+{include 0 Manual.Iterators}
 
 # Standard Library
 %%%
@@ -348,6 +350,21 @@ Std.ExtHashSet
 Std.TreeMap
 Std.DTreeMap
 Std.TreeSet
+Std.Iterators
+Std.Iterators.Iter
+Std.Iterators.IterM
+Std.Iterators.PostconditionT
+Std.PRange
+Std.PRange.UpwardEnumerable
+Std.Rco
+Std.Rcc
+Std.Rci
+Std.Roo
+Std.Roc
+Std.Roi
+Std.Rio
+Std.Ric
+Std.Rii
 ```
 
 ```exceptions
