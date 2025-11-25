@@ -318,8 +318,11 @@ axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` wo
 theorem double_neg_elim (P : Prop) : (¬ ¬ P) = P :=
   propext Classical.not_not
 
-/-- info: 'double_neg_elim' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
+/--
+info: 'double_neg_elim' depends on axioms:
+  [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
 #print axioms double_neg_elim
 
 ```
