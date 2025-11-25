@@ -20,6 +20,10 @@ open Verso.Output.Html in
 def staticJs := {{
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
+    {{ if false then -- Flip this bit to test live links locally
+        {{ <script>"window.metadata = {'latest': true};"</script> }}
+      else
+        .empty }}
   }}
 
 open Verso.Output.Html in
@@ -36,7 +40,7 @@ def staticCss := {{
 def main :=
   manualMain (%doc Manual) (config := config) (extraSteps := [extractExamples])
 where
-  config := Config.addSearch <| Config.addKaTeX {
+  config := {
     extraFiles := [("static", "static")],
     extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
