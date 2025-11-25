@@ -211,7 +211,7 @@ Additionally, structures may be constructed or matched against using {deftech}_s
 Constructs a value of a constructor type given values for named fields.
 Field specifiers may take two forms:
 ```grammar (of := Lean.Parser.Term.structInstField)
-$x := $y
+$x := $[private]? $y
 ```
 
 ```grammar (of := Lean.Parser.Term.structInstField)
@@ -235,10 +235,13 @@ If a tactic is specified as the default argument, then it is run at elaboration 
 In a pattern context, field names are mapped to patterns that match the corresponding projection, and field abbreviations bind a pattern variable that is the field's name.
 Default arguments are still present in patterns; if a pattern does not specify a value for a field with a default value, then the pattern only matches the default.
 
+When a field definition contains the {keywordOf Lean.Parser.Term.stuctInstField}`private` modifier, the value is placed in the current module's {tech}[private scope], even if the structure value is itself in the public scope.
+The value is wrapped in a public but non-exposed helper definition.
+This is particularly useful with instances of type classes, because the implementation of {tech}[methods] in public {tech}[instances] of type classes are {tech}[exposed] by default.
+This modifier allows them to be made private.
+
 The optional type annotation allows the structure type to be specified in contexts where it is not otherwise determined.
 ::::
-
-:::::keepEnv
 
 ::::example "Patterns and default values"
 The structure {name}`AugmentedIntList` contains a list together with some extra information, which is empty if omitted:
@@ -260,8 +263,73 @@ def AugmentedIntList.isEmpty : AugmentedIntList → Bool
 false
 ```
 ::::
-:::::
 
+::::example "Private Field Values"
+:::leanModules
+Even when a definition of a structure is {tech}[exposed], individual fields may be hidden using the field-level {keywordOf Lean.Parser.Term.stuctInstField}`private` modifier.
+In this module, the exposed public definition of {name}`x` may use the private definition {name}`secret` because the {name}`imaginary` field's value is not exposed:
+```leanModule (moduleName := Main)
+module
+
+public structure Complex where
+  real : Float
+  imaginary : Float
+
+private def secret := 2.3
+
+@[expose]
+public def x : Complex := {
+  real := 5.0
+  imaginary := private 2 * secret
+}
+```
+:::
+::::
+
+::::example "Private Methods"
+:::leanModules +error
+In this module, the existence of the {name}`State` structure is public, but its constructor and field are private.
+The function {name}`State.toString` is also private, and is intended to be accessed via the {name}`ToString` instance.
+However, because the implementations of {tech}[methods] are exposed for public instances, this is not allowed:
+```leanModule (moduleName := Main) (name := tooExposed)
+module
+
+public structure State where
+  private mk ::
+  private count : Nat
+
+private def State.toString (s : State) : String :=
+  s!"⟨{s.count}⟩"
+
+public instance : ToString State where
+  toString s := s.toString
+```
+```leanOutput tooExposed
+Invalid field `toString`: The environment does not contain `State.toString`
+  s
+has type
+  State
+
+Note: A private declaration `State.toString` (from the current module) exists but would need to be public to access here.
+```
+:::
+:::leanModules
+Marking the implementation of {name}`toString` as {keyword}`private` removes it from the module's {tech}[public scope], giving it access to private functions:
+```leanModule (moduleName := Main) (name := tooExposed)
+module
+
+public structure State where
+  private mk ::
+  private count : Nat
+
+private def State.toString (s : State) : String :=
+  s!"⟨{s.count}⟩"
+
+public instance : ToString State where
+  toString s := private s.toString
+```
+:::
+::::
 
 :::syntax term (title := "Structure Updates")
 ```grammar

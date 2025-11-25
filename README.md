@@ -54,6 +54,11 @@ This reference manual contains figures that are built from LaTeX sources. To bui
 
 Additionally, to run the style checker locally, you'll need [Vale](https://vale.sh/). It runs in CI, so this is not a necessary step to contribute.
 
+Part of the manual deployment process adds JavaScript to each version that inserts metadata to both
+enable links to live.lean-lang.org and arrange for them to target the correct versions of Lean. To
+test these links locally, follow the instructions in a comment in the definition of `staticJs` in
+`Main.lean`.
+
 To build the manual, run the following command:
 
 ```

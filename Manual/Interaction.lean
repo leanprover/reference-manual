@@ -88,6 +88,60 @@ If the term is an action in a metaprogramming monad, then changes made to the en
 end
 ```
 
+
+:::::TODO
+
+When used in a {tech}`module`, {keywordOf Lean.Parser.Command.eval}`#eval` reveals a difference between the way the Lean language server and the Lean compiler process files.
+Because it runs code at compile time, {keywordOf Lean.Parser.Command.eval}`#eval` requires that its code is available in the {tech}[meta phase].
+To make easier to experiment with a module, the language server makes all imported modules available in the meta phase, while the compiler strictly adheres to the {keywordOf Lean.Parser.Module.import}`meta` declarations.
+As a result, modules that use {keywordOf Lean.guardMsgsCmd}`#guard_msgs` together with {keywordOf Lean.Parser.Command.eval}`#eval` to embed lightweight tests may elaborate successfully in the language server but fail during a build.
+To fix this, the definitions can be imported with {keywordOf Lean.Parser.Module.import}`meta import` in the module that contains the test:
+
+::::example "Evaluation and Meta"
+:::leanModules -server +error
+```leanModule (moduleName := Eval.Even)
+module
+public section
+def isEven (n : Nat) : Bool :=
+  n % 2 = 0
+
+```
+```leanModule (moduleName := Eval) (name := noMetaEval)
+module
+import Eval.Even
+
+/-- info: [true, false] -/
+#guard_msgs in
+#eval [isEven 4, isEven 5]
+```
+```leanOutput noMetaEval
+❌️ Docstring on `#guard_msgs` does not match generated message:
+
+- info: [true, false]
++ error: Could not find native implementation of external declaration 'isEven' (symbols 'l_isEven___boxed' or 'l_isEven').
++ For declarations from `Init`, `Std`, or `Lean`, you need to set `supportInterpreter := true` in the relevant `lean_exe` statement in your `lakefile.lean`.
+```
+:::
+:::leanModules
+Importing {name}`isEven` to the meta phase fixes the problem:
+```leanModule (moduleName := Eval.Even)
+module
+public section
+def isEven (n : Nat) : Bool :=
+  n % 2 = 0
+```
+```leanModule (moduleName := Eval) (name := metaEval)
+module
+meta import Eval.Even
+
+/-- info: [true, false] -/
+#guard_msgs in
+#eval [isEven 4, isEven 5]
+```
+:::
+::::
+:::::
+
 Results are displayed using a {name Lean.ToExpr}`ToExpr`, {name}`ToString`, or {name}`Repr` instance, if they exist.
 If not, and {option}`eval.derive.repr` is {lean}`true`, Lean attempts to derive a suitable {name}`Repr` instance.
 It is an error if no suitable instance can be found or derived.
@@ -616,9 +670,8 @@ inductive Tree (α : Type u) : Type u where
   | branches : List (Tree α) → Tree α
 
 def Tree.big (n : Nat) : Tree Nat :=
-  if n = 0 then .val 0
-  else if n = 1 then .branches [.big 0]
-  else .branches [.big (n / 2), .big (n / 3)]
+  if n < 5 then .branches [.val n, .val (n - 1), .val n, .val (n - 2)]
+  else .branches [.big (n / 2),  .big (n / 3)]
 ```
 
 However, it can be difficult to spot where test failures come from when the output is large:
@@ -627,11 +680,13 @@ set_option guard_msgs.diff false
 /--
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 -/
 #guard_msgs in
 #eval Tree.big 20
@@ -640,11 +695,13 @@ The evaluation produces:
 ```leanOutput bigMsg (severity := information)
 Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 
 Without {option}`guard_msgs.diff`, the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command reports this error:
@@ -653,11 +710,13 @@ Without {option}`guard_msgs.diff`, the {keywordOf Lean.guardMsgsCmd}`#guard_msgs
 
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 
 Enabling {option}`guard_msgs.diff` highlights the differences instead, making the error more apparent:
@@ -666,11 +725,13 @@ set_option guard_msgs.diff true in
 /--
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0,
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 -/
 #guard_msgs in
 #eval Tree.big 20
@@ -680,12 +741,14 @@ info: Tree.branches
 
   info: Tree.branches
     [Tree.branches
-       [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
--       Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
-+       Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+       [Tree.branches
+          [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+-          Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0,
++          Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+        Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
      Tree.branches
-       [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-        Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+       [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+        Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 :::
 
