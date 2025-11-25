@@ -312,7 +312,7 @@ that updates to libraries from other projects cannot silently
 introduce unwanted dependencies on axioms.
 
 For example, if the proof of {name}`double_neg_elim` below changed in such a way that it used more
-axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` would report an error.
+axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command would report an error.
 
 ```lean
 theorem double_neg_elim (P : Prop) : (¬ ¬ P) = P :=
