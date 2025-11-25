@@ -118,7 +118,7 @@ import Eval.Even
 ❌️ Docstring on `#guard_msgs` does not match generated message:
 
 - info: [true, false]
-+ error: Could not find native implementation of external declaration 'isEven' (symbols 'l_isEven___boxed' or 'l_isEven').
++ error: Could not find native implementation of external declaration 'isEven' (symbols 'lp_example_isEven___boxed' or 'lp_example_isEven').
 + For declarations from `Init`, `Std`, or `Lean`, you need to set `supportInterpreter := true` in the relevant `lean_exe` statement in your `lakefile.lean`.
 ```
 :::
