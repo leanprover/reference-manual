@@ -374,10 +374,10 @@ Because instance synthesis selects the most recently defined instance, the follo
 #check OneSmaller.shrink (β := Bool) (some false) sorry
 ```
 ```leanOutput nosmaller
-failed to synthesize
+failed to synthesize instance of type class
   OneSmaller (Option Bool) Bool
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 The {lean}`OneSmaller (Option Bool) (Option Unit)` instance was selected during instance synthesis, without regard to the supplied value of `β`.
 :::

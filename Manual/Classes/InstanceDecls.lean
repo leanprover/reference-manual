@@ -142,10 +142,10 @@ instance : BEq NatTree where
 ```
 with errors in both the left and right recursive calls that read:
 ```leanOutput beqNatTreeFail
-failed to synthesize
+failed to synthesize instance of type class
   BEq NatTree
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Given a suitable recursive function, such as {lean}`NatTree.beq`:
 ```lean
@@ -190,10 +190,10 @@ def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
     children1 == children2
 ```
 ```leanOutput natRoseTreeBEqFail
-failed to synthesize
+failed to synthesize instance of type class
   BEq (Array NatRoseTree)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 To solve this, a local {lean}`BEq NatRoseTree` instance may be `let`-bound:
@@ -268,10 +268,10 @@ instance : DecidableEq StringList
   | .nil, .cons _ _ | .cons _ _, .nil => .isFalse nofun
 ```
 ```leanOutput stringListNoRec
-failed to synthesize
+failed to synthesize instance of type class
   Decidable (t1 = t2)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 However, because it is an ordinary Lean function, it can recursively refer to its own explicitly-provided name:
 ```lean

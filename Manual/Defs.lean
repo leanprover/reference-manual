@@ -523,6 +523,8 @@ $_:declModifiers
 def $_ $_ where
   $_*
 ```
+
+In {tech}[modules], the bodies of definitions defined with {keyword}`def` are not exposed by default.
 :::
 
 :::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.abbrev) (title := "Abbreviations")
@@ -544,6 +546,8 @@ $_:declModifiers
 abbrev $_ $_ where
   $_*
 ```
+
+In {tech}[modules], the bodies of definitions defined with {keyword}`def` are exposed by default.
 :::
 
 
@@ -605,6 +609,8 @@ $_:declModifiers
 theorem $_ $_ where
   $_*
 ```
+
+In {tech}[modules], proofs of theorems are not exposed by default.
 :::
 
 

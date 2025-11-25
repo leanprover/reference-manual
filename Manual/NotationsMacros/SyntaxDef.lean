@@ -236,7 +236,7 @@ Lean.Syntax.node
       (Lean.SourceInfo.none)
       "List.length".toRawSubstring
       (Lean.Name.mkNum `List.length._@.Manual.NotationsMacros.SyntaxDef._hyg 2)
-      [Lean.Syntax.Preresolved.decl `List.length [], Lean.Syntax.Preresolved.namespace `List.length],
+      [Lean.Syntax.Preresolved.decl `List.length []],
     Lean.Syntax.node
       (Lean.SourceInfo.none)
       `null

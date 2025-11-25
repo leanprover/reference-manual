@@ -83,15 +83,32 @@ tag := "scope-commands"
 
 The {keywordOf Lean.Parser.Command.section}`section` command creates a new {deftech}[section] scope, but does not modify the current namespace, opened namespaces, or section variables.
 Changes made to the section scope are reverted when the section ends.
+Additionally, a section may cause a set of modifiers to be applied by default to all declarations in the section.
 Sections may optionally be named; the {keywordOf Lean.Parser.Command.end}`end` command that closes a named section must use the same name.
 If section names have multiple components (that is, if they contain `.`-separated names), then multiple nested sections are introduced.
 Section names have no other effect, and are a readability aid.
 
 :::syntax command (title := "Sections")
 The {keywordOf Lean.Parser.Command.section}`section` command creates a section scope that lasts either until an `end` command or the end of the file.
+The section header, if present, modifies the declarations in the section.
 ```grammar
-section $[$id:ident]?
+$hdr:sectionHeader section $[$id:ident]?
 ```
+:::
+
+:::syntax Lean.Parser.Command.sectionHeader (title := "Section Headers")
+A section header, if present, modifies the declarations in the section.
+```grammar
+$[@[expose]]?
+$[public]? $[noncomputable]? $[meta]?
+```
+If the header includes {keyword}`noncomputable`, then the definitions in the section are all considered to be noncomputable, and no compiled code is generated for them.
+This is needed for definitions that rely on noncomputational reasoning principles such as the Axiom of Choice.
+
+The remaining modifiers are only useful in {tech}[modules].
+If the header includes {attrs}`@[expose]`, then all definitions in the section are {tech}[exposed].
+If it includes {keyword}`public`, then the declarations in such a {deftech}[public section] are public, rather than private, by default.
+If it includes {keyword}`meta`, then the section's declarations are all placed in the {tech}[meta phase].
 :::
 
 :::example "Named Section"

@@ -88,6 +88,60 @@ If the term is an action in a metaprogramming monad, then changes made to the en
 end
 ```
 
+
+:::::TODO
+
+When used in a {tech}`module`, {keywordOf Lean.Parser.Command.eval}`#eval` reveals a difference between the way the Lean language server and the Lean compiler process files.
+Because it runs code at compile time, {keywordOf Lean.Parser.Command.eval}`#eval` requires that its code is available in the {tech}[meta phase].
+To make easier to experiment with a module, the language server makes all imported modules available in the meta phase, while the compiler strictly adheres to the {keywordOf Lean.Parser.Module.import}`meta` declarations.
+As a result, modules that use {keywordOf Lean.guardMsgsCmd}`#guard_msgs` together with {keywordOf Lean.Parser.Command.eval}`#eval` to embed lightweight tests may elaborate successfully in the language server but fail during a build.
+To fix this, the definitions can be imported with {keywordOf Lean.Parser.Module.import}`meta import` in the module that contains the test:
+
+::::example "Evaluation and Meta"
+:::leanModules -server +error
+```leanModule (moduleName := Eval.Even)
+module
+public section
+def isEven (n : Nat) : Bool :=
+  n % 2 = 0
+
+```
+```leanModule (moduleName := Eval) (name := noMetaEval)
+module
+import Eval.Even
+
+/-- info: [true, false] -/
+#guard_msgs in
+#eval [isEven 4, isEven 5]
+```
+```leanOutput noMetaEval
+❌️ Docstring on `#guard_msgs` does not match generated message:
+
+- info: [true, false]
++ error: Could not find native implementation of external declaration 'isEven' (symbols 'lp_example_isEven___boxed' or 'lp_example_isEven').
++ For declarations from `Init`, `Std`, or `Lean`, you need to set `supportInterpreter := true` in the relevant `lean_exe` statement in your `lakefile.lean`.
+```
+:::
+:::leanModules
+Importing {name}`isEven` to the meta phase fixes the problem:
+```leanModule (moduleName := Eval.Even)
+module
+public section
+def isEven (n : Nat) : Bool :=
+  n % 2 = 0
+```
+```leanModule (moduleName := Eval) (name := metaEval)
+module
+meta import Eval.Even
+
+/-- info: [true, false] -/
+#guard_msgs in
+#eval [isEven 4, isEven 5]
+```
+:::
+::::
+:::::
+
 Results are displayed using a {name Lean.ToExpr}`ToExpr`, {name}`ToString`, or {name}`Repr` instance, if they exist.
 If not, and {option}`eval.derive.repr` is {lean}`true`, Lean attempts to derive a suitable {name}`Repr` instance.
 It is an error if no suitable instance can be found or derived.
@@ -248,10 +302,10 @@ Attempting to add a string to a natural number fails, as expected:
 #check_failure "one" + 1
 ```
 ```leanOutput oneOne
-failed to synthesize
-  HAdd String Nat ?m.32
+failed to synthesize instance of type class
+  HAdd String Nat ?m.5
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Nonetheless, a partially-elaborated term is available:
 ```leanOutput oneOne
