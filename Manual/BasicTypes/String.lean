@@ -40,8 +40,8 @@ UTF-8 is a variable-width encoding.
 A character may be encoded as a one, two, three, or four byte code unit.
 The fact that strings are UTF-8-encoded byte arrays is visible in the API:
  * There is no operation to project a particular character out of the string, as this would be a performance trap. {ref "string-iterators"}[Use an iterator] in a loop instead of a {name}`Nat`.
- * Strings are indexed by {name}`String.ValidPos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time.
-   {name}`String.ValidPos` includes a proof that the byte count in fact points at the beginning of a UTF-8 code unit.
+ * Strings are indexed by {name}`String.Pos`, which internally records _byte counts_ rather than _character counts_, and thus takes constant time.
+   {name}`String.Pos` includes a proof that the byte count in fact points at the beginning of a UTF-8 code unit.
    Aside from `0`, these should not be constructed directly, but rather updated using {name}`String.next` and {name}`String.prev`.
 
 {include 0 Manual.BasicTypes.String.Logical}
@@ -84,7 +84,7 @@ Otherwise, a new string must be allocated.
 tag := "string-performance"
 %%%
 
-Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.ofByteArray` and {name}`String.bytes` take *time linear in the length of the string*.
+Despite the fact that they appear to be an ordinary constructor and projection, {name}`String.ofByteArray` and {name}`String.toByteArray` take *time linear in the length of the string*.
 This is because byte arrays and strings do not have an identical representation, so the contents of the byte array must be copied to a new object.
 
 
@@ -146,13 +146,13 @@ tag := "string-api-props"
 tag := "string-api-valid-pos"
 %%%
 
-{docstring String.ValidPos}
+{docstring String.Pos}
 
 ### In Strings
 
-{docstring String.startValidPos}
+{docstring String.startPos}
 
-{docstring String.endValidPos}
+{docstring String.endPos}
 
 {docstring String.pos}
 
@@ -162,47 +162,47 @@ tag := "string-api-valid-pos"
 
 ### Lookups
 
-{docstring String.ValidPos.get}
+{docstring String.Pos.get}
 
-{docstring String.ValidPos.get!}
+{docstring String.Pos.get!}
 
-{docstring String.ValidPos.get?}
+{docstring String.Pos.get?}
 
-{docstring String.ValidPos.set}
+{docstring String.Pos.set}
 
-{docstring String.ValidPos.extract +allowMissing}
+{docstring String.Pos.extract +allowMissing}
 
 ### Modifications
 
-{docstring String.ValidPos.modify}
+{docstring String.Pos.modify}
 
-{docstring String.ValidPos.byte}
+{docstring String.Pos.byte}
 
 ### Adjustment
 
-{docstring String.ValidPos.prev}
+{docstring String.Pos.prev}
 
-{docstring String.ValidPos.prev!}
+{docstring String.Pos.prev!}
 
-{docstring String.ValidPos.prev?}
+{docstring String.Pos.prev?}
 
-{docstring String.ValidPos.next}
+{docstring String.Pos.next}
 
-{docstring String.ValidPos.next!}
+{docstring String.Pos.next!}
 
-{docstring String.ValidPos.next?}
+{docstring String.Pos.next?}
 
 ### Other Strings
 
-{docstring String.ValidPos.cast}
+{docstring String.Pos.cast}
 
-{docstring String.ValidPos.ofCopy}
+{docstring String.Pos.ofCopy}
 
-{docstring String.ValidPos.toSetOfLE}
+{docstring String.Pos.toSetOfLE}
 
-{docstring String.ValidPos.toModifyOfLE}
+{docstring String.Pos.toModifyOfLE}
 
-{docstring String.ValidPos.toSlice}
+{docstring String.Pos.toSlice}
 
 ## Raw Positions
 %%%
