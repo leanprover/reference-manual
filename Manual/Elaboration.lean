@@ -103,12 +103,12 @@ tag := "macro-and-elab"
 %%%
 
 Having parsed a command, the next step is to elaborate it.
-The precise meaning of _elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
+The precise meaning of {deftech}_elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
 Elaboration of both commands and terms may be recursive, both because of command combinators such as {keywordOf Lean.Parser.Command.in}`in` and because terms may contain other terms.
 
 Command and term elaboration have different capabilities.
 Command elaboration may have side effects on an environment, and it has access to run arbitrary computations in {lean}`IO`.
-Lean environments contain the usual mapping from names to definitions along with additional data defined in {deftech}[environment extensions], which are additional tables associated with an environment; environment extensions are used to track most other information about Lean code, including {tactic}`simp` lemmas, custom pretty printers, and internals such as the compiler's intermediate representations.
+Lean {deftech}[environments] contain the usual mapping from names to definitions along with additional data defined in {deftech}[environment extensions], which are additional tables associated with an environment; environment extensions are used to track most other information about Lean code, including {tactic}`simp` lemmas, custom pretty printers, and internals such as the compiler's intermediate representations.
 Command elaboration also maintains a message log with the contents of the compiler's informational output, warnings, and errors, a set of {tech}[info trees] that associate metadata with the original syntax (used for interactive features such as displaying proof states, identifier completion, and showing documentation), accumulated debugging traces, the open {tech}[section scopes], and some internal state related to macro expansion.
 Term elaboration may modify all of these fields except the open scopes.
 Additionally, it has access to all the machinery needed to create fully-explicit terms in the core language from Lean's terse, friendly syntax, including unification, type class instance synthesis, and type checking.

@@ -443,7 +443,7 @@ The facets available for modules are:
 
 : `ir`
 
-  The `.ir` file produced by `lean` (with the {ref "module-system"}[experimental module system] enabled).
+  The `.ir` file produced by `lean` (with the {ref "module-structure"}[experimental module system] enabled).
 
 : `c`
 
