@@ -281,10 +281,6 @@ The modifiers have the following meanings:
 :::
 ::::
 
-
-
-
-
 ## Commands
 %%%
 tag := "commands"
@@ -463,14 +459,130 @@ This is the case both for public and private theorems.
 ::::
 :::::
 
+The option {option}`backward.privateInPublic` can be used while transitioning from ordinary source files to modules.
+When it is set to {lean}`true`, private definitions are exported, though their names are not accessible in importing modules.
+However, references to them in the public part of their defining module are allowed.
+Such references result in a warning unless the option {option}`backward.privateInPublic.warn` is set to {lean}`false`.
+These warnings can be used to locate and eventually eliminate these references, allowing {option}`backward.privateInPublic` to be disabled.
+Similarly, {option}`backward.proofsInPublic` causes proofs created with {keywordOf Lean.Parser.Term.by}`by` to be public, rather than private; this can enable {keywordOf Lean.Parser.Term.by}`by` to fill in metavariables in its expected type.
+Most use cases for {option}`backward.proofsInPublic` also require that {option}`backward.privateInPublic` is enabled.
+
+{optionDocs backward.privateInPublic}
+
+{optionDocs backward.privateInPublic.warn}
+
+{optionDocs backward.proofsInPublic}
+
+::::example "Exporting Private Definitions"
+:::leanModules
+In the module {module}`L.Defs`, the public definition of {name}`f` refers to the private definition {name}`drop2` in its signature.
+Because {option}`backward.privateInPublic` is {lean}`true`, this is allowed, resulting in a warning:
+```leanModule (moduleName := L.Defs) (name := warnPub)
+module
+
+set_option backward.privateInPublic true
+
+def drop2 (xs : List α) : List α := xs.drop 2
+
+public def f (xs : List α) (transform : List α → List α:= drop2) : List α :=
+  transform xs
+```
+```leanOutput warnPub
+Private declaration `drop2` accessed publicly; this is allowed only because the `backward.privateInPublic` option is enabled.
+
+Disable `backward.privateInPublic.warn` to silence this warning.
+```
+When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, it's name is inaccessible in the module {module}`L`:
+```leanModule (moduleName :=  L) (name := withPrivateInTerm)
+module
+import L.Defs
+
+def xs := [1, 2, 3]
+
+set_option pp.explicit true in
+#check f xs
+```
+```leanOutput withPrivateInTerm
+@f Nat xs (@drop2✝ Nat) : List Nat
+```
+:::
+::::
+
+::::example "Proofs in Public"
+:::leanModules
+In the plain source file {module}`NotMod`, the definition of {name}`two` uses the content of the proof to fill out the numeric value in the definition by solving a {tech}`metavariable`:
+```leanModule (moduleName := NotMod)
+structure Half (n : Nat) where
+  val : Nat
+  ok : val + val = n
+
+abbrev two := Half.mk _ <| by
+  show 2 + 2 = 4
+  rfl
+```
+:::
+:::leanModules +error
+Converting this file to a module results in an error, because the body of the definition is exposed in the public part but the proof is private and thus cannot change the public type:
+```leanModule (moduleName := Mod) (name := proofMeta)
+module
+public section
+
+structure Half (n : Nat) where
+  val : Nat
+  ok : val + val = n
+
+abbrev two := Half.mk _ <| by
+  show 2 + 2 = 4
+  rfl
+```
+```leanOutput proofMeta
+tactic execution is stuck, goal contains metavariables
+  ?m.3 + ?m.3 = ?m.5
+```
+:::
+:::leanModules
+Setting the option {option}`backward.proofsInPublic` causes the proof to be in the public part of the module so it can solve the metavariable:
+```leanModule (moduleName := Mod)
+module
+public section
+
+structure Half (n : Nat) where
+  val : Nat
+  ok : val + val = n
+
+set_option backward.proofsInPublic true in
+abbrev two := Half.mk _ <| by
+  show 2 + 2 = 4
+  rfl
+```
+:::
+
+:::leanModules
+However, it is typically better style to reformulate the definition so that the proof has a complete goal:
+```leanModule (moduleName := Mod)
+module
+public section
+
+structure Half (n : Nat) where
+  val : Nat
+  ok : val + val = n
+
+abbrev two : Half 4 := Half.mk 2 <| by
+  rfl
+```
+:::
+::::
+
+
 The private scope of a module may be imported into another module using the {keywordOf Lean.Parser.Module.import}`all` modifier.
-By default, this is only allowed if the imported module and the current module have the same module name root, as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
+By default, this is only allowed if the imported module and the current module are from the same Lake {tech}[package], as its main purpose is to allow for separating definitions and proofs into separate modules for internal organization of a library.
+The Lake package or library option {ref "Lake.PackageConfig allowImportAll" (domain := Manual.lakeTomlField)}`allowImportAll` can be set to allow other packages to access to the current package's private scopes via {keywordOf Lean.Parser.Module.import}`import all`.
 The imported private scope includes private imports of the imported module, including nested {keywordOf Lean.Parser.Module.import}`import all`s.
 As a consequence, the set of private scopes accessible to the current module is the transitive closure of {keywordOf Lean.Parser.Module.import}`import all` declarations.
 
 The module system's {keywordOf Lean.Parser.Module.import}`import all` is more powerful than {keywordOf Lean.Parser.Module.import}`import` without the module system.
 It makes imported private definitions accessible directly by name, as if they were defined in the current module.
-A secondary use case for {keywordOf Lean.Parser.Module.import}`import all` is to access code in multiple modules within a library that should nonetheless not be provided to downstream consumers, as well as to allow tests to access information that is not exposed to all clients.
+A secondary use case for {keywordOf Lean.Parser.Module.import}`import all` is to access code in multiple modules within a library that should nonetheless not be provided to downstream consumers, as well as to allow tests to access information that is not part of the public API.
 
 ::::example "Importing Private Information"
 :::leanModules (moduleRoot := Tree) +error
@@ -540,8 +652,8 @@ The time at which metaprograms are run is referred to as the {deftech}_metaprogr
 
 Just as they distinguish between public and private information, modules additionally distinguish code that is available in the meta phase from ordinary code.
 Any declaration used as an entry point to compile-time execution has to be tagged with the {keywordOf Lean.Parser.Module.import}`meta` modifier, which indicates that the declaration is available for use as a metaprogram.
-This is automatically done in built-in metaprogramming syntax such as {keywordOf Lean.Parser.Command.syntax}`syntax`, {keywordOf Lean.Parser.Command.macro}`macro`, and {keywordOf Lean.Parser.Command.elab}`elab` but may need to be done explicitly when manually applying metaprogramming attributes such as {keyword}`app_delab`.
-A {keywordOf Parser.Command.declModifiers}`meta` definition may only access (and thus invoke) other {keywordOf Parser.Command.declModifiers}`meta` definitions; a non-{keywordOf Parser.Command.declModifiers}`meta` definition likewise may only access other non-{keywordOf Parser.Command.declModifiers}`meta` definitions.
+This is automatically done in built-in metaprogramming syntax such as {keywordOf Lean.Parser.Command.syntax}`syntax`, {keywordOf Lean.Parser.Command.macro}`macro`, and {keywordOf Lean.Parser.Command.elab}`elab` but may need to be done explicitly when manually applying metaprogramming attributes such as {keyword}`app_delab` or when defining helper declarations.
+A {keywordOf Parser.Command.declModifiers}`meta` definition may only access (and thus invoke) other {keywordOf Parser.Command.declModifiers}`meta` definitions in execution-relevant positions; a non-{keywordOf Parser.Command.declModifiers}`meta` definition likewise may only access other non-{keywordOf Parser.Command.declModifiers}`meta` definitions.
 
 ::::example "Meta Definitions"
 :::leanModules +error
@@ -714,15 +826,11 @@ The following list contains common errors one might encounter when using the mod
   Check whether a private definition is being accessed in the {tech}[public scope].
   If so, the problem can be solved by making the current declaration private as well, or by placing the reference into the private scope using the {keywordOf Lean.Parser.Term.structInstFieldDef}`private` modifier on a field or {keywordOf Lean.Parser.Term.by}`by` for a proof.
 
-  If the message is prefixed with `(interpreter)`, this suggests a missing {keywordOf Lean.Parser.Module.import}`meta import`.
-  The new import should be placed in the file that defines the metaprogram that depends on the missing constant, which is not necessarily the file triggering the error.
-  The language server always does the equivalent of {keywordOf Lean.Parser.Module.import}`meta import`s for the benefit of interactive commands such as {keywordOf Lean.Parser.Command.eval}`#eval`, so the error might only occur in a command-line build.
-
 : Definitional equality errors, especially after porting
 
   Failures of expected definitional equalities are usually due to a missing {attr}`expose` attribute on a definition or alternatively, if imported, an {keywordOf Lean.Parser.Module.import}`import all`.
   Prefer the former if anyone outside your library might feasibly require the same access.
-  {keywordOf Lean.reduceCmd}`#reduce` and/or {option}`trace.Meta.isDefEq` can help with finding the blocking definition.
+  The error message should list non-exposed definitions that could not be unfolded.
   This may also appear as a kernel error when a tactic directly emits proof terms that reference specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using {attrs}`@[expose]`‍` `{keywordOf Parser.Command.section}`section`s generously on the closure of relevant modules.
 

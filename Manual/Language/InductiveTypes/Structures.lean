@@ -236,6 +236,7 @@ In a pattern context, field names are mapped to patterns that match the correspo
 Default arguments are still present in patterns; if a pattern does not specify a value for a field with a default value, then the pattern only matches the default.
 
 When a field definition contains the {keywordOf Lean.Parser.Term.stuctInstField}`private` modifier, the value is placed in the current module's {tech}[private scope], even if the structure value is itself in the public scope.
+The value is wrapped in a public but non-exposed helper definition.
 This is particularly useful with instances of type classes, because the implementation of {tech}[methods] in public {tech}[instances] of type classes are {tech}[exposed] by default.
 This modifier allows them to be made private.
 
