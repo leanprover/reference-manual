@@ -321,20 +321,15 @@ Use {name}`String.Slice.copy` to convert the slice into a new string.
 
 {docstring String.back}
 
-{docstring String.posOf}
+{docstring String.find}
 
-{docstring String.revPosOf}
+{docstring String.revFind?}
 
 {docstring String.contains}
 
 {docstring String.replace}
 
-{docstring String.findLineStart}
-
 {docstring String.find}
-
-{docstring String.revFind}
-
 
 ## Folds and Aggregation
 %%%

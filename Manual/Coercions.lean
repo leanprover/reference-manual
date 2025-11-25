@@ -217,13 +217,13 @@ instance : Coe Nat Bin where
 #eval (9 : Bin)
 ```
 ```leanOutput nineFail
-failed to synthesize
+failed to synthesize instance of type class
   OfNat Bin 9
 numerals are polymorphic in Lean, but the numeral `9` cannot be used in a context where the expected type is
   Bin
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 This is because coercions are inserted in response to mismatched types, but a failure to synthesize an {name}`OfNat` instance is not a type mismatch.
 

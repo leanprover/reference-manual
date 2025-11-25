@@ -273,13 +273,13 @@ Unfortunately, there is no {name}`OfNat` instance for functions, so instance syn
   (anything! : Int → Int)
 ```
 ```leanOutput poly
-failed to synthesize
+failed to synthesize instance of type class
   OfNat (Int → Int) 5
 numerals are polymorphic in Lean, but the numeral `5` cannot be used in a context where the expected type is
   Int → Int
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 :::

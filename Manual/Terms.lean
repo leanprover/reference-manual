@@ -900,13 +900,13 @@ For example, {name}`Array.push` takes an array as its first argument, not a {lea
 #eval #[1, 2, 3] |> Array.push 4
 ```
 ```leanOutput arrPush
-failed to synthesize
-  OfNat (Array ?m.4) 4
+failed to synthesize instance of type class
+  OfNat (Array ?m.2) 4
 numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
-  Array ?m.4
+  Array ?m.2
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Using pipeline field notation causes the array to be inserted at the first type-correct position:
