@@ -670,9 +670,8 @@ inductive Tree (α : Type u) : Type u where
   | branches : List (Tree α) → Tree α
 
 def Tree.big (n : Nat) : Tree Nat :=
-  if n = 0 then .val 0
-  else if n = 1 then .branches [.big 0]
-  else .branches [.big (n / 2), .big (n / 3)]
+  if n < 5 then .branches [.val n, .val (n - 1), .val n, .val (n - 2)]
+  else .branches [.big (n / 2),  .big (n / 3)]
 ```
 
 However, it can be difficult to spot where test failures come from when the output is large:
@@ -681,11 +680,13 @@ set_option guard_msgs.diff false
 /--
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 -/
 #guard_msgs in
 #eval Tree.big 20
@@ -694,11 +695,13 @@ The evaluation produces:
 ```leanOutput bigMsg (severity := information)
 Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 
 Without {option}`guard_msgs.diff`, the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command reports this error:
@@ -707,11 +710,13 @@ Without {option}`guard_msgs.diff`, the {keywordOf Lean.guardMsgsCmd}`#guard_msgs
 
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 
 Enabling {option}`guard_msgs.diff` highlights the differences instead, making the error more apparent:
@@ -720,11 +725,13 @@ set_option guard_msgs.diff true in
 /--
 info: Tree.branches
   [Tree.branches
-     [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
+     [Tree.branches
+        [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+         Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0,
+      Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
    Tree.branches
-     [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-      Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+     [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+      Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 -/
 #guard_msgs in
 #eval Tree.big 20
@@ -734,12 +741,14 @@ info: Tree.branches
 
   info: Tree.branches
     [Tree.branches
-       [Tree.branches [Tree.branches [Tree.branches [Tree.val 0], Tree.val 0], Tree.branches [Tree.val 0]],
--       Tree.branches [Tree.branches [Tree.val 2], Tree.branches [Tree.val 0]]],
-+       Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]]],
+       [Tree.branches
+          [Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0],
+-          Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0,
++          Tree.branches [Tree.val 1, Tree.val 0, Tree.val 1, Tree.val 0]],
+        Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1]],
      Tree.branches
-       [Tree.branches [Tree.branches [Tree.val 0], Tree.branches [Tree.val 0]],
-        Tree.branches [Tree.branches [Tree.val 0], Tree.val 0]]]
+       [Tree.branches [Tree.val 3, Tree.val 2, Tree.val 3, Tree.val 1],
+        Tree.branches [Tree.val 2, Tree.val 1, Tree.val 2, Tree.val 0]]]
 ```
 :::
 
