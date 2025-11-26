@@ -2039,6 +2039,71 @@ example := show StateM String _ from do
 ```
 :::
 
+There is an important difference between postfix type ascriptions and {keywordOf Lean.Parser.Term.show}`show`.
+Ordinary postfix type ascriptions change the type that is expected for the term, which can change the way that the term elaborates.
+After elaboration, however, Lean infers the type of the resulting term and uses that inferred type for further elaboration tasks.
+On the other hand, {keywordOf Lean.Parser.Term.show}`show` elaborates to a term whose inferred type is the ascribed type.
+The difference can be observed when using {tech}[generalized field notation], where the ascribed type is only guaranteed to be used to resolve fields when using {keywordOf Lean.Parser.Term.show}`show`.
+
+::::example "Postfix Ascription vs `show`"
+
+:::paragraph
+This definition establishes an alternative name for {lean}`List String`:
+```lean
+def Colors := List String
+```
+:::
+
+:::paragraph
+A postfix type ascription provides the type information that's needed to determine the implicit argument {name}`String` to {name}`List.nil`, but the resulting type is still {lean}`List String`:
+```lean (name := nil)
+#check ([] : Colors)
+```
+```leanOutput nil
+[] : List String
+```
+:::
+
+:::paragraph
+When using {keywordOf Lean.Parser.Term.show}`show`, on the other hand, the elaborated term is constructed in such a way that the inferred type is {lean}`Colors`:
+```lean (name := nil2)
+#check (show Colors from [])
+```
+```leanOutput nil2
+have this := [];
+this : Colors
+```
+:::
+
+:::paragraph
+This function is designed to be invoked using {tech}[generalized field notation]:
+```lean
+def Colors.hasYellow (cs : Colors) : Bool :=
+  cs.any (·.toLower == "yellow")
+```
+:::
+
+:::paragraph
+Due to the differences in their inferred types, it can be used with {keywordOf Lean.Parser.Term.show}`show`, but not with the postfix type ascription:
+```lean (name := nil3) +error
+#eval ([] : Colors).hasYellow
+```
+```leanOutput nil3
+Invalid field `hasYellow`: The environment does not contain `List.hasYellow`
+  []
+has type
+  List String
+```
+```lean (name := nil4)
+#eval (show Colors from []).hasYellow
+```
+```leanOutput nil4
+false
+```
+:::
+::::
+
+
 # Quotation and Antiquotation
 
 Quotation terms are described in the {ref "quotation"}[section on quotation].
