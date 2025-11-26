@@ -138,6 +138,12 @@ There are three primary ways to consume an iterator:
 
 
 :::example "Converting Iterators to Lists"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 In {name}`countdown`, an iterator over a range is transformed into an iterator over strings using {name}`Iter.map`.
 This call to {name}`Iter.map` does not result in any iteration over the range until {name}`Iter.toList` is called, at which point each element of the range is produced and transformed into a string.
 ```lean (name := toListEx)
@@ -162,6 +168,12 @@ def countdown : String :=
 :::
 
 :::example "Converting Infinite Iterators to Lists"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 Attempting to construct a list of all the natural numbers from an iterator fails:
 ```lean (name := toListInf) +error -keep
 def allNats : List Nat :=
@@ -185,6 +197,12 @@ def allNats : List Nat :=
 :::
 
 :::example "Consuming Iterators in Loops"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 This program creates an iterator of strings from a range, and then consumes the strings in a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 ```lean (name := iterFor)
 def countdown (n : Nat) : IO Unit := do
@@ -206,6 +224,12 @@ Blastoff!
 :::
 
 :::example "Consuming Iterators Directly"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 The function {name}`countdown` calls the range iterator's {name Iter.step}`step` function directly, handling each of the three possible cases.
 ```lean
 def countdown (n : Nat) : IO Unit := do
