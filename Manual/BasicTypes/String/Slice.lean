@@ -243,7 +243,7 @@ Because they retain a reference to the slice from which they were drawn, slice p
 
 {docstring String.Slice.Pos.str}
 
-{docstring String.Slice.Pos.toCopy}
+{docstring String.Slice.Pos.copy}
 
 {docstring String.Slice.Pos.ofSliceFrom}
 

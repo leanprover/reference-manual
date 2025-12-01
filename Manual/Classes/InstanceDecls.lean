@@ -145,7 +145,7 @@ with errors in both the left and right recursive calls that read:
 failed to synthesize instance of type class
   BEq NatTree
 
-Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
+Hint: Adding the command `deriving instance BEq for NatTree` may allow Lean to derive the missing instance.
 ```
 Given a suitable recursive function, such as {lean}`NatTree.beq`:
 ```lean

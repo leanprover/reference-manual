@@ -633,7 +633,7 @@ block_extension Block.errorExplanationMetadata (metadata : ErrorExplanation.Meta
 def addExplanationMetadata (metadata : ErrorExplanation.Metadata) : PartElabM Unit := do
   PartElabM.addBlock (← ``(Block.other (Block.errorExplanationMetadata $(quote metadata)) #[]))
 
-/-- Adds the metadata and bofy of the explanation with name `name` to the document. -/
+/-- Adds the metadata and body of the explanation with name `name` to the document. -/
 def addExplanationBlocksFor (name : Name) : PartElabM Unit := do
   let explan? ← getErrorExplanation? name
   match explan? with

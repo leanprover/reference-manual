@@ -1023,7 +1023,7 @@ where
       return s
     | _ => s
   ws (s : String) : StateM (Array (SearchableTag × String)) Unit := do
-    if !s.isEmpty && s.all (·.isWhitespace) then
+    if !s.isEmpty && s.all Char.isWhitespace then
       modify fun st =>
         if st.isEmpty then st
         else if st.back?.map (·.1 == .ws) |>.getD true then st

@@ -160,6 +160,8 @@ tag := "string-api-valid-pos"
 
 {docstring String.pos!}
 
+{docstring String.extract}
+
 ### Lookups
 
 {docstring String.Pos.get}
@@ -169,8 +171,6 @@ tag := "string-api-valid-pos"
 {docstring String.Pos.get?}
 
 {docstring String.Pos.set}
-
-{docstring String.Pos.extract +allowMissing}
 
 ### Modifications
 
