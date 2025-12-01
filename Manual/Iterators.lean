@@ -41,6 +41,12 @@ A couple basic iterator examples
 :::
 
 :::example "Mixing Collections"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 Combining a list and an array using {name}`List.zip` or {name}`Array.zip` would ordinarily require converting one of them into the other collection.
 Using iterators, they can be processed without conversion:
 ```lean (name := zip)
@@ -55,6 +61,12 @@ def codes : List String := ["aa27d1", "a0a0a0", "0000c5"]
 :::
 
 ::::example "Avoiding Intermediate Structures"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 :::paragraph
 In this example, an array of colors and a list of color codes are combined.
 The program separates three intermediate stages:
@@ -172,6 +184,12 @@ In these cases, {name}`Iter.allowNontermination` can be used to bypass a finiten
 {docstring Iter.allowNontermination}
 
 ::::example "Iterating Over `Nat`"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 :::paragraph
 To write an iterator that yields each natural number in turn, the first step is to implement its internal state.
 This iterator only needs to remember the next natural number:
@@ -242,6 +260,12 @@ This iterator is useful with combinators such as {name}`Iter.zip`:
 ::::
 
 ::::example "Iterating Over Triples"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 The type {name}`Triple` contains three values of the same type:
 ```lean
 structure Triple α where
@@ -427,6 +451,12 @@ c
 ::::
 
 ::::example "Iterators and Effects"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 One way to iterate over the contents of a file is to read a specified number of bytes from a {name IO.FS.Stream}`Stream` at each step.
 When EOF is reached, the iterator can close the file by letting its reference count drop to zero:
 ```lean
