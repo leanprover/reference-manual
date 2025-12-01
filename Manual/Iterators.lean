@@ -40,6 +40,54 @@ To use iterators, import {module}`Std.Data.Iterators`.
 A couple basic iterator examples
 :::
 
+:::example "Mixing Collections"
+Combining a list and an array using {name}`List.zip` or {name}`Array.zip` would ordinarily require converting one of them into the other collection.
+Using iterators, they can be processed without conversion:
+```lean (name := zip)
+def colors : Array String := #["purple", "gray", "blue"]
+def codes : List String := ["aa27d1", "a0a0a0", "0000c5"]
+
+#eval colors.iter.zip codes.iter |>.toArray
+```
+```leanOutput zip
+#[("purple", "aa27d1"), ("gray", "a0a0a0"), ("blue", "0000c5")]
+```
+:::
+
+::::example "Avoiding Intermediate Structures"
+:::paragraph
+In this example, an array of colors and a list of color codes are combined.
+The program separates three intermediate stages:
+1. The names and codes are combined into pairs.
+2. The pairs are transformed into readable strings.
+3. The strings are combined with newlines.
+```lean (name := intermediate)
+def colors : Array String := #["purple", "gray", "blue"]
+
+def codes : List String := ["aa27d1", "a0a0a0", "0000c5"]
+
+def go : IO Unit := do
+  let colorCodes := colors.iter.zip codes.iter
+  let colorCodes := colorCodes.map fun (name, code) =>
+    s!"{name} ↦ #{code}"
+  let colorCodes := colorCodes.fold (init := "") fun x y =>
+    if x.isEmpty then y else x ++ "\n" ++ y
+  IO.println colorCodes
+
+#eval go
+```
+```leanOutput intermediate
+purple ↦ #aa27d1
+gray ↦ #a0a0a0
+blue ↦ #0000c5
+```
+:::
+
+The intermediate stages of the computation do not allocate new data structures.
+Instead, all the steps of the transformation are fused into a single loop, with {name}`Iter.fold` carrying out one step at a time.
+In each step, a single color and color code are combined into a pair, rewritten to a string, and added to the result string.
+::::
+
 :::keepEnv
 ```lean -show
 structure Coll : Type u where
@@ -55,29 +103,8 @@ Additionally, other built-in types such as ranges support iteration using the sa
 Iterators can be transformed using combinators such as {name}`Iter.map` or {name}`Iter.filter` that take one or more iterators and return a new iterator.
 The resulting iterators do not actually iterate over the underlying collection until they themselves are consumed.
 
-# Steps
 
-Fundamentally, an iterator is a data structure that takes a step when requested, returning a {name}`Iter.Step`.
-This step is a wrapper around {name}`IterStep`, with additional proofs that are used to track termination behavior.
-
-{docstring IterStep}
-
-{docstring Iter.Step}
-
-{docstring IterM.Step}
-
-An {name}`Iter.Step` or {name}`IterM.Step` can be analyzed using the three {ref "match_pattern-functions"}[match pattern functions] {name}`PlausibleIterStep.yield`, {name}`PlausibleIterStep.skip`, and {name}`PlausibleIterStep.done`.
-These functions pair the information in the underlying {name}`IterStep` with the surrounding proof object.
-
-{docstring PlausibleIterStep.yield}
-
-{docstring PlausibleIterStep.skip}
-
-{docstring PlausibleIterStep.done}
-
-
-
-# Varieties of Iterators
+# Iterator Definitions
 
 Iterators may be either monadic or pure, and they may be finite, productive, or potentially infinite.
 {deftech (key:="monadic iterator")}_Monadic_ iterators use side effects in some {tech}[monad] to emit each value, and must therefore be used in the monad, while {deftech (key:="pure iterator")}_pure_ iterators do not require side effects.
@@ -88,6 +115,42 @@ Pure iterators have type {name}`Iter`, while monadic iterators are represented b
 
 {docstring IterM}
 
+The types {name}`Iter` and {name}`IterM` are merely wrappers around an internal state.
+The actual process of iteration consists of producing a sequence of iteration steps when requested.
+Each step returns an updated iterator with a new internal state along with either a data value, an indicator that the caller should request a data value again, or an indication that iteration is finished.
+Steps taken by {name}`Iter` and {name}`IterM` are respectively represented by the types {name}`Iter.Step` and {name}`IterM.Step`.
+Both types of step are wrappers around {name}`IterStep` that include additional proofs that are used to track termination behavior.
+
+{docstring IterStep}
+
+{docstring Iter.Step}
+
+{docstring IterM.Step}
+
+Steps are produced from iterators using {name}`Iterator.step`, which is a method of the {name}`Iterator` type class.
+{name}`Iterator` is used for both pure and monadic iterators; pure iterators can be completely polymorphic in the choice of monad, which allows callers to instantiate it with {name}`Id`.
+
+{docstring Iterator +allowMissing}
+
+In addition to the step function, instances of {name}`Iterator` include a relation {name}`Iterator.IsPlausibleStep`.
+This relation exists because most iterators both maintain invariants over their internal state and yield values in a predictable manner.
+For example, array iterators track both an array and a current index into it.
+Stepping an array iterator results in an iterator over the same underlying array; it yields a value when the index is small enough, or is done otherwise.
+The {deftech}_plausible steps_ from an iterator state are those which are related to it via the iterator's implementation of {name Iterator.IsPlausibleStep}`IsPlausibleStep`.
+Tracking plausibility at the logical level makes it feasible to reason about termination behavior in many more cases.
+
+Both {name}`Iter.Step` and {name}`IterM.Step` are defined in terms of {name}`PlausibleIterStep`; thus, both types can be used with {tech}[leading dot notation] for its namespace.
+An {name}`Iter.Step` or {name}`IterM.Step` can be analyzed using the three {ref "match_pattern-functions"}[match pattern functions] {name}`PlausibleIterStep.yield`, {name}`PlausibleIterStep.skip`, and {name}`PlausibleIterStep.done`.
+These functions pair the information in the underlying {name}`IterStep` with the surrounding proof object.
+
+{docstring PlausibleIterStep}
+
+{docstring PlausibleIterStep.yield}
+
+{docstring PlausibleIterStep.skip}
+
+{docstring PlausibleIterStep.done}
+
 :::paragraph
 Not all iterators are guaranteed to return a finite number of results; it is perfectly sensible to iterate over all of the natural numbers.
 Similarly, not all iterators are guaranteed to either return a single result or terminate; iterators may be defined using arbitrary programs.
@@ -96,7 +159,7 @@ Thus, Lean divides iterators into three termination classes:
 * {deftech (key:="productive iterator")}_Productive_ iterators are guaranteed to yield a value or terminate in finite time, but they may yield infinitely many values. These iterators have a {name}`Productive` instance.
 * All other iterators, whose termination behavior is unknown. These iterators have neither instance.
 
-All finite iterators are also productive.
+All finite iterators are necessarily productive.
 :::
 
 {docstring Finite +allowMissing}
@@ -108,9 +171,343 @@ In these cases, {name}`Iter.allowNontermination` can be used to bypass a finiten
 
 {docstring Iter.allowNontermination}
 
-# Basic Iterators
+::::example "Iterating Over `Nat`"
+:::paragraph
+To write an iterator that yields each natural number in turn, the first step is to implement its internal state.
+This iterator only needs to remember the next natural number:
+```lean
+structure Nats where
+  next : Nat
+```
+:::
+:::paragraph
+This iterator will only ever yield the next natural number.
+Thus, its step function will never return {name IterStep.skip}`skip` or {name IterStep.done}`done`.
+Whenever it yields a value, the value will be the internal state's {name Nats.next}`next` field, and the successor iterator's {name Nats.next}`next` field will be one greater.
+The {tactic}`grind` tactic suffices to show that the step is indeed plausible:
+```lean
+instance [Pure m] : Iterator Nats m Nat where
+  IsPlausibleStep it
+    | .yield it' n =>
+      n = it.internalState.next ∧
+      it'.internalState.next = n + 1
+    | _ => False
+  step it :=
+    let n := it.internalState.next
+    pure <| .deflate <|
+      .yield { it with internalState.next := n + 1 } n (by grind)
+```
+:::
 
-In addition to the iterators provided by collection types, there are a number of basic iterators. {TODO}[write more here]
+:::paragraph
+```lean -show
+section
+variable [Pure m] [inst : Iterator Nats m Nat] (it it' : IterM (α := Nats) m Nat)
+```
+This {name Iterator.step}`step` function is productive because it never returns {name IterStep.skip}`skip`.
+Thus, the proof that each chain of {name IterStep.skip}`skip`s has finite length can rely on the fact that when {lean}`it` is a {name}`Nats` iterator, {lean}`Iterator.IsPlausibleStep it (.skip it') = False`:
+```lean -show
+end
+```
+```lean
+instance [Pure m] : Productive Nats m where
+  wf := .intro <| fun _ => .intro _ nofun
+```
+Because there are infinitely many {name}`Nat`s, the iterator is not finite.
+:::
+
+
+:::paragraph
+A {name}`Nats` iterator can be created using this function:
+```lean
+def Nats.iter : Iter (α := Nats) Nat :=
+  toIterM { next := 0 } Id Nat |>.toIter
+```
+:::
+
+:::paragraph
+This iterator is useful with combinators such as {name}`Iter.zip`:
+```lean (name := natzip)
+#eval show IO Unit from do
+  let xs : List String := ["cat", "dog", "pachycephalosaurus"]
+  for (x, y) in Nats.iter.zip xs.iter do
+    IO.println s!"{x}: {y}"
+```
+```leanOutput natzip
+0: cat
+1: dog
+2: pachycephalosaurus
+```
+:::
+::::
+
+::::example "Iterating Over Triples"
+The type {name}`Triple` contains three values of the same type:
+```lean
+structure Triple α where
+  fst : α
+  snd : α
+  thd : α
+```
+
+The internal state of an iterator over {name}`Triple` can consist of a triple paired with a current position.
+This position may either be one of the fields or an indication that iteration is finished.
+```lean
+inductive TriplePos where
+  | fst | snd | thd | done
+```
+
+Positions can be used to look up elements:
+
+```lean
+def Triple.get? (xs : Triple α) (pos : TriplePos) : Option α :=
+  match pos with
+  | .fst => some xs.fst
+  | .snd => some xs.snd
+  | .thd => some xs.thd
+  | _ => none
+```
+
+Each field's position has a successor position:
+```lean
+def TriplePos.next? : TriplePos → Option TriplePos
+  | .fst => some .snd
+  | .snd => some .thd
+  | .thd => some .done
+  | .done => none
+
+@[grind, grind cases]
+inductive TriplePos.Succ : TriplePos → TriplePos → Prop where
+  | fst : Succ .fst .snd
+  | snd : Succ .snd .thd
+  | thd : Succ .thd .done
+
+theorem TriplePos.next?_Succ {pos pos' : TriplePos} :
+    (pos.next? = some pos') = pos.Succ pos' := by
+  cases pos <;> grind [next?]
+```
+
+The iterator itself pairs a triple with the position of the next element:
+```lean
+structure TripleIterator α where
+  triple : Triple α
+  pos : TriplePos
+```
+
+Iteration begins at {name TriplePos.fst}`fst`:
+```lean
+def Triple.iter (xs : Triple α) : Iter (α := TripleIterator α) α :=
+  toIterM {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
+```
+
+There are two plausible steps: either the iterator's position has a successor, in which case the next iterator is one that points at the same triple with the successor position, or it does not, in which case iteration is complete.
+```lean
+@[grind]
+inductive TripleIterator.IsPlausibleStep :
+    @IterM (TripleIterator α) m α →
+    IterStep (@IterM (TripleIterator α) m α) α →
+    Prop where
+  | yield :
+    it.internalState.triple = it'.internalState.triple →
+    it.internalState.pos.Succ it'.internalState.pos →
+    it.internalState.triple.get? it.internalState.pos = some out →
+    IsPlausibleStep it (.yield it' out)
+  | done :
+    it.internalState.pos = .done →
+    IsPlausibleStep it .done
+```
+
+The corresponding step function yields the iterator and value describe by the relation:
+```lean
+instance [Pure m] : Iterator (TripleIterator α) m α where
+  IsPlausibleStep := TripleIterator.IsPlausibleStep
+  step
+    | ⟨xs, pos⟩ =>
+      pure <| .deflate <|
+      match pos with
+      | .fst => .yield ⟨xs, .snd⟩ xs.fst ?_
+      | .snd => .yield ⟨xs, .thd⟩ xs.snd ?_
+      | .thd => .yield ⟨xs, .done⟩ xs.thd ?_
+      | .done => .done <| ?_
+where finally
+  all_goals grind [Triple.get?]
+```
+
+This iterator cannot yet be converted to an array, because it is missing a {name}`Finite` instance and an {name}`IteratorCollect` instance:
+```lean
+def abc : Triple Char := ⟨'a', 'b', 'c'⟩
+```
+```lean (name := noAbc) +error
+#eval abc.iter.toArray
+```
+```leanOutput noAbc
+failed to synthesize
+  Finite (TripleIterator Char) Id
+
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+To prove finiteness, it's easiest to start at {name}`TriplePos.done` and work backwards toward {name}`TriplePos.fst`, showing that each position in turn has a finite chain of successors:
+
+```lean
+@[grind! .]
+theorem acc_done [Pure m] :
+    Acc (IterM.IsPlausibleSuccessorOf (m := m))
+      ⟨{ triple, pos := .done : TripleIterator α}⟩ :=
+  Acc.intro _ fun
+    | _, ⟨_, ⟨_, h⟩⟩ => by
+      cases h <;> grind [IterStep.successor_done]
+
+@[grind! .]
+theorem acc_thd [Pure m] :
+    Acc (IterM.IsPlausibleSuccessorOf (m := m))
+      ⟨{ triple, pos := .thd : TripleIterator α}⟩ :=
+  Acc.intro _ fun
+    | ⟨{ triple, pos }⟩, ⟨h, h', h''⟩ => by
+      cases h'' <;> grind [IterStep.successor_yield]
+
+@[grind! .]
+theorem acc_snd [Pure m] :
+    Acc (IterM.IsPlausibleSuccessorOf (m := m))
+      ⟨{ triple, pos := .snd : TripleIterator α}⟩ :=
+  Acc.intro _ fun
+    | ⟨{ triple, pos }⟩, ⟨h, h', h''⟩ => by
+      cases h'' <;> grind [IterStep.successor_yield]
+
+@[grind! .]
+theorem acc_fst [Pure m] :
+    Acc (IterM.IsPlausibleSuccessorOf (m := m))
+      ⟨{ triple, pos := .fst : TripleIterator α}⟩ :=
+  Acc.intro _ fun
+    | ⟨{ triple, pos }⟩, ⟨h, h', h''⟩ => by
+      cases h'' <;> grind [IterStep.successor_yield]
+
+instance [Pure m] : Finite (TripleIterator α) m where
+  wf := .intro <| fun
+    | { internalState := { triple, pos } } => by
+      cases pos <;> grind
+```
+
+With the {name}`Finite` instance in place, the default implementation of {name}`IteratorCollect` can be used:
+
+```lean
+instance [Iterator (TripleIterator α) m α] [Monad n] :
+    IteratorCollect (TripleIterator α) m n :=
+  IteratorCollect.defaultImplementation
+```
+
+{name}`Iter.toArray` now works:
+```lean (name := abcToArray)
+#eval abc.iter.toArray
+```
+```leanOutput abcToArray
+#['a', 'b', 'c']
+```
+
+To enable the iterator in {keywordOf Lean.Parser.Term.doFor}`for` loops, instances of {name}`IteratorLoopPartial` and {name}`IteratorLoop` are needed:
+```lean
+instance [Monad m] [Monad n] :
+    IteratorLoopPartial (TripleIterator α) m n :=
+  .defaultImplementation
+
+instance [Monad m] [Monad n] :
+    IteratorLoop (TripleIterator α) m n :=
+  .defaultImplementation
+```
+```lean (name := abc)
+#eval show IO Unit from do
+  for x in abc.iter do
+    IO.println x
+```
+```leanOutput abc
+a
+b
+c
+```
+::::
+
+::::example "Iterators and Effects"
+One way to iterate over the contents of a file is to read a specified number of bytes from a {name IO.FS.Stream}`Stream` at each step.
+When EOF is reached, the iterator can close the file by letting its reference count drop to zero:
+```lean
+structure FileIterator where
+  stream? : Option IO.FS.Stream
+  count : USize := 8192
+```
+
+An iterator can be created by opening a file and converting its handle to a stream:
+```lean
+def iterFile
+    (path : System.FilePath)
+    (count : USize := 8192) :
+    IO (IterM (α := FileIterator) IO ByteArray) := do
+  let h ← IO.FS.Handle.mk path .read
+  let stream? := some (IO.FS.Stream.ofHandle h)
+  return toIterM { stream?, count } IO ByteArray
+```
+
+For this iterator, a {name IterStep.yield}`yield` is plausible when the file is still open, and {name IterStep.done}`done` is plausible when the file is closed.
+The actual step function performs a read and closes the file if no bytes were returned:
+```lean
+instance : Iterator FileIterator IO ByteArray where
+  IsPlausibleStep it
+    | .yield .. =>
+      it.internalState.stream?.isSome
+    | .skip .. => False
+    | .done => it.internalState.stream?.isNone
+  step it := do
+    let { stream?, count } := it.internalState
+    match stream? with
+    | none => return .deflate <| .done rfl
+    | some stream =>
+      let bytes ← stream.read count
+      let it' :=
+        { it with internalState.stream? :=
+          if bytes.size == 0 then none else some stream
+        }
+      return .deflate <| .yield it' bytes (by grind)
+```
+
+To use it in loops, {name}`IteratorLoop` and {name}`IteratorLoopPartial` instances will be necessary.
+In practice, the latter is most important: because file streams may be infinite, the iterator itself may be infinite.
+```lean
+instance [Monad n] : IteratorLoop FileIterator IO n :=
+  .defaultImplementation
+
+instance [Monad n] : IteratorLoopPartial FileIterator IO n :=
+  .defaultImplementation
+```
+
+This is enough support code to use the iterator to calculate file sizes:
+```lean
+def fileSize (name : System.FilePath) : IO Nat := do
+  let mut size := 0
+  let f := (← iterFile name).allowNontermination
+  for bytes in f do
+    size := size + bytes.size
+  return size
+```
+
+::::
+
+## Universe Levels
+
+To make the {tech}[universe levels] of iterators more flexible, a wrapper type {name Std.Shrink}`Shrink` is applied around the result of {name}`Iterator.step`.
+This type is presently a placeholder.
+It is present to reduce the scope of the breaking change when the full implementation is available.
+
+{docstring Std.Shrink}
+
+{docstring Std.Shrink.inflate}
+
+{docstring Std.Shrink.deflate}
+
+
+## Basic Iterators
+
+In addition to the iterators provided by collection types, there are two basic iterators that are not connected to any underlying data structure.
+{name}`Iter.empty` finishes iteration immediately after yielding no data, and {name}`Iter.repeat` yields the same element forever.
+These iterators are primarily useful as parts of larger iterators built with combinators.
 
 {docstring Iter.empty}
 
