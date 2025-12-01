@@ -658,10 +658,6 @@ where
 
 {docstring Iter.attachWith}
 
-## Plausibility
-
-
-
 ## Consuming Iterators
 
 ### Consuming Pure Iterators
@@ -718,7 +714,7 @@ where
 
 {docstring IterM.atIdx?}
 
-### Tabulating (TODO terminology)
+### Collecting Contents
 
 {docstring Iter.toArray}
 
@@ -818,8 +814,6 @@ where
 
 {docstring Std.Iterators.IterM.zip}
 
-
-
 Map etc
 
 # Reasoning About Iterators
@@ -829,5 +823,3 @@ Map etc
 {docstring Iter.inductSteps}
 
 {docstring Std.Iterators.PostconditionT}
-
-# Implementing Iterators
