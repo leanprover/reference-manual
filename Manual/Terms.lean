@@ -740,11 +740,6 @@ When a function is found, the term before the dot becomes an argument to the fun
 Specifically, it becomes the first explicit argument that would not be a type error.
 Aside from that, the application is elaborated as usual.
 
-::::keepEnv
-```lean -show
-section
-variable (name : Username)
-```
 :::example "Generalized Field Notation"
 The type {lean}`Username` is a constant, so functions in the {name}`Username` namespace can be applied to terms with type {lean}`Username` with generalized field notation.
 ```lean
@@ -790,9 +785,6 @@ has type
 ```leanOutput isUsername
 Except.ok ()
 ```
-```lean -show
-end
-```
 
 Going in the other direction, {lean}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
 ```lean (name := isString1)
@@ -801,9 +793,7 @@ Going in the other direction, {lean}`String.any` *can* be called on the {lean}`U
 ```leanOutput isString1
 true
 ```
-
 :::
-::::
 
 {optionDocs pp.fieldNotation}
 
