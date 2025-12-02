@@ -556,6 +556,7 @@ There are three primary ways to consume an iterator:
 : {keywordOf Lean.Parser.Term.doFor}`for` loops
 
   A {keywordOf Lean.Parser.Term.doFor}`for` loop can consume an iterator, making each value available in its body.
+  This requires that the iterator have either an instance of {name}`IteratorLoop` or {name}`IteratorLoopPartial` for the loop's monad.
 
 : Stepping through iterators
 

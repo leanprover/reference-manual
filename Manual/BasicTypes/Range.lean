@@ -15,6 +15,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option format.width 60
 
 #doc (Manual) "Ranges" =>
 %%%
@@ -562,3 +563,72 @@ It's Day.we
 :::
 
 ::::
+
+# Ranges and Slices
+
+Range syntax can be used with data structures that support slicing to select a slice of the structure.
+
+:::example "Slicing Lists"
+
+:::
+
+:::example "Custom Slices"
+A {name}`Triple` contains three values of the same type:
+```lean
+structure Triple (α : Type u) where
+  fst : α
+  snd : α
+  thd : α
+deriving Repr
+```
+Positions in a triple may be any of the fields, or just after {name Triple.thd}`thd`:
+```lean
+inductive TriplePos where
+  | fst | snd | thd | done
+deriving Repr
+```
+A slice of a triple consists of a triple, a starting position, and a stopping position.
+The starting position is inclusive, and the stopping position exclusive:
+```lean
+structure TripleSlice (α : Type u) where
+  triple : Triple α
+  start : TriplePos
+  stop : TriplePos
+deriving Repr
+```
+Ranges of {name}`TriplePos` can be used to select a slice from a triple by implementing instances of each supported range type's {name Std.Rco.Sliceable}`Sliceable` class.
+For example, {name}`Std.Rco.Sliceable` allows left-closed, right-open ranges to be used to slice {name}`Triple`s:
+```lean
+instance : Std.Rco.Sliceable (Triple α) TriplePos (TripleSlice α) where
+  mkSlice triple range :=
+    { triple, start := range.lower, stop := range.upper }
+```
+```lean (name := slice)
+def abc : Triple Char := ⟨'a', 'b', 'c'⟩
+
+open TriplePos in
+#eval abc[snd...thd]
+```
+```leanOutput slice
+{ triple := { fst := 'a', snd := 'b', thd := 'c' }, start := TriplePos.snd, stop := TriplePos.thd }
+```
+
+:::
+
+{docstring Std.Rco.Sliceable +allowMissing}
+
+{docstring Std.Rcc.Sliceable +allowMissing}
+
+{docstring Std.Rci.Sliceable +allowMissing}
+
+{docstring Std.Roo.Sliceable +allowMissing}
+
+{docstring Std.Roc.Sliceable +allowMissing}
+
+{docstring Std.Roi.Sliceable +allowMissing}
+
+{docstring Std.Rio.Sliceable +allowMissing}
+
+{docstring Std.Ric.Sliceable +allowMissing}
+
+{docstring Std.Rii.Sliceable +allowMissing}
