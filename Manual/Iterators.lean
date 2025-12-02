@@ -678,6 +678,21 @@ Iterators are manually stepped using {name}`Iter.step` or {name}`IterM.step`.
 When manually stepping an finite iterator, the termination measures {name Iter.finitelyManySteps}`finitelyManySteps` and {name Iter.finitelyManySkips}`finitelyManySkips` can be used to express that each step brings iteration closer to the end.
 The proof automation for {ref "well-founded-recursion"}[well-founded recursion] is pre-configured to prove that recursive calls after steps reduce these measures.
 
+:::example "Finitely Many Skips"
+This function returns the first element of an iterator, if there is one, or {name}`none` otherwise.
+Because the iterator must be productive, it is guaranteed to return an element after at most a finite number of {name PlausibleIterStep.skip}`skip`s.
+This function terminates even for infinite iterators.
+```lean
+def getFirst [Iterator α Id β] [Productive α Id]
+    (it : @Iter α β) : Option β :=
+  match it.step with
+  | .done .. => none
+  | .skip it' .. => getFirst it'
+  | .yield _ x .. => pure x
+termination_by it.finitelyManySkips
+```
+:::
+
 {docstring Iter.finitelyManySteps}
 
 {docstring IterM.finitelyManySteps}
@@ -687,6 +702,7 @@ The proof automation for {ref "well-founded-recursion"}[well-founded recursion] 
 {docstring IterM.finitelyManySkips}
 
 {docstring Iter.attachWith}
+
 
 ## Consuming Iterators
 
