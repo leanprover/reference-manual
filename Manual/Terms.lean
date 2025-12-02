@@ -731,18 +731,15 @@ If a term's type is a constant applied to zero or more arguments, then {deftech}
 The use of field notation to apply other functions is called {deftech}_generalized field notation_.
 
 The identifier after the dot is looked up in the namespace of the term's type, which is the constant's name.
-If the type is not an application of a constant (e.g., a function, a metavariable, or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+If the type is not an application of a constant (e.g. a metavariable or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+As a special case, if an expression is a function, generalized field notation will look in the `Function` namespace. Therefore, {lean}`Nat.add.uncurry` is a use of generalized field notation that is equivalent to {lean}`Function.uncurry Nat.add`.
+
 If the field is not found, but the constant can be unfolded to yield a further type which is a constant or application of a constant, then the process is repeated with the new constant.
 
 When a function is found, the term before the dot becomes an argument to the function.
 Specifically, it becomes the first explicit argument that would not be a type error.
 Aside from that, the application is elaborated as usual.
 
-::::keepEnv
-```lean -show
-section
-variable (name : Username)
-```
 :::example "Generalized Field Notation"
 The type {lean}`Username` is a constant, so functions in the {name}`Username` namespace can be applied to terms with type {lean}`Username` with generalized field notation.
 ```lean
@@ -767,32 +764,36 @@ where
     !c.isDigit &&
     !c ∈ ['_', ' ']
 
-def root : Username := "root"
+def adminUser : Username := "admin"
 ```
 
 However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
 ```lean +error (name := notString)
-#eval "root".validate
+#eval "admin".validate
 ```
 ```leanOutput notString
 Invalid field `validate`: The environment does not contain `String.validate`
-  "root"
+  "admin"
 has type
   String
 ```
 
-{lean}`root`, on the other hand, has type {lean}`Username`:
+{lean}`adminUser`, on the other hand, has type {lean}`Username`, so the {lean}`Username.validate` function can be invoked with generalized field notation:
 ```lean (name := isUsername)
-#eval root.validate
+#eval adminUser.validate
 ```
 ```leanOutput isUsername
 Except.ok ()
 ```
-:::
-```lean -show
-end
+
+Going in the other direction, {lean}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
+```lean (name := isString1)
+#eval adminUser.any (· == 'm')
 ```
-::::
+```leanOutput isString1
+true
+```
+:::
 
 {optionDocs pp.fieldNotation}
 
