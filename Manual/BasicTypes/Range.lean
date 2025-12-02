@@ -569,6 +569,61 @@ It's Day.we
 Range syntax can be used with data structures that support slicing to select a slice of the structure.
 
 :::example "Slicing Lists"
+Lists may be sliced with any of the interval types:
+```lean
+def groceries :=
+  ["apples", "bananas", "coffee", "dates", "endive", "fennel"]
+```
+
+```lean (name := rco)
+#eval groceries[1...4] |>.toList
+```
+```leanOutput rco
+["bananas", "coffee", "dates"]
+```
+```lean (name := rcc)
+#eval groceries[1...=4] |>.toList
+```
+```leanOutput rcc
+["bananas", "coffee", "dates", "endive"]
+```
+```lean (name := rci)
+#eval groceries[1...*] |>.toList
+```
+```leanOutput rci
+["bananas", "coffee", "dates", "endive", "fennel"]
+```
+```lean (name := roo)
+#eval groceries[1<...4] |>.toList
+```
+```leanOutput roo
+["coffee", "dates"]
+```
+```lean (name := roc)
+#eval groceries[1<...=4] |>.toList
+```
+```leanOutput roc
+["coffee", "dates", "endive"]
+```
+```lean (name := ric)
+#eval groceries[*...=4] |>.toList
+```
+```leanOutput ric
+["apples", "bananas", "coffee", "dates", "endive"]
+```
+```lean (name := rio)
+#eval groceries[*...4] |>.toList
+```
+```leanOutput rio
+["apples", "bananas", "coffee", "dates"]
+```
+```lean (name := rii)
+#eval groceries[*...*] |>.toList
+```
+```leanOutput rii
+["apples", "bananas", "coffee", "dates", "endive", "fennel"]
+```
+
 
 :::
 
