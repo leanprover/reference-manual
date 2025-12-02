@@ -679,6 +679,12 @@ When manually stepping an finite iterator, the termination measures {name Iter.f
 The proof automation for {ref "well-founded-recursion"}[well-founded recursion] is pre-configured to prove that recursive calls after steps reduce these measures.
 
 :::example "Finitely Many Skips"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
 This function returns the first element of an iterator, if there is one, or {name}`none` otherwise.
 Because the iterator must be productive, it is guaranteed to return an element after at most a finite number of {name PlausibleIterStep.skip}`skip`s.
 This function terminates even for infinite iterators.
