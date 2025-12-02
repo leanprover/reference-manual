@@ -294,21 +294,11 @@ def Triple.get? (xs : Triple α) (pos : TriplePos) : Option α :=
 
 Each field's position has a successor position:
 ```lean
-def TriplePos.next? : TriplePos → Option TriplePos
-  | .fst => some .snd
-  | .snd => some .thd
-  | .thd => some .done
-  | .done => none
-
 @[grind, grind cases]
 inductive TriplePos.Succ : TriplePos → TriplePos → Prop where
   | fst : Succ .fst .snd
   | snd : Succ .snd .thd
   | thd : Succ .thd .done
-
-theorem TriplePos.next?_Succ {pos pos' : TriplePos} :
-    (pos.next? = some pos') = pos.Succ pos' := by
-  cases pos <;> grind [next?]
 ```
 
 The iterator itself pairs a triple with the position of the next element:
