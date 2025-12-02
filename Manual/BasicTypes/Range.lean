@@ -612,6 +612,18 @@ open TriplePos in
 ```leanOutput slice
 { triple := { fst := 'a', snd := 'b', thd := 'c' }, start := TriplePos.snd, stop := TriplePos.thd }
 ```
+Infinite ranges have only a lower bound:
+```lean (name := slice2)
+instance : Std.Rci.Sliceable (Triple α) TriplePos (TripleSlice α) where
+  mkSlice triple range :=
+    { triple, start := range.lower, stop := .done }
+
+open TriplePos in
+#eval abc[snd...*]
+```
+```leanOutput slice2
+{ triple := { fst := 'a', snd := 'b', thd := 'c' }, start := TriplePos.snd, stop := TriplePos.done }
+```
 
 :::
 
