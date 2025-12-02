@@ -703,16 +703,17 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.finitelyManySteps}
 
+{docstring IterM.TerminationMeasures.Finite +allowMissing}
+
 {docstring Iter.finitelyManySkips}
 
 {docstring IterM.finitelyManySkips}
 
+{docstring IterM.TerminationMeasures.Productive +allowMissing}
+
 {docstring Iter.attachWith}
 
-
-## Consuming Iterators
-
-### Consuming Pure Iterators
+## Consuming Pure Iterators
 
 {docstring Iter.fold}
 
@@ -740,7 +741,7 @@ termination_by it.finitelyManySkips
 
 {docstring Iter.atIdxSlow?}
 
-### Consuming Monadic Iterators
+## Consuming Monadic Iterators
 
 {docstring IterM.fold}
 
@@ -766,7 +767,7 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.atIdx?}
 
-### Collecting Contents
+## Collecting Contents
 
 {docstring Iter.toArray}
 
@@ -875,3 +876,5 @@ Map etc
 {docstring Iter.inductSteps}
 
 {docstring Std.Iterators.PostconditionT}
+
+{docstring Iter.IsPlausibleIndirectOutput +allowMissing}
