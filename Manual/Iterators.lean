@@ -181,6 +181,8 @@ In these cases, {name}`Iter.allowNontermination` can be used to bypass a finiten
 
 {docstring Iter.allowNontermination}
 
+{docstring IterM.allowNontermination}
+
 ::::example "Iterating Over `Nat`"
 ```imports -show
 import Std.Data.Iterators
@@ -508,6 +510,12 @@ def fileSize (name : System.FilePath) : IO Nat := do
 
 ::::
 
+## Accessing Elements
+
+{docstring IteratorAccess +allowMissing}
+
+{docstring IterM.nextAtIdx?}
+
 ## Universe Levels
 
 To make the {tech}[universe levels] of iterators more flexible, a wrapper type {name Std.Shrink}`Shrink` is applied around the result of {name}`Iterator.step`.
@@ -529,7 +537,10 @@ These iterators are primarily useful as parts of larger iterators built with com
 
 {docstring Iter.empty}
 
+{docstring IterM.empty}
+
 {docstring Iter.repeat}
+
 
 # Consuming Iterators
 
@@ -713,6 +724,8 @@ termination_by it.finitelyManySkips
 
 {docstring Iter.attachWith}
 
+{docstring IterM.attachWith}
+
 ## Consuming Pure Iterators
 
 {docstring Iter.fold}
@@ -743,6 +756,8 @@ termination_by it.finitelyManySkips
 
 ## Consuming Monadic Iterators
 
+{docstring IterM.drain}
+
 {docstring IterM.fold}
 
 {docstring IterM.foldM}
@@ -771,13 +786,21 @@ termination_by it.finitelyManySkips
 
 {docstring Iter.toArray}
 
+{docstring IterM.toArray}
+
 {docstring Iter.toList}
 
+{docstring IterM.toList}
+
 {docstring Iter.toListRev}
+
+{docstring IterM.toListRev}
 
 # Iterator Combinators
 
 ## Pure Combinators
+
+{docstring Std.Iterators.toIterM}
 
 {docstring Std.Iterators.Iter.toIterM}
 
@@ -825,15 +848,25 @@ termination_by it.finitelyManySkips
 
 ## Monadic Combinators
 
+{docstring Std.Iterators.IterM.toIter}
+
 {docstring Std.Iterators.IterM.take}
 
 {docstring Std.Iterators.IterM.takeWhile}
+
+{docstring Std.Iterators.IterM.takeWhileM}
+
+{docstring Std.Iterators.IterM.takeWhileWithPostcondition}
 
 {docstring Std.Iterators.IterM.toTake}
 
 {docstring Std.Iterators.IterM.drop}
 
 {docstring Std.Iterators.IterM.dropWhile}
+
+{docstring Std.Iterators.IterM.dropWhileM}
+
+{docstring Std.Iterators.IterM.dropWhileWithPostcondition}
 
 {docstring Std.Iterators.IterM.stepSize}
 
@@ -873,8 +906,18 @@ Map etc
 
 {docstring Iter.inductSkips}
 
+{docstring IterM.inductSkips}
+
 {docstring Iter.inductSteps}
+
+{docstring IterM.inductSteps}
 
 {docstring Std.Iterators.PostconditionT}
 
 {docstring Iter.IsPlausibleIndirectOutput +allowMissing}
+
+{docstring IterM.stepAsHetT}
+
+{docstring Iter.Equiv}
+
+{docstring IterM.Equiv}

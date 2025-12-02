@@ -349,7 +349,12 @@ Std.DTreeMap
 Std.TreeSet
 Std.Iterators
 Std.Iterators.Iter
+Std.Iterators.Iter.Equiv
+Std.Iterators.Iter.TerminationMeasures
 Std.Iterators.IterM
+Std.Iterators.IterM.Equiv
+Std.Iterators.IterM.TerminationMeasures
+Std.Iterators.IteratorAccess
 Std.Iterators.PostconditionT
 Std.PRange
 Std.PRange.UpwardEnumerable
@@ -851,6 +856,17 @@ Prod.repr
 Prod.rprod
 Prod.lex
 Prod.Lex
+```
+
+```exceptions
+Std.Iterators.Iter.instForIn'
+Std.Iterators.Iter.step_filter
+Std.Iterators.Iter.val_step_filter
+```
+
+```exceptions
+Std.Iterators.IterM.instForIn'
+Std.Iterators.IterM.toListRev.go
 ```
 
 ```exceptions
