@@ -36,10 +36,6 @@ As usual, {tech (key := "reference count")}[reference counting] is used to optim
 
 To use iterators, import {module}`Std.Data.Iterators`.
 
-:::TODO
-A couple basic iterator examples
-:::
-
 :::example "Mixing Collections"
 ```imports -show
 import Std.Data.Iterators
@@ -162,6 +158,8 @@ These functions pair the information in the underlying {name}`IterStep` with the
 {docstring PlausibleIterStep.skip}
 
 {docstring PlausibleIterStep.done}
+
+## Finite and Productive Iterators
 
 :::paragraph
 Not all iterators are guaranteed to return a finite number of results; it is perfectly sensible to iterate over all of the natural numbers.
@@ -669,13 +667,24 @@ where
 
 ## Stepping Iterators
 
+Iterators are manually stepped using {name}`Iter.step` or {name}`IterM.step`.
+
 {docstring Std.Iterators.Iter.step}
+
+{docstring Std.Iterators.IterM.step}
 
 ### Termination
 
+When manually stepping an finite iterator, the termination measures {name Iter.finitelyManySteps}`finitelyManySteps` and {name Iter.finitelyManySkips}`finitelyManySkips` can be used to express that each step brings iteration closer to the end.
+The proof automation for {ref "well-founded-recursion"}[well-founded recursion] is pre-configured to prove that recursive calls after steps reduce these measures.
+
 {docstring Iter.finitelyManySteps}
 
+{docstring IterM.finitelyManySteps}
+
 {docstring Iter.finitelyManySkips}
+
+{docstring IterM.finitelyManySkips}
 
 {docstring Iter.attachWith}
 
