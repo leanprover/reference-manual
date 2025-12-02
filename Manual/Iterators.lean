@@ -512,9 +512,24 @@ def fileSize (name : System.FilePath) : IO Nat := do
 
 ## Accessing Elements
 
+Some iterators support efficient random access.
+For example, an array iterator can skip any number of elements in constant time by incrementing the index that it maintains into the array.
+
 {docstring IteratorAccess +allowMissing}
 
 {docstring IterM.nextAtIdx?}
+
+## Loops
+
+{docstring IteratorLoop +allowMissing}
+
+{docstring IteratorLoop.defaultImplementation}
+
+{docstring LawfulIteratorLoop +allowMissing}
+
+{docstring IteratorLoopPartial +allowMissing}
+
+{docstring IteratorLoopPartial.defaultImplementation}
 
 ## Universe Levels
 

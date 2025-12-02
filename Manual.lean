@@ -354,7 +354,12 @@ Std.Iterators.Iter.TerminationMeasures
 Std.Iterators.IterM
 Std.Iterators.IterM.Equiv
 Std.Iterators.IterM.TerminationMeasures
+Std.Iterators.Iterator
 Std.Iterators.IteratorAccess
+Std.Iterators.IteratorLoop
+Std.Iterators.IteratorLoopPartial
+Std.Iterators.Finite
+Std.Iterators.Productive
 Std.Iterators.PostconditionT
 Std.PRange
 Std.PRange.UpwardEnumerable
