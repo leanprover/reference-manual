@@ -822,10 +822,6 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.TerminationMeasures.Productive +allowMissing}
 
-{docstring Iter.attachWith}
-
-{docstring IterM.attachWith}
-
 ## Consuming Pure Iterators
 
 {docstring Iter.fold}
@@ -938,13 +934,6 @@ it.double    ---a-a---b-b---c-c---d-d⊥
 ```
 :::
 :::paragraph
-A marble diagram for an iterator combinator that duplicates each element of the underlying iterator looks like this:
-```
-it           ---a  ---b  ---c  ---d⊥
-it.double    ---a-a---b-b---c-c---d-d⊥
-```
-:::
-:::paragraph
 The marble diagram for {name}`Iter.filter` shows how some elements of the underlying iterator do not occur in the filtered iterator, but also that stepping the filtered iterator results in a {name PlausibleIterStep.skip}`skip` when the underlying iterator returns a value that doesn't satisfy the predicate:
 ```
 it            ---a--b--c--d-e--⊥
@@ -1017,6 +1006,9 @@ Blank spaces in the upper rows of the marble diagram indicate that the iterator 
 
 {docstring Std.Iterators.Iter.zip}
 
+{docstring Iter.attachWith}
+
+
 ## Monadic Combinators
 
 {docstring Std.Iterators.IterM.toIter}
@@ -1071,18 +1063,53 @@ Blank spaces in the upper rows of the marble diagram indicate that the iterator 
 
 {docstring Std.Iterators.IterM.zip}
 
+{docstring IterM.attachWith}
+
 # Reasoning About Iterators
 
-## Equivalence
+## Reasoning About Consumers
 
-Iterator equivalence is defined in terms of the observable behavior of iterators, rather than their implementations.
-In particular, the internal state is ignored.
+The iterator library provides a large number of useful lemmas.
+Most theorems about finite iterators can be proven by rewriting the statement to one about lists, using the fact that the correspondence between iterator combinators and corresponding list operations has already been proved.
+In practice, many of these theorems are already registered as {tactic}`simp` lemmas.
 
-{docstring Iter.Equiv}
+:::paragraph
+The lemmas have a very predictable naming system, and many are in the {tech}[default simp set].
+Some of the most important include:
 
-{docstring IterM.Equiv}
+ * Consumer lemmas such as {name}`Iter.all_toList`, {name}`Iter.any_toList`, and {name}`Iter.foldl_toList` that introduce lists as a model.
 
-## Induction Principles
+ * Simplification lemmas such as {name}`Iter.toList_map` that {name}`Iter.toList_filter` push the list model “inwards” in the goal.
+
+ * Producer lemmas such as {name}`List.toList_iter` and {name}`Array.toList_iter` that replace a producer with a list model, removing iterators from the goal entirely.
+
+The latter two categories are typically automatic with {tactic}`simp`.
+:::
+
+:::example "Reasoning via Lists"
+Every element returned by an iterator that multiplies the numbers consumed some other iterator by two is even.
+To prove this statement, {name}`Iter.all_toList`, {name}`Iter.toList_map`, and {name}`Array.toList_iter` are used to replace the statement about iterators with one about lists, after which {tactic}`simp` discharges the goal:
+```lean
+example (l : Array Nat) :
+    (l.iter.map (· * 2)).all (· % 2 = 0) := by
+  rw [← Iter.all_toList]
+  rw [Iter.toList_map]
+  rw [Array.toList_iter]
+  simp
+```
+
+In fact, because most of the needed lemmas are in the {tech}[default simp set], the proof can be quite short:
+```lean
+example (l : Array Nat) :
+    (l.iter.map (· * 2)).all (· % 2 = 0) := by
+  simp [← Iter.all_toList]
+```
+:::
+
+## Stepwise Reasoning
+
+When there are not enough lemmas to prove a property by rewriting to a list model, it can be necessary to prove things about iterators by reasoning directly about their step functions.
+The induction principles in this section are useful for stepwise reasoning.
 
 {docstring Iter.inductSkips}
 
@@ -1092,7 +1119,10 @@ In particular, the internal state is ignored.
 
 {docstring IterM.inductSteps}
 
-## Monads for Reasoning
+The standard library also includes lemmas for the stepwise behavior of all the producers and combinators.
+Examples include {name}`List.step_iter_nil`, {name}`List.step_iter_cons`, {name}`IterM.step_map`.
+
+## Monads for Reasonin
 
 {docstring Std.Iterators.PostconditionT}
 
@@ -1121,3 +1151,12 @@ In particular, the internal state is ignored.
 {docstring HetT.bind}
 
 {docstring HetT.pbind}
+
+## Equivalence
+
+Iterator equivalence is defined in terms of the observable behavior of iterators, rather than their implementations.
+In particular, the internal state is ignored.
+
+{docstring Iter.Equiv}
+
+{docstring IterM.Equiv}
