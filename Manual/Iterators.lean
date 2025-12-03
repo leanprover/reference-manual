@@ -133,6 +133,7 @@ When an iterator is consumed, the resulting computation should be though of as a
 One step of the loop may carry out multiple steps from the underlying iterators.
 In many cases, the Lean compiler can optimize iterator computations, removing the intermediate overhead, but this is not guaranteed.
 When profiling shows that significant time is taken by a tight loop that involves multiple sources of data, it can be necessary to inspect the compiler's IR to see whether the iterators' operations were fused.
+In particular, if the IR contains many pattern matches over steps, then it can be a sign of a failure to inline or specialize.
 In other cases, it may be necessary to write a tail-recursive function by hand rather than using the higher-level API.
 
 # Iterator Definitions
