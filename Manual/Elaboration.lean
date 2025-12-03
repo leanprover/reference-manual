@@ -278,7 +278,7 @@ fun {α} motive x h_1 h_2 =>
 :::paragraph
 The pre-definition is then sent to the compiler and to the kernel.
 The compiler receives the pre-definition as-is, with recursion intact.
-The version sent to the kernel, on the other hand, undergoes a second transformation that replaces explicit recursion with {ref "structural-recursion"}[uses of recursors], {ref "well-founded-recursion"}[well-founded recursion], or .
+The version sent to the kernel, on the other hand, undergoes a second transformation that replaces explicit recursion with {ref "structural-recursion"}[uses of recursors], {ref "well-founded-recursion"}[well-founded recursion], or {ref "partial-fixpoint"}[partial fixpoint recursion].
 This split is for three reasons:
  * The compiler can compile {ref "partial-unsafe"}[`partial` functions] that the kernel treats as opaque constants for the purposes of reasoning.
  * The compiler can also compile {ref "partial-unsafe"}[`unsafe` functions] that bypass the kernel entirely.
