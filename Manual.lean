@@ -361,6 +361,7 @@ Std.Iterators.IteratorLoopPartial
 Std.Iterators.Finite
 Std.Iterators.Productive
 Std.Iterators.PostconditionT
+Std.Iterators.HetT
 Std.PRange
 Std.PRange.UpwardEnumerable
 Std.Rco

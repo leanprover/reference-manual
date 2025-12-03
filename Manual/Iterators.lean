@@ -27,7 +27,7 @@ tag := "iterators"
 %%%
 
 An {deftech}_iterator_ provides sequential access to each element of some source of data.
-Typical iterators allow the elements in a collection, such as a list, array, or {name Std.TreeMap}`TreeMap` to be accessed one by one, but they can also provide access to data by carrying out some effect, such as reading files.
+Typical iterators allow the elements in a collection, such as a list, array, or {name Std.TreeMap}`TreeMap` to be accessed one by one, but they can also provide access to data by carrying out some {tech (key := "monad")}[monadic] effect, such as reading files.
 Iterators provide a common interface to all of these operations.
 Code that is written to the iterator API can be agnostic as to the source of the data.
 
@@ -96,20 +96,31 @@ Instead, all the steps of the transformation are fused into a single loop, with 
 In each step, a single color and color code are combined into a pair, rewritten to a string, and added to the result string.
 ::::
 
+The Lean standard library provides three kinds of iterator operations.
+{deftech}_Producers_ create a new iterator from some source of data.
+They determine which data is to be returned by an iterator, and how this data is to be computed, but they are not in control of _when_ the computations occur.
+{deftech}_Consumers_ use the data in an iterator for some purpose.
+Consumers request the iterator's data, and the iterator computes only enough data to satisfy a consumer's requests.
+{deftech (key := "iterator combinator")}_Combinators_ are both consumers and producers: they create new iterators from existing iterators.
+Examples include {name}`Iter.map` and {name}`Iter.filter`.
+The resulting iterators produce data by consuming their underlying iterators, and do not actually iterate over the underlying collection until they themselves are consumed.
+
+
 :::keepEnv
 ```lean -show
+/-- A collection type. -/
 structure Coll : Type u where
+/-- The elements of the collection `Coll`. -/
 structure Elem : Type u where
+/-- Returns an iterator for `c`. -/
 def Coll.iter (c : Coll) := (#[].iter : Iter Elem)
 ```
 Each built-in collection for which it makes sense to do so can be iterated over.
+In other words, the collection libraries include iterator {tech}[producers].
 By convention, a collection type {name}`Coll` provides a function {name}`Coll.iter` that returns an iterator over the elements of a collection.
 Examples include {name}`List.iter`, {name}`Array.iter`, and {name}`TreeMap.iter`.
 Additionally, other built-in types such as ranges support iteration using the same convention.
 :::
-
-Iterators can be transformed using combinators such as {name}`Iter.map` or {name}`Iter.filter` that take one or more iterators and return a new iterator.
-The resulting iterators do not actually iterate over the underlying collection until they themselves are consumed.
 
 
 # Iterator Definitions
@@ -797,7 +808,10 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.atIdx?}
 
-## Collecting Contents
+## Collectors
+
+Collectors consume an iterator, returning all of its data in a list or array.
+To be collected, an iterator must be finite and have an {name}`IteratorCollect` or {name}`IteratorCollectPartial` instance.
 
 {docstring Iter.toArray}
 
@@ -811,7 +825,75 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.toListRev}
 
+{docstring IteratorCollect}
+
+{docstring IteratorCollect.defaultImplementation}
+
+{docstring LawfulIteratorCollect +allowMissing}
+
+{docstring IteratorCollectPartial}
+
+{docstring IteratorCollectPartial.defaultImplementation}
+
+
 # Iterator Combinators
+
+The documentation for iterator combinators often includes {deftech}_marble diagrams_ that show the relationship between the elements returned by the underlying iterators and the elements returned by the combinator's iterator.
+Marble diagrams provide examples, not full specifications.
+These diagrams consist of a number of rows.
+Each row shows an example of an iterator's output, where `-` indicates a {name PlausibleIterStep.skip}`skip`, a term indicates a value returned with {name PlausibleIterStep.yield}`yield`, and `⊥` indicates the end of iteration.
+Spaces indicate that iteration did not occur.
+Unbound identifiers in the marble diagram stand for arbitrary values of the iterator's element type.
+
+
+Vertical alignment in the marble diagram indicates a causal relationship: when two elements are aligned, it means that consuming the iterator in the lower row results in the upper rows being consumed.
+In particular, consuming up to the $`n`th column of the lower iterator results in the consumption of the first $`n` columns from the upper iterator.
+
+:::paragraph
+A marble diagram for an identity iterator combinator that returns each element from the underlying iterator looks like this:
+```
+it    ---a-----b---c----d⊥
+it.id ---a-----b---c----d⊥
+```
+:::
+:::paragraph
+A marble diagram for an iterator combinator that duplicates each element of the underlying iterator looks like this:
+```
+it           ---a  ---b  ---c  ---d⊥
+it.double    ---a-a---b-b---c-c---d-d⊥
+```
+:::
+:::paragraph
+A marble diagram for an iterator combinator that duplicates each element of the underlying iterator looks like this:
+```
+it           ---a  ---b  ---c  ---d⊥
+it.double    ---a-a---b-b---c-c---d-d⊥
+```
+:::
+:::paragraph
+The marble diagram for {name}`Iter.filter` shows how some elements of the underlying iterator do not occur in the filtered iterator, but also that stepping the filtered iterator results in a {name PlausibleIterStep.skip}`skip` when the underlying iterator returns a value that doesn't satisfy the predicate:
+```
+it            ---a--b--c--d-e--⊥
+it.filter     ---a-----c-------⊥
+```
+The diagram requires an explanatory note:
+> (given that `f a = f c = true` and `f b = f d = d e = false`)
+:::
+:::paragraph
+The diagram for {name}`Iter.zip` shows how consuming the combined iterator consumes the underlying iterators:
+```
+left               --a        ---b        --c
+right                 --x         --y        --⊥
+left.zip right     -----(a, x)------(b, y)-----⊥
+```
+The zipped iterator emits {name PlausibleIterStep.skip}`skip`s so long as `left` does.
+When `left` emits `a`, the zipped iterator emits one more {name PlausibleIterStep.skip}`skip`.
+After this, the zipped iterator switches to consuming `right`, and it emits {name PlausibleIterStep.skip}`skip`s so long as `right` does.
+When `right` emits `x`, the zipped iterator emits the pair `(a, x)`.
+This interleaving of `left` and `right` continues until one of them stops, at which point the zipped iterator stops.
+Blank spaces in the upper rows of the marble diagram indicate that the iterator is not being consumed at that step.
+:::
+
 
 ## Pure Combinators
 
@@ -915,9 +997,18 @@ termination_by it.finitelyManySkips
 
 {docstring Std.Iterators.IterM.zip}
 
-Map etc
-
 # Reasoning About Iterators
+
+## Equivalence
+
+Iterator equivalence is defined in terms of the observable behavior of iterators, rather than their implementations.
+In particular, the internal state is ignored.
+
+{docstring Iter.Equiv}
+
+{docstring IterM.Equiv}
+
+## Induction Principles
 
 {docstring Iter.inductSkips}
 
@@ -927,12 +1018,32 @@ Map etc
 
 {docstring IterM.inductSteps}
 
+## Monads for Reasoning
+
 {docstring Std.Iterators.PostconditionT}
+
+{docstring Std.Iterators.PostconditionT.run}
+
+{docstring Std.Iterators.PostconditionT.lift}
+
+{docstring Std.Iterators.PostconditionT.liftWithProperty}
 
 {docstring Iter.IsPlausibleIndirectOutput +allowMissing}
 
+{docstring HetT}
+
 {docstring IterM.stepAsHetT}
 
-{docstring Iter.Equiv}
+{docstring HetT.lift}
 
-{docstring IterM.Equiv}
+{docstring HetT.prun}
+
+{docstring HetT.pure}
+
+{docstring HetT.map}
+
+{docstring HetT.pmap}
+
+{docstring HetT.bind}
+
+{docstring HetT.pbind}
