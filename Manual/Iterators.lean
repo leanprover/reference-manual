@@ -193,11 +193,14 @@ example :=
 :::
 
 The actual process of iteration consists of producing a sequence of iteration steps when requested.
-Each step returns an updated iterator with a new internal state along with either a data value, an indicator that the caller should request a data value again, or an indication that iteration is finished.
-Steps taken by {name}`Iter` and {name}`IterM` are respectively represented by the types {name}`Iter.Step` and {name}`IterM.Step`.
-Both types of step are wrappers around {name}`IterStep` that include additional proofs that are used to track termination behavior.
+Each step returns an updated iterator with a new internal state along with either a data value (in {name}`IterStep.yield`), an indicator that the caller should request a data value again ({name}`IterStep.skip`), or an indication that iteration is finished ({name}`IterStep.done`).
+Without the ability to {name IterStep.skip}`skip`, it would be much more difficult to work with iterator combinators such as {name}`Iter.filter` that do not yield values for all of those yielded by the underlying iterator.
+With {name IterStep.skip}`skip`, the implementation of {name Iter.filter}`filter` doesn't need to worry about whether the underlying iterator is {tech (key:="finite iterator")}[finite] in order to be a well-defined function, and reasoning about its finiteness can be carried out in separate proofs.
 
 {docstring IterStep}
+
+Steps taken by {name}`Iter` and {name}`IterM` are respectively represented by the types {name}`Iter.Step` and {name}`IterM.Step`.
+Both types of step are wrappers around {name}`IterStep` that include {ref "iterator-plausibility"}[additional proofs] that are used to track termination behavior.
 
 {docstring Iter.Step}
 
@@ -209,6 +212,9 @@ Steps are produced from iterators using {name}`Iterator.step`, which is a method
 {docstring Iterator +allowMissing}
 
 ## Plausibility
+%%%
+tag := "iterator-plausibility"
+%%%
 
 In addition to the step function, instances of {name}`Iterator` include a relation {name}`Iterator.IsPlausibleStep`.
 This relation exists because most iterators both maintain invariants over their internal state and yield values in a predictable manner.
