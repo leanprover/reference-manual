@@ -251,7 +251,7 @@ Not all iterators are guaranteed to return a finite number of results; it is per
 Similarly, not all iterators are guaranteed to either return a single result or terminate; iterators may be defined using arbitrary programs.
 Thus, Lean divides iterators into three termination classes:
 * {deftech (key:="finite iterator")}_Finite_ iterators are guaranteed to finish iterating after a finite number of steps. These iterators have a {name}`Finite` instance.
-* {deftech (key:="productive iterator")}_Productive_ iterators are guaranteed to yield a value or terminate in finite time, but they may yield infinitely many values. These iterators have a {name}`Productive` instance.
+* {deftech (key:="productive iterator")}_Productive_ iterators are guaranteed to yield a value or terminate in finitely many steps, but they may yield infinitely many values. These iterators have a {name}`Productive` instance.
 * All other iterators, whose termination behavior is unknown. These iterators have neither instance.
 
 All finite iterators are necessarily productive.
