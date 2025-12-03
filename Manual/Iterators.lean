@@ -154,6 +154,13 @@ Because Lean elaborates the specified return type of a function before elaborati
 In these cases, it can be helpful to omit the return type from the signature and instead place a type annotation on the definition's body, which allows the specific iterator combinators invoked from the body to be used to determine the state type.
 
 :::example "Iterator State Types"
+```imports -show
+import Std.Data.Iterators
+```
+```lean -show
+open Std.Iterators
+```
+
 Writing the internal state type explicitly for list and array iterators is feasible:
 ```lean
 def reds := ["red", "crimson"]
