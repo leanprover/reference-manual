@@ -305,10 +305,9 @@ public instance : ToString State where
   toString s := s.toString
 ```
 ```leanOutput tooExposed
-Invalid field `toString`: The environment does not contain `State.toString`
+Invalid field `toString`: The environment does not contain `State.toString`, so it is not possible to project the field `toString` from an expression
   s
-has type
-  State
+of type `State`
 
 Note: A private declaration `State.toString` (from the current module) exists but would need to be public to access here.
 ```

@@ -887,7 +887,7 @@ def lakeToml : DirectiveExpander
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (!·.isWhitespace)))
+        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (! Char.isWhitespace ·)))
 
         contents.mapM (elabBlock ⟨·⟩)
 
