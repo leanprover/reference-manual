@@ -196,6 +196,7 @@ The actual process of iteration consists of producing a sequence of iteration st
 Each step returns an updated iterator with a new internal state along with either a data value (in {name}`IterStep.yield`), an indicator that the caller should request a data value again ({name}`IterStep.skip`), or an indication that iteration is finished ({name}`IterStep.done`).
 Without the ability to {name IterStep.skip}`skip`, it would be much more difficult to work with iterator combinators such as {name}`Iter.filter` that do not yield values for all of those yielded by the underlying iterator.
 With {name IterStep.skip}`skip`, the implementation of {name Iter.filter}`filter` doesn't need to worry about whether the underlying iterator is {tech (key:="finite iterator")}[finite] in order to be a well-defined function, and reasoning about its finiteness can be carried out in separate proofs.
+Additionally, {name Iter.filter}`filter` would require an inner loop, which is much more difficult for the compiler to inline.
 
 {docstring IterStep}
 
