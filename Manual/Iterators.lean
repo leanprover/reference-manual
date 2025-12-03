@@ -31,7 +31,8 @@ Typical iterators allow the elements in a collection, such as a list, array, or 
 Iterators provide a common interface to all of these operations.
 Code that is written to the iterator API can be agnostic as to the source of the data.
 
-Because Lean is a pure functional language, consuming an iterator does not invalidate it, but instead copies it.
+Each iterator maintains an internal state that enables it to determine the next value.
+Because Lean is a pure functional language, consuming an iterator does not invalidate it, but instead copies it with an updated state.
 As usual, {tech (key := "reference count")}[reference counting] is used to optimize programs that use values only once into programs that destructively modify values.
 
 To use iterators, import {module}`Std.Data.Iterators`.
@@ -122,6 +123,17 @@ Examples include {name}`List.iter`, {name}`Array.iter`, and {name}`TreeMap.iter`
 Additionally, other built-in types such as ranges support iteration using the same convention.
 :::
 
+# Run-Time Considerations
+
+For many use cases, using iterators can give a performance benefit by avoiding allocating intermediate data structures.
+Without iterators, zipping a list with an array requires first converting one of them to the other type, allocating an intermediate structure, and then using the appropriate {name List.zip}`zip` function.
+Using iterators, the intermediate structure can be avoided.
+
+When an iterator is consumed, the resulting computation should be though of as a single loop, even if the iterator itself is build using combinators from a number of underlying iterators.
+One step of the loop may carry out multiple steps from the underlying iterators.
+In many cases, the Lean compiler can optimize iterator computations, removing the intermediate overhead, but this is not guaranteed.
+When profiling shows that significant time is taken by a tight loop that involves multiple sources of data, it can be necessary to inspect the compiler's IR to see whether the iterators' operations were fused.
+In other cases, it may be necessary to write a tail-recursive function by hand rather than using the higher-level API.
 
 # Iterator Definitions
 
@@ -135,6 +147,51 @@ Pure iterators have type {name}`Iter`, while monadic iterators are represented b
 {docstring IterM}
 
 The types {name}`Iter` and {name}`IterM` are merely wrappers around an internal state.
+This inner state type is the implicit parameter to the iterator types.
+For basic producer iterators, like the one that results from {name}`List.iter`, this type is fairly simple; however, iterators that result from {tech (key := "iterator combinator")}[combinators] use polymorphic state types that can grow large.
+Because Lean elaborates the specified return type of a function before elaborating its body, it may not be possible to automatically determine the internal state type of an iterator type returned by a function.
+In these cases, it can be helpful to omit the return type from the signature and instead place a type annotation on the definition's body, which allows the specific iterator combinators invoked from the body to be used to determine the state type.
+
+:::example "Iterator State Types"
+Writing the internal state type explicitly for list and array iterators is feasible:
+```lean
+def reds := ["red", "crimson"]
+
+example : @Iter (ListIterator String) String := reds.iter
+
+example : @Iter (ArrayIterator String) String := reds.toArray.iter
+```
+However, the internal state type of a use of the {name}`Iter.map` combinator is quite complicated:
+```lean
+example :
+    @Iter
+      (Map (ListIterator String) Id Id @id fun x : String =>
+        pure x.length)
+      Nat :=
+  reds.iter.map String.length
+```
+Omitting the state type leads to an error:
+```lean +error (name := noStateType)
+example : Iter Nat := reds.iter.map String.length
+```
+```leanOutput noStateType
+don't know how to synthesize implicit argument `α`
+  @Iter ?m.1 Nat
+context:
+⊢ Type
+
+Note: Because this declaration's type has been explicitly provided, all parameter types and holes (e.g., `_`) in its header are resolved before its body is processed; information from the declaration body cannot be used to infer what these values should be
+```
+Rather than writing the state type by hand, it can be convenient to omit the return type and instead provide the annotation around the term:
+```lean
+example := (reds.iter.map String.length : Iter Nat)
+
+example :=
+  show Iter Nat from
+  reds.iter.map String.length
+```
+:::
+
 The actual process of iteration consists of producing a sequence of iteration steps when requested.
 Each step returns an updated iterator with a new internal state along with either a data value, an indicator that the caller should request a data value again, or an indication that iteration is finished.
 Steps taken by {name}`Iter` and {name}`IterM` are respectively represented by the types {name}`Iter.Step` and {name}`IterM.Step`.
