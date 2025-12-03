@@ -129,7 +129,7 @@ For many use cases, using iterators can give a performance benefit by avoiding a
 Without iterators, zipping a list with an array requires first converting one of them to the other type, allocating an intermediate structure, and then using the appropriate {name List.zip}`zip` function.
 Using iterators, the intermediate structure can be avoided.
 
-When an iterator is consumed, the resulting computation should be though of as a single loop, even if the iterator itself is build using combinators from a number of underlying iterators.
+When an iterator is consumed, the resulting computation should be thought of as a single loop, even if the iterator itself is built using combinators from a number of underlying iterators.
 One step of the loop may carry out multiple steps from the underlying iterators.
 In many cases, the Lean compiler can optimize iterator computations, removing the intermediate overhead, but this is not guaranteed.
 When profiling shows that significant time is taken by a tight loop that involves multiple sources of data, it can be necessary to inspect the compiler's IR to see whether the iterators' operations were fused.
