@@ -208,12 +208,14 @@ Steps are produced from iterators using {name}`Iterator.step`, which is a method
 
 {docstring Iterator +allowMissing}
 
+## Plausibility
+
 In addition to the step function, instances of {name}`Iterator` include a relation {name}`Iterator.IsPlausibleStep`.
 This relation exists because most iterators both maintain invariants over their internal state and yield values in a predictable manner.
 For example, array iterators track both an array and a current index into it.
 Stepping an array iterator results in an iterator over the same underlying array; it yields a value when the index is small enough, or is done otherwise.
 The {deftech}_plausible steps_ from an iterator state are those which are related to it via the iterator's implementation of {name Iterator.IsPlausibleStep}`IsPlausibleStep`.
-Tracking plausibility at the logical level makes it feasible to reason about termination behavior in many more cases.
+Tracking plausibility at the logical level makes it feasible to reason about termination behavior for monadic iterators.
 
 Both {name}`Iter.Step` and {name}`IterM.Step` are defined in terms of {name}`PlausibleIterStep`; thus, both types can be used with {tech}[leading dot notation] for its namespace.
 An {name}`Iter.Step` or {name}`IterM.Step` can be analyzed using the three {ref "match_pattern-functions"}[match pattern functions] {name}`PlausibleIterStep.yield`, {name}`PlausibleIterStep.skip`, and {name}`PlausibleIterStep.done`.
