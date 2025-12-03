@@ -101,10 +101,9 @@ end
 #check Int.bdiv
 
 /--
-error: Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
+error: Invalid field `bdiv`: The environment does not contain `Nat.bdiv`, so it is not possible to project the field `bdiv` from an expression
   n
-has type
-  Nat
+of type `Nat`
 -/
 #check_msgs in
 example (n : Nat) := n.bdiv 2
@@ -122,10 +121,9 @@ The coercion from {lean}`Nat` to {lean}`Int` is not considered when looking up t
 example (n : Nat) := n.bdiv 2
 ```
 ```leanOutput natBdiv
-Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
+Invalid field `bdiv`: The environment does not contain `Nat.bdiv`, so it is not possible to project the field `bdiv` from an expression
   n
-has type
-  Nat
+of type `Nat`
 ```
 
 This is because coercions are only inserted when there is an expected type that differs from an inferred type, and generalized fields are resolved based on the inferred type of the term before the dot.

@@ -772,10 +772,9 @@ However, {lean}`Username.validate` can't be called on {lean}`"root"` using field
 #eval "admin".validate
 ```
 ```leanOutput notString
-Invalid field `validate`: The environment does not contain `String.validate`
+Invalid field `validate`: The environment does not contain `String.validate`, so it is not possible to project the field `validate` from an expression
   "admin"
-has type
-  String
+of type `String`
 ```
 
 {lean}`adminUser`, on the other hand, has type {lean}`Username`, so the {lean}`Username.validate` function can be invoked with generalized field notation:
@@ -786,7 +785,7 @@ has type
 Except.ok ()
 ```
 
-Going in the other direction, {lean}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
+Going in the other direction, {name}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
 ```lean (name := isString1)
 #eval adminUser.any (· == 'm')
 ```
@@ -2090,10 +2089,9 @@ Due to the differences in their inferred types, it can be used with {keywordOf L
 #eval ([] : Colors).hasYellow
 ```
 ```leanOutput nil3
-Invalid field `hasYellow`: The environment does not contain `List.hasYellow`
+Invalid field `hasYellow`: The environment does not contain `List.hasYellow`, so it is not possible to project the field `hasYellow` from an expression
   []
-has type
-  List String
+of type `List String`
 ```
 ```lean (name := nil4)
 #eval (show Colors from []).hasYellow
