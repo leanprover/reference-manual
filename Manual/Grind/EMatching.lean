@@ -87,6 +87,13 @@ grind_pattern $_ => $_,*
 ```
 Associates a theorem with one or more patterns.
 When multiple patterns are provided in a single {keywordOf Lean.Parser.Command.grind_pattern}`grind_pattern` command, _all_ of them must match a term before {tactic}`grind` will attempt to instantiate the theorem.
+
+```grammar
+grind_pattern $_ => $_,* where $_
+```
+The optional {keywordOf Lean.Parser.Command.grind_pattern}`where` clause specifies constraints that must be satisfied before {tactic}`grind` attempts to instantiate the theorem.
+Each constraint has the form `variable =/= value`, preventing instantiation when the pattern variable would be assigned the specified value.
+This is useful to avoid unbounded or excessive instantiations with problematic terms.
 :::
 
 ::::example "Selecting Patterns"
@@ -181,6 +188,39 @@ variable {x y z a b c d : Int}
 
 The multi-pattern `R x y, R y z` instructs {tactic}`grind` to instantiate {lean}`Rtrans` only when both {lean}`R x y` and {lean}`R y z` are available in the context.
 In the example, {tactic}`grind` applies {lean}`Rtrans` to derive {lean}`R a c` from {lean}`R a b` and {lean}`R b c`, and can then repeat the same reasoning to deduce {lean}`R a d` from {lean}`R a c` and {lean}`R c d`.
+::::
+
+::::example "Pattern Constraints"
+Certain combinations of theorems can lead to unbounded instantiation, where E-matching repeatedly generates longer and longer terms.
+Consider theorems about {name}`List.flatMap` and {name}`List.reverse`.
+If {name}`List.flatMap_def`, {name}`List.flatMap_reverse`, and {name}`List.reverse_flatMap` are all annotated with {attrs}`@[grind =]`, then as soon as {name}`List.flatMap_reverse` is instantiated, the following chain of instantiations occurs, creating progressively longer function compositions with {name}`List.reverse`.
+This can be observed using the `#grind_lint` command:
+```
+attribute [local grind =] List.reverse_flatMap
+
+set_option trace.grind.ematch.instance true in
+#grind_lint inspect List.flatMap_reverse
+```
+The trace output shows the unbounded instantiation:
+```
+[grind.ematch.instance] List.flatMap_def: List.flatMap (List.reverse ∘ f) l = (List.map (List.reverse ∘ f) l).flatten
+[grind.ematch.instance] List.flatMap_def: List.flatMap f l.reverse = (List.map f l.reverse).flatten
+[grind.ematch.instance] List.flatMap_reverse: List.flatMap f l.reverse = (List.flatMap (List.reverse ∘ f) l).reverse
+[grind.ematch.instance] List.reverse_flatMap: (List.flatMap (List.reverse ∘ f) l).reverse =
+  List.flatMap (List.reverse ∘ List.reverse ∘ f) l.reverse
+[grind.ematch.instance] List.flatMap_def: List.flatMap (List.reverse ∘ List.reverse ∘ f) l.reverse =
+  (List.map (List.reverse ∘ List.reverse ∘ f) l.reverse).flatten
+```
+
+This pattern continues indefinitely, with each iteration adding another {name}`List.reverse` to the composition.
+The {keywordOf Lean.Parser.Command.grind_pattern}`where` clause prevents this by excluding problematic instantiations:
+```
+grind_pattern reverse_flatMap => (l.flatMap f).reverse where
+  f =/= List.reverse ∘ _
+```
+This instructs {tactic}`grind` to use the pattern `(l.flatMap f).reverse`, but only when `f` is not a composition with {name}`List.reverse`, preventing the unbounded chain of instantiations.
+
+You can use `#grind_lint check` to look for problematic patterns, or `#grind_lint check in List` or `#grind_lint check in module Std.Data` to look in specific namespaces or modules.
 ::::
 
 The {attr}`grind` attribute automatically generates an E-matching pattern or multi-pattern using a heuristic, instead of using {keywordOf Lean.Parser.Command.grindPattern}`grind_pattern` to explicitly specify a pattern.
