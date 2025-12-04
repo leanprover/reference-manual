@@ -1128,7 +1128,7 @@ The induction principles in this section are useful for stepwise reasoning.
 The standard library also includes lemmas for the stepwise behavior of all the producers and combinators.
 Examples include {name}`List.step_iter_nil`, {name}`List.step_iter_cons`, {name}`IterM.step_map`.
 
-## Monads for Reasonin
+## Monads for Reasoning
 
 {docstring Std.Iterators.PostconditionT}
 
