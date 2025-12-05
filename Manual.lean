@@ -338,6 +338,9 @@ Eq
 HEq
 Max
 Min
+Std.Do
+Std.Do.PredTrans
+Std.Do.SVal
 Std.HashMap
 Std.ExtHashMap
 Std.DHashMap
