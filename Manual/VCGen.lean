@@ -31,11 +31,6 @@ open Manual (comment)
 
 open Std.Do
 
--- TODO: state that library authors need to know the details of SPred, Assertion. "normal" users just need Triple and up.
--- Best specs are those that leave the postconditions completely free (schematic) because easier to instantiate
--- Define "schematic variable"
--- log spec is not so great, we'd want to express how log affects the state of depeer monads
-
 #doc (Manual) "The `mvcgen` tactic" =>
 %%%
 tag := "mvcgen-tactic"
@@ -50,10 +45,14 @@ In order to use the {tactic}`mvcgen` tactic, {module}`Std.Tactic.Do` must be imp
 
 # Overview
 
+
+
 The workflow of {tactic}`mvcgen` consists of the following:
+
 1. Monadic programs are re-interpreted according to a {tech}[predicate transformer semantics].
    An instance of {name}`WP` determines the monad's interpretation.
    Each program is interpreted as a mapping from arbitrary postconditions to the {tech}[weakest precondition] that would ensure the postcondition.
+   This step is invisible to most users, but library authors who want to enable their monads to work with {tactic}`mvcgen` need to understand it.
 2. Programs are composed from smaller programs.
    Each statement in a {keywordOf Lean.Parser.Term.do}`do`-block is associated with a predicate transformer, and there are general-purpose rules for combining these statements with sequencing and control-flow operators.
    A statement with its pre- and postconditions is called a {tech}_Hoare triple_.
@@ -548,6 +547,43 @@ spec $_? $_? $[$_:prio]?
 {includeDocstring Lean.Parser.Attr.spec}
 :::
 
+Universally-quantified variables in specification lemmas can be used to relate input states to output states and return values.
+These variables are referred to as {deftech}_schematic variables_.
+
+:::example "Schematic Variables"
+```imports -show
+import Std.Do
+import Std.Tactic.Do
+```
+```lean -show
+open Std.Do
+
+set_option mvcgen.warning false
+
+```
+
+The function {name}`double` doubles the value of a {name}`Nat` state:
+```lean
+def double : StateM Nat Unit := do
+  modify (2 * ·)
+```
+Its specification should _relate_ the initial and final states, but it cannot know their precise values.
+The specification uses a schematic variable to stand for the initial state:
+```lean
+theorem double_spec :
+    ⦃ fun s => ⌜s = n⌝ ⦄ double ⦃ ⇓ () s => ⌜s = 2 * n⌝ ⦄ := by
+  simp [double]
+  mvcgen with grind
+```
+
+The assertion in the precondition is a function because the {name}`PostShape` of {lean}`StateM Nat` is {lean (type := "PostShape.{0}")}`.arg Nat .pure`, and {lean}`Assertion (.arg Nat .pure)` is {lean}`SPred [Nat]`.
+
+:::
+```lean -show -keep
+-- Test preceding examples' claims
+#synth WP (StateM Nat) (.arg Nat .pure : PostShape.{0})
+example : Assertion (.arg Nat .pure) = SPred [Nat] := rfl
+```
 
 ## Invariant Specifications
 
@@ -617,7 +653,60 @@ In addition to the definition of the monad, typical libraries provide a set of p
 Each of these should be provided with a {tech}[specification lemma].
 It may additionally be useful to make the internals of the state private, and export a carefully-designed set of assertion operators.
 
+The specification lemmas for the library's primitive operators should ideally be precise specifications of the operators as predicate transformers.
+While it's often easier to think in terms of how the operator transforms an input state into an output state, {tech}[verification condition] generation will work more reliably when postconditions are completely free.
+This allows automation to instantiate the postcondition with the exact precondition of the next statement, rather than needing to show an entailment.
+In other words, specifications that specify the precondition as a function of the postcondition work better in practice than specifications that merely relate the pre- and postconditions.
+
+:::example "Schematic Postconditions"
+```imports -show
+import Std.Do
+import Std.Tactic.Do
+```
+```lean -show
+open Std.Do
+
+set_option mvcgen.warning false
+
+```
+
+The function {name}`double` doubles a natural number state:
+```lean
+def double : StateM Nat Unit := do
+  modify (2 * ·)
+```
+Thinking chronologically, a reasonable specification is that value of the output state is twice that of the input state.
+This is expressed using a schematic variable that stands for the initial state:
+```lean -keep
+theorem double_spec :
+    ⦃ fun s => ⌜s = n⌝ ⦄ double ⦃ ⇓ () s => ⌜s = 2 * n⌝ ⦄ := by
+  simp [double]
+  mvcgen with grind
+```
+However, an equivalent specification that treats the postcondition schematically will lead to smaller verification conditions when {name}`double` is used in other functions:
+```lean
+@[spec]
+theorem better_double_spec {Q : PostCond Unit (.arg Nat .pure)} :
+    ⦃ fun s => Q.1 () (2 * s) ⦄ double ⦃ Q ⦄ := by
+  simp [double]
+  mvcgen with grind
+```
+The first projection of the postcondition is its stateful assertion.
+Now, the precondition merely states that the postcondition should hold for double the initial state.
+:::
+
 :::example "A Logging Monad"
+```imports -show
+import Std.Do
+import Std.Tactic.Do
+```
+```lean -show
+open Std.Do
+
+set_option mvcgen.warning false
+
+```
+
 ```imports -show
 import Std.Do
 import Std.Tactic.Do
@@ -699,7 +788,39 @@ theorem LogM.of_wp_run_eq {x : α × Array β} {prog : LogM β α}
   exact h'
 ```
 
+Next, each operator in the library should be provided with a specification lemma.
+There is only one: {name}`log`.
+For new monads, these proofs must often break the abstraction boundaries of {tech}[Hoare triples] and weakest preconditions; the specifications that they provide can then be used abstractly by clients of the library.
+```lean
+theorem log_spec {x : β} :
+    ⦃ fun s => ⌜s = s'⌝ ⦄ log x ⦃ ⇓ () s => ⌜s = s'.push x⌝ ⦄ := by
+  simp [log, Triple, wp]
+```
 
+A better specification for {name}`log` uses a schematic postcondition:
+```lean
+variable {Q : PostCond Unit (.arg (Array β) .pure)}
+
+@[spec]
+theorem log_spec_better {x : β} :
+    ⦃ fun s => Q.1 () (s.push x) ⦄ log x ⦃ Q ⦄ := by
+  simp [log, Triple, wp]
+```
+
+A function {name}`logUntil` that logs all the natural numbers up to some bound will always result in a log whose length is equal to its argument:
+```lean
+def logUntil (n : Nat) : LogM Nat Unit := do
+  for i in 0...n do
+    log i
+
+theorem logUntil_length : (logUntil n).run.2.size = n := by
+  generalize h : (logUntil n).run = x
+  unfold logUntil at h
+  apply LogM.of_wp_run_eq h
+  mvcgen invariants
+  · ⇓⟨xs, _⟩ s => ⌜xs.pos = s.size⌝
+  with grind [Std.PRange.Nat.size_rco, Std.Rco.length_toList]
+```
 :::
 
 # Proof Mode
@@ -722,6 +843,17 @@ When working with concrete monads, {tactic}`mvcgen` typically does not result in
 However, monad-polymorphic theorems can lead to stateful goals remaining.
 
 :::example "Stateful Proofs"
+```imports -show
+import Std.Do
+import Std.Tactic.Do
+```
+```lean -show
+open Std.Do
+
+set_option mvcgen.warning false
+
+```
+
 ```imports -show
 import Std.Do
 import Std.Tactic.Do
