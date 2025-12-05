@@ -26,7 +26,7 @@ set_option linter.typography.dashes true
 
 set_option mvcgen.warning false
 
-#doc (Manual) "Verifying Imperative Programs Using `mvcgen`" =>
+#doc (Manual) "Tutorial: Verifying Imperative Programs Using `mvcgen`" =>
 %%%
 tag := "mvcgen-tactic-tutorial"
 htmlSplit := .never
@@ -370,7 +370,7 @@ universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [Monad m] [WP m ps] {α σ ε : Type u} {P : Assertion ps} {Q : PostCond α ps} {prog : m α} {c : Nat}
 ```
 
-A {deftech}_Hoare triple_{citep hoare69}[] consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
+A {tech}_Hoare triple_ consists of a precondition, a statement, and a postcondition; it asserts that if the precondition holds, then the postcondition holds after running the statement.
 In Lean syntax, this is written {lean}`⦃ P ⦄ prog ⦃ Q ⦄`, where {lean}`P` is the precondition, {typed}`prog : m α` is the statement, and {lean}`Q` is the postcondition.
 {lean}`P` and {lean}`Q` are written in an assertion language that is determined by the specific monad {lean}`m`.{margin}[In particular, monad's instance of the type class {name}`WP` specifies the ways in which assertions may refer to the monad's state or the exceptions it may throw.]
 
@@ -429,7 +429,7 @@ This is good, because specifications may _abstract over_ uninteresting implement
 
 :::paragraph
 Hoare triples are defined in terms of a logic of stateful predicates plus a {tech}[weakest precondition] semantics {lean}`wp⟦prog⟧` that translates monadic programs into this logic.
-A weakest precondition semantics is an interpretation of programs as mappings from postconditions to the weakest precondition that the program would require to ensure the postcondition; in this interpretation, programs are understood as _predicate transformers_.
+A weakest precondition semantics is an interpretation of programs as mappings from postconditions to the weakest precondition that the program would require to ensure the postcondition; in this interpretation, programs are understood as {tech (key := "predicate transformer semantics")}_predicate transformers_.
 The Hoare triple syntax is notation for {name}`Std.Do.Triple`:
 
 ```lean -keep
@@ -666,22 +666,7 @@ So there are two reasonable options, inspired by non-termination in traditional 
 
 The notation {lean}`⇓ r => Q' r` has the total interpretation, while {lean}`⇓? r => Q' r` has the partial interpretation.
 
-
-:::syntax term (title := "Postconditions") (namespace := Std.Do)
-```grammar
-⇓ $_:term* => $_:term
-```
-
-{includeDocstring Std.Do.PostCond.noThrow}
-
-```grammar
-⇓? $_:term* => $_:term
-```
-
-{includeDocstring Std.Do.PostCond.mayThrow}
-:::
-
-So in the running example, {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` is trivially provable.
+In the running example, {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` is trivially provable.
 However, the binary choice suggests that there is actually a _spectrum_ of correctness properties to express.
 The notion of postconditions {name}`PostCond` in `Std.Do` supports this spectrum.
 
@@ -801,18 +786,6 @@ variable {m : Type u → Type v} [Monad m] {ps : PostShape.{u}}
 The {name}`WP` instance defines the weakest precondition interpretation of a monad {lean}`m` into a predicate transformer {lean}`PredTrans ps`,
 and the matching {name}`WPMonad` instance asserts that this translation distributes over the {name}`Monad` operations.
 :::
-
-{docstring Std.Do.PredTrans}
-
-{docstring Std.Do.WP}
-
-:::syntax term (title := "Weakest Preconditions") (namespace := Std.Do)
-```grammar
-wp⟦ $_:term ⟧
-```
-:::
-
-{docstring Std.Do.WPMonad}
 
 ::::paragraph
 :::leanFirst
