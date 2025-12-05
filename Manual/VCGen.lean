@@ -735,17 +735,6 @@ set_option mvcgen.warning false
 
 ```
 
-```imports -show
-import Std.Do
-import Std.Tactic.Do
-```
-```lean -show
-open Std.Do
-
-set_option mvcgen.warning false
-
-```
-
 The monad {name}`LogM` maintains an append-only log during a computation:
 ```lean
 structure LogM (β : Type u) (α : Type v) : Type (max u v) where
@@ -874,17 +863,6 @@ When working with concrete monads, {tactic}`mvcgen` typically does not result in
 However, monad-polymorphic theorems can lead to stateful goals remaining.
 
 :::example "Stateful Proofs"
-```imports -show
-import Std.Do
-import Std.Tactic.Do
-```
-```lean -show
-open Std.Do
-
-set_option mvcgen.warning false
-
-```
-
 ```imports -show
 import Std.Do
 import Std.Tactic.Do
