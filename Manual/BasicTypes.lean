@@ -25,6 +25,7 @@ import Manual.BasicTypes.List
 import Manual.BasicTypes.Maps
 import Manual.BasicTypes.Subtype
 import Manual.BasicTypes.Thunk
+import Manual.BasicTypes.Range
 
 open Manual.FFIDocType
 
@@ -318,6 +319,8 @@ Most comparisons on Booleans should be performed using the {inst}`DecidableEq Bo
 {include 0 Manual.BasicTypes.Array}
 
 {include 0 Manual.BasicTypes.ByteArray}
+
+{include 0 Manual.BasicTypes.Range}
 
 {include 0 Manual.BasicTypes.Maps}
 

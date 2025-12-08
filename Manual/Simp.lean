@@ -331,7 +331,7 @@ tag := "simp-sets"
 %%%
 
 A collection of rules used by the simplifier is called a {deftech}_simp set_.
-A simp set is specified in terms of modifications from a _default simp set_.
+A simp set is specified in terms of modifications from a {deftech}_default simp set_.
 These modifications can include adding rules, removing rules, or adding a set of rules.
 The `only` modifier to the {tactic}`simp` tactic causes it to start with an empty simp set, rather than the default one.
 Rules are added to the default simp set using the {attr}`simp` attribute.
