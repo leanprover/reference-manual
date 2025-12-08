@@ -336,6 +336,14 @@ tag := "array-api"
 
 ## Iteration
 
+{docstring Array.iter}
+
+{docstring Array.iterFromIdx}
+
+{docstring Array.iterM}
+
+{docstring Array.iterFromIdxM}
+
 {docstring Array.foldr}
 
 {docstring Array.foldrM}
