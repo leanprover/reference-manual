@@ -648,7 +648,7 @@ variable [Monad m] [WPMonad m ps] {e : m α} {P : Assertion ps} {Q : PostCond α
 The verification conditions for a goal are generated as follows:
 1. A number of simplifications and rewrites are applied.
 2. The goal should now be of the form {lean}`P ⊢ₛ wp⟦e⟧ Q` (that is, an entailment from some set of stateful assumptions to the weakest precondition that implies a desired postcondition).
-3. {tech}[Reducible] constants in the expression {lean}`e` are unfolded, and definitions marked {attrs}`@[spec]` are simplified.
+3. {tech}[Reducible] constants and definitions marked {attrs}`@[spec]` in the expression {lean}`e` are unfolded.
 4. If the expression is an application of an {tech}[auxiliary matching function] or a conditional ({name}`ite` or {name}`dite`), then it is first simplified.
    The {tech (key := "match discriminant")}[discriminant] of each matcher is simplified, and the entire term is reduced in an attempt to eliminate the matcher or conditional.
    If this fails, then a new goal is generated for each branch.
