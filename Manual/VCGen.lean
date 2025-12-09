@@ -561,7 +561,7 @@ For theorems, the {keywordOf simpPre}`↓`, {keywordOf simpPost}`↑`, and {keyw
 
 The {attr}`spec` attribute may also be applied to definitions.
 On definitions, it indicates that the definition should be simplified during verification condition generation.
-For definitions, {attr}`spec` uses the {keywordOf simpPre}`↑`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers in the same manner as {tactic}`simp`.
+For definitions, {attr}`spec` uses the {keywordOf simpPre}`↓`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers in the same manner as {tactic}`simp`.
 
 :::syntax attr (title := "Specification Lemmas")
 ```grammar
