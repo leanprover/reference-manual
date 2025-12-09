@@ -257,15 +257,15 @@ Thus, Lean divides iterators into three termination classes:
 All finite iterators are necessarily productive.
 :::
 
-{docstring Finite +allowMissing}
+{docstring Finite}
 
-{docstring Productive +allowMissing}
+{docstring Productive}
 
 Lean's standard library provides many functions that iterate over an iterator. These consumer functions usually do not
 make any assumptions about the underlying iterator. In particular, such functions may run forever for certain iterators.
 
 Sometimes, it is of utmost importance that a function does terminate.
-For these cases, {name}`Iter.allowNontermination` provides variants of consumers that are guaranteed to terminate.
+For these cases, the combinator {name}`Iter.ensureTermination` results in an iterator that provides variants of consumers that are guaranteed to terminate.
 They usually require proof that the involved iterator is finite.
 
 {docstring Iter.ensureTermination}
@@ -394,9 +394,8 @@ failed to synthesize
 
 Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
 ```
-If it is important that a loop terminates, {name}`Iter.ensureTermination` can be used. It has a `ForIn` instance
-and other consumers functions that fail if no {name}`Finite` instance can be synthesized.
 
+Because there are infinitely many {name}`Nat`s, using {name}`Iter.ensureTermination` results in an error:
 ```lean (name := natterm) +error
 #eval show IO Unit from do
   for x in Nats.iter.ensureTermination do
@@ -762,11 +761,11 @@ def allNats : List Nat :=
   let steps : Iter Nat := (0...*).iter
   steps.toList
 ```
-If endless loops are not desired, one can use the operations available via {lean}`Iter.ensureTermination`. These
-are guaranteed to terminate after finitely many steps, but they will fail if Lean cannot prove the iterator finite.
+The combinator {lean}`Iter.ensureTermination` results in an iterator where non-termination is ruled out.
+These iterators are guaranteed to terminate after finitely many steps, and thus cannot be used when Lean cannot prove the iterator finite.
 ```lean (name := toListInf) +error -keep
 def allNats : List Nat :=
-  let steps : Iter.Total Nat := (0...*).iter.ensureTermination
+  let steps := (0...*).iter.ensureTermination
   steps.toList
 ```
 The resulting error message states that there is no {name}`Finite` instance:
