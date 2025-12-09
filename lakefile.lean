@@ -49,7 +49,7 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
 
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
-  let some pkg := ← findPackage? `subverso
+  let some pkg := ← findPackageByName? `subverso
     | failure
   let some exe := pkg.findLeanExe? `«subverso-extract-mod»
     | failure

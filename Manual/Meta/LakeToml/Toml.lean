@@ -316,9 +316,9 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
-    let commentStr := comment.extract s.endPos
+    let commentStr := s.extract comment s.endPos
     let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
-    {{ {{s.startPos.extract comment}} {{commentHtml}} }}
+    {{ {{s.extract s.startPos comment}} {{commentHtml}} }}
   | .key none k => {{
     <span class="key">
       {{k.toHtml tableLink keyLink}}
