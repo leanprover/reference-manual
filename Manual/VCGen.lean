@@ -560,7 +560,7 @@ These lemmas are used in order of priority.
 For theorems, the {keywordOf simpPre}`↓`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers are ignored.
 
 The {attr}`spec` attribute may also be applied to definitions.
-On definitions, it indicates that the definition should be simplified during verification condition generation.
+On definitions, it indicates that the definition should be unfolded during verification condition generation.
 For definitions, {attr}`spec` uses the {keywordOf simpPre}`↓`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers in the same manner as {tactic}`simp`.
 
 :::syntax attr (title := "Specification Lemmas")
