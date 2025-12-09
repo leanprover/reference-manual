@@ -74,6 +74,8 @@ jobs:
     if: needs.check-update.outputs.update-needed == 'true'
     permissions:
       contents: write
+    outputs:
+      changes-pushed: ${{ steps.commit.outputs.changes-pushed }}
 
     steps:
     - name: Checkout repository
@@ -146,6 +148,7 @@ jobs:
         lake exe generate-manual --depth 2 --without-html-single
 
     - name: Commit and push changes
+      id: commit
       run: |
         git add lean-toolchain
         git commit -m "chore: bump to nightly ${{ needs.check-update.outputs.latest-version }}"
@@ -156,4 +159,10 @@ jobs:
             version=${toolchain#leanprover/lean4:nightly-}
             git tag "nightly-testing-$version"
             git push origin "nightly-testing-$version"
+            echo "changes-pushed=true" >> $GITHUB_OUTPUT
         fi
+
+  trigger-nightly-with-manual:
+    needs: test-and-update
+    if: needs.test-and-update.outputs.changes-pushed == 'true'
+    uses: ./.github/workflows/nightly-with-manual.yml
