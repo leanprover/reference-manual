@@ -51,7 +51,7 @@ The workflow of {tactic}`mvcgen` consists of the following:
 
 1. Monadic programs are re-interpreted according to a {tech}[predicate transformer semantics].
    An instance of {name}`WP` determines the monad's interpretation.
-   Each program is interpreted as a mapping from arbitrary postconditions to the {tech}[weakest precondition] that would ensure the postcondition.
+   Each program is interpreted as a mapping from arbitrary {tech}[postconditions] to the {tech}[weakest precondition] that would ensure the postcondition.
    This step is invisible to most users, but library authors who want to enable their monads to work with {tactic}`mvcgen` need to understand it.
 2. Programs are composed from smaller programs.
    Each statement in a {keywordOf Lean.Parser.Term.do}`do`-block is associated with a predicate transformer, and there are general-purpose rules for combining these statements with sequencing and control-flow operators.
@@ -70,7 +70,12 @@ The workflow of {tactic}`mvcgen` consists of the following:
 # Predicate Transformers
 
 A {deftech}_predicate transformer semantics_ is an interpretation of programs as functions from predicates to predicates, rather than values to values.
-The predicate transformer semantics used by {tactic}`mvcgen` transforms postconditions into the weakest preconditions under which the program will ensure the postcondition.
+A {deftech}_postcondition_ is an assertion that holds after running a program, while a {deftech}_precondition_ is an assertion that must hold prior to running the program in order for the postcondition to be guaranteed to hold.
+
+The predicate transformer semantics used by {tactic}`mvcgen` transforms postconditions into the {deftech}_weakest preconditions_ under which the program will ensure the postcondition.
+An assertion $`P` is weaker than $`P'` if, in all states, $`P'` suffices to prove $`P`, but $`P` does not suffice to prove $`P'`.
+Logically equivalent assertions are considered to be equal.
+
 The predicates in question are stateful: they can mention the program's current state.
 Furthermore, postconditions can relate the return value and any exceptions thrown by the program to the final state.
 {name}`SPred` is a type of predicates that is parameterized over a monadic state, expressed as a list of the types of the fields that make up the state.
@@ -121,7 +126,7 @@ set_option mvcgen.warning false
 ```
 The predicate {name}`ItIsSecret` expresses that a state of type {name}`String` is {lean}`"secret"`:
 ```lean
-def ItIsSecret : SPred [String] := (⟨· = "secret"⟩)
+def ItIsSecret : SPred [String] := fun s => ⌜s = "secret"⌝
 ```
 :::
 
@@ -266,6 +271,20 @@ Each form of existential quantification is syntactic sugar for an invocation of 
 
 {docstring SPred.exists}
 
+### Stateful Values
+
+Just as {name}`SPred` represents predicate over states, {name}`SVal` represents a value that is derived from a state.
+
+{docstring SVal}
+
+{docstring SVal.getThe}
+
+{docstring SVal.StateTuple}
+
+{docstring SVal.curry}
+
+{docstring SVal.uncurry}
+
 
 ## Assertions
 
@@ -293,6 +312,15 @@ Syntactic sugar for a nested sequence of product constructors, terminating in {l
 
 
 {docstring ExceptConds}
+
+:::leanSection
+```lean -show
+universe u v
+variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α  : Type u}  {prog : m α} {Q' : α → Assertion ps}
+```
+Postconditions for programs that might throw exceptions come in two varieties. The {deftech}_total correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, then {lean}`prog` terminates _and_ {lean}`Q'` holds for the result. The {deftech}_partial correctness interpretation_ {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
+:::
+
 
 :::syntax term (title := "Exception-Free Postconditions")
 ```grammar
@@ -460,9 +488,7 @@ theorem rev_correct :
     (rev xs).run = xs.reverse := by
   generalize h : (rev xs).run = x
   apply Identity.of_wp_run_eq h
-  simp only [rev]
-  mvcgen
-
+  mvcgen [rev]
 ```
 ```leanOutput noInst
 unsolved goals
@@ -470,9 +496,10 @@ case vc1.a
 α✝ : Type u_1
 xs x : List α✝
 h : (rev xs).run = x
+out✝ : List α✝ := []
 ⊢ (wp⟦do
       let r ←
-        forIn xs [] fun x r => do
+        forIn xs out✝ fun x r => do
             pure PUnit.unit
             pure (ForInStep.yield (x :: r))
       pure r⟧
@@ -515,8 +542,6 @@ They show that a property about the invocation is true if its weakest preconditi
 
 {docstring StateM.of_wp_run'_eq}
 
-{docstring StateM.of_wp_run'_eq}
-
 {docstring ReaderM.of_wp_run_eq}
 
 {docstring Except.of_wp}
@@ -541,8 +566,6 @@ variable [WP m ps] {x : m α} {P : Assertion ps} {Q : PostCond α ps}
 {lean}`⦃P⦄ x ⦃Q⦄` is syntactic sugar for {lean}`Triple x P Q`.
 :::
 ::::
-
-{docstring SVal}
 
 {docstring Triple.and}
 
@@ -887,7 +910,7 @@ theorem bump_correct :
       ⦃ fun n => ⌜n = k⌝ ⦄
       bump (m := m) i
       ⦃ ⇓ r n => ⌜r = n ∧ n = k + i⌝ ⦄ := by
-  mvcgen
+  mintro n_eq_k
   unfold bump
   unfold modifyThe
   mspec
@@ -904,7 +927,7 @@ theorem bump_correct' :
     ⦃ fun n => ⌜n = k⌝ ⦄
     bump (m := m) i
     ⦃ ⇓ r n => ⌜r = n ∧ n = k + i⌝ ⦄ := by
-  mvcgen
+  mintro _
   simp_all [bump]
 ```
 :::
