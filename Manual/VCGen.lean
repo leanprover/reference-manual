@@ -557,7 +557,7 @@ Specification lemmas allow compositional reasoning about libraries of monadic co
 
 When applied to a theorem whose statement is a Hoare triple, the {attr}`spec` attribute registers the theorem as a specification lemma.
 These lemmas are used in order of priority.
-For theorems, the {keywordOf simpPre}`↑`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers are ignored.
+For theorems, the {keywordOf simpPre}`↓`, {keywordOf simpPost}`↑`, and {keyword}`←` specifiers are ignored.
 
 The {attr}`spec` attribute may also be applied to definitions.
 On definitions, it indicates that the definition should be simplified during verification condition generation.
