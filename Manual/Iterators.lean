@@ -261,11 +261,11 @@ All finite iterators are necessarily productive.
 
 {docstring Productive +allowMissing}
 
-Lean's standard library provides many functions that iterate over an iterator. These consumer functions usually do not
+Lean's standard library provides many functions that consume an iterator. These consumer functions usually do not
 make any assumptions about the underlying iterator. In particular, such functions may run forever for certain iterators.
 
 Sometimes, it is of utmost importance that a function does terminate.
-For these cases, {name}`Iter.allowNontermination` provides variants of consumers that are guaranteed to terminate.
+For these cases, {name}`Iter.ensureTermination` provides variants of consumers that are guaranteed to terminate.
 They usually require proof that the involved iterator is finite.
 
 {docstring Iter.ensureTermination}
@@ -307,7 +307,7 @@ instance [Pure m] : Iterator Nats m Nat where
 
 Whenever an iterator is defined, {name}`IteratorCollect` and {name}`IteratorLoop` instances should be provided.
 They are required for most consumers of iterators such as {name}`Iter.toList` or the `for` loops.
-One can use their default implementations as follows:
+While it is possible to provide specially-optimized implementations for some iterators, most iterators should use the default implementations:
 
 ```lean
 instance [Pure m] [Monad n] : IteratorCollect Nats m n :=
@@ -345,13 +345,13 @@ def Nats.iter : Iter (α := Nats) Nat :=
 :::
 
 :::paragraph
-One can print all natural numbers by running the following function:
+This {name}`IO` action prints all the natural numbers:
 ```lean
 def f : IO Unit := do
   for x in Nats.iter do
     IO.println s!"{x}"
 ```
-This function never terminates, printing all natural numbers in increasing order, one
+A call to `f` never terminates; it continues printing all natural numbers in increasing order, one
 after another.
 :::
 
@@ -371,10 +371,11 @@ This iterator is most useful with combinators such as {name}`Iter.zip`:
 :::
 
 :::paragraph
-In contrast to the previous example, this loop terminates because `xs.iter` is a finite iterator,
-One can make sure that a loop actually terminates by providing a {name}`Finite` instance:
+In contrast to {name}`f`, this loop terminates because `xs.iter` is a finite iterator.
+A {name}`Finite` instance ensures that a loop actually terminates:
 ```lean (name := natfin)
-#check type_of% (Nats.iter.zip ["cat", "dog"].iter).internalState
+example : (Zip Nats Id (ListIterator String) String) Id :=
+  (Nats.iter.zip ["cat", "dog"].iter).internalState
 
 #synth Finite (Zip Nats Id (ListIterator String) String) Id
 ```
@@ -527,8 +528,8 @@ With the {name}`IteratorCollect` instance in place, {name}`Iter.toArray` now wor
 #['a', 'b', 'c']
 ```
 
-In general, `Iter.toArray` might run forever. One can prove that `abc` is finite, and the above example will terminate after finitely many steps, by
-constructing a `Finite (Triple Char) Id` instance.
+In general, `Iter.toArray` might run forever.
+To use `abc` in a context where termination is important, it must be proved finite by constructing a `Finite (Triple Char) Id` instance.
 It's easiest to start at {name}`TriplePos.done` and work backwards toward {name}`TriplePos.fst`, showing that each position in turn has a finite chain of successors:
 
 ```lean
@@ -570,7 +571,7 @@ instance [Pure m] : Finite (TripleIterator α) m where
       cases pos <;> grind
 ```
 
-To enable the iterator in {keywordOf Lean.Parser.Term.doFor}`for` loops, an instance of {name}`IteratorLoop` are needed:
+To enable the iterator in {keywordOf Lean.Parser.Term.doFor}`for` loops, an instance of {name}`IteratorLoop` is needed:
 ```lean
 instance [Monad m] [Monad n] :
     IteratorLoop (TripleIterator α) m n :=
@@ -756,14 +757,14 @@ import Std.Data.Iterators
 ```lean -show
 open Std.Iterators
 ```
-Attempting to construct a list of all the natural numbers from an iterator will produce an endless loop:
+Attempting to construct a list of all the natural numbers from an iterator will produce an infinite loop:
 ```lean (name := toListInf) -keep
 def allNats : List Nat :=
   let steps : Iter Nat := (0...*).iter
   steps.toList
 ```
-If endless loops are not desired, one can use the operations available via {lean}`Iter.ensureTermination`. These
-are guaranteed to terminate after finitely many steps, but they will fail if Lean cannot prove the iterator finite.
+The combinator {lean}`Iter.ensureTermination` results in an iterator for which potentially-infinite operations require evidence of terminations.
+In particular, these operations are guaranteed to terminate after finitely many steps, but they require an instance of {name}`Finite` for the iterator.
 ```lean (name := toListInf) +error -keep
 def allNats : List Nat :=
   let steps : Iter.Total Nat := (0...*).iter.ensureTermination
