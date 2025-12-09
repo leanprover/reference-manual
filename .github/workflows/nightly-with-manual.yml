@@ -5,6 +5,10 @@ on:
     tags:
       - 'nightly-testing-*'
   workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '0 14 * * *'  # 2PM UTC
+    - cron: '0 22 * * *'  # 10PM UTC
 
 jobs:
   build:
@@ -54,5 +58,5 @@ jobs:
           git fetch nightly --tags
           # Note: old jobs may run out of order, but it is safe to merge an older `nightly-YYYY-MM-DD`.
           git merge "nightly-${NIGHTLY}" --strategy-option ours --allow-unrelated-histories || true
-          git push --dry-run origin
+          git push origin
 
