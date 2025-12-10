@@ -232,7 +232,7 @@ open D
 ## Leading `.`
 
 When an identifier begins with a dot (`.`), the type that the elaborator expects for the expression is used to resolve it, rather than the current namespace and set of open namespaces.
-{tech}[Generalized field notation] is related: leading dot notation uses the expected type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
+{tech}[Generalized field notation] is related: this {deftech}_leading dot notation_ uses the expected type of the identifier to resolve it to a name, while field notation uses the inferred type of the term immediately prior to the dot.
 
 Identifiers with a leading `.` are to be looked up in the {deftech}_expected type's namespace_.
 If the type expected for a term is a constant applied to zero or more arguments, then its namespace is the constant's name.
@@ -731,18 +731,15 @@ If a term's type is a constant applied to zero or more arguments, then {deftech}
 The use of field notation to apply other functions is called {deftech}_generalized field notation_.
 
 The identifier after the dot is looked up in the namespace of the term's type, which is the constant's name.
-If the type is not an application of a constant (e.g., a function, a metavariable, or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+If the type is not an application of a constant (e.g. a metavariable or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
+As a special case, if an expression is a function, generalized field notation will look in the `Function` namespace. Therefore, {lean}`Nat.add.uncurry` is a use of generalized field notation that is equivalent to {lean}`Function.uncurry Nat.add`.
+
 If the field is not found, but the constant can be unfolded to yield a further type which is a constant or application of a constant, then the process is repeated with the new constant.
 
 When a function is found, the term before the dot becomes an argument to the function.
 Specifically, it becomes the first explicit argument that would not be a type error.
 Aside from that, the application is elaborated as usual.
 
-::::keepEnv
-```lean -show
-section
-variable (name : Username)
-```
 :::example "Generalized Field Notation"
 The type {lean}`Username` is a constant, so functions in the {name}`Username` namespace can be applied to terms with type {lean}`Username` with generalized field notation.
 ```lean
@@ -767,32 +764,36 @@ where
     !c.isDigit &&
     !c ∈ ['_', ' ']
 
-def root : Username := "root"
+def adminUser : Username := "admin"
 ```
 
 However, {lean}`Username.validate` can't be called on {lean}`"root"` using field notation, because {lean}`String` does not unfold to {lean}`Username`.
 ```lean +error (name := notString)
-#eval "root".validate
+#eval "admin".validate
 ```
 ```leanOutput notString
 Invalid field `validate`: The environment does not contain `String.validate`
-  "root"
+  "admin"
 has type
   String
 ```
 
-{lean}`root`, on the other hand, has type {lean}`Username`:
+{lean}`adminUser`, on the other hand, has type {lean}`Username`, so the {lean}`Username.validate` function can be invoked with generalized field notation:
 ```lean (name := isUsername)
-#eval root.validate
+#eval adminUser.validate
 ```
 ```leanOutput isUsername
 Except.ok ()
 ```
-:::
-```lean -show
-end
+
+Going in the other direction, {lean}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
+```lean (name := isString1)
+#eval adminUser.any (· == 'm')
 ```
-::::
+```leanOutput isString1
+true
+```
+:::
 
 {optionDocs pp.fieldNotation}
 
@@ -977,7 +978,8 @@ structure NatInterval where
 
 instance : Add NatInterval where
   add
-    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ => ⟨lo1 + lo2, hi1 + hi2, by omega⟩
+    | ⟨lo1, hi1, le1⟩, ⟨lo2, hi2, le2⟩ =>
+      ⟨lo1 + lo2, hi1 + hi2, by grind⟩
 ```
 
 An {name}`OfNat` instance allows natural number literals to be used to represent intervals:
@@ -1410,7 +1412,8 @@ def ggg : OnlyThreeOrFive → Nat
 
 /--
 error: Missing cases:
-(OnlyThreeOrFive.mk _ true _)
+(OnlyThreeOrFive.mk _ true (Or.inr Eq.refl))
+(OnlyThreeOrFive.mk _ true (Or.inl Eq.refl))
 -/
 #check_msgs in
 def hhh : OnlyThreeOrFive → Nat
@@ -1498,7 +1501,10 @@ inductive BalancedTree (α : Type u) : Nat → Type u where
 
 To begin the implementation of a function to construct a perfectly balanced tree with some initial element and a given depth, a {tech}[hole] can be used for the definition.
 ```lean -keep (name := fill1) +error
-def BalancedTree.filledWith (x : α) (depth : Nat) : BalancedTree α depth := _
+def BalancedTree.filledWith
+    (x : α) (depth : Nat) :
+    BalancedTree α depth :=
+  _
 ```
 The error message demonstrates that the tree should have the indicated depth.
 ```leanOutput fill1
@@ -2018,8 +2024,12 @@ example := do
   return 5
 ```
 ```leanOutput doBusted
-typeclass instance problem is stuck, it is often due to metavariables
-  Pure ?m.64
+typeclass instance problem is stuck
+  Pure ?m.12
+
+Note: Lean will not try to resolve this typeclass instance problem because the type argument to `Pure` is a metavariable. This argument must be fully determined before Lean will try to resolve the typeclass.
+
+Hint: Adding type annotations and supplying implicit arguments to functions can give Lean more information for typeclass resolution. For example, if you have a variable `x` that you intend to be a `Nat`, but Lean reports it as having an unresolved type like `?m`, replacing `x` with `(x : Nat)` can get typeclass resolution un-stuck.
 ```
 
 A prefix type ascription with {keywordOf Lean.Parser.Term.show}`show`, together with a {tech}[hole], can be used to indicate the monad.
@@ -2029,6 +2039,71 @@ example := show StateM String _ from do
   return 5
 ```
 :::
+
+There is an important difference between postfix type ascriptions and {keywordOf Lean.Parser.Term.show}`show`.
+Ordinary postfix type ascriptions change the type that is expected for the term, which can change the way that the term elaborates.
+After elaboration, however, Lean infers the type of the resulting term and uses that inferred type for further elaboration tasks.
+On the other hand, {keywordOf Lean.Parser.Term.show}`show` elaborates to a term whose inferred type is the ascribed type.
+The difference can be observed when using {tech}[generalized field notation], where the ascribed type is only guaranteed to be used to resolve fields when using {keywordOf Lean.Parser.Term.show}`show`.
+
+::::example "Postfix Ascription vs `show`"
+
+:::paragraph
+This definition establishes an alternative name for {lean}`List String`:
+```lean
+def Colors := List String
+```
+:::
+
+:::paragraph
+A postfix type ascription provides the type information that's needed to determine the implicit argument {name}`String` to {name}`List.nil`, but the resulting type is still {lean}`List String`:
+```lean (name := nil)
+#check ([] : Colors)
+```
+```leanOutput nil
+[] : List String
+```
+:::
+
+:::paragraph
+When using {keywordOf Lean.Parser.Term.show}`show`, on the other hand, the elaborated term is constructed in such a way that the inferred type is {lean}`Colors`:
+```lean (name := nil2)
+#check (show Colors from [])
+```
+```leanOutput nil2
+have this := [];
+this : Colors
+```
+:::
+
+:::paragraph
+This function is designed to be invoked using {tech}[generalized field notation]:
+```lean
+def Colors.hasYellow (cs : Colors) : Bool :=
+  cs.any (·.toLower == "yellow")
+```
+:::
+
+:::paragraph
+Due to the differences in their inferred types, it can be used with {keywordOf Lean.Parser.Term.show}`show`, but not with the postfix type ascription:
+```lean (name := nil3) +error
+#eval ([] : Colors).hasYellow
+```
+```leanOutput nil3
+Invalid field `hasYellow`: The environment does not contain `List.hasYellow`
+  []
+has type
+  List String
+```
+```lean (name := nil4)
+#eval (show Colors from []).hasYellow
+```
+```leanOutput nil4
+false
+```
+:::
+::::
+
 
 # Quotation and Antiquotation
 

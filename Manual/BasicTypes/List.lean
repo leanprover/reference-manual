@@ -20,6 +20,7 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 250000
 
 
 #doc (Manual) "Linked Lists" =>
@@ -232,8 +233,6 @@ tag := "list-api-reference"
 
 ## Conversions
 
-{docstring List.asString}
-
 {docstring List.toArray}
 
 {docstring List.toArrayImpl}
@@ -254,6 +253,10 @@ tag := "list-api-reference"
 {docstring List.merge}
 
 ## Iteration
+
+{docstring List.iter}
+
+{docstring List.iterM}
 
 {docstring List.forA}
 

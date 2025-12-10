@@ -312,14 +312,17 @@ that updates to libraries from other projects cannot silently
 introduce unwanted dependencies on axioms.
 
 For example, if the proof of {name}`double_neg_elim` below changed in such a way that it used more
-axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` would report an error.
+axioms than those listed, then the {keywordOf Lean.guardMsgsCmd}`#guard_msgs` command would report an error.
 
 ```lean
 theorem double_neg_elim (P : Prop) : (¬ ¬ P) = P :=
   propext Classical.not_not
 
-/-- info: 'double_neg_elim' depends on axioms: [propext, Classical.choice, Quot.sound] -/
-#guard_msgs in
+/--
+info: 'double_neg_elim' depends on axioms:
+  [propext, Classical.choice, Quot.sound]
+-/
+#guard_msgs (whitespace := lax) in
 #print axioms double_neg_elim
 
 ```

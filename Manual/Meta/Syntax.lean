@@ -313,7 +313,7 @@ declare_syntax_cat syntax_sep
 open Lean Elab Command in
 run_cmd do
   for i in [5:40] do
-    let sep := Syntax.mkStrLit <| String.mk (List.replicate i '*')
+    let sep := Syntax.mkStrLit <| String.ofList (List.replicate i '*')
     let cmd ← `(scoped syntax (name := $(mkIdent s!"sep{i}".toName)) $sep:str : syntax_sep)
     elabCommand cmd
   pure ()

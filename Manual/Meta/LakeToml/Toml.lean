@@ -165,23 +165,23 @@ where
 private def hasSubstring (haystack : String) (needle : String) : Bool := Id.run do
   if needle.isEmpty then return true
   if needle.length > haystack.length then return false
-  let mut iter := haystack.iter
+  let mut iter := haystack.startValidPos
   let fst := String.Pos.Raw.get needle 0
-  while h : iter.hasNext do
-    if iter.curr' h  == fst then
+  while h : iter ≠ haystack.endValidPos do
+    if iter.get h  == fst then
       let mut iter' := iter
-      let mut iter'' := needle.iter
-      while iter'.hasNext && iter''.hasNext do
-        if iter'.curr == iter''.curr then
-          iter' := iter'.next
-          iter'' := iter''.next
+      let mut iter'' := needle.startValidPos
+      while h : iter' ≠ haystack.endValidPos ∧ iter'' ≠ needle.endValidPos do
+        if iter'.get h.1 == iter''.get h.2 then
+          iter' := iter'.next h.1
+          iter'' := iter''.next h.2
         else break
-      if iter''.hasNext then
-        iter := iter.next
+      if iter'' ≠ needle.endValidPos then
+        iter := iter.next h
         continue
       else return true
     else
-      iter := iter.next
+      iter := iter.next h
       continue
   return false
 
@@ -316,7 +316,7 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
-    let commentStr := comment.extract s s.endPos
+    let commentStr := comment.extract s s.rawEndPos
     let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
     {{ {{String.Pos.Raw.extract s 0 comment}} {{commentHtml}} }}
   | .key none k => {{

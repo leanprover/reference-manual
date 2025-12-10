@@ -32,6 +32,7 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
+set_option maxHeartbeats 1000000
 
 #doc (Manual) "Maps and Sets" =>
 %%%
@@ -448,6 +449,12 @@ $_ ~m $_
 
 ## Iteration
 
+{docstring Std.HashMap.iter}
+
+{docstring Std.HashMap.keysIter}
+
+{docstring Std.HashMap.valuesIter}
+
 {docstring Std.HashMap.map}
 
 {docstring Std.HashMap.fold}
@@ -569,6 +576,12 @@ $_ ~m $_
 {docstring Std.DHashMap.union}
 
 ## Iteration
+
+{docstring Std.DHashMap.iter}
+
+{docstring Std.DHashMap.keysIter}
+
+{docstring Std.DHashMap.valuesIter}
 
 {docstring Std.DHashMap.map}
 
@@ -811,6 +824,8 @@ $_ ~m $_
 
 ## Iteration
 
+{docstring Std.HashSet.iter}
+
 {docstring Std.HashSet.all}
 
 {docstring Std.HashSet.any}
@@ -970,6 +985,12 @@ The declarations in this section should be imported using `import Std.DTreeMap`.
 {docstring Std.DTreeMap.partition}
 
 ## Iteration
+
+{docstring Std.DTreeMap.iter}
+
+{docstring Std.DTreeMap.keysIter}
+
+{docstring Std.DTreeMap.valuesIter}
 
 {docstring Std.DTreeMap.map}
 

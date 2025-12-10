@@ -107,11 +107,9 @@ def renderExampleContent (exampleBlocks : List String) : String :=
 /-- A domain for named examples -/
 def examples : Domain := {}
 
-@[directive_expander «example»]
-def «example» : DirectiveExpander
-  | args, contents => do
-    let cfg ← parseThe ExampleConfig args
-
+@[directive]
+def «example» : DirectiveExpanderOf ExampleConfig
+  | cfg, contents => do
     let description ←
       DocElabM.withFileMap cfg.description.1 <|
       cfg.description.2.mapM elabInline
@@ -135,10 +133,11 @@ def «example» : DirectiveExpander
       if cfg.keep then exampleCode
       else withoutModifyingEnv <| exampleCode
     let liveLinkContent := if acc = [] then none else some (renderExampleContent acc)
+
     -- Examples are represented using the first block to hold the description. Storing it in the JSON
     -- entails repeated (de)serialization.
-    pure #[← ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
-                #[Block.para #[$description,*], $blocks,*])]
+    ``(Block.other (Block.example $(quote descriptionString) $(quote cfg.tag) (opened := $(quote cfg.opened)) $(quote liveLinkContent))
+         #[Block.para #[$description,*], $blocks,*])
 
 @[block_extension «example»]
 def example.descr : BlockDescr where

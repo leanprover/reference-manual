@@ -210,7 +210,7 @@ def compress (uncompressed : String)
     else
       data_position := data_position + 1
 
-  return String.mk data.toList
+  return String.ofList data.toList
 
 def lzCompress (uncompressed : String) := compress uncompressed 6 getCharFromInt
 

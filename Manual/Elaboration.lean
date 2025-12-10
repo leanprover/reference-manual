@@ -103,12 +103,12 @@ tag := "macro-and-elab"
 %%%
 
 Having parsed a command, the next step is to elaborate it.
-The precise meaning of _elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
+The precise meaning of {deftech}_elaboration_ depends on what is being elaborated: elaborating a command effects a change in the state of Lean, while elaborating a term results in a term in Lean's core type theory.
 Elaboration of both commands and terms may be recursive, both because of command combinators such as {keywordOf Lean.Parser.Command.in}`in` and because terms may contain other terms.
 
 Command and term elaboration have different capabilities.
 Command elaboration may have side effects on an environment, and it has access to run arbitrary computations in {lean}`IO`.
-Lean environments contain the usual mapping from names to definitions along with additional data defined in {deftech}[environment extensions], which are additional tables associated with an environment; environment extensions are used to track most other information about Lean code, including {tactic}`simp` lemmas, custom pretty printers, and internals such as the compiler's intermediate representations.
+Lean {deftech}[environments] contain the usual mapping from names to definitions along with additional data defined in {deftech}[environment extensions], which are additional tables associated with an environment; environment extensions are used to track most other information about Lean code, including {tactic}`simp` lemmas, custom pretty printers, and internals such as the compiler's intermediate representations.
 Command elaboration also maintains a message log with the contents of the compiler's informational output, warnings, and errors, a set of {tech}[info trees] that associate metadata with the original syntax (used for interactive features such as displaying proof states, identifier completion, and showing documentation), accumulated debugging traces, the open {tech}[section scopes], and some internal state related to macro expansion.
 Term elaboration may modify all of these fields except the open scopes.
 Additionally, it has access to all the machinery needed to create fully-explicit terms in the core language from Lean's terse, friendly syntax, including unification, type class instance synthesis, and type checking.
@@ -213,7 +213,7 @@ Thus, the elaborator must translate definitions that use pattern matching and re
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
 The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
-These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration].]
+These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use variants of the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration], specialized to reduce code size.]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
 A definition that still includes recursion, but has otherwise been elaborated to the core language, is called a {deftech}[pre-definition].
 To see auxiliary pattern matching functions in Lean's output, set the option {option}`pp.match` to {lean}`false`.
@@ -226,6 +226,18 @@ def third_of_five : List α → Option α
   | [_, _, x, _, _] => some x
   | _ => none
 set_option pp.match false
+
+/--
+info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} →
+  {motive : List α → Sort u_1} →
+    (t : List α) → ((head : α) → (tail : List α) → motive (head :: tail)) → (t.ctorIdx ≠ 1 → motive t) → motive t :=
+fun {α} {motive} t cons =>
+  List.rec (motive := fun t => (t.ctorIdx ≠ 1 → motive t) → motive t) (fun x => x ⋯)
+    (fun head tail tail_ih x => cons head tail) t
+-/
+#check_msgs in
+#print third_of_five._sparseCasesOn_1
+
 /--
 info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
   third_of_five x✝ =
@@ -233,6 +245,7 @@ info: third_of_five.eq_def.{u_1} {α : Type u_1} (x✝ : List α) :
 -/
 #check_msgs in
 #check third_of_five.eq_def
+
 /--
 info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
   (motive : List α → Sort u_2) →
@@ -240,13 +253,23 @@ info: def third_of_five.match_1.{u_1, u_2} : {α : Type u_1} →
       ((head head_1 x head_2 head_3 : α) → motive [head, head_1, x, head_2, head_3]) →
         ((x : List α) → motive x) → motive x :=
 fun {α} motive x h_1 h_2 =>
-  List.casesOn x (h_2 []) fun head tail =>
-    List.casesOn tail (h_2 [head]) fun head_1 tail =>
-      List.casesOn tail (h_2 [head, head_1]) fun head_2 tail =>
-        List.casesOn tail (h_2 [head, head_1, head_2]) fun head_3 tail =>
-          List.casesOn tail (h_2 [head, head_1, head_2, head_3]) fun head_4 tail =>
-            List.casesOn tail (h_1 head head_1 head_2 head_3 head_4) fun head_5 tail =>
-              h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: head_5 :: tail)
+  third_of_five._sparseCasesOn_1 x
+    (fun head tail =>
+      third_of_five._sparseCasesOn_1 tail
+        (fun head_1 tail =>
+          third_of_five._sparseCasesOn_1 tail
+            (fun head_2 tail =>
+              third_of_five._sparseCasesOn_1 tail
+                (fun head_3 tail =>
+                  third_of_five._sparseCasesOn_1 tail
+                    (fun head_4 tail =>
+                      third_of_five._sparseCasesOn_2 tail (h_1 head head_1 head_2 head_3 head_4) fun h_0 =>
+                        h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: tail))
+                    fun h_0 => h_2 (head :: head_1 :: head_2 :: head_3 :: tail))
+                fun h_0 => h_2 (head :: head_1 :: head_2 :: tail))
+            fun h_0 => h_2 (head :: head_1 :: tail))
+        fun h_0 => h_2 (head :: tail))
+    fun h_0 => h_2 x
 -/
 #check_msgs in
 #print third_of_five.match_1
@@ -255,7 +278,7 @@ fun {α} motive x h_1 h_2 =>
 :::paragraph
 The pre-definition is then sent to the compiler and to the kernel.
 The compiler receives the pre-definition as-is, with recursion intact.
-The version sent to the kernel, on the other hand, undergoes a second transformation that replaces explicit recursion with {ref "structural-recursion"}[uses of recursors], {ref "well-founded-recursion"}[well-founded recursion], or .
+The version sent to the kernel, on the other hand, undergoes a second transformation that replaces explicit recursion with {ref "structural-recursion"}[uses of recursors], {ref "well-founded-recursion"}[well-founded recursion], or {ref "partial-fixpoint"}[partial fixpoint recursion].
 This split is for three reasons:
  * The compiler can compile {ref "partial-unsafe"}[`partial` functions] that the kernel treats as opaque constants for the purposes of reasoning.
  * The compiler can also compile {ref "partial-unsafe"}[`unsafe` functions] that bypass the kernel entirely.
