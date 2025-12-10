@@ -57,7 +57,7 @@ Along with many other parts of Lean, the tactic language is user-extensible, so 
 Tactics are written in Lean itself, and can be used immediately upon definition; rebuilding the prover or loading external modules is not required.
 
 Lean is also a pure *functional programming language*, with features such as a run-time system based on reference counting that can efficiently work with packed array structures, multi-threading, and monadic {name}`IO`.
-As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech}[elaborator], and tactic system.
+As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech (key := "Lean elaborator") -normalize}[elaborator], and tactic system.
 This very book is written in [Verso](https://github.com/leanprover/verso), a documentation authoring tool written in Lean.
 
 Familiarity with Lean's programming features is valuable even for users whose primary interest is in writing proofs, because Lean programs are used to implement new tactics and proof automation.

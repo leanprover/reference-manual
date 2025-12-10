@@ -17,7 +17,7 @@ tag := "files"
 htmlSplit := .never
 %%%
 
-The smallest unit of compilation in Lean is a single {deftech}[source file].
+The smallest unit of compilation in Lean is a single {tech}[source file].
 Source files may import other source files based on their file names.
 In other words, the names and folder structures of files are significant in Lean code.
 
@@ -642,7 +642,7 @@ tag := "meta-phase"
 
 Definitions in Lean result in both a representation in the type theory that is designed for formal reasoning and a compiled representation that is designed for execution.
 This compiled representation is used to generate machine code, but it can also be executed directly using an interpreter.
-The code runs during {tech}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
+The code runs during {tech -normalize}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
 If this compiled representation changes, then any code created by it may no longer be up to date, and it must be re-run.
 Because the compiler performs non-trivial optimizations, changes to any definition in the transitive dependency chain of a function could in principle invalidate its compiled representation.
 This means that metaprograms exported by modules induce a much stronger coupling than ordinary definitions.
@@ -863,7 +863,7 @@ tag := "code-distribution"
 %%%
 
 
-Lean modules are organized into {deftech}_packages_, which are units of code distribution.
+Lean modules are organized into {tech}_packages_, which are units of code distribution.
 A {tech}[package] may contain multiple libraries or executables.
 
 Code in a package that is intended for use by other Lean packages is organized into {deftech (key:="library")}[libraries].

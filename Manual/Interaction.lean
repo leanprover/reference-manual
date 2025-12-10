@@ -28,7 +28,7 @@ Lean's interactive features are based on a different paradigm.
 Rather than a separate command prompt outside of the program, Lean provides {tech}[commands] for accomplishing the same tasks in the context of a source file.
 By convention, commands that are intended for interactive use rather than as part of a durable code artifact are prefixed with {keyword}`#`.
 
-Information from Lean commands is available in the {deftech}_message log_, which accumulates output from the {tech}[elaborator].
+Information from Lean commands is available in the {deftech}_message log_, which accumulates output from the {tech (key := "Lean elaborator")}[elaborator].
 Each entry in the message log is associated with a specific source range and has a {deftech}_severity_.
 There are three severities: {lean  (type := "Lean.MessageSeverity")}`information` is used for messages that do not indicate a problem, {lean  (type := "Lean.MessageSeverity")}`warning` indicates a potential problem, and {lean  (type := "Lean.MessageSeverity")}`error` indicates a definite problem.
 For interactive commands, results are typically returned as informational messages that are associated with the command's leading keyword.
@@ -56,7 +56,7 @@ Use {keywordOf Lean.reduceCmd}`#reduce` to instead reduce terms using the reduct
 
 :::
 
-{keywordOf Lean.Parser.Command.eval}`#eval` always {tech (key := "elaborator")}[elaborates] and compiles the provided term.
+{keywordOf Lean.Parser.Command.eval}`#eval` always {tech (key := "Lean elaborator")}[elaborates] and compiles the provided term.
 It then checks whether the term transitively depends on any uses of {lean}`sorry`, in which case evaluation is terminated unless the command was invoked as {keywordOf Lean.Parser.Command.eval}`#eval!`.
 This is because compiled code may rely on compile-time invariants (such as array lookups being in-bounds) that are ensured by proofs of suitable statements, and running code that contains incomplete proofs (or uses of {lean}`sorry` that “prove” incorrect statements) can cause Lean itself to crash.
 

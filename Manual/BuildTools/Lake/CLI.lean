@@ -308,7 +308,7 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
-  Normally, the {tech}[package configuration] file is {tech (key := "elaborator")}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
+  Normally, the {tech}[package configuration] file is {tech (key := "elaborator") -normalize}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
   Providing this flag causes the configuration file to be re-elaborated.
 
 : {lakeOptDef flag}`--keep-toolchain`
