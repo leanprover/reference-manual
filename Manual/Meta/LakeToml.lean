@@ -824,7 +824,9 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         remoteUrl := cfg.remoteUrl
         configFile := cfg.configFile
         config, depConfigs, targetDecls, targetDeclMap
-        defaultTargets, name
+        defaultTargets
+        baseName := name
+        wsIdx := 0
         origName := name
       }
 

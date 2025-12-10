@@ -20,6 +20,7 @@ import Manual.Simp
 import Manual.Grind
 import Manual.VCGen
 import Manual.BasicTypes
+import Manual.Iterators
 import Manual.BasicProps
 import Manual.NotationsMacros
 import Manual.IO
@@ -118,6 +119,7 @@ draft := true
 
 {docstring Dynamic.get?}
 
+{include 0 Manual.Iterators}
 
 # Standard Library
 %%%
@@ -345,6 +347,32 @@ Std.ExtHashSet
 Std.TreeMap
 Std.DTreeMap
 Std.TreeSet
+Std.Iterators
+Std.Iterators.Iter
+Std.Iterators.Iter.Equiv
+Std.Iterators.Iter.TerminationMeasures
+Std.Iterators.IterM
+Std.Iterators.IterM.Equiv
+Std.Iterators.IterM.TerminationMeasures
+Std.Iterators.Iterator
+Std.Iterators.IteratorAccess
+Std.Iterators.IteratorLoop
+Std.Iterators.IteratorLoopPartial
+Std.Iterators.Finite
+Std.Iterators.Productive
+Std.Iterators.PostconditionT
+Std.Iterators.HetT
+Std.PRange
+Std.PRange.UpwardEnumerable
+Std.Rco
+Std.Rcc
+Std.Rci
+Std.Roo
+Std.Roc
+Std.Roi
+Std.Rio
+Std.Ric
+Std.Rii
 ```
 
 ```exceptions
@@ -834,6 +862,17 @@ Prod.repr
 Prod.rprod
 Prod.lex
 Prod.Lex
+```
+
+```exceptions
+Std.Iterators.Iter.instForIn'
+Std.Iterators.Iter.step_filter
+Std.Iterators.Iter.val_step_filter
+```
+
+```exceptions
+Std.Iterators.IterM.instForIn'
+Std.Iterators.IterM.toListRev.go
 ```
 
 ```exceptions

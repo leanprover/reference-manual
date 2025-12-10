@@ -26,6 +26,9 @@ time to time, `main` will be merged into `nightly-testing`; when Lean
 is released, the commits in `nightly-testing` are rebased onto `main`
 to achieve a clean history.
 
+See later in this README for details about how these branches are kept
+up to date.
+
 ## Building the Reference Manual Locally
 
 This reference manual contains figures that are built from LaTeX sources. To build them, you'll need the following:
@@ -215,3 +218,83 @@ git show postdeploy:4.25.0-rc2/Type-Classes/Basic-Classes/index.html
 git show postdeploy:latest/Type-Classes/Basic-Classes/index.html
 # Expect to *not* see <meta name="robots" content="noindex">
 ```
+
+# Supporting Nightlies
+
+Everything described in this section has two goals:
+ 1. We should always be able to produce a reference manual for a new
+    Lean release with a minimal delay. This means we need to discover
+    breaking changes and adapt to them on an ongoing basis.
+ 2. Lean developers should always be able to document their changes to
+    the language.
+
+## Keeping `nightly-testing` Updated
+
+Keeping the `nightly-testing` branch up to date is key to supporting
+both goals. It needs to be kept up to date in two ways: it needs to
+support the latest Lean nightly, and it needs to include all changes
+made on `main` so that they will also be adapted and ready to go for
+releases.
+
+### Maintaining `nightly-testing`
+
+To the extent that it is feasible, the `nightly-testing` branch is
+kept up to date with Lean nightlies. The process for doing so is
+partially automated. The CI config file
+[update-nightly.yml](.github/workflows/update-nightly.yml) runs
+regularly. If it detects a newer nightly than the one in
+`nightly-testing`'s `lean-toolchain` file, then it attempts to change
+the contents of the file to the latest nightly and build the HTML
+version of the manual. On success, it commits the result and pushes it
+to `nightly-testing`, adding the tag
+`nightly-testing-YYYY-MM-DD`. When the automated process fails, a
+human-created PR to `nightly-testing` is required. When a
+human-created adaptation PR is pushed to `nightly-testing`, the
+`nightly-testing-YYYY-MM-DD` tag is created by
+`tag-nightly-testing.yml`.
+
+The [`merge-main-nightly.yml`](.github/workflows/merge-main-nightly.yml)
+workflow runs every six hours. It attempts to merge `main` into
+`nightly-testing` and generate HTML. If this succeeds, then the result
+is pushed to `nightly-testing`.
+
+
+### Maintaining `nightly-with-manual` in Lean
+
+The Lean repository contains a branch `nightly-with-manual` that
+contains the most recent Lean nightly for which a reference manual
+`nightly-testing` build succeeded. In particular, it should always
+contain the Lean nightly indicated by this repository's most recent
+`nightly-testing-YYYY-MM-DD` tag.
+
+When a change is pushed to `nightly-testing` that modifies
+`lean-toolchain`,
+[`nightly-with-manual.yml`](.github/workflows/nightly-with-manual.yml)
+runs. This workflow also runs twice per day on its own, and it is
+explicitly invoked by `update-nightly.yml`. It finds the most recent
+`nightly-testing-YYYY-MM-DD` tag, and checks whether this corresponds
+to `nightly-with-manual` in `lean4`. If not, it updates the upstream
+branch to reestablish the invariant.
+
+This branch is important because it is used to provide feedback in
+Lean PRs as to whether the manual succeeds in building their PR, or
+whether documentation adaptation will also be necessary.
+
+### PR Feedback in Lean
+
+For every pull request, Lean's CI creates or updates a branch in this
+repository to serve as the basis for adaptations. For PR #XXXXX, the
+branch is named `lean-pr-testing-XXXXX`. This branch is based off the
+most recent nightly. In it, the toolchain is set to the release that's
+created for each Lean PR.
+
+These branches are used to report status upstream to Lean. When this
+reposistory's [`ci.yml`](.github/workflows/ci.yml) runs on them, the
+status is reported upstream by
+[`lean-pr-testing-comments.sh`](scripts/lean-pr-testing-comments.sh).
+
+On each push to `nightly-testing`,
+[`discover-lean-pr-testing.yml`](scripts/discover-lean-pr-testing.yml)
+runs. When it discovers that a Lean PR has been merged, it
+automatically merges the PR's corresponding adaptation branch into
+`nightly-testing`.

@@ -254,6 +254,10 @@ tag := "list-api-reference"
 
 ## Iteration
 
+{docstring List.iter}
+
+{docstring List.iterM}
+
 {docstring List.forA}
 
 {docstring List.forM}

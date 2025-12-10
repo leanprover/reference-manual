@@ -717,7 +717,9 @@ end
 
 {docstring Lake.getRootPackage}
 
-{docstring Lake.findPackage?}
+{docstring Lake.findPackageByName?}
+
+{docstring Lake.findPackageByKey?}
 
 {docstring Lake.findModule?}
 
