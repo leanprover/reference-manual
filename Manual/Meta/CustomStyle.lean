@@ -15,17 +15,17 @@ open Lean
 namespace Manual
 
 
-def Block.CSS : Block where
+def Block.customCSS : Block where
   name := `Manual.CSS
 
-@[code_block_expander CSS]
-def CSS : CodeBlockExpander
+@[code_block_expander customCSS]
+def customCSS : CodeBlockExpander
   | args, str => do
     let () ← ArgParse.done.run args
-    pure #[← `(Block.other {Block.CSS with data := ToJson.toJson (α := String) $(quote str.getString)} #[])]
+    pure #[← `(Block.other {Block.customCSS with data := ToJson.toJson (α := String) $(quote str.getString)} #[])]
 
-@[block_extension Manual.CSS]
-def CSS.descr : BlockDescr where
+@[block_extension customCSS]
+def customCSS.descr : BlockDescr where
   traverse _ _ _ := pure none
   toTeX := none
   toHtml :=
