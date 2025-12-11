@@ -35,6 +35,8 @@ import Manual.SupportedPlatforms
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
+example := sdfa
+
 set_option pp.rawOnError true
 set_option maxRecDepth 1024
 

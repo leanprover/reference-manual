@@ -5,9 +5,13 @@ Author: Joseph Rotella
 -/
 
 import Manual.Meta.ErrorExplanation
+import Lean
 
 open Verso Doc Elab Genre Manual
 open Lean
+
+
+
 
 namespace Manual
 
@@ -32,12 +36,12 @@ inline_extension Inline.errorExplanationLink (errorName : Name) where
     let some id := obj.getId
       | logError s!"Could not find retrieve ID from explanation domain entry for name '{name}'"
         content.mapM go
-    if let some { path, htmlId } := xref.externalTags.get? id then
-      let addr := path.link (some htmlId.toString)
-      pure {{<a class="technical-term" href={{addr}}>{{← content.mapM go}}</a>}}
-    else
-      logError s!"Could not find external tag for error explanation '{name}' corresponding to ID '{id}'"
-      content.mapM go
+    let some { path, htmlId } := xref.externalTags.get? id
+      | logError s!"Could not find external tag for error explanation '{name}' corresponding to ID '{id}'"
+        content.mapM go
+    let addr := path.link (some htmlId.toString)
+    pure {{<a class="technical-term" href={{addr}}>{{← content.mapM go}}</a>}}
+
 
 /- Renders the suffix of an error explanation, allowing line breaks before capital letters. -/
 inline_extension Inline.errorExplanationShortName (errorName : Name) where
