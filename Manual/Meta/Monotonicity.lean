@@ -167,7 +167,7 @@ run_cmd do
 @[block_command]
 def monotonicityLemmas : BlockCommandOf Unit
   | () => do
-    let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
+    let extraCss ← `(Block.other (Block.customCSS $(quote css)) #[])
     ``(Block.concat #[$extraCss, monoTable])
 where
   css := r#"

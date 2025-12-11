@@ -307,7 +307,6 @@ h_2 : ¬y * x = 1
   [facts] Asserted facts
   [eqc] False propositions
   [eqc] Equivalence classes
-  [ematch] E-matching patterns
   [linarith] Linarith assignment for `α`
 ```
 
@@ -370,7 +369,6 @@ h_4 : ¬t ^ 2 = t + 1
   [eqc] True propositions
   [eqc] False propositions
   [eqc] Equivalence classes
-  [ematch] E-matching patterns
   [ring] Ring `α`
   [limits] Thresholds reached
 ```
