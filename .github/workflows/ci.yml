@@ -181,7 +181,7 @@ jobs:
           WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           GENERATE_OUTCOME: ${{ steps.generate.outcome }}
-          NIGHTLY_TESTING_REPO: leanprover-community/mathlib4-nightly-testing
+          NIGHTLY_TESTING_REPO: leanprover/reference-manual
         run: |
          scripts/lean-pr-testing-comments.sh lean
 
@@ -222,7 +222,7 @@ jobs:
       - name: Run LinkChecker (local links only)
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
-          linkchecker './_out/html-multi/'
+          linkchecker --config=.linkchecker/linkcheckerrc './_out/html-multi/'
 
       # This saved number is used by a workflow_run trigger. It
       # manages labels that indicate the status of the built HTML.
