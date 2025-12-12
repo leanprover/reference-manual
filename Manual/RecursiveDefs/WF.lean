@@ -334,12 +334,12 @@ h✝ : ¬n ≤ 1
 
 ```
 
-Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Range` membership hypothesis:
+Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Rio` range membership hypothesis:
 
 ```lean +error -keep (name := nestGoal3)
 def f (xs : Array Nat) : Nat := Id.run do
   let mut s := xs.sum
-  for i in [:xs.size] do
+  for i in *...xs.size do
     s := s + f (xs.take i)
   pure s
 termination_by xs
@@ -351,14 +351,14 @@ unsolved goals
 xs : Array Nat
 s : Nat := xs.sum
 i : Nat
-h✝ : i ∈ [:xs.size]
+h✝ : i ∈ *...xs.size
 ⊢ sizeOf (xs.take i) < sizeOf xs
 ```
 
 ```proofState
 ∀ (xs : Array Nat)
   (i : Nat)
-  («h✝» : i ∈ [:xs.size]),
+  («h✝» : i ∈ *...xs.size),
    sizeOf (xs.take i) < sizeOf xs := by
   set_option tactic.hygienic false in
   intros
