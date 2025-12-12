@@ -570,13 +570,13 @@ example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
 
 :::tactic Lean.Parser.Tactic.match (show := "match")
 
-When pattern matching, instances of the scrutinee in the goal are replaced with the patterns that match them in each branch.
+When pattern matching, instances of the {tech (key := "match discriminant")}[discriminant] in the goal are replaced with the patterns that match them in each branch.
 Each branch must then prove the refined goal.
 Compared to the `cases` tactic, using `match` can allow a greater degree of flexibility in the cases analysis being performed, but the requirement that each branch solve its goal completely makes it more difficult to incorporate into larger automation scripts.
 :::
 
 :::example "Reasoning by cases with `match`"
-In each branch of the {keywordOf Lean.Parser.Tactic.match}`match`, the scrutinee `n` has been replaced by either `0` or `k + 1`.
+In each branch of the {keywordOf Lean.Parser.Tactic.match}`match`, the discriminant `n` has been replaced by either `0` or `k + 1`.
 ```lean
 example (n : Nat) : if n = 0 then n < 1 else n > 0 := by
   match n with
