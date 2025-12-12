@@ -6,6 +6,7 @@ Author: Joseph Rotella
 
 import Manual.Meta.ErrorExplanation
 import Lean
+import Manual.ErrorExplanations.InductiveParamMissing
 
 open Verso Doc Elab Genre Manual
 open Lean
@@ -33,6 +34,7 @@ inline_extension Inline.errorExplanationLink (errorName : Name) where
     let some obj := (← read).traverseState.getDomainObject? errorExplanationDomain name
       | logError s!"Could not find explanation domain entry for name '{name}'"
         content.mapM go
+    println! s!"{obj.canonicalName}"
     let some id := obj.getId
       | logError s!"Could not find retrieve ID from explanation domain entry for name '{name}'"
         content.mapM go
@@ -82,6 +84,8 @@ def error_explanation_table : BlockCommandOf Unit
 -- Elaborating explanations can exceed the default heartbeat maximum:
 set_option maxHeartbeats 1000000
 
+-- #eval Manual.ErrorExplanations.InductiveParamMissing.«the canonical document object name»
+
 #doc (Manual) "Error Explanations" =>
 %%%
 number := false
@@ -93,5 +97,11 @@ by Lean when processing a source file. All error names listed below have the
 `lean` package prefix.
 
 {error_explanation_table}
+
+-- {include 0 Manual.ErrorExplanations.InductiveParamMissing}
+
+{include_explanation lean.inductiveParamMissing Manual.ErrorExplanations.InductiveParamMissing}
+-- {include_explanation lean.inductiveParamMissing Manual.ErrorExplanations.InductieParamMissing}
+-- {include_explanation lean.inductiveParamMising Manual.ErrorExplanations.InductiveParamMissing}
 
 {make_explanations}
