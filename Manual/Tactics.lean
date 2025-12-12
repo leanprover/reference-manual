@@ -84,7 +84,7 @@ Named goals are indicated with `case` at the top (called a {deftech}_case label_
 Tactics assign goal names, typically on the basis of constructor names, parameter names, structure field names, or the nature of the reasoning step implemented by the tactic.
 
 ::::example "Named goals"
-```CSS
+```customCSS
 #lawful-option-cases .goal-name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -141,7 +141,7 @@ a✝ : n✝ + k = k + n✝
 
 After {tacticStep}`induction k`, the two new cases' names have `zero` as a prefix, because they were created in a goal named `zero`:
 
-```CSS
+```customCSS
 #hierarchical-case-names .goal:not(:last-child) .goal-name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -169,7 +169,7 @@ Assumptions are either arbitrary elements of some type or statements that are pr
 
 ::::example "Assumption Names and Conclusion"
 
-```CSS
+```customCSS
 #ex-assumption-names .hypothesis .name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -210,7 +210,7 @@ In particular, inaccessible assumptions are presented with daggers (`†`) after
 
 
 ::::example "Accessible Assumption Names"
-```CSS
+```customCSS
 #option-cases-accessible .hypothesis .name { background-color: var(--lean-compl-yellow); }
 ```
 
@@ -232,7 +232,7 @@ rotate_right
 
 
 ::::example "Inaccessible Assumption Names"
-```CSS
+```customCSS
 #option-cases-inaccessible .hypotheses .hypothesis:nth-child(even) .name { background-color: var(--lean-compl-yellow); }
 ```
 
