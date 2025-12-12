@@ -33,6 +33,22 @@ jobs:
           path: _out
           allow_forks: true
 
+      # Detect whether we have the new combined site structure or the old single-site structure
+      - name: Detect deployment structure
+        id: detect-structure
+        run: |
+          # Individual redirects are more readable than grouped output for simple variable assignments
+          # shellcheck disable=SC2129
+          if [ -d "_out/site" ]; then
+            echo "structure=new" >> "$GITHUB_OUTPUT"
+            echo "site_dir=_out/site" >> "$GITHUB_OUTPUT"
+            echo "draft_dir=_out/draft-site" >> "$GITHUB_OUTPUT"
+          else
+            echo "structure=old" >> "$GITHUB_OUTPUT"
+            echo "site_dir=_out/html-multi" >> "$GITHUB_OUTPUT"
+            echo "draft_dir=_out/draft/html-multi" >> "$GITHUB_OUTPUT"
+          fi
+
       # deploy-alias computes a URL component for the PR preview. This
       # is so we can have a stable name to use for feedback on draft
       # material.
@@ -56,7 +72,7 @@ jobs:
         if: ${{ steps.workflow-info.outputs.pullRequestNumber != '' }}
         uses: nwtgck/actions-netlify@v2.0
         with:
-          publish-dir: _out/html-multi
+          publish-dir: ${{ steps.detect-structure.outputs.site_dir }}
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
@@ -79,7 +95,7 @@ jobs:
         uses: nwtgck/actions-netlify@v2.0
         if: ${{ steps.workflow-info.outputs.pullRequestNumber != '' }}
         with:
-          publish-dir: _out/draft/html-multi
+          publish-dir: ${{ steps.detect-structure.outputs.draft_dir }}
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: |
