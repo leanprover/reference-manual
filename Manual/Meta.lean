@@ -78,6 +78,8 @@ def commentBlock : PartCommand
     catch | _ => throwUnsupportedSyntax
   | _ => throwUnsupportedSyntax
 
+initialize errorExplanationsAdded : (EnvExtension NameSet) ← registerEnvExtension (pure {})
+
 
 
 def Block.TODO : Block where

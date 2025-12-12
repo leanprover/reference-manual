@@ -18,11 +18,14 @@ open Verso.Genre.Manual Markdown InlineLean
 open SubVerso.Highlighting
 open scoped Lean.Doc.Syntax
 open Lean Elab
+example := Quote
+
 
 set_option pp.rawOnError true
 set_option guard_msgs.diff true
 
 namespace Manual
+
 
 register_option manual.requireErrorExplanations : Bool := {
   defValue := true,
@@ -57,6 +60,7 @@ block_extension Block.tabbedMWEs (titles : Array String) where
       match FromJson.fromJson? (α := Option String) data with
       | .ok (some name) => name
       | _ => "error-example"
+    println! name
     discard <| externalTag id (← read).path name
     pure none
   toTeX := none
@@ -432,11 +436,6 @@ def errorExplanationDomainMapper :=
 
 inline_extension Inline.errorExplanation (errorName : Name) (summary : String) where
   data := toJson #[errorName.toString, summary]
-  init st := st
-    |>.setDomainTitle errorExplanationDomain "Error Explanations"
-    |>.setDomainDescription errorExplanationDomain
-        "Explanations of error messages and warnings produced during compilation"
-    |>.addQuickJumpMapper errorExplanationDomain errorExplanationDomainMapper
 
   traverse id info _ := do
     let .ok #[errorName, summary] := FromJson.fromJson? (α := Array String) info
@@ -497,6 +496,30 @@ where
     | .seq elts => elts.foldl (· ++ htmlText ·) ""
     | .tag _nm _attrs children => htmlText children
 
+
+@[part_command Lean.Doc.Syntax.command]
+def include_explanation : PartCommand
+  | `(block|command{include_explanation $args* }) => do
+    match ← parseArgs args with
+    | #[.anon (.name errorId), .anon (.name moduleId)] =>
+      let errorName := errorId.getId
+      let errorExplanationModuleName := docName moduleId.getId
+      let errorExplanation ← realizeGlobalConstNoOverloadWithInfo (mkIdentFrom moduleId errorExplanationModuleName)
+
+      let .some _ ← getErrorExplanation? errorName
+        | logWarningAt errorId m!"The name {errorId} is not a known error"
+      modifyEnv (Manual.errorExplanationsAdded.modifyState · (·.insert errorName))
+
+      PartElabM.closePartsUntil 0 (← getRef).getHeadInfo.getPos!
+      PartElabM.addPart <| .included (mkIdentFrom moduleId errorExplanation)
+
+
+    | _ => throwError "Expected two arguments: an error explanation identifier name (e.g. `lean.inductiveParamMissing`) and a module name (e.g. `Manual.ErrorExplanations.InductiveParamMissing`)"
+
+  | _ => throwUnsupportedSyntax
+where
+ resolved id := mkIdentFrom id <$> realizeGlobalConstNoOverloadWithInfo (mkIdentFrom id (docName id.getId))
+
 open Verso.Doc.Elab in
 open Lean in
 /-- Renders all error explanations as parts of the current page. -/
@@ -505,6 +528,8 @@ def make_explanations : PartCommand
   | `(block|command{make_explanations}) => do
     let explans ← getErrorExplanationsSorted
     for (errorName, explan) in explans do
+      let false := Manual.errorExplanationsAdded.getState (← getEnv) |>.contains errorName
+        | logInfo m!"Skipping {errorName}"
       let titleString := errorName.toString
       let titleBits := #[← ``(Inline.other
         (Inline.errorExplanation $(quote errorName) $(quote explan.metadata.summary))
