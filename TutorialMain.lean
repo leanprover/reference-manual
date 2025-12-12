@@ -49,4 +49,4 @@ def tutorials : Tutorials where
   ]
 
 def main :=
-  tutorialsMain tutorials (config := {remoteConfigFile := "tutorial-remotes.json", destination := "_tutorial-out"})
+  tutorialsMain tutorials (config := {destination := "_tutorial-out"})

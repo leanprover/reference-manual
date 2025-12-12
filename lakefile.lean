@@ -306,11 +306,17 @@ script generate args := do
   if !args.isEmpty then
     IO.eprintln "No args expected"
     return 1
+  let outDir : FilePath := "_out"
+  let siteDir := outDir / "site"
 
-  lakeExe "generate-manual" #["--depth", "2", "--verbose", "--delay-html-multi", "multi.json"]
-  lakeExe "generate-tutorials" #["--verbose", "--delay", "tutorials.json"]
-  lakeExe "generate-manual" #["--resume-html-multi", "multi.json"]
-  lakeExe "generate-tutorials" #["--resume", "tutorials.json"]
+  lakeExe "generate-manual" #["--depth", "2", "--verbose", "--delay-html-multi", "multi.json", "--remote-config", "verso-sources.json"]
+  lakeExe "generate-tutorials" #["--verbose", "--delay", "tutorials.json", "--remote-config", "verso-sources.json"]
+  lakeExe "generate-manual" #["--verbose", "--resume-html-multi", "multi.json", "--remote-config", "verso-sources.json"]
+  lakeExe "generate-tutorials" #["--verbose", "--resume", "tutorials.json", "--remote-config", "verso-sources.json"]
+  IO.FS.createDirAll siteDir
+  IO.FS.writeFile (siteDir / "index.html") (← IO.FS.readFile (("test-data" : FilePath) / "index.html"))
+  discard <| IO.Process.run { cmd := "cp", args := #["-r", "_out/html-multi", (siteDir / "reference").toString] }
+  discard <| IO.Process.run { cmd := "cp", args := #["-r", "_tutorial-out", (siteDir / "tutorials").toString] }
 
 
   return 0
