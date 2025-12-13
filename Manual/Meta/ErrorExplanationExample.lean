@@ -56,19 +56,27 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
     let `(Lean.Doc.Syntax.codeblock|``` output| $errorTxt ```) := errorStx
       | throwErrorAt errorStx m!"Second element in errorExample must be an `output` codeblock containing the generated error message"
 
-    let block ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := `bork, error := true, fresh := true } brokenTxt
+    let brokenBlock ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := `bork, error := true, fresh := true } brokenTxt
     let (fixedExamples, restStx) ← partitionFixed restStx
-    let examples ← match fixedExamples with
+
+    let fixedBlocks : List (String × Term) ← match fixedExamples with
       | [] => throwErrorAt restStx[0]! "Error examples must include one or more `fixed` codeblocks containing a fix for broken code"
-      | [(_, .none, fixedTxt)] => Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := none, error := false, fresh := true } brokenTxt
+      | [(_, .none, fixedTxt)] =>
+        let contents ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := none, error := false, fresh := true } fixedTxt
+        pure [("Fixed", contents)]
       | [(_, .some title, _)] => throwErrorAt title m!"Error explanations with a single title don't need to name the title"
       | _ =>
-        discard fixedExamples.mapM (fun (_, ))
+        fixedExamples.mapM (fun (syn, exampleName, contents) => do
+          let .some q := exampleName
+            | throwErrorAt syn "Error explanations with more than one title need to name each title"
+          pure (s!"Fixed ({q})", contents)
+          )
 
     let str := s!"{repr contents}"
-    ``(Doc.Block.para #[Doc.Inline.text $(quote (repr block).pretty)])
+    ``(Doc.Block.other (Manual.Block.example $(quote (title ++ "bb")) none (opened := true))
+        #[Doc.Block.para #[Doc.Inline.text $(quote (title ++ "aa"))], $brokenBlock])
 where
-  partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax, Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
+  partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax × Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
   match blocks with
   | [] => throwError "No description blocks at the end of error explanation"
   | block :: rest =>
@@ -103,9 +111,6 @@ invalid occurrence of `·` notation, it must be surrounded by parentheses (e.g. 
 example := 3
 ```
 ```fixed "make it a `Float`"
-example := 0.3
-```
-```fixed
 example := 0.3
 ```
 Some explanatory text here.

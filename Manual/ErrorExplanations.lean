@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella
 -/
 
-import Manual.Meta.ErrorExplanation
 import Lean
 import Manual.ErrorExplanations.InductiveParamMissing
+import Manual.Meta.ErrorExplanation
 
 open Verso Doc Elab Genre Manual
 open Lean
