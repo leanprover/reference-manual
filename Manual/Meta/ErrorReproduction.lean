@@ -4,8 +4,8 @@ import Manual.Meta.ErrorExplanation
 open Lean
 set_option doc.verso true
 
-@[block_extension Block.tabbedReproduction]
-def Block.tabbedReproduction : Verso.Genre.Manual.BlockDescr := {
+block_extension Block.tabbedReproduction (titles : Array String) where
+  data := toJson titles
   traverse _ _ _ := pure none
   toTeX := none
   extraCss := [r#"
@@ -13,7 +13,7 @@ def Block.tabbedReproduction : Verso.Genre.Manual.BlockDescr := {
   border-bottom: 1px solid gray;
   padding-bottom: var(--verso--box-padding);
 }
-.error-example-tab-list [role="tab"] {
+.error-example-tab-lisgit t [role="tab"] {
   position: relative;
   z-index: 1;
   background: white;
@@ -128,4 +128,3 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     }}
-}
