@@ -1,11 +1,12 @@
 import VersoManual
 import VersoManual.InlineLean
 import Manual.Meta.ErrorExplanation
+import Verso.Doc.Elab
 
 open Lean
 set_option doc.verso true
 variable [Monad m] [MonadError m]
-
+set_option pp.rawOnError true
 structure ErrorExampleConfig where
   title : String
 instance : Verso.ArgParse.FromArgs ErrorExampleConfig m where
@@ -56,9 +57,37 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
       | throwErrorAt errorStx m!"Second element in errorExample must be an `output` codeblock containing the generated error message"
 
     let block ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := `bork, error := true, fresh := true } brokenTxt
+    let (fixedExamples, restStx) ← partitionFixed restStx
+    let examples ← match fixedExamples with
+      | [] => throwErrorAt restStx[0]! "Error examples must include one or more `fixed` codeblocks containing a fix for broken code"
+      | [(_, .none, fixedTxt)] => Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := none, error := false, fresh := true } brokenTxt
+      | [(_, .some title, _)] => throwErrorAt title m!"Error explanations with a single title don't need to name the title"
+      | _ =>
+        discard fixedExamples.mapM (fun (_, ))
 
     let str := s!"{repr contents}"
     ``(Doc.Block.para #[Doc.Inline.text $(quote (repr block).pretty)])
+where
+  partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax, Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
+  match blocks with
+  | [] => throwError "No description blocks at the end of error explanation"
+  | block :: rest =>
+    let `(Lean.Doc.Syntax.codeblock|``` fixed $args*| $fixedTxt ```) := block
+      | return ([], blocks)
+    let parsedArgs ← Verso.Doc.Elab.parseArgs args
+    let arg? : Option _ ← match parsedArgs.toList with
+      | [] => pure none
+      | [.anon (.str title)] => pure <| some title
+      | [_] => throwErrorAt args[0]! m!"String arg expected"
+      | _ => throwErrorAt args[1]! m!"At most one string arg expected"
+    logInfoAt block m!".. {repr args}"
+    let (fixedExamples, descrBlocks) ← partitionFixed rest
+    return ((block, arg?, fixedTxt) :: fixedExamples, descrBlocks)
+/-
+    | `(Lean.Doc.Syntax.codeblock|``` fixed $arg?| $fixedTxt ```) :: restStx => do
+      let (fixedExamples, docs) ← partitionFixed restStx
+      return ((arg, fixedTxt), docs)
+    | restStx => pure ([], restStx)-/
 
 
 #doc (Verso.Genre.Manual) "Example" =>
@@ -74,6 +103,9 @@ invalid occurrence of `·` notation, it must be surrounded by parentheses (e.g. 
 example := 3
 ```
 ```fixed "make it a `Float`"
+example := 0.3
+```
+```fixed
 example := 0.3
 ```
 Some explanatory text here.

@@ -4,7 +4,7 @@ import Manual.Meta.ErrorExplanation
 open Lean
 set_option doc.verso true
 
-block_extension Block.tabbedReproduction (titles : Array String) where
+block_extension Block.tabbedErrorReproduction (titles : Array String) where
   data := toJson titles
   traverse _ _ _ := pure none
   toTeX := none
