@@ -14,16 +14,61 @@
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/fuzzysort.min.js"></script>
     <script src="-verso-search/searchIndex.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-data/popper.min.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
+    <script src="-verso-data/katex/katex.js"></script>
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 a.elan-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -33,29 +78,134 @@ a.elan-command:hover {
 }
 
 </style><style>
-a.lake-command {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.lake-command:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
+div.TODO {
+  border: 5px solid red;
   position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
   color: red;
   font-size: large;
   font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
 }
 </style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 .hl.lean.tactic-view {
   white-space: collapse;
 }
@@ -78,89 +228,6 @@ span.TODO {
 }
 
 
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
 </style><style>
 .namedocs {
   position: relative;
@@ -913,16 +980,252 @@ body {
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
 }
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
-.field-category > :first-child {
+.toml {
+  font-family: var(--verso-code-font-family);
 }
 
-.field-category > :not(:first-child) {
-  margin-left: 1rem;
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
 }
 </style><style>
-dl.toml-table-field-spec {
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
 }
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
 </style><style>
 .example-file {
   white-space: normal;
@@ -986,72 +1289,30 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.keyword-of .kw {
-  font-weight: 500;
-}
-.keyword-of .hover-info {
-  display: none;
-}
-.keyword-of .kw:hover {
-  background-color: #eee;
-  border-radius: 2px;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
+</style><style>
+a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-</style><style>
-.c .type { font-weight: 600; }
-.c .kw { font-weight: 600; }
-.c .comment { font-style: italic; }
-</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-  .error-explanation-metadata {
-    margin-bottom: 2rem; /* Double the paragraph margin */
-  }
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
 
-  .error-explanation-metadatum:not(:last-child):after {
-    content: '|';
-    margin: 0 10px;
-  }
-  .error-explanation-removed-warning {
-    border: 1px solid var(--verso-warning-color);
-    border-radius: 0.5rem;
-    padding-left: var(--verso--box-padding);
-    padding-right: var(--verso--box-padding);
-  }
-  </style><style>
+</style><style>.namedocs .label a { color: inherit; }</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1078,219 +1339,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
 </style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
+.syntax-error {
+  white-space: normal;
 }
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
+.syntax-error::before {
+  counter-reset: linenumber;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-  display: none; /* default to not showing */
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
   font-family: var(--verso-code-font-family);
 }
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
 }
 
-.toml .table-header .key {
-    color: #3030c0;
+.syntax-error .parse-message > code.hover-info {
+  display:none;
 }
 
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
 }
 </style><style>
-    main .theIndex {
-      padding-left: 0;
-      font-family: var(--verso-text-font-family);
-    }
-
-    main .theIndex nav {
-      position: sticky;
-      top: var(--verso-header-height);
-      background: white;
-      font-family: var(--verso-structure-font-family);
-    }
-
-    main .theIndex [id] {
-      /* This needs the combined height of the index header and the page header. We
-         know the height of the page header, but the index header height varies, so
-         we use the maximum height it gets which also works well for readers with
-         wide screens */
-      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
-    }
-
-    @media screen and (max-width: 700px) {
-      /* On mobile, the sticky index takes up half the screen. */
-      main .theIndex nav {
-        position: static;
-      }
-
-      main .theIndex [id] {
-        /* On mobile, the index header is not sticky, so we just need to
-        be below the page header. */
-        scroll-margin-top: var(--verso-header-height);
-      }
-    }
-
-    main .theIndex nav ol {
-      padding: 0;
-    }
-
-    main .theIndex nav ol li {
-      display: inline-block;
-    }
-
-    main .theIndex nav ol li a {
-      /* Padding instead of margin to have a bigger click target */
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-    }
-    /* Increase the size of the touch target on phones */
-    @media screen and (max-width: 700px) {
-      main .theIndex nav ol li a {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-    }
-
-    main .theIndex nav ol li:first-child a {
-      padding-left: 0;
-    }
-
-    main .theIndex nav ol li + li:before {
-      content: "|";
-    }
-
-    main .theIndex h1,
-    main .theIndex h2,
-    main .theIndex h3,
-    main .theIndex h4,
-    main .theIndex h5,
-    main .theIndex h6 {
-      margin-top: 0;
-    }
-
-    main .theIndex ol {
-      list-style-type: none;
-    }
-
-    main .theIndex .division > ol {
-      padding-left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      overflow-wrap: break-word;
-    }
-
-   main .theIndex .division > ol > li {
-      margin-bottom: 0.5rem;
-    }
-
-    main .theIndex .division ol ol {
-      padding-left: 1rem;
-    }
-
-    main .theIndex .division {
-      break-inside: avoid;
-      counter-reset: none;
-      max-width: none;
-      width: auto;
-    }
-    </style><style>
-.toml-field a {
+a.technical-term {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-.toml-field a:hover {
+a.technical-term:hover {
   text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
 }
 </style><style>
 
@@ -1954,306 +2053,11 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
-}
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-/* Highlight the clicked term */
-.def-technical-term:target {
-  background-color: var(--verso-selected-color);
-  outline: auto;
-}
-</style><style>
-.error-example-container:not(:last-child) {
-  border-bottom: 1px solid gray;
-  padding-bottom: var(--verso--box-padding);
-}
-.error-example-tab-list [role="tab"] {
-  position: relative;
-  z-index: 1;
-  background: white;
-  border: 0;
-  padding: 0.2em;
-  cursor: pointer;
-}
-.error-example-tab-list [role="tab"]:not(:last-child) {
-  margin-right: 1rem;
-}
-.error-example-tab-list [role="tab"][aria-selected="true"] {
-  border-bottom: 1px solid gray;
-}
-/* this rule and the following ensure that all tabs are the same height */
-.error-example-tab-view {
-  display: flex;
-}
-.error-example-tabpanel {
-  margin-right: -100%;
-  width: 100%;
-  display: block;
-}
-.error-example-tabpanel.error-example-tabpanel-hidden {
-  visibility: hidden;
-}
-.error-example-tabpanel .hl.lean .token {
-  /* unset transition to avoid lag when switching panels */
-  transition: visibility 0s;
-}
-  </style><style>
-.syntax-error {
-  white-space: normal;
-}
-.syntax-error::before {
-  counter-reset: linenumber;
-}
-.syntax-error > .line {
-  display: block;
-  white-space: pre;
-  counter-increment: linenumber;
-  font-family: var(--verso-code-font-family);
-}
-.syntax-error > .line::before {
-  -webkit-user-select: none;
-  display: inline-block;
-  content: counter(linenumber);
-  border-right: 1px solid #ddd;
-  width: 2em;
-  padding-right: 0.25em;
-  margin-right: 0.25em;
-  font-family: var(--verso-code-font-family);
-  text-align: right;
-}
-
-:is(.syntax-error > .line):has(.parse-message)::before {
-  color: red;
-  font-weight: bold;
-}
-
-.syntax-error .parse-message > code.hover-info {
-  display:none;
-}
-
-.syntax-error .parse-message {
-  white-space: pre;
-  text-decoration-skip-ink: none;
-  color: red;
-  font-weight: 600;
-}
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
 </style><script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
       
 window.onload = () => {
 
@@ -2448,6 +2252,205 @@ window.onload = () => {
   });
 }
 </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
@@ -2479,7 +2482,7 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot" checked="checked"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="current numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-coercions" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-coercions" checked="checked"></label><span class="number">12.</span> <span class="current"><a href="Coercions/#coercions">Coercions</a></span></div>
@@ -2526,11 +2529,11 @@ Some examples include:</p>
               <ul>
                 <li>
                   <p>
-                    A <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> may be used where an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></code> is expected.</p>
+                    A <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> may be used where an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a></code> is expected.</p>
                   </li>
                 <li>
                   <p>
-                    A <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="609">Fin</span></a></code> may be used where a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> is expected.</p>
+                    A <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="625">Fin</span></a></code> may be used where a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> is expected.</p>
                   </li>
                 <li>
                   <p>
@@ -2538,11 +2541,11 @@ Some examples include:</p>
                   </li>
                 <li>
                   <p>
-                    An <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="58">α</span></code> may be used where a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2121">Thunk</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.58" data-verso-hover="58">α</span></code> is expected. The coercion wraps the term in a function to delay its evaluation.</p>
+                    An <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.52" data-verso-hover="58">α</span></code> may be used where a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2201">Thunk</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.58" data-verso-hover="58">α</span></code> is expected. The coercion wraps the term in a function to delay its evaluation.</p>
                   </li>
                 <li>
                   <p>
-                    When one syntax category <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.61" data-verso-hover="1886">c1</span></code> embeds into another category <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.69" data-verso-hover="1886">c2</span></code>, a coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___mk" title="Documentation for Lean.TSyntax"><span class="const token" data-binding="const-Lean.TSyntax" data-verso-hover="2122">TSyntax</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="1886">c1</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___mk" title="Documentation for Lean.TSyntax"><span class="const token" data-binding="const-Lean.TSyntax" data-verso-hover="2122">TSyntax</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.137" data-verso-hover="1886">c2</span></code> performs any necessary wrapping to construct a valid syntax tree.</p>
+                    When one syntax category <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.61" data-verso-hover="1965">c1</span></code> embeds into another category <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.69" data-verso-hover="1965">c2</span></code>, a coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___mk" title="Documentation for Lean.TSyntax"><span class="const token" data-binding="const-Lean.TSyntax" data-verso-hover="2202">TSyntax</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.73" data-verso-hover="1965">c1</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___TSyntax___mk" title="Documentation for Lean.TSyntax"><span class="const token" data-binding="const-Lean.TSyntax" data-verso-hover="2202">TSyntax</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.137" data-verso-hover="1965">c2</span></code> performs any necessary wrapping to construct a valid syntax tree.</p>
                   </li>
                 </ul>
               <p>
@@ -2552,152 +2555,152 @@ The set of coercions can be extended by adding further instances of the appropri
             <details class="example"><summary class="description">Coercions</summary><div class="example-content">
                 <p>
                   All of the following examples rely on coercions:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2040">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2069">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.48" data-verso-hover="2123">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="609">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46" data-verso-hover="9">k</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48" data-verso-hover="2123">n</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2040">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2069">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.48" data-verso-hover="2203">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="625">Fin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.46" data-verso-hover="9">k</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.48" data-verso-hover="2203">n</span><span class="inter-text">
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2100">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.164" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.162" data-verso-hover="46">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option"><span class="const token" data-binding="const-Option" data-verso-hover="47">Option</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.162" data-verso-hover="46">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.164" data-verso-hover="48">x</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2135">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-th" data-verso-hover="2124" id="th-_LPAR_in-Coercions_RPAR_">th</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.283" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2121">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.283" data-verso-hover="9">x</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2135">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-th" data-verso-hover="2204" id="th-_LPAR_in-Coercions_RPAR_">th</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.283" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2201">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.283" data-verso-hover="9">x</span><span class="inter-text">
 
-</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-2196" data-verso-hover="127">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Lean</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-2196">in</span></a><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2209">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="1916">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Ident" title="Documentation for Lean.Syntax.Ident"><span class="const token" data-binding="const-Lean.Syntax.Ident" data-verso-hover="2126">Ident</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="2127">Term</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="1916">n</span><span class="inter-text">
+</span><a href="Namespaces-and-Sections/#Lean___Parser___Command___open" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.open-2196" data-verso-hover="131">open</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">Lean</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-2196">in</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-2209">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="1995">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Ident" title="Documentation for Lean.Syntax.Ident"><span class="const token" data-binding="const-Lean.Syntax.Ident" data-verso-hover="2206">Ident</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Notations-and-Macros/Defining-New-Syntax/#Lean___Syntax___Term" title="Documentation for Lean.Syntax.Term"><span class="const token" data-binding="const-Lean.Syntax.Term" data-verso-hover="984">Term</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.472" data-verso-hover="1995">n</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  In the case of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#th-_LPAR_in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-th" data-verso-hover="2124">th</span></a></code>, using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.print : command</code></code><code class="kw">#print</code></span> demonstrates that evaluation of the function application is delayed until the thunk's value is requested:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">th</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2121">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">{</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.fn"><span class="const token" data-binding="const-Thunk.fn" data-verso-hover="2129">fn</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">:=</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1552">x_1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">↑</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">}</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-2459">#print</span></span><span class="inter-text"> </span><a href="Coercions/#th-_LPAR_in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-th" data-verso-hover="2124">th</span></a><span class="inter-text">
-</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">th</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2121">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"> :=</span><span class="text">
-</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">{</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.fn"><span class="const token" data-binding="const-Thunk.fn" data-verso-hover="2129">fn</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">:=</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1552">x_1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2125">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">↑</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2128">}</span></a></span></span></pre><div class="live-link">
+                  In the case of <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#th-_LPAR_in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-th" data-verso-hover="2204">th</span></a></code>, using <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.print : command</code></code><code class="kw">#print</code></span> demonstrates that evaluation of the function application is delayed until the thunk's value is requested:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">th</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2201">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">{</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.fn"><span class="const token" data-binding="const-Thunk.fn" data-verso-hover="2208">fn</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">:=</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1614">x_1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">↑</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">}</span></a></span></code></span></span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.print-2459">#print</span></span><span class="inter-text"> </span><a href="Coercions/#th-_LPAR_in-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-th" data-verso-hover="2204">th</span></a><span class="inter-text">
+</span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text"></span><span class="text">def</span><span class="text"> </span><span class="text">th</span><span class="text"></span><span class="text"> : </span><span class="highlighted"><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk"><span class="const token" data-binding="const-Thunk" data-verso-hover="2201">Thunk</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></span><span class="text"> :=</span><span class="text">
+</span><span class="highlighted"><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">{</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.fn"><span class="const token" data-binding="const-Thunk.fn" data-verso-hover="2208">fn</span></a><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">:=</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="1614">x_1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="2205">f</span><span class="inter-text"> </span><span class="unknown token" data-binding="">↑</span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="9">x</span><span class="inter-text"> </span><a href="Basic-Types/Lazy-Computations/#Thunk___mk" title="Documentation for Thunk.mk"><span class="const token" data-binding="const-Thunk.mk" data-verso-hover="2207">}</span></a></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAKAdvAXPAcmALgSnXgElkd0BeeZAKFElgRUIDEBLVAawI2zLUpp1ocJCEKBG4G7wA8lBysA9qnEV4IatQAmwAGbwcACyR6MJMoCTCeAGUcAJ3YBzAojE9cUgCoGArsg7W7R1U9dWoFKGBUABlgMFR2WnBhRlRTbVJPYFsIVRpqAGIoe1J9AyA&quot;)">Live ↪</a></div>
                 </div>
               </details><p>
               Coercions are not used to resolve <a class="technical-term" href="Terms/Function-Application/#--tech-term-generalized-field-notation">generalized field notation</a>: only the inferred type of the term is considered.
 However, a <a class="technical-term" href="Terms/Type-Ascription/#--tech-term-Type-ascriptions">type ascription</a> can be used to trigger a coercion to the type that has the desired generalized field.
-Coercions are also not used to resolve <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a></code> instances: even though there is a default instance for <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>, a coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.211" data-verso-hover="58">α</span></code> does not allow natural number literals to be used for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.213" data-verso-hover="58">α</span></code>.</p>
+Coercions are also not used to resolve <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a></code> instances: even though there is a default instance for <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>, a coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> to <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.211" data-verso-hover="58">α</span></code> does not allow natural number literals to be used for <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.213" data-verso-hover="58">α</span></code>.</p>
             <details class="example"><summary class="description">Coercions and Generalized Field Notation</summary><div class="example-content">
                 <p>
-                  The name <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">bdiv</span></code> is not defined, but <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2130">Int.bdiv</span></a></code> exists.
-The coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></code> is not considered when looking up the field <code>bdiv</code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3822">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field `</span><span class="text">bdiv</span><span class="text">`: The environment does not contain `</span><span class="text">Nat.bdiv</span><span class="text">`</span><span class="text">
+                  The name <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">bdiv</span></code> is not defined, but <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2209">Int.bdiv</span></a></code> exists.
+The coercion from <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a></code> is not considered when looking up the field <code>bdiv</code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-3822">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="unknown token" data-binding="">.</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">Invalid field `</span><span class="text">bdiv</span><span class="text">`: The environment does not contain `</span><span class="text">Nat.bdiv</span><span class="text">`</span><span class="text">
   </span><span class="highlighted"><span class="inter-text"></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text">has type</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="unknown token" data-binding="">.</span><span class="unknown token" data-binding="">bdiv</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span><span class="text"></span></code></span></span><span class="unknown token" data-binding="">bdiv</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">2</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">Invalid field `</span><span class="text">bdiv</span><span class="text">`: The environment does not contain `</span><span class="text">Nat.bdiv</span><span class="text">`</span><span class="text">
   </span><span class="highlighted"><span class="var token" data-binding="var-_uniq.7" data-verso-hover="9">n</span></span><span class="text"></span><span class="text">
 </span><span class="text">has type</span><span class="text">
   </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></span><span class="text"></span></span></pre><p>
                   This is because coercions are only inserted when there is an expected type that differs from an inferred type, and generalized fields are resolved based on the inferred type of the term before the dot.
-Coercions can be triggered by adding a type ascription, which additionally causes the inferred type of the entire ascription term to be <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></code>, allowing the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2130">Int.bdiv</span></a></code> to be found.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4379">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2130">bdiv</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text">
+Coercions can be triggered by adding a type ascription, which additionally causes the inferred type of the entire ascription term to be <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a></code>, allowing the function <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2209">Int.bdiv</span></a></code> to be found.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.example-4379">example</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Integers/#Int___bdiv" title="Documentation for Int.bdiv"><span class="const token" data-binding="const-Int.bdiv" data-verso-hover="2209">bdiv</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">2</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;KYDwhgtgDgNsAEAKAdvAXPAcmALgSnQF4lUMBJZfAOgCMATASwDd4AmIA&quot;)">Live ↪</a></div>
                 </div>
               </details><details class="example"><summary class="description">Coercions and <code>OfNat</code></summary><div class="example-content">
                 <p>
-                  <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a></code> is an inductive type that represents binary numbers.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4535" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin" data-verso-hover="2131" id="Bin-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4549">where</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.done" data-verso-hover="2132" id="Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_">done</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2133" id="Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.one" data-verso-hover="2134" id="Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_">one</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text">
+                  <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a></code> is an inductive type that represents binary numbers.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.inductive-4535" data-verso-hover="24">inductive</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin" data-verso-hover="2210" id="Bin-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-4549">where</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.done" data-verso-hover="2211" id="Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_">done</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2212" id="Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_">zero</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.one" data-verso-hover="2213" id="Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_">one</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4610">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2135" id="Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.toString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2132">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="202">""</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2134">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1008" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1008" data-verso-hover="2136">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2135">toString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2137">"1"</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2133">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1044" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1044" data-verso-hover="2136">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2135">toString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="773">"0"</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4610">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2214" id="Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.toString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2211">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="205">""</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2213">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1016" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1016" data-verso-hover="2215">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2214">toString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="2216">"1"</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2212">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1052" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1052" data-verso-hover="2215">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2214">toString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">++</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="789">"0"</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-4726">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-4750">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-ToString.toString" data-verso-hover="2138">toString</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2132">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="773">"0"</span><span class="inter-text">
-    </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1363" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2135">Bin.toString</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1363" data-verso-hover="2136">b</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-4726">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="const token" data-binding="const-ToString" data-verso-hover="71">ToString</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-4750">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-ToString.toString" data-verso-hover="2217">toString</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2211">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="789">"0"</span><span class="inter-text">
+    </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1386" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___toString-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.toString" data-verso-hover="2214">Bin.toString</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1386" data-verso-hover="2215">b</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  Binary numbers can be converted to natural numbers by repeatedly applying <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2139">Bin.succ</span></a></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4917">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2139" id="Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.succ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4951" data-verso-hover="55">match</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2136">b</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4951" data-verso-hover="55">with</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2132">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2132">Bin.done</span></a><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2134">one</span></a><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2133">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2134">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="2136">b</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2134">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.28" data-verso-hover="2136">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2133">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.28" data-verso-hover="2136">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2139">succ</span></a><span class="inter-text">
+                  Binary numbers can be converted to natural numbers by repeatedly applying <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2218">Bin.succ</span></a></code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-4917">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2218" id="Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.succ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4951" data-verso-hover="55">match</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2215">b</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-4951" data-verso-hover="55">with</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2211">.done</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___done-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.done" data-verso-hover="2211">Bin.done</span></a><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2213">one</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2212">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2213">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="2215">b</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><a href="Coercions/#Bin___one-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.one" data-verso-hover="2213">.one</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.28" data-verso-hover="2215">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><a href="Coercions/#Bin___zero-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.zero" data-verso-hover="2212">.zero</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.28" data-verso-hover="2215">b</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2218">succ</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5040">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2140" id="Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.ofNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.254" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-5075" data-verso-hover="55">match</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.254" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-5075" data-verso-hover="55">with</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-5040">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2219" id="Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_">Bin.ofNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.263" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-5075" data-verso-hover="55">match</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.263" data-verso-hover="9">n</span><span class="inter-text"> </span><a href="Terms/Pattern-Matching/#Lean___Parser___Term___match" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.match-5075" data-verso-hover="55">with</span></a><span class="inter-text">
   </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">.done</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.339" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2140">Bin.ofNat</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.339" data-verso-hover="9">n</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2139">succ</span></a><span class="inter-text">
+  </span><span class="unknown token" data-binding="">|</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.348" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="unknown token" data-binding="">1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2219">Bin.ofNat</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.348" data-verso-hover="9">n</span><span class="unknown token" data-binding="">)</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Bin___succ-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.succ" data-verso-hover="2218">succ</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  Even if <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2140">Bin.ofNat</span></a></code> is registered as a coercion, natural number literals cannot be used for <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Command___attribute" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.attribute-6353">attribute</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-6364" data-verso-hover="2141">coe</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2140">Bin.ofNat</span></a><span class="inter-text">
+                  Even if <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2219">Bin.ofNat</span></a></code> is registered as a coercion, natural number literals cannot be used for <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a></code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Command___attribute" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.attribute-6353">attribute</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-6364" data-verso-hover="2220">coe</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text"> </span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2219">Bin.ofNat</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-6380">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-6403">where</span><span class="inter-text">
-  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2142">coe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2140">Bin.ofNat</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-6380">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1790">Coe</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-6403">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2221">coe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Coercions/#Bin___ofNat-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin.ofNat" data-verso-hover="2219">Bin.ofNat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><code class="hl lean block" data-lean-context="examples"><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-6467" data-verso-hover="8">#eval</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info error"><span class="hover-container"><span class="hover-info messages"><code class="verso-message error"><span class="text"></span><span class="text">failed to synthesize</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">9</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">9</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">9</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
-  </span><span class="highlighted"><span class="inter-text"></span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><span class="inter-text"></span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"></span></span><span class="text"></span><span class="text">
 </span><span class="text">due to the absence of the instance above</span><span class="text">
 </span><span class="text">
-</span><span class="text">Hint: </span><span class="text">Additional diagnostic information may be available using the `set_option diagnostics true` command.</span></code></span></span><span class="typed token" data-binding="" data-verso-hover="2136">9</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="text">Hint: </span><span class="text">Additional diagnostic information may be available using the `set_option diagnostics true` command.</span></code></span></span><span class="typed token" data-binding="" data-verso-hover="2215">9</span></span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output error"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">failed to synthesize</span><span class="text">
-  </span><span class="highlighted"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">9</span></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">9</span></span><span class="text"></span><span class="text">
 </span><span class="text"></span><span class="text">numerals are polymorphic in Lean, but the numeral `</span><span class="text">9</span><span class="text">` cannot be used in a context where the expected type is</span><span class="text">
-  </span><span class="highlighted"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a></span><span class="text"></span><span class="text">
+  </span><span class="highlighted"><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a></span><span class="text"></span><span class="text">
 </span><span class="text">due to the absence of the instance above</span><span class="text">
 </span><span class="text">
 </span><span class="text">Hint: </span><span class="text">Additional diagnostic information may be available using the `set_option diagnostics true` command.</span></span></pre><p>
-                  This is because coercions are inserted in response to mismatched types, but a failure to synthesize an <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a></code> instance is not a type mismatch.</p>
+                  This is because coercions are inserted in response to mismatched types, but a failure to synthesize an <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a></code> instance is not a type mismatch.</p>
                 <p>
-                  The coercion can be used in the definition of the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a></code> instance:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7064">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="253">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7087">where</span><span class="inter-text">
-  </span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat.ofNat"><span class="const token" data-binding="const-OfNat.ofNat" data-verso-hover="2143">ofNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="9">n</span><span class="inter-text">
+                  The coercion can be used in the definition of the <code class="hl lean inline" data-lean-context="examples"><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a></code> instance:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7064">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat"><span class="const token" data-binding="const-OfNat" data-verso-hover="256">OfNat</span></a><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.5" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7087">where</span><span class="inter-text">
+  </span><a href="Terms/Numeric-Literals/#OfNat___mk" title="Documentation for OfNat.ofNat"><span class="const token" data-binding="const-OfNat.ofNat" data-verso-hover="2222">ofNat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.9" data-verso-hover="9">n</span><span class="inter-text">
 
-</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">1010</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7107" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="2136">10</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2131">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="text">1010</span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-7107" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="typed token" data-binding="" data-verso-hover="2215">10</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Bin-_LPAR_in-Coercions-and--OfNat_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Bin" data-verso-hover="2210">Bin</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="text">1010</span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;JYOwJgrgxgLsBuBTABAIVMg7gC0QJ0QChlkAfZMAexCJPIC99LkAuNDQJMJ2RizlqUbdCGRdhhQmEQAzbgDoYlAMow8oAOatuo5CrUh1vcnKo1kAXgB8yAEQ2jyOQOQAjC9ZcLlqjcgDUfrYAjPZ0jox4zG5Wrl56vgG2AAz2hKAAzjAAhiBQgsgAKt76msJYuAS8ivEGvGEmzjE2KXV80dbCcT4GrhJSsp3p0FDIABRuQqAAlFplLOa8ALZZMFDYrljAMNgODWYxnaaITjS7EVHujs4uu9eXcuexQ1BQfTLylNIAcitjImw/GAzSb/BYkZardYiTBbHZhJL3I4OESBIKXUadT6A5AgKZyZ6vSTvTqKbEgnSA3ZHS5JM5MDYxABMyAAVLFSStbmZ2shmWzPByYP5kEE3gNQA0IC4ADb5MpiUBUxrWPa0PiUbb4e6PDUVCSaygERbyQUAfQJpsQAEdzcNkABvCbcAC+WgFlGx5hxOk8BK8nu9qNYXpcAE9eKBVMxsABRK0R8DQODUDbqRA0PBZaXAei+EQAHgA3NZ0sBFgAHU1Z6X+LJqbbIADaJI9KwANPICQBdfW4Q2IY0twGmqhS2WWm2jmUoR2zUCutjugMiLieKey/2/L0iNnM+aucMkSORZCx+NHxOwYAptxpjNZnN55BFktlyvV2v19bNiWCjuHSgx0QHtCANI0Pm+FZTTNa0HX+ZBAQXMZMUgoVcU3IVt2DA8E0gK8UwLYtkFLCsq2lGsfxAJxUP/X9WxgWiqLNC1rVtF4QJWHwXAgGAUEbKBKGAiDKTSEBMhyPItAAYUEhDfjKHB8DVATBC9FCRIybJcnyAB5VDtGhCo1SxX59x4QgAGJEHgLMxiCBEQSmIA&quot;)">Live ↪</a></div>
                 </div>
               </details><p>
-              Most new coercions can be defined by declaring an instance of the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code> <a class="technical-term" href="Type-Classes/#--tech-term-type-class">type class</a> and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2144">coe</span></code> attribute to the function that performs the coercion.
+              Most new coercions can be defined by declaring an instance of the <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1790">Coe</span></a></code> <a class="technical-term" href="Type-Classes/#--tech-term-type-class">type class</a> and applying the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="2223">coe</span></code> attribute to the function that performs the coercion.
 To enable more control over coercions or to enable them in more contexts, Lean provides further classes that can be implemented, described in the rest of this chapter.</p>
             <details class="example"><summary class="description">Defining Coercions: Decimal Numbers</summary><div class="example-content">
                 <p>
                   Decimal numbers can be defined as arrays of digits.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-7620">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Decimal" data-verso-hover="2145" id="Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">Decimal</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-7638">where</span><span class="inter-text">
-  </span><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2146" id="Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">digits</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="609">Fin</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">10</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.structureTk-7620">structure</span><span class="inter-text"> </span><span class="const token" data-binding="const-Decimal" data-verso-hover="2224" id="Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">Decimal</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-7638">where</span><span class="inter-text">
+  </span><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2225" id="Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">digits</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="294">Array</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin"><span class="const token" data-binding="const-Fin" data-verso-hover="625">Fin</span></a><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">10</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
                   Adding a coercion allows them to be used in contexts that expect <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>, but also contexts that expect any type that <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> can be coerced to.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-7839" data-verso-hover="2141">coe</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text">
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7844">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Decimal.toNat" data-verso-hover="2147" id="Decimal___toNat-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">Decimal.toNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2148">d</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2145">Decimal</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2148">d</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2146">digits</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___foldl" title="Documentation for Array.foldl"><span class="const token" data-binding="const-Array.foldl" data-verso-hover="2149">foldl</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-7914">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.27" data-verso-hover="2150">d</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">10</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.27" data-verso-hover="2150">d</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin.val"><span class="const token" data-binding="const-Fin.val" data-verso-hover="1007">val</span></a><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="unknown token" data-binding="">@[</span><a href="Coercions/Coercing-Between-Types/#Lean___Attr___coe" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Attr.coe-7839" data-verso-hover="2220">coe</span></a><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-7844">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-Decimal.toNat" data-verso-hover="2226" id="Decimal___toNat-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">Decimal.toNat</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2227">d</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2224">Decimal</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="2227">d</span><span class="unknown token" data-binding="">.</span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2225">digits</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___foldl" title="Documentation for Array.foldl"><span class="const token" data-binding="const-Array.foldl" data-verso-hover="2228">foldl</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">init</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-7914">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.27" data-verso-hover="2229">d</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.24" data-verso-hover="9">n</span><span class="inter-text"> </span><span class="unknown token" data-binding="">*</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">10</span><span class="inter-text"> </span><span class="unknown token" data-binding="">+</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.27" data-verso-hover="2229">d</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Finite-Natural-Numbers/#Fin___mk" title="Documentation for Fin.val"><span class="const token" data-binding="const-Fin.val" data-verso-hover="1078">val</span></a><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7941">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2145">Decimal</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7968">where</span><span class="inter-text">
-  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2151">coe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Coercions/#Decimal___toNat-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.toNat" data-verso-hover="2147">Decimal.toNat</span></a><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.instance-7941">instance</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1790">Coe</span></a><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2224">Decimal</span></a><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-7968">where</span><span class="inter-text">
+  </span><a href="Coercions/#Coe___mk" title="Documentation for Coe.coe"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2230">coe</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><a href="Coercions/#Decimal___toNat-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.toNat" data-verso-hover="2226">Decimal.toNat</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><p>
-                  This can be demonstrated by treating a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2145">Decimal</span></a></code> as an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></code> as well as a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>:</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8127">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-twoHundredThirteen" data-verso-hover="2152" id="twoHundredThirteen-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">twoHundredThirteen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2145">Decimal</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-8160">where</span><span class="inter-text">
-  </span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2153">digits</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="2150">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="2150">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="2150">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+                  This can be demonstrated by treating a <code class="hl lean inline" data-lean-context="examples"><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2224">Decimal</span></a></code> as an <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a></code> as well as a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>:</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8127">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-twoHundredThirteen" data-verso-hover="2231" id="twoHundredThirteen-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">twoHundredThirteen</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2224">Decimal</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-8160">where</span><span class="inter-text">
+  </span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2232">digits</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="2229">2</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="2229">1</span><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="2229">3</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8190">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-one" data-verso-hover="2154" id="one-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">one</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2145">Decimal</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-8208">where</span><span class="inter-text">
-  </span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2153">digits</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="2150">1</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-8190">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-one" data-verso-hover="2233" id="one-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_">one</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Coercions/#Decimal-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal" data-verso-hover="2224">Decimal</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-8208">where</span><span class="inter-text">
+  </span><a href="Coercions/#Decimal___digits-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-Decimal.digits" data-verso-hover="2232">digits</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">#[</span><span class="typed token" data-binding="" data-verso-hover="2229">1</span><span class="unknown token" data-binding="">]</span><span class="inter-text">
 
-</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">-</span><span class="unknown token" data-binding="">212</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8232" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#one-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-one" data-verso-hover="2154">one</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">-</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#twoHundredThirteen-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twoHundredThirteen" data-verso-hover="2152">twoHundredThirteen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">-</span><span class="unknown token" data-binding="">212</span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-8232" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#one-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-one" data-verso-hover="2233">one</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">-</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><a href="Coercions/#twoHundredThirteen-_LPAR_in-Defining-Coercions___-Decimal-Numbers_RPAR_" title="Definition of example"><span class="const token" data-binding="const-twoHundredThirteen" data-verso-hover="2231">twoHundredThirteen</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="unknown token" data-binding="">)</span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">-</span><span class="unknown token" data-binding="">212</span></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;M4FwTgrgxiFgpgAgCLygSwLYEMA2iB3AC3gQChFEATdAc3RGEQC5EBBMMbAT0QAoAYugB2iAIwAGAJRkyAAQDaUAPbwAumSrwAZijRY8AOhDKActhD8qLPRhy4pN85eYBeCtUM16jQ9uW4VPh8IgwsrojSiNoQoqLWrgB8iKIAVOISiADUngBueLIioNjCUEisAMKqtgb4zoQk5JQq5RGodkYmzrJauiAEygASsVQIVAAqROhgIPDwoqzttQ2k8B7eDExuiADECgBMADTixwDMGpo6iMrC5TX2K03UdJvhuwpiFzvw+cE3dwBJYQgRwAWn4/SGIzGk2ms3mTgsUiAA&quot;)">Live ↪</a></div>
                 </div>
               </details><div class="namedocs" id="Coe___mk">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Coe.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Coe.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.276" data-verso-hover="2155">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Type-Classes/Instance-Synthesis/#semiOutParam" title="Documentation for semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="96">semiOutParam</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">(Sort u)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Coe.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.276" data-verso-hover="2155">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Type-Classes/Instance-Synthesis/#semiOutParam" title="Documentation for semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="96">semiOutParam</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">(Sort u)</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="309">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max (max 1 u) v)</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Coe.coe" title="Permalink">🔗</a></span><span class="label">type class</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Coe.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.276" data-verso-hover="2234">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Type-Classes/Instance-Synthesis/#semiOutParam" title="Documentation for semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="96">semiOutParam</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">(Sort u)</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="312">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort (max (max 1 u) v)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Coe.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.276" data-verso-hover="2234">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Type-Classes/Instance-Synthesis/#semiOutParam" title="Documentation for semiOutParam"><span class="const token" data-binding="const-semiOutParam" data-verso-hover="96">semiOutParam</span></a><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">(Sort u)</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.277" data-verso-hover="312">β</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort v</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort (max (max 1 u) v)</span></div></pre><div class="text">
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2155">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.231" data-verso-hover="309">β</span></code> is the typeclass for coercions from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2155">α</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.231" data-verso-hover="309">β</span></code>. It can be transitively
-chained with other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1721">Coe</span></a></code> instances, and coercion is automatically used when
-<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.256" data-verso-hover="72">x</span></code> has type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2155">α</span></code> but it is used in a context where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.231" data-verso-hover="309">β</span></code> is expected.
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1790">Coe</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2234">α</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.231" data-verso-hover="312">β</span></code> is the typeclass for coercions from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2234">α</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.231" data-verso-hover="312">β</span></code>. It can be transitively
+chained with other <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Coercions/#Coe___mk" title="Documentation for Coe"><span class="const token" data-binding="const-Coe" data-verso-hover="1790">Coe</span></a></code> instances, and coercion is automatically used when
+<code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.256" data-verso-hover="72">x</span></code> has type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.230" data-verso-hover="2234">α</span></code> but it is used in a context where <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.231" data-verso-hover="312">β</span></code> is expected.
 You can use the <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code> operator to explicitly trigger coercion.</p>
                 <h1>
                   Instance Constructor</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><a href="Coercions/#Coe___mk" title="Documentation for Coe.mk"><span class="const token" data-binding="const-Coe.mk" data-verso-hover="2156">Coe.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
+                  <pre class="name-and-type hl lean"><a href="Coercions/#Coe___mk" title="Documentation for Coe.mk"><span class="const token" data-binding="const-Coe.mk" data-verso-hover="2235">Coe.mk</span></a><span class="unknown token" data-binding="">.{u,</span><span class="inter-text"> </span><span class="unknown token" data-binding="">v}</span></pre><div class="docs"></div>
                   </section>
                 <h1>
                   Methods</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2157">coe</span> : <span class="var token" data-binding="var-_uniq.268" data-verso-hover="2155">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.269" data-verso-hover="309">β</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Coe.coe" data-verso-hover="2236">coe</span> : <span class="var token" data-binding="var-_uniq.268" data-verso-hover="2234">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.269" data-verso-hover="312">β</span></pre><div class="docs">
                     <p>
-                      Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2155">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.281" data-verso-hover="309">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
-or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.294" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2155">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="309">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
+                      Coerces a value of type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2234">α</span></code> to type <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.281" data-verso-hover="312">β</span></code>. Accessible by the notation <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">↑</span><span class="unknown token" data-binding="">x</span></code>,
+or by double type ascription <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">(</span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.294" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.280" data-verso-hover="2234">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.281" data-verso-hover="312">β</span><span class="unknown token" data-binding="">)</span></code>.</p>
                     </div>
                   </section>
                 </div>

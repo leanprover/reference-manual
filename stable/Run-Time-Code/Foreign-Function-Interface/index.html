@@ -14,16 +14,61 @@
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/fuzzysort.min.js"></script>
     <script src="-verso-search/searchIndex.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-data/popper.min.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
+    <script src="-verso-data/katex/katex.js"></script>
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 a.elan-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -33,29 +78,134 @@ a.elan-command:hover {
 }
 
 </style><style>
-a.lake-command {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.lake-command:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
+div.TODO {
+  border: 5px solid red;
   position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
   color: red;
   font-size: large;
   font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
 }
 </style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 .hl.lean.tactic-view {
   white-space: collapse;
 }
@@ -78,89 +228,6 @@ span.TODO {
 }
 
 
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
 </style><style>
 .namedocs {
   position: relative;
@@ -913,16 +980,252 @@ body {
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
 }
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
-.field-category > :first-child {
+.toml {
+  font-family: var(--verso-code-font-family);
 }
 
-.field-category > :not(:first-child) {
-  margin-left: 1rem;
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
 }
 </style><style>
-dl.toml-table-field-spec {
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
 }
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
 </style><style>
 .example-file {
   white-space: normal;
@@ -986,72 +1289,30 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.keyword-of .kw {
-  font-weight: 500;
-}
-.keyword-of .hover-info {
-  display: none;
-}
-.keyword-of .kw:hover {
-  background-color: #eee;
-  border-radius: 2px;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
+</style><style>
+a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-</style><style>
-.c .type { font-weight: 600; }
-.c .kw { font-weight: 600; }
-.c .comment { font-style: italic; }
-</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-  .error-explanation-metadata {
-    margin-bottom: 2rem; /* Double the paragraph margin */
-  }
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
 
-  .error-explanation-metadatum:not(:last-child):after {
-    content: '|';
-    margin: 0 10px;
-  }
-  .error-explanation-removed-warning {
-    border: 1px solid var(--verso-warning-color);
-    border-radius: 0.5rem;
-    padding-left: var(--verso--box-padding);
-    padding-right: var(--verso--box-padding);
-  }
-  </style><style>
+</style><style>.namedocs .label a { color: inherit; }</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1078,219 +1339,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
 </style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
+.syntax-error {
+  white-space: normal;
 }
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
+.syntax-error::before {
+  counter-reset: linenumber;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-  display: none; /* default to not showing */
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
   font-family: var(--verso-code-font-family);
 }
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
 }
 
-.toml .table-header .key {
-    color: #3030c0;
+.syntax-error .parse-message > code.hover-info {
+  display:none;
 }
 
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
 }
 </style><style>
-    main .theIndex {
-      padding-left: 0;
-      font-family: var(--verso-text-font-family);
-    }
-
-    main .theIndex nav {
-      position: sticky;
-      top: var(--verso-header-height);
-      background: white;
-      font-family: var(--verso-structure-font-family);
-    }
-
-    main .theIndex [id] {
-      /* This needs the combined height of the index header and the page header. We
-         know the height of the page header, but the index header height varies, so
-         we use the maximum height it gets which also works well for readers with
-         wide screens */
-      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
-    }
-
-    @media screen and (max-width: 700px) {
-      /* On mobile, the sticky index takes up half the screen. */
-      main .theIndex nav {
-        position: static;
-      }
-
-      main .theIndex [id] {
-        /* On mobile, the index header is not sticky, so we just need to
-        be below the page header. */
-        scroll-margin-top: var(--verso-header-height);
-      }
-    }
-
-    main .theIndex nav ol {
-      padding: 0;
-    }
-
-    main .theIndex nav ol li {
-      display: inline-block;
-    }
-
-    main .theIndex nav ol li a {
-      /* Padding instead of margin to have a bigger click target */
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-    }
-    /* Increase the size of the touch target on phones */
-    @media screen and (max-width: 700px) {
-      main .theIndex nav ol li a {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-    }
-
-    main .theIndex nav ol li:first-child a {
-      padding-left: 0;
-    }
-
-    main .theIndex nav ol li + li:before {
-      content: "|";
-    }
-
-    main .theIndex h1,
-    main .theIndex h2,
-    main .theIndex h3,
-    main .theIndex h4,
-    main .theIndex h5,
-    main .theIndex h6 {
-      margin-top: 0;
-    }
-
-    main .theIndex ol {
-      list-style-type: none;
-    }
-
-    main .theIndex .division > ol {
-      padding-left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      overflow-wrap: break-word;
-    }
-
-   main .theIndex .division > ol > li {
-      margin-bottom: 0.5rem;
-    }
-
-    main .theIndex .division ol ol {
-      padding-left: 1rem;
-    }
-
-    main .theIndex .division {
-      break-inside: avoid;
-      counter-reset: none;
-      max-width: none;
-      width: auto;
-    }
-    </style><style>
-.toml-field a {
+a.technical-term {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-.toml-field a:hover {
+a.technical-term:hover {
   text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
 }
 </style><style>
 
@@ -1954,306 +2053,11 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
-}
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-/* Highlight the clicked term */
-.def-technical-term:target {
-  background-color: var(--verso-selected-color);
-  outline: auto;
-}
-</style><style>
-.error-example-container:not(:last-child) {
-  border-bottom: 1px solid gray;
-  padding-bottom: var(--verso--box-padding);
-}
-.error-example-tab-list [role="tab"] {
-  position: relative;
-  z-index: 1;
-  background: white;
-  border: 0;
-  padding: 0.2em;
-  cursor: pointer;
-}
-.error-example-tab-list [role="tab"]:not(:last-child) {
-  margin-right: 1rem;
-}
-.error-example-tab-list [role="tab"][aria-selected="true"] {
-  border-bottom: 1px solid gray;
-}
-/* this rule and the following ensure that all tabs are the same height */
-.error-example-tab-view {
-  display: flex;
-}
-.error-example-tabpanel {
-  margin-right: -100%;
-  width: 100%;
-  display: block;
-}
-.error-example-tabpanel.error-example-tabpanel-hidden {
-  visibility: hidden;
-}
-.error-example-tabpanel .hl.lean .token {
-  /* unset transition to avoid lag when switching panels */
-  transition: visibility 0s;
-}
-  </style><style>
-.syntax-error {
-  white-space: normal;
-}
-.syntax-error::before {
-  counter-reset: linenumber;
-}
-.syntax-error > .line {
-  display: block;
-  white-space: pre;
-  counter-increment: linenumber;
-  font-family: var(--verso-code-font-family);
-}
-.syntax-error > .line::before {
-  -webkit-user-select: none;
-  display: inline-block;
-  content: counter(linenumber);
-  border-right: 1px solid #ddd;
-  width: 2em;
-  padding-right: 0.25em;
-  margin-right: 0.25em;
-  font-family: var(--verso-code-font-family);
-  text-align: right;
-}
-
-:is(.syntax-error > .line):has(.parse-message)::before {
-  color: red;
-  font-weight: bold;
-}
-
-.syntax-error .parse-message > code.hover-info {
-  display:none;
-}
-
-.syntax-error .parse-message {
-  white-space: pre;
-  text-decoration-skip-ink: none;
-  color: red;
-  font-weight: 600;
-}
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
 </style><script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
       
 window.onload = () => {
 
@@ -2448,6 +2252,205 @@ window.onload = () => {
   });
 }
 </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
@@ -2479,14 +2482,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="current numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="current numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-runtime" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-runtime" checked="checked"></label><span class="number">22.</span> <span class=""><a href="Run-Time-Code/#runtime">Run-Time Code</a></span></div>
-              <table><tr class="numbered"><td class="num">22.1.</td><td><a href="Run-Time-Code/Boxing/#boxing">Boxing</a></td></tr><tr class="numbered"><td class="num">22.2.</td><td><a href="Run-Time-Code/Reference-Counting/#reference-counting">Reference Counting</a></td></tr><tr class="numbered"><td class="num">22.3.</td><td><a href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution">Multi-Threaded Execution</a></td></tr><tr class="current numbered"><td class="num">22.4.</td><td><a href="Run-Time-Code/Foreign-Function-Interface/#ffi">Foreign Function Interface</a></td></tr></table></div>
+                <label for="--verso-manual-toc-runtime" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-runtime" checked="checked"></label><span class="number">23.</span> <span class=""><a href="Run-Time-Code/#runtime">Run-Time Code</a></span></div>
+              <table><tr class="numbered"><td class="num">23.1.</td><td><a href="Run-Time-Code/Boxing/#boxing">Boxing</a></td></tr><tr class="numbered"><td class="num">23.2.</td><td><a href="Run-Time-Code/Reference-Counting/#reference-counting">Reference Counting</a></td></tr><tr class="numbered"><td class="num">23.3.</td><td><a href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution">Multi-Threaded Execution</a></td></tr><tr class="current numbered"><td class="num">23.4.</td><td><a href="Run-Time-Code/Foreign-Function-Interface/#ffi">Foreign Function Interface</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-ffi" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-ffi" checked="checked"></label><span class="number">22.4.</span> <span class="current"><a href="Run-Time-Code/Foreign-Function-Interface/#ffi">Foreign Function Interface</a></span></div>
+                <label for="--verso-manual-toc-ffi" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-ffi" checked="checked"></label><span class="number">23.4.</span> <span class="current"><a href="Run-Time-Code/Foreign-Function-Interface/#ffi">Foreign Function Interface</a></span></div>
               <ol>
                 <li>
                   <a href="Run-Time-Code/Foreign-Function-Interface/#Lean___Parser___Attr___extern"><span class="syntax"><span class="keyword">extern</span><span class="ws"> </span><span class="meta">…</span></span></a></li>
@@ -2519,10 +2522,10 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution" rel="prev" title="22.3. Multi-Threaded Execution"><span class="arrow">←</span><span class="where">22.3. Multi-Threaded Execution</span></a><a class="local-button active" href="Build-Tools-and-Distribution/#build-tools-and-distribution" rel="next" title="23. Build Tools and Distribution"><span class="where">23. Build Tools and Distribution</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution" rel="prev" title="23.3. Multi-Threaded Execution"><span class="arrow">←</span><span class="where">23.3. Multi-Threaded Execution</span></a><a class="local-button active" href="Build-Tools-and-Distribution/#build-tools-and-distribution" rel="next" title="24. Build Tools and Distribution"><span class="where">24. Build Tools and Distribution</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              22.4. Foreign Function Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi" title="Permalink">🔗</a></span></h1>
+              23.4. Foreign Function Interface<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi" title="Permalink">🔗</a></span></h1>
             <p>
               <strong>The current interface was designed for internal use in Lean and should be considered unstable</strong>.
 It will be refined and extended in the future.</p>
@@ -2538,14 +2541,14 @@ This support is, however, currently limited to transferring Lean data types; in 
                   <code>@[export sym] def leanSym : ...</code></p>
                 </li>
               </ul>
-            <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+            <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
               <span class="label">attribute</span><span class="title">External Symbols</span><div class="text">
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___extern"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Attr.extern"><span class="keyword">extern</span> <span class="from-nonterminal" data-kind="null"><span class="from-nonterminal" data-kind="Lean.Parser.Attr.externEntry"><span class="from-nonterminal" data-kind="null"></span><span class="from-nonterminal" data-kind="null"></span><span class="nonterminal" data-kind="str">str</span></span></span></span></pre><p>
                   Binds a Lean declaration to the specified external symbol.</p>
                 </div>
               </div>
-            <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+            <div class="namedocs" id="attr-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
               <span class="label">attribute</span><span class="title">Exported Symbols</span><div class="text">
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Attr___export"><span class="nonterminal" data-kind="attr">attr</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal" data-kind="Lean.Parser.Attr.export"><span class="keyword">export</span> <span class="nonterminal" data-kind="ident">ident</span></span></pre><p>
@@ -2556,53 +2559,53 @@ This support is, however, currently limited to transferring Lean data types; in 
               For simple examples of how to call foreign code from Lean and vice versa, see <a href="https://github.com/leanprover/lean4/tree/master/tests/lake/examples/ffi">the FFI</a> and <a href="https://github.com/leanprover/lean4/tree/master/tests/lake/examples/reverse-ffi">reverse FFI</a> examples in the Lean source repository.</p>
             <section>
               <h2 id="The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--The-Lean-ABI">
-                22.4.1. The Lean ABI</h2>
+                23.4.1. The Lean ABI</h2>
               <p>
                 The Lean <span id="--tech-term-Application-Binary-Interface" class="def-technical-term"><em>Application Binary Interface</em></span> (ABI) describes how the signature of a Lean declaration is encoded in the platform-native calling convention.
 It is based on the standard C ABI and calling convention of the target platform.
-Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6180">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
+Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7547">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
               <p>
                 In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
-Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="6181">α₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="6182">αₙ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="6183">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
+Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="7548">α₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="7549">αₙ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="7550">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
 If <code>n</code> is 0, the corresponding C declaration is</p>
               <pre class="c"><span class="kw">extern</span> <span class="name">s</span> <span class="name">sym</span>;
 </pre><p>
                 where <code class="c"><span class="name">s</span></code> is the C translation of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.115" data-verso-hover="110">β</span></code> as specified in <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-types">the next section</a>.
-In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
+In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
 The section on <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-initialization">initialization</a> describes initializers in greater detail.</p>
               <p>
                 If <code>n</code> is greater than 0, the corresponding C declaration is</p>
               <pre class="c"><span class="name">s</span> <span class="name">sym</span><span class="brack">(</span><span class="name">t</span>₁, ..., <span class="name">t</span>ₙ<span class="brack">)</span>;
 </pre><p>
-                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.130" data-verso-hover="5221">αᵢ</span></code>.
-In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
+                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.130" data-verso-hover="5448">αᵢ</span></code>.
+In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
               <section>
                 <h3 id="ffi-types">
-                  22.4.1.1. Translating Types from Lean to C<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-types" title="Permalink">🔗</a></span></h3>
+                  23.4.1.1. Translating Types from Lean to C<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-types" title="Permalink">🔗</a></span></h3>
                 <p>
                   In the <a class="technical-term" href="Run-Time-Code/Foreign-Function-Interface/#--tech-term-Application-Binary-Interface">ABI</a>, Lean types are translated to C types as follows:</p>
                 <ul>
                   <li>
                     <p>
-                      The integer types <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="261">UInt8</span></a></code>, …, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofBitVec" title="Documentation for UInt64"><span class="const token" data-binding="const-UInt64" data-verso-hover="602">UInt64</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="605">USize</span></a></code> are represented by the C types <code class="c"><span class="type">uint8_t</span></code>, ..., <code class="c"><span class="type">uint64_t</span></code>, <code class="c"><span class="type">size_t</span></code>, respectively.
+                      The integer types <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt8___ofBitVec" title="Documentation for UInt8"><span class="const token" data-binding="const-UInt8" data-verso-hover="264">UInt8</span></a></code>, …, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#UInt64___ofBitVec" title="Documentation for UInt64"><span class="const token" data-binding="const-UInt64" data-verso-hover="618">UInt64</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Fixed-Precision-Integers/#USize___ofBitVec" title="Documentation for USize"><span class="const token" data-binding="const-USize" data-verso-hover="621">USize</span></a></code> are represented by the C types <code class="c"><span class="type">uint8_t</span></code>, ..., <code class="c"><span class="type">uint64_t</span></code>, <code class="c"><span class="type">size_t</span></code>, respectively.
   If their <a href="Basic-Types/Fixed-Precision-Integers/#fixed-int-runtime">run-time representation</a> requires <a class="technical-term" href="Run-Time-Code/Boxing/#--tech-term-Boxed">boxing</a>, then they are unboxed at the FFI boundary.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="262">Char</span></a></code> is represented by <code class="c"><span class="type">uint32_t</span></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="265">Char</span></a></code> is represented by <code class="c"><span class="type">uint32_t</span></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float-next" title="Documentation for Float"><span class="const token" data-binding="const-Float" data-verso-hover="478">Float</span></a></code> is represented by <code class="c"><span class="type">double</span></code>.</p>
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Floating-Point-Numbers/#Float-next" title="Documentation for Float"><span class="const token" data-binding="const-Float" data-verso-hover="477">Float</span></a></code> is represented by <code class="c"><span class="type">double</span></code>.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="190">Int</span></a></code> are represented by <code class="c"><span class="type">lean_object *</span></code>.
+                      <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Integers/#Int___ofNat" title="Documentation for Int"><span class="const token" data-binding="const-Int" data-verso-hover="113">Int</span></a></code> are represented by <code class="c"><span class="type">lean_object *</span></code>.
   Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 (<code class="c"><span class="name">lean_is_scalar</span></code>), an encoded natural number or integer (<code class="c"><span class="name">lean_box</span></code>/<code class="c"><span class="name">lean_unbox</span></code>).</p>
                     </li>
                   <li>
                     <p>
-                      A universe <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></code>, type constructor <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></code>, or proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.154" data-verso-hover="338">p</span></code>​<code> :</code><code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span></code> is <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> and is either statically erased (see above) or represented as a <code class="c"><span class="type">lean_object *</span></code> with the runtime value <code class="c"><span class="name">lean_box</span><span class="brack">(</span>0<span class="brack">)</span></code></p>
+                      A universe <code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></code>, type constructor <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort</span><span class="inter-text"> </span><span class="level-var token" data-binding="level-var-u" data-verso-hover="59">u</span></code>, or proposition <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.154" data-verso-hover="341">p</span></code>​<code> :</code><code class="hl lean inline" data-lean-context="examples"><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span></code> is <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> and is either statically erased (see above) or represented as a <code class="c"><span class="type">lean_object *</span></code> with the runtime value <code class="c"><span class="name">lean_box</span><span class="brack">(</span>0<span class="brack">)</span></code></p>
                     </li>
                   <li>
                     <p>
@@ -2613,14 +2616,14 @@ In the case of <code class="hl lean inline" data-lean-context="examples"><span c
                   </ul>
                 <details class="example"><summary class="description"><code>Unit</code> in the ABI</summary><div class="example-content">
                     <p>
-                      The runtime value of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.160" data-verso-hover="1552">u</span></code>​<code>:</code><code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is always <code>lean_box(0)</code>.</p>
+                      The runtime value of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.160" data-verso-hover="1614">u</span></code>​<code>:</code><code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/The-Unit-Type/#Unit" title="Documentation for Unit"><span class="const token" data-binding="const-Unit" data-verso-hover="4">Unit</span></a></code> is always <code>lean_box(0)</code>.</p>
                     </div>
                   </details></section>
               <section>
                 <h3 id="ffi-borrowing">
-                  22.4.1.2. Borrowing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-borrowing" title="Permalink">🔗</a></span></h3>
+                  23.4.1.2. Borrowing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-borrowing" title="Permalink">🔗</a></span></h3>
                 <p>
-                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
+                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
 The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via <code class="c"><span class="name">lean_dec</span></code>.
 To reduce reference counting overhead, parameters can be marked as <span id="--tech-term-borrowed" class="def-technical-term"><em>borrowed</em></span> by prefixing their type with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.borrowed : term</code><span class="sep"></span><code class="docstring">Indicates that an argument to a function marked `@[extern]` is borrowed.
 
@@ -2633,7 +2636,7 @@ Please see https://lean-lang.org/doc/reference/latest/find/?domain=Verso.Genre.M
 Borrowed objects must only be passed to other non-consuming functions (arbitrarily often) or converted to owned values using <code class="c"><span class="name">lean_inc</span></code>.
 In <code>lean.h</code>, the <code class="c"><span class="type">lean_object *</span></code> aliases <code class="c"><span class="type">lean_obj_arg</span></code> and <code class="c"><span class="type">b_lean_obj_arg</span></code> are used to mark this difference on the C side.
 Return values and <code>@[export]</code> parameters are always owned at the moment.</p>
-                <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+                <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
                   <span class="label">syntax</span><span class="title">Borrowed Parameters</span><div class="text">
                     <pre class="grammar hl lean" data-lean-context="--grammar" id="Lean___Parser___Term___borrowed"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="Lean.Parser.Term.borrowed"><code class="hover-info"><code class="docstring">Indicates that an argument to a function marked `@[extern]` is borrowed.
@@ -2651,7 +2654,7 @@ Please see https://lean-lang.org/doc/reference/latest/find/?domain=Verso.Genre.M
               </section>
             <section>
               <h2 id="ffi-initialization">
-                22.4.2. Initialization<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-initialization" title="Permalink">🔗</a></span></h2>
+                23.4.2. Initialization<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-initialization" title="Permalink">🔗</a></span></h2>
               <p>
                 When including Lean code in a larger program, modules must be <span id="--tech-term-initialized" class="def-technical-term"><em>initialized</em></span> before accessing any of their declarations.
 Module initialization entails:</p>
@@ -2662,17 +2665,17 @@ Module initialization entails:</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6184">init</span></code> attribute, and</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7551">init</span></code> attribute, and</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6184">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7551">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
                   </li>
                 </ul>
               <p>
                 The module initializer is automatically run with the <code>builtin</code> flag for executables compiled from Lean code and for “plugins” loaded with <code>lean --plugin</code>.
 For all other modules imported by <code>lean</code>, the initializer is run without <code>builtin</code>.
-In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6184">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6184">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
+In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7551">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7551">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.</p>
               <p>
                 The initializer for module <code>A.B</code> is called <code class="c"><span class="name">initialize_A_B</span></code> and will automatically initialize any imported modules.
@@ -2717,9 +2720,9 @@ Together with initialization of the Lean runtime, code like the following should
 </pre></section>
             <section>
               <h2 id="The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--____LSQ_extern_RSQ_--in-the-Interpreter">
-                22.4.3. <code>@[extern]</code> in the Interpreter</h2>
+                23.4.3. <code>@[extern]</code> in the Interpreter</h2>
               <p>
-                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code>.
+                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code>.
 To run this code (e.g. with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling and evaluating it.
 
 * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
@@ -2754,14 +2757,14 @@ See also: `#reduce e` for evaluation by term reduction.
                   </li>
                 </ol>
               <p>
-                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code> declaration.
-Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="6179">extern</span></code> declaration in the same file.
+                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code> declaration.
+Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7546">extern</span></code> declaration in the same file.
 The Lean source repository contains an example of this usage in <a href="https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/"><code>tests/compiler/foreign</code></a>.
 </p>
               </section>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution" rel="prev" title="22.3. Multi-Threaded Execution"><span class="arrow">←</span><span class="where">22.3. Multi-Threaded Execution</span></a><a class="local-button active" href="Build-Tools-and-Distribution/#build-tools-and-distribution" rel="next" title="23. Build Tools and Distribution"><span class="where">23. Build Tools and Distribution</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Run-Time-Code/Multi-Threaded-Execution/#The-Lean-Language-Reference--Run-Time-Code--Multi-Threaded-Execution" rel="prev" title="23.3. Multi-Threaded Execution"><span class="arrow">←</span><span class="where">23.3. Multi-Threaded Execution</span></a><a class="local-button active" href="Build-Tools-and-Distribution/#build-tools-and-distribution" rel="next" title="24. Build Tools and Distribution"><span class="where">24. Build Tools and Distribution</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

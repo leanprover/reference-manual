@@ -14,16 +14,61 @@
     <link rel="stylesheet" href="verso-vars.css">
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js" integrity="sha384-zbcZAIxlvJtNE3Dp5nxLXdXtXyxwOdnILY1TDPVmKFhl4r4nSUG1r8bcFXGVa4Te" crossorigin="anonymous"></script>
     <script src="-verso-search/elasticlunr.min.js"></script>
-    <script src="-verso-search/fuzzysort.js"></script>
+    <script src="-verso-search/fuzzysort.min.js"></script>
     <script src="-verso-search/searchIndex.js"></script>
     <script type="module" src="-verso-search/search-init.js"></script>
     <link rel="stylesheet" href="-verso-search/search-box.css">
     <link rel="stylesheet" href="-verso-search/search-highlight.css">
     <link rel="stylesheet" href="-verso-search/domain-display.css">
     <script src="-verso-data/popper.min.js"></script>
+    <script src="-verso-data/katex/math.js"></script>
     <script src="-verso-data/tippy-bundle.umd.min.js"></script>
+    <script src="-verso-data/katex/katex.js"></script>
     <link rel="stylesheet" href="-verso-data/tippy-border.css">
+    <link rel="stylesheet" href="-verso-data/katex/katex.css">
     <style>
+.field-category > :first-child {
+}
+
+.field-category > :not(:first-child) {
+  margin-left: 1rem;
+}
+</style><style>
+.error-example-container:not(:last-child) {
+  border-bottom: 1px solid gray;
+  padding-bottom: var(--verso--box-padding);
+}
+.error-example-tab-list [role="tab"] {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border: 0;
+  padding: 0.2em;
+  cursor: pointer;
+}
+.error-example-tab-list [role="tab"]:not(:last-child) {
+  margin-right: 1rem;
+}
+.error-example-tab-list [role="tab"][aria-selected="true"] {
+  border-bottom: 1px solid gray;
+}
+/* this rule and the following ensure that all tabs are the same height */
+.error-example-tab-view {
+  display: flex;
+}
+.error-example-tabpanel {
+  margin-right: -100%;
+  width: 100%;
+  display: block;
+}
+.error-example-tabpanel.error-example-tabpanel-hidden {
+  visibility: hidden;
+}
+.error-example-tabpanel .hl.lean .token {
+  /* unset transition to avoid lag when switching panels */
+  transition: visibility 0s;
+}
+  </style><style>
 a.elan-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
@@ -33,29 +78,134 @@ a.elan-command:hover {
 }
 
 </style><style>
-a.lake-command {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.lake-command:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>
-span.TODO {
-  border: 3px solid red;
-  display: inline;
+div.TODO {
+  border: 5px solid red;
   position: relative;
-  float: right;
-  clear: right;
-  margin-top: 1rem;
-  width: 15vw;
-  margin-right: -17vw;
+}
+div.TODO::before {
+  content: "TODO";
+  position: absolute;
+  top: 0;
+  right: 0;
   color: red;
   font-size: large;
   font-weight: bold;
+  transform: rotate(-90deg) translate(-2em);
 }
 </style><style>
+    main .theIndex {
+      padding-left: 0;
+      font-family: var(--verso-text-font-family);
+    }
+
+    main .theIndex nav {
+      position: sticky;
+      top: var(--verso-header-height);
+      background: white;
+      font-family: var(--verso-structure-font-family);
+    }
+
+    main .theIndex [id] {
+      /* This needs the combined height of the index header and the page header. We
+         know the height of the page header, but the index header height varies, so
+         we use the maximum height it gets which also works well for readers with
+         wide screens */
+      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
+    }
+
+    @media screen and (max-width: 700px) {
+      /* On mobile, the sticky index takes up half the screen. */
+      main .theIndex nav {
+        position: static;
+      }
+
+      main .theIndex [id] {
+        /* On mobile, the index header is not sticky, so we just need to
+        be below the page header. */
+        scroll-margin-top: var(--verso-header-height);
+      }
+    }
+
+    main .theIndex nav ol {
+      padding: 0;
+    }
+
+    main .theIndex nav ol li {
+      display: inline-block;
+    }
+
+    main .theIndex nav ol li a {
+      /* Padding instead of margin to have a bigger click target */
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    /* Increase the size of the touch target on phones */
+    @media screen and (max-width: 700px) {
+      main .theIndex nav ol li a {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+    }
+
+    main .theIndex nav ol li:first-child a {
+      padding-left: 0;
+    }
+
+    main .theIndex nav ol li + li:before {
+      content: "|";
+    }
+
+    main .theIndex h1,
+    main .theIndex h2,
+    main .theIndex h3,
+    main .theIndex h4,
+    main .theIndex h5,
+    main .theIndex h6 {
+      margin-top: 0;
+    }
+
+    main .theIndex ol {
+      list-style-type: none;
+    }
+
+    main .theIndex .division > ol {
+      padding-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      overflow-wrap: break-word;
+    }
+
+   main .theIndex .division > ol > li {
+      margin-bottom: 0.5rem;
+    }
+
+    main .theIndex .division ol ol {
+      padding-left: 1rem;
+    }
+
+    main .theIndex .division {
+      break-inside: avoid;
+      counter-reset: none;
+      max-width: none;
+      width: auto;
+    }
+    </style><style>
+  .error-explanation-metadata {
+    margin-bottom: 2rem; /* Double the paragraph margin */
+  }
+
+  .error-explanation-metadatum:not(:last-child):after {
+    content: '|';
+    margin: 0 10px;
+  }
+  .error-explanation-removed-warning {
+    border: 1px solid var(--verso-warning-color);
+    border-radius: 0.5rem;
+    padding-left: var(--verso--box-padding);
+    padding-right: var(--verso--box-padding);
+  }
+  </style><style>
 .hl.lean.tactic-view {
   white-space: collapse;
 }
@@ -78,89 +228,6 @@ span.TODO {
 }
 
 
-</style><style>
-.namedocs .title {
-  font-family: var(--verso-structure-font-family);
-  font-size: 1.1rem;
-  margin-top: 0;
-  margin-left: 1rem;
-  margin-right: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-</style><style>
-.marginalia .note {
-  position: relative;
-  padding: 0.5rem;
-}
-
-/* Wide viewport */
-@media screen and (min-width: 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    margin-right: -16rem;
-    width: 13rem;
-    margin-top: 1rem;
-  }
-}
-
-/* Very wide viewport */
-@media screen and (min-width: 1600px) {
-  .marginalia .note {
-    margin-right: -19vw;
-    width: 15vw;
-  }
-}
-
-.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
-  background-color: var(--lean-accent-light-blue);
-}
-
-/* Medium viewport */
-@media screen and (700px < width <= 1400px) {
-  .marginalia .note {
-    float: right;
-    clear: right;
-    width: 40%;
-    margin: 1rem 0;
-    margin-left: 10%;
-  }
-}
-
-/* Narrow viewport (e.g. phone) */
-@media screen and (width <= 700px) {
-  .marginalia .note {
-    float: left;
-    clear: left;
-    width: 90%;
-    margin: 1rem 5%;
-  }
-}
-
-body {
-  counter-reset: margin-note-counter;
-}
-.marginalia .note {
-  counter-increment: margin-note-counter;
-}
-.marginalia .note::before {
-  content: counter(margin-note-counter) ".";
-  position: absolute;
-  vertical-align: baseline;
-  font-size: 0.9em;
-  font-weight: bold;
-  left: -3rem;
-  width: 3rem;
-  text-align: right;
-}
-.marginalia::after {
-  content: counter(margin-note-counter);
-  vertical-align: super;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-right: 0.5em;
-}
 </style><style>
 .namedocs {
   position: relative;
@@ -913,16 +980,252 @@ body {
 .namedocs:has(input[data-parent-idx="49"]:checked):has(.inheritance[data-inherited-from="49"]:hover) [data-inherited-from]:not([data-inherited-from="49"]) {
   opacity: 0.5;
 }
+</style><style>.keyword-of .kw {
+  font-weight: 500;
+}
+.keyword-of .hover-info {
+  display: none;
+}
+.keyword-of .kw:hover {
+  background-color: #eee;
+  border-radius: 2px;
+}
+</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>.example {
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  margin-top: var(--verso--box-vertical-margin);
+}
+/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
+@media screen and (700px < width <= 1400px) {
+  .example {
+    clear: both; /* Don't overlap margin notes with examples */
+  }
+}
+.example .description::before {
+  content: "Example: ";
+}
+.example .description {
+  font-style: italic;
+  font-family: var(--verso-structure-font-family);
+  padding: var(--verso--box-padding);
+}
+.example[open] .description {
+  margin-bottom: 0;
+}
+.example-content {
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+  position: relative;
+}
+.example-content > :first-child {
+  margin-top: 0;
+}
+.example-content p:last-child {
+  margin-bottom:0;
+}
+.example .hl.lean.block {
+  overflow-x: auto;
+}
+.live-link {
+  font-family: var(--verso-structure-font-family);
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  padding: 0.5rem;
+  border-top: 1px solid #98B2C0;
+  border-left: 1px solid #98B2C0;
+  border-top-left-radius: 0.5rem;
+  display: none; /* default to not showing */
+}
+.live-link a {
+  text-decoration: none;
+  color: var(--lean-blue);
+}
 </style><style>
-.field-category > :first-child {
+.toml {
+  font-family: var(--verso-code-font-family);
 }
 
-.field-category > :not(:first-child) {
-  margin-left: 1rem;
+pre.toml {
+  margin: 0.5rem .75rem;
+  padding: 0.1rem 0;
+}
+
+.toml .bool, .toml .table-header {
+    font-weight: 600;
+}
+
+.toml .table-header .key {
+    color: #3030c0;
+}
+
+.toml .bool {
+    color: #107090;
+}
+
+.toml .string {
+    color: #0a5020;
+}
+
+.toml a, .toml a:link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted #a2a2a2;
+}
+
+.toml a:hover {
+    border-bottom-style: solid;
+}
+</style><style>.grammar .keyword {
+  font-weight: 500 !important;
+}
+
+.grammar {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.grammar .comment {
+  font-style: italic;
+  font-family: var(--verso-text-font-family);
+  /* TODO add background and text colors to Verso theme, then compute a background here */
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+}
+
+.grammar .local-name {
+  font-family: var(--verso-code-font-family);
+  font-style: italic;
+}
+
+.grammar .nonterminal {
+  font-style: italic;
+}
+.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
+  display: none;
+}
+.grammar .active {
+  background-color: #eee;
+  border-radius: 2px;
+}
+.grammar a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
 }
 </style><style>
-dl.toml-table-field-spec {
+span.TODO {
+  border: 3px solid red;
+  display: inline;
+  position: relative;
+  float: right;
+  clear: right;
+  margin-top: 1rem;
+  width: 15vw;
+  margin-right: -17vw;
+  color: red;
+  font-size: large;
+  font-weight: bold;
 }
+</style><style>
+.marginalia .note {
+  position: relative;
+  padding: 0.5rem;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+    margin-top: 1rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .marginalia .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+.marginalia:hover, .marginalia:hover .note, .marginalia:has(.note:hover) {
+  background-color: var(--lean-accent-light-blue);
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .marginalia .note {
+    float: right;
+    clear: right;
+    width: 40%;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .marginalia .note {
+    float: left;
+    clear: left;
+    width: 90%;
+    margin: 1rem 5%;
+  }
+}
+
+body {
+  counter-reset: margin-note-counter;
+}
+.marginalia .note {
+  counter-increment: margin-note-counter;
+}
+.marginalia .note::before {
+  content: counter(margin-note-counter) ".";
+  position: absolute;
+  vertical-align: baseline;
+  font-size: 0.9em;
+  font-weight: bold;
+  left: -3rem;
+  width: 3rem;
+  text-align: right;
+}
+.marginalia::after {
+  content: counter(margin-note-counter);
+  vertical-align: super;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-right: 0.5em;
+}
+</style><style>
+.namedocs .title {
+  font-family: var(--verso-structure-font-family);
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-left: 1rem;
+  margin-right: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: inline-block;
+}
+</style><style>
+.lake-opt a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.lake-opt a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>
+.env-var a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.env-var a:hover {
+  text-decoration: currentcolor underline solid;
+}
+
 </style><style>
 .example-file {
   white-space: normal;
@@ -986,72 +1289,30 @@ dl.toml-table-field-spec {
   font-family: var(--verso-code-font-family);
   text-align: right;
 }
-</style><style>.keyword-of .kw {
-  font-weight: 500;
-}
-.keyword-of .hover-info {
-  display: none;
-}
-.keyword-of .kw:hover {
-  background-color: #eee;
-  border-radius: 2px;
-}
-</style><style>.grammar .keyword {
-  font-weight: 500 !important;
-}
-
-.grammar {
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.grammar .comment {
-  font-style: italic;
-  font-family: var(--verso-text-font-family);
-  /* TODO add background and text colors to Verso theme, then compute a background here */
-  background-color: #fafafa;
-  border: 1px solid #f0f0f0;
-}
-
-.grammar .local-name {
-  font-family: var(--verso-code-font-family);
-  font-style: italic;
-}
-
-.grammar .nonterminal {
-  font-style: italic;
-}
-.grammar .nonterminal > .hover-info, .grammar .from-nonterminal > .hover-info, .grammar .local-name > .hover-info {
-  display: none;
-}
-.grammar .active {
-  background-color: #eee;
-  border-radius: 2px;
-}
-.grammar a {
+</style><style>
+a.lake-command {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-</style><style>
-.c .type { font-weight: 600; }
-.c .kw { font-weight: 600; }
-.c .comment { font-style: italic; }
-</style><style>.namedocs .label a { color: inherit; }</style><style>#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }</style><style>
-  .error-explanation-metadata {
-    margin-bottom: 2rem; /* Double the paragraph margin */
-  }
+a.lake-command:hover {
+  text-decoration: currentcolor underline solid;
+}
 
-  .error-explanation-metadatum:not(:last-child):after {
-    content: '|';
-    margin: 0 10px;
-  }
-  .error-explanation-removed-warning {
-    border: 1px solid var(--verso-warning-color);
-    border-radius: 0.5rem;
-    padding-left: var(--verso--box-padding);
-    padding-right: var(--verso--box-padding);
-  }
-  </style><style>
+</style><style>.namedocs .label a { color: inherit; }</style><style>
+dl.toml-table-field-spec {
+}
+</style><style>
+.toml-field a {
+  color: inherit;
+  text-decoration: currentcolor underline dotted;
+}
+.toml-field a:hover {
+  text-decoration: currentcolor underline solid;
+}
+</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>.plain-keyword {
+  font-weight: 500;
+}
+</style><style>
 table.tabular {
   margin: auto;
   border-spacing: 1rem;
@@ -1078,219 +1339,57 @@ table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
 </style><style>
-.lake-opt a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
+.syntax-error {
+  white-space: normal;
 }
-.lake-opt a:hover {
-  text-decoration: currentcolor underline solid;
+.syntax-error::before {
+  counter-reset: linenumber;
 }
-</style><style>.example {
-  border: 1px solid #98B2C0;
-  border-radius: 0.5rem;
-  margin-bottom: var(--verso--box-vertical-margin);
-  margin-top: var(--verso--box-vertical-margin);
-}
-/* 1400 px is the cutoff for when the margin notes move out of the margin and into floated elements. */
-@media screen and (700px < width <= 1400px) {
-  .example {
-    clear: both; /* Don't overlap margin notes with examples */
-  }
-}
-.example .description::before {
-  content: "Example: ";
-}
-.example .description {
-  font-style: italic;
-  font-family: var(--verso-structure-font-family);
-  padding: var(--verso--box-padding);
-}
-.example[open] .description {
-  margin-bottom: 0;
-}
-.example-content {
-  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
-  position: relative;
-}
-.example-content > :first-child {
-  margin-top: 0;
-}
-.example-content p:last-child {
-  margin-bottom:0;
-}
-.example .hl.lean.block {
-  overflow-x: auto;
-}
-.live-link {
-  font-family: var(--verso-structure-font-family);
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
-  padding: 0.5rem;
-  border-top: 1px solid #98B2C0;
-  border-left: 1px solid #98B2C0;
-  border-top-left-radius: 0.5rem;
-  display: none; /* default to not showing */
-}
-.live-link a {
-  text-decoration: none;
-  color: var(--lean-blue);
-}
-</style><style>
-div.TODO {
-  border: 5px solid red;
-  position: relative;
-}
-div.TODO::before {
-  content: "TODO";
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
-  font-size: large;
-  font-weight: bold;
-  transform: rotate(-90deg) translate(-2em);
-}
-</style><style>
-.toml {
+.syntax-error > .line {
+  display: block;
+  white-space: pre;
+  counter-increment: linenumber;
   font-family: var(--verso-code-font-family);
 }
-
-pre.toml {
-  margin: 0.5rem .75rem;
-  padding: 0.1rem 0;
+.syntax-error > .line::before {
+  -webkit-user-select: none;
+  display: inline-block;
+  content: counter(linenumber);
+  border-right: 1px solid #ddd;
+  width: 2em;
+  padding-right: 0.25em;
+  margin-right: 0.25em;
+  font-family: var(--verso-code-font-family);
+  text-align: right;
 }
 
-.toml .bool, .toml .table-header {
-    font-weight: 600;
+:is(.syntax-error > .line):has(.parse-message)::before {
+  color: red;
+  font-weight: bold;
 }
 
-.toml .table-header .key {
-    color: #3030c0;
+.syntax-error .parse-message > code.hover-info {
+  display:none;
 }
 
-.toml .bool {
-    color: #107090;
-}
-
-.toml .string {
-    color: #0a5020;
-}
-
-.toml a, .toml a:link {
-    color: inherit;
-    text-decoration: none;
-    border-bottom: 1px dotted #a2a2a2;
-}
-
-.toml a:hover {
-    border-bottom-style: solid;
+.syntax-error .parse-message {
+  white-space: pre;
+  text-decoration-skip-ink: none;
+  color: red;
+  font-weight: 600;
 }
 </style><style>
-    main .theIndex {
-      padding-left: 0;
-      font-family: var(--verso-text-font-family);
-    }
-
-    main .theIndex nav {
-      position: sticky;
-      top: var(--verso-header-height);
-      background: white;
-      font-family: var(--verso-structure-font-family);
-    }
-
-    main .theIndex [id] {
-      /* This needs the combined height of the index header and the page header. We
-         know the height of the page header, but the index header height varies, so
-         we use the maximum height it gets which also works well for readers with
-         wide screens */
-      scroll-margin-top: calc(var(--verso-header-height) + 7.5rem);
-    }
-
-    @media screen and (max-width: 700px) {
-      /* On mobile, the sticky index takes up half the screen. */
-      main .theIndex nav {
-        position: static;
-      }
-
-      main .theIndex [id] {
-        /* On mobile, the index header is not sticky, so we just need to
-        be below the page header. */
-        scroll-margin-top: var(--verso-header-height);
-      }
-    }
-
-    main .theIndex nav ol {
-      padding: 0;
-    }
-
-    main .theIndex nav ol li {
-      display: inline-block;
-    }
-
-    main .theIndex nav ol li a {
-      /* Padding instead of margin to have a bigger click target */
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-    }
-    /* Increase the size of the touch target on phones */
-    @media screen and (max-width: 700px) {
-      main .theIndex nav ol li a {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-      }
-    }
-
-    main .theIndex nav ol li:first-child a {
-      padding-left: 0;
-    }
-
-    main .theIndex nav ol li + li:before {
-      content: "|";
-    }
-
-    main .theIndex h1,
-    main .theIndex h2,
-    main .theIndex h3,
-    main .theIndex h4,
-    main .theIndex h5,
-    main .theIndex h6 {
-      margin-top: 0;
-    }
-
-    main .theIndex ol {
-      list-style-type: none;
-    }
-
-    main .theIndex .division > ol {
-      padding-left: 0;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      overflow-wrap: break-word;
-    }
-
-   main .theIndex .division > ol > li {
-      margin-bottom: 0.5rem;
-    }
-
-    main .theIndex .division ol ol {
-      padding-left: 1rem;
-    }
-
-    main .theIndex .division {
-      break-inside: avoid;
-      counter-reset: none;
-      max-width: none;
-      width: auto;
-    }
-    </style><style>
-.toml-field a {
+a.technical-term {
   color: inherit;
   text-decoration: currentcolor underline dotted;
 }
-.toml-field a:hover {
+a.technical-term:hover {
   text-decoration: currentcolor underline solid;
+}
+/* Highlight the clicked term */
+.def-technical-term:target {
+  background-color: var(--verso-selected-color);
+  outline: auto;
 }
 </style><style>
 
@@ -1954,306 +2053,11 @@ Some CSS frameworks customize details/summary in ways not compatible with Verso'
   white-space: pre-wrap;
 }
 
-</style><style>.error-explanation-short-name { hyphenate-character: ''; }</style><style>
-.env-var a {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-.env-var a:hover {
-  text-decoration: currentcolor underline solid;
-}
-
-</style><style>.plain-keyword {
-  font-weight: 500;
-}
 </style><style>
-a.technical-term {
-  color: inherit;
-  text-decoration: currentcolor underline dotted;
-}
-a.technical-term:hover {
-  text-decoration: currentcolor underline solid;
-}
-/* Highlight the clicked term */
-.def-technical-term:target {
-  background-color: var(--verso-selected-color);
-  outline: auto;
-}
-</style><style>
-.error-example-container:not(:last-child) {
-  border-bottom: 1px solid gray;
-  padding-bottom: var(--verso--box-padding);
-}
-.error-example-tab-list [role="tab"] {
-  position: relative;
-  z-index: 1;
-  background: white;
-  border: 0;
-  padding: 0.2em;
-  cursor: pointer;
-}
-.error-example-tab-list [role="tab"]:not(:last-child) {
-  margin-right: 1rem;
-}
-.error-example-tab-list [role="tab"][aria-selected="true"] {
-  border-bottom: 1px solid gray;
-}
-/* this rule and the following ensure that all tabs are the same height */
-.error-example-tab-view {
-  display: flex;
-}
-.error-example-tabpanel {
-  margin-right: -100%;
-  width: 100%;
-  display: block;
-}
-.error-example-tabpanel.error-example-tabpanel-hidden {
-  visibility: hidden;
-}
-.error-example-tabpanel .hl.lean .token {
-  /* unset transition to avoid lag when switching panels */
-  transition: visibility 0s;
-}
-  </style><style>
-.syntax-error {
-  white-space: normal;
-}
-.syntax-error::before {
-  counter-reset: linenumber;
-}
-.syntax-error > .line {
-  display: block;
-  white-space: pre;
-  counter-increment: linenumber;
-  font-family: var(--verso-code-font-family);
-}
-.syntax-error > .line::before {
-  -webkit-user-select: none;
-  display: inline-block;
-  content: counter(linenumber);
-  border-right: 1px solid #ddd;
-  width: 2em;
-  padding-right: 0.25em;
-  margin-right: 0.25em;
-  font-family: var(--verso-code-font-family);
-  text-align: right;
-}
-
-:is(.syntax-error > .line):has(.parse-message)::before {
-  color: red;
-  font-weight: bold;
-}
-
-.syntax-error .parse-message > code.hover-info {
-  display:none;
-}
-
-.syntax-error .parse-message {
-  white-space: pre;
-  text-decoration-skip-ink: none;
-  color: red;
-  font-weight: 600;
-}
+.c .type { font-weight: 600; }
+.c .kw { font-weight: 600; }
+.c .comment { font-style: italic; }
 </style><script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  tippy('.keyword-of.hl.lean', {
-    allowHtml: true,
-    /* DEBUG -- remove the space: * /
-    onHide(any) { return false; },
-    trigger: "click",
-    // */
-    maxWidth: "none",
-
-    theme: "lean",
-    placement: 'bottom-start',
-    content (tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  });
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
       
 window.onload = () => {
 
@@ -2448,6 +2252,205 @@ window.onload = () => {
   });
 }
 </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
+    <script>
+      
+window.addEventListener("load", () => {
+  tippy('.keyword-of.hl.lean', {
+    allowHtml: true,
+    /* DEBUG -- remove the space: * /
+    onHide(any) { return false; },
+    trigger: "click",
+    // */
+    maxWidth: "none",
+
+    theme: "lean",
+    placement: 'bottom-start',
+    content (tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  });
+});
+</script>
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
     <script src="static/metadata.js"></script>
     <script src="static/print.js"></script>
@@ -2479,14 +2482,14 @@ window.onload = () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="The-Module-System/#module-system">The Module System</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="current numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-basic-types" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-basic-types" checked="checked"></label><span class="number">20.</span> <span class=""><a href="Basic-Types/#basic-types">Basic Types</a></span></div>
-              <table><tr class="numbered"><td class="num">20.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">20.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">20.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">20.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">20.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">20.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">20.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">20.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">20.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">20.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">20.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">20.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">20.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">20.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">20.17.</td><td><a href="Basic-Types/Byte-Arrays/#ByteArray">Byte Arrays</a></td></tr><tr class="numbered"><td class="num">20.18.</td><td><a href="Basic-Types/Maps-and-Sets/#maps">Maps and Sets</a></td></tr><tr class="current numbered"><td class="num">20.19.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">20.20.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">20.1.</td><td><a href="Basic-Types/Natural-Numbers/#Nat">Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.2.</td><td><a href="Basic-Types/Integers/#Int">Integers</a></td></tr><tr class="numbered"><td class="num">20.3.</td><td><a href="Basic-Types/Finite-Natural-Numbers/#Fin">Finite Natural Numbers</a></td></tr><tr class="numbered"><td class="num">20.4.</td><td><a href="Basic-Types/Fixed-Precision-Integers/#fixed-ints">Fixed-Precision Integers</a></td></tr><tr class="numbered"><td class="num">20.5.</td><td><a href="Basic-Types/Bitvectors/#BitVec">Bitvectors</a></td></tr><tr class="numbered"><td class="num">20.6.</td><td><a href="Basic-Types/Floating-Point-Numbers/#Float">Floating-Point Numbers</a></td></tr><tr class="numbered"><td class="num">20.7.</td><td><a href="Basic-Types/Characters/#Char">Characters</a></td></tr><tr class="numbered"><td class="num">20.8.</td><td><a href="Basic-Types/Strings/#String">Strings</a></td></tr><tr class="numbered"><td class="num">20.9.</td><td><a href="Basic-Types/The-Unit-Type/#The-Lean-Language-Reference--Basic-Types--The-Unit-Type">The Unit Type</a></td></tr><tr class="numbered"><td class="num">20.10.</td><td><a href="Basic-Types/The-Empty-Type/#empty">The Empty Type</a></td></tr><tr class="numbered"><td class="num">20.11.</td><td><a href="Basic-Types/Booleans/#The-Lean-Language-Reference--Basic-Types--Booleans">Booleans</a></td></tr><tr class="numbered"><td class="num">20.12.</td><td><a href="Basic-Types/Optional-Values/#option">Optional Values</a></td></tr><tr class="numbered"><td class="num">20.13.</td><td><a href="Basic-Types/Tuples/#tuples">Tuples</a></td></tr><tr class="numbered"><td class="num">20.14.</td><td><a href="Basic-Types/Sum-Types/#sum-types">Sum Types</a></td></tr><tr class="numbered"><td class="num">20.15.</td><td><a href="Basic-Types/Linked-Lists/#List">Linked Lists</a></td></tr><tr class="numbered"><td class="num">20.16.</td><td><a href="Basic-Types/Arrays/#Array">Arrays</a></td></tr><tr class="numbered"><td class="num">20.17.</td><td><a href="Basic-Types/Byte-Arrays/#ByteArray">Byte Arrays</a></td></tr><tr class="numbered"><td class="num">20.18.</td><td><a href="Basic-Types/Ranges/#ranges">Ranges</a></td></tr><tr class="numbered"><td class="num">20.19.</td><td><a href="Basic-Types/Maps-and-Sets/#maps">Maps and Sets</a></td></tr><tr class="current numbered"><td class="num">20.20.</td><td><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></td></tr><tr class="numbered"><td class="num">20.21.</td><td><a href="Basic-Types/Lazy-Computations/#Thunk">Lazy Computations</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
-                <label for="--verso-manual-toc-Subtype" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Subtype" checked="checked"></label><span class="number">20.19.</span> <span class="current"><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></span></div>
+                <label for="--verso-manual-toc-Subtype" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-Subtype" checked="checked"></label><span class="number">20.20.</span> <span class="current"><a href="Basic-Types/Subtypes/#Subtype">Subtypes</a></span></div>
               <ol>
                 <li>
                   <a href="Basic-Types/Subtypes/#Subtype___mk"><code>Subtype</code></a></li>
@@ -2509,31 +2512,31 @@ window.onload = () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Maps-and-Sets/#maps" rel="prev" title="20.18. Maps and Sets"><span class="arrow">←</span><span class="where">20.18. Maps and Sets</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="20.20. Lazy Computations"><span class="where">20.20. Lazy Computations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Maps-and-Sets/#maps" rel="prev" title="20.19. Maps and Sets"><span class="arrow">←</span><span class="where">20.19. Maps and Sets</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="20.21. Lazy Computations"><span class="where">20.21. Lazy Computations</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              20.19. Subtypes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=Subtype" title="Permalink">🔗</a></span></h1>
+              20.20. Subtypes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=Subtype" title="Permalink">🔗</a></span></h1>
             <p>
-              The structure <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a></code> represents the elements of a type that satisfy some predicate.
+              The structure <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a></code> represents the elements of a type that satisfy some predicate.
 They are used pervasively both in mathematics and in programming; in mathematics, they are used similarly to subsets, while in programming, they allow information that is known about a value to be represented in a way that is visible to Lean's logic.</p>
             <p>
-              Syntactically, an element of a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a></code> resembles a tuple of the base type's element and the proof that it satisfies the proposition.
-They differ from dependent pair types (<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4274">Sigma</span></a></code>) in that the second element is a proof of a proposition rather than data, and from existential quantification in that the entire <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a></code> is a type rather than a proposition.
-Even though they are pairs syntactically, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a></code> should really be thought of as elements of the base type with associated proof obligations.</p>
+              Syntactically, an element of a <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a></code> resembles a tuple of the base type's element and the proof that it satisfies the proposition.
+They differ from dependent pair types (<code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Tuples/#Sigma___mk" title="Documentation for Sigma"><span class="const token" data-binding="const-Sigma" data-verso-hover="4499">Sigma</span></a></code>) in that the second element is a proof of a proposition rather than data, and from existential quantification in that the entire <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a></code> is a type rather than a proposition.
+Even though they are pairs syntactically, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a></code> should really be thought of as elements of the base type with associated proof obligations.</p>
             <p>
               Subtypes are <a href="The-Type-System/Inductive-Types/#inductive-types-trivial-wrappers">trivial wrappers</a>.
 They are thus represented identically to the base type in compiled code.</p>
             <div class="namedocs" id="Subtype___mk">
-              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Subtype.val" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Subtype.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1005" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max 1 u)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Subtype.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1005" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
-  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="302">Sort (max 1 u)</span></div></pre><div class="text">
+              <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Subtype.val" title="Permalink">🔗</a></span><span class="label">structure</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Subtype.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1005" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort (max 1 u)</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Subtype.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1005" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1003" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-14430969920833713138" data-verso-hover="26">Prop</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text">
+  </span><span class="sort token" data-binding="sort-112978979043057490" data-verso-hover="305">Sort (max 1 u)</span></div></pre><div class="text">
                 <p>
                   All the elements of a type that satisfy a predicate.</p>
                 <p>
-                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="612">p</span></code>, usually written <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code>, contains all elements <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.40" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="301">α</span></code> for
-which <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40" data-verso-hover="48">x</span></code> is true. Its constructor is a pair of the value and the proof that it satisfies the
-predicate. In run-time code, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.62" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.62" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is represented identically to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="301">α</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="628">p</span></code>, usually written <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.49" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> or <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.56" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code>, contains all elements <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.40" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="304">α</span></code> for
+which <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.19" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.40" data-verso-hover="48">x</span></code> is true. Its constructor is a pair of the value and the proof that it satisfies the
+predicate. In run-time code, <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.62" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.18" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.19" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.62" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is represented identically to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.18" data-verso-hover="304">α</span></code>.</p>
                 <p>
-                  There is a coercion from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.69" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.64" data-verso-hover="301">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.65" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.69" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.64" data-verso-hover="301">α</span></code>, so elements of a subtype may be used where the
+                  There is a coercion from <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.69" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.64" data-verso-hover="304">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.65" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.69" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> to <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.64" data-verso-hover="304">α</span></code>, so elements of a subtype may be used where the
 underlying type is expected.</p>
                 <p>
                   Examples:</p>
@@ -2544,7 +2547,7 @@ underlying type is expected.</p>
                     </li>
                   <li>
                     <p>
-                      <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.389" data-verso-hover="2948">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="291">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.389" data-verso-hover="2948">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="293">size</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is the type of arrays with five <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code>s.</p>
+                      <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.389" data-verso-hover="3024">xs</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Arrays/#Array___mk" title="Documentation for Array"><span class="const token" data-binding="const-Array" data-verso-hover="294">Array</span></a><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.389" data-verso-hover="3024">xs</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Arrays/#Array___size" title="Documentation for Array.size"><span class="const token" data-binding="const-Array.size" data-verso-hover="296">size</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">5</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is the type of arrays with five <code class="hl lean inline" data-lean-context="docstring-examples"><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a></code>s.</p>
                     </li>
                   <li>
                     <p>
@@ -2557,31 +2560,31 @@ contained in <code class="hl lean inline" data-lean-context="docstring-examples"
                 <ul>
                   <li>
                     <p>
-                      The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.980" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.975" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.980" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">subtype</span></code>.</p>
+                      The recommended spelling of <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.980" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.975" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.980" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> in identifiers is <code class="hl lean inline" data-lean-context="docstring-examples"><span class="unknown token" data-binding="">subtype</span></code>.</p>
                     </li>
                   </ul>
                 <h1>
                   Constructor</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.mk"><span class="const token" data-binding="const-Subtype.mk" data-verso-hover="611">Subtype.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
+                  <pre class="name-and-type hl lean"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.mk"><span class="const token" data-binding="const-Subtype.mk" data-verso-hover="627">Subtype.mk</span></a><span class="unknown token" data-binding="">.{u}</span></pre><div class="docs"></div>
                   </section>
                 <h1>
                   Fields</h1>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="5854">val</span> : <span class="var token" data-binding="var-_uniq.995" data-verso-hover="301">α</span></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="6860">val</span> : <span class="var token" data-binding="var-_uniq.995" data-verso-hover="304">α</span></pre><div class="docs">
                     <p>
                       The value in the underlying type that satisfies the predicate.</p>
                     </div>
                   </section>
                 <section class="subdocs">
-                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="5855">property</span> : <span class="var token" data-binding="var-_uniq.996" data-verso-hover="612">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.997" data-verso-hover="5856">self</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="614">val</span></a></pre><div class="docs">
+                  <pre class="name-and-type hl lean"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="6861">property</span> : <span class="var token" data-binding="var-_uniq.996" data-verso-hover="628">p</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.997" data-verso-hover="6862">self</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="630">val</span></a></pre><div class="docs">
                     <p>
-                      The proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1016" data-verso-hover="48">val</span></code> satisfies the predicate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1015" data-verso-hover="612">p</span></code>.</p>
+                      The proof that <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1016" data-verso-hover="48">val</span></code> satisfies the predicate <code class="hl lean inline" data-lean-context="docstring-examples"><span class="var token" data-binding="var-_uniq.1015" data-verso-hover="628">p</span></code>.</p>
                     </div>
                   </section>
                 </div>
               </div>
-            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
+            <div class="namedocs" id="term-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next-next">
               <span class="label">syntax</span><span class="title">Subtypes</span><div class="text">
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_term___________________FLQQ_"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
     <span class="bnf">|</span> <span class="from-nonterminal documented" data-kind="«term{_:_//_}»"><code class="hover-info"><code class="docstring">All the elements of a type that satisfy a predicate.
@@ -2603,7 +2606,7 @@ Examples:
 Conventions for notations in identifiers:
 
  * The recommended spelling of `{ x // p x }` in identifiers is `subtype`.</code></code><span class="keyword">{</span> <span class="nonterminal" data-kind="ident">ident</span> <span class="from-nonterminal" data-kind="null"><span class="keyword">:</span> <span class="nonterminal" data-kind="term.pseudo">term</span> </span><span class="keyword">//</span> <span class="nonterminal" data-kind="term.pseudo">term</span> <span class="keyword">}</span></span></pre><p>
-                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1026" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1020" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1022" data-verso-hover="338">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1696">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1036" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1030" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1032" data-verso-hover="338">p</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1026" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1020" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1022" data-verso-hover="341">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1696">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1036" data-verso-hover="48">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1030" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1032" data-verso-hover="341">p</span></code>.</p>
                 <p>
                   The type ascription may be omitted:</p>
                 <pre class="grammar hl lean" data-lean-context="--grammar" id="_FLQQ_term___________________FLQQ_-next"><span class="nonterminal" data-kind="term">term</span> <span class="bnf">::=</span> ...
@@ -2626,51 +2629,61 @@ Examples:
 Conventions for notations in identifiers:
 
  * The recommended spelling of `{ x // p x }` in identifiers is `subtype`.</code></code><span class="keyword">{</span> <span class="nonterminal" data-kind="ident">ident</span> <span class="from-nonterminal" data-kind="null"></span><span class="keyword">//</span> <span class="nonterminal" data-kind="term.pseudo">term</span> <span class="keyword">}</span></span></pre><p>
-                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1047" data-verso-hover="2037">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1042" data-verso-hover="338">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="610">Subtype</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1846">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1057" data-verso-hover="799">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1052" data-verso-hover="338">p</span></code>.</p>
+                  <code class="hl lean inline" data-lean-context="examples"><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1047" data-verso-hover="2117">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1042" data-verso-hover="341">p</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span></code> is a notation for <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype"><span class="const token" data-binding="const-Subtype" data-verso-hover="626">Subtype</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-1846">fun</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.1057" data-verso-hover="815">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.1052" data-verso-hover="341">p</span></code>.</p>
                 </div>
               </div>
             <p>
               Due to <a class="technical-term" href="The-Type-System/#--tech-term-proof-irrelevance">proof irrelevance</a> and <a class="technical-term" href="The-Type-System/#--tech-term-___-equivalence">η-equality</a>, two elements of a subtype are definitionally equal when the elements of the base type are definitionally equal.
-In a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="300">ext</span></a></code> tactic can be used to transform a goal of equality of elements of a subtype into equality of their values.</p>
+In a proof, the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="303">ext</span></a></code> tactic can be used to transform a goal of equality of elements of a subtype into equality of their values.</p>
             <details class="example"><summary class="description">Definitional Equality of Subtypes</summary><div class="example-content">
                 <p>
-                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a></code> are definitionally equal despite the fact that their embedded proof terms are different.
+                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a></code> are definitionally equal despite the fact that their embedded proof terms are different.
 No case splitting is needed in order to prove that they are equal.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2470">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859" id="NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">NonEmptyString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="150">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="150">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="202">""</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2470">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865" id="NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">NonEmptyString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="154">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="154">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="205">""</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2520">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1" data-verso-hover="5857" id="s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859">NonEmptyString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟨</span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="5861">ne_of_beq_false</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2520">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1" data-verso-hover="6863" id="s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865">NonEmptyString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟨</span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="6867">ne_of_beq_false</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="291">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟩</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2585">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s2" data-verso-hover="5858" id="s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859">NonEmptyString</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-2609">where</span><span class="inter-text">
-  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="5862">val</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="inter-text">
-  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.property"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="5863">property</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2650">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3090" data-verso-hover="5864">h</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
-      </span><span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="5865">List.cons_ne_nil</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="5866">String.data_eq_of_eq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3090" data-verso-hover="5864">h</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-2585">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s2" data-verso-hover="6864" id="s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865">NonEmptyString</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-2609">where</span><span class="inter-text">
+  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="6868">val</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="inter-text">
+  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.property"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="6869">property</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-2650">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3088" data-verso-hover="6870">h</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
+      </span><span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="6871">List.cons_ne_nil</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="6872">String.data_eq_of_eq</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.toList_inj" data-verso-hover="6873">String.toList_inj</span><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
+</span><span class="text">
+</span><span class="text">Note: </span><span class="text">The updated constant has a different type:</span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">},</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="342">↔</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span></span><span class="text"></span><span class="text">
+</span><span class="text">instead of</span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">},</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span></span></code></span></span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="6872">String.data_eq_of_eq</span></span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3088" data-verso-hover="6870">h</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-2712">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="5867" id="s1_eq_s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s1_eq_s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-18055510242375243294-2742-2744-1965"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2742" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18055510242375243294-2742-2744-1965"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2745-2748-1967"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-2745" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2745-2748-1967"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-2712">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="6874" id="s1_eq_s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_">s1_eq_s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-18055510242375243294-2742-2744-2864"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-2742" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18055510242375243294-2742-2744-2864"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Definitional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-2745-2748-2866"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-2745" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-2745-2748-2866"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;CYUwZgBAcg9gdgUQLYAcAuBPAymgTgSzgHMIAuAXggG8IAPMiHA4iAelbokAMiCAIl4gBfAFDDQkAM4BGBrESpMTQiQrCIEQBfkvEAEcArgEMANrwA0EOCAD6MMFYBGuq2GMSQEXGCOBL8lHiIEgBMsvDI6Nh4yhAA7gAWILggahAAbsZklNr6xrzJKLgwKAmYGcnqYHpwELEQ5AB8ZeoQADL4EmgAdADG8BJWlv34RhBWIxAAFErEHcAGaAZWTraLOtUAlKJo8TCJSAFSK1ZBDNK1AcEUEPYYHl5AA&quot;)">Live ↪</a></div>
                 </div>
               </details><details class="example"><summary class="description">Extensional Equality of Subtypes</summary><div class="example-content">
                 <p>
-                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a></code> are definitionally equal.
+                  The non-empty strings <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a></code> are definitionally equal.
 Ignoring that fact, the equality of the embedded strings can be used to prove that they are equal.
-The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="300">ext</span></a></code> tactic transforms a goal that consists of equality of non-empty strings into a goal that consists of equality of the strings.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3131">abbrev</span><span class="inter-text"> </span><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859" id="NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">NonEmptyString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="150">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="150">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="202">""</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="303">ext</span></a></code> tactic transforms a goal that consists of equality of non-empty strings into a goal that consists of equality of the strings.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3131">abbrev</span><span class="inter-text"> </span><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865" id="NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">NonEmptyString</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="154">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="154">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">≠</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="205">""</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3184">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1" data-verso-hover="5857" id="s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859">NonEmptyString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-  </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟨</span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="5861">ne_of_beq_false</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="288">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3184">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1" data-verso-hover="6863" id="s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s1</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865">NonEmptyString</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+  </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟨</span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">,</span><span class="inter-text"> </span><span class="const token" data-binding="const-ne_of_beq_false" data-verso-hover="6867">ne_of_beq_false</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#rfl-next" title="Documentation for rfl"><span class="const token" data-binding="const-rfl" data-verso-hover="291">rfl</span></a><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟩</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3249">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s2" data-verso-hover="5858" id="s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="5859">NonEmptyString</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-3273">where</span><span class="inter-text">
-  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="5862">val</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="inter-text">
-  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.property"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="5863">property</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
-    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3314">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3090" data-verso-hover="5864">h</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
-      </span><span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="5865">List.cons_ne_nil</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="5866">String.data_eq_of_eq</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3090" data-verso-hover="5864">h</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3249">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-s2" data-verso-hover="6864" id="s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#NonEmptyString-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-NonEmptyString" data-verso-hover="6865">NonEmptyString</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.whereStructInst-3273">where</span><span class="inter-text">
+  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="6868">val</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="inter-text">
+  </span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.property"><span class="const token" data-binding="const-Subtype.property" data-verso-hover="6869">property</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text">
+    </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.fun-3314">fun</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3088" data-verso-hover="6870">h</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=&gt;</span><span class="inter-text">
+      </span><span class="const token" data-binding="const-List.cons_ne_nil" data-verso-hover="6871">List.cons_ne_nil</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">_</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="has-info warning"><span class="hover-container"><span class="hover-info messages"><code class="verso-message warning"><span class="text"></span><span class="text">`</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="6872">String.data_eq_of_eq</span><span class="inter-text"></span></span><span class="text">` has been deprecated</span><span class="text">: Use `</span><span class="highlighted"><span class="inter-text"></span><span class="const token" data-binding="const-String.toList_inj" data-verso-hover="6873">String.toList_inj</span><span class="inter-text"></span></span><span class="text">` instead</span><span class="text">
+</span><span class="text">
+</span><span class="text">Note: </span><span class="text">The updated constant has a different type:</span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">},</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="342">↔</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">s₁</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.3" data-verso-hover="154">s₂</span></span><span class="text"></span><span class="text">
+</span><span class="text">instead of</span><span class="text">
+  </span><span class="highlighted"><span class="unknown token" data-binding="">∀</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Strings/#String___ofByteArray" title="Documentation for String"><span class="const token" data-binding="const-String" data-verso-hover="16">String</span></a><span class="unknown token" data-binding="">},</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.2" data-verso-hover="154">a</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_pp_uniq.4" data-verso-hover="154">b</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span></span></code></span></span><span class="const token" data-binding="const-String.data_eq_of_eq" data-verso-hover="6872">String.data_eq_of_eq</span></span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3088" data-verso-hover="6870">h</span><span class="unknown token" data-binding="">)</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3376">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="5867" id="s1_eq_s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s1_eq_s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-18055510242375243294-3406-3408-1968"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3406" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18055510242375243294-3406-3408-1968"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-3558337498193601106-3411-3414-1970"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-3411" data-verso-hover="300">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-3558337498193601106-3411-3414-1970"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1971" checked="checked"><span for="--verso-unique-1971" class="goal-name">a.h.h.a</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="262">Char</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="614">val</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___data" title="Documentation for String.data"><span class="const token" data-binding="const-String.data" data-verso-hover="451">data</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">[</span></a><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="339">↔</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="614">val</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___data" title="Documentation for String.data"><span class="const token" data-binding="const-String.data" data-verso-hover="451">data</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">[</span></a><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span></span></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-1813686423579621059-3417-3436-1972"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-3417" data-verso-hover="924">dsimp</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-3423">only</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="5857">s1</span></a><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="5858">s2</span></a><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-1813686423579621059-3417-3436-1972"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-1973" checked="checked"><span for="--verso-unique-1973" class="goal-name">a.h.h.a</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="262">Char</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___data" title="Documentation for String.data"><span class="const token" data-binding="const-String.data" data-verso-hover="451">data</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">[</span></a><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="339">↔</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="5860">"equal"</span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Strings/#String___data" title="Documentation for String.data"><span class="const token" data-binding="const-String.data" data-verso-hover="451">data</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">[</span></a><span class="var token" data-binding="var-_uniq.3707" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1323">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3729" data-verso-hover="360">a✝</span></span></span></span></span></span></span><span class="inter-text">
-  </span><span class="tactic"><label for="tactic-state-7-3439-3442-1974"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3439" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3439-3442-1974"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.theorem-3376">theorem</span><span class="inter-text"> </span><span class="const token" data-binding="const-s1_eq_s2" data-verso-hover="6874" id="s1_eq_s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_">s1_eq_s2</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-18055510242375243294-3406-3408-2867"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3406" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-18055510242375243294-3406-3408-2867"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-9065044329302176279-3411-3414-2869"><a href="Tactic-Proofs/Tactic-Reference/#ext" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Elab.Tactic.Ext.ext-3411" data-verso-hover="303">ext</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-9065044329302176279-3411-3414-2869"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-2870" checked="checked"><span for="--verso-unique-2870" class="goal-name">a.h.h.a</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="265">Char</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="630">val</span></a><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">[</span></a><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="342">↔</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a><span class="unknown token" data-binding="">.</span><a href="Basic-Types/Subtypes/#Subtype___mk" title="Documentation for Subtype.val"><span class="const token" data-binding="const-Subtype.val" data-verso-hover="630">val</span></a><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">[</span></a><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-2205836400396550468-3417-3436-2871"><a href="Tactic-Proofs/Tactic-Reference/#dsimp" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.dsimp-3417" data-verso-hover="937">dsimp</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-null-3423">only</span><span class="inter-text"> </span><span class="unknown token" data-binding="">[</span><a href="Basic-Types/Subtypes/#s1-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s1" data-verso-hover="6863">s1</span></a><span class="unknown token" data-binding="">,</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#s2-_LPAR_in-Extensional-Equality-of-Subtypes_RPAR_" title="Definition of example"><span class="const token" data-binding="const-s2" data-verso-hover="6864">s2</span></a><span class="unknown token" data-binding="">]</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2205836400396550468-3417-3436-2871"><span class="tactic-state"><span class="goal"><span class="labeled-case" checked="checked"><label class="case-label"><input type="checkbox" id="--verso-unique-2872" checked="checked"><span for="--verso-unique-2872" class="goal-name">a.h.h.a</span></label><span class="hypotheses"><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></span><span class="hypothesis"><span class="name"><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span></span><span class="colon">:</span><span class="type"><span class="inter-text"></span><a href="Basic-Types/Characters/#Char___mk" title="Documentation for Char"><span class="const token" data-binding="const-Char" data-verso-hover="265">Char</span></a><span class="inter-text"></span></span></span></span><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="inter-text"></span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">[</span></a><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span><span class="inter-text"> </span><a href="Basic-Propositions/Logical-Connectives/#Iff___intro" title="Documentation for Iff"><span class="const token" data-binding="const-Iff" data-verso-hover="342">↔</span></a><span class="inter-text"> </span><span class="literal string token" data-binding="" data-verso-hover="6866">"equal"</span><span class="unknown token" data-binding="">.</span><span class="const token" data-binding="const-String.toList" data-verso-hover="144">toList</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">[</span></a><span class="var token" data-binding="var-_uniq.3708" data-verso-hover="9">i✝</span><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">]</span></a><a href="Type-Classes/Basic-Classes/#GetElem______mk" title="Documentation for GetElem?.getElem?"><span class="const token" data-binding="const-GetElem?.getElem?" data-verso-hover="1389">?</span></a><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><a href="Basic-Types/Optional-Values/#Option___none" title="Documentation for Option.some"><span class="const token" data-binding="const-Option.some" data-verso-hover="49">some</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.3730" data-verso-hover="363">a✝</span></span></span></span></span></span></span><span class="inter-text">
+  </span><span class="tactic"><label for="tactic-state-7-3439-3442-2873"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3439" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3439-3442-2873"><span class="tactic-state">All goals completed! 🐙</span></span><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;IYIxCcFMDcAIDkD2A7AogWwA4BcCeBlbcAS2QHNYAuAXlgG9YAPK2Qk82Aek6dkAMiWACJBsAL4AocQBNIAM1gBnAIwskaLHjakKNcbFiAL8kGQAjgFdgAG0EAaWMkgB9RLMchTj2VYWRY4WZaAl+SSMvIKAEyqKBg4BETasADuABaQUHqw0FZUtMbmVoIZmOCImGl4ORn6smbIsMmw1AB8VfqwADLECtgAdADGKAqODsPElrCOE7AAFFrkPVLA2MCOHi6rJvUAlJLYqYhQ6IpKG44RLMqNipE0sCC4GZCM2BlSCsRYsCiWuLAA2so7BEALoZfyWIA&quot;)">Live ↪</a></div>
                 </div>
@@ -2680,19 +2693,19 @@ This allows subtypes to be used in positions where the base type is expected, es
             <details class="example"><summary class="description">Subtype Coercions</summary><div class="example-content">
                 <p>
                   Elements of subtypes can be coerced to their base type.
-Here, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#nine-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nine" data-verso-hover="5868">nine</span></a></code> is coerced from a subtype of <code>Nat</code> that contains multiples of <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="9">3</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>.</p>
-                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3897">abbrev</span><span class="inter-text"> </span><span class="const token" data-binding="const-DivBy3" data-verso-hover="5869" id="DivBy3-_LPAR_in-Subtype-Coercions_RPAR_">DivBy3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">%</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
+Here, <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Subtypes/#nine-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nine" data-verso-hover="6875">nine</span></a></code> is coerced from a subtype of <code>Nat</code> that contains multiples of <code class="hl lean inline" data-lean-context="examples"><span class="typed token" data-binding="" data-verso-hover="9">3</span></code> to <code class="hl lean inline" data-lean-context="examples"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></code>.</p>
+                <code class="hl lean block" data-lean-context="examples"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.abbrev-3897">abbrev</span><span class="inter-text"> </span><span class="const token" data-binding="const-DivBy3" data-verso-hover="6876" id="DivBy3-_LPAR_in-Subtype-Coercions_RPAR_">DivBy3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">//</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.7" data-verso-hover="9">x</span><span class="inter-text"> </span><span class="unknown token" data-binding="">%</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">3</span><span class="inter-text"> </span><span class="unknown token" data-binding="">=</span><span class="inter-text"> </span><span class="typed token" data-binding="" data-verso-hover="9">0</span><span class="inter-text"> </span><span class="unknown token" data-binding="">}</span><span class="inter-text">
 
-</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3940">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-nine" data-verso-hover="5868" id="nine-_LPAR_in-Subtype-Coercions_RPAR_">nine</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#DivBy3-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-DivBy3" data-verso-hover="5869">DivBy3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟨</span><span class="typed token" data-binding="" data-verso-hover="9">9</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">,</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2670456802771018812-3967-3969-1975"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3967" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2670456802771018812-3967-3969-1975"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">9</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HMod___mk" title="Documentation for HMod.hMod"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="1562">%</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-3970-3973-1977"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3970" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3970-3973-1977"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="611">⟩</span><span class="inter-text">
+</span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.definition-3940">def</span><span class="inter-text"> </span><span class="const token" data-binding="const-nine" data-verso-hover="6875" id="nine-_LPAR_in-Subtype-Coercions_RPAR_">nine</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#DivBy3-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-DivBy3" data-verso-hover="6876">DivBy3</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">:=</span><span class="inter-text"> </span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟨</span><span class="typed token" data-binding="" data-verso-hover="9">9</span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">,</span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-2670456802771018812-3967-3969-2874"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Term.byTactic-3967" data-verso-hover="12">by</span></label><input type="checkbox" class="tactic-toggle" id="tactic-state-2670456802771018812-3967-3969-2874"><span class="tactic-state"><span class="goal"><span class="conclusion"><span class="prefix">⊢ </span><span class="type"><span class="inter-text"></span><span class="unknown token" data-binding="">9</span><span class="inter-text"> </span><a href="Type-Classes/Basic-Classes/#HMod___mk" title="Documentation for HMod.hMod"><span class="const token" data-binding="const-HMod.hMod" data-verso-hover="1625">%</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">3</span><span class="inter-text"> </span><a href="Basic-Propositions/Propositional-Equality/#Eq___refl" title="Documentation for Eq"><span class="const token" data-binding="const-Eq" data-verso-hover="20">=</span></a><span class="inter-text"> </span><span class="unknown token" data-binding="">0</span></span></span></span></span></span><span class="inter-text"> </span><span class="tactic"><label for="tactic-state-7-3970-3973-2876"><a href="Tactic-Proofs/Tactic-Reference/#rfl" title="Documentation for tactic"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Tactic.tacticRfl-3970" data-verso-hover="18">rfl</span></a></label><input type="checkbox" class="tactic-toggle" id="tactic-state-7-3970-3973-2876"><span class="tactic-state">All goals completed! 🐙</span></span><span class="unknown token" data-binding="const-Subtype.mk" data-verso-hover="627">⟩</span><span class="inter-text">
 
 </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3978" data-verso-hover="93">set_option</span><span class="inter-text"> </span><a href="Interacting-with-Lean/#eval___type" title="Documentation for option eval.type"><span class="option token" data-binding="option-eval.type" data-verso-hover="75">eval.type</span></a><span class="inter-text"> </span><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.set_option-3978" data-verso-hover="93">true</span><span class="inter-text"> </span><a href="Namespaces-and-Sections/#Lean___Parser___Command___in" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.in-3978">in</span></a><span class="inter-text">
-</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">10</span><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4007" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">Nat.succ</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#nine-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nine" data-verso-hover="5868">nine</span></a><span class="inter-text">
+</span><span class="has-info information"><span class="hover-container"><span class="hover-info messages"><code class="verso-message information"><span class="text"></span><span class="highlighted"><span class="inter-text"></span><span class="unknown token" data-binding="">10</span><span class="inter-text"></span></span><span class="text"> : </span><span class="highlighted"><span class="inter-text"></span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a><span class="inter-text"></span></span></code></span></span><a href="Interacting-with-Lean/#Lean___Parser___Command___eval" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Lean.Parser.Command.eval-4007" data-verso-hover="8">#eval</span></a></span><span class="inter-text"> </span><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat.succ"><span class="const token" data-binding="const-Nat.succ" data-verso-hover="14">Nat.succ</span></a><span class="inter-text"> </span><a href="Basic-Types/Subtypes/#nine-_LPAR_in-Subtype-Coercions_RPAR_" title="Definition of example"><span class="const token" data-binding="const-nine" data-verso-hover="6875">nine</span></a><span class="inter-text">
 </span><span class="unknown token" data-binding=""></span></code><pre class="hl lean lean-output information"><span class="verso-message"><span class="text"></span><span class="text"></span><span class="highlighted"><span class="unknown token" data-binding="">10</span></span><span class="text"> : </span><span class="highlighted"><a href="Basic-Types/Natural-Numbers/#Nat___zero" title="Documentation for Nat"><span class="const token" data-binding="const-Nat" data-verso-hover="17">Nat</span></a></span></span></pre><div class="live-link">
                   <a href="javascript:openLiveLink(&quot;IYIxCcFMDcAIBECW0BCBPAzLAXAXlgN6wAeOsAcsAC6wD0tJsApLFvgAywC+AUDwCaQAZrAB2iUZDJJUmHPkAX5AE4ANLBBpY4IQBtAl+R8AzpCoB9APYAHKonOjYMYDoB0VNJalVwAVykSeAMSOOhTUzobeAMaRYhKQQA&quot;)">Live ↪</a></div>
                 </div>
               </details></section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="Basic-Types/Maps-and-Sets/#maps" rel="prev" title="20.18. Maps and Sets"><span class="arrow">←</span><span class="where">20.18. Maps and Sets</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="20.20. Lazy Computations"><span class="where">20.20. Lazy Computations</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="Basic-Types/Maps-and-Sets/#maps" rel="prev" title="20.19. Maps and Sets"><span class="arrow">←</span><span class="where">20.19. Maps and Sets</span></a><a class="local-button active" href="Basic-Types/Lazy-Computations/#Thunk" rel="next" title="20.21. Lazy Computations"><span class="where">20.21. Lazy Computations</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>
