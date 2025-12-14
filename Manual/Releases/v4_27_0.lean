@@ -501,11 +501,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   all `DTreeMap` and other containers derived from it.
 
 * [#11542](https://github.com/leanprover/lean4/pull/11542) removes `@[grind =]` from `List.countP_eq_length_filter` and
-  `Array.countP_eq_size_filter`, as users
-  [reported](https://leanprover.zulipchat.com/#narrow/channel/270676-lean4/topic/.60countP_eq_length_filter.60.20grind.20attribute/near/561386848)[#lean4
-  > &#96;countP_eq_length_filter&#96; grind attribute @
-  💬](https://leanprover.zulipchat.com/#narrow/channel/270676-lean4/topic/.60countP_eq_length_filter.60.20grind.20attribute/near/561386848)
-  this was problematic.
+  `Array.countP_eq_size_filter`, as users reported this was problematic.
 
 * [#11548](https://github.com/leanprover/lean4/pull/11548) adds `Lean.ToJson` and `Lean.FromJson` instances for
   `String.Slice`.
