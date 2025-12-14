@@ -309,9 +309,13 @@ def map (f : α → β) : (xs : List α) → List β
 
 ```leanOutput noAuto
 Unknown identifier `α`
+
+Note: It is not possible to treat `α` as an implicitly bound variable here because the `autoImplicit` option is set to `false`.
 ```
 ```leanOutput noAuto
 Unknown identifier `β`
+
+Note: It is not possible to treat `β` as an implicitly bound variable here because the `autoImplicit` option is set to `false`.
 ```
 :::
 
@@ -444,6 +448,8 @@ def select (choices : α × α × α) : Asnwer →  α
 ```
 ```leanOutput asnwer2
 Unknown identifier `Asnwer`
+
+Note: It is not possible to treat `Asnwer` as an implicitly bound variable here because it has multiple characters while the `relaxedAutoImplicit` option is set to `false`.
 ```
 :::
 
@@ -471,6 +477,8 @@ def select (choices : α × α × α) : Answer →  α
 ```
 ```leanOutput noauto
 Unknown identifier `α`
+
+Note: It is not possible to treat `α` as an implicitly bound variable here because the `autoImplicit` option is set to `false`.
 ```
 :::
 ::::

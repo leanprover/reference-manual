@@ -207,7 +207,7 @@ def lake : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← LakeCommandOptions.parse.run args
     let spec ←
-      if spec.getString.trim.isEmpty then
+      if spec.getString.trimAscii.isEmpty then
         pure []
       else
         match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with

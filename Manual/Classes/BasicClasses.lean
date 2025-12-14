@@ -247,10 +247,10 @@ The equality of functions from {lean}`Nat` to {lean}`Nat` is not decidable:
 example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 ```
 ```leanOutput NatFunNotDecEq
-failed to synthesize
+failed to synthesize instance of type class
   Decidable (f = g)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.

@@ -136,7 +136,9 @@ This package contains no {tech}[targets], so there is no code to be built.
 name = "example-package"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
   origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
@@ -222,7 +224,9 @@ defaultTargets = ["Sorting"]
 name = "Sorting"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
   origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
@@ -306,7 +310,7 @@ name = "Sorting"
                 srcDir := FilePath.mk ".",
                 roots := #[`Sorting],
                 globs := #[Lake.Glob.one `Sorting],
-                libName := "Sorting",
+                libName := "",
                 libPrefixOnWindows := false,
                 needs := #[],
                 extraDepTargets := #[],
@@ -343,7 +347,7 @@ name = "Sorting"
                       srcDir := FilePath.mk ".",
                       roots := #[`Sorting],
                       globs := #[Lake.Glob.one `Sorting],
-                      libName := "Sorting",
+                      libName := "",
                       libPrefixOnWindows := false,
                       needs := #[],
                       extraDepTargets := #[],
@@ -564,7 +568,7 @@ name = "TacticTools"
       srcDir := FilePath.mk ".",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
+      libName := "",
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],
@@ -607,7 +611,7 @@ precompileModules = true
       srcDir := FilePath.mk "src",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
+      libName := "",
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],

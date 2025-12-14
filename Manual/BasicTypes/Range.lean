@@ -66,10 +66,10 @@ This range cannot be converted to a list, because it is infinite:
 Finiteness of a left-closed, right-unbounded range is indicated by the presence of an instance of {name}`Std.Rxi.IsAlwaysFinite`, which does not exist for {name}`Nat`.
 {name}`Std.Rco` is the type of these ranges, and the name {name}`Std.Rxi.IsAlwaysFinite` indicates that it determines finiteness for all right-unbounded ranges.
 ```leanOutput rng4
-failed to synthesize
+failed to synthesize instance of type class
   Std.Rxi.IsAlwaysFinite Nat
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Attempting to enumerate the negative integers leads to a similar error, this time because there is no way to determine the least element:
@@ -77,10 +77,10 @@ Attempting to enumerate the negative integers leads to a similar error, this tim
 #eval (*...(0 : Int)).toList
 ```
 ```leanOutput intrange
-failed to synthesize
+failed to synthesize instance of type class
   Std.PRange.Least? Int
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Unbounded ranges in finite types indicate that the range extends to the greatest element of the type.
@@ -320,10 +320,10 @@ There's no membership instance:
 #eval Day.we ∈ (Day.mo...=Day.fr)
 ```
 ```leanOutput noMem
-failed to synthesize
+failed to synthesize instance of type class
   Membership Day (Std.Rcc Day)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Ranges can't be iterated over:
 ```lean +error (name := noIter)
@@ -340,10 +340,10 @@ Nor can they be enumerated, even though the type is finite:
 #eval (Day.sa...*).toList
 ```
 ```leanOutput noEnum
-failed to synthesize
+failed to synthesize instance of type class
   Std.PRange.UpwardEnumerable Day
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 :::
 

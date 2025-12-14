@@ -490,32 +490,34 @@ case grind.1.1.2.2.1.1.1
 β : Type v
 inst : BEq α
 inst_1 : Hashable α
-m : IndexMap α β
-a : α
-b : β
-i : Nat
-inst_2 : LawfulBEq α
-inst_3 : LawfulHashable α
 m_1 : IndexMap α β
 a_1 : α
+b : β
 i_1 : Nat
-h : m_1.indices[a_1]? = some i_1
-w : ¬i_1 = m_1.size - 1
+inst_2 : LawfulBEq α
+inst_3 : LawfulHashable α
+m : IndexMap α β
+a : α
+i : Nat
+h : m.indices[a]? = some i
+w : ¬i = m.size - 1
+lastKey : α := m.keys.back ⋯
+lastValue : β := m.values.back ⋯
 i_2 : Nat
 a_2 : α
-h_1 : ((m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2) =
-  ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
-h_2 : -1 * ↑(m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size + 1 ≤ 0
-left : (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯)[i_2]? = some a_2
-right : ¬((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2]? = some i_2
-h_4 : ¬i_1 = i_2
-left_1 : ¬m_1.keys[i_2]? = some a_1
-right_1 : ¬m_1.indices[a_1]? = some i_2
-h_6 : (m_1.keys.back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ m_1.keys.pop.size
-left_2 : a_2 ∈ m_1.indices.erase a_1
-left_3 : (a_1 == a_2) = false
-right_3 : a_2 ∈ m_1.indices
+h_1 : ((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+  ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_2 : -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0
+left : (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2
+right : ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_4 : ¬i = i_2
+left_1 : ¬m.keys[i_2]? = some a
+right_1 : ¬m.indices[a]? = some i_2
+h_6 : (m.keys.back ⋯ == a_2) = true
+h_7 : i + 1 ≤ m.keys.pop.size
+left_2 : a_2 ∈ m.indices.erase a
+left_3 : (a == a_2) = false
+right_3 : a_2 ∈ m.indices
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -535,21 +537,22 @@ As usual, there is detailed information from {tactic}`grind` about its failure s
 Let's look at the model produced by `cutsat` and see if we can see what's going on:
 ```anchorError eraseSwap_init (onlyTrace := "Assignment satisfying linear constraints") (expandTrace := cutsat)
 [cutsat] Assignment satisfying linear constraints
-  [assign] i_1 := 0
+  [assign] i_1 := 4
+  [assign] i := 0
   [assign] i_2 := 1
-  [assign] m_1.keys.pop.size := 2
-  [assign] m_1.keys.size := 3
-  [assign] m_1.size := 3
-  [assign] (m_1.keys.pop.set i_1 (m_1.keys.back ⋯) ⋯).size := 2
-  [assign] m_1.values.size := 3
-  [assign] m_1.indices[a_1] := 0
-  [assign] ((m_1.indices.erase a_1).insert (m_1.keys.back ⋯) i_1)[a_2] := 0
-  [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).pop.size := 2
-  [assign] (m_1.keys.set i_1 (m_1.keys.back ⋯) ⋯).size := 3
-  [assign] m_1.indices[a_1] := 0
-  [assign] m_1.indices[a_2] := 1
-  [assign] m_1.indices[m_1.keys[i_2]] := 1
-  [assign] m_1.indices[m_1.keys[i_2]] := 1
+  [assign] m.keys.pop.size := 2
+  [assign] m.keys.size := 3
+  [assign] m.size := 3
+  [assign] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size := 2
+  [assign] m.values.size := 3
+  [assign] m.indices[a] := 0
+  [assign] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] := 0
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size := 2
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).size := 3
+  [assign] m.indices[a] := 0
+  [assign] m.indices[a_2] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
 ```
 
 

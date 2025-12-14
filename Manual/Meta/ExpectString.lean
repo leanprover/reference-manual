@@ -19,7 +19,7 @@ variable [MonadInfoTree m]
 
 def abbreviateString (what : String) (maxLength : Nat := 30) : String :=
   if what.length > maxLength then
-    what.take maxLength ++ "…"
+    (what.take maxLength).copy ++ "…"
   else
     what
 

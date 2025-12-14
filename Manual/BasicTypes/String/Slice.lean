@@ -23,9 +23,9 @@ tag := "string-api-slice"
 
 {docstring String.toSlice}
 
-{docstring String.replaceStart}
+{docstring String.sliceFrom}
 
-{docstring String.replaceEnd}
+{docstring String.sliceTo}
 
 {docstring String.Slice.Pos}
 
@@ -58,11 +58,13 @@ tag := "string-api-slice"
 
 ### Adjustment
 
-{docstring String.Slice.replaceStart}
+{docstring String.Slice.sliceFrom}
 
-{docstring String.Slice.replaceStartEnd}
+{docstring String.Slice.sliceTo}
 
-{docstring String.Slice.replaceStartEnd!}
+{docstring String.Slice.slice}
+
+{docstring String.Slice.slice!}
 
 {docstring String.Slice.drop}
 
@@ -129,8 +131,6 @@ tag := "string-api-slice"
 {docstring String.Slice.splitInclusive}
 
 {docstring String.Slice.lines}
-
-{docstring String.Slice.replaceEnd}
 
 {docstring String.Slice.trimAscii}
 
@@ -243,8 +243,8 @@ Because they retain a reference to the slice from which they were drawn, slice p
 
 {docstring String.Slice.Pos.str}
 
-{docstring String.Slice.Pos.toCopy}
+{docstring String.Slice.Pos.copy}
 
-{docstring String.Slice.Pos.ofReplaceStart}
+{docstring String.Slice.Pos.ofSliceFrom}
 
-{docstring String.Slice.Pos.toReplaceStart}
+{docstring String.Slice.Pos.ofSliceTo}
