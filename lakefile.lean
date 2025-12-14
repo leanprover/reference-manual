@@ -49,7 +49,7 @@ def ensureDir (dir : System.FilePath) : IO Unit := do
 
 /-- Ensure that the subverso-extract-mod executable is available -/
 target subversoExtractMod : FilePath := do
-  let some pkg := ← findPackage? `subverso
+  let some pkg := ← findPackageByName? `subverso
     | failure
   let some exe := pkg.findLeanExe? `«subverso-extract-mod»
     | failure
@@ -207,7 +207,7 @@ def extractCodeBlocks (exampleName : Name) (input : String) : Array (Name × Str
   let mut idx := 0
   for line in lines do
     if line.startsWith "```" then
-      let numTicks := line.takeWhile (· == '`') |>.length
+      let numTicks := line.takeWhile (· == '`') |>.positions.count
       match state with
       | .outsideCode =>
         let lang := line.drop numTicks |>.takeWhile (! ·.isWhitespace)
