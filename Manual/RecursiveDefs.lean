@@ -467,10 +467,9 @@ attribute [irreducible] Sequence
 #check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
 ```
 ```leanOutput irredSeq
-Invalid field `reverse`: The environment does not contain `Sequence.reverse`
+Invalid field `reverse`: The environment does not contain `Sequence.reverse`, so it is not possible to project the field `reverse` from an expression
   xs
-has type
-  Sequence Nat
+of type `Sequence Nat`
 ```
 :::
 

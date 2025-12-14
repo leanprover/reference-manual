@@ -37,7 +37,7 @@ open Tactic.GuardMsgs in
 def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
-        |>.trim |> removeTrailingWhitespaceMarker
+        |>.trimAscii |>.copy |> removeTrailingWhitespaceMarker
     let {whitespace, ordering, filterFn, ..} ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
@@ -60,7 +60,7 @@ def elabCheckMsgs : CommandElab
       | .pass => toPassthrough := toPassthrough.add msg
     let strings ← toCheck.toList.mapM (messageToStringWithoutPos ·)
     let strings := ordering.apply strings
-    let res := "---\n".intercalate strings |>.trim
+    let res := "---\n".intercalate strings |>.trimAscii |>.copy
     if messagesMatch (whitespace.apply expected) (whitespace.apply res) then
       -- Passed. Only put toPassthrough messages back on the message log
       modify fun st => { st with messages := initMsgs ++ toPassthrough }

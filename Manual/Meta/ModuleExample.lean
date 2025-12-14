@@ -60,7 +60,7 @@ where
 
 def dropBlanks (hl : Highlighted) : Highlighted :=
   match hl with
-  | .text s => .text s.trimLeft
+  | .text s => .text s.trimAsciiStart.copy
   | .seq xs => Id.run do
     for h : i in 0...xs.size do
       let x := dropBlanks xs[i]

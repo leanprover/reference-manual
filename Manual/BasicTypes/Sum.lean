@@ -149,10 +149,10 @@ Sums do not, by default:
 example : Nat ⊕ String := panic! "Cant' find it"
 ```
 ```leanOutput panic
-failed to synthesize
+failed to synthesize instance of type class
   Inhabited (Nat ⊕ String)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 The desired instance can be made available to instance synthesis using {keywordOf Lean.Parser.Term.have}`have`:

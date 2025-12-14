@@ -261,6 +261,7 @@ grindEqBoth
 grindEqBwd
 grindEqRhs
 grindExt
+grindFunCC
 grindFwd
 grindGen
 grindInj
@@ -369,6 +370,14 @@ theorem inv_eq [One α] [Mul α] [Inv α] {a b : α}
   sorry
 ```
 :::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Function-Valued Congruence Closure")
+```grammar
+funCC
+```
+{includeDocstring Lean.Parser.Attr.grindFunCC}
+:::
+
 
 Some additional modifiers can be used to add other kinds of lemmas to the index.
 This includes extensionality theorems, injectivity theorems for functions, and a shortcut to add all constructors of an inductively defined predicate to the index.
@@ -969,6 +978,8 @@ h_2 : x = n + 1
   [cases] Case analyses
   [cutsat] Assignment satisfying linear constraints
   [ring] Rings
+
+[grind] Diagnostics
 ```
 :::
 

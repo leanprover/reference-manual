@@ -25,13 +25,10 @@ public def parserInputString [Monad m] [MonadFileMap m]
   let text ← getFileMap
   let preString := String.Pos.Raw.extract text.source 0 (str.raw.getPos?.getD 0)
   let mut code := ""
-  let mut iter := preString.startValidPos
-  while h : iter ≠ preString.endValidPos do
-    let curr := iter.get h
-    iter := iter.next h
-    if curr == '\n' then code := code.push '\n'
+  for c in preString.toSlice.chars do
+    if c == '\n' then code := code.push '\n'
     else
-      for _ in [0:curr.utf8Size] do
+      for _ in [0:c.utf8Size] do
         code := code.push ' '
 
   let strOriginal? : Option String := do

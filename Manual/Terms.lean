@@ -747,9 +747,9 @@ def Username := String
 ```
 
 One such function is {name}`Username.validate`, which checks that a username contains no leading whitespace and that only a small set of acceptable characters are used.
-In its definition, generalized field notation is used to call the functions {lean}`String.isPrefixOf`, {lean}`String.any`, {lean}`Char.isAlpha`, and {lean}`Char.isDigit`.
+In its definition, generalized field notation is used to call the functions {lean}`String.isPrefixOf`, {name}`String.any`, {lean}`Char.isAlpha`, and {lean}`Char.isDigit`.
 In the case of {lean}`String.isPrefixOf`, which takes two {lean}`String` arguments, {lean}`" "` is used as the first  because it's the term before the dot.
-{lean}`String.any` can be called on {lean}`name` using generalized field notation even though it has type {lean}`Username` because `Username.any` is not defined and {lean}`Username` unfolds to {lean}`String`.
+{name}`String.any` can be called on {lean}`name` using generalized field notation even though it has type {lean}`Username` because `Username.any` is not defined and {lean}`Username` unfolds to {lean}`String`.
 
 ```lean
 def Username.validate (name : Username) : Except String Unit := do
@@ -772,10 +772,9 @@ However, {lean}`Username.validate` can't be called on {lean}`"root"` using field
 #eval "admin".validate
 ```
 ```leanOutput notString
-Invalid field `validate`: The environment does not contain `String.validate`
+Invalid field `validate`: The environment does not contain `String.validate`, so it is not possible to project the field `validate` from an expression
   "admin"
-has type
-  String
+of type `String`
 ```
 
 {lean}`adminUser`, on the other hand, has type {lean}`Username`, so the {lean}`Username.validate` function can be invoked with generalized field notation:
@@ -786,7 +785,7 @@ has type
 Except.ok ()
 ```
 
-Going in the other direction, {lean}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
+Going in the other direction, {name}`String.any` *can* be called on the {lean}`Username` value {lean}`adminUser` with generalized field notation, because the type {lean}`Username` unfolds to {lean}`String`.
 ```lean (name := isString1)
 #eval adminUser.any (· == 'm')
 ```
@@ -901,13 +900,13 @@ For example, {name}`Array.push` takes an array as its first argument, not a {lea
 #eval #[1, 2, 3] |> Array.push 4
 ```
 ```leanOutput arrPush
-failed to synthesize
-  OfNat (Array ?m.4) 4
+failed to synthesize instance of type class
+  OfNat (Array ?m.2) 4
 numerals are polymorphic in Lean, but the numeral `4` cannot be used in a context where the expected type is
-  Array ?m.4
+  Array ?m.2
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Using pipeline field notation causes the array to be inserted at the first type-correct position:
@@ -2090,10 +2089,9 @@ Due to the differences in their inferred types, it can be used with {keywordOf L
 #eval ([] : Colors).hasYellow
 ```
 ```leanOutput nil3
-Invalid field `hasYellow`: The environment does not contain `List.hasYellow`
+Invalid field `hasYellow`: The environment does not contain `List.hasYellow`, so it is not possible to project the field `hasYellow` from an expression
   []
-has type
-  List String
+of type `List String`
 ```
 ```lean (name := nil4)
 #eval (show Colors from []).hasYellow

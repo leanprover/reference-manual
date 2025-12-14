@@ -217,7 +217,7 @@ The types and functions in this section are available after importing {module}`S
 
 :::leanSection
 ```lean -show
-variable {m : Type → Type v} {α : Type} [MonadLiftT BaseIO m] [Inhabited α]
+variable {m : Type → Type v} {α : Type} [MonadLiftT BaseIO m] [Inhabited α] [Monad m]
 ```
 Synchronous channels can also be read using {keywordOf Lean.Parser.Term.doFor}`for` loops.
 In particular, there is an instance of type {inst}`ForIn m (Std.Channel.Sync α) α` for every monad {lean}`m` with a {inst}`MonadLiftT BaseIO m` instance and {lean}`α` with an {inst}`Inhabited α` instance.

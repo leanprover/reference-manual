@@ -101,10 +101,9 @@ end
 #check Int.bdiv
 
 /--
-error: Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
+error: Invalid field `bdiv`: The environment does not contain `Nat.bdiv`, so it is not possible to project the field `bdiv` from an expression
   n
-has type
-  Nat
+of type `Nat`
 -/
 #check_msgs in
 example (n : Nat) := n.bdiv 2
@@ -122,10 +121,9 @@ The coercion from {lean}`Nat` to {lean}`Int` is not considered when looking up t
 example (n : Nat) := n.bdiv 2
 ```
 ```leanOutput natBdiv
-Invalid field `bdiv`: The environment does not contain `Nat.bdiv`
+Invalid field `bdiv`: The environment does not contain `Nat.bdiv`, so it is not possible to project the field `bdiv` from an expression
   n
-has type
-  Nat
+of type `Nat`
 ```
 
 This is because coercions are only inserted when there is an expected type that differs from an inferred type, and generalized fields are resolved based on the inferred type of the term before the dot.
@@ -217,13 +215,13 @@ instance : Coe Nat Bin where
 #eval (9 : Bin)
 ```
 ```leanOutput nineFail
-failed to synthesize
+failed to synthesize instance of type class
   OfNat Bin 9
 numerals are polymorphic in Lean, but the numeral `9` cannot be used in a context where the expected type is
   Bin
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 This is because coercions are inserted in response to mismatched types, but a failure to synthesize an {name}`OfNat` instance is not a type mismatch.
 
