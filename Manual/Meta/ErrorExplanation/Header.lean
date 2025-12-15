@@ -33,8 +33,7 @@ block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtende
       | logError s!"Invalid JSON for error explanation:\n{info}"; pure none
     modify (·.saveDomainObject Manual.errorExplanationDomain errorMetadata.name.toString id)
 
-    let tag ← Verso.Genre.Manual.externalTag id (← read).path errorMetadata.name.toString
-    println! s!"Making tag for {tag}"
+    discard <| Verso.Genre.Manual.externalTag id (← read).path errorMetadata.name.toString
     pure none
 
   toTeX := none
