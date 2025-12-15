@@ -31,5 +31,3 @@ where
     | .text _ txt => txt
     | .seq elts => elts.foldl (· ++ htmlText ·) ""
     | .tag _nm _attrs children => htmlText children
-
-
