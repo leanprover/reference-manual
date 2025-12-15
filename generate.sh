@@ -88,7 +88,7 @@ echo "Copying files to site directory"
 if [ "$MODE" = "preview" ]; then
   cp test-data/index.html "$OUTPUT/index.html"
 fi
-cp -r _out/html-multi/ "$OUTPUT/reference/"
-cp -r _tutorial-out/ "$OUTPUT/tutorials/"
+cp -r _out/html-multi/* "$OUTPUT/reference/"
+cp -r _tutorial-out/* "$OUTPUT/tutorials/"
 
 echo "Done! Site generated at $OUTPUT/"
