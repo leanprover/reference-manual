@@ -126,13 +126,7 @@ built-in try strategies have been tried and failed.
 
 ### Match Compilation
 
-This release includes several optimizations in match compilation, namely:
-
-- avoiding unnecessary branching ([#10763](https://github.com/leanprover/lean4/pull/10763)),
-
-- using sparse case analysis ([#11072](https://github.com/leanprover/lean4/pull/11072) & [#10823](https://github.com/leanprover/lean4/pull/10823)),
-
-- using exfalso as soon as no alternatives are left ([#10851](https://github.com/leanprover/lean4/pull/10851)).
+This release includes several performance optimizations in match compilation of large match statements (PRs [#10763](https://github.com/leanprover/lean4/pull/10763), [#11072](https://github.com/leanprover/lean4/pull/11072) and [#10823](https://github.com/leanprover/lean4/pull/10823)).
 
 ### Library Suggestions
 
