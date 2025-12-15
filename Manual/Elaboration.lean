@@ -230,9 +230,10 @@ set_option pp.match false
 /--
 info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} →
   {motive : List α → Sort u_1} →
-    (t : List α) → ((head : α) → (tail : List α) → motive (head :: tail)) → (t.ctorIdx ≠ 1 → motive t) → motive t :=
+    (t : List α) →
+      ((head : α) → (tail : List α) → motive (head :: tail)) → (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t :=
 fun {α} {motive} t cons =>
-  List.rec (motive := fun t => (t.ctorIdx ≠ 1 → motive t) → motive t) (fun x => x ⋯)
+  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun x => x ⋯)
     (fun head tail tail_ih x => cons head tail) t
 -/
 #check_msgs in
@@ -263,13 +264,13 @@ fun {α} motive x h_1 h_2 =>
                 (fun head_3 tail =>
                   third_of_five._sparseCasesOn_1 tail
                     (fun head_4 tail =>
-                      third_of_five._sparseCasesOn_2 tail (h_1 head head_1 head_2 head_3 head_4) fun h_0 =>
+                      third_of_five._sparseCasesOn_2 tail (h_1 head head_1 head_2 head_3 head_4) fun h =>
                         h_2 (head :: head_1 :: head_2 :: head_3 :: head_4 :: tail))
-                    fun h_0 => h_2 (head :: head_1 :: head_2 :: head_3 :: tail))
-                fun h_0 => h_2 (head :: head_1 :: head_2 :: tail))
-            fun h_0 => h_2 (head :: head_1 :: tail))
-        fun h_0 => h_2 (head :: tail))
-    fun h_0 => h_2 x
+                    fun h => h_2 (head :: head_1 :: head_2 :: head_3 :: tail))
+                fun h => h_2 (head :: head_1 :: head_2 :: tail))
+            fun h => h_2 (head :: head_1 :: tail))
+        fun h => h_2 (head :: tail))
+    fun h => h_2 x
 -/
 #check_msgs in
 #print third_of_five.match_1

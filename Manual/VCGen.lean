@@ -858,7 +858,9 @@ theorem logUntil_length : (logUntil n).run.2.size = n := by
   apply LogM.of_wp_run_eq h
   mvcgen invariants
   · ⇓⟨xs, _⟩ s => ⌜xs.pos = s.size⌝
-  with grind [Std.PRange.Nat.size_rco, Std.Rco.length_toList]
+  with
+    simp_all [List.Cursor.pos] <;>
+    grind [Std.PRange.Nat.size_rco, Std.Rco.length_toList]
 ```
 :::
 

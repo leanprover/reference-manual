@@ -131,12 +131,12 @@ Replacing characters in a string uses an in-place update if the string is not sh
 The {name}`dbgTraceIfShared` call does nothing, indicating that the string will indeed be updated in place rather than copied.
 
 ```ioLean
-def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit := do
-  IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
+def process (str : String) (h : str.startPos ≠ str.endPos) : IO Unit := do
+  IO.println ((dbgTraceIfShared "String update" str).startPos.set ' ' h)
 
 def main : IO Unit := do
-  let line := (← (← IO.getStdin).getLine).trim
-  if h : line.startValidPos ≠ line.endValidPos then
+  let line := (← (← IO.getStdin).getLine).trimAscii.copy
+  if h : line.startPos ≠ line.endPos then
     process line h
 ```
 
@@ -159,12 +159,12 @@ This version of the program retains a reference to the original string, which ne
 This fact is visible in its standard error output.
 
 ```ioLean
-def process (str : String) (h : str.startValidPos ≠ str.endValidPos) : IO Unit := do
-  IO.println ((dbgTraceIfShared "String update" str).startValidPos.set ' ' h)
+def process (str : String) (h : str.startPos ≠ str.endPos) : IO Unit := do
+  IO.println ((dbgTraceIfShared "String update" str).startPos.set ' ' h)
 
 def main : IO Unit := do
-  let line := (← (← IO.getStdin).getLine).trim
-  if h : line.startValidPos ≠ line.endValidPos then
+  let line := (← (← IO.getStdin).getLine).trimAscii.copy
+  if h : line.startPos ≠ line.endPos then
     process line h
   IO.println "Original input:"
   IO.println line
@@ -267,6 +267,9 @@ This emits the following IR:
 
 ```leanOutput discardElems
 [Compiler.IR] [result]
+    def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
+      let x_3 : tobj := discardElems._redArg x_2;
+      ret x_3
     def discardElems._redArg (x_1 : tobj) : tobj :=
       case x_1 : tobj of
       List.nil →
@@ -292,9 +295,6 @@ This emits the following IR:
           let x_10 : tobj := discardElems._redArg x_8;
           let x_11 : obj := ctor_1[List.cons] x_9 x_10;
           ret x_11
-    def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
-      let x_3 : tobj := discardElems._redArg x_2;
-      ret x_3
 ```
 
 In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether it's reference count is greater than one).

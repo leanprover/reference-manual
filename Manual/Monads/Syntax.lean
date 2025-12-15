@@ -121,12 +121,12 @@ In this example, the constructor {name}`User.mk` is applied via this idiom in th
 ```ioLean
 def getName : IO String := do
   IO.println "What is your name?"
-  return (← (← IO.getStdin).getLine).trimRight
+  return (← (← IO.getStdin).getLine).trimAsciiEnd.copy
 
 partial def getFavoriteNat : IO Nat := do
   IO.println "What is your favorite natural number?"
   let line ← (← IO.getStdin).getLine
-  if let some n := line.trim.toNat? then
+  if let some n := line.trimAscii.copy.toNat? then
     return n
   else
     IO.println "Let's try again."

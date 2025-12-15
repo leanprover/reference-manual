@@ -321,6 +321,8 @@ def addAll (lst : List β) : β :=
 ```
 ```leanOutput secvars
 Unknown identifier `β`
+
+Note: It is not possible to treat `β` as an implicitly bound variable here because the `autoImplicit` option is set to `false`.
 ```
 
 

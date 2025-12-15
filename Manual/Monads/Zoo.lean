@@ -260,10 +260,10 @@ Only the outermost may be used, because the type of the state is an output param
 #check (get : M String)
 ```
 ```leanOutput getMStr
-failed to synthesize
+failed to synthesize instance of type class
   MonadState String M
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Providing the state type explicitly using {name}`getThe` from {name}`MonadStateOf` allows both states to be read.

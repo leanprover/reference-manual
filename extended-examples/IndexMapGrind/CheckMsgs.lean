@@ -34,8 +34,8 @@ def messagesEq (maxDiff? : Option Nat) (whitespace : WhitespaceMode) (msg1 msg2 
   let msg1 := normalizeLineNums <| normalizeMetavars msg1
   let msg2 := normalizeLineNums <| normalizeMetavars msg2
   if let some maxDiff := maxDiff? then
-    let lines1 := msg1.splitToList (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
-    let lines2 := msg2.splitToList (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines1 := msg1.splitToList (· == '\n') |>.map (·.trimAsciiEnd.copy |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines2 := msg2.splitToList (· == '\n') |>.map (·.trimAsciiEnd.copy |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
     let maxPercent := maxDiff.toFloat / 100.0
     let lines1 := lines1.toArray
     let lines2 := lines2.toArray
@@ -62,7 +62,7 @@ open Tactic.GuardMsgs in
 def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $[(maxDiff := $maxDiff % )]? $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
-        |>.trim |> removeTrailingWhitespaceMarker
+        |>.trimAscii.copy |> removeTrailingWhitespaceMarker
     let {whitespace, ordering, filterFn, .. } ← parseGuardMsgsSpec spec?
     let maxDiff? := maxDiff.map (·.getNat)
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
@@ -84,7 +84,7 @@ def elabCheckMsgs : CommandElab
       | .pass => toPassthrough := toPassthrough.add msg
     let strings ← toCheck.toList.mapM (messageToStringWithoutPos ·)
     let strings := ordering.apply strings
-    let res := "---\n".intercalate strings |>.trim
+    let res := "---\n".intercalate strings |>.trimAscii.copy
     let (same, msg?) := messagesEq maxDiff? whitespace expected res
     let text ← getFileMap
     let msg? : Option Message ← msg?.bindM fun s => OptionT.run do

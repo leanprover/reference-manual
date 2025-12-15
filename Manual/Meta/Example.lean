@@ -98,7 +98,7 @@ def leanFirst : DirectiveExpander
 
 /-- Turn a list of lean blocks into one string with the appropriate amount of whitespace -/
 def renderExampleContent (exampleBlocks : List String) : String :=
-  "\n\n".intercalate <| exampleBlocks.map (·.trim)
+  "\n\n".intercalate <| exampleBlocks.map (·.trimAscii.copy)
 
 /-- info: "a\n\nb\n\nc" -/
 #guard_msgs in

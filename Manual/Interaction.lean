@@ -118,7 +118,7 @@ import Eval.Even
 ❌️ Docstring on `#guard_msgs` does not match generated message:
 
 - info: [true, false]
-+ error: Could not find native implementation of external declaration 'isEven' (symbols 'l_isEven___boxed' or 'l_isEven').
++ error: Could not find native implementation of external declaration 'isEven' (symbols 'lp_example_isEven___boxed' or 'lp_example_isEven').
 + For declarations from `Init`, `Std`, or `Lean`, you need to set `supportInterpreter := true` in the relevant `lean_exe` statement in your `lakefile.lean`.
 ```
 :::
@@ -302,10 +302,10 @@ Attempting to add a string to a natural number fails, as expected:
 #check_failure "one" + 1
 ```
 ```leanOutput oneOne
-failed to synthesize
-  HAdd String Nat ?m.32
+failed to synthesize instance of type class
+  HAdd String Nat ?m.5
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Nonetheless, a partially-elaborated term is available:
 ```leanOutput oneOne

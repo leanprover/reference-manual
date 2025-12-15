@@ -257,16 +257,20 @@ Thus, Lean divides iterators into three termination classes:
 All finite iterators are necessarily productive.
 :::
 
-{docstring Finite +allowMissing}
+{docstring Finite}
 
-{docstring Productive +allowMissing}
+{docstring Productive}
 
-Sometimes, a needed {name}`Finite` instance is not available because an iterator has not yet been proved finite.
-In these cases, {name}`Iter.allowNontermination` can be used to bypass a finiteness requirement.
+Lean's standard library provides many functions that iterate over an iterator. These consumer functions usually do not
+make any assumptions about the underlying iterator. In particular, such functions may run forever for certain iterators.
 
-{docstring Iter.allowNontermination}
+Sometimes, it is of utmost importance that a function does terminate.
+For these cases, the combinator {name}`Iter.ensureTermination` results in an iterator that provides variants of consumers that are guaranteed to terminate.
+They usually require proof that the involved iterator is finite.
 
-{docstring IterM.allowNontermination}
+{docstring Iter.ensureTermination}
+
+{docstring IterM.ensureTermination}
 
 ::::example "Iterating Over `Nat`"
 ```imports -show
@@ -300,6 +304,18 @@ instance [Pure m] : Iterator Nats m Nat where
     pure <| .deflate <|
       .yield { it with internalState.next := n + 1 } n (by grind)
 ```
+
+Whenever an iterator is defined, {name}`IteratorCollect` and {name}`IteratorLoop` instances should be provided.
+They are required for most consumers of iterators such as {name}`Iter.toList` or the `for` loops.
+One can use their default implementations as follows:
+
+```lean
+instance [Pure m] [Monad n] : IteratorCollect Nats m n :=
+  .defaultImplementation
+
+instance [Pure m] [Monad n] : IteratorLoop Nats m n :=
+  .defaultImplementation
+```
 :::
 
 :::paragraph
@@ -329,7 +345,18 @@ def Nats.iter : Iter (α := Nats) Nat :=
 :::
 
 :::paragraph
-This iterator is useful with combinators such as {name}`Iter.zip`:
+One can print all natural numbers by running the following function:
+```lean
+def f : IO Unit := do
+  for x in Nats.iter do
+    IO.println s!"{x}"
+```
+This function never terminates, printing all natural numbers in increasing order, one
+after another.
+:::
+
+:::paragraph
+This iterator is most useful with combinators such as {name}`Iter.zip`:
 ```lean (name := natzip)
 #eval show IO Unit from do
   let xs : List String := ["cat", "dog", "pachycephalosaurus"]
@@ -340,6 +367,43 @@ This iterator is useful with combinators such as {name}`Iter.zip`:
 0: cat
 1: dog
 2: pachycephalosaurus
+```
+:::
+
+:::paragraph
+In contrast to the previous example, this loop terminates because `xs.iter` is a finite iterator,
+One can make sure that a loop actually terminates by providing a {name}`Finite` instance:
+```lean (name := natfin)
+#check type_of% (Nats.iter.zip ["cat", "dog"].iter).internalState
+
+#synth Finite (Zip Nats Id (ListIterator String) String) Id
+```
+```leanOutput natfin
+Zip Nats Id (ListIterator String) String : Type
+```
+```leanOutput natfin
+Zip.instFinite₂
+```
+In contrast, `Nats.iter` has no `Finite` instance because it yields infinitely many values:
+```lean (name := natinf) +error
+#synth Finite Nats Id
+```
+```leanOutput natinf
+failed to synthesize
+  Finite Nats Id
+
+Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+```
+
+Because there are infinitely many {name}`Nat`s, using {name}`Iter.ensureTermination` results in an error:
+```lean (name := natterm) +error
+#eval show IO Unit from do
+  for x in Nats.iter.ensureTermination do
+    IO.println s!"{x}"
+```
+```leanOutput natterm
+failed to synthesize instance for 'for_in%' notation
+  ForIn (EIO IO.Error) (Iter.Total Nat) ?m.12
 ```
 :::
 ::::
@@ -432,7 +496,7 @@ where finally
   all_goals grind [Triple.get?]
 ```
 
-This iterator cannot yet be converted to an array, because it is missing a {name}`Finite` instance and an {name}`IteratorCollect` instance:
+This iterator cannot yet be converted to an array, because it is missing an {name}`IteratorCollect` instance:
 ```lean
 def abc : Triple Char := ⟨'a', 'b', 'c'⟩
 ```
@@ -440,13 +504,31 @@ def abc : Triple Char := ⟨'a', 'b', 'c'⟩
 #eval abc.iter.toArray
 ```
 ```leanOutput noAbc
-failed to synthesize
-  Finite (TripleIterator Char) Id
+failed to synthesize instance of type class
+  IteratorCollect (TripleIterator Char) Id Id
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
-To prove finiteness, it's easiest to start at {name}`TriplePos.done` and work backwards toward {name}`TriplePos.fst`, showing that each position in turn has a finite chain of successors:
+To support {name}`Iter.toArray`, the default implementation of {name}`IteratorCollect` can be used:
+
+```lean
+instance [Iterator (TripleIterator α) m α] [Monad n] :
+    IteratorCollect (TripleIterator α) m n :=
+  IteratorCollect.defaultImplementation
+```
+
+With the {name}`IteratorCollect` instance in place, {name}`Iter.toArray` now works:
+```lean (name := abcToArray)
+#eval abc.iter.toArray
+```
+```leanOutput abcToArray
+#['a', 'b', 'c']
+```
+
+In general, `Iter.toArray` might run forever. One can prove that `abc` is finite, and the above example will terminate after finitely many steps, by
+constructing a `Finite (Triple Char) Id` instance.
+It's easiest to start at {name}`TriplePos.done` and work backwards toward {name}`TriplePos.fst`, showing that each position in turn has a finite chain of successors:
 
 ```lean
 @[grind! .]
@@ -487,28 +569,8 @@ instance [Pure m] : Finite (TripleIterator α) m where
       cases pos <;> grind
 ```
 
-With the {name}`Finite` instance in place, the default implementation of {name}`IteratorCollect` can be used:
-
+To enable the iterator in {keywordOf Lean.Parser.Term.doFor}`for` loops, an instance of {name}`IteratorLoop` are needed:
 ```lean
-instance [Iterator (TripleIterator α) m α] [Monad n] :
-    IteratorCollect (TripleIterator α) m n :=
-  IteratorCollect.defaultImplementation
-```
-
-{name}`Iter.toArray` now works:
-```lean (name := abcToArray)
-#eval abc.iter.toArray
-```
-```leanOutput abcToArray
-#['a', 'b', 'c']
-```
-
-To enable the iterator in {keywordOf Lean.Parser.Term.doFor}`for` loops, instances of {name}`IteratorLoopPartial` and {name}`IteratorLoop` are needed:
-```lean
-instance [Monad m] [Monad n] :
-    IteratorLoopPartial (TripleIterator α) m n :=
-  .defaultImplementation
-
 instance [Monad m] [Monad n] :
     IteratorLoop (TripleIterator α) m n :=
   .defaultImplementation
@@ -573,13 +635,9 @@ instance : Iterator FileIterator IO ByteArray where
       return .deflate <| .yield it' bytes (by grind)
 ```
 
-To use it in loops, {name}`IteratorLoop` and {name}`IteratorLoopPartial` instances will be necessary.
-In practice, the latter is most important: because file streams may be infinite, the iterator itself may be infinite.
+To use it in loops, an {name}`IteratorLoop` instance will be necessary.
 ```lean
 instance [Monad n] : IteratorLoop FileIterator IO n :=
-  .defaultImplementation
-
-instance [Monad n] : IteratorLoopPartial FileIterator IO n :=
   .defaultImplementation
 ```
 
@@ -587,7 +645,7 @@ This is enough support code to use the iterator to calculate file sizes:
 ```lean
 def fileSize (name : System.FilePath) : IO Nat := do
   let mut size := 0
-  let f := (← iterFile name).allowNontermination
+  let f := (← iterFile name)
   for bytes in f do
     size := size + bytes.size
   return size
@@ -611,10 +669,6 @@ For example, an array iterator can skip any number of elements in constant time 
 {docstring IteratorLoop.defaultImplementation}
 
 {docstring LawfulIteratorLoop +allowMissing}
-
-{docstring IteratorLoopPartial +allowMissing}
-
-{docstring IteratorLoopPartial.defaultImplementation}
 
 ## Universe Levels
 
@@ -655,7 +709,7 @@ There are three primary ways to consume an iterator:
 : {keywordOf Lean.Parser.Term.doFor}`for` loops
 
   A {keywordOf Lean.Parser.Term.doFor}`for` loop can consume an iterator, making each value available in its body.
-  This requires that the iterator have either an instance of {name}`IteratorLoop` or {name}`IteratorLoopPartial` for the loop's monad.
+  This requires that the iterator have an instance of {name}`IteratorLoop` for the loop's monad.
 
 : Stepping through iterators
 
@@ -701,24 +755,25 @@ import Std.Data.Iterators
 ```lean -show
 open Std.Iterators
 ```
-Attempting to construct a list of all the natural numbers from an iterator fails:
-```lean (name := toListInf) +error -keep
+Attempting to construct a list of all the natural numbers from an iterator will produce an endless loop:
+```lean (name := toListInf) -keep
 def allNats : List Nat :=
   let steps : Iter Nat := (0...*).iter
   steps.toList
 ```
+The combinator {lean}`Iter.ensureTermination` results in an iterator where non-termination is ruled out.
+These iterators are guaranteed to terminate after finitely many steps, and thus cannot be used when Lean cannot prove the iterator finite.
+```lean (name := toListInf) +error -keep
+def allNats : List Nat :=
+  let steps := (0...*).iter.ensureTermination
+  steps.toList
+```
 The resulting error message states that there is no {name}`Finite` instance:
 ```leanOutput toListInf
-failed to synthesize
+failed to synthesize instance of type class
   Finite (Std.Rxi.Iterator Nat) Id
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
-```
-If the failure to synthesize the instance is due to a missing proof, or if an infinite loop is desirable for an application, then the fact that consuming the iterator may not terminate can be hidden using {name}`Iter.allowNontermination`:
-```lean
-def allNats : List Nat :=
-  let steps : Iter Nat := (0...*).iter
-  steps.allowNontermination.toList
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 :::
@@ -881,7 +936,7 @@ termination_by it.finitelyManySkips
 ## Collectors
 
 Collectors consume an iterator, returning all of its data in a list or array.
-To be collected, an iterator must be finite and have an {name}`IteratorCollect` or {name}`IteratorCollectPartial` instance.
+To be collected, an iterator must be finite and have an {name}`IteratorCollect` instance.
 
 {docstring Iter.toArray}
 
@@ -900,10 +955,6 @@ To be collected, an iterator must be finite and have an {name}`IteratorCollect` 
 {docstring IteratorCollect.defaultImplementation}
 
 {docstring LawfulIteratorCollect +allowMissing}
-
-{docstring IteratorCollectPartial}
-
-{docstring IteratorCollectPartial.defaultImplementation}
 
 
 # Iterator Combinators

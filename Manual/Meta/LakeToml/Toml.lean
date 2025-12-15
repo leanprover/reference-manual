@@ -165,18 +165,18 @@ where
 private def hasSubstring (haystack : String) (needle : String) : Bool := Id.run do
   if needle.isEmpty then return true
   if needle.length > haystack.length then return false
-  let mut iter := haystack.startValidPos
+  let mut iter := haystack.startPos
   let fst := String.Pos.Raw.get needle 0
-  while h : iter ≠ haystack.endValidPos do
+  while h : iter ≠ haystack.endPos do
     if iter.get h  == fst then
       let mut iter' := iter
-      let mut iter'' := needle.startValidPos
-      while h : iter' ≠ haystack.endValidPos ∧ iter'' ≠ needle.endValidPos do
+      let mut iter'' := needle.startPos
+      while h : iter'≠ haystack.endPos ∧ iter'' ≠ needle.endPos do
         if iter'.get h.1 == iter''.get h.2 then
           iter' := iter'.next h.1
           iter'' := iter''.next h.2
         else break
-      if iter'' ≠ needle.endValidPos then
+      if iter'' ≠ needle.endPos then
         iter := iter.next h
         continue
       else return true
@@ -244,7 +244,7 @@ partial def highlightToml : Syntax → StateM (Option String) Highlighted := fun
     srcInfoHl info <$> elts.mapM highlightToml
   | .node info ``Lake.Toml.basicString #[s@(.atom _ str)] =>
     if let some str' := Lean.Syntax.decodeStrLit str then
-      if (str'.take 8 == "https://" || str'.take 7 == "http://") && !hasSubstring str' "example.com" then
+      if (str'.startsWith "https://" || str'.startsWith "http://".toSlice ) && !hasSubstring str' "example.com" then
         (srcInfoHl info ∘ .link str') <$> highlightToml s
       else
         srcInfoHl info <$> highlightToml s
@@ -316,9 +316,9 @@ partial def Highlighted.toHtml (tableLink : Name → Option String) (keyLink : N
   | .text s => s
   | .ws s =>
     let comment := s.find (· == '#')
-    let commentStr := comment.extract s s.rawEndPos
+    let commentStr := s.extract comment s.endPos
     let commentHtml := if commentStr.isEmpty then .empty else {{<span class="comment">{{commentStr}}</span>}}
-    {{ {{String.Pos.Raw.extract s 0 comment}} {{commentHtml}} }}
+    {{ {{s.extract s.startPos comment}} {{commentHtml}} }}
   | .key none k => {{
     <span class="key">
       {{k.toHtml tableLink keyLink}}

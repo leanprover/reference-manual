@@ -22,7 +22,7 @@ set_option pp.rawOnError true
 :::paragraph
 The logical model of strings in Lean is a structure that contains two fields:
 
- * {name}`String.bytes` is a {name}`ByteArray`, which contains the UTF-8 encoding of the string.
+ * {name}`String.toByteArray` is a {name}`ByteArray`, which contains the UTF-8 encoding of the string.
 
  * {name}`String.isValidUTF8` is a proof that the bytes are in fact a valid UTF-8 encoding of a string.
 

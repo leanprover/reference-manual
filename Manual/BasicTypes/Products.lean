@@ -285,7 +285,7 @@ partial def getValues : IO (Σ n, Vector String n) := do
   IO.println "How many lines to read?"
   let howMany ← stdin.getLine
 
-  if let some howMany := howMany.trim.toNat? then
+  if let some howMany := howMany.trimAscii.copy.toNat? then
     return ⟨howMany, (← getNLines howMany)⟩
   else
     IO.eprintln "Please enter a number."
@@ -295,7 +295,7 @@ def main : IO Unit := do
   let values ← getValues
   IO.println s!"Got {values.fst} values. They are:"
   for x in values.snd do
-    IO.println x.trim
+    IO.println x.trimAscii
 ```
 :::paragraph
 When calling the program with this standard input:
