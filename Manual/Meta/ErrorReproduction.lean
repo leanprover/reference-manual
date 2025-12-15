@@ -4,9 +4,11 @@ import Manual.Meta.ErrorExplanation
 open Lean
 set_option doc.verso true
 
-block_extension Block.tabbedErrorReproduction (titles : Array String) where
+block_extension Manual.Block.tabbedErrorReproduction (titles : Array String) where
   data := toJson titles
-  traverse _ _ _ := pure none
+  traverse id _data _blocks := do
+    discard <| Verso.Genre.Manual.externalTag id (← read).path "error-example"
+    pure none
   toTeX := none
   extraCss := [r#"
 .error-example-container:not(:last-child) {

@@ -1,6 +1,7 @@
 import VersoManual
 import VersoManual.InlineLean
 import Manual.Meta.ErrorExplanation
+import Manual.Meta.ErrorReproduction
 import Verso.Doc.Elab
 
 open Lean
@@ -66,15 +67,23 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
         pure [("Fixed", contents)]
       | [(_, .some title, _)] => throwErrorAt title m!"Error explanations with a single title don't need to name the title"
       | _ =>
-        fixedExamples.mapM (fun (syn, exampleName, contents) => do
+        fixedExamples.mapM (fun (syn, exampleName, fixedTxt) => do
           let .some q := exampleName
             | throwErrorAt syn "Error explanations with more than one title need to name each title"
+          let contents ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := none, error := false, fresh := true } fixedTxt
           pure (s!"Fixed ({q})", contents)
           )
 
-    let str := s!"{repr contents}"
-    ``(Doc.Block.other (Manual.Block.example $(quote (title ++ "bb")) none (opened := true))
-        #[Doc.Block.para #[Doc.Inline.text $(quote (title ++ "aa"))], $brokenBlock])
+    let tabbedContentHeaders :=
+      "Broken" :: fixedBlocks.map (·.1)
+    let tabbedContentBlocks :=
+      (← ``(Doc.Block.concat #[$brokenBlock])) :: fixedBlocks.map (·.2)
+
+    println! s!"{tabbedContentHeaders}"
+    ``(Doc.Block.other (Manual.Block.example $(quote (title ++ "cc")) none (opened := true))
+        #[Doc.Block.para #[Doc.Inline.text $(quote (title ++ "aa"))],
+          Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
+          Doc.Block.para #[Doc.Inline.text $(quote (title ++ "bb"))],])
 where
   partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax × Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
   match blocks with
