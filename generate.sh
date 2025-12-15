@@ -69,14 +69,14 @@ fi
 echo "Running generate-manual with args --depth 2 --verbose --delay-html-multi multi.json --remote-config $REF_REMOTE_CONFIG --with-word-count words.txt $DRAFT_FLAG"
 lake --quiet exe generate-manual --depth 2 --verbose --delay-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" --with-word-count "words.txt" $DRAFT_FLAG
 
-echo "Running generate-tutorials with args --verbose --delay tutorials.json --remote-config $TUT_REMOTE_CONFIG $DRAFT_FLAG"
-lake --quiet exe generate-tutorials --verbose --delay tutorials.json --remote-config "$TUT_REMOTE_CONFIG" $DRAFT_FLAG
+echo "Running generate-tutorials with args --verbose --delay tutorials.json --remote-config $TUT_REMOTE_CONFIG"
+lake --quiet exe generate-tutorials --verbose --delay tutorials.json --remote-config "$TUT_REMOTE_CONFIG"
 
 echo "Running generate-manual with args --verbose --resume-html-multi multi.json --remote-config $REF_REMOTE_CONFIG $DRAFT_FLAG"
 lake --quiet exe generate-manual --verbose --resume-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" $DRAFT_FLAG
 
-echo "Running generate-tutorials with args --verbose --resume tutorials.json --remote-config $TUT_REMOTE_CONFIG $DRAFT_FLAG"
-lake --quiet exe generate-tutorials --verbose --resume tutorials.json --remote-config "$TUT_REMOTE_CONFIG" $DRAFT_FLAG
+echo "Running generate-tutorials with args --verbose --resume tutorials.json --remote-config $TUT_REMOTE_CONFIG"
+lake --quiet exe generate-tutorials --verbose --resume tutorials.json --remote-config "$TUT_REMOTE_CONFIG"
 
 # Set up output directories
 echo "Setting up output directories"
