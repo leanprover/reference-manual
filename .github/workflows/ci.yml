@@ -155,12 +155,13 @@ jobs:
       - name: Generate HTML (non-release)
         if: github.event_name != 'release'
         run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+          ./generate.sh --mode preview
 
       - name: Generate HTML (release)
         if: github.event_name == 'release'
         run: |
-          lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+          VERSION=${GITHUB_REF#refs/tags/v}
+          ./generate.sh --mode production --version "$VERSION"
 
       - name: Check Manual Examples are Isolated
         run: |
@@ -170,7 +171,7 @@ jobs:
         if: github.event_name == 'pull_request'
         id: generate
         run: |
-          lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
+          ./generate.sh --mode preview --draft --output "_out/draft-site"
 
       - name: Report status to Lean PR
         if: always() && github.repository == 'leanprover/reference-manual'
@@ -222,7 +223,7 @@ jobs:
       - name: Run LinkChecker (local links only)
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
-          linkchecker --config=.linkchecker/linkcheckerrc './_out/html-multi/'
+          linkchecker --config=.linkchecker/linkcheckerrc './_out/site/'
 
       # This saved number is used by a workflow_run trigger. It
       # manages labels that indicate the status of the built HTML.
@@ -282,7 +283,7 @@ jobs:
         uses: nwtgck/actions-netlify@v2.0
         if: github.event_name == 'release'
         with:
-          publish-dir: _out/html-multi
+          publish-dir: _out/site/reference
           production-branch: main
           production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
