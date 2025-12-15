@@ -1,7 +1,5 @@
 import VersoManual
 import Manual.Meta.ErrorExplanation
-import Manual.Meta.ErrorExplanationHeader
-import Manual.Meta.ErrorExplanationExample
 
 open Lean Doc
 open Verso.Genre Manual InlineLean
@@ -9,7 +7,6 @@ open Verso.Genre Manual InlineLean
 #doc (Manual) "About: `inductiveParamMissing`" =>
 %%%
 shortTitle := "inductiveParamMissing"
-tag := "lean.inductiveParamMissing"
 %%%
 
 {errorExplanationHeader lean.inductiveParamMissing}

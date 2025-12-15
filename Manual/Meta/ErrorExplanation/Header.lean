@@ -1,14 +1,24 @@
+/-
+Copyright (c) 2025 Lean FRO LLC. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Joseph Rotella, Rob Simmons
+-/
+
 import VersoManual
-import Manual.Meta.ErrorExplanation
+import Manual.Meta.ErrorExplanation.Domain
 
 open Lean
-open Verso.Genre.Manual (logError)
+open Verso.Genre.Manual
+
 set_option doc.verso true
 variable [Monad m] [MonadError m]
 
 structure ErrorExplanationExtendedMetadata extends ErrorExplanation.Metadata where
   name : Name
-deriving ToJson, FromJson, Quote
+deriving ToJson, FromJson
+
+deriving instance Quote for ErrorExplanation.Metadata
+deriving instance Quote for ErrorExplanationExtendedMetadata
 
 block_extension Block.errorExplanationHeader (metadata : ErrorExplanationExtendedMetadata) where
   data := toJson metadata
@@ -81,7 +91,8 @@ instance : Verso.ArgParse.FromArgs ErrorHeaderConfig m where
     ErrorHeaderConfig.mk <$> Verso.ArgParse.positional `title Verso.ArgParse.ValDesc.name
 
 /--
-Error explanations start with header inserted by the {lit}`{errorExplanationHeader}` block command.
+Error explanations must start with header inserted by the {lit}`{errorExplanationHeader}` block
+command.
 
 This elaboration of this command contains a {name}`Block.errorExplanationHeader` block that
 handles both formatting the header and inserting the external reference to the error identifier.
