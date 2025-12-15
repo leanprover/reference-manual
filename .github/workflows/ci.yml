@@ -223,7 +223,20 @@ jobs:
       - name: Run LinkChecker (local links only)
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         run: |
-          linkchecker --config=.linkchecker/linkcheckerrc './_out/site/'
+          # Start a local web server in the background for link checking
+          cd _out/site
+          python3 -m http.server 8877 &
+          SERVER_PID=$!
+          cd ../..
+
+          # Wait for server to start
+          sleep 2
+
+          # Run linkchecker against the local server
+          linkchecker --config=.linkchecker/linkcheckerrc 'http://localhost:8877/'
+
+          # Stop the server
+          kill $SERVER_PID || true
 
       # This saved number is used by a workflow_run trigger. It
       # manages labels that indicate the status of the built HTML.
