@@ -30,6 +30,7 @@ import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
 import Manual.SupportedPlatforms
+import Manual.VCGen
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -98,6 +99,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 {include 0 Manual.Simp}
 
 {include 0 Manual.Grind}
+
+{include 0 Manual.VCGen}
 
 {include 0 Manual.BasicProps}
 
@@ -335,6 +338,9 @@ Eq
 HEq
 Max
 Min
+Std.Do
+Std.Do.PredTrans
+Std.Do.SVal
 Std.HashMap
 Std.ExtHashMap
 Std.DHashMap
