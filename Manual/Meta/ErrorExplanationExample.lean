@@ -3,6 +3,7 @@ import VersoManual.InlineLean
 import Manual.Meta.ErrorExplanation
 import Manual.Meta.ErrorReproduction
 import Verso.Doc.Elab
+import Verso.Doc.Elab.Block
 
 open Lean
 set_option doc.verso true
@@ -58,7 +59,7 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
       | throwErrorAt errorStx m!"Second element in errorExample must be an `output` codeblock containing the generated error message"
 
     let brokenBlock ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := `bork, error := true, fresh := true } brokenTxt
-    let (fixedExamples, restStx) ← partitionFixed restStx
+    let (fixedExamples, narrativeStx) ← partitionFixed restStx
 
     let fixedBlocks : List (String × Term) ← match fixedExamples with
       | [] => throwErrorAt restStx[0]! "Error examples must include one or more `fixed` codeblocks containing a fix for broken code"
@@ -74,6 +75,8 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           pure (s!"Fixed ({q})", contents)
           )
 
+    let narrativeBlocks ← narrativeStx.mapM Verso.Doc.Elab.elabBlock
+
     let tabbedContentHeaders :=
       "Broken" :: fixedBlocks.map (·.1)
     let tabbedContentBlocks :=
@@ -83,7 +86,7 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
     ``(Doc.Block.other (Manual.Block.example $(quote (title ++ "cc")) none (opened := true))
         #[Doc.Block.para #[Doc.Inline.text $(quote (title ++ "aa"))],
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
-          Doc.Block.para #[Doc.Inline.text $(quote (title ++ "bb"))],])
+          $narrativeBlocks.toArray,*])
 where
   partitionFixed (blocks: List (TSyntax `block)) : Verso.Doc.Elab.DocElabM (List (Syntax × Option StrLit × TSyntax `str) × List (TSyntax `block)) := do
   match blocks with
@@ -100,11 +103,6 @@ where
     logInfoAt block m!".. {repr args}"
     let (fixedExamples, descrBlocks) ← partitionFixed rest
     return ((block, arg?, fixedTxt) :: fixedExamples, descrBlocks)
-/-
-    | `(Lean.Doc.Syntax.codeblock|``` fixed $arg?| $fixedTxt ```) :: restStx => do
-      let (fixedExamples, docs) ← partitionFixed restStx
-      return ((arg, fixedTxt), docs)
-    | restStx => pure ([], restStx)-/
 
 
 #doc (Verso.Genre.Manual) "Example" =>
