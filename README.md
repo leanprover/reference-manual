@@ -336,7 +336,7 @@ explicitly invoked by `update-nightly.yml`. It finds the most recent
 `nightly-testing-YYYY-MM-DD` tag in the `reference-manual` repository. This
 tag also exists in the `lean4-nightly` repository, and the commit it
 corresponds to also exists in the `lean4` repository. The workflow resets
-the `nightly-with-manual` branch to this commit.
+the `lean4` repository's `nightly-with-manual` branch to this commit.
 
 This branch is important because it is used to provide feedback in
 Lean PRs as to whether the manual succeeds in building their PR, or
