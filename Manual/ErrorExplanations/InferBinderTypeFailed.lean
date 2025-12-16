@@ -153,6 +153,6 @@ of the same type by listing them consecutively on the same line. Lean instead in
 defining a single field, `givenName`, parametrized by a binder `familyName` with no specified type.
 The intended behavior can be achieved by either listing each field on a separate line, or enclosing
 the line specifying multiple field names in parentheses (see the manual section on
-[Inductive Types](lean-manual://section/inductive-types) for further details about structure
+{ref "inductive-types"}[Inductive Types] for further details about structure
 declarations).
 :::

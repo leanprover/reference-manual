@@ -78,8 +78,8 @@ def identity (x : α) :=
 
 In this example, the type of `identity` is determined by the type of `x`, which cannot be inferred.
 Both the indicated error and
-[lean.inferBinderTypeFailed](lean-manual://errorExplanation/lean.inferBinderTypeFailed) therefore
-appear (see that explanation for additional discussion of this example). Resolving the latter—by
-explicitly specifying the type of `x`—provides Lean with sufficient information to infer the
-definition type.
+{ref "lean.inferBinderTypeFailed" (domain := Manual.errorExplanation)}[`lean.inferBinderTypeFailed`]
+therefore appear (see that explanation for additional discussion of this example). Resolving the
+latter—by explicitly specifying the type of `x`—provides Lean with sufficient information to infer
+the definition type.
 :::

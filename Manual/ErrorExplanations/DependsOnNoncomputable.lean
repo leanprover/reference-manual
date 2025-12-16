@@ -83,7 +83,7 @@ The original definition of `getOrDefault` is noncomputable due to its use of `Cl
 Unlike in the preceding example, however, it is possible to implement a similar but computable
 version of `getOrDefault` (using the `Inhabited` type class), allowing `endsOrDefault` to be
 computable. (The differences between `Inhabited` and `Nonempty` are described in the documentation
-of inhabited types in the manual section on [Basic Classes](lean-manual://section/basic-classes).)
+of inhabited types in the manual section on {ref "basic-classes"}[Basic Classes].)
 :::
 
 :::errorExample "Noncomputable Instance in Namespace"
