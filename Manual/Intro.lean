@@ -94,7 +94,7 @@ Informative output, such as the result of {keywordOf Lean.Parser.Command.eval}`#
 
 Warnings are shown like this:
 ```leanOutput output (severity := warning)
-declaration uses 'sorry'
+declaration uses `sorry`
 ```
 
 Error messages are shown like this:

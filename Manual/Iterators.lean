@@ -18,8 +18,8 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
-open Std.Iterators
-open Std (TreeMap)
+open Std.Iterators Types
+open Std (TreeMap Iter IterM IterStep Iterator PlausibleIterStep IteratorCollect IteratorLoop IteratorAccess LawfulIteratorLoop LawfulIteratorCollect)
 
 #doc (Manual) "Iterators" =>
 %%%
@@ -835,9 +835,9 @@ where
 
 Iterators are manually stepped using {name}`Iter.step` or {name}`IterM.step`.
 
-{docstring Std.Iterators.Iter.step}
+{docstring Iter.step}
 
-{docstring Std.Iterators.IterM.step}
+{docstring IterM.step}
 
 ### Termination
 
@@ -1011,108 +1011,108 @@ Blank spaces in the upper rows of the marble diagram indicate that the iterator 
 
 ## Pure Combinators
 
-{docstring Std.Iterators.toIterM}
+{docstring IterM.mk}
 
-{docstring Std.Iterators.Iter.toIterM}
+{docstring Iter.toIterM}
 
-{docstring Std.Iterators.Iter.take}
+{docstring Iter.take}
 
-{docstring Std.Iterators.Iter.takeWhile}
+{docstring Iter.takeWhile}
 
-{docstring Std.Iterators.Iter.toTake}
+{docstring Iter.toTake}
 
-{docstring Std.Iterators.Iter.drop}
+{docstring Iter.drop}
 
-{docstring Std.Iterators.Iter.dropWhile}
+{docstring Iter.dropWhile}
 
-{docstring Std.Iterators.Iter.stepSize}
+{docstring Iter.stepSize}
 
-{docstring Std.Iterators.Iter.map}
+{docstring Iter.map}
 
-{docstring Std.Iterators.Iter.mapM}
+{docstring Iter.mapM}
 
-{docstring Std.Iterators.Iter.mapWithPostcondition}
+{docstring Iter.mapWithPostcondition}
 
-{docstring Std.Iterators.Iter.uLift}
+{docstring Iter.uLift}
 
-{docstring Std.Iterators.Iter.flatMap}
+{docstring Iter.flatMap}
 
-{docstring Std.Iterators.Iter.flatMapM}
+{docstring Iter.flatMapM}
 
-{docstring Std.Iterators.Iter.flatMapAfter}
+{docstring Iter.flatMapAfter}
 
-{docstring Std.Iterators.Iter.flatMapAfterM}
+{docstring Iter.flatMapAfterM}
 
-{docstring Std.Iterators.Iter.filter}
+{docstring Iter.filter}
 
-{docstring Std.Iterators.Iter.filterM}
+{docstring Iter.filterM}
 
-{docstring Std.Iterators.Iter.filterWithPostcondition}
+{docstring Iter.filterWithPostcondition}
 
-{docstring Std.Iterators.Iter.filterMap}
+{docstring Iter.filterMap}
 
-{docstring Std.Iterators.Iter.filterMapM}
+{docstring Iter.filterMapM}
 
-{docstring Std.Iterators.Iter.filterMapWithPostcondition}
+{docstring Iter.filterMapWithPostcondition}
 
-{docstring Std.Iterators.Iter.zip}
+{docstring Iter.zip}
 
 {docstring Iter.attachWith}
 
 
 ## Monadic Combinators
 
-{docstring Std.Iterators.IterM.toIter}
+{docstring IterM.toIter}
 
-{docstring Std.Iterators.IterM.take}
+{docstring IterM.take}
 
-{docstring Std.Iterators.IterM.takeWhile}
+{docstring IterM.takeWhile}
 
-{docstring Std.Iterators.IterM.takeWhileM}
+{docstring IterM.takeWhileM}
 
-{docstring Std.Iterators.IterM.takeWhileWithPostcondition}
+{docstring IterM.takeWhileWithPostcondition}
 
-{docstring Std.Iterators.IterM.toTake}
+{docstring IterM.toTake}
 
-{docstring Std.Iterators.IterM.drop}
+{docstring IterM.drop}
 
-{docstring Std.Iterators.IterM.dropWhile}
+{docstring IterM.dropWhile}
 
-{docstring Std.Iterators.IterM.dropWhileM}
+{docstring IterM.dropWhileM}
 
-{docstring Std.Iterators.IterM.dropWhileWithPostcondition}
+{docstring IterM.dropWhileWithPostcondition}
 
-{docstring Std.Iterators.IterM.stepSize}
+{docstring IterM.stepSize}
 
-{docstring Std.Iterators.IterM.map}
+{docstring IterM.map}
 
-{docstring Std.Iterators.IterM.mapM}
+{docstring IterM.mapM}
 
-{docstring Std.Iterators.IterM.mapWithPostcondition}
+{docstring IterM.mapWithPostcondition}
 
-{docstring Std.Iterators.IterM.uLift}
+{docstring IterM.uLift}
 
-{docstring Std.Iterators.IterM.flatMap}
+{docstring IterM.flatMap}
 
-{docstring Std.Iterators.IterM.flatMapM}
+{docstring IterM.flatMapM}
 
-{docstring Std.Iterators.IterM.flatMapAfter}
+{docstring IterM.flatMapAfter}
 
-{docstring Std.Iterators.IterM.flatMapAfterM}
+{docstring IterM.flatMapAfterM}
 
-{docstring Std.Iterators.IterM.filter}
+{docstring IterM.filter}
 
-{docstring Std.Iterators.IterM.filterM}
+{docstring IterM.filterM}
 
-{docstring Std.Iterators.IterM.filterWithPostcondition}
+{docstring IterM.filterWithPostcondition}
 
-{docstring Std.Iterators.IterM.filterMap}
+{docstring IterM.filterMap}
 
-{docstring Std.Iterators.IterM.filterMapM}
+{docstring IterM.filterMapM}
 
-{docstring Std.Iterators.IterM.filterMapWithPostcondition}
+{docstring IterM.filterMapWithPostcondition}
 
-{docstring Std.Iterators.IterM.zip}
+{docstring IterM.zip}
 
 {docstring IterM.attachWith}
 

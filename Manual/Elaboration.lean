@@ -233,8 +233,8 @@ info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} �
     (t : List α) →
       ((head : α) → (tail : List α) → motive (head :: tail)) → (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t :=
 fun {α} {motive} t cons =>
-  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun x => x ⋯)
-    (fun head tail tail_ih x => cons head tail) t
+  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun «else» => «else» ⋯)
+    (fun head tail tail_ih «else» => cons head tail) t
 -/
 #check_msgs in
 #print third_of_five._sparseCasesOn_1
