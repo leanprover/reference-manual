@@ -7,6 +7,9 @@ Author: Joseph Rotella, Rob Simmons
 import Lean
 import Manual.Meta.ErrorExplanation
 import Manual.ErrorExplanations.CtorResultingTypeMismatch
+import Manual.ErrorExplanations.DependsOnNoncomputable
+import Manual.ErrorExplanations.Foo
+import Manual.ErrorExplanations.InductionWithNoAlts
 import Manual.ErrorExplanations.InductiveParamMissing
 
 open Lean
@@ -69,5 +72,11 @@ by Lean when processing a source file. All error names listed below have the
 {error_explanation_table}
 
 {include 0 Manual.ErrorExplanations.CtorResultingTypeMismatch}
+
+{include 0 Manual.ErrorExplanations.DependsOnNoncomputable}
+
+{include 0 Manual.ErrorExplanations.Foo}
+
+{include 0 Manual.ErrorExplanations.InductionWithNoAlts}
 
 {include 0 Manual.ErrorExplanations.InductiveParamMissing}

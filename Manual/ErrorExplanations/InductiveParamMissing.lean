@@ -7,7 +7,7 @@ Author: Joseph Rotella, Rob Simmons
 import VersoManual
 import Manual.Meta.ErrorExplanation
 
-open Lean Doc
+open Lean
 open Verso.Genre Manual InlineLean
 
 #doc (Manual) "About: `inductiveParamMissing`" =>
@@ -39,7 +39,7 @@ structure RoseTree (α : Type u) where
   val : α
   children : List (RoseTree α)
 
-inductive RoseTree.All {α : Type u} (P : α → Prop) (t : RoseTree α) : Prop
+inductive RoseTree.All (P : α → Prop) (t : RoseTree α) : Prop
   | intro : P t.val → List.All (All P) t.children → All P t
 ```
 
@@ -63,7 +63,7 @@ structure RoseTree (α : Type u) where
   val : α
   children : List (RoseTree α)
 
-inductive RoseTree.All {α : Type u} (P : α → Prop) : RoseTree α → Prop
+inductive RoseTree.All (P : α → Prop) : RoseTree α → Prop
   | intro : P t.val → List.All (All P) t.children → All P t
 ```
 
