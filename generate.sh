@@ -65,15 +65,24 @@ else
   echo "Generated production configs with version $VERSION"
 fi
 
+# Set up output locations based on draft mode
+if [ -n "$DRAFT_FLAG" ]; then
+  MANUAL_OUTPUT_FLAG="--output _out/draft"
+  REF_SOURCE="_out/draft/html-multi"
+else
+  MANUAL_OUTPUT_FLAG=""
+  REF_SOURCE="_out/html-multi"
+fi
+
 # Generate the manual and tutorials
-echo "Running generate-manual with args --depth 2 --verbose --delay-html-multi multi.json --remote-config $REF_REMOTE_CONFIG --with-word-count words.txt $DRAFT_FLAG"
-lake --quiet exe generate-manual --depth 2 --verbose --delay-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" --with-word-count "words.txt" $DRAFT_FLAG
+echo "Running generate-manual with args --depth 2 --verbose --delay-html-multi multi.json --remote-config $REF_REMOTE_CONFIG --with-word-count words.txt $MANUAL_OUTPUT_FLAG $DRAFT_FLAG"
+lake --quiet exe generate-manual --depth 2 --verbose --delay-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" --with-word-count "words.txt" $MANUAL_OUTPUT_FLAG $DRAFT_FLAG
 
 echo "Running generate-tutorials with args --verbose --delay tutorials.json --remote-config $TUT_REMOTE_CONFIG"
 lake --quiet exe generate-tutorials --verbose --delay tutorials.json --remote-config "$TUT_REMOTE_CONFIG"
 
-echo "Running generate-manual with args --verbose --resume-html-multi multi.json --remote-config $REF_REMOTE_CONFIG $DRAFT_FLAG"
-lake --quiet exe generate-manual --verbose --resume-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" $DRAFT_FLAG
+echo "Running generate-manual with args --verbose --resume-html-multi multi.json --remote-config $REF_REMOTE_CONFIG $MANUAL_OUTPUT_FLAG $DRAFT_FLAG"
+lake --quiet exe generate-manual --verbose --resume-html-multi multi.json --remote-config "$REF_REMOTE_CONFIG" $MANUAL_OUTPUT_FLAG $DRAFT_FLAG
 
 echo "Running generate-tutorials with args --verbose --resume tutorials.json --remote-config $TUT_REMOTE_CONFIG"
 lake --quiet exe generate-tutorials --verbose --resume tutorials.json --remote-config "$TUT_REMOTE_CONFIG"
@@ -88,7 +97,7 @@ echo "Copying files to site directory"
 if [ "$MODE" = "preview" ]; then
   cp test-data/index.html "$OUTPUT/index.html"
 fi
-cp -r _out/html-multi/* "$OUTPUT/reference/"
+cp -r "$REF_SOURCE"/* "$OUTPUT/reference/"
 cp -r _tutorial-out/* "$OUTPUT/tutorials/"
 
 echo "Done! Site generated at $OUTPUT/"
