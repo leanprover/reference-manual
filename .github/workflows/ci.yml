@@ -408,12 +408,12 @@ jobs:
           python3 -m http.server 8877 --directory _out/site 2>/dev/null &
           SERVER_PID=$!
 
+          # Ensure server is stopped on exit
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+
           # Wait for server to start
           sleep 2
 
           # Run linkcheck as a CLI tool instead of using filiph/linkcheck action
           # because the action runs in isolation and can't reach our local HTTP server
           linkcheck http://localhost:8877/
-
-          # Stop the server
-          kill $SERVER_PID || true
