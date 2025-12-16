@@ -42,7 +42,7 @@ To use iterators, import {module}`Std.Data.Iterators`.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Combining a list and an array using {name}`List.zip` or {name}`Array.zip` would ordinarily require converting one of them into the other collection.
 Using iterators, they can be processed without conversion:
@@ -62,7 +62,7 @@ def codes : List String := ["aa27d1", "a0a0a0", "0000c5"]
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 :::paragraph
 In this example, an array of colors and a list of color codes are combined.
@@ -158,7 +158,7 @@ In these cases, it can be helpful to omit the return type from the signature and
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 
 Writing the internal state type explicitly for list and array iterators is feasible:
@@ -277,7 +277,7 @@ They usually require proof that the involved iterator is finite.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 :::paragraph
 To write an iterator that yields each natural number in turn, the first step is to implement its internal state.
@@ -413,7 +413,7 @@ failed to synthesize instance for 'for_in%' notation
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 The type {name}`Triple` contains three values of the same type:
 ```lean
@@ -592,7 +592,7 @@ c
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 One way to iterate over the contents of a file is to read a specified number of bytes from a {name IO.FS.Stream}`Stream` at each step.
 When EOF is reached, the iterator can close the file by letting its reference count drop to zero:
@@ -723,7 +723,7 @@ There are three primary ways to consume an iterator:
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 In {name}`countdown`, an iterator over a range is transformed into an iterator over strings using {name}`Iter.map`.
 This call to {name}`Iter.map` does not result in any iteration over the range until {name}`Iter.toList` is called, at which point each element of the range is produced and transformed into a string.
@@ -753,7 +753,7 @@ def countdown : String :=
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Attempting to construct a list of all the natural numbers from an iterator will produce an endless loop:
 ```lean (name := toListInf) -keep
@@ -771,7 +771,7 @@ def allNats : List Nat :=
 The resulting error message states that there is no {name}`Finite` instance:
 ```leanOutput toListInf
 failed to synthesize instance of type class
-  Finite (Std.Rxi.Iterator Nat) Id
+  Finite (Rxi.Iterator Nat) Id
 
 Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
@@ -783,7 +783,7 @@ Hint: Type class instance resolution failures can be inspected with the `set_opt
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 This program creates an iterator of strings from a range, and then consumes the strings in a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 ```lean (name := iterFor)
@@ -810,7 +810,7 @@ Blastoff!
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 The function {name}`countdown` calls the range iterator's {name Iter.step}`step` function directly, handling each of the three possible cases.
 ```lean
@@ -849,7 +849,7 @@ The proof automation for {ref "well-founded-recursion"}[well-founded recursion] 
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 This function returns the first element of an iterator, if there is one, or {name}`none` otherwise.
 Because the iterator must be productive, it is guaranteed to return an element after at most a finite number of {name PlausibleIterStep.skip}`skip`s.
