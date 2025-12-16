@@ -1142,7 +1142,7 @@ The latter two categories are typically automatic with {tactic}`simp`.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Every element returned by an iterator that multiplies the numbers consumed some other iterator by two is even.
 To prove this statement, {name}`Iter.all_toList`, {name}`Iter.toList_map`, and {name}`Array.toList_iter` are used to replace the statement about iterators with one about lists, after which {tactic}`simp` discharges the goal:
