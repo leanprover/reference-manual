@@ -159,6 +159,7 @@ import Std.Data.Iterators
 ```
 ```lean -show
 open Std
+open Iterators.Types (ListIterator ArrayIterator)
 ```
 
 Writing the internal state type explicitly for list and array iterators is feasible:
@@ -278,6 +279,7 @@ import Std.Data.Iterators
 ```
 ```lean -show
 open Std
+open Iterators (Productive)
 ```
 :::paragraph
 To write an iterator that yields each natural number in turn, the first step is to implement its internal state.
@@ -460,7 +462,7 @@ structure TripleIterator α where
 Iteration begins at {name TriplePos.fst}`fst`:
 ```lean
 def Triple.iter (xs : Triple α) : Iter (α := TripleIterator α) α :=
-  toIterM {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
+  IterM.mk {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
 ```
 
 There are two plausible steps: either the iterator's position has a successor, in which case the next iterator is one that points at the same triple with the successor position, or it does not, in which case iteration is complete.
@@ -610,7 +612,7 @@ def iterFile
     IO (IterM (α := FileIterator) IO ByteArray) := do
   let h ← IO.FS.Handle.mk path .read
   let stream? := some (IO.FS.Stream.ofHandle h)
-  return toIterM { stream?, count } IO ByteArray
+  return IterM.mk { stream?, count } IO ByteArray
 ```
 
 For this iterator, a {name IterStep.yield}`yield` is plausible when the file is still open, and {name IterStep.done}`done` is plausible when the file is closed.
@@ -850,12 +852,13 @@ import Std.Data.Iterators
 ```
 ```lean -show
 open Std
+open Iterators (Productive)
 ```
 This function returns the first element of an iterator, if there is one, or {name}`none` otherwise.
 Because the iterator must be productive, it is guaranteed to return an element after at most a finite number of {name PlausibleIterStep.skip}`skip`s.
 This function terminates even for infinite iterators.
 ```lean
-def getFirst [Iterator α Id β] [Productive α Id]
+def getFirst {α β} [Iterator α Id β] [Productive α Id]
     (it : @Iter α β) : Option β :=
   match it.step with
   | .done .. => none
