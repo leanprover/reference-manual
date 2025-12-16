@@ -389,6 +389,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .linkchecker
 
       - name: Get generated HTML from artifact storage
         uses: actions/download-artifact@v4
@@ -396,22 +399,23 @@ jobs:
           name: 'html'
           path: '_out/'
 
-      - name: Set up Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Install linkcheck
-        run: dart pub global activate linkcheck
-
-      - name: Run linkcheck
+      - name: Install LinkChecker
         run: |
-          # Start HTTP server in the background
-          python3 -m http.server 8877 --directory _out/site 2>/dev/null &
+          python -m pip install --upgrade pip
+          pip install linkchecker
+
+      - name: Run LinkChecker (local links only)
+        run: |
+          # Start custom HTTP server that sends LinkChecker header to bypass rate limiting
+          python3 .linkchecker/server.py 8877 _out/site 2>/dev/null &
 
           # Wait for server to start
           sleep 2
 
-          # Run linkcheck as a CLI tool instead of using filiph/linkcheck action
-          # because the action runs in isolation and can't reach our local HTTP server
-          linkcheck http://localhost:8877/
-
-          # GitHub Actions will automatically clean up the background server when this step completes
+          # Run linkchecker with high rate limit (enabled by LinkChecker header)
+          linkchecker --config=.linkchecker/linkcheckerrc --threads=30 'http://localhost:8877/'
