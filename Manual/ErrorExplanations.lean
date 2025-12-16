@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Joseph Rotella, Rob Simmons
 -/
 
-import Lean
 import Manual.Meta.ErrorExplanation
 import Manual.ErrorExplanations.CtorResultingTypeMismatch
 import Manual.ErrorExplanations.DependsOnNoncomputable
-import Manual.ErrorExplanations.Foo
 import Manual.ErrorExplanations.InductionWithNoAlts
 import Manual.ErrorExplanations.InductiveParamMismatch
 import Manual.ErrorExplanations.InductiveParamMissing
