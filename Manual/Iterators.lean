@@ -159,7 +159,7 @@ import Std.Data.Iterators
 ```
 ```lean -show
 open Std
-open Iterators.Types (ListIterator ArrayIterator)
+open Iterators.Types (ListIterator ArrayIterator Map)
 ```
 
 Writing the internal state type explicitly for list and array iterators is feasible:
@@ -416,6 +416,7 @@ import Std.Data.Iterators
 ```
 ```lean -show
 open Std
+open Iterators (Finite)
 ```
 The type {name}`Triple` contains three values of the same type:
 ```lean
