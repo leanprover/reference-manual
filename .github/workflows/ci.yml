@@ -417,5 +417,5 @@ jobs:
           # Wait for server to start
           sleep 2
 
-          # Run linkchecker with high rate limit (enabled by LinkChecker header)
-          linkchecker --config=.linkchecker/linkcheckerrc --threads=30 'http://localhost:8877/'
+          # Run linkchecker with moderate concurrency to avoid overwhelming Python's simple HTTP server
+          linkchecker --config=.linkchecker/linkcheckerrc --threads=10 'http://localhost:8877/'
