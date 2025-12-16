@@ -412,22 +412,10 @@ jobs:
       - name: Run LinkChecker (local links only)
         run: |
           # Start custom HTTP server that sends LinkChecker header to bypass rate limiting
-          python3 .linkchecker/server.py 8877 _out/site &
-          SERVER_PID=$!
+          python3 .linkchecker/server.py 8877 _out/site 2>/dev/null &
 
-          # Wait for server to start and verify it's responding
-          echo "Waiting for server to start..."
-          for i in {1..10}; do
-            if curl -s http://localhost:8877/ > /dev/null 2>&1; then
-              echo "Server is ready"
-              break
-            fi
-            if [ $i -eq 10 ]; then
-              echo "Server failed to start"
-              exit 1
-            fi
-            sleep 1
-          done
+          # Wait for server to start
+          sleep 2
 
           # Run linkchecker with high rate limit (enabled by LinkChecker header)
           linkchecker --config=.linkchecker/linkcheckerrc --threads=30 'http://localhost:8877/'
