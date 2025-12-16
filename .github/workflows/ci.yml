@@ -396,23 +396,24 @@ jobs:
           name: 'html'
           path: '_out/'
 
-      - name: Start HTTP server
+      - name: Set up Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install linkcheck
+        run: dart pub global activate linkcheck
+
+      - name: Run linkcheck
         run: |
           # Start HTTP server in the background
           python3 -m http.server 8877 --directory _out/site 2>/dev/null &
-          echo $! > server.pid
+          SERVER_PID=$!
 
           # Wait for server to start
           sleep 2
 
-      - name: Run linkcheck
-        uses: filiph/linkcheck@2.0.23
-        with:
-          arguments: http://localhost:8877/
+          # Run linkcheck as a CLI tool instead of using filiph/linkcheck action
+          # because the action runs in isolation and can't reach our local HTTP server
+          linkcheck http://localhost:8877/
 
-      - name: Stop HTTP server
-        if: always()
-        run: |
-          if [ -f server.pid ]; then
-            kill $(cat server.pid) || true
-          fi
+          # Stop the server
+          kill $SERVER_PID || true
