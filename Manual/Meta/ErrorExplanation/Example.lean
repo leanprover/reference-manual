@@ -213,7 +213,7 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
           let .some q := exampleName
             | throwErrorAt syn "Error explanations with more than one title need to name each title"
           let contents ← Verso.Genre.Manual.InlineLean.lean { «show» := true, keep := false, name := none, error := false, fresh := true } fixedTxt
-          pure (s!"Fixed ({q})", contents)
+          pure (s!"Fixed ({q.getString})", contents)
           )
 
     let narrativeBlocks ← narrativeStx.mapM Verso.Doc.Elab.elabBlock
@@ -223,8 +223,8 @@ def errorExample : Verso.Doc.Elab.DirectiveExpanderOf ErrorExampleConfig
     let tabbedContentBlocks :=
       (← ``(Doc.Block.concat #[$brokenBlock, $errorBlock])) :: fixedBlocks.map (·.2)
 
-    ``(Doc.Block.other (Manual.Block.example $(quote (title ++ "cc")) none (opened := true))
-        #[Doc.Block.para #[Doc.Inline.text $(quote (title ++ "aa"))],
+    ``(Doc.Block.other (Manual.Block.example $(quote (title)) none (opened := true))
+        #[Doc.Block.para #[Doc.Inline.text $(quote (title))],
           Doc.Block.other (Manual.Block.tabbedErrorReproduction $(quote tabbedContentHeaders.toArray)) #[$tabbedContentBlocks.toArray,*],
           $narrativeBlocks.toArray,*])
 where
@@ -242,23 +242,3 @@ where
       | _ => throwErrorAt args[1]! m!"At most one string arg expected"
     let (fixedExamples, descrBlocks) ← partitionFixed rest
     return ((block, arg?, fixedTxt) :: fixedExamples, descrBlocks)
-
-#doc (Verso.Genre.Manual) "Example" =>
-%%%
-%%%
-
-:::errorExample "Only a Dot Before the Numeral"
-```broken
-example := .3
-```
-```output
-invalid occurrence of `·` notation, it must be surrounded by parentheses (e.g. `(· + 1)`)
-```
-```fixed "make it an `Nat`"
-example := 3
-```
-```fixed "make it a `Float`"
-example := 0.3
-```
-Some explanatory text here.
-:::

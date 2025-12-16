@@ -10,7 +10,17 @@ import Manual.ErrorExplanations.CtorResultingTypeMismatch
 import Manual.ErrorExplanations.DependsOnNoncomputable
 import Manual.ErrorExplanations.Foo
 import Manual.ErrorExplanations.InductionWithNoAlts
+import Manual.ErrorExplanations.InductiveParamMismatch
 import Manual.ErrorExplanations.InductiveParamMissing
+import Manual.ErrorExplanations.InferBinderTypeFailed
+import Manual.ErrorExplanations.InferDefTypeFailed
+import Manual.ErrorExplanations.InvalidDottedIdent
+import Manual.ErrorExplanations.InvalidField
+import Manual.ErrorExplanations.ProjNonPropFromProp
+import Manual.ErrorExplanations.PropRecLargeElim
+import Manual.ErrorExplanations.RedundantMatchAlt
+import Manual.ErrorExplanations.SynthInstanceFailed
+import Manual.ErrorExplanations.UnknownIdentifier
 
 open Lean
 open Verso.Doc Elab
@@ -75,8 +85,26 @@ by Lean when processing a source file. All error names listed below have the
 
 {include 0 Manual.ErrorExplanations.DependsOnNoncomputable}
 
-{include 0 Manual.ErrorExplanations.Foo}
-
 {include 0 Manual.ErrorExplanations.InductionWithNoAlts}
 
+{include 0 Manual.ErrorExplanations.InductiveParamMismatch}
+
 {include 0 Manual.ErrorExplanations.InductiveParamMissing}
+
+{include 0 Manual.ErrorExplanations.InferBinderTypeFailed}
+
+{include 0 Manual.ErrorExplanations.InferDefTypeFailed}
+
+{include 0 Manual.ErrorExplanations.InvalidDottedIdent}
+
+{include 0 Manual.ErrorExplanations.InvalidField}
+
+{include 0 Manual.ErrorExplanations.ProjNonPropFromProp}
+
+{include 0 Manual.ErrorExplanations.PropRecLargeElim}
+
+{include 0 Manual.ErrorExplanations.RedundantMatchAlt}
+
+{include 0 Manual.ErrorExplanations.SynthInstanceFailed}
+
+{include 0 Manual.ErrorExplanations.UnknownIdentifier}
