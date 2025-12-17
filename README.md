@@ -54,26 +54,26 @@ sources. To build them, you'll need the following:
 
 - A LaTeX installation, including LuaLaTeX and the following packages
   from TeXLive:
-  - `scheme-minimal`
-  - `latex-bin`
-  - `fontspec`
-  - `standalone`
-  - `pgf`
-  - `pdftexcmds`
-  - `luatex85`
-  - `lualatex-math`
-  - `infwarerr`
-  - `ltxcmds`
-  - `xcolor`
-  - `fontawesome`
-  - `spath3`
-  - `inter`
-  - `epstopdf-pkg`
-  - `tex-gyre`
-  - `tex-gyre-math`
-  - `unicode-math`
-  - `amsmath`
-  - `sourcecodepro`
+    - `scheme-minimal`
+    - `latex-bin`
+    - `fontspec`
+    - `standalone`
+    - `pgf`
+    - `pdftexcmds`
+    - `luatex85`
+    - `lualatex-math`
+    - `infwarerr`
+    - `ltxcmds`
+    - `xcolor`
+    - `fontawesome`
+    - `spath3`
+    - `inter`
+    - `epstopdf-pkg`
+    - `tex-gyre`
+    - `tex-gyre-math`
+    - `unicode-math`
+    - `amsmath`
+    - `sourcecodepro`
 - `pdftocairo`, which can be found in the `poppler-utils` package on
   Debian-derived systems and the `poppler` package in Homebrew
 
@@ -291,37 +291,39 @@ partially automated. The CI config file
 [runs](https://github.com/leanprover/reference-manual/actions/workflows/update-nightly.yml)
 every six hours. If it detects a newer nightly than the one in
 `nightly-testing`'s `lean-toolchain` file, then it attempts to change
-the contents of `lean-toolchain` to the latest nightly and build the HTML
-version of the manual. On success, it commits the result and pushes it
-to `nightly-testing`, adding the tag
+the contents of `lean-toolchain` to the latest nightly and build the
+HTML version of the manual. On success, it commits the result and
+pushes it to `nightly-testing`, adding the tag
 `nightly-testing-YYYY-MM-DD`.
 
-When the automated process fails, a human-created PR to `nightly-testing` is
-required.
+When the automated process fails, a human-created PR to
+`nightly-testing` is required.
 
 1. Create a branch `bump-YYYY-MM-DD` file off of the `nightly-testing`
    branch
 2. Update the `lean-toolchain` to the latest available
    `leanprover/lean4:nightly-*` toolchain
-3. Make any changes to the manual necessary to build the manual on top of the
-   new nightly.
-   After these changes are added back to `nightly-testing` via PR, the
-   [`tag-nightly-testing.yml`](.github/workflows/tag-nightly-testing.yml) action
+3. Make any changes to the manual necessary to build the manual on top
+   of the new nightly. After these changes are added back to
+   `nightly-testing` via PR, the
+   [`tag-nightly-testing.yml`](.github/workflows/tag-nightly-testing.yml)
+   action
    [runs](https://github.com/leanprover/reference-manual/actions/workflows/tag-nightly-testing.yml)
    automatically and applies the `nightly-testing-YYYY-MM-DD` tag.
 
-The [`merge-main-nightly.yml`](.github/workflows/merge-main-nightly.yml)
+The
+[`merge-main-nightly.yml`](.github/workflows/merge-main-nightly.yml)
 workflow
 [runs](https://github.com/leanprover/reference-manual/actions/workflows/update-nightly.yml)
-every six hours. It attempts to merge `main` into `nightly-testing` and
-generate HTML. If this succeeds, then the result is pushed to
+every six hours. It attempts to merge `main` into `nightly-testing`
+and generate HTML. If this succeeds, then the result is pushed to
 `nightly-testing`. If it fails, human intervention is required.
 
-It's almost always desirable to maintain the invariant that `nightly-testing`
-is using a more recent version of `lean` than `main`, but new Lean releases
-can violate this property. In these cases, it's helpful to update the
-toolchain for `nightly-testing` _before_ trying to merge `main` into
-`nightly-testing`.
+It's almost always desirable to maintain the invariant that
+`nightly-testing` is using a more recent version of `lean` than
+`main`, but new Lean releases can violate this property. In these
+cases, it's helpful to update the toolchain for `nightly-testing`
+_before_ trying to merge `main` into `nightly-testing`.
 
 ### Maintaining `nightly-with-manual` in Lean
 
@@ -335,12 +337,13 @@ When a change is pushed to `nightly-testing` that modifies
 `lean-toolchain`,
 [`nightly-with-manual.yml`](.github/workflows/nightly-with-manual.yml)
 [runs](https://github.com/leanprover/reference-manual/actions/workflows/nightly-with-manual.yml).
-This workflow also runs twice per day on its own, and it is
-explicitly invoked by `update-nightly.yml`. It finds the most recent
-`nightly-testing-YYYY-MM-DD` tag in the `reference-manual` repository. This
-tag also exists in the `lean4-nightly` repository, and the commit it
-corresponds to also exists in the `lean4` repository. The workflow resets
-the `lean4` repository's `nightly-with-manual` branch to this commit.
+This workflow also runs twice per day on its own, and it is explicitly
+invoked by `update-nightly.yml`. It finds the most recent
+`nightly-testing-YYYY-MM-DD` tag in the `reference-manual` repository.
+This tag also exists in the `lean4-nightly` repository, and the commit
+it corresponds to also exists in the `lean4` repository. The workflow
+resets the `lean4` repository's `nightly-with-manual` branch to this
+commit.
 
 This branch is important because it is used to provide feedback in
 Lean PRs as to whether the manual succeeds in building their PR, or
