@@ -9,6 +9,8 @@ open Lake DSL
 open System (FilePath)
 
 require verso from git "https://github.com/leanprover/verso.git"@"tutorials"
+require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"tutorials"
+
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
