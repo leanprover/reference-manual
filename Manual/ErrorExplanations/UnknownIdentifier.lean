@@ -42,30 +42,6 @@ message itself.
 
 # Examples
 
-/-
-:::errorExample "Missing Import"
-
-```broken
-def inventory :=
-  Std.HashSet.ofList [("apples", 3), ("bananas", 4)]
-```
-```output
-Unknown identifier `Std.HashSet.ofList`
-```
-```fixed
-public import Std.Data.HashSet.Basic
-
-public section
-
-def inventory :=
-  Std.HashSet.ofList [("apples", 3), ("bananas", 4)]
-```
-The constant `Std.HashSet.ofList` is defined in the `Std.Data.HashSet.Basic` module, which has not
-been imported in the original example. This import is suggested by the unknown identifier code
-action; once it is added, this example compiles.
-:::
--/
-
 :::errorExample "Variable Not in Scope"
 ```broken
 example (s : IO.FS.Stream) := do
