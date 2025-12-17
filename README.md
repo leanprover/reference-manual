@@ -315,9 +315,13 @@ workflow
 [runs](https://github.com/leanprover/reference-manual/actions/workflows/update-nightly.yml)
 every six hours. It attempts to merge `main` into `nightly-testing` and
 generate HTML. If this succeeds, then the result is pushed to
-`nightly-testing`. If it fails, human intervention is required. (Hint: make
-sure that the toolchain is up-to-date before trying to fix failures of merging
-main into nightly.)
+`nightly-testing`. If it fails, human intervention is required. 
+
+It's almost always desirable to maintain the invariant that `nightly-testing`
+is using a more recent version of `lean` than `main`, but new Lean releases
+can violate this property. In these cases, it's helpful to update the 
+toolchain for `nightly-testing` *before* trying to merge `main` into 
+`nightly-testing`.
 
 ### Maintaining `nightly-with-manual` in Lean
 
