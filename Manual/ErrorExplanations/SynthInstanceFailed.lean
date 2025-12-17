@@ -17,7 +17,7 @@ shortTitle := "synthInstanceFailed"
 {errorExplanationHeader lean.synthInstanceFailed}
 
 ```lean -show
-variable {t : Type}
+variable {t : Type} (x y : Int)
 ```
 
 {ref "type-classes"}[Type classes] are the mechanism that Lean and many other
@@ -25,9 +25,9 @@ programming languages use to handle overloaded operations. The code that handles
 overloaded operation is an {tech}_instance_ of a typeclass; deciding which instance to use for a given
 overloaded operation is called _synthesizing_ an instance.
 
-As an example, when Lean encounters an expression `x + y` where `x` and `y` both have type
-{name}`Int`, it is necessary to look up how it should add two integers and also look up what the
-resulting type will be. This is described as synthesizing an instance of the type class
+As an example, when Lean encounters an expression {lean}`x + y` where {lean}`x` and {lean}`y` both
+have type {name}`Int`, it is necessary to look up how it should add two integers and also look up
+what the resulting type will be. This is described as synthesizing an instance of the type class
 {lean}`HAdd Int Int t` for some type `t`.
 
 Many failures to synthesize an instance of a type class are the result of using the wrong binary
