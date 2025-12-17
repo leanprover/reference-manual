@@ -125,6 +125,9 @@ window.addEventListener('DOMContentLoaded', () => {
     let panels ← contents.mapIdxM fun i b => do
       let className := "error-example-tabpanel" ++ if i == 0 then "" else " error-example-tabpanel-hidden"
       let idxStr := toString i
+
+      -- Turn off `inlineProofStates` rendering in the context of the panel to avoid painful
+      -- z-index issues
       let panelContents ← withReader (fun ctx => { ctx with codeOptions := { ctx.codeOptions with inlineProofStates := false } } )
         (goB b)
       return {{
