@@ -6,17 +6,17 @@ contains a link to the error explanation for further reading.
 
 An error explanation is just a manual page obeying a few conventions:
 
-- Defined in the module `Manual.ErrorExplanations.ErrorSuffix`
-- Titled `About: `{errorSuffix}`"
-- Has the `shortTitle` property `"errorSuffix"`
-- Starts with a `{errorExplanationHeader lean.errorSuffix}` block command
+- Defined in the module `Manual.ErrorExplanations.{ErrorSuffix}`
+- Titled ``About: `{errorSuffix}`"``
+- Has the `shortTitle` property `"{errorSuffix}"`
+- Starts with a `{errorExplanationHeader lean.{errorSuffix}}` block command
 - A description
 - Contains a single section header, `Examples`, and that section contains
   only a series of `errorExample` directives
 - Included in alphabetical order in the `Manual.ErrorExplanations` module
 
-For the `lean.ctorResultingTypeMismatch` named error, `errorSuffix` is
-`ctorResultingTypeMismatch` and `ErrorSuffix` is `CtorResultingTypeMismatch`.
+For the `lean.ctorResultingTypeMismatch` named error, `{errorSuffix}` is
+`ctorResultingTypeMismatch` and `{ErrorSuffix}` is `CtorResultingTypeMismatch`.
 The reference manual should only need to contain docs for `lean.*` error
 names.
 
