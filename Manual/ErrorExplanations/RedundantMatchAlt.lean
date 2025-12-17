@@ -29,7 +29,7 @@ In pattern-matches with multiple arms, this error may occur if a less-specific p
 more-specific one that it subsumes. Bear in mind that expressions are matched against patterns from
 top to bottom, so specific patterns should precede generic ones.
 
-In `if let` bindings and monadic {keywordOf Lean.Parser.Term.let}`let` bindings with fallback
+In {keywordOf termIfLet}`if let` bindings and monadic {keywordOf Lean.Parser.Term.let}`let` bindings with fallback
 clauses, in which only one pattern is specified, this error indicates that the specified pattern
 will always be matched. In this case, the binding in question can be replaced with a standard
 pattern-matching {keywordOf Lean.Parser.Term.let}`let`.
