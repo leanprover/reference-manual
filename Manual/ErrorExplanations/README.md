@@ -109,7 +109,7 @@ shortTitle := "foo"
 ...mandatory short description...
 
 # Examples
-:::errorExample "Headline Cased Description"
+:::errorExample "Description Should Use Headline Case"
 ```broken
 example := x
 ````
