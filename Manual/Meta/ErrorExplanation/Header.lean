@@ -90,7 +90,7 @@ instance : Verso.ArgParse.FromArgs ErrorHeaderConfig m where
     ErrorHeaderConfig.mk <$> Verso.ArgParse.positional `title Verso.ArgParse.ValDesc.name
 
 /--
-Error explanations must start with header inserted by the {lit}`{errorExplanationHeader}` block
+Error explanations must start with a header inserted by the {lit}`{errorExplanationHeader}` block
 command.
 
 This elaboration of this command contains a {name}`Block.errorExplanationHeader` block that
