@@ -1,62 +1,63 @@
 name: Nightly with Manual
 
 on:
-  push:
-    tags:
-      - 'nightly-testing-*'
-  workflow_dispatch:
-  workflow_call:
-  schedule:
-    - cron: '0 14 * * *'  # 2PM UTC
-    - cron: '0 22 * * *'  # 10PM UTC
+    push:
+        tags:
+            - "nightly-testing-*"
+    workflow_dispatch:
+    workflow_call:
+    schedule:
+        - cron: "0 14 * * *" # 2PM UTC
+        - cron: "0 22 * * *" # 10PM UTC
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    if: github.repository == 'leanprover/reference-manual'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history and tags
+    build:
+        runs-on: ubuntu-latest
+        if: github.repository == 'leanprover/reference-manual'
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Fetch all history and tags
 
-      - name: Find most recent nightly-testing tag
-        id: find_tag
-        run: |
-          # Fetch all tags
-          git fetch --tags
+            - name: Find most recent nightly-testing tag
+              id: find_tag
+              run: |
+                  # Fetch all tags
+                  git fetch --tags
 
-          # Find all tags matching nightly-testing-YYYY-MM-DD pattern
-          # Sort them in reverse order (most recent first) and get the first one
-          LATEST_TAG=$(git tag -l 'nightly-testing-*' | sort -r | head -n 1)
+                  # Find all tags matching nightly-testing-YYYY-MM-DD pattern
+                  # Sort them in reverse order (most recent first) and get the first one
+                  LATEST_TAG=$(git tag -l 'nightly-testing-*' | sort -r | head -n 1)
 
-          # Extract just the YYYY-MM-DD portion
-          NIGHTLY=$(echo "$LATEST_TAG" | sed 's/^nightly-testing-//')
+                  # Extract just the YYYY-MM-DD portion
+                  NIGHTLY=$(echo "$LATEST_TAG" | sed 's/^nightly-testing-//')
 
-          echo "Latest nightly-testing tag: $LATEST_TAG"
-          echo "Nightly date: $NIGHTLY"
-          echo "nightly=$NIGHTLY" >> $GITHUB_OUTPUT
+                  echo "Latest nightly-testing tag: $LATEST_TAG"
+                  echo "Nightly date: $NIGHTLY"
+                  echo "nightly=$NIGHTLY" >> $GITHUB_OUTPUT
 
-      # Next, we'll update the `nightly-with-manual` branch at Lean.
-      - name: Cleanup workspace
-        run: |
-          sudo rm -rf -- *
-      # Check out the Lean repository on 'nightly-with-manual'
-      - name: Check out Lean repository
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-        with:
-          repository: leanprover/lean4
-          token: ${{ secrets.LEAN_PR_TESTING }}
-          ref: nightly-with-manual
+            # Next, we'll update the `nightly-with-manual` branch at Lean.
+            - name: Cleanup workspace
+              run: |
+                  sudo rm -rf -- *
+            # Check out the Lean repository on 'nightly-with-manual'
+            - name: Check out Lean repository
+              uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+              with:
+                  repository: leanprover/lean4
+                  token: ${{ secrets.LEAN_PR_TESTING }}
+                  ref: nightly-with-manual
 
-      # Merge the relevant nightly.
-      - name: Fetch tags from 'lean4-nightly', and merge relevant nightly into 'nightly-with-manual'
-        env:
-          NIGHTLY: ${{ steps.find_tag.outputs.nightly }}
-        run: |
-          git remote add nightly https://github.com/leanprover/lean4-nightly.git
-          git fetch nightly --tags
-          # Note: old jobs may run out of order, but it is safe to merge an older `nightly-YYYY-MM-DD`.
-          git merge "nightly-${NIGHTLY}" --strategy-option ours --allow-unrelated-histories || true
-          git push origin
-
+            # Merge the relevant nightly.
+            - name:
+                  Fetch tags from 'lean4-nightly', and merge relevant nightly into
+                  'nightly-with-manual'
+              env:
+                  NIGHTLY: ${{ steps.find_tag.outputs.nightly }}
+              run: |
+                  git remote add nightly https://github.com/leanprover/lean4-nightly.git
+                  git fetch nightly --tags
+                  # Note: old jobs may run out of order, but it is safe to merge an older `nightly-YYYY-MM-DD`.
+                  git merge "nightly-${NIGHTLY}" --strategy-option ours --allow-unrelated-histories || true
+                  git push origin
