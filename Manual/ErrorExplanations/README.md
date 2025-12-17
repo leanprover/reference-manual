@@ -86,7 +86,7 @@ For a new named error `lean.foo`, the `Manual.ErrorExplanations` module
 will need to import `Manual.ErrorExplanations.Foo` and include the line
 `{include 0 Manual.ErrorExplanations.Foo}`.
 
-````
+```````
 /- Manual/ErrorExplanations/Foo.lean -/
 
 import VersoManual
@@ -121,3 +121,4 @@ example := x
 
 ...optional short discussion of example...
 :::
+```````
