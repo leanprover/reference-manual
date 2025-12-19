@@ -15,6 +15,7 @@ import Std.Tactic.Do
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 open Verso.Code.External (lit)
+open Verso.Genre.Tutorial
 
 set_option pp.rawOnError true
 
@@ -38,6 +39,12 @@ exampleStyle := .inlineLean `MVCGenTutorial
 This section is a tutorial that introduces the most important concepts of {tactic}`mvcgen` top-down.
 Recall that you need to import {module}`Std.Tactic.Do` and open {namespace}`Std.Do` to run these examples:
 
+:::codeOnly
+```imports
+import Std.Data.HashMap
+import Std.Data.HashSet
+```
+:::
 ```imports
 import Std.Tactic.Do
 ```
@@ -367,7 +374,7 @@ theorem mkFreshN_correct (n : Nat) : ((mkFreshN n).run' s).Nodup := by
 
 ## Hoare Triples
 
-:::::leanSection
+::::::leanSection
 ```lean -show
 universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [Monad m] [WP m ps] {α σ ε : Type u} {P : Assertion ps} {Q : PostCond α ps} {prog : m α} {c : Nat}
@@ -387,8 +394,9 @@ Given {lean}`⦃P⦄ stmt1 ⦃Q⦄` and {lean}`⦃P'⦄ stmt2 ⦃Q'⦄`, if {lea
 Just as proofs about ordinary functions can rely on lemmas about the functions that they call, proofs about monadic programs can use lemmas that are specified in terms of Hoare triples.
 :::
 
-::::paragraph
+:::::paragraph
 One suitable specification for {name}`mkFresh` as a Hoare triple is this translation of {name}`mkFreshN_correct`:
+::::displayOnly
 :::leanSection
 ```lean -show
 variable {n : Nat}
@@ -397,16 +405,18 @@ variable {n : Nat}
 ⦃⌜True⌝⦄ mkFreshN n ⦃⇓ r => ⌜r.Nodup⌝⦄
 ```
 :::
+::::
 ```lean -show
 variable {p : Prop}
 ```
 Corner brackets embed propositions into the monadic assertion language, so {lean}`⌜p⌝` is the assertion of the proposition {lean}`p`.
 The precondition {lean}`⌜True⌝` asserts that {lean}`True` is true; this trivial precondition is used to state that the specification imposes no requirements on the state in which it is called.
 The postcondition states that the result value is a list with no duplicate elements.
-::::
+:::::
 
-::::paragraph
+:::::paragraph
 A specification for the single-step {name}`mkFresh` describes its effects on the monad's state:
+::::displayOnly
 :::leanSection
 ```lean -show
 variable {n : Nat}
@@ -428,6 +438,7 @@ Note that this specification is lossy: {name}`mkFresh` could increment its state
 This is good, because specifications may _abstract over_ uninteresting implementation details, ensuring resilient and small proofs.
 :::
 ::::
+:::::
 
 
 :::paragraph
@@ -477,7 +488,7 @@ for some {lean}`p`.
 Pure, stateful hypotheses may be freely moved into the regular Lean context and back.
 (This can be done manually with the {tactic}`mpure` tactic.)
 
-:::::
+::::::
 
 ## Composing Specifications
 
@@ -529,19 +540,26 @@ The specification lemma {name}`mkFreshN_spec` is automatically used by {tactic}`
 
 This subsection is a bit of a digression and can be skipped on first reading.
 
-:::leanSection
-```lean -show
+::::leanSection
+
+:::codeOnly
+```lean
 axiom M : Type → Type
 variable {x y : UInt8} [Monad M] [WP M .pure]
 def addQ (x y : UInt8) : M UInt8 := pure (x + y)
 local infix:1023 " +? " => addQ
+```
+```lean -show
 axiom dots {α} : α
 local notation "…" => dots
 ```
+:::
+
 Say the specification for some [`Aeneas`](https://github.com/AeneasVerif/aeneas)-inspired monadic addition function {typed}`x +? y : M UInt8` has the
 requirement that the addition won't overflow, that is, `h : x.toNat + y.toNat ≤ UInt8.size`.
 Should this requirement be encoded as a regular Lean hypothesis of the specification (`add_spec_hyp`) or should this requirement be encoded as a pure precondition of the Hoare triple, using `⌜·⌝` notation (`add_spec_pre`)?
 
+:::displayOnly
 ```lean
 theorem add_spec_hyp (x y : UInt8)
     (h : x.toNat + y.toNat ≤ UInt8.size) :
@@ -552,8 +570,9 @@ theorem add_spec_pre (x y : UInt8) :
     x +? y
     ⦃⇓ r => ⌜r.toNat = x.toNat + y.toNat⌝⦄ := …
 ```
-
 :::
+
+::::
 
 The first approach is advisable, although it should not make a difference in practice.
 The VC generator will move pure hypotheses from the stateful context into the regular Lean context, so the second form turns effectively into the first form.
@@ -566,11 +585,15 @@ Real-world programs often use monads that are built from multiple {tech (remote 
 Verification of these programs requires taking this into account.
 We can tweak the previous example to demonstrate this.
 
-```lean -show
+:::codeOnly
+```lean
 namespace Transformers
+```
+```lean -show
 variable {m : Type → Type} {α : Type} {ps : PostShape.{0}}
 attribute [-instance] Lake.instMonadLiftTOfMonadLift_lake
 ```
+:::
 
 ::::paragraph
 :::leanFirst
@@ -610,8 +633,7 @@ theorem mkFresh_spec (c : Nat) :
     ⦃fun state => ⌜state.counter = c⌝⦄
     mkFresh
     ⦃⇓ r state => ⌜r = c ∧ c < state.counter⌝⦄ := by
-  --TODO: mvcgen [mkFresh] with grind
-  sorry
+  mvcgen [mkFresh] with grind
 
 @[spec]
 theorem mkFreshN_spec (n : Nat) :
@@ -636,9 +658,11 @@ However, under the radar of the user the proof builds on a cascade of specificat
 
 :::
 
-```lean -show
+:::codeOnly
+```lean
 end Transformers
 ```
+:::
 
 # Exceptions
 
@@ -675,9 +699,11 @@ The notion of postconditions {name}`PostCond` in `Std.Do` supports this spectrum
 
 ::::
 
-```lean -show
+:::codeOnly
+```lean
 namespace Exceptions
 ```
+:::
 
 
 For example, suppose that our {name}`Supply` of fresh numbers is bounded and we want to throw an exception if the supply is exhausted.
@@ -755,9 +781,11 @@ theorem mkFreshN_correct (n : Nat) :
 ```
 :::
 
-```lean -show
+:::codeOnly
+```lean
 end Exceptions
 ```
+:::
 
 :::leanSection
 ```lean -show
@@ -790,8 +818,8 @@ The {name}`WP` instance defines the weakest precondition interpretation of a mon
 and the matching {name}`WPMonad` instance asserts that this translation distributes over the {name}`Monad` operations.
 :::
 
-::::paragraph
-:::leanFirst
+:::::paragraph
+::::leanFirst
 Suppose one wants to use `mvcgen` to generate verification conditions for programs generated by [`Aeneas`](https://github.com/AeneasVerif/aeneas).
 `Aeneas` translates Rust programs into Lean programs in the following {name}`Result` monad:
 
@@ -805,7 +833,8 @@ inductive Result (α : Type u) where
   | fail (e: Error): Result α
   | div
 ```
-```lean -show
+:::codeOnly
+```lean
 instance Result.instMonad : Monad Result where
   pure x := .ok x
   bind x f := match x with
@@ -814,12 +843,11 @@ instance Result.instMonad : Monad Result where
   | .div => .div
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
-  -- TODO: Replace sorry with grind when it no longer introduces section
-  --       variables
-  apply LawfulMonad.mk' <;> (simp only [Result.instMonad]; sorry)
+  apply LawfulMonad.mk' <;> (simp only [Result.instMonad]; grind)
 ```
 :::
 ::::
+:::::
 
 :::paragraph
 There are both {inst}`Monad Result` and {inst}`LawfulMonad Result` instances.

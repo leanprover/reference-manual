@@ -78,6 +78,7 @@ def codeColors := r#"
 "#
 
 def localToCStyle := r#"
+/*
 nav.local-toc {
   position: fixed;
   top: calc(var(--nav-height) + 1rem + 60px);
@@ -87,6 +88,7 @@ nav.local-toc {
   max-height: calc(100vh - 2rem - var(--nav-height) - 60px);
   overflow-y: auto;
 }
+*/
 
 nav.local-toc h1 {
   display: none;
@@ -96,6 +98,7 @@ nav.local-toc ol {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: none;
 }
 
 nav.local-toc li {
@@ -112,6 +115,7 @@ nav.local-toc a:hover {
 }
 
 /* On smaller screens, display normally */
+/*
 @media (max-width: 90rem) {
   nav.local-toc {
     position: static;
@@ -123,6 +127,7 @@ nav.local-toc a:hover {
     margin-bottom: 1rem;
   }
 }
+*/
 
 nav.local-toc ol ol {
   padding-left: 1rem;
