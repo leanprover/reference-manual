@@ -19,37 +19,25 @@ def plausible := {{
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
 
-open Verso.Output.Html in
-def staticJs := {{
-    <script src="static/metadata.js"></script>
-    <script src="static/print.js"></script>
-  }}
-
-open Verso.Output.Html in
-def staticCss := {{
-    <link rel="stylesheet" href="static/colors.css" />
-    <link rel="stylesheet" href="static/theme.css" />
-    <link rel="stylesheet" href="static/print.css" />
-    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css" />
-    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css" />
-    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css" />
-    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css" />
-  }}
 
 def version (_content : Array (Verso.Doc.Inline g)) : Verso.Doc.Inline g := .text Lean.versionString
+
+def manualLink (args : Array (Verso.Doc.Inline g)) : Verso.Doc.Inline g:=
+  Verso.Doc.Inline.link args Lean.manualRoot
 
 open Verso.Doc Concrete in
 def tutorials : Tutorials where
   content :=
   (verso (Page) "Tutorials"
    :::::::
-   These tutorials are written for version {version}[] of Lean.
+   These tutorials cover version {version}[] of Lean.
+   While the {manualLink}[reference manual] describes the system and its features in detail, these tutorials introduce one specific aspect.
    :::::::).toPart
 
   topics := #[
     { title := #[inlines!"Tactics"],
       titleString := "Tactics"
-      description := #[blocks!"..."]
+      description := #[blocks!"These tutorials demonstrate Lean's advanced proof automation."]
       tutorials := #[%doc Tutorial.VCGen, %doc Tutorial.Grind.IndexMap]
     }
 
@@ -81,34 +69,6 @@ where
   publications : VersoDoc Page := { construct := fun _ => placeholder "Publications" }
   links : VersoDoc Page := { construct := fun _ => placeholder "Links" }
   people : VersoDoc Page := { construct := fun _ => placeholder "People" }
-
--- open Verso.Output.Html in
--- def theme : Theme where
---   page content := do
---     let config := { logError := fun _ => pure () }
---     let ctxt := {
---       site := leanSite,
---       ctxt := {
---         config,
---         components := {},
---         path := #["doc", "tutorials"]
---       },
---       xref := { remoteContent := {} },
---       linkTargets := {},
---       dir := "",
---       config,
---       header := ""
---     }
---     let pageContent := {{<div class="post-center post-page"><article class="post-container"><div class="post-content">{{content.content}}</div></article></div>}}
---     let mut params : Verso.Genre.Blog.Template.Params := {}
---     params := params.insert "title" content.title
---     params := params.insert "content" pageContent
---     let ((html, st'), y) ← Verso.Genre.Blog.Template.renderMany [LeanLangOrg.theme.pageTemplate, LeanLangOrg.theme.primaryTemplate] params ctxt {} {}
---     pure html
---   topic := Theme.default.topic
---   tutorialToC := Theme.default.tutorialToC
---   cssFiles := Verso.Web.Theme.Static.allCSS.map fun (filename, contents) =>
---     { filename := s!"theme/style/{filename}", contents }
 
 
 def codeColors := r#"

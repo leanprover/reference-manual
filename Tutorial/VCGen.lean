@@ -31,7 +31,7 @@ set_option mvcgen.warning false
 %%%
 tag := "mvcgen-tactic-tutorial"
 slug := "mvcgen"
-summary := "summary here"
+summary := "A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
 exampleStyle := .inlineLean `MVCGenTutorial
 %%%
 
@@ -145,8 +145,8 @@ theorem mySum_correct_shorter (l : Array Nat) : mySum l = l.sum := by
   · ⇓⟨xs, out⟩ => ⌜xs.prefix.sum = out⌝
   with grind
 ```
-The {keyword}`mvcgen invariants `{lit}`...`{keyword}` with `{lit}`...` is an abbreviation for the
-tactic sequence {keyword}`mvcgen; case`{lit}` inv1 => ...`{keyword}`; all_goals mleave; grind`
+The {multiCode}[{keyword}`mvcgen invariants `{lit}`...`{keyword}` with `{lit}`...`] is an abbreviation for the
+tactic sequence {multiCode}[{keyword}`mvcgen; case`{lit}` inv1 => ...`{keyword}`; all_goals mleave; grind`]
 above. It is the form that we will be using from now on.
 :::
 
@@ -305,7 +305,7 @@ Furthermore, an {tactic}`mvcgen`-powered proof will never need to copy any part 
 variable (M : Type u → Type v) [Monad M] (α : Type u)
 axiom M.run : M α → β → α
 ```
-The previous examples reasoned about functions defined using {lean}`Id.run`{lit}` `{keywordOf Lean.Parser.Term.do}`do`{lit}` <prog>` to make use of local mutability and early return in {lit}`<prog>`.
+The previous examples reasoned about functions defined using {multiCode}[{lean}`Id.run`{lit}` `{keywordOf Lean.Parser.Term.do}`do`{lit}` <prog>`] to make use of local mutability and early return in {lit}`<prog>`.
 However, real-world programs often use {keywordOf Lean.Parser.Term.do}`do` notation and monads {lean}`M` to hide away state and failure conditions as implicit “effects”.
 In this use case, functions usually omit the {name}`M.run`.
 Instead they have a monadic return type {lean}`M α` and compose well with other functions of that return type.
@@ -481,7 +481,7 @@ Pure, stateful hypotheses may be freely moved into the regular Lean context and 
 
 ## Composing Specifications
 
-Nested unfolding of definitions as in {tactic}`mvcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]` is quite blunt but effective for small programs.
+Nested unfolding of definitions as in {multiCode}[{tactic}`mvcgen`{lit}` [`{name}`mkFreshN`{lit}`, `{name}`mkFresh`{lit}`]`] is quite blunt but effective for small programs.
 A more compositional way is to develop individual {tech (remote := "reference")}_specification lemmas_ for each monadic function.
 A specification lemma is a Hoare triple that is automatically used during {tech (remote := "reference")}[verification condition] generation to obtain the pre- and postconditions of each statement in a {keywordOf Lean.Parser.Term.do}`do`-block.
 When the system cannot automatically prove that the postcondition of one statement implies the precondition of the next, then this missing reasoning step becomes a verification condition.
@@ -945,8 +945,8 @@ variable {σs : List (Type u)} {H T : SPred σs}
 ```
 
 It is a priority of {tactic}`mvcgen` to break down monadic programs into {tech (remote := "reference")}[verification conditions] that are straightforward to understand.
-For example, when the monad is monomorphic and all loop invariants have been instantiated, an invocation of {tactic}`all_goals`{lit}` `{tactic}`mleave` should simplify away any {name}`Std.Do.SPred`-specific constructs and leave behind a goal that is easily understood by humans and {tactic}`grind`.
-This {tactic}`all_goals`{lit}` `{tactic}`mleave` step is carried out automatically by {tactic}`mvcgen` after loop invariants have been instantiated.
+For example, when the monad is monomorphic and all loop invariants have been instantiated, an invocation of {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`] should simplify away any {name}`Std.Do.SPred`-specific constructs and leave behind a goal that is easily understood by humans and {tactic}`grind`.
+This {multiCode}[{tactic}`all_goals`{lit}` `{tactic}`mleave`]step is carried out automatically by {tactic}`mvcgen` after loop invariants have been instantiated.
 
 However, there are times when {tactic}`mleave` will be unable to remove all {name}`Std.Do.SPred` constructs.
 In this case, verification conditions of the form {lean}`H ⊢ₛ T` will be left behind.

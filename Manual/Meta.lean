@@ -390,6 +390,15 @@ def ffi.descr : BlockDescr where
   toTeX := some <| fun _goI goB _ _ contents =>
     contents.mapM goB -- TODO
 
+open Verso.Output.Html in
+inline_extension Inline.multiCode where
+  traverse _ _ _ := pure none
+  toHtml := some <| fun goI _id _data contents => do return {{<span class="multi-code">{{← contents.mapM goI}}</span>}}
+  toTeX := none
+
+@[role]
+def multiCode : RoleExpanderOf Unit
+  | (), contents => do ``(Inline.other Inline.multiCode #[$(← contents.mapM elabInline),*])
 
 
 structure LeanSectionConfig where

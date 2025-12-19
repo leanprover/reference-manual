@@ -307,7 +307,6 @@ Lean-specific page type detection functions.
 -/
 
 def isMarkdownPage : Path → Bool
-  | #[] | #["fro"] | #["404"] => false
   | _ => true
 
 def indexPage : Path → Bool
@@ -348,7 +347,7 @@ def layoutConfig : LayoutConfig :=
     needsTitle := needsTitle,
     isPagePost := isPagePost,
     postConfig := postConfig,
-    hasSpecialStyling := fun path => if isFro path then some "fro" else none,
+    hasSpecialStyling := fun path => if isFro path then some "fro" else if path.isEmpty then "tutorials" else none,
     renderPostList := fun path html =>
       if isUseCases path then
         {{ <div class="use-cases-grid"> {{ html }} </div> }}
