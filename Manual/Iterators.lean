@@ -19,7 +19,7 @@ open Verso.Genre.Manual.InlineLean
 set_option pp.rawOnError true
 
 open Std.Iterators Types
-open Std (TreeMap Iter IterM IterStep Iterator PlausibleIterStep IteratorCollect IteratorLoop IteratorAccess LawfulIteratorLoop LawfulIteratorCollect)
+open Std (TreeMap Iter IterM IterStep Iterator PlausibleIterStep IteratorLoop IteratorAccess LawfulIteratorLoop)
 
 #doc (Manual) "Iterators" =>
 %%%
@@ -307,14 +307,11 @@ instance [Pure m] : Iterator Nats m Nat where
       .yield { it with internalState.next := n + 1 } n (by grind)
 ```
 
-Whenever an iterator is defined, {name}`IteratorCollect` and {name}`IteratorLoop` instances should be provided.
+Whenever an iterator is defined, an {name}`IteratorLoop` instance should be provided.
 They are required for most consumers of iterators such as {name}`Iter.toList` or the `for` loops.
 One can use their default implementations as follows:
 
 ```lean
-instance [Pure m] [Monad n] : IteratorCollect Nats m n :=
-  .defaultImplementation
-
 instance [Pure m] [Monad n] : IteratorLoop Nats m n :=
   .defaultImplementation
 ```
@@ -499,29 +496,10 @@ where finally
   all_goals grind [Triple.get?]
 ```
 
-This iterator cannot yet be converted to an array, because it is missing an {name}`IteratorCollect` instance:
+This iterator can now be converted to an array:
 ```lean
 def abc : Triple Char := ⟨'a', 'b', 'c'⟩
 ```
-```lean (name := noAbc) +error
-#eval abc.iter.toArray
-```
-```leanOutput noAbc
-failed to synthesize instance of type class
-  IteratorCollect (TripleIterator Char) Id Id
-
-Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
-```
-
-To support {name}`Iter.toArray`, the default implementation of {name}`IteratorCollect` can be used:
-
-```lean
-instance [Iterator (TripleIterator α) m α] [Monad n] :
-    IteratorCollect (TripleIterator α) m n :=
-  IteratorCollect.defaultImplementation
-```
-
-With the {name}`IteratorCollect` instance in place, {name}`Iter.toArray` now works:
 ```lean (name := abcToArray)
 #eval abc.iter.toArray
 ```
@@ -940,7 +918,7 @@ termination_by it.finitelyManySkips
 ## Collectors
 
 Collectors consume an iterator, returning all of its data in a list or array.
-To be collected, an iterator must be finite and have an {name}`IteratorCollect` instance.
+To be collected, an iterator must be finite.
 
 {docstring Iter.toArray}
 
@@ -953,12 +931,6 @@ To be collected, an iterator must be finite and have an {name}`IteratorCollect` 
 {docstring Iter.toListRev}
 
 {docstring IterM.toListRev}
-
-{docstring IteratorCollect}
-
-{docstring IteratorCollect.defaultImplementation}
-
-{docstring LawfulIteratorCollect +allowMissing}
 
 
 # Iterator Combinators
