@@ -898,7 +898,7 @@ example : (iota 20).length > 10 := by
 
 When the option {option}`diagnostics` is set to {lean}`true`, {tactic}`grind` displays the number of instances that it generates for each theorem.
 This is useful to detect theorems that contain patterns that are triggering too many instances.
-In this case, the diagnostics show that {name}`iota_succ` is instantiated 14 times:
+In this case, the diagnostics show that {name}`iota_succ` is instantiated 12 times:
 ```lean (name := grindDiagnostics)
 set_option diagnostics true in
 example : (iota 20).length > 10 := by
@@ -911,7 +911,7 @@ example : (iota 20).length > 10 := by
     [thm] List.length_cons ↦ 11
   [app] Applications
   [grind] Simplifier
-    [simp] tried theorems (max: 35, num: 1):
+    [simp] tried theorems (max: 46, num: 1):
     use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 :::
