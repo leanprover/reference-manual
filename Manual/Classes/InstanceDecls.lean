@@ -298,7 +298,7 @@ instance instDecidableEqStringList : DecidableEq StringList
 tag := "instance-priorities"
 %%%
 
-Instances may be assigned {deftech}_priorities_.
+Instances may be assigned a {deftech}_priority_.
 During instance synthesis, higher-priority instances are preferred; see {ref "instance-synth"}[the section on instance synthesis] for details of instance synthesis.
 
 :::syntax prio -open (title := "Instance Priorities")
