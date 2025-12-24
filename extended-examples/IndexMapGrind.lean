@@ -1,4 +1,6 @@
+--ANCHOR: imports
 import Std.Data.HashMap
+--ANCHOR_END: imports
 import IndexMapGrind.CheckMsgs
 
 open Std in
@@ -19,9 +21,11 @@ example (m : HashMap Nat Nat) : (m.insert 1 2).size ≤ m.size + 1 := by
   get_elem_tactic
 
 
-open Std
+
 
 -- ANCHOR: IndexMap
+open Std
+
 structure IndexMap
     (α : Type u) (β : Type v) [BEq α] [Hashable α] where
   private indices : HashMap α Nat
@@ -32,10 +36,13 @@ structure IndexMap
     keys[i]? = some a ↔ indices[a]? = some i := by grind
 -- ANCHOR_END: IndexMap
 
+
+-- ANCHOR: variables
 namespace IndexMap
 
 variable {α : Type u} {β : Type v} [BEq α] [Hashable α]
 variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
+-- ANCHOR_END: variables
 
 -- ANCHOR: size
 @[inline] def size (m : IndexMap α β) : Nat :=
@@ -58,6 +65,7 @@ instance : EmptyCollection (IndexMap α β) where
 instance : Inhabited (IndexMap α β) where
   default := ∅
 
+-- ANCHOR: Membership
 @[inline] def contains (m : IndexMap α β)
     (a : α) : Bool :=
   m.indices.contains a
@@ -67,6 +75,7 @@ instance : Membership α (IndexMap α β) where
 
 instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
   inferInstanceAs (Decidable (a ∈ m.indices))
+-- ANCHOR_END: Membership
 
 discarding
 /--
@@ -110,6 +119,7 @@ stop discarding
     a ∈ m ↔ a ∈ m.indices := Iff.rfl
 -- ANCHOR_END: mem_indices_of_mem
 
+-- ANCHOR: getFindIdx
 @[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
   m.indices[a]?
 
@@ -123,6 +133,7 @@ stop discarding
 @[inline] def getIdx (m : IndexMap α β) (i : Nat)
     (h : i < m.size := by get_elem_tactic) : β :=
   m.values[i]
+-- ANCHOR_END: getFindIdx
 
 -- ANCHOR: Lawfuls
 variable [LawfulBEq α] [LawfulHashable α]
@@ -153,7 +164,9 @@ end
 grind_pattern getElem_indices_lt => m.indices[a]
 -- ANCHOR_END: getElem_indices_lt_pattern
 
+-- ANCHOR: local_grind_size
 attribute [local grind] size
+-- ANCHOR_END: local_grind_size
 
 -- ANCHOR: GetElem?
 instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where

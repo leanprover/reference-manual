@@ -30,7 +30,7 @@ The following commands in Lean are definition-like: {TODO}[Render commands as th
  * {keyword}`theorem`
  * {keyword}`opaque`
 
-All of these commands cause Lean to {tech (key := "elaborator")}[elaborate] a term based on a {tech}[signature].
+All of these commands cause Lean to {tech (key := "elaborator") -normalize}[elaborate] a term based on a {tech}[signature].
 With the exception of {keywordOf Lean.Parser.Command.example}`example`, which discards the result, the resulting expression in Lean's core language is saved for future use in the environment.
 The {keywordOf Lean.Parser.Command.declaration}`instance` command is described in the {ref "instance-declarations"}[section on instance declarations].
 

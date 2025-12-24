@@ -718,7 +718,7 @@ A variant of list literals that requires double square brackets and allows a tra
 syntax "[[" term,*,? "]]" : term
 ```
 
-Adding a {deftech}[macro] that describes how to translate it into an ordinary list literal allows it to be used in tests.
+Adding a {tech}[macro] that describes how to translate it into an ordinary list literal allows it to be used in tests.
 ```lean
 macro_rules
   | `(term|[[$e:term,*]]) => `([$e,*])

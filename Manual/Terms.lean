@@ -28,7 +28,7 @@ tag := "terms"
 
 
 {deftech}_Terms_ are the principal means of writing mathematics and programs in Lean.
-The {tech}[elaborator] translates them to Lean's minimal core language, which is then checked by the kernel and compiled for execution.
+The {deftech (key := "Lean elaborator")}[elaborator] translates them to Lean's minimal core language, which is then checked by the kernel and compiled for execution.
 The syntax of terms is {ref "syntax-ext"}[arbitrarily extensible]; this chapter documents the term syntax that Lean provides out-of-the-box.
 
 # Identifiers
@@ -410,7 +410,7 @@ Implicit parameters come in three varieties:
 
   : Instance implicit parameters
 
-    Arguments for {deftech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
+    Arguments for {tech}_instance implicit_ parameters are found via {ref "instance-synth"}[type class synthesis].
     Instance implicit parameters are written in square brackets (`[` and `]`).
     Unlike the other kinds of implicit parameter, instance implicit parameters that are written without a `:` specify the parameter's type rather than providing a name.
     Furthermore, only a single name is allowed.
