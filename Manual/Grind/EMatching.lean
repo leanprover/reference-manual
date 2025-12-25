@@ -951,7 +951,7 @@ example : (iota 20).length > 10 := by
     [thm] List.length_cons ↦ 11
   [app] Applications
   [grind] Simplifier
-    [simp] tried theorems (max: 35, num: 1):
+    [simp] tried theorems (max: 46, num: 1):
     use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```
 :::
