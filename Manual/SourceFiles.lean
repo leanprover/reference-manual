@@ -309,7 +309,7 @@ This discipline brings a number of benefits:
 : Much-improved average build times
 
   Changes to files that affect only non-exported information (e.g. proofs, comments, and docstrings) will not trigger rebuilds outside of these files.
-  Even when dependent files have to be rebuilt, those files that cannot be affected (as determiend by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
+  Even when dependent files have to be rebuilt, those files that cannot be affected (as determined by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
 
 : Control over API evolution
 
