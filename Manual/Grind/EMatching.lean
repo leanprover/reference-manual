@@ -307,8 +307,10 @@ grindGen
 grindInj
 grindIntro
 grindLR
+grindNorm
 grindRL
 grindSym
+grindUnfold
 grindUsr
 -/
 #guard_msgs in
