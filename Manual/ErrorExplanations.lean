@@ -7,6 +7,7 @@ Author: Joseph Rotella, Rob Simmons
 import Manual.Meta.ErrorExplanation
 import Manual.ErrorExplanations.CtorResultingTypeMismatch
 import Manual.ErrorExplanations.DependsOnNoncomputable
+import Manual.ErrorExplanations.HighInferredUniverse
 import Manual.ErrorExplanations.InductionWithNoAlts
 import Manual.ErrorExplanations.InductiveParamMismatch
 import Manual.ErrorExplanations.InductiveParamMissing
@@ -84,6 +85,8 @@ by Lean when processing a source file. All error names listed below have the
 {include 0 Manual.ErrorExplanations.DependsOnNoncomputable}
 
 {include 0 Manual.ErrorExplanations.InductionWithNoAlts}
+
+{include 0 Manual.ErrorExplanations.HighInferredUniverse}
 
 {include 0 Manual.ErrorExplanations.InductiveParamMismatch}
 
