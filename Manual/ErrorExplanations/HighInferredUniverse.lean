@@ -95,7 +95,7 @@ The initial type annotation {lean}`Type _` forces `MyPair` into a universe that 
 on {ref "prop-vs-type"}[Prop vs Type] for why it is {lean}`Sort (max u 1)` and not just
 {lean}`Sort u`.)
 
-The first three fixes are all equivalent, and allow `MyPair` to have any non-zero universe that
+The first two fixes are all equivalent, and allow `MyPair` to have any non-zero universe that
 is larger than `u`. The last two fixes make `MyPair` less general, but also silence the error.
 :::
 
