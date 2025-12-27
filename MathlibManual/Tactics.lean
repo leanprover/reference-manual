@@ -27,16 +27,12 @@ import MathlibManual.Tactics.Test
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
+open Lean.Elab.Tactic
 
 set_option pp.rawOnError true
-
 set_option linter.unusedVariables false
-
-
 set_option maxHeartbeats 0
 set_option maxRecDepth 100000000000000000
-
-open Lean.Elab.Tactic
 
 #doc (Manual) "Tactics" =>
 %%%

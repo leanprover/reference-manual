@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2025 Jon Eugster. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: David Thrane Christiansen
+Author: Jon Eugster
 -/
 import MathlibManual
 import Manual.Meta
@@ -15,25 +15,33 @@ def plausible := {{
     <script defer="defer" data-domain="lean-lang.org" src="https://plausible.io/js/script.outbound-links.js"></script>
   }}
 
+open Verso.Output.Html in
+def staticJs := {{
+    <script src="static/metadata.js"></script>
+    <script src="static/print.js"></script>
+    {{ if false then -- Flip this bit to test live links locally
+        {{ <script>"window.metadata = {'latest': true};"</script> }}
+      else
+        .empty }}
+  }}
+
+open Verso.Output.Html in
+def staticCss := {{
+    <link rel="stylesheet" href="static/colors.css" />
+    <link rel="stylesheet" href="static/theme.css" />
+    <link rel="stylesheet" href="static/print.css" />
+    <link rel="stylesheet" href="static/fonts/source-serif/source-serif-text.css" />
+    <link rel="stylesheet" href="static/fonts/source-code-pro/source-code-pro.css" />
+    <link rel="stylesheet" href="static/fonts/source-sans/source-sans-3.css" />
+    <link rel="stylesheet" href="static/fonts/noto-sans-mono/noto-sans-mono.css" />
+  }}
+
 def main :=
-  manualMain (%doc MathlibManual) (config := config)
+  manualMain (%doc MathlibManual) (config := config) (extraSteps := [])
 where
-  config := Config.addSearch <| Config.addKaTeX {
+  config := {
     extraFiles := [("static", "static")],
-    extraCss := [
-      "/static/colors.css",
-      "/static/theme.css",
-      "/static/print.css",
-      "/static/fonts/source-serif/source-serif-text.css",
-      "/static/fonts/source-code-pro/source-code-pro.css",
-      "/static/fonts/source-sans/source-sans-3.css",
-      "/static/fonts/noto-sans-mono/noto-sans-mono.css"
-    ],
-    extraJs := [
-      -- Print stylesheet improvements
-      {filename := "/static/print.js"}
-    ],
-    extraHead := #[plausible],
+    extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
     emitHtmlSingle := true, -- for proofreading
     logo := some "/static/lean_logo.svg",

@@ -5,8 +5,8 @@ Author: David Thrane Christiansen
 -/
 import VersoManual
 
-import MathlibManual.Tweaks
 import MathlibManual.Tactics
+import MathlibManual.Util
 import MathlibManual.Guides
 
 open Verso.Genre Manual

@@ -7,8 +7,8 @@ Author: Jon Eugster
 import VersoManual
 import Manual.Meta
 import Mathlib
-open Lake
 
+open Lake
 open Verso.Genre Manual
 
 set_option pp.rawOnError true

@@ -41,7 +41,7 @@ open Lean.Elab.Tactic
 :::tactic Mathlib.Tactic.Tauto.tauto
 :::
 
-:::tactic Lean.Parser.Tactic.bvDecide
+:::tactic "bv_decide"
 :::
 
 :::tactic "trivial"
@@ -51,7 +51,7 @@ open Lean.Elab.Tactic
 :::
 
 :::example "polyrith"
-TODO
+TODO: remove `_` from polyrith's internal name or fix markdown parsing
 :::
 
 :::tactic Mathlib.Tactic.linarith (show := "linarith")
