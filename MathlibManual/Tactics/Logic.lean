@@ -26,7 +26,7 @@ These tactics deal with statements in logic. Remember that
 :::tactic Mathlib.Tactic.Contrapose.contrapose
 :::
 
-:::tactic Mathlib.Tactic.PushNeg.tacticPush_neg_
+:::tactic Mathlib.Tactic.Push.push_neg
 :::
 
 :::tactic Mathlib.Tactic.TFAE.tfaeHave
