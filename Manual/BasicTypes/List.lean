@@ -95,7 +95,7 @@ def split' : List α → List α × List α
 ```lean
 def split'' : List α → List α × List α
   | .nil => (.nil, .nil)
-  | .cons x .nil=> (.singleton x, .nil)
+  | .cons x .nil => (.singleton x, .nil)
   | .cons x (.cons x' xs) =>
     let (ys, zs) := split xs
     (.cons x ys, .cons x' zs)
