@@ -31,7 +31,7 @@ These tactics have not been sorted into an appropriate section yet
 :::tactic Mathlib.Tactic.subsingletonStx
 :::
 
-:::tactic tacticMeasurability
+:::tactic Mathlib.Tactic.measurability
 :::
 
 :::tactic Mathlib.Tactic.Borelize.tacticBorelize___
