@@ -176,7 +176,7 @@ file := "v4.11.0"
   * [#4707](https://github.com/leanprover/lean4/pull/4707) adds simp normal form tests for `List.Pairwise` and `List.Nodup`.
   * [#4708](https://github.com/leanprover/lean4/pull/4708) and [#4815](https://github.com/leanprover/lean4/pull/4815) reorganize lemmas on list getters.
   * [#4765](https://github.com/leanprover/lean4/pull/4765) adds simprocs for literal array accesses such as `#[1,2,3,4,5][2]`.
-  * [#4790](https://github.com/leanprover/lean4/pull/4790) removes typeclass assumptions for `List.Nodup.eraseP`.
+  * [#4790](https://github.com/leanprover/lean4/pull/4790) removes type class assumptions for `List.Nodup.eraseP`.
   * [#4801](https://github.com/leanprover/lean4/pull/4801) adds efficient `usize` functions for array types.
   * [#4820](https://github.com/leanprover/lean4/pull/4820) changes `List.filterMapM` to run left-to-right.
   * [#4835](https://github.com/leanprover/lean4/pull/4835) fills in and cleans up gaps in List API.
@@ -262,7 +262,7 @@ file := "v4.11.0"
 * **Utilities**
   * [#4453](https://github.com/leanprover/lean4/pull/4453) upstreams `ToExpr FilePath` and `compile_time_search_path%`.
 * **Module system**
-  * [#4652](https://github.com/leanprover/lean4/pull/4652) fixes handling of `const2ModIdx` in `finalizeImport`, making it prefer the original module for a declaration when a declaration is re-declared.
+  * [#4652](https://github.com/leanprover/lean4/pull/4652) fixes handling of `const2ModIdx` in `finalizeImport`, making it prefer the original module for a declaration when a declaration is redeclared.
 * **Kernel**
   * [#4637](https://github.com/leanprover/lean4/pull/4637) adds a check to prevent large `Nat` exponentiations from evaluating. Elaborator reduction is controlled by the option `exponentiation.threshold`.
   * [#4683](https://github.com/leanprover/lean4/pull/4683) updates comments in `kernel/declaration.h`, making sure they reflect the current Lean 4 types.
