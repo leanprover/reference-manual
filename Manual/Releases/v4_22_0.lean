@@ -266,7 +266,7 @@ When false, the warning is not logged.
   then they likely don't want that implementation to leak through
   equational theorems. Helps with #8419.
 
-* [#8543](https://github.com/leanprover/lean4/pull/8543) adds typeclasses for `grind` to embed types into `Int`, for
+* [#8543](https://github.com/leanprover/lean4/pull/8543) adds type classes for `grind` to embed types into `Int`, for
   cutsat. This allows, for example, treating `Fin n`, or Mathlib's `ℕ+` in
   a uniform and extensible way.
 
@@ -339,9 +339,9 @@ When false, the warning is not logged.
   using reflection.
 
 * [#8638](https://github.com/leanprover/lean4/pull/8638) improves the diagnostic information produced by `grind`. It now
-  sorts the equivalence classes by generation and then `Expr. lt`.
+  sorts the equivalence classes by generation and then `Expr.lt`.
 
-* [#8639](https://github.com/leanprover/lean4/pull/8639) completes the `ToInt` family of typeclasses which `grind` will
+* [#8639](https://github.com/leanprover/lean4/pull/8639) completes the `ToInt` family of type classes which `grind` will
   use to embed types into the integers for `cutsat`. It contains instances
   for the usual concrete data types (`Fin`, `UIntX`, `IntX`, `BitVec`),
   and is extensible (e.g. for Mathlib's `PNat`).
@@ -674,7 +674,7 @@ When false, the warning is not logged.
   proof certificates, so `grind` can be used in the module system. It's
   possible/likely that I haven't identified all of them yet.
 
-* [#8890](https://github.com/leanprover/lean4/pull/8890) adds doc-strings to the `Lean.Grind` algebra typeclasses, as
+* [#8890](https://github.com/leanprover/lean4/pull/8890) adds docstrings to the `Lean.Grind` algebra type classes, as
   these will appear in the reference manual explaining how to extend
   `grind` algebra solvers to new types. Also removes some redundant
   fields.
@@ -693,7 +693,7 @@ When false, the warning is not logged.
   does not trigger when the `simp` call is inside a macro. The linter
   message contains a clickable hint to remove the simp argument.
 
-* [#8903](https://github.com/leanprover/lean4/pull/8903) make sure that the local instance cache calculation applies more
+* [#8903](https://github.com/leanprover/lean4/pull/8903) makes sure that the local instance cache calculation applies more
   reductions. In #2199 there was an issue where metavariables could
   prevent local variables from being considered as local instances. We use
   a slightly different approach that ensures that, for example, `let`s at
@@ -706,14 +706,14 @@ When false, the warning is not logged.
 
 * [#8910](https://github.com/leanprover/lean4/pull/8910) adds the `NoNatZeroDivisors` instance for `OfSemiring.Q α`
 
-* [#8913](https://github.com/leanprover/lean4/pull/8913) cleans up `grind`'s internal order typeclasses, removing
+* [#8913](https://github.com/leanprover/lean4/pull/8913) cleans up `grind`'s internal order type classes, removing
   unnecessary duplication.
 
 * [#8914](https://github.com/leanprover/lean4/pull/8914) modifies `let` and `have` term syntaxes to be consistent with
   each other. Adds configuration options; for example, `have` is
   equivalent to `let +nondep`, for *nondependent* lets. Other options
   include `+usedOnly` (for `let_tmp`), `+zeta` (for `letI`/`haveI`), and
-  `+postponeValue` (for `let_delayed)`. There is also `let (eq := h) x :=
+  `+postponeValue` (for `let_delayed`). There is also `let (eq := h) x :=
   v; b` for introducing `h : x = v` when elaborating `b`. The `eq` option
   works for pattern matching as well, for example `let (eq := h) (x, y) :=
   p; b`.
@@ -846,21 +846,21 @@ When false, the warning is not logged.
   can be helpful for debugging spurious "function expected" messages
   actually caused by syntax errors.
 
-* [#8991](https://github.com/leanprover/lean4/pull/8991) adds some missing `ToInt.X` typeclass instances for `grind`.
+* [#8991](https://github.com/leanprover/lean4/pull/8991) adds some missing `ToInt.X` type class instances for `grind`.
 
 * [#8995](https://github.com/leanprover/lean4/pull/8995) introduces a Hoare logic for monadic programs in
   `Std.Do.Triple`, and assorted tactics:
 
   *  `mspec` for applying Hoare triple specifications
   * `mvcgen` to turn a Hoare triple proof obligation `⦃P⦄ prog ⦃Q⦄` into
-  pure verification conditoins (i.e., without any traces of Hoare triples
+  pure verification conditions (i.e., without any traces of Hoare triples
   or weakest preconditions reminiscent of `prog`). The resulting
   verification conditions in the stateful logic of `Std.Do.SPred` can be
   discharged manually with the tactics coming with its custom proof mode
   or with automation such as `simp` and `grind`.
 
 * [#8996](https://github.com/leanprover/lean4/pull/8996) provides the remaining instances for the `Lean.Grind.ToInt`
-  typeclasses.
+  type classes.
 
 * [#9004](https://github.com/leanprover/lean4/pull/9004) ensures that type-class synthesis failure errors in interpolated
   strings are displayed at the interpolant at which they occurred.
@@ -998,7 +998,7 @@ When false, the warning is not logged.
 
 * [#8203](https://github.com/leanprover/lean4/pull/8203) adds trichotomy lemmas for unsigned and signed comparisons,
   stating that only one of three cases may happen: either `x < y`, `x =
-  y`, or `x > y` (for both signed and unsigned comparsions). We use
+  y`, or `x > y` (for both signed and unsigned comparisons). We use
   explicit arguments so that users can write `rcases slt_trichotomy x y
   with hlt | heq | hgt`.
 
@@ -1018,7 +1018,7 @@ When false, the warning is not logged.
   to list functions, although these aren't currently used to prove lemmas
   other than congruence lemmas.
 
-* [#8253](https://github.com/leanprover/lean4/pull/8253) adds `toInt_smod` and auxilliary lemmas necessary for its proof
+* [#8253](https://github.com/leanprover/lean4/pull/8253) adds `toInt_smod` and auxiliary lemmas necessary for its proof
   (`msb_intMin_umod_neg_of_msb_true`,
   `msb_neg_umod_neg_of_msb_true_of_msb_true`, `toInt_dvd_toInt_iff`,
   `toInt_dvd_toInt_iff_of_msb_true_msb_false`,
@@ -1068,7 +1068,7 @@ When false, the warning is not logged.
 
 * [#8620](https://github.com/leanprover/lean4/pull/8620) removes the `NatCast (Fin n)` global instance (both the direct
   instance, and the indirect one via `Lean.Grind.Semiring`), as that
-  instance causes causes `x < n` (for `x : Fin k`, `n : Nat`) to be
+  instance causes `x < n` (for `x : Fin k`, `n : Nat`) to be
   elaborated as `x < ↑n` rather than `↑x < n`, which is undesirable. Note
   however that in Mathlib this happens anyway!
 
@@ -1214,16 +1214,16 @@ When false, the warning is not logged.
 * [#8920](https://github.com/leanprover/lean4/pull/8920) uses the linter from #8901 to clean up more simp arguments,
   completing #8905.
 
-* [#8928](https://github.com/leanprover/lean4/pull/8928) adds a logic of stateful predicates SPred to Std.Do in order to
+* [#8928](https://github.com/leanprover/lean4/pull/8928) adds a logic of stateful predicates `SPred` to `Std.Do` in order to
   support reasoning about monadic programs. It comes with a dedicated
   proof mode the tactics of which are accessible by importing
   Std.Tactic.Do.
 
 * [#8941](https://github.com/leanprover/lean4/pull/8941) adds `BitVec.(getElem, getLsbD, getMsbD)_(smod, sdiv, srem)`
   theorems to complete the API for `sdiv`, `srem`, `smod`. Even though the
-  rhs is not particularly succint (it's hard to find a meaning for what it
+  rhs is not particularly succinct (it's hard to find a meaning for what it
   means to have "the n-th bit of the result of a signed division/modulo
-  operation"), these lemmas prevent the need to `unfold` of operations.
+  operation"), these lemmas prevent the need to `unfold` operations.
 
 * [#8947](https://github.com/leanprover/lean4/pull/8947) introduces polymorphic slices in their most basic form. They
   come with a notation similar to the new range notation. `Subarray` is
@@ -1256,7 +1256,7 @@ When false, the warning is not logged.
 
   *  `mspec` for applying Hoare triple specifications
   * `mvcgen` to turn a Hoare triple proof obligation `⦃P⦄ prog ⦃Q⦄` into
-  pure verification conditoins (i.e., without any traces of Hoare triples
+  pure verification conditions (i.e., without any traces of Hoare triples
   or weakest preconditions reminiscent of `prog`). The resulting
   verification conditions in the stateful logic of `Std.Do.SPred` can be
   discharged manually with the tactics coming with its custom proof mode
@@ -1295,9 +1295,9 @@ When false, the warning is not logged.
 
 * [#8594](https://github.com/leanprover/lean4/pull/8594) removes incorrect optimizations for strictOr/strictAnd from the
   old compiler, along with deleting an incorrect test. In order to do
-  these optimizations correctly, nontermination analysis is required.
+  these optimizations correctly, non-termination analysis is required.
   Arguably, the correct way to express these optimizations is by exposing
-  the implementation of strictOr/strictAnd to a nontermination-aware phase
+  the implementation of strictOr/strictAnd to a non-termination-aware phase
   of the compiler, and then having them follow from more general
   transformations.
 
@@ -1476,8 +1476,8 @@ When false, the warning is not logged.
 * [#8934](https://github.com/leanprover/lean4/pull/8934) adds explanations for a few errors concerning noncomputability,
   redundant match alternatives, and invalid inductive declarations.
 
-* [#8990](https://github.com/leanprover/lean4/pull/8990) adds missing doc-strings for grind's internal algebra
-  typeclasses, for inclusion in the reference manual.
+* [#8990](https://github.com/leanprover/lean4/pull/8990) adds missing docstrings for `grind`'s internal algebra
+  type classes, for inclusion in the reference manual.
 
 * [#8998](https://github.com/leanprover/lean4/pull/8998) makes the docstrings related to `Format` and `Repr` have
   consistent formatting and style, and adds missing docstrings.
