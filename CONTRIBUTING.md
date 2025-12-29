@@ -4,7 +4,7 @@ Thank you for helping out with the Lean reference manual!
 
 In the interest of getting as much documentation as possible written
 quickly, while still maintaining a consistent voice and style and
-keeping the technical quality high, all contributions will either be
+keeping the technical quality high, all contributions will be
 carefully reviewed. However, because review can be very time
 consuming, we may decline to review some contributions. This means
 that slow-to-review PRs may just be closed. Nobody wants this to
