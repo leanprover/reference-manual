@@ -216,7 +216,7 @@ end IndexMap
 Let's get started.
 We'll aspire to never writing a proof by hand, and the first step of that is to install auto-parameters for the `size_keys` and `WF` field,
 so we can omit these fields whenever `grind` can prove them.
-While we're modifying the definition of `IndexMap` itself, lets make all the fields private, since we're planning on having complete encapsulation.
+While we're modifying the definition of `IndexMap` itself, let's make all the fields private, since we're planning on having complete encapsulation.
 
 ```anchor IndexMap
 structure IndexMap
