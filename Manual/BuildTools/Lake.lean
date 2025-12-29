@@ -155,7 +155,7 @@ A build consists of the following steps:
   During a build, Lake records which source files or other artifacts were used to produce each artifact, saving a hash of each input; these {deftech}_traces_ are saved in the {tech}[build directory].{margin}[More specifically, each artifact's trace file contains a Merkle tree hash mixture of its inputs' hashes.]
   If the inputs are all unmodified, then the corresponding artifact is not rebuilt.
   Trace files additionally record the {tech}[log] from each build task; these outputs are replayed as if the artifact had been built anew.
-  Re-using prior build products when possible is called an {deftech}_incremental build_.
+  Reusing prior build products when possible is called an {deftech}_incremental build_.
 
 : Building artifacts
 
