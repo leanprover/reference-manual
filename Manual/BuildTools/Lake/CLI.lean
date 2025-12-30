@@ -230,7 +230,7 @@ Lake itself can be configured with the following environment variables:
 
 *
   * {envVar +def}`LAKE_CACHE_ARTIFACT_ENDPOINT`
-  * The base URL for for the {ref "lake-cache-remote"}[remote artifact cache] used for artifact uploads.
+  * The base URL for the {ref "lake-cache-remote"}[remote artifact cache] used for artifact uploads.
     If set, then {envVar}`LAKE_CACHE_REVISION_ENDPOINT` must also be set.
     If neither of these are set, Lake will use Reservoir instead.
 
@@ -1160,7 +1160,7 @@ If {lakeOpt}`--scope` is set, Lake will use the specified scope verbatim.
 
 Artifacts are uploaded to the artifact endpoint with a file name derived from their Lake content hash (and prefixed by the repository or scope).
 The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
-As such, the command will warn if the the work tree currently has changes.
+As such, the command will warn if the work tree currently has changes.
 ::::
 
 
