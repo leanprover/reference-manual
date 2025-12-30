@@ -78,7 +78,7 @@ def double_plus_one (x : Nat) :=
    (x + x).succ
 ```
 
-The `Add` typeclass is sufficient for performing the addition `x + x`, but the `.succ` field notation
+The `Add` type class is sufficient for performing the addition `x + x`, but the `.succ` field notation
 cannot operate without knowing more about the actual type from which `succ` is being projected.
 :::
 

@@ -116,7 +116,7 @@ def errorExplanationHeader : Verso.Doc.Elab.BlockCommandOf ErrorHeaderConfig
   | cfg, _contents => do
     match ← getErrorExplanation? cfg.name with
     | .none =>
-      Lean.logWarning m!"The named error `{cfg.name}` is not not known by the Lean compiler"
+      Lean.logWarning m!"The named error `{cfg.name}` is not known by the Lean compiler"
       let metadata := ErrorExplanationExtendedMetadata.mk (ErrorExplanation.Metadata.mk "Summary unavailable" "Metadata unavailable" MessageSeverity.error Option.none) cfg.name
       ``(Doc.Block.other (Block.errorExplanationHeader $(quote metadata)) #[])
     | .some explan =>
