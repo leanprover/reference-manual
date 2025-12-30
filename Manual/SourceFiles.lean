@@ -492,7 +492,7 @@ Private declaration `drop2` accessed publicly; this is allowed only because the 
 
 Disable `backward.privateInPublic.warn` to silence this warning.
 ```
-When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, it's name is inaccessible in the module {module}`L`:
+When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, its name is inaccessible in the module {module}`L`:
 ```leanModule (moduleName :=  L) (name := withPrivateInTerm)
 module
 import L.Defs
@@ -716,7 +716,7 @@ There is no meta-meta phase.
 In addition to making the imported module's public contents available at the meta phase, {keywordOf Parser.Module.import}`meta import` indicates that the current module should be rebuilt if the compiled representation of the imported module changes, ensuring that modified metaprograms are re-run.
 If a definition should be usable in both phases, then it must be defined in a separate module and imported at both phases.
 
-::::example "Cross-Phase Code Re-Use"
+::::example "Cross-Phase Code Reuse"
 :::leanModules +error
 In this module, the function {name}`toPalindrome` is defined in the meta phase, which allows it to be used in a macro but not in an ordinary definition:
 ```leanModule (moduleName := Phases) (name := bothPhases)
@@ -792,7 +792,7 @@ Thus, most {keywordOf Lean.Parser.Module.import}`meta import` are also {keywordO
 The exception is when a definition is imported solely for use in local metaprograms, such as those declared with {keywordOf Parser.Command.syntax}`local syntax`, {keywordOf Parser.Command.macro}`local macro`, or {keywordOf Parser.Command.elab}`local elab`.
 
 As a guideline, it is usually preferable to keep the amount of {keywordOf Lean.Parser.Command.declModifiers}`meta` annotations as small as possible.
-This avoids locking otherwise-reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
+This avoids locking otherwise reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
 Thus, when a metaprogram depends on other code that does not itself need to be marked {keywordOf Lean.Parser.Command.declModifiers}`meta`, this other code should be placed in a separate module and not marked {keywordOf Lean.Parser.Command.declModifiers}`meta`.
 Only the final module that actually registers a metaprogram needs the helpers to be in the meta phase.
 This module should use {keywordOf Lean.Parser.Module.import}`public meta import` to import those helpers and then define its metaprograms using built-in syntax like {keywordOf Parser.Command.elab}`elab`, using {keywordOf Lean.Parser.Command.declaration}`meta def`, or using {keywordOf Lean.Parser.Command.section}`meta section`.

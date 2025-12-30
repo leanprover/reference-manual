@@ -325,7 +325,7 @@ If, when given an arbitrary partial function with a signature that's compatible 
 
  * taking one rewriting step with the defining equation, in which the recursive calls are replaced by the arbitrary function, also implies the satisfaction of the motive
 
-then the motive is satsified for all inputs for which the {lean}`List.findIndex` returns {name}`some`.
+then the motive is satisfied for all inputs for which the {lean}`List.findIndex` returns {name}`some`.
 
 :::
 

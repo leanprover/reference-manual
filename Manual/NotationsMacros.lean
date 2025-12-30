@@ -33,7 +33,7 @@ set_option linter.unusedVariables false
 tag := "language-extension"
 %%%
 
-Different mathematical fields have their own notational conventions, and many notations are re-used with differing meanings in different fields.
+Different mathematical fields have their own notational conventions, and many notations are reused with differing meanings in different fields.
 It is important that formal developments are able to use established notations: formalizing mathematics is already difficult, and the mental overhead of translating between syntaxes can be substantial.
 At the same time, it's important to be able to control the scope of notational extensions.
 Many fields use related notations with very different meanings, and it should be possible to combine developments from these separate fields in a way where both readers and the system know which convention is in force in any given region of a file.

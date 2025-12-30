@@ -96,7 +96,7 @@ If necessary for emphasis, a sentence that contains a list may be
 broken up into a vertical list element (cf Chicago rule 6.142). In
 this case, punctuate the list items as though they were inline in the
 sentence, without using a colon at the start. When using this style in
-this document, rememember to
+this document, remember to
 
 - use the `paragraph` directive so the list is typeset together with
   its sentence,

@@ -112,7 +112,7 @@ $_:attrKind postfix:$_ $[(name := $x)]? $[(priority := $_:prio)]? $s:str => $t:t
 
 Each of these commands may be preceded by {tech}[documentation comments] and {tech}[attributes].
 The documentation comment is shown when the user hovers their mouse over the operator, and attributes may invoke arbitrary metaprograms, just as for any other declaration.
-The attribute {attr}`inherit_doc` causes the documentation of the function that implements the operator to be re-used for the operator itself.
+The attribute {attr}`inherit_doc` causes the documentation of the function that implements the operator to be reused for the operator itself.
 
 Operators interact with {tech}[section scopes] in the same manner as attributes.
 By default, operators are available in any module that transitively imports the one in which they are established, but they may be declared `scoped` or `local` to restrict their availability either to contexts in which the current namespace has been opened or to the current {tech}[section scope], respectively.

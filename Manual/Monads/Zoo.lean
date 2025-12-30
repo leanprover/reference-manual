@@ -76,7 +76,7 @@ Many frequently-used effects fall into a small number of categories:
 # Monad Type Classes
 
 Using type classes like {lean}`MonadState` and {lean}`MonadExcept` allow client code to be polymorphic with respect to monads.
-Together with automatic lifting, this allows programs to be re-usable in many different monads and makes them more robust to refactoring.
+Together with automatic lifting, this allows programs to be reusable in many different monads and makes them more robust to refactoring.
 
 It's important to be aware that effects in a monad may not interact in only one way.
 For example, a monad with state and exceptions may or may not roll back state changes when an exception is thrown.
