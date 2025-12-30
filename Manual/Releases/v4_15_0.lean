@@ -34,7 +34,7 @@ which is an application of the annotated theorem.
 
 - [#5501](https://github.com/leanprover/lean4/pull/5501) ensure `instantiateMVarsProfiling` adds a trace node
 
-- [#5856](https://github.com/leanprover/lean4/pull/5856) adds a feature to the the mutual def elaborator where the
+- [#5856](https://github.com/leanprover/lean4/pull/5856) adds a feature to the mutual def elaborator where the
 `instance` command yields theorems instead of definitions when the class
 is a `Prop`.
 
@@ -489,7 +489,7 @@ make proving inequalities about `USize.size` easier.
 
 - [#6205](https://github.com/leanprover/lean4/pull/6205) upstreams some UInt theorems from Batteries and adds more
 `toNat`-related theorems. It also adds the missing `UInt8` and `UInt16`
-to/from `USize` conversions so that the the interface is uniform across
+to/from `USize` conversions so that the interface is uniform across
 the UInt types.
 
 - [#6207](https://github.com/leanprover/lean4/pull/6207) ensures the `Fin.foldl` and `Fin.foldr` are semireducible.

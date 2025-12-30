@@ -745,7 +745,7 @@ See the Library section below for details.
   take an optional capacity argument.
 
 * [#7451](https://github.com/leanprover/lean4/pull/7451) renames the member `insert_emptyc_eq` of the `LawfulSingleton`
-  typeclass to `insert_empty_eq` to conform to the recommended spelling of
+  type class to `insert_empty_eq` to conform to the recommended spelling of
   `∅` as `empty`.
 
 * [#7466](https://github.com/leanprover/lean4/pull/7466) further cleans up simp lemmas for `Int`.
@@ -777,14 +777,14 @@ See the Library section below for details.
 
 * [#7558](https://github.com/leanprover/lean4/pull/7558) changes the definition of `Nat.div` and `Nat.mod` to use a
   structurally recursive, fuel-based implementation rather than
-  well-founded recursion. This leads to more predicable reduction behavior
+  well-founded recursion. This leads to more predictable reduction behavior
   in the kernel.
 
 * [#7565](https://github.com/leanprover/lean4/pull/7565) adds `BitVec.toInt_sdiv` plus a lot of related bitvector theory
   around divisions.
 
 * [#7614](https://github.com/leanprover/lean4/pull/7614) marks `Nat.div` and `Nat.modCore` as `irreducible`, to recover
-  the behavior from from before #7558.
+  the behavior from before #7558.
 
 * [#7672](https://github.com/leanprover/lean4/pull/7672) reviews the implicitness of arguments across List/Array/Vector,
   generally trying to make arguments implicit where possible, although
@@ -919,13 +919,13 @@ See the Library section below for details.
   interactions with other functions for which lemmas already exist.
 
 * [#7626](https://github.com/leanprover/lean4/pull/7626) provides lemmas for the tree map function `minKeyD` and its
-  interations with other functions for which lemmas already exist.
+  interactions with other functions for which lemmas already exist.
 
 * [#7657](https://github.com/leanprover/lean4/pull/7657) provides lemmas for the tree map function `maxKey?` and its
-  interations with other functions for which lemmas already exist.
+  interactions with other functions for which lemmas already exist.
 
 * [#7660](https://github.com/leanprover/lean4/pull/7660) provides lemmas for the tree map function `minKey` and its
-  interations with other functions for which lemmas already exist.
+  interactions with other functions for which lemmas already exist.
 
 * [#7664](https://github.com/leanprover/lean4/pull/7664) fixes a bug in the definition of the tree map functions `maxKey`
   and `maxEntry`. Moreover, it provides lemmas for this function and its
@@ -1107,7 +1107,7 @@ See the Library section below for details.
 
 * [#7589](https://github.com/leanprover/lean4/pull/7589) changes the structure instance notation pretty printer so that
   fields are omitted if their value is definitionally equal to the default
-  value for the field (up to reducible transparancy). Setting
+  value for the field (up to reducible transparency). Setting
   `pp.structureInstances.defaults` to true forces such fields to be pretty
   printed anyway.
 

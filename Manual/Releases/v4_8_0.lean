@@ -305,7 +305,7 @@ file := "v4.8.0"
   * [#3977](https://github.com/leanprover/lean4/pull/3977) improves `isDefEqProj`.
   * [#3981](https://github.com/leanprover/lean4/pull/3981) adds universe constraint approximations to be able to solve `u =?= max u ?v` using `?v = u`.
     These approximations are only applied when universe constraints cannot be postponed anymore.
-  * [#4004](https://github.com/leanprover/lean4/pull/4004) improves `isDefEqProj` during typeclass resolution.
+  * [#4004](https://github.com/leanprover/lean4/pull/4004) improves `isDefEqProj` during type class resolution.
   * [#4012](https://github.com/leanprover/lean4/pull/4012) adds `backward.isDefEq.lazyProjDelta` and `backward.isDefEq.lazyWhnfCore` backwards compatibility flags.
 * **Kernel**
   * [#3966](https://github.com/leanprover/lean4/pull/3966) removes dead code.

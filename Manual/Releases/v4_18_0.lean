@@ -935,7 +935,7 @@ The `grind` tactic is still is experimental and still under development. Avoid u
   proposition is propositionally equal to either `True` or `False`. This
   will help point users toward seeing that `Prop` is like `Bool`.
 
-* [#7026](https://github.com/leanprover/lean4/pull/7026) clarifies the styling of `do` blocks, and enhanes the naming
+* [#7026](https://github.com/leanprover/lean4/pull/7026) clarifies the styling of `do` blocks, and enhances the naming
   conventions with information about the `ext` and `mono` name components
   as well as advice about primed names and naming of simp sets.
 
@@ -1044,7 +1044,7 @@ The `grind` tactic is still is experimental and still under development. Avoid u
   nodes to the info view, enabling it to render them on dedicates lines
   without extraneous spacing between them in all circumstances.
 
-* [#7149](https://github.com/leanprover/lean4/pull/7149) adds a fast path to the inlay hint request that makes it re-use
+* [#7149](https://github.com/leanprover/lean4/pull/7149) adds a fast path to the inlay hint request that makes it reuse
   already computed inlay hints from previous requests instead of
   re-computing them. This is necessary because for some reason VS Code
   emits an inlay hint request for every line you scroll, so we need to be

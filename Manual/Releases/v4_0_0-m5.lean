@@ -212,7 +212,7 @@ Contributors:
   The result of the `Exp.hash` function is then stored as an extra "computed" field in the `.var` and `.app` constructors;
   `Exp.hash` accesses this field and thus runs in constant time (even on dag-like values).
 
-* Update `a[i]` notation. It is now based on the typeclass
+* Update `a[i]` notation. It is now based on the type class
   ```lean
   class GetElem (cont : Type u) (idx : Type v) (elem : outParam (Type w)) (dom : outParam (cont → idx → Prop)) where
     getElem (xs : cont) (i : idx) (h : dom xs i) : Elem
