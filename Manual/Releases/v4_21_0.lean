@@ -280,7 +280,7 @@ _Other Highlights_
   `match` statements more reliably, using the new “congruence equations”
   introduced in #8284. Fixes #8195.
 
-* [#8280](https://github.com/leanprover/lean4/pull/8280) the support for arrows in the congruence closure procedure used
+* [#8280](https://github.com/leanprover/lean4/pull/8280) adds support for arrows in the congruence closure procedure used
   in `grind`.
 
 * [#8281](https://github.com/leanprover/lean4/pull/8281) improves the module used to prove auxiliary type cast equalities
@@ -289,7 +289,7 @@ _Other Highlights_
 * [#8284](https://github.com/leanprover/lean4/pull/8284) adds a new variant of equations for matchers, namely “congruence
   equations” that generalize the normal matcher equations. They have
   unrestricted left-hand-sides, extra equality assumptions relating the
-  discriminiants with the patterns and thus prove heterogenous equalities.
+  discriminants with the patterns and thus prove heterogeneous equalities.
   In that sense they combine congruence with rewriting. They can be used
   to rewrite matcher applications where, due to dependencies, `simp` would
   fail to rewrite the discriminants, and will be used when producing the
@@ -304,8 +304,8 @@ _Other Highlights_
 * [#8301](https://github.com/leanprover/lean4/pull/8301) unfolds functions in the unfolding induction principle properly
   when they use `bif` (a.k.a. `Bool.cond`).
 
-* [#8302](https://github.com/leanprover/lean4/pull/8302) lets `cases` fail gracefully when the motive has an complex
-  argument whose type is dependent type on the targets. While the
+* [#8302](https://github.com/leanprover/lean4/pull/8302) lets `cases` fail gracefully when the motive has a complex
+  argument whose type is dependent on the targets. While the
   `induction` tactic can handle this well, `cases` does not. This change
   at least gracefully degrades to not instantiating that motive parameter.
   See issue [#8296](https://github.com/leanprover/lean4/issues/8296) for more details on this issue.
@@ -337,15 +337,15 @@ _Other Highlights_
 
 * [#8341](https://github.com/leanprover/lean4/pull/8341) fixes the `propagateCtor` constraint propagator used in `grind`.
 
-* [#8343](https://github.com/leanprover/lean4/pull/8343) splits `Lean.Grind.CommRing` into 4 typeclasses, for semirings
+* [#8343](https://github.com/leanprover/lean4/pull/8343) splits `Lean.Grind.CommRing` into 4 type classes, for semirings
   and noncommutative rings. This does not yet change the behaviour of
-  `grind`, which expects to find all 4 typeclasses. Later we will make
+  `grind`, which expects to find all 4 type classes. Later we will make
   some generalizations.
 
 * [#8344](https://github.com/leanprover/lean4/pull/8344) fixes term normalization issues in `grind`, and the new option
   `grind +etaStruct`.
 
-* [#8347](https://github.com/leanprover/lean4/pull/8347) adds draft typeclasses for `grind` to process facts about
+* [#8347](https://github.com/leanprover/lean4/pull/8347) adds draft type classes for `grind` to process facts about
   ordered modules. These interfaces will evolve as the implementation
   develops.
 
@@ -428,23 +428,23 @@ _Other Highlights_
   failing) tests for `grind`.
 
 * [#8426](https://github.com/leanprover/lean4/pull/8426) adds the attribute `[grind?]`. It is like `[grind]` but displays
-  inferred E-matching patterns. It is a more convinient than writing.
+  inferred E-matching patterns. It is more convenient than writing it manually.
   Thanks @kim-em for suggesting this feature.
   ```lean
   set_option trace.grind.ematch.pattern true
   ```
-  also improves some tests, and adds helper function
+  It also improves some tests, and adds the helper function
   `ENode.isRoot`.
 
 * [#8429](https://github.com/leanprover/lean4/pull/8429) adds `Lean.Grind.Ring.IsOrdered`, and cleans up the ring/module
-  grind API. These typeclasses are at present unused, but will support
+  `grind` API. These type classes are at present unused, but will support
   future algorithmic improvements in `grind`.
 
 * [#8437](https://github.com/leanprover/lean4/pull/8437) fixes `split` in the presence of metavariables in the target.
 
 * [#8438](https://github.com/leanprover/lean4/pull/8438) ensures that `grind` diagnostics are obtained even when
   `maxHeartbeats` is reached.
-  also removes some dead code.
+  Also removes some dead code.
 
 * [#8440](https://github.com/leanprover/lean4/pull/8440) implements non-chronological backtracking for the `grind`
   tactic. This feature ensures that `grind` does not need to process
@@ -600,7 +600,7 @@ _Other Highlights_
   `BitVec.one_eq_zero_iff`
 
 * [#8206](https://github.com/leanprover/lean4/pull/8206) shows that negating a bitvector created from a natural number
-  equals creating a bitvector from the the negative of that number (as an
+  equals creating a bitvector from the negative of that number (as an
   integer).
 
 * [#8216](https://github.com/leanprover/lean4/pull/8216) completes adding `@[grind]` annotations for `Option` lemmas, and
@@ -770,7 +770,7 @@ _Other Highlights_
 
 * [#8620](https://github.com/leanprover/lean4/pull/8620) removes the `NatCast (Fin n)` global instance (both the direct
   instance, and the indirect one via `Lean.Grind.Semiring`), as that
-  instance causes causes `x < n` (for `x : Fin k`, `n : Nat`) to be
+  instance causes `x < n` (for `x : Fin k`, `n : Nat`) to be
   elaborated as `x < ↑n` rather than `↑x < n`, which is undesirable. Note
   however that in Mathlib this happens anyway!
 
@@ -928,7 +928,7 @@ _Other Highlights_
   name would not be caught and cause loading to fail.
 
 * [#8529](https://github.com/leanprover/lean4/pull/8529) changes `lake lean` and `lake setup-file` to precompile the
-  imports of non-workspace files using the the import's whole library.
+  imports of non-workspace files using the import's whole library.
   This ensures that additional link objects are linked and available
   during elaboration.
 

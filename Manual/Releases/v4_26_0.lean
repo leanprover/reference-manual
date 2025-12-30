@@ -229,7 +229,7 @@ This release includes several performance optimizations in match compilation of 
 * [#11107](https://github.com/leanprover/lean4/pull/11107) tests the missing cases error.
 
 * [#11122](https://github.com/leanprover/lean4/pull/11122) fixes a problem for structures with diamond inheritance: rather
-  than copying doc-strings (which are not available unless `.server.olean`
+  than copying docstrings (which are not available unless `.server.olean`
   is loaded), we link to them. Adds tests.
 
 * [#11125](https://github.com/leanprover/lean4/pull/11125) adds a filter for premise selectors to ensure deprecated
@@ -304,13 +304,13 @@ This release includes several performance optimizations in match compilation of 
 * [#10941](https://github.com/leanprover/lean4/pull/10941) removes a redundant instance requirement from
   `Std.instIrreflLtOfIsPreorderOfLawfulOrderLT`.
 
-* [#10946](https://github.com/leanprover/lean4/pull/10946) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet nd
+* [#10946](https://github.com/leanprover/lean4/pull/10946) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet and
   provides lemmas about union operations.
 
 * [#10952](https://github.com/leanprover/lean4/pull/10952) replaces `Iter(M).size` with the `Iter(M).count`. While the
   former used a special `IteratorSize` type class, the latter relies on
   `IteratorLoop`. The `IteratorSize` class is deprecated. The PR also
-  renames lemmas about ranges be replacing `_Rcc` with `_rcc`, `_Rco` with
+  renames lemmas about ranges by replacing `_Rcc` with `_rcc`, `_Rco` with
   `_roo` (and so on) in names, in order to be more consistent with the
   naming convention.
 
@@ -342,10 +342,10 @@ This release includes several performance optimizations in match compilation of 
   into one, allowing `decide (0 <= x) = true` and `decide (0 < succ x) =
   true` to be solvable by `rfl`.
 
-* [#11060](https://github.com/leanprover/lean4/pull/11060) add list `min` and `max` operations to complement `min?` and
-  `max?` ones in the same vain as `head?` and `head`.
+* [#11060](https://github.com/leanprover/lean4/pull/11060) adds list `min` and `max` operations to complement `min?` and
+  `max?` ones in the same vein as `head?` and `head`.
 
-* [#11070](https://github.com/leanprover/lean4/pull/11070) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet nd
+* [#11070](https://github.com/leanprover/lean4/pull/11070) adds union operation on ExtDHashMap/ExtHashMap/ExtHashSet and
   provides lemmas about union operations.
 
 * [#11076](https://github.com/leanprover/lean4/pull/11076) adds `getEntry`/`getEntry?`/`getEntry!`/`getEntryD` operation on
@@ -557,8 +557,8 @@ This release includes several performance optimizations in match compilation of 
 * [#11012](https://github.com/leanprover/lean4/pull/11012) ensures the `grind` tactics `finish` and `finish?` can take
   parameters.
 
-* [#11026](https://github.com/leanprover/lean4/pull/11026) fixes a nontermination and missing propagation bug in `grind
-  order`. It also register relevant case-splits for arithmetic.
+* [#11026](https://github.com/leanprover/lean4/pull/11026) fixes a non-termination and missing propagation bug in `grind
+  order`. It also registers relevant case-splits for arithmetic.
 
 * [#11028](https://github.com/leanprover/lean4/pull/11028) ensures that `grind? +premises` removes `+premises` from the
   "Try this" suggestion.

@@ -350,7 +350,8 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
 
 * [#10071](https://github.com/leanprover/lean4/pull/10071) improves support for `a^n` in `grind cutsat`. For example, if
   `cutsat` discovers that `a` and `b` are equal to numerals, it now
-  propagates the equality. is similar to #9996, but `a^b`.
+  propagates the equality.
+  It is similar to #9996, but for `a^b`.
   Example:
 
   ```lean
@@ -364,7 +365,7 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
 * [#10093](https://github.com/leanprover/lean4/pull/10093) adds background theorems for a new solver to be implemented in
   `grind` that will support associative and commutative operators.
 
-* [#10095](https://github.com/leanprover/lean4/pull/10095) modifies the `grind` algebra typeclasses to use `SMul x y`
+* [#10095](https://github.com/leanprover/lean4/pull/10095) modifies the `grind` algebra type classes to use `SMul x y`
   instead of `HMul x y y`.
 
 * [#10105](https://github.com/leanprover/lean4/pull/10105) adds support for detecting associative operators in `grind`. The
@@ -377,14 +378,14 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
 
 * [#10120](https://github.com/leanprover/lean4/pull/10120) fixes an issue where private definitions recursively invoked
   using generalized field notation (dot notation) would give an "invalid
-  field" errors. It also fixes an issue where "invalid field notation"
+  field" error. It also fixes an issue where "invalid field notation"
   errors would pretty print the name of the declaration with a `_private`
   prefix.
 
 * [#10125](https://github.com/leanprover/lean4/pull/10125) allows `#guard_msgs` to report the relative positions of logged
   messages with the config option `(positions := true)`.
 
-* [#10129](https://github.com/leanprover/lean4/pull/10129) replaces the interim order typeclasses used by `Grind` with the
+* [#10129](https://github.com/leanprover/lean4/pull/10129) replaces the interim order type classes used by `Grind` with the
   new publicly available classes in `Std`.
 
 * [#10134](https://github.com/leanprover/lean4/pull/10134) makes the generation of functional induction principles more
@@ -402,7 +403,7 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
   `coinductive_fixpoint`/`inductive_fixpoint` machinery.
 
 * [#10146](https://github.com/leanprover/lean4/pull/10146) implements the basic infrastructure for the new procedure
-  handling AC operators in grind. It already supports normalizing
+  handling AC operators in `grind`. It already supports normalizing
   disequalities. Future PRs will add support for simplification using
   equalities, and computing critical pairs. Examples:
   ```lean
@@ -661,7 +662,7 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
     grind
   ```
 
-* [#10324](https://github.com/leanprover/lean4/pull/10324) disables an unused instance that causes expensive typeclass
+* [#10324](https://github.com/leanprover/lean4/pull/10324) disables an unused instance that causes expensive type class
   searches.
 
 * [#10325](https://github.com/leanprover/lean4/pull/10325) implements model-based theory combination for types `A` which
@@ -712,7 +713,7 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
 * [#9127](https://github.com/leanprover/lean4/pull/9127) makes `saveModuleData` throw an IO.Error instead of panicking,
   if given something that cannot be serialized. This doesn't really matter
   for saving modules, but is handy when writing tools to save auxiliary
-  date in olean files via Batteries' `pickle`.
+  data in olean files via Batteries' `pickle`.
 
 * [#9560](https://github.com/leanprover/lean4/pull/9560) fixes the `forIn` function, that previously caused the resulting
   Promise to be dropped without a value when an exception was thrown
@@ -741,10 +742,10 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
 
 * [#9908](https://github.com/leanprover/lean4/pull/9908) makes `IsPreorder`, `IsPartialOrder`, `IsLinearPreorder` and
   `IsLinearOrder` extend `BEq` and `Ord` as appropriate, adds the
-  `LawfulOrderBEq` and `LawfulOrderOrd` typeclasses relating `BEq` and
+  `LawfulOrderBEq` and `LawfulOrderOrd` type classes relating `BEq` and
   `Ord` to `LE`, and adds many lemmas and instances.
 
-* [#9916](https://github.com/leanprover/lean4/pull/9916) provides factories that derive order typeclasses in bulk, given
+* [#9916](https://github.com/leanprover/lean4/pull/9916) provides factories that derive order type classes in bulk, given
   an `Ord` instance. If present, existing instances are preferred over
   those derived from `Ord`. It is possible to specify any instance
   manually if desired.
@@ -802,7 +803,7 @@ example {α : Sort u} (op : α → α → α) (u : α) [Std.Associative op] [Std
   `LawfulOrderMin/Max.of_le` to .of_le_min_iff` and `.of_max_le_iff` and
   introduces a second variant with different arguments.
 
-* [#10045](https://github.com/leanprover/lean4/pull/10045) implements the necessary typeclasses so that range notation
+* [#10045](https://github.com/leanprover/lean4/pull/10045) implements the necessary type classes so that range notation
   works for integers. For example, `((-2)...3).toList = [-2, -1, 0, 1, 2]
   : List Int`.
 
