@@ -23,7 +23,7 @@ tag := "grind-split"
 %%%
 
 In addition to congruence closure and constraint propagation, {tactic}`grind` performs case analysis.
-During case analysis, {tactic}`grind` considers each possible way that a term could have been built, or each possbile value of a particular term, in a manner similar to the {tactic}`cases` and {tactic}`split` tactics.
+During case analysis, {tactic}`grind` considers each possible way that a term could have been built, or each possible value of a particular term, in a manner similar to the {tactic}`cases` and {tactic}`split` tactics.
 This case analysis is not exhaustive: {tactic}`grind` only recursively splits cases up to a configured depth limit, and configuration options and annotations control which terms are candidates for splitting.
 
 
