@@ -586,7 +586,7 @@ In terms of user experience, noteworthy new features are:
 
 * [#9670](https://github.com/leanprover/lean4/pull/9670) add constructors `.intCast k` and `.natCast k` to
   `CommRing.Expr`. We need them because terms such as `Nat.cast (R := α)
-  1` and `(1 : α)` are not definitionally equal. This is pervaise in
+  1` and `(1 : α)` are not definitionally equal. This is pervasive in
   Mathlib for the numerals `0` and `1`.
 
 * [#9671](https://github.com/leanprover/lean4/pull/9671) fixes support for `SMul.smul` in `grind ring`. `SMul.smul`

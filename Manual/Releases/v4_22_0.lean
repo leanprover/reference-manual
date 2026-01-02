@@ -1068,7 +1068,7 @@ When false, the warning is not logged.
 
 * [#8620](https://github.com/leanprover/lean4/pull/8620) removes the `NatCast (Fin n)` global instance (both the direct
   instance, and the indirect one via `Lean.Grind.Semiring`), as that
-  instance causes causes `x < n` (for `x : Fin k`, `n : Nat`) to be
+  instance causes `x < n` (for `x : Fin k`, `n : Nat`) to be
   elaborated as `x < ↑n` rather than `↑x < n`, which is undesirable. Note
   however that in Mathlib this happens anyway!
 

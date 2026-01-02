@@ -155,7 +155,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 * [#11453](https://github.com/leanprover/lean4/pull/11453) fixes undefined behavior where `delete` (instead of `delete[]`)
   is called on an object allocated with `new[]`.
 
-* [#11456](https://github.com/leanprover/lean4/pull/11456) refines several error error messages, mostly involving invalid
+* [#11456](https://github.com/leanprover/lean4/pull/11456) refines several error messages, mostly involving invalid
   use of field notation, generalized field notation, and numeric
   projection. Provides a new error explanation for field notation.
 
