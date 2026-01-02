@@ -35,7 +35,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   `MatcherInfo`, and using that during matcher calculation.
 
 * [#11200](https://github.com/leanprover/lean4/pull/11200) changes how sparse case expressions represent the
-  none-of-the-above information. Instead of of many `x.ctorIdx ≠ i`
+  none-of-the-above information. Instead of many `x.ctorIdx ≠ i`
   hypotheses, it introduces a single `Nat.hasNotBit mask x.ctorIdx`
   hypothesis which compresses that information into a bitmask. This avoids
   a quadratic overhead during splitter generation, where all n assumptions
@@ -182,7 +182,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   those using `aesop`) being affected by the current recursion depth or
   heartbeat limit.
 
-* [#11492](https://github.com/leanprover/lean4/pull/11492) uses the the helper functions withImplicitBinderInfos and
+* [#11492](https://github.com/leanprover/lean4/pull/11492) uses the helper functions withImplicitBinderInfos and
   mkArrowN in more places.
 
 * [#11493](https://github.com/leanprover/lean4/pull/11493) makes `Match.MatchEqs` a leaf module, to be less restricted in

@@ -548,7 +548,7 @@ none) using the necessary flags.
 * [#6289](https://github.com/leanprover/lean4/pull/6289) adapts Lake modules to use `prelude` and includes them in the
 `check-prelude` CI.
 
-* [#6291](https://github.com/leanprover/lean4/pull/6291) ensures the the log error position is properly preserved when
+* [#6291](https://github.com/leanprover/lean4/pull/6291) ensures the log error position is properly preserved when
 prepending stray log entries to the job log. It also adds comparison
 support for `Log.Pos`.
 

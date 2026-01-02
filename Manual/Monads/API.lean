@@ -22,7 +22,7 @@ set_option linter.unusedVariables false
 
 #doc (Manual) "API Reference" =>
 
-In addition to the general functions described here, there are some functions that are conventionally defined as part of the API of in the namespace of each collection type:
+In addition to the general functions described here, there are some functions that are conventionally defined as part of the API in the namespace of each collection type:
  * `mapM` maps a monadic function.
  * `forM` maps a monadic function, throwing away the result.
  * `filterM` filters using a monadic predicate, returning the values that satisfy it.
@@ -100,7 +100,7 @@ The {name}`discard` function is especially useful when using an action that retu
 # Re-Ordered Operations
 
 Sometimes, it can be convenient to partially apply a function to its second argument.
-These functions reverse the order of arguments, making it this easier.
+These functions reverse the order of arguments, making this easier.
 
 {docstring Functor.mapRev}
 

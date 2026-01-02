@@ -403,7 +403,7 @@ When false, the warning is not logged.
   linarith modules in grind.
 
 * [#8694](https://github.com/leanprover/lean4/pull/8694) implements special support for `One.one` in linarith when the
-  structure is a ordered ring. It also fixes bugs during initialization.
+  structure is an ordered ring. It also fixes bugs during initialization.
 
 * [#8697](https://github.com/leanprover/lean4/pull/8697) implements support for inequalities in the `grind` linear
   arithmetic procedure and simplifies its design. Some examples that can
