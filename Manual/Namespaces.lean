@@ -203,7 +203,7 @@ Without an identifier, {keywordOf Lean.Parser.Command.end}`end` closes the most 
 end
 ```
 
-With an identifier, it closes the most recently opened section section or namespace.
+With an identifier, it closes the most recently opened section or namespace.
 If it is a section, the identifier must be a suffix of the concatenated names of the sections opened since the most recent {keywordOf Lean.Parser.Command.namespace}`namespace` command.
 If it is a namespace, then the identifier must be a suffix of the current namespace's extensions since the most recent {keywordOf Lean.Parser.Command.section}`section` that is still open; afterwards, the current namespace will have had this suffix removed.
 ```grammar

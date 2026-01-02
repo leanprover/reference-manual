@@ -53,7 +53,7 @@ tag := "char-syntax"
 %%%
 
 Character literals consist of a single character or an escape sequence enclosed in single quotes (`'`, Unicode `'APOSTROPHE' (U+0027)`).
-Between these single quotes, the character literal may contain character other that `'`, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as `'\n'`, regardless of file encoding and platform).
+Between these single quotes, the character literal may contain any character other than `'`, including newlines, which are included literally (with the caveat that all newlines in a Lean source file are interpreted as `'\n'`, regardless of file encoding and platform).
 Special characters may be escaped with a backslash, so `'\''` is a character literal that contains a single quote.
 The following forms of escape sequences are accepted:
 

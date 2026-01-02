@@ -216,7 +216,7 @@ tag := "NoNatZeroDivisors"
 
 The class `NoNatZeroDivisors` is used to control coefficient growth.
 For example, the polynomial `2 * x * y + 4 * z = 0` is simplified to `x * y + 2 * z = 0`.
-It also used when processing disequalities.
+It is also used when processing disequalities.
 
 :::example "Using `NoNatZeroDivisors`"
 ```lean -show

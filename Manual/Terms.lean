@@ -113,7 +113,7 @@ The innermost local binding of a name takes precedence over others:
 
 ::::keepEnv
 :::example "Longer Prefixes of Current Namespace Take Precedence"
-The  namespaces `A`, `B`, and `C` are nested.
+The namespaces `A`, `B`, and `C` are nested.
 Both `A` and `C` contain a definition of `x`.
 ```lean (name := NS)
 namespace A
@@ -674,7 +674,7 @@ fun x => (fun x y => sum3 x y 8) x 1 : Nat → Nat
 ```
 
 Parameter names are taken from the function's _type_, and the names used for function parameters don't need to match the names used in the type.
-This means that local bindings that conflict with a parameter's name don't prevent the use of named parameters, because Lean avoids this conflicts by renaming the function's parameter while leaving the name intact in the type.
+This means that local bindings that conflict with a parameter's name don't prevent the use of named parameters, because Lean avoids these conflicts by renaming the function's parameter while leaving the name intact in the type.
 ```lean (name := sum15)
 #check let x := 15; sum3 (z := x)
 ```
@@ -1010,7 +1010,7 @@ Scientific numbers are overloaded via the {name}`OfScientific` type class.
 
 {docstring OfScientific}
 
-There are an {lean}`OfScientific` instances for {name}`Float` and {name}`Float32`, but no separate floating-point literals.
+There are {lean}`OfScientific` instances for {name}`Float` and {name}`Float32`, but no separate floating-point literals.
 
 ## Strings
 

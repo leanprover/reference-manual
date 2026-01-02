@@ -160,7 +160,7 @@ Solo.solo : Solo
 inductive Yes : Prop where
   | intro
 ```
-Unlike {lean}`One`, the new inductive type {lean}`Yes` is specified to be in the {lean}`Prop` universe.
+Unlike {lean}`Solo`, the new inductive type {lean}`Yes` is specified to be in the {lean}`Prop` universe.
 ```lean (name := YesTy)
 #check Yes
 ```

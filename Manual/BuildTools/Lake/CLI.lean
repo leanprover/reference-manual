@@ -956,13 +956,13 @@ They are likely change in future versions of Lake based on user feedback.
 Packages that use Reservoir cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
 
 ```lakeHelp "pack"
-Pack build artifacts into a archive for distribution
+Pack build artifacts into an archive for distribution
 
 USAGE:
   lake pack [<file.tgz>]
 
 Packs the root package's `buildDir` into a gzip tar archive using `tar`.
-If a path for the archive is not specified, creates a archive in the package's
+If a path for the archive is not specified, creates an archive in the package's
 Lake directory (`.lake`) named according to its `buildArchive` setting.
 
 Does NOT build any artifacts. It just packs the existing ones.
@@ -1160,7 +1160,7 @@ If {lakeOpt}`--scope` is set, Lake will use the specified scope verbatim.
 
 Artifacts are uploaded to the artifact endpoint with a file name derived from their Lake content hash (and prefixed by the repository or scope).
 The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
-As such, the command will warn if the the work tree currently has changes.
+As such, the command will warn if the work tree currently has changes.
 ::::
 
 
