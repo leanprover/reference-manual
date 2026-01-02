@@ -67,8 +67,8 @@ inductive RoseTree.All (P : α → Prop) : RoseTree α → Prop
   | intro : P t.val → List.All (All P) t.children → All P t
 ```
 
-Because the `RoseTree.All` type constructor must be partially applied in the argument to `List.All`,
-the unspecified argument (`t`) must not be a parameter of the `RoseTree.All` predicate. Making it an
-index to the right of the colon in the header of `RoseTree.All` allows this partial application to
+Because the {name}`RoseTree.All` type constructor must be partially applied in the argument to {name}`List.All`,
+the unspecified argument (`t`) must not be a parameter of the {name}`RoseTree.All` predicate. Making it an
+index to the right of the colon in the header of {name}`RoseTree.All` allows this partial application to
 succeed.
 :::
