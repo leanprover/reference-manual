@@ -114,7 +114,7 @@ class IsEnum (α : Type) where
 ```
 
 For inductive types that are trivial enumerations, where no constructor expects any parameters, instances of this class are quite repetitive.
-The instance for `Bool` is typical:
+The instance for {name}`Bool` is typical:
 ```lean
 instance : IsEnum Bool where
   size := 2

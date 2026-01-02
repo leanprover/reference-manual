@@ -181,8 +181,8 @@ A nested inductive type that occurs inside a map or set should be defined in thr
 import Std
 ```
 
-This example requires that `Std.Data.HashMap.RawLemmas` is imported.
-To keep the code shorter, the `Std` namespace is opened:
+This example requires that {name}`Std.Data.HashMap.RawLemmas` is imported.
+To keep the code shorter, the {name}`Std` namespace is opened:
 ```lean
 open Std
 ```
@@ -481,7 +481,7 @@ $_ ~m $_
 
 Unbundled maps separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the modules `Std.HashMap.Raw` and `Std.HashMap.RawLemmas`.
+To use these variants, import the modules {name}`Std.HashMap.Raw` and {name}`Std.HashMap.RawLemmas`.
 
 {docstring Std.HashMap.Raw}
 
@@ -605,7 +605,7 @@ $_ ~m $_
 
 Unbundled maps separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the modules `Std.DHashMap.Raw` and `Std.DHashMap.RawLemmas`.
+To use these variants, import the modules {name}`Std.DHashMap.Raw` and {name}`Std.DHashMap.RawLemmas`.
 
 {docstring Std.DHashMap.Raw}
 
@@ -852,7 +852,7 @@ $_ ~m $_
 
 Unbundled maps separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the modules `Std.HashSet.Raw` and `Std.HashSet.RawLemmas`.
+To use these variants, import the modules {name}`Std.HashSet.Raw` and {name}`Std.HashSet.RawLemmas`.
 
 {docstring Std.HashSet.Raw}
 
@@ -1014,7 +1014,7 @@ The declarations in this section should be imported using `import Std.DTreeMap`.
 
 Unbundled maps separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the module `Std.DTreeMap.Raw`.
+To use these variants, import the module {name}`Std.DTreeMap.Raw`.
 
 {docstring Std.DTreeMap.Raw}
 

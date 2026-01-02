@@ -178,7 +178,7 @@ Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Co
 # Candidate Instances
 
 Instance synthesis uses both local and global instances in its search.
-{deftech}_Local instances_ are those available in the local context; they may be either parameters to a function or locally defined with `let`. {TODO}[xref to docs for `let`]
+{deftech}_Local instances_ are those available in the local context; they may be either parameters to a function or locally defined with {keywordOf Lean.Parser.Term.let}`let`. {TODO}[xref to docs for `let`]
 Local instances do not need to be indicated specially; any local variable whose type is a type class is a candidate for instance synthesis.
 {deftech}_Global instances_ are those available in the global environment; every global instance is a defined name with the {attr}`instance` attribute applied.{margin}[{keywordOf Lean.Parser.Command.declaration}`instance` declarations automatically apply the {attr}`instance` attribute.]
 

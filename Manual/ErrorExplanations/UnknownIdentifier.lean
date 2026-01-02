@@ -98,14 +98,14 @@ def red : Color :=
   rgb 255 0 0
 ```
 
-In this example, the identifier `rgb` on the last line does not resolve to the `Color` constructor
-of that name. This is because the constructor's name is actually `Color.rgb`: all constructors of an
-inductive type have names in that type's namespace. Because the `Color` namespace is not open, the
+In this example, the identifier `rgb` on the last line does not resolve to the {name}`Color` constructor
+of that name. This is because the constructor's name is actually {name}`Color.rgb`: all constructors of an
+inductive type have names in that type's namespace. Because the {name}`Color` namespace is not open, the
 identifier `rgb` cannot be used without its namespace prefix.
 
-One way to resolve this error is to provide the fully qualified constructor name `Color.rgb`; the
+One way to resolve this error is to provide the fully qualified constructor name {lean}`Color.rgb`; the
 dotted-identifier notation `.rgb` can also be used, since the expected type of `.rgb 255 0 0` is
-`Color`. Alternatively, one can open the `Color` namespace and continue to omit the `Color` prefix
+{name}`Color`. Alternatively, one can open the {name}`Color` namespace and continue to omit the {name}`Color` prefix
 from the identifier.
 :::
 

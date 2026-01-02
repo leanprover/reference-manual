@@ -26,9 +26,9 @@ tag := "partial-fixpoint-theory"
 
 The construction builds on a variant of the Knaster–Tarski theorem: In a chain-complete partial order, every monotone function has a least fixed point.
 
-The necessary theory is found in the `Lean.Order` namespace.
+The necessary theory is found in the {name}`Lean.Order` namespace.
 This is not meant to be a general purpose library of order theoretic results.
-Instead, the definitions and theorems in `Lean.Order` are only intended as implementation details of the {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` feature, and they should be considered a private API that may change without notice.
+Instead, the definitions and theorems in {name}`Lean.Order` are only intended as implementation details of the {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` feature, and they should be considered a private API that may change without notice.
 
 The notion of a partial order, and that of a chain-complete partial order, are represented by the type classes {name}`Lean.Order.PartialOrder` and {name}`Lean.Order.CCPO`, respectively.
 

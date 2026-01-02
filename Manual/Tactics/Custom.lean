@@ -89,7 +89,7 @@ This is used to make a number of Lean's built-in tactics extensible—new behavi
 :::example "Extending {tactic}`trivial`"
 
 The {tactic}`trivial`, which is used by many other tactics to quickly dispatch subgoals that are not worth bothering the user with, is designed to be extended through new macro expansions.
-Lean's default {lean}`trivial` can't solve {lean}`IsEmpty []` goals:
+Lean's default {tactic}`trivial` can't solve {lean}`IsEmpty []` goals:
 ```lean
 def IsEmpty (xs : List α) : Prop :=
   ¬ xs ≠ []

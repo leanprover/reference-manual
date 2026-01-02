@@ -668,7 +668,7 @@ The notation {lean}`⇓ r => Q' r` has the total interpretation, while {lean}`�
 
 In the running example, {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` is unprovable, but {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` is trivially provable.
 However, the binary choice suggests that there is actually a _spectrum_ of correctness properties to express.
-The notion of postconditions {name}`PostCond` in `Std.Do` supports this spectrum.
+The notion of postconditions {name}`PostCond` in {namespace}`Std.Do` supports this spectrum.
 
 ::::
 

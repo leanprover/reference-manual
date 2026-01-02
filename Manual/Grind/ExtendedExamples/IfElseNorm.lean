@@ -202,7 +202,7 @@ and then, whenever performing a branch on a variable, adding a new assignment in
 It also needs to flatten nested if-then-else expressions which have another if-then-else in the “condition” position.
 (This is extracted from Chris Hughes's solution, but without the subtyping.)
 
-Let's work inside the `IfExpr` namespace.
+Let's work inside the {name}`IfExpr` namespace.
 ```lean
 namespace IfExpr
 ```

@@ -59,7 +59,7 @@ $_ <+ $_
 
 {includeDocstring List.«term_<+_»}
 
-This syntax is only available when the `List` namespace is opened.
+This syntax is only available when the {name}`List` namespace is opened.
 :::
 
 {docstring List.Perm}
@@ -71,7 +71,7 @@ $_ ~ $_
 
 {includeDocstring List.«term_~_»}
 
-This syntax is only available when the `List` namespace is opened.
+This syntax is only available when the {name}`List` namespace is opened.
 :::
 
 {docstring List.Pairwise}

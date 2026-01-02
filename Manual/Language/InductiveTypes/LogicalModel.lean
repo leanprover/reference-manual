@@ -28,7 +28,7 @@ tag := "recursors"
 
 Every inductive type is equipped with a {tech}[recursor].
 The recursor is completely determined by the signatures of the type constructor and the constructors.
-Recursors have function types, but they are primitive and are not definable using `fun`.
+Recursors have function types, but they are primitive and are not definable using {keywordOf Lean.Parser.Term.fun}`fun`.
 
 ## Recursor Types
 %%%

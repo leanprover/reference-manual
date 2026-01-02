@@ -279,7 +279,7 @@ def Heap.insert [Ord α] (x : α) (xs : Heap α) : Heap α :=
 
 The problem is that a heap constructed with one {name}`Ord` instance may later be used with another, leading to the breaking of the heap invariant.
 
-One way to correct this is to make the heap type depend on the selected `Ord` instance:
+One way to correct this is to make the heap type depend on the selected {name}`Ord` instance:
 ```lean
 structure Heap' (α : Type u) [Ord α] where
   contents : Array α

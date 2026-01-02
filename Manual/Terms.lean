@@ -732,7 +732,7 @@ The use of field notation to apply other functions is called {deftech}_generaliz
 
 The identifier after the dot is looked up in the namespace of the term's type, which is the constant's name.
 If the type is not an application of a constant (e.g. a metavariable or a universe) then it doesn't have a namespace and generalized field notation cannot be used.
-As a special case, if an expression is a function, generalized field notation will look in the `Function` namespace. Therefore, {lean}`Nat.add.uncurry` is a use of generalized field notation that is equivalent to {lean}`Function.uncurry Nat.add`.
+As a special case, if an expression is a function, generalized field notation will look in the {name}`Function` namespace. Therefore, {lean}`Nat.add.uncurry` is a use of generalized field notation that is equivalent to {lean}`Function.uncurry Nat.add`.
 
 If the field is not found, but the constant can be unfolded to yield a further type which is a constant or application of a constant, then the process is repeated with the new constant.
 

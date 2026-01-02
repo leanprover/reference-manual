@@ -384,7 +384,7 @@ Zip Nats Id (ListIterator String) String : Type
 ```leanOutput natfin
 Zip.instFinite₂
 ```
-In contrast, `Nats.iter` has no `Finite` instance because it yields infinitely many values:
+In contrast, {name}`Nats.iter` has no {name}`Finite` instance because it yields infinitely many values:
 ```lean (name := natinf) +error
 #synth Finite Nats Id
 ```
@@ -526,8 +526,8 @@ With the {name}`IteratorCollect` instance in place, {name}`Iter.toArray` now wor
 #['a', 'b', 'c']
 ```
 
-In general, `Iter.toArray` might run forever. One can prove that `abc` is finite, and the above example will terminate after finitely many steps, by
-constructing a `Finite (Triple Char) Id` instance.
+In general, {name}`Iter.toArray` might run forever. One can prove that `abc` is finite, and the above example will terminate after finitely many steps, by
+constructing a {lean}`Finite (Triple Char) Id` instance.
 It's easiest to start at {name}`TriplePos.done` and work backwards toward {name}`TriplePos.fst`, showing that each position in turn has a finite chain of successors:
 
 ```lean

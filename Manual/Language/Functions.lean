@@ -217,7 +217,7 @@ example : thirdChar #['-', 'x'] = 'A' := rfl
 tag := "function-api"
 %%%
 
-The `Function` namespace contains general-purpose helpers for working with functions.
+The {name}`Function` namespace contains general-purpose helpers for working with functions.
 
 {docstring Function.comp}
 

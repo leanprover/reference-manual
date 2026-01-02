@@ -160,7 +160,7 @@ tag := "TreeSet"
 
 Unbundled sets separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the module `Std.TreeSet.Raw`.
+To use these variants, import the module {name}`Std.TreeSet.Raw`.
 
 {docstring Std.TreeSet.Raw}
 

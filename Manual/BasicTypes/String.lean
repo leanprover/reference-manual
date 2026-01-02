@@ -352,7 +352,7 @@ tag := "string-api-compare"
 %%%
 
 The {inst}`LT String` instance is defined by the lexicographic ordering on strings based on the {inst}`LT Char` instance.
-Logically, this is modeled by the lexicographic ordering on the lists that model strings, so `List.Lex` defines the order.
+Logically, this is modeled by the lexicographic ordering on the lists that model strings, so {name}`List.Lex` defines the order.
 It is decidable, and the decision procedure is overridden at runtime with efficient code that takes advantage of the run-time representation of strings.
 
 {docstring String.le}
