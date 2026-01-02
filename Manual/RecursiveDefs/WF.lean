@@ -881,7 +881,7 @@ is not definitionally equal to the right-hand side
 n : Nat
 ⊢ div n 0 = 0
 ```
-However, using `WellFounded.fix_eq` to unfold the well-founded recursion, the three equations can be proved to hold:
+However, using {name}`WellFounded.fix_eq` to unfold the well-founded recursion, the three equations can be proved to hold:
 ```lean
 theorem div.eq0 : div n 0 = 0 := by
   unfold div
