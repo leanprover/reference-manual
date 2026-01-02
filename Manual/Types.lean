@@ -30,7 +30,7 @@ Types can be thought of as denoting sets, while terms denote individual elements
 A term is {deftech}_well-typed_ if it has a type under the rules of Lean's type theory.
 Only well-typed terms have a meaning.
 
-Terms are a dependently typed λ-calculus: they include function abstraction, application, variables, and `let`-bindings.
+Terms are a dependently typed λ-calculus: they include function abstraction, application, variables, and {keywordOf Lean.Parser.Term.let}`let`-bindings.
 In addition to bound variables, variables in the term language may refer to {tech}[constructors], {tech}[type constructors], {tech}[recursors], {deftech}[defined constants], or opaque constants.
 Constructors, type constructors, recursors, and opaque constants are not subject to substitution, while defined constants may be replaced with their definitions.
 
@@ -477,7 +477,7 @@ universe $x:ident $xs:ident*
 
 Declares one or more universe variables for the extent of the current scope.
 
-Just as the `variable` command causes a particular identifier to be treated as a parameter with a particular type, the `universe` command causes the subsequent identifiers to be implicitly quantified as universe parameters in declarations that mention them, even if the option `autoImplicit` is {lean}`false`.
+Just as the {keywordOf Lean.Parser.Command.variable}`variable` command causes a particular identifier to be treated as a parameter with a particular type, the {keywordOf Lean.Parser.Command.universe}`universe` command causes the subsequent identifiers to be implicitly quantified as universe parameters in declarations that mention them, even if the option `autoImplicit` is {lean}`false`.
 :::
 
 :::Manual.example "The `universe` command when `autoImplicit` is `false`"

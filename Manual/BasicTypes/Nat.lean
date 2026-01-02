@@ -98,19 +98,19 @@ theorem succ_not_zero : ¬n + 1 = 0 :=
 tag := "nat-runtime"
 %%%
 
-The representation suggested by the declaration of `Nat` would be horrendously inefficient, as it's essentially a linked list.
+The representation suggested by the declaration of {name}`Nat` would be horrendously inefficient, as it's essentially a linked list.
 The length of the list would be the number.
 With this representation, addition would take time linear in the size of one of the addends, and numbers would take at least as many machine words as their magnitude in memory.
 Thus, natural numbers have special support in both the kernel and the compiler that avoids this overhead.
 
-In the kernel, there are special `Nat` literal values that use a widely-trusted, efficient arbitrary-precision integer library (usually [GMP](https://gmplib.org/)).
+In the kernel, there are special {name}`Nat` literal values that use a widely-trusted, efficient arbitrary-precision integer library (usually [GMP](https://gmplib.org/)).
 Basic functions such as addition are overridden by primitives that use this representation.
 Because they are part of the kernel, if these primitives did not correspond to their definitions as Lean functions, it could undermine soundness.
 
 In compiled code, sufficiently-small natural numbers are represented without pointer indirections: the lowest-order bit in an object pointer is used to indicate that the value is not, in fact, a pointer, and the remaining bits are used to store the number.
 31 bits are available on 32-bits architectures for pointer-free {lean}`Nat`s, while 63 bits are available on 64-bit architectures.
 In other words, natural numbers smaller than $`2^{31} = 2,147,483,648` or $`2^{63} = 9,223,372,036,854,775,808` do not require allocations.
-If an natural number is too large for this representation, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer value.
+If a natural number is too large for this representation, it is instead allocated as an ordinary Lean object that consists of an object header and an arbitrary-precision integer value.
 
 ## Performance Notes
 %%%
