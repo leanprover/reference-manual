@@ -98,8 +98,8 @@ def red : Color :=
   rgb 255 0 0
 ```
 
-In this example, the identifier `rgb` on the last line does not resolve to the `Color` constructor
-of that name. This is because the constructor's name is actually `Color.rgb`: all constructors of an
+In this example, the identifier `rgb` on the last line does not resolve to the {name}`Color` constructor
+of that name. This is because the constructor's name is actually {name}`Color.rgb`: all constructors of an
 inductive type have names in that type's namespace. Because the {name}`Color` namespace is not open, the
 identifier `rgb` cannot be used without its namespace prefix.
 
