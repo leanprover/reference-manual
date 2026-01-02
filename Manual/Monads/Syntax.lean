@@ -623,7 +623,7 @@ def satisfyingIndices (p : α → Prop) [DecidablePred p] (xs : Array α) : Arra
 :::::keepEnv
 ::::leanSection
 
-Iteration with `for`-loops is translated into uses of `ForIn.forIn`, which is an analogue of `ForM.forM` with added support for local mutations and early termination.
+Iteration with {keywordOf Lean.Parser.Term.doFor}`for`-loops is translated into uses of {name}`ForIn.forIn`, which is an analogue of {name}`ForM.forM` with added support for local mutations and early termination.
 {name}`ForIn.forIn` receives an initial value for the local mutable state and a monadic action as parameters, along with the collection being iterated over.
 The monadic action passed to {name}`ForIn.forIn` takes a current state as a parameter and, after carrying out actions in the monad {lean}`m`, returns either {name}`ForInStep.yield` to indicate that iteration should continue with an updated set of local mutable values, or {name}`ForInStep.done` to indicate that {keywordOf Lean.Parser.Term.doBreak}`break` or {keywordOf Lean.Parser.Term.doReturn}`return` was executed.
 When iteration is complete, {name}`ForIn.forIn` returns the final values of the local mutable values.
