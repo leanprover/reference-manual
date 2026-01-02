@@ -36,7 +36,7 @@ Lean's simplifier can be invoked in a variety of ways.
 The most common patterns are captured in a set of tactics.
 The {ref "simp-tactics"}[tactic reference] contains a complete list of simplification tactics.
 
-Simplification tactics all contain `simp` in their name.
+Simplification tactics all contain {tactic}`simp` in their name.
 Aside from that, they are named according to a system of prefixes and suffixes that describe their functionality:
 
 : `-!` suffix

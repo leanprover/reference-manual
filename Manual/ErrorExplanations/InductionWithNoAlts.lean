@@ -18,8 +18,8 @@ shortTitle := "inductionWithNoAlts"
 {errorExplanationHeader lean.inductionWithNoAlts}
 
 Tactic-based proofs using induction in Lean need to use a pattern-matching-like notation to describe
-individual cases of the proof. However, the `induction'` tactic in Mathlib and the specialized
-`induction` tactic for natural numbers used in the Natural Number Game follows a different pattern.
+individual cases of the proof. However, the {tactic}`induction'` tactic in Mathlib and the specialized
+{tactic}`induction` tactic for natural numbers used in the Natural Number Game follows a different pattern.
 
 # Examples
 
@@ -46,7 +46,7 @@ theorem zero_mul (m : Nat) : 0 * m = 0 := by
     rw [n_ih]
 ```
 The broken example has the structure of a correct proof in the Natural Numbers Game, and this
-proof will work if you `import Mathlib` and replace `induction` with `induction'`. Induction tactics
+proof will work if you {keywordOf Lean.Parser.Command.import}`import` Mathlib and replace {tactic}`induction` with {tactic}`induction'`. Induction tactics
 in basic Lean expect the {keyword}`with` keyword to be followed by a series of cases, and the names
 for the inductive case are provided in the {name Nat.succ}`succ` case rather than being provided
 up-front.

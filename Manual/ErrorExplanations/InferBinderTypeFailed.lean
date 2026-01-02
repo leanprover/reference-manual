@@ -101,10 +101,10 @@ Note: Because this declaration's type has been explicitly provided, all paramete
 example : True :=
   trivial
 ```
-This code is invalid because it attempts to give a name to an `example` declaration. Examples cannot
+This code is invalid because it attempts to give a name to an {keywordOf Lean.Parser.Command.example}`example` declaration. Examples cannot
 be named, and an identifier written where a name would appear in other declaration forms is instead
 elaborated as a binder, whose type cannot be inferred. If a declaration must be named, it should be
-defined using a declaration form that supports naming, such as `def` or `theorem`.
+defined using a declaration form that supports naming, such as {keywordOf Lean.Parser.Command.declaration}`def` or {keywordOf Lean.Parser.Command.declaration}`theorem`.
 :::
 
 :::errorExample "Attempting to Define Multiple Opaque Constants at Once"
@@ -120,9 +120,9 @@ Note: Multiple constants cannot be declared in a single declaration. The identif
 opaque m : Nat
 opaque n : Nat
 ```
-This example incorrectly attempts to define multiple constants with a single `opaque` declaration.
+This example incorrectly attempts to define multiple constants with a single {keywordOf Lean.Parser.Command.declaration}`opaque` declaration.
 Such a declaration can define only one constant: it is not possible to list multiple identifiers
-after `opaque` or `def` to define them all to have the same type (or value). Such a declaration is
+after {keywordOf Lean.Parser.Command.declaration}`opaque` or {keywordOf Lean.Parser.Command.declaration}`def` to define them all to have the same type (or value). Such a declaration is
 instead elaborated as defining a single constant (e.g., `m` above) with parameters given by the
 subsequent identifiers (`n`), whose types are unspecified and cannot be inferred. To define multiple
 global constants, it is necessary to declare each separately.
