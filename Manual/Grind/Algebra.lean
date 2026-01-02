@@ -26,12 +26,12 @@ set_option maxHeartbeats 300000
 tag := "grind-ring"
 %%%
 
-The `ring` solver in {tactic}`grind` is inspired by Gröbner basis computation procedures and term rewriting completion.
+The {name}`ring` solver in {tactic}`grind` is inspired by Gröbner basis computation procedures and term rewriting completion.
 It views multivariate polynomials as rewriting rules.
 For example, the polynomial equality `x * y + x - 2 = 0` is treated as a rewriting rule `x * y ↦ -x + 2`.
 It uses superposition to ensure the rewriting system is confluent.
 
-The following examples demonstrate goals that can be decided by the `ring` solver.
+The following examples demonstrate goals that can be decided by the {name}`ring` solver.
 In these examples, the `Lean` and `Lean.Grind` namespaces are open:
 ```lean
 open Lean Grind

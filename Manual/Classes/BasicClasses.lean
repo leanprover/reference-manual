@@ -53,7 +53,7 @@ There are two primary ways to order the values of a type:
 
 {docstring Ord}
 
-The {name}`compare` method is exported, so no explicit `Ord` namespace is required to use it.
+The {name}`compare` method is exported, so no explicit {name}`Ord` namespace is required to use it.
 
 {docstring compareOn}
 
@@ -193,8 +193,8 @@ true
 
 # Minimum and Maximum Values
 
-The classes `Max` and `Min` provide overloaded operators for choosing the greater or lesser of two values.
-These should be in agreement with `Ord`, `LT`, and `LE` instances, if they exist, but there is no mechanism to enforce this.
+The classes {name}`Max` and {name}`Min` provide overloaded operators for choosing the greater or lesser of two values.
+These should be in agreement with {name}`Ord`, {name}`LT`, and {name}`LE` instances, if they exist, but there is no mechanism to enforce this.
 
 {docstring Min}
 
@@ -222,7 +222,7 @@ tag := "decidable-propositions"
 
 A proposition is {deftech}_decidable_ if it can be checked algorithmically.{index}[decidable]{index (subterm := "decidable")}[proposition]
 The Law of the Excluded Middle means that every proposition is true or false, but it provides no way to check which of the two cases holds, which can often be useful.
-By default, only algorithmic {lean}`Decidable` instances for which code can be generated are in scope; opening the `Classical` namespace makes every proposition decidable.
+By default, only algorithmic {lean}`Decidable` instances for which code can be generated are in scope; opening the {name}`Classical` namespace makes every proposition decidable.
 
 {docstring Decidable}
 
@@ -253,7 +253,7 @@ failed to synthesize instance of type class
 Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
-Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.
+Opening {name}`Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.
 ```lean
 open Classical
 noncomputable example (f g : Nat → Nat) : Decidable (f = g) :=
