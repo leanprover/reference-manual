@@ -128,14 +128,14 @@ If the literal is too large to fit in the specified number of bits, then it is t
 $_:num#'$_
 ```
 
-This notation is available only when the `BitVec` namespace has been opened.
+This notation is available only when the {name}`BitVec` namespace has been opened.
 Rather than an explicit width, it expects a proof that the literal value is representable by a bitvector of the corresponding width.
 :::
 
 ::::::leanSection
 :::::example "Bounded Bitvector Literals"
 The bounded bitvector literal notation ensures that literals do not overflow the specified number of bits.
-The notation is only available when the `BitVec` namespace has been opened.
+The notation is only available when the {name}`BitVec` namespace has been opened.
 
 ```lean
 open BitVec

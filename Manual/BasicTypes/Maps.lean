@@ -182,7 +182,7 @@ import Std
 ```
 
 This example requires that `Std.Data.HashMap.RawLemmas` is imported.
-To keep the code shorter, the `Std` namespace is opened:
+To keep the code shorter, the {name}`Std` namespace is opened:
 ```lean
 open Std
 ```

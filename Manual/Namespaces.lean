@@ -113,7 +113,7 @@ If it includes {keyword}`meta`, then the section's declarations are all placed i
 
 :::example "Named Section"
 
-The name {name Greetings.english}`english` is defined in the `Greetings` namespace.
+The name {name Greetings.english}`english` is defined in the {name}`Greetings` namespace.
 
 ```lean
 def Greetings.english := "Hello"

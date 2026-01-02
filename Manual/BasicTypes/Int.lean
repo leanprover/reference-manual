@@ -67,7 +67,7 @@ The {inst}`Neg Int` instance allows negation to be used as well.
 open Int
 ```
 
-On top of these instances, there is special syntax for the constructor {lean}`Int.negSucc` that is available when the `Int` namespace is opened.
+On top of these instances, there is special syntax for the constructor {lean}`Int.negSucc` that is available when the {name}`Int` namespace is opened.
 The notation {lean}`-[ n +1]` is suggestive of $`-(n + 1)`, which is the meaning of {lean}`Int.negSucc n`.
 
 :::syntax term (title := "Negative Successor")

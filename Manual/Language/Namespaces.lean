@@ -48,7 +48,7 @@ end Forest
 "Lemons are green"
 ```
 
-Within the `Forest` namespace, references to {name _root_.color}`color` in the root namespace must be qualified with `_root_`:
+Within the {name}`Forest` namespace, references to {name _root_.color}`color` in the root namespace must be qualified with {name}`_root_`:
 ```lean
 namespace Forest
 def nextStatement :=
