@@ -56,7 +56,7 @@ def emptyNats :=
   List.nil (α := Nat)
 ```
 
-Here, Lean is unable to infer the value of the parameter `α` of the `List` type constructor, which
+Here, Lean is unable to infer the value of the parameter `α` of the {name}`List` type constructor, which
 in turn prevents it from inferring the type of the definition. Two fixes are possible: specifying
 the expected type of the definition allows Lean to infer the appropriate implicit argument to the
 `List.nil` constructor; alternatively, making this implicit argument explicit in the function body

@@ -81,8 +81,8 @@ def endsOrDefault (ns : List Nat) : Nat × Nat :=
 ```
 The original definition of `getOrDefault` is noncomputable due to its use of `Classical.choice`.
 Unlike in the preceding example, however, it is possible to implement a similar but computable
-version of `getOrDefault` (using the `Inhabited` type class), allowing `endsOrDefault` to be
-computable. (The differences between `Inhabited` and `Nonempty` are described in the documentation
+version of `getOrDefault` (using the {name}`Inhabited` type class), allowing `endsOrDefault` to be
+computable. (The differences between {name}`Inhabited` and {name}`Nonempty` are described in the documentation
 of inhabited types in the manual section on {ref "basic-classes"}[Basic Classes].)
 :::
 
