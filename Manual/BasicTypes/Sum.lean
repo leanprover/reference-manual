@@ -38,7 +38,7 @@ There are two varieties of the sum type:
 Manually-written Lean code almost always uses only {lean}`Sum`, while {lean}`PSum` is used as part of the implementation of proof automation.
 This is because it imposes problematic constraints that universe level unification cannot solve.
 In particular, this type is in the universe {lean}`Sort (max 1 u v)`, which can cause problems for universe level unification because the equation `max 1 u v = ?u + 1` has no solution in level arithmetic.
-`PSum` is usually only used in automation that constructs sums of arbitrary types.
+{name}`PSum` is usually only used in automation that constructs sums of arbitrary types.
 :::
 ::::
 

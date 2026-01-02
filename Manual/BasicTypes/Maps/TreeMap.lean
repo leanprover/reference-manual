@@ -261,7 +261,7 @@ The declarations in this section should be imported using `import Std.TreeMap`.
 
 Unbundled maps separate well-formedness proofs from data.
 This is primarily useful when defining {ref "raw-data"}[nested inductive types].
-To use these variants, import the module `Std.TreeMap.Raw`.
+To use these variants, import the module {name}`Std.TreeMap.Raw`.
 
 {docstring Std.TreeMap.Raw}
 

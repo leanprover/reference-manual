@@ -42,7 +42,7 @@ A proof by induction requires a base case and an induction step.
 The base case is a proof that the statement is true for `0`.
 The induction step is a proof that the truth of the statement for some arbitrary number {lean}`i` implies its truth for {lean}`i + 1`.
 
-This proof uses the lemma `Nat.succ_lt_succ` in its induction step.
+This proof uses the lemma {name}`Nat.succ_lt_succ` in its induction step.
 ```lean
 example (n : Nat) : n < n + 1 := by
   induction n with
