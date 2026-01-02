@@ -107,8 +107,8 @@ example (a b c d e f : R) :
 
 :::TODO
 Planned future features
-* Support for `NatModule` (by embedding in the Grothendieck envelope, as we already do for semirings),
-* Better communication between the `ring` and `linarith` solvers.
+* Support for {name}`NatModule` (by embedding in the Grothendieck envelope, as we already do for semirings),
+* Better communication between the {name}`ring` and {name}`linarith` solvers.
   There is currently very little communication between these two solvers.
 * Non-linear arithmetic over ordered rings.
 :::
