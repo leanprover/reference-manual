@@ -29,7 +29,7 @@ In compiled code, they are represented efficiently: the compiler has special sup
 Fixed-width integers may be unsigned or signed.
 Furthermore, they are available in five sizes: 8, 16, 32, and 64 bits, along with the current architecture's word size.
 In their logical models, the unsigned integers are structures that wrap a {name}`BitVec` of the appropriate width.
-Signed integers wrap the corresponding unsigned integers, and use a twos-complement representation.
+Signed integers wrap the corresponding unsigned integers, and use a two's-complement representation.
 
 ## Unsigned
 
@@ -108,7 +108,7 @@ theorem Permissions.decode_encode (p : Permissions) : p = .decode (p.encode) := 
 :::
 
 Literals that overflow their types' precision are interpreted modulus the precision.
-Signed types, are interpreted according to the underlying twos-complement representation.
+Signed types, are interpreted according to the underlying two's-complement representation.
 
 :::example "Overflowing Fixed-Width Literals"
 The following statements are all true:

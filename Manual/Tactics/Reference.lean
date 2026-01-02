@@ -225,7 +225,7 @@ tag := "tactic-ref-goals"
 tag := "tactic-ref-casts"
 %%%
 
-The tactics in this section make it easier avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
+The tactics in this section make it easier to avoid getting stuck on {deftech}_casts_, which are functions that coerce data from one type to another, such as converting a natural number to the corresponding integer.
 They are described in more detail by {citet castPaper}[].
 
 :::tactic Lean.Parser.Tactic.tacticNorm_cast__
@@ -465,7 +465,7 @@ tag := "tactic-ref-search"
 %%%
 
 The library search tactics are intended for interactive use.
-When run, they search the Lean library for lemmas or rewrite rules that could be applicable in the current situation, and suggests a new tactic.
+When run, they search the Lean library for lemmas or rewrite rules that could be applicable in the current situation, and suggest a new tactic.
 These tactics should not be left in a proof; rather, their suggestions should be incorporated.
 
 :::tactic "exact?"

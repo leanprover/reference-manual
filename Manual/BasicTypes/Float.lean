@@ -23,7 +23,7 @@ set_option pp.rawOnError true
 tag := "Float"
 %%%
 
-Floating-point numbers are a an approximation of the real numbers that are efficiently implemented in computer hardware.
+Floating-point numbers are an approximation of the real numbers that are efficiently implemented in computer hardware.
 Computations that use floating-point numbers are very efficient; however, the nature of the way that they approximate the real numbers is complex, with many corner cases.
 The IEEE 754 standard, which defines the floating-point format that is used on modern computers, allows hardware designers to make certain choices, and real systems differ in these small details.
 For example, there are many distinct bit representations of `NaN`, the indicator that a result is undefined, and some platforms differ with respect to _which_ `NaN` is returned from adding two `NaN`s.

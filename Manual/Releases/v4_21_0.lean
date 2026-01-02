@@ -600,7 +600,7 @@ _Other Highlights_
   `BitVec.one_eq_zero_iff`
 
 * [#8206](https://github.com/leanprover/lean4/pull/8206) shows that negating a bitvector created from a natural number
-  equals creating a bitvector from the the negative of that number (as an
+  equals creating a bitvector from the negative of that number (as an
   integer).
 
 * [#8216](https://github.com/leanprover/lean4/pull/8216) completes adding `@[grind]` annotations for `Option` lemmas, and
@@ -928,7 +928,7 @@ _Other Highlights_
   name would not be caught and cause loading to fail.
 
 * [#8529](https://github.com/leanprover/lean4/pull/8529) changes `lake lean` and `lake setup-file` to precompile the
-  imports of non-workspace files using the the import's whole library.
+  imports of non-workspace files using the import's whole library.
   This ensures that additional link objects are linked and available
   during elaboration.
 

@@ -748,7 +748,7 @@ h₄: [p (#2 + 2), q #1]
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
-In this example, pattern generation fails because the theorem's conclusion doesn't mention the the argument `y`.
+In this example, pattern generation fails because the theorem's conclusion doesn't mention the argument `y`.
 ```lean (name := h5) +error
 @[grind? ←] theorem h₅ (w : p x = q y) : p (x + 2) = 7 := sorry
 ```
