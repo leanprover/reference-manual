@@ -34,7 +34,7 @@ Note that when an explicit resulting type is provided—even if that type contai
 use information from the definition body to help infer the type of the definition or its parameters.
 Thus, adding an explicit resulting type may also necessitate adding type annotations to parameters
 whose types were previously inferrable. Additionally, it is always necessary to provide an explicit
-type in a `theorem` declaration: the `theorem` syntax requires a type annotation, and the elaborator
+type in a {keywordOf Lean.Parser.Command.declaration}`theorem` declaration: the {keywordOf Lean.Parser.Command.declaration}`theorem` syntax requires a type annotation, and the elaborator
 will never attempt to use the theorem body to infer the proposition being proved.
 
 # Examples
