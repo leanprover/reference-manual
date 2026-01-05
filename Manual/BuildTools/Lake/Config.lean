@@ -1043,7 +1043,7 @@ The glob pattern `N.*` matches `N` or any submodule for which `N` is a prefix.
 $_:name".*"
 ```
 
-The glob pattern `N.*` matches any submodule for which `N` is a strict prefix, but not `N` itself.
+The glob pattern `N.+` matches any submodule for which `N` is a strict prefix, but not `N` itself.
 
 ```grammar
 $_:name".+"
