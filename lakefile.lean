@@ -21,7 +21,10 @@ package "verso-manual" where
       #["-Wl,-ignore_optimization_hints"]
     else #[]
 
-  leanOptions := #[⟨`weak.verso.code.warnLineLength, .ofNat 72⟩, ⟨`experimental.module, true⟩]
+  leanOptions := #[
+    ⟨`weak.verso.code.warnLineLength, .ofNat 72⟩,
+    ⟨`experimental.module, true⟩
+  ]
 
 -- Extended examples used in the grind chapter
 @[default_target]

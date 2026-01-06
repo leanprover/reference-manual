@@ -141,12 +141,12 @@ This means that the type must have such an instance—a {name}`Nonempty` instanc
 
 Products have the right instance:
 ```lean
-example : Nat × String := panic! "Cant' find it"
+example : Nat × String := panic! "Can't find it"
 ```
 
 Sums do not, by default:
 ```lean +error (name := panic)
-example : Nat ⊕ String := panic! "Cant' find it"
+example : Nat ⊕ String := panic! "Can't find it"
 ```
 ```leanOutput panic
 failed to synthesize instance of type class
@@ -159,7 +159,7 @@ The desired instance can be made available to instance synthesis using {keywordO
 ```lean
 example : Nat ⊕ String :=
   have : Inhabited (Nat ⊕ String) := Sum.inhabitedLeft
-  panic! "Cant' find it"
+  panic! "Can't find it"
 ```
 :::
 

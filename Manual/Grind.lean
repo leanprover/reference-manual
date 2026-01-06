@@ -18,6 +18,7 @@ import Manual.Grind.EMatching
 import Manual.Grind.Cutsat
 import Manual.Grind.Algebra
 import Manual.Grind.Linarith
+import Manual.Grind.Annotation
 import Manual.Grind.ExtendedExamples
 
 -- Needed for the if-then-else normalization example.
@@ -177,6 +178,7 @@ Some theorems may be labelled with a `usr` prefix, which indicates that a custom
 
 {include 1 Manual.Grind.Linarith}
 
+{include 1 Manual.Grind.Annotation}
 
 ```comment
 # Diagnostics

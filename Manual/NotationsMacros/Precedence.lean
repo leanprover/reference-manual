@@ -48,7 +48,7 @@ $p - $p
 ```
 
 The maximum precedence is used to parse terms that occur in a function position.
-Operators should typically not use use this level, because it can interfere with users' expectation that function application binds more tightly than any other operator, but it is useful in more involved syntax extensions to indicate how other constructs interact with function application.
+Operators should typically not use this level, because it can interfere with users' expectation that function application binds more tightly than any other operator, but it is useful in more involved syntax extensions to indicate how other constructs interact with function application.
 ```grammar
 max
 ```
