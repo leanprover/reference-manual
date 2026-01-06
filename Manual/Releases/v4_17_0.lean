@@ -461,7 +461,7 @@ theorem:
   ```lean
   theorem inv_eq {a b : α} (w : a * b = 1) : inv a = b
   ```
-  and we want to instantiate the theorem whenever we are tying to prove
+  and we want to instantiate the theorem whenever we are trying to prove
 `inv t = s` for some terms `t` and `s`
 The attribute `[grind ←]` is not applicable in this case because, by
 default, `=` is not eligible for E-matching. The new attribute `[grind

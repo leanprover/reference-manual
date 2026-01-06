@@ -368,7 +368,7 @@ tag := "recursor-elaboration-helpers"
 %%%
 
 In addition to the type constructor, constructors, and recursors that Lean's core type theory prescribes for inductive types, Lean constructs a number of useful helpers.
-First, the equation compiler (which translates recursive functions with pattern matching in to applications of recursors) makes use of these additional constructs:
+First, the equation compiler (which translates recursive functions with pattern matching into applications of recursors) makes use of these additional constructs:
  * `recOn` is a version of the recursor in which the major premise is prior to the minor premise for each constructor.
  * `casesOn` is a version of the recursor in which the major premise is prior to the minor premise for each constructor, and recursive arguments do not yield induction hypotheses. It expresses case analysis rather than primitive recursion.
  * `below` computes a type that, for some motive, expresses that _all_ inhabitants of the inductive type that are subtrees of the major premise satisfy the motive. It transforms a motive for induction or primitive recursion into a motive for strong recursion or strong induction.

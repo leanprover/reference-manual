@@ -51,7 +51,7 @@ private def checkDerivable (expected : Array Name) : CommandElabM Unit := do
     unless missing.isEmpty do
       logError
         m!"These classes were expected but not present. Check whether the text needs updating, then \
-           then remove them from the call."
+           remove them from the call."
 
 end
 

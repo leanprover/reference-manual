@@ -403,7 +403,7 @@ When false, the warning is not logged.
   linarith modules in grind.
 
 * [#8694](https://github.com/leanprover/lean4/pull/8694) implements special support for `One.one` in linarith when the
-  structure is a ordered ring. It also fixes bugs during initialization.
+  structure is an ordered ring. It also fixes bugs during initialization.
 
 * [#8697](https://github.com/leanprover/lean4/pull/8697) implements support for inequalities in the `grind` linear
   arithmetic procedure and simplifies its design. Some examples that can
@@ -1068,7 +1068,7 @@ When false, the warning is not logged.
 
 * [#8620](https://github.com/leanprover/lean4/pull/8620) removes the `NatCast (Fin n)` global instance (both the direct
   instance, and the indirect one via `Lean.Grind.Semiring`), as that
-  instance causes causes `x < n` (for `x : Fin k`, `n : Nat`) to be
+  instance causes `x < n` (for `x : Fin k`, `n : Nat`) to be
   elaborated as `x < ↑n` rather than `↑x < n`, which is undesirable. Note
   however that in Mathlib this happens anyway!
 

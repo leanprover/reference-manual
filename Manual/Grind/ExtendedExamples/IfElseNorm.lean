@@ -418,7 +418,7 @@ theorem normalize_spec
   fun_induction normalize with grind
 ```
 
-(The fact that we can do this relies on the fact that all the lemmas for both {name}`HashMap` and for {name}`TreeMap` that {tactic}`grind` needs have already be annotated in the standard library.)
+(The fact that we can do this relies on the fact that all the lemmas for both {name}`HashMap` and for {name}`TreeMap` that {tactic}`grind` needs have already been annotated in the standard library.)
 
 If you'd like to play around with this code,
 you can find the whole file [here](https://github.com/leanprover/lean4/blob/master/tests/lean/run/grind_ite.lean),

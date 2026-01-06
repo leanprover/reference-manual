@@ -183,7 +183,7 @@ All evaluate to 0.
 
 ## Bitwise Operators
 
-Bitwise operators on {name}`Int` can be understood as bitwise operators on an infinite stream of bits that are the twos-complement representation of integers.
+Bitwise operators on {name}`Int` can be understood as bitwise operators on an infinite stream of bits that are the two's-complement representation of integers.
 
 {docstring Int.not}
 
