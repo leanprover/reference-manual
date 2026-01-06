@@ -44,11 +44,15 @@ Some examples of theorems in the standard library that are annotated with {attr}
   Array.not_mem_empty (a : α) : ¬ a ∈ #[]
   ```
 * ```signature
-  Array.getElem_filter {xs : Array α} {p : α → Bool} {i : Nat} (h : i < (xs.filter p).size) :
+  Array.getElem_filter
+    {xs : Array α} {p : α → Bool} {i : Nat}
+    (h : i < (xs.filter p).size) :
     p (xs.filter p)[i]
   ```
 * ```signature
-  List.Pairwise.tail : ∀ {l : List α} (h : Pairwise R l), Pairwise R l.tail
+  List.Pairwise.tail
+    {l : List α} (h : Pairwise R l) :
+    Pairwise R l.tail
   ```
 In each case, the lemma is relevant when its conclusion matches a proof goal.
 :::
@@ -58,13 +62,19 @@ Use {attrs}`@[grind →]` (which generates patterns from the hypotheses) for for
 i.e. where facts should be propagated from existing facts on the whiteboard.
 Some examples of theorems in the standard library that are annotated with {attr}`grind →` are:
 * ```signature
-  List.getElem_of_getElem? {l : List α} : l[i]? = some a → ∃ h : i < l.length, l[i] = a
+  List.getElem_of_getElem? {l : List α} :
+    l[i]? = some a →
+    ∃ h : i < l.length, l[i] = a
   ```
 * ```signature
-  Array.mem_of_mem_erase [BEq α] {a b : α} {xs : Array α} (h : a ∈ xs.erase b) : a ∈ xs
+  Array.mem_of_mem_erase [BEq α] {a b : α} {xs : Array α}
+    (h : a ∈ xs.erase b) :
+    a ∈ xs
   ```
 * ```signature
-  List.forall_none_of_filterMap_eq_nil (h : filterMap f xs = []) : ∀ x ∈ xs, f x = none
+  List.forall_none_of_filterMap_eq_nil
+    (h : filterMap f xs = []) :
+    ∀ x ∈ xs, f x = none
   ```
 In these cases, the theorems' assumptions determine when they are relevant.
 :::
