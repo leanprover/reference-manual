@@ -81,8 +81,8 @@ def endsOrDefault (ns : List Nat) : Nat × Nat :=
 ```
 The original definition of `getOrDefault` is noncomputable due to its use of `Classical.choice`.
 Unlike in the preceding example, however, it is possible to implement a similar but computable
-version of `getOrDefault` (using the `Inhabited` type class), allowing `endsOrDefault` to be
-computable. (The differences between `Inhabited` and `Nonempty` are described in the documentation
+version of `getOrDefault` (using the {name}`Inhabited` type class), allowing `endsOrDefault` to be
+computable. (The differences between {name}`Inhabited` and {name}`Nonempty` are described in the documentation
 of inhabited types in the manual section on {ref "basic-classes"}[Basic Classes].)
 :::
 
@@ -114,9 +114,9 @@ noncomputable def fromImage (f : Nat → Nat) (y : Nat) :=
   else
     f 0
 ```
-The `Classical` namespace contains `Decidable` instances that are not computable. These are a common
+The {name}`Classical` namespace contains {name}`Decidable` instances that are not computable. These are a common
 source of noncomputable dependencies that do not explicitly appear in the source code of a
-definition. In the above example, for instance, a `Decidable` instance for the proposition
-`∃ x, f x = y` is synthesized using a `Classical` decidability instance; therefore, `fromImage` must
-be marked `noncomputable`.
+definition. In the above example, for instance, a {name}`Decidable` instance for the proposition
+{lean}`∃ x, f x = y` is synthesized using a {name}`Classical` decidability instance; therefore, {name}`fromImage` must
+be marked {keyword}`noncomputable`.
 :::

@@ -26,13 +26,13 @@ set_option maxHeartbeats 300000
 tag := "grind-ring"
 %%%
 
-The `ring` solver in {tactic}`grind` is inspired by Gröbner basis computation procedures and term rewriting completion.
+The {name}`ring` solver in {tactic}`grind` is inspired by Gröbner basis computation procedures and term rewriting completion.
 It views multivariate polynomials as rewriting rules.
 For example, the polynomial equality `x * y + x - 2 = 0` is treated as a rewriting rule `x * y ↦ -x + 2`.
 It uses superposition to ensure the rewriting system is confluent.
 
-The following examples demonstrate goals that can be decided by the `ring` solver.
-In these examples, the `Lean` and `Lean.Grind` namespaces are open:
+The following examples demonstrate goals that can be decided by the {name}`ring` solver.
+In these examples, the {name}`Lean` and {name}`Lean.Grind` namespaces are open:
 ```lean
 open Lean Grind
 ```
@@ -127,7 +127,7 @@ tag := "grind-ring-classes"
 %%%
 
 :::paragraph
-Users can enable the `ring` solver for their own types by providing instances of the following {tech (key := "type class")}[type classes], all in the `Lean.Grind` namespace:
+Users can enable the {name}`ring` solver for their own types by providing instances of the following {tech (key := "type class")}[type classes], all in the {name}`Lean.Grind` namespace:
 
 * {name Lean.Grind.Semiring}`Semiring`
 
@@ -151,8 +151,8 @@ The capabilities of the algebraic solvers will, of course, degrade when some are
 :::
 
 The Lean standard library contains the applicable instances for the types defined in the standard library.
-By providing these instances, other libraries can also enable {tactic}`grind`'s `ring` solver.
-For example, the Mathlib `CommRing` type class implements `Lean.Grind.CommRing` to ensure the `ring` solver works out-of-the-box.
+By providing these instances, other libraries can also enable {tactic}`grind`'s {name}`ring` solver.
+For example, the Mathlib {name}`CommRing` type class implements {name}`Lean.Grind.CommRing` to ensure the {name}`ring` solver works out-of-the-box.
 
 ## Algebraic Structures
 
@@ -214,7 +214,7 @@ tag := "NoNatZeroDivisors"
 %%%
 
 
-The class `NoNatZeroDivisors` is used to control coefficient growth.
+The class {name}`NoNatZeroDivisors` is used to control coefficient growth.
 For example, the polynomial `2 * x * y + 4 * z = 0` is simplified to `x * y + 2 * z = 0`.
 It also used when processing disequalities.
 
@@ -316,9 +316,9 @@ h_2 : ¬y * x = 1
 tag := "AddRightCancel"
 %%%
 
-The `ring` solver automatically embeds `CommSemiring`s into a `CommRing` envelope (using the construction `Lean.Grind.Ring.OfSemiring.Q`).
-However, the embedding is injective only when the `CommSemiring` implements the type class `AddRightCancel`.
-`Nat` is an example of  a commutative semiring that implements `AddRightCancel`.
+The {name}`ring` solver automatically embeds {name}`CommSemiring`s into a {name}`CommRing` envelope (using the construction {name}`Lean.Grind.Ring.OfSemiring.Q`).
+However, the embedding is injective only when the {name}`CommSemiring` implements the type class {name}`AddRightCancel`.
+{name}`Nat` is an example of a commutative semiring that implements {name}`AddRightCancel`.
 
 ```lean
 example (x y : Nat) :

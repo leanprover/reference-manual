@@ -393,7 +393,7 @@ tag := "inductive-types-runtime-relevance"
 
 
 Types and proofs have no run-time representation.
-That is, if an inductive type is a `Prop`, then its values are erased prior to compilation.
+That is, if an inductive type is a {name}`Prop`, then its values are erased prior to compilation.
 Similarly, all theorem statements and types are erased.
 Types with run-time representations are called {deftech}_relevant_, while types without run-time representations are called {deftech}_irrelevant_.
 

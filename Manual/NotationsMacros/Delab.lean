@@ -282,7 +282,7 @@ open Lean.PrettyPrinter.Delaborator.SubExpr
 :::paragraph
 The monad {name}`DelabM` is a {tech}[reader monad] that includes access to the current position in the {lean}`Expr`.
 Recursive delaboration is performed by adjusting the reader monad's tracked position, rather than by explicitly passing a subexpression to another function.
-The most important functions for working with subexpressions in delaborators are in the namespace `Lean.PrettyPrinter.Delaborator.SubExp`:
+The most important functions for working with subexpressions in delaborators are in the namespace {name}`Lean.PrettyPrinter.Delaborator.SubExpr`:
  * {name}`getExpr` retrieves the current expression for analysis.
  * {name}`withAppFn` adjusts the current position to be that of the function in an application.
  * {name}`withAppArg` adjusts the current position to be that of the argument in an application

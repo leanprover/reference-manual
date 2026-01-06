@@ -27,13 +27,13 @@ open Lean.Grind
 tag := "grind-linarith"
 %%%
 
-The {tactic}`grind` tactic includes a linear arithmetic solver for arbitrary types, called `linarith`, that is used for types not supported by {ref "cutsat"}`cutsat`.
+The {tactic}`grind` tactic includes a linear arithmetic solver for arbitrary types, called {name}`linarith`, that is used for types not supported by {ref "cutsat"}`cutsat`.
 Like the {ref "grind-ring"}`ring` solver, it can be used with any type that has instances of certain type classes.
 It self-configures depending on the availability of these type classes, so it is not necessary to provide all of them to use the solver; however, its capabilities are increased by the availability of more instances.
 This solver is useful for reasoning about the real numbers, ordered vector spaces, and other types that can't be embedded into {name}`Int`.
 
 
-The core functionality of `linarith` is a model-based solver for linear inequalities with integer coefficients.
+The core functionality of {name}`linarith` is a model-based solver for linear inequalities with integer coefficients.
 It can be disabled using the option `grind -linarith`.
 
 
@@ -107,8 +107,8 @@ example (a b c d e f : R) :
 
 :::TODO
 Planned future features
-* Support for `NatModule` (by embedding in the Grothendieck envelope, as we already do for semirings),
-* Better communication between the `ring` and `linarith` solvers.
+* Support for {name}`NatModule` (by embedding in the Grothendieck envelope, as we already do for semirings),
+* Better communication between the {name}`ring` and {name}`linarith` solvers.
   There is currently very little communication between these two solvers.
 * Non-linear arithmetic over ordered rings.
 :::

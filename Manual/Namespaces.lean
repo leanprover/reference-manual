@@ -113,7 +113,7 @@ If it includes {keyword}`meta`, then the section's declarations are all placed i
 
 :::example "Named Section"
 
-The name {name Greetings.english}`english` is defined in the `Greetings` namespace.
+The name {name Greetings.english}`english` is defined in the {name}`Greetings` namespace.
 
 ```lean
 def Greetings.english := "Hello"
@@ -188,7 +188,7 @@ To close a namespace, the {keywordOf Lean.Parser.Command.end}`end` command requi
 All section scopes introduced by the {keywordOf Lean.Parser.Command.namespace}`namespace` command that introduced part of that suffix are closed.
 
 :::syntax command (title := "Namespace Declarations")
-The `namespace` command modifies the current namespace by appending the provided identifier.
+The {keywordOf Lean.Parser.Command.namespace}`namespace` command modifies the current namespace by appending the provided identifier.
 
 creates a section scope that lasts either until an {keywordOf Lean.Parser.Command.end}`end` command or the end of the file.
 ```grammar
@@ -250,7 +250,7 @@ Rather than opening a section for a single command, the {keywordOf Lean.Parser.C
 The {keywordOf Lean.Parser.Command.in}`in` combinator is right-associative, allowing multiple scope modifications to be stacked.
 
 :::syntax command (title := "Local Section Scopes")
-The `in` command combinator introduces a section scope for a single command.
+The {keywordOf Lean.Parser.Command.in}`in` command combinator introduces a section scope for a single command.
 ```grammar
 $c:command in
 $c:command
@@ -301,7 +301,7 @@ variable $b:bracketedBinder $b:bracketedBinder*
 ```
 :::
 
-The bracketed binders allowed after `variable` match the {ref "bracketed-parameter-syntax"}[syntax used in definition headers].
+The bracketed binders allowed after {keywordOf Lean.Parser.Command.variable}`variable` match the {ref "bracketed-parameter-syntax"}[syntax used in definition headers].
 
 ::::example "Section Variables"
 In this section, automatic implicit parameters are disabled, but a number of section variables are defined.

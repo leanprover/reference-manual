@@ -28,7 +28,7 @@ Namespaces are orthogonal to {tech}[modules]: a module is a unit of code that is
 A module may contain names in any namespace, and the nesting structure of hierarchical modules is unrelated to that of hierarchical namespaces.
 
 There is a root namespace, ordinarily denoted by simply omitting a namespace.
-It can be explicitly indicated by beginning a name with `_root_`.
+It can be explicitly indicated by beginning a name with {name}`_root_`.
 This can be necessary in contexts where a name would otherwise be interpreted relative to an ambient namespace (e.g. from a {tech}[section scope]) or local scope.
 
 :::example "Explicit Root Namespace"
@@ -48,7 +48,7 @@ end Forest
 "Lemons are green"
 ```
 
-Within the `Forest` namespace, references to {name _root_.color}`color` in the root namespace must be qualified with `_root_`:
+Within the {name}`Forest` namespace, references to {name _root_.color}`color` in the root namespace must be qualified with {name}`_root_`:
 ```lean
 namespace Forest
 def nextStatement :=
@@ -104,7 +104,7 @@ end
 HotDrink.tea : HotDrink
 ```
 
-If a function is defined directly inside the `HotDrink` namespace, then the body of the function is elaborated with the current namespace set to `HotDrink`.
+If a function is defined directly inside the {name}`HotDrink` namespace, then the body of the function is elaborated with the current namespace set to {name}`HotDrink`.
 The constructors are in scope:
 ```lean
 def HotDrink.ofString? : String → Option HotDrink
@@ -120,8 +120,8 @@ inductive ColdDrink where
   | juice
 ```
 
-From within the `HotDrink` namespace, {name}`HotDrink.toString` can be defined without an explicit prefix.
-Defining a function in the `ColdDrink` namespace requires an explicit `_root_` qualifier to avoid defining `HotDrink.ColdDrink.toString`:
+From within the {name}`HotDrink` namespace, {name}`HotDrink.toString` can be defined without an explicit prefix.
+Defining a function in the {name}`ColdDrink` namespace requires an explicit {name}`_root_` qualifier to avoid defining {name}`HotDrink.ColdDrink.toString`:
 ```lean
 namespace HotDrink
 
