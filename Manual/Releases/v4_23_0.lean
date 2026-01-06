@@ -88,7 +88,7 @@ In terms of user experience, noteworthy new features are:
     `Vector`, `List` and `Array` are simplified. They now require an
     `IsLinearOrder` instance. The new requirements are logically equivalent
     to the old ones, but the `IsLinearOrder` instance is not automatically
-    inferred from the smaller typeclasses.
+    inferred from the smaller type classes.
   - Hypotheses of type `Std.Total (¬ · < · : α → α → Prop)` are replaced
     with the equivalent class `Std.Asymm (· < · : α → α → Prop)`. Breakage
     should be limited because there is now an instance that derives the
@@ -197,12 +197,12 @@ In terms of user experience, noteworthy new features are:
   `Prop` to `ULift Prop` in the base case `SPred []`.
 
 * [#9196](https://github.com/leanprover/lean4/pull/9196) implements `forall` normalization using a simproc instead of
-  rewriting rules in `grind`. This is the first part of the PR, after
-  update stage0, we must remove the normalization theorems.
+  rewriting rules in `grind`. This is the first part of the PR; after
+  updating stage0, we must remove the normalization theorems.
 
 * [#9200](https://github.com/leanprover/lean4/pull/9200) implements `exists` normalization using a simproc instead of
-  rewriting rules in grind. This is the first part of the PR, after update
-  stage0, we must remove the normalization theorems.
+  rewriting rules in `grind`. This is the first part of the PR; after
+  updating stage0, we must remove the normalization theorems.
 
 * [#9202](https://github.com/leanprover/lean4/pull/9202) extends the `Eq` simproc used in `grind`. It covers more cases
   now. It also adds 3 reducible declarations to the list of declarations
@@ -667,16 +667,16 @@ In terms of user experience, noteworthy new features are:
   encoding for join points that prevents exponential VC blowup incurred by
   naïve splitting on control flow.
 
-* [#9754](https://github.com/leanprover/lean4/pull/9754) make `mleave` apply `at *` and improve its simp set in order to
+* [#9754](https://github.com/leanprover/lean4/pull/9754) makes `mleave` apply `at *` and improves its simp set in order to
   discharge some more trivialities (#9581).
 
 * [#9755](https://github.com/leanprover/lean4/pull/9755) implements a `mrevert ∀n` tactic that "eta-reduces" the stateful
   goal and is adjoint to `mintro ∀x1 ... ∀xn`.
 
-* [#9767](https://github.com/leanprover/lean4/pull/9767) fixes equality congruence proof terms contructed by `grind`.
+* [#9767](https://github.com/leanprover/lean4/pull/9767) fixes equality congruence proof terms constructed by `grind`.
 
 * [#9772](https://github.com/leanprover/lean4/pull/9772) fixes a bug in the projection over constructor propagator used
-  in `grind`. It may construct type incorrect terms when a equivalence
+  in `grind`. It may construct type-incorrect terms when an equivalence
   class contains heterogeneous equalities.
 
 * [#9776](https://github.com/leanprover/lean4/pull/9776) combines the simplification and unfold-reducible-constants steps
@@ -743,7 +743,7 @@ In terms of user experience, noteworthy new features are:
 * [#9831](https://github.com/leanprover/lean4/pull/9831) adds a delaborator for `Std.Range` notation.
 
 * [#9832](https://github.com/leanprover/lean4/pull/9832) adds simp lemmas `SPred.entails_<n>` to replace
-  `SPred.entails_cons` which was disfunctional as a simp lemma due to
+  `SPred.entails_cons` which was dysfunctional as a simp lemma due to
   #8074.
 
 * [#9833](https://github.com/leanprover/lean4/pull/9833) works around a DefEq bug in `mspec` involving delayed
@@ -753,9 +753,9 @@ In terms of user experience, noteworthy new features are:
   the `wp` application, a situation which arises when working with
   `StateT` primitives.
 
-* [#9841](https://github.com/leanprover/lean4/pull/9841) migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
-  σs to expand into a simple, first-order expression SPred.pure p that can
-  be supported by e-matching in grind.
+* [#9841](https://github.com/leanprover/lean4/pull/9841) migrates the ⌜p⌝ notation for embedding pure `p : Prop` into
+  `SPred σs` to expand into a simple, first-order expression `SPred.pure p`
+  that can be supported by E-matching in `grind`.
 
 * [#9843](https://github.com/leanprover/lean4/pull/9843) makes `mvcgen` produce deterministic case labels for the
   generated VCs. Invariants will be named `inv<n>` and every other VC will
@@ -801,10 +801,10 @@ In terms of user experience, noteworthy new features are:
   is not based on the actual inferred pattern instead provided kind.
 
 * [#9885](https://github.com/leanprover/lean4/pull/9885) is initially motivated by noticing `Lean.Grind.Preorder.toLE`
-  appearing in long Mathlib typeclass searches; this change will prevent
+  appearing in long Mathlib type class searches; this change will prevent
   these searches. These changes are also helpful preparation for
-  potentially dropping the custom `Lean.Grind.*` typeclasses, and unifying
-  with the new typeclasses introduced in #9729.
+  potentially dropping the custom `Lean.Grind.*` type classes, and unifying
+  with the new type classes introduced in #9729.
 ````
 
 ````markdown
@@ -964,16 +964,16 @@ In terms of user experience, noteworthy new features are:
   test case.
 
 * [#9832](https://github.com/leanprover/lean4/pull/9832) adds simp lemmas `SPred.entails_<n>` to replace
-  `SPred.entails_cons` which was disfunctional as a simp lemma due to
+  `SPred.entails_cons` which was dysfunctional as a simp lemma due to
   #8074.
 
-* [#9841](https://github.com/leanprover/lean4/pull/9841) migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
-  σs to expand into a simple, first-order expression SPred.pure p that can
-  be supported by e-matching in grind.
+* [#9841](https://github.com/leanprover/lean4/pull/9841) migrates the ⌜p⌝ notation for embedding pure `p : Prop` into
+  `SPred σs` to expand into a simple, first-order expression `SPred.pure p`
+  that can be supported by E-matching in `grind`.
 
 * [#9848](https://github.com/leanprover/lean4/pull/9848) adds `@[spec]` lemmas for `forIn` and `forIn'` at `Std.PRange`.
 
-* [#9850](https://github.com/leanprover/lean4/pull/9850) add a delaborator for `Std.PRange` notation.
+* [#9850](https://github.com/leanprover/lean4/pull/9850) adds a delaborator for `Std.PRange` notation.
 
 ## Compiler
 

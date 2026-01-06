@@ -246,7 +246,7 @@ def lakeCommand.descr : BlockDescr where
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
-      | do logError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array startign with string but got {info}"; pure none
+      | do logError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array starting with string but got {info}"; pure none
     let aliases : List String ←
       match fromJson? (α := List String) aliases with
       | .ok v => pure v

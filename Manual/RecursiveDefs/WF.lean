@@ -866,7 +866,7 @@ Like {tech}[recursors], it is part of Lean's logic.
 The definition of division should satisfy the following equations:
  * {lean}`∀{n k : Nat}, (k = 0) → div n k = 0`
  * {lean}`∀{n k : Nat}, (k > n) → div n k = 0`
- * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = div (n - k) k`
+ * {lean}`∀{n k : Nat}, (k ≠ 0) → (¬ k > n) → div n k = 1 + div (n - k) k`
 
 This reduction behavior does not hold {tech (key := "definitional equality")}[definitionally]:
 ```lean +error (name := nonDef) -keep

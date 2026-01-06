@@ -35,7 +35,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   `MatcherInfo`, and using that during matcher calculation.
 
 * [#11200](https://github.com/leanprover/lean4/pull/11200) changes how sparse case expressions represent the
-  none-of-the-above information. Instead of of many `x.ctorIdx ≠ i`
+  none-of-the-above information. Instead of many `x.ctorIdx ≠ i`
   hypotheses, it introduces a single `Nat.hasNotBit mask x.ctorIdx`
   hypothesis which compresses that information into a bitmask. This avoids
   a quadratic overhead during splitter generation, where all n assumptions
@@ -43,7 +43,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   assumption of the splitter alternative.
 
 * [#11221](https://github.com/leanprover/lean4/pull/11221) lets `realizeConst` use `withDeclNameForAuxNaming` so that
-  auxilary definitions created there get non-clashing names.
+  auxiliary definitions created there get non-clashing names.
 
 * [#11222](https://github.com/leanprover/lean4/pull/11222) implements `elabToSyntax` for creating scoped syntax `s :
   Syntax` for an arbitrary elaborator `el : Option Expr -> TermElabM Expr`
@@ -145,7 +145,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 * [#11408](https://github.com/leanprover/lean4/pull/11408) adds a difference operation on
   `ExtDTreeMap`/`ExtTreeMap`/`TreeSet` and proves several lemmas about it.
 
-* [#11422](https://github.com/leanprover/lean4/pull/11422) uses a kernel-reduction optimized variant of Mon.mul in grind.
+* [#11422](https://github.com/leanprover/lean4/pull/11422) uses a kernel-reduction optimized variant of `Mon.mul` in `grind`.
 
 * [#11425](https://github.com/leanprover/lean4/pull/11425) changes `Lean.Order.CCPO` and `.CompleteLattice` to carry a
   Prop. This avoids the `CCPO IO` instance from being `noncomputable`.
@@ -155,7 +155,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 * [#11453](https://github.com/leanprover/lean4/pull/11453) fixes undefined behavior where `delete` (instead of `delete[]`)
   is called on an object allocated with `new[]`.
 
-* [#11456](https://github.com/leanprover/lean4/pull/11456) refines several error error messages, mostly involving invalid
+* [#11456](https://github.com/leanprover/lean4/pull/11456) refines several error messages, mostly involving invalid
   use of field notation, generalized field notation, and numeric
   projection. Provides a new error explanation for field notation.
 
@@ -182,7 +182,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   those using `aesop`) being affected by the current recursion depth or
   heartbeat limit.
 
-* [#11492](https://github.com/leanprover/lean4/pull/11492) uses the the helper functions withImplicitBinderInfos and
+* [#11492](https://github.com/leanprover/lean4/pull/11492) uses the helper functions withImplicitBinderInfos and
   mkArrowN in more places.
 
 * [#11493](https://github.com/leanprover/lean4/pull/11493) makes `Match.MatchEqs` a leaf module, to be less restricted in
@@ -235,7 +235,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 * [#11587](https://github.com/leanprover/lean4/pull/11587) adjusts the new `meta` keyword of the experimental module system
   not to imply `partial` for general consistency.
 
-* [#11607](https://github.com/leanprover/lean4/pull/11607) makes argument-less tactic invokations of `Std.Do` tactics such
+* [#11607](https://github.com/leanprover/lean4/pull/11607) makes argument-less tactic invocations of `Std.Do` tactics such
   as `mintro` emit a proper error message "`mintro` expects at least one
   pattern" instead of claiming that `Std.Tactic.Do` needs to be imported.
 
@@ -285,14 +285,14 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 
 * [#9302](https://github.com/leanprover/lean4/pull/9302) modifies `Option.instDecidableEq` and `Option.decidableEqNone`
   so that the latter can be made into a global instance without causing
-  diamonds. It also adds `Option.decidabeNoneEq`.
+  diamonds. It also adds `Option.decidableNoneEq`.
 
 * [#10204](https://github.com/leanprover/lean4/pull/10204) changes the interface of the `ForIn`, `ForIn'`, and `ForM`
-  typeclasses to not take a `Monad m` parameter. This is a breaking change
-  for most downstream `instance`s, which will will now need to assume
+  type classes to not take a `Monad m` parameter. This is a breaking change
+  for most downstream `instance`s, which will now need to assume
   `[Monad m]`.
 
-* [#10945](https://github.com/leanprover/lean4/pull/10945) adds `Std.Tricho r`, a typeclass for relations which identifies
+* [#10945](https://github.com/leanprover/lean4/pull/10945) adds `Std.Tricho r`, a type class for relations which identifies
   them as trichotomous. This is preferred to `Std.Antisymm (¬ r · ·)` in
   all cases (which it is equivalent to).
 
@@ -511,10 +511,10 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 
 * [#11574](https://github.com/leanprover/lean4/pull/11574) adds a lemma that the cast of a natural number into any ordered
   ring is non-negative. We can't annotate this directly for `grind`, but
-  will probably add this to `grind`'s linarith interrnals.
+  will probably add this to `grind`'s linarith internals.
 
 * [#11578](https://github.com/leanprover/lean4/pull/11578) refactors the usage of `get` operation on
-  `HashMap`/`TreeMap`/`ExtHashMap`/`ExtTreeMap` to `getElem` instace.
+  `HashMap`/`TreeMap`/`ExtHashMap`/`ExtTreeMap` to `getElem` instance.
 
 * [#11591](https://github.com/leanprover/lean4/pull/11591) adds missing lemmas about how `ReaderT.run`, `OptionT.run`,
   `StateT.run`, and `ExceptT.run` interact with `MonadControl` operations.
@@ -751,7 +751,7 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
   theorems. These theorems are useful for indexed families, and will be
   used in `grind`.
 
-* [#11491](https://github.com/leanprover/lean4/pull/11491) implements heterogeneous contructor injectivity in `grind`.
+* [#11491](https://github.com/leanprover/lean4/pull/11491) implements heterogeneous constructor injectivity in `grind`.
 
 * [#11494](https://github.com/leanprover/lean4/pull/11494) re-enables star-indexed lemmas as a fallback for `exact?` and
   `apply?`.

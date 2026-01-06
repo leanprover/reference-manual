@@ -22,7 +22,8 @@ open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 tag := "e-matching"
 %%%
 
-{deftech}_E-matching_ is procedure for efficiently instantiating quantified theorem statements with ground terms that is widely employed in SMT solvers, used by {tactic}`grind` to instantiate theorems efficiently.
+{deftech}_E-matching_ is a procedure for efficiently instantiating quantified theorem statements with ground terms.
+It is widely employed in SMT solvers, and {tactic}`grind` uses it to instantiate theorems efficiently.
 It is especially effective when combined with {tech}[congruence closure], enabling {tactic}`grind` to discover non-obvious consequences of equalities and annotated theorems automatically.
 
 E-matching adds new facts to the metaphorical whiteboard, based on an index of theorems.
@@ -268,8 +269,8 @@ In addition to using the default strategy, the attribute checks which other stra
 :::
 
 ```lean -keep -show
--- This test will start failing if new grind modfiers are added. It's to make sure they're all
--- documented (or at least that a decision has been mad to _not_ document one of them).
+-- This test will start failing if new grind modifiers are added. It's to make sure they're all
+-- documented (or at least that a decision has been made to _not_ document one of them).
 open Lean Parser Attr
 open Lean Elab Command
 
@@ -633,10 +634,10 @@ def decreasingCorrect'' : decreasing xs = Decreasing xs := by
 # Inspecting Patterns
 
 The {attr}`grind?` attribute is a version of the {attr}`grind` attribute that additionally displays the generated pattern or {tech}[multi-pattern].
-Patterns and multi-patterns are displayed as lists of subexpressions, each of which is a pattern; ordinary patters are displayed as singleton lists.
+Patterns and multi-patterns are displayed as lists of subexpressions, each of which is a pattern; ordinary patterns are displayed as singleton lists.
 In these displayed patterns, the names of defined constants are printed as-is.
 When the theorem's parameters occur in the pattern, they are displayed using numbers rather than names.
-In particular, they are numbered from right to left, starting at 0; this representation is referred as {deftech}_de Bruijn indices_.
+In particular, they are numbered from right to left, starting at 0; this representation is referred to as {deftech}_de Bruijn indices_.
 
 :::example "Inspecting Patterns" (open := true)
 In order to use this proof that divisibility is transitive with {tactic}`grind`, it requires E-matching patterns:
@@ -750,7 +751,7 @@ h₄: [p (#2 + 2), q #1]
 axiom p : Nat → Nat
 axiom q : Nat → Nat
 ```
-In this example, pattern generation fails because the theorem's conclusion doesn't mention the the argument `y`.
+In this example, pattern generation fails because the theorem's conclusion doesn't mention the argument `y`.
 ```lean (name := h5) +error
 @[grind? ←] theorem h₅ (w : p x = q y) : p (x + 2) = 7 := sorry
 ```
