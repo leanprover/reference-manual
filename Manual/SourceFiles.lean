@@ -792,7 +792,7 @@ Thus, most {keywordOf Lean.Parser.Module.import}`meta import` are also {keywordO
 The exception is when a definition is imported solely for use in local metaprograms, such as those declared with {keywordOf Parser.Command.syntax}`local syntax`, {keywordOf Parser.Command.macro}`local macro`, or {keywordOf Parser.Command.elab}`local elab`.
 
 As a guideline, it is usually preferable to keep the amount of {keywordOf Lean.Parser.Command.declModifiers}`meta` annotations as small as possible.
-This avoids locking otherwise reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
+This avoids locking otherwise-reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
 Thus, when a metaprogram depends on other code that does not itself need to be marked {keywordOf Lean.Parser.Command.declModifiers}`meta`, this other code should be placed in a separate module and not marked {keywordOf Lean.Parser.Command.declModifiers}`meta`.
 Only the final module that actually registers a metaprogram needs the helpers to be in the meta phase.
 This module should use {keywordOf Lean.Parser.Module.import}`public meta import` to import those helpers and then define its metaprograms using built-in syntax like {keywordOf Parser.Command.elab}`elab`, using {keywordOf Lean.Parser.Command.declaration}`meta def`, or using {keywordOf Lean.Parser.Command.section}`meta section`.
