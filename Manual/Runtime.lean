@@ -80,9 +80,9 @@ It is deallocated and all of its references to other objects are dropped, which 
 :::paragraph
 Reference counting provides a number of benefits:
 
- : Re-Use of Memory
+ : Reuse of Memory
 
-    If an object's reference count drops to zero just as another of the same size is to be allocated, then the original object's memory can be safely re-used for the new object.
+    If an object's reference count drops to zero just as another of the same size is to be allocated, then the original object's memory can be safely reused for the new object.
     As a result, many common data-structure traversals (such as {name}`List.map`) do not need to allocate memory when there is exactly one reference to the data structure to be traversed.
 
  : Opportunistic In-Place Updates
@@ -252,9 +252,9 @@ Thus, the modified string `x_4` is a copy, regardless of whether the original re
 ```
 :::
 
-:::example "Memory Re-Use in IR"
+:::example "Memory Reuse in IR"
 The function {lean}`discardElems` is a simplified version of {name}`List.map` that replaces every element in a list with {lean}`()`.
-Inspecting its intermediate representation demonstrates that it will re-use the list's memory when its reference is unique.
+Inspecting its intermediate representation demonstrates that it will reuse the list's memory when its reference is unique.
 
 ```lean (name := discardElems)
 set_option trace.compiler.ir.result true
@@ -298,7 +298,7 @@ This emits the following IR:
           ret x_11
 ```
 
-In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether it's reference count is greater than one).
+In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether its reference count is greater than one).
 If the reference is unique, the reference count of the discarded list element `x_5` is decremented and the constructor value is reused.
 If it is shared, a new {name}`List.cons` is allocated in `x_11` for the result.
 :::
