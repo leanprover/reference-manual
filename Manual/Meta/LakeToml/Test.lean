@@ -12,7 +12,7 @@ namespace Manual.Toml
 open Std (Format)
 open Lean Elab
 
-/-- Types that can be used in in-manual tests for TOML decoding -/
+/-- Types that can be used in tests embedded in the manual for TOML decoding -/
 class Test (α : Sort u) where
   toString : α → Format
 
