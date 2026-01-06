@@ -17,6 +17,7 @@ open Verso.Genre Manual
 open Verso.ArgParse
 open Verso.Code (highlightingJs)
 open Verso.Code.Highlighted.WebAssets
+open Lean.Doc.Syntax
 
 open Verso.Genre.Manual.InlineLean.Scopes (getScopes)
 
@@ -119,10 +120,10 @@ def keywordOf : RoleExpander
         if kindName == k then catName := some cat; break
       if let some _ := catName then break
     let kindDoc ← findDocString? (← getEnv) kindName
-    return #[← `(Doc.Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Doc.Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keywordOf with data := ToJson.toJson (α := (String × Option Name × Name × Option String)) $(quote (kw.getString, catName, parserName.getD kindName, kindDoc))} #[Inline.code $kw])]
 
 @[inline_extension keywordOf]
-def keywordOf.descr : InlineDescr where
+def keywordOf.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX := none
@@ -172,7 +173,6 @@ r#".keyword-of .kw {
 "#
   ]
   extraJs := [
-    highlightingJs,
 r#"
 window.addEventListener("load", () => {
   tippy('.keyword-of.hl.lean', {
@@ -209,8 +209,7 @@ window.addEventListener("load", () => {
 });
 "#
   ]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+}
 
 @[role_expander keyword]
 def keyword : RoleExpander
@@ -221,7 +220,7 @@ def keyword : RoleExpander
     let `(inline|code( $kw:str )) := inl
       | throwErrorAt inl "Expected code literal with the keyword"
 
-    return #[← `(Doc.Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Doc.Inline.code $kw])]
+    return #[← `(Inline.other {Inline.keyword with data := Lean.Json.str $(quote kw.getString)} #[Inline.code $kw])]
 
 @[inline_extension keyword]
 def keyword.descr : InlineDescr where
@@ -314,7 +313,7 @@ declare_syntax_cat syntax_sep
 open Lean Elab Command in
 run_cmd do
   for i in [5:40] do
-    let sep := Syntax.mkStrLit <| String.mk (List.replicate i '*')
+    let sep := Syntax.mkStrLit <| String.ofList (List.replicate i '*')
     let cmd ← `(scoped syntax (name := $(mkIdent s!"sep{i}".toName)) $sep:str : syntax_sep)
     elabCommand cmd
   pure ()
@@ -438,7 +437,7 @@ def lined (ws : String) : Format :=
 
 def noTrailing (info : SourceInfo) : Option SourceInfo :=
   match info with
-  | .original leading p1 _ p2 => some <| .original leading p1 "".toSubstring p2
+  | .original leading p1 _ p2 => some <| .original leading p1 "".toRawSubstring p2
   | .synthetic .. => some info
   | .none => none
 
@@ -478,15 +477,15 @@ def infoWrap2 (info1 : SourceInfo) (info2 : SourceInfo) (doc : Format) : Format 
 def longestSuffix (strs : Array String) : String := Id.run do
   if h : strs.size = 0 then ""
   else
-    let mut suff := strs[0]
+    let mut suff := strs[0].toSlice
 
     repeat
-      if suff == "" then return ""
+      if suff.isEmpty then return ""
       let suff' := suff
       for s in strs do
         unless s.dropSuffix? suff |>.isSome do
           suff := suff.drop 1
-      if suff' == suff then return suff'
+      if suff' == suff then return suff'.copy
     return ""
 
 /-- info: "abc" -/
@@ -511,15 +510,15 @@ def longestSuffix (strs : Array String) : String := Id.run do
 def longestPrefix (strs : Array String) : String := Id.run do
   if h : strs.size = 0 then ""
   else
-    let mut pref := strs[0]
+    let mut pref := strs[0].toSlice
 
     repeat
-      if pref == "" then return ""
+      if pref.isEmpty then return ""
       let pref' := pref
       for s in strs do
         unless s.dropPrefix? pref |>.isSome do
-          pref := pref.dropRight 1
-      if pref' == pref then return pref'
+          pref := pref.dropEnd 1
+      if pref' == pref then return pref'.copy
     return ""
 
 /-- info: "abc" -/
@@ -579,7 +578,7 @@ def removeLeadingString (string : String) : Syntax → Syntax
 where
   remove : SourceInfo → String × SourceInfo
   | .original leading pos trailing pos' =>
-    (string.take leading.toString.length, .original (leading.drop string.length) pos trailing pos')
+    (string.take leading.toString.length |>.copy, .original (leading.drop string.length) pos trailing pos')
   | other => (string, other)
 
 partial def removeTrailingString (string : String) : Syntax → Syntax :=
@@ -610,7 +609,7 @@ partial def removeTrailingString (string : String) : Syntax → Syntax :=
 where
   remove : SourceInfo → String × SourceInfo
   | .original leading pos trailing pos' =>
-    (string.dropRight trailing.toString.length, .original leading pos (trailing.dropRight string.length) pos')
+    (string.dropEnd trailing.toString.length |>.copy, .original leading pos (trailing.dropRight string.length) pos')
   | other => (string, other)
 
 /--
@@ -647,7 +646,7 @@ def keywordParsers : List (Name × String) :=
   [(``«private», "private"), (``«protected», "protected"), (``«partial», "partial"), (``«nonrec», "nonrec")]
 
 open StateT (lift) in
-partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
+partial def production (which : Nat) (stx : Syntax) : StateT (Lean.NameMap (Name × Option String)) (TagFormatT GrammarTag DocElabM) Format := do
   match stx with
   | .atom info str => infoWrap info <$> lift (tag GrammarTag.keyword str)
   | .missing => lift <| tag GrammarTag.error "<missing>"
@@ -701,14 +700,15 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
     | ``FreeSyntax.docCommentItem, _, _ =>
       match stx[0][1] with
       | .atom _ val => do
-        let mut str := val.extract 0 (val.endPos - ⟨2⟩)
+        -- TODO: use a slice here. As of nightly-2025-10-20, the code panicked (reported)
+        let mut str := val.dropEnd 2
         let mut contents : Format := .nil
         let mut inVar : Bool := false
         while !str.isEmpty do
           if inVar then
             let pre := str.takeWhile (· != '}')
-            str := str.drop (pre.length + 1)
-            let x := pre.trim.toName
+            str := str.dropPrefix pre |>.drop 1
+            let x := pre.trimAscii.toName
             if let some (c, d?) := (← get).find? x then
               contents := contents ++ (← lift <| tag (.localName x which c d?) x.toString)
             else
@@ -716,8 +716,8 @@ partial def production (which : Nat) (stx : Syntax) : StateT (NameMap (Name × O
             inVar := false
           else
             let pre := str.takeWhile (· != '{')
-            str := str.drop (pre.length + 1)
-            contents := contents ++ pre
+            str := str.dropPrefix pre |>.drop 1
+            contents := contents ++ pre.copy
             inVar := true
 
         lift <| tag .comment contents
@@ -830,7 +830,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run (← ``(Manual)) (.const ``Manual []) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run (← moduleGenreElabContext) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 namespace Tests
@@ -982,11 +982,11 @@ where
       pure x'
     | .tag .lhs _ => pure ""
     | .tag (.nonterminal (.str (.str .anonymous "token") _) _) (.text txt) => do
-      let txt := txt.trim
+      let txt := txt.trimAscii.copy
       modify (·.push (.keyword, txt))
       pure txt
     | .tag (.nonterminal ``Lean.Parser.Attr.simple ..) txt => do
-      let kw := txt.stripTags.trim
+      let kw := txt.stripTags.trimAscii.copy
       modify (·.push (.keyword, kw))
       pure kw
     | .tag (.nonterminal ..) _ => do
@@ -996,7 +996,7 @@ where
       modify (·.push (.literalIdent, s))
       return s
     | .tag .bnf (.text s) => do
-      let s := s.trim
+      let s := s.trimAscii.copy
       modify fun st => Id.run do
         match s with
         -- Suppress leading |
@@ -1023,7 +1023,7 @@ where
       return s
     | _ => s
   ws (s : String) : StateM (Array (SearchableTag × String)) Unit := do
-    if !s.isEmpty && s.all (·.isWhitespace) then
+    if !s.isEmpty && s.all Char.isWhitespace then
       modify fun st =>
         if st.isEmpty then st
         else if st.back?.map (·.1 == .ws) |>.getD true then st
@@ -1105,7 +1105,7 @@ def «syntax» : DirectiveExpander
     Doc.PointOfInterest.save (← getRef) titleString
       (selectionRange := (← getRef)[0])
 
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
+    pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, $(quote config.aliases.toArray))} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|``` $nameStx:ident $argsStx* | $contents ```) =>
@@ -1177,7 +1177,7 @@ def freeSyntax : DirectiveExpander
         firstGrammar := false
       | _ =>
         content := content.push <| ← elabBlock b
-    pure #[← `(Doc.Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Doc.Block.para #[$(title),*], $content,*])]
+    pure #[← `(Block.other {Block.syntax with data := ToJson.toJson (α := Option String × Name × String × Option Tag × Array Name) ($(quote titleString), $(quote config.name), $(quote config.getLabel), none, #[])} #[Block.para #[$(title),*], $content,*])]
 where
   isGrammar? : Syntax → Option (Syntax × Array Syntax × StrLit)
   | `(block|```$nameStx:ident $argsStx* | $contents:str ```) =>
@@ -1423,7 +1423,7 @@ def productionDomainMapper : DomainMapper where
 
 open Verso.Output Html in
 @[block_extension grammar]
-partial def grammar.descr : BlockDescr where
+partial def grammar.descr : BlockDescr := withHighlighting {
   init s := s.addQuickJumpMapper productionDomain (productionDomainMapper.setFont { family := .code })
 
   traverse id info _ := do
@@ -1456,9 +1456,7 @@ partial def grammar.descr : BlockDescr where
         Html.HtmlT.logError s!"Couldn't deserialize BNF: {e}"
         pure .empty
   extraCss := [grammarCss, "#toc .split-toc > ol .syntax .keyword { font-family: var(--verso-code-font-family); font-weight: 600; }"]
-  extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraJs := [grammarJs]
   localContentItem _ json _ := open Verso.Output.Html in do
     if let .arr #[_, .arr #[_, .arr toks]] := json then
       let toks ← toks.mapM fun v => do
@@ -1474,6 +1472,7 @@ partial def grammar.descr : BlockDescr where
       else
         pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]
     else throw s!"Expected a Json array shaped like [_, [_, [tok, ...]]], got {json}"
+}
 where
 
   bnfHtml : TaggedText GrammarTag → GrammarHtmlM Html
@@ -1540,11 +1539,11 @@ def syntaxKind : RoleExpander
     let id : Ident := mkIdentFrom syntaxKindName kName
     let k ← try realizeGlobalConstNoOverloadWithInfo id catch _ => pure kName
     let doc? ← findDocString? (← getEnv) k
-    return #[← `(Doc.Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Doc.Inline.code $(quote k.toString)])]
+    return #[← `(Inline.other {Inline.syntaxKind with data := ToJson.toJson (α := Name × String × Option String) ($(quote k), $(quote syntaxKindName.getString), $(quote doc?))} #[Inline.code $(quote k.toString)])]
 
 
 @[inline_extension syntaxKind]
-def syntaxKind.inlinedescr : InlineDescr where
+def syntaxKind.inlinedescr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX :=
@@ -1552,9 +1551,7 @@ def syntaxKind.inlinedescr : InlineDescr where
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
   extraCss := [grammarCss]
-  extraJs := [highlightingJs, grammarJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraJs := [grammarJs]
   toHtml :=
     open Verso.Output.Html in
     some <| fun goI _ data inls => do
@@ -1568,3 +1565,4 @@ def syntaxKind.inlinedescr : InlineDescr where
             {{← nonTermHtmlOf k doc? showAs}}
           </code>
         }}
+}

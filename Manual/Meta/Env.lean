@@ -18,10 +18,11 @@ import SubVerso.Examples
 
 import Manual.Meta.Basic
 
-open Lean Elab
+
+open Lean.Doc.Syntax
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
 open SubVerso.Highlighting Highlighted
-
+open Lean Elab
 open Lean.Elab.Tactic.GuardMsgs
 
 namespace Manual
@@ -63,7 +64,7 @@ def envVar.descr : InlineDescr where
     if isDef then
       let path ← (·.path) <$> read
       let _ ← Verso.Genre.Manual.externalTag id path var
-      Index.addEntry id {term := Doc.Inline.concat #[.code var, .text " (environment variable)"]}
+      Index.addEntry id {term := Inline.concat #[.code var, .text " (environment variable)"]}
       modify fun s =>
         s.saveDomainObject envVarDomain var id
     return none

@@ -83,15 +83,32 @@ tag := "scope-commands"
 
 The {keywordOf Lean.Parser.Command.section}`section` command creates a new {deftech}[section] scope, but does not modify the current namespace, opened namespaces, or section variables.
 Changes made to the section scope are reverted when the section ends.
+Additionally, a section may cause a set of modifiers to be applied by default to all declarations in the section.
 Sections may optionally be named; the {keywordOf Lean.Parser.Command.end}`end` command that closes a named section must use the same name.
 If section names have multiple components (that is, if they contain `.`-separated names), then multiple nested sections are introduced.
 Section names have no other effect, and are a readability aid.
 
 :::syntax command (title := "Sections")
 The {keywordOf Lean.Parser.Command.section}`section` command creates a section scope that lasts either until an `end` command or the end of the file.
+The section header, if present, modifies the declarations in the section.
 ```grammar
-section $[$id:ident]?
+$hdr:sectionHeader section $[$id:ident]?
 ```
+:::
+
+:::syntax Lean.Parser.Command.sectionHeader (title := "Section Headers")
+A section header, if present, modifies the declarations in the section.
+```grammar
+$[@[expose]]?
+$[public]? $[noncomputable]? $[meta]?
+```
+If the header includes {keyword}`noncomputable`, then the definitions in the section are all considered to be noncomputable, and no compiled code is generated for them.
+This is needed for definitions that rely on noncomputational reasoning principles such as the Axiom of Choice.
+
+The remaining modifiers are only useful in {tech}[modules].
+If the header includes {attrs}`@[expose]`, then all definitions in the section are {tech}[exposed].
+If it includes {keyword}`public`, then the declarations in such a {deftech}[public section] are public, rather than private, by default.
+If it includes {keyword}`meta`, then the section's declarations are all placed in the {tech}[meta phase].
 :::
 
 :::example "Named Section"
@@ -286,7 +303,7 @@ variable $b:bracketedBinder $b:bracketedBinder*
 
 The bracketed binders allowed after `variable` match the {ref "bracketed-parameter-syntax"}[syntax used in definition headers].
 
-:::example "Section Variables"
+::::example "Section Variables"
 In this section, automatic implicit parameters are disabled, but a number of section variables are defined.
 
 ```lean
@@ -296,23 +313,28 @@ universe u
 variable {α : Type u} (xs : List α) [Zero α] [Add α]
 ```
 
-Because automatic implicit parameters are disabled, the following definition fails:
+
+Because automatic implicit parameters are disabled and `β` is neither a section variable nor bound as a parameter of the function, the following definition fails:
 ```lean +error (name := secvars) -keep
 def addAll (lst : List β) : β :=
   lst.foldr (init := 0) (· + ·)
 ```
 ```leanOutput secvars
 Unknown identifier `β`
+
+Note: It is not possible to treat `β` as an implicitly bound variable here because the `autoImplicit` option is set to `false`.
 ```
 
-On the other hand, not even {lean}`xs` needs to be written directly in the definition:
+
+:::paragraph
+On the other hand, not even {lean}`xs` needs to be written directly in the definition when it uses the section variables:
 
 ```lean
 def addAll :=
   xs.foldr (init := 0) (· + ·)
 ```
-
 :::
+::::
 
 To add a section variable to a theorem even if it is not explicitly mentioned in the statement, mark the variable with the {keywordOf Lean.Parser.Command.include}`include` command.
 All variables marked for inclusion are added to all theorems.
@@ -352,7 +374,7 @@ theorem p_all : ∀ n, p n := by
 ```
 Because the spurious assumption {lean}`pFifteen` was inserted, Lean issues a warning:
 ```leanOutput lint
-automatically included section variable(s) unused in theorem 'p_all':
+automatically included section variable(s) unused in theorem `p_all`:
   pFifteen
 consider restructuring your `variable` declarations so that the variables are not in scope or explicitly omit them:
   omit pFifteen in theorem ...
@@ -360,7 +382,7 @@ consider restructuring your `variable` declarations so that the variables are no
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
 ```
 
-This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:
+This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit` to remove {lean}`pFifteen`:
 ```lean -keep
 include pZero pStep pFifteen
 

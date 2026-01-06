@@ -199,7 +199,7 @@ Lake's internal API may be used to write custom facets.
 Build targets
 
 USAGE:
-  lake build [<targets>...]
+  lake build [<targets>...] [-o <mappings>]
 
 A target is specified with a string of the form:
 
@@ -241,8 +241,14 @@ TARGET EXAMPLES:        build the ...
   @a/+A:c               C file of module `A` of package `a`
   :foo                  facet `foo` of the root package
 
-A bare `lake build` command will build the default target(s) of the root package.
-Package dependencies are not updated during a build.
+A bare `lake build` command will build the default target(s) of the root
+package. Package dependencies are not updated during a build.
+
+With the Lake cache enabled, the `-o` option will cause Lake to track the
+input-to-outputs mappings of targets in the root package touched during the
+build and write them to the specified file at the end of the build. These
+mappings can then be used to upload build artifacts to a remote cache with
+`lake cache put`.
 ```
 
 
@@ -437,7 +443,7 @@ The facets available for modules are:
 
 : `ir`
 
-  The `.ir` file produced by `lean` (with the {ref "module-system"}[experimental module system] enabled).
+  The `.ir` file produced by `lean` (with the {ref "module-structure"}[experimental module system] enabled).
 
 : `c`
 
@@ -564,6 +570,51 @@ To upload a built package as an artifact to a GitHub release, Lake provides the 
 This command uses `tar` to pack the package's build directory into an archive and uses `gh release upload` to attach it to a pre-existing GitHub release for the specified tag.
 Thus, in order to use it, the package uploader (but not the downloader) needs to have `gh`, the GitHub CLI, installed and in `PATH`.
 
+## Artifact Caches
+%%%
+tag := "lake-cache"
+%%%
+
+*This is an experimental feature that is still undergoing development.*
+
+Lake supports a {deftech (key := "local cache")}_local artifact cache_ that stores individual build products, tracking the complete set of inputs that gave rise to them.
+Each {tech}[toolchain] has its own cache because intermediate build products are not compatible between toolchain versions.
+However, a toolchain's cache is shared between all local {tech}[workspaces] that use it, so common dependencies don't need to be rebuilt.
+If two separate workspaces with the same toolchain depend on the same package, then they can share each others' build products.
+
+Because it is an experimental feature, the local cache is disabled by default.
+It is only enabled when the {envVar}`LAKE_ARTIFACT_CACHE` environment variable is set to `true` or when the {TODO}[ref] `enableArtifactCache` field is set to `true` in the {ref "lake-config"}[configuration file].
+
+
+### Remote Artifact Caches
+%%%
+tag := "lake-cache-remote"
+%%%
+
+Build products can be retrieved from remote cache servers and placed into the local cache.
+This makes it possible to completely avoid local builds.
+The {lake}`cache get` command is used to download artifacts into the local cache.
+
+Compared to {ref "lake-github"}[GitHub release builds], the remote artifact cache is much more fine-grained.
+It tracks build products at the level of individual source files, {tech}[`.olean` files], and object code, rather than at the level of entire packages.
+
+### Mappings
+
+When passed the `-o` option, {lake}`build` tracks the inputs used to generate each build product.
+These are stored to a {deftech}_mappings file_ in JSON lines format, where each line of the file must be a valid JSON object.
+A mappings file tracks a single build, and includes all intermediate and final build products for the workspace's {tech}[root package], but not for its dependencies.
+This includes build products that were already up to date and not regenerated.
+The {lake}`cache put` command uploads the build products in the mappings file to the remote from the local cache to the remote cache.
+
+### Configuration
+
+
+  LAKE_CACHE_KEY                authentication key for requests
+  LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact uploads
+  LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping upload
+
+
+
 {include 0 Manual.BuildTools.Lake.CLI}
 
 {include 0 Manual.BuildTools.Lake.Config}
@@ -666,7 +717,9 @@ end
 
 {docstring Lake.getRootPackage}
 
-{docstring Lake.findPackage?}
+{docstring Lake.findPackageByName?}
+
+{docstring Lake.findPackageByKey?}
 
 {docstring Lake.findModule?}
 

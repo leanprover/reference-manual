@@ -299,12 +299,12 @@ inst_1 : Hashable α
 m : IndexMap α β
 a : α
 h : a ∈ m
-h_1 : m.size ≤ (indices m)[a]
+h_1 : m.size ≤ m.indices[a]
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
     [prop] a ∈ m
-    [prop] m.size ≤ (indices m)[a]
+    [prop] m.size ≤ m.indices[a]
   [eqc] True propositions
   [eqc] Equivalence classes
   [ematch] E-matching patterns
@@ -316,7 +316,7 @@ An immediate problem we can see here is that
 Let's add this fact:
 
 ```anchor mem_indices_of_mem
-@[local grind] private theorem mem_indices_of_mem
+@[local grind =] private theorem mem_indices_of_mem
     {m : IndexMap α β} {a : α} :
     a ∈ m ↔ a ∈ m.indices := Iff.rfl
 ```
@@ -362,20 +362,24 @@ or write `attribute [local grind] getElem_indices_lt` after the theorem statemen
 These will use {tactic}`grind`'s built-in heuristics for deciding a pattern to match the theorem on.
 
 :::paragraph
-In this case, let's use the {attr}`grind?` attribute to see the pattern that is being generated:
+In this case, let's see which patterns the {attr}`grind` attribute generates:
 ```anchor getElem_indices_lt_attr
-attribute [local grind?] getElem_indices_lt
+attribute [local grind] getElem_indices_lt
 ```
 ```anchorInfo getElem_indices_lt_attr
-getElem_indices_lt: [@LE.le `[Nat] `[instLENat] ((@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@indices _ #7 _ _ #4) #3 #0) + 1) (@size _ _ _ _ #4)]
+Try these:
+  [apply] [grind
+    .] for pattern: [@LE.le `[Nat] `[instLENat] ((@getElem (HashMap #8 `[Nat] #6 #5) _ `[Nat] _ _ (@indices _ #7 _ _ #4) #3 #0) + 1) (@size _ _ _ _ #4)]
+  [apply] [grind →] for pattern: [LawfulBEq #8 #6, LawfulHashable _ _ #5, @Membership.mem _ (IndexMap _ #7 _ _) _ #4 #3]
 ```
-This is not a useful pattern: it's matching on the entire conclusion of the theorem
-(in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).
+These patterns are not useful.
+The first is matching on the entire conclusion of the theorem (in fact, a normalized version of it, in which `x < y` has been replaced by `x + 1 ≤ y`).
+The second is too general: it will match any term that includes the theorem's assumptions, ignoring the conclusion.
 :::
 
 :::paragraph
-We want something more general: we'd like this theorem to fire whenever {tactic}`grind` sees {anchorTerm getElem_indices_lt_pattern}`m.indices[a]`,
-and so instead of using the attribute we write a custom pattern:
+We want something more general than the entire conclusion, the conclusion should not be ignored.
+We'd like this theorem to fire whenever {tactic}`grind` sees {anchorTerm getElem_indices_lt_pattern}`m.indices[a]`, and so instead of using the attribute we write a custom pattern:
 
 ```anchor getElem_indices_lt_pattern
 grind_pattern getElem_indices_lt => m.indices[a]
@@ -413,20 +417,20 @@ with neither any {lean}`sorry`s, nor any explicitly written proofs.
 :::paragraph
 Next, we want to expose the content of these definitions, but only locally in this file:
 ```anchor getElem_local
-@[local grind] private theorem getElem_def
+@[local grind =] private theorem getElem_def
     (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m[a] = m.values[m.indices[a]'h] :=
   rfl
-@[local grind] private theorem getElem?_def
+@[local grind =] private theorem getElem?_def
     (m : IndexMap α β) (a : α) :
     m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) :=
   rfl
-@[local grind] private theorem getElem!_def
+@[local grind =] private theorem getElem!_def
     [Inhabited β] (m : IndexMap α β) (a : α) :
     m[a]! = (m.indices[a]?.bind (m.values[·]?)).getD default :=
   rfl
 ```
-Again we're using the {anchorTerm getElem_local}`@[local grind] private theorem` pattern to hide these implementation details,
+Again we're using the {anchorTerm getElem_local}`@[local grind =] private theorem` pattern to hide these implementation details,
 but allow {tactic}`grind` to see these facts locally.
 :::
 
@@ -481,37 +485,39 @@ Next let's try `eraseSwap`:
 ```
 ```anchorError eraseSwap_init
 `grind` failed
-case grind.1.1.2.2.1.1.1.1
+case grind.1.1.2.2.1.1.1
 α : Type u
 β : Type v
 inst : BEq α
 inst_1 : Hashable α
-m : IndexMap α β
-a : α
-b : β
-i : Nat
-inst_2 : LawfulBEq α
-inst_3 : LawfulHashable α
 m_1 : IndexMap α β
 a_1 : α
+b : β
 i_1 : Nat
-h : (indices m_1)[a_1]? = some i_1
-w : ¬i_1 = m_1.size - 1
+inst_2 : LawfulBEq α
+inst_3 : LawfulHashable α
+m : IndexMap α β
+a : α
+i : Nat
+h : m.indices[a]? = some i
+w : ¬i = m.size - 1
+lastKey : α := m.keys.back ⋯
+lastValue : β := m.values.back ⋯
 i_2 : Nat
 a_2 : α
-h_1 : (((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2) =
-  ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-h_2 : -1 * ↑((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size + 1 ≤ 0
-left : ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯)[i_2]? = some a_2
-right : ¬(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2]? = some i_2
-h_4 : ¬i_1 = i_2
-left_1 : ¬(keys m_1)[i_2]? = some a_1
-right_1 : ¬(indices m_1)[a_1]? = some i_2
-h_6 : ((keys m_1).back ⋯ == a_2) = true
-h_7 : i_1 + 1 ≤ (keys m_1).pop.size
-left_2 : ((indices m_1).erase a_1).contains a_2 = true
-right_2 : a_2 ∈ (indices m_1).erase a_1
-h_9 : 0 = (indices m_1)[a_1]
+h_1 : ((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =
+  ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_2 : -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0
+left : (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2
+right : ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
+h_4 : ¬i = i_2
+left_1 : ¬m.keys[i_2]? = some a
+right_1 : ¬m.indices[a]? = some i_2
+h_6 : (m.keys.back ⋯ == a_2) = true
+h_7 : i + 1 ≤ m.keys.pop.size
+left_2 : a_2 ∈ m.indices.erase a
+left_3 : (a == a_2) = false
+right_3 : a_2 ∈ m.indices
 ⊢ False
 [grind] Goal diagnostics
   [facts] Asserted facts
@@ -523,8 +529,6 @@ h_9 : 0 = (indices m_1)[a_1]
   [cutsat] Assignment satisfying linear constraints
   [ring] Rings
 
-[grind] Issues
-
 [grind] Diagnostics
 ```
 
@@ -533,21 +537,22 @@ As usual, there is detailed information from {tactic}`grind` about its failure s
 Let's look at the model produced by `cutsat` and see if we can see what's going on:
 ```anchorError eraseSwap_init (onlyTrace := "Assignment satisfying linear constraints") (expandTrace := cutsat)
 [cutsat] Assignment satisfying linear constraints
-  [assign] i_1 := 0
+  [assign] i_1 := 4
+  [assign] i := 0
   [assign] i_2 := 1
-  [assign] (keys m_1).pop.size := 2
-  [assign] (keys m_1).size := 3
-  [assign] m_1.size := 3
-  [assign] ((keys m_1).pop.set i_1 ((keys m_1).back ⋯) ⋯).size := 2
-  [assign] (values m_1).size := 3
-  [assign] (indices m_1)[a_1] := 0
-  [assign] (((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] := 0
-  [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).pop.size := 2
-  [assign] ((keys m_1).set i_1 ((keys m_1).back ⋯) ⋯).size := 3
-  [assign] (indices m_1)[a_1] := 0
-  [assign] (indices m_1)[a_2] := 1
-  [assign] (indices m_1)[(keys m_1)[i_2]] := 1
-  [assign] (indices m_1)[(keys m_1)[i_2]] := 1
+  [assign] m.keys.pop.size := 2
+  [assign] m.keys.size := 3
+  [assign] m.size := 3
+  [assign] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size := 2
+  [assign] m.values.size := 3
+  [assign] m.indices[a] := 0
+  [assign] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] := 0
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size := 2
+  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).size := 3
+  [assign] m.indices[a] := 0
+  [assign] m.indices[a_2] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
+  [assign] m.indices[m.keys[i_2]] := 1
 ```
 
 
@@ -595,7 +600,7 @@ Thinking about the way that we've provided the well-formedness condition, as
 it's expressed in terms of `keys[i]?` and `indices[a]?`.
 Let's add a variant version of the well-formedness condition using {name GetElem.getElem}`getElem` instead of {name GetElem?.getElem?}`getElem?`:
 ```anchor WF'
-@[local grind] private theorem WF'
+@[local grind .] private theorem WF'
     (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
   have := m.WF i a
@@ -634,19 +639,19 @@ the proofs all go through effortlessly:
 
 attribute [local grind] getIdx findIdx insert
 
-@[grind] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+@[grind _=_] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m.getIdx (m.findIdx a) = m[a] := by grind
 
-@[grind] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
   grind
 
-@[grind] theorem getElem_insert
+@[grind =] theorem getElem_insert
     (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
   grind
 
-@[grind] theorem findIdx_insert_self
+@[grind =] theorem findIdx_insert_self
     (m : IndexMap α β) (a : α) (b : β) :
     (m.insert a b).findIdx a =
       if h : a ∈ m then m.findIdx a else m.size := by
@@ -731,7 +736,8 @@ variable [LawfulBEq α] [LawfulHashable α]
 
 attribute [local grind _=_] IndexMap.WF
 
-private theorem getElem_indices_lt {h : a ∈ m} : m.indices[a] < m.size := by
+private theorem getElem_indices_lt
+    {h : a ∈ m} : m.indices[a] < m.size := by
   have : m.indices[a]? = some m.indices[a] := by grind
   grind
 

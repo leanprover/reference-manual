@@ -14,6 +14,8 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
+set_option maxHeartbeats 250000
+
 #doc (Manual) "Basic Classes" =>
 %%%
 tag := "basic-classes"
@@ -23,9 +25,9 @@ Many Lean type classes exist in order to allow built-in notations such as additi
 
 # Boolean Equality Tests
 
-The Boolean equality operator `==` is overloaded by defining instances of `BEq`.
-The companion class `Hashable` specifies a hashing procedure for a type.
-When a type has both `BEq` and `Hashable` instances, then the hashes computed should respect the `BEq` instance: two values equated by `BEq.bEq` should always have the same hash.
+The Boolean equality operator `==` is overloaded by defining instances of {name}`BEq`.
+The companion class {name}`Hashable` specifies a hashing procedure for a type.
+When a type has both {name}`BEq` and {name}`Hashable` instances, then the hashes computed should respect the {name}`BEq` instance: two values equated by {name}`BEq.beq` should always have the same hash.
 
 {docstring BEq}
 
@@ -34,6 +36,8 @@ When a type has both `BEq` and `Hashable` instances, then the hashes computed sh
 {docstring mixHash}
 
 {docstring LawfulBEq}
+
+{docstring ReflBEq}
 
 {docstring EquivBEq}
 
@@ -243,16 +247,17 @@ The equality of functions from {lean}`Nat` to {lean}`Nat` is not decidable:
 example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
 ```
 ```leanOutput NatFunNotDecEq
-failed to synthesize
+failed to synthesize instance of type class
   Decidable (f = g)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Opening `Classical` makes every proposition decidable; however, declarations and examples that use this fact must be marked {keywordOf Lean.Parser.Command.declaration}`noncomputable` to indicate that code should not be generated for them.
 ```lean
 open Classical
-noncomputable example (f g : Nat → Nat) : Decidable (f = g) := inferInstance
+noncomputable example (f g : Nat → Nat) : Decidable (f = g) :=
+  inferInstance
 ```
 
 :::
@@ -303,6 +308,8 @@ draft := true
 
 {docstring HMul}
 
+{docstring SMul}
+
 {docstring Mul}
 
 {docstring HDiv}
@@ -335,9 +342,15 @@ draft := true
 
 {docstring HAnd}
 
+{docstring AndOp}
+
 {docstring HOr}
 
+{docstring OrOp}
+
 {docstring HXor}
+
+{docstring XorOp}
 
 # Append
 

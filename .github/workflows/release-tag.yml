@@ -1,119 +1,126 @@
 name: Deploy Tagged Version
 
 on:
-  push:
-    tags:
-      - 'v*'  # Trigger on tags that start with 'v'
+    push:
+        tags:
+            - "v*" # Trigger on tags that start with 'v'
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # This allows pushing to the repository
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Fetch all history for all tags and branches
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      
-      - name: Extract version from tag
-        id: get_version
-        run: |
-          # Remove 'v' prefix from tag name
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version extracted: $VERSION"
+    deploy:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # This allows pushing to the repository
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # Fetch all history for all tags and branches
 
-      - name: Configure Git
-        # These values are recommended at:
-        #   https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.10"
 
-      - name: Run setup script prep.sh
-        run: |
-          ./deploy/prep.sh
+            - name: Extract version from tag
+              id: get_version
+              run: |
+                  # Remove 'v' prefix from tag name
+                  VERSION=${GITHUB_REF#refs/tags/v}
+                  echo "VERSION=$VERSION" >> $GITHUB_ENV
+                  echo "Version extracted: $VERSION"
 
-      - name: Install deps for figures (TeX)
-        uses: zauguin/install-texlive@v4
-        with:
-          texlive_version: 2025
-          packages: |
-            scheme-small
-            latex-bin
-            fontspec
-            standalone
-            pgf
-            pdftexcmds
-            luatex85
-            lualatex-math
-            infwarerr
-            ltxcmds
-            xcolor
-            fontawesome
-            spath3
-            inter
-            epstopdf-pkg
-            tex-gyre
-            tex-gyre-math
-            unicode-math
-            amsmath
-            sourcecodepro
+            - name: Configure Git
+              # These values are recommended at:
+              #   https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: Run setup script prep.sh
+              run: |
+                  ./deploy/prep.sh
+
+            - name: Install deps for figures (TeX)
+              uses: zauguin/install-texlive@v4
+              with:
+                  texlive_version: 2025
+                  packages: |
+                      scheme-small
+                      latex-bin
+                      fontspec
+                      standalone
+                      pgf
+                      pdftexcmds
+                      luatex85
+                      lualatex-math
+                      infwarerr
+                      ltxcmds
+                      xcolor
+                      fontawesome
+                      spath3
+                      inter
+                      epstopdf-pkg
+                      tex-gyre
+                      tex-gyre-math
+                      unicode-math
+                      amsmath
+                      sourcecodepro
+
+            - name: Install elan
+              run: |
+                  set -o pipefail
+                  curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+                  ./elan-init -y --default-toolchain none
+                  echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+            - name: Lean Version
+              run: |
+                  lean --version
+
+            - name: Cache .lake
+              uses: actions/cache/restore@v4
+              with:
+                  path: .lake
+                  key:
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{
+                      hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{
+                      github.sha }}
+                  restore-keys: |
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
+
+            - name: Run build script build.sh
+              run: |
+                  ./deploy/build.sh
+
+            - name: Save cache for .lake
+              uses: actions/cache/save@v4
+              with:
+                  path: |
+                      .lake/packages
+                      .lake/build/bin
+                      .lake/build/ir
+                      .lake/build/lib
+                  key:
+                      ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{
+                      hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{
+                      github.sha }}
+
+            - name: Generate HTML using generate.sh (output goes into /html in repo root)
+              run: |
+                  ./deploy/generate.sh
+
+            - name: Run deployment script
+              run: |
+                  # The tag name is simply GITHUB_REF_NAME
+                  TAG_NAME=$GITHUB_REF_NAME
+                  echo "Making deployment from tag: '$TAG_NAME'"
 
 
-      - name: Install elan
-        run: |
-          set -o pipefail
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v4.1.2/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
-          ./elan-init -y --default-toolchain none
-          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+                  python deploy/release.py html/html-multi "$VERSION" deploy
 
-      - name: Lean Version
-        run: |
-          lean --version
-
-      - name: Cache .lake
-        uses: actions/cache/restore@v4
-        with:
-          path: .lake
-          key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
-            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}
-            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-
-            ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-
-
-      - name: Run build script build.sh
-        run: |
-          ./deploy/build.sh
-
-      - name: Save cache for .lake
-        uses: actions/cache/save@v4
-        with:
-          path: .lake
-          key: ${{ runner.os }}-${{ hashFiles('lean-toolchain') }}-${{ hashFiles('lake-manifest.json') }}-${{ hashFiles('lakefile.lean') }}-${{ github.sha }}
-
-      - name: Generate HTML using generate.sh (output goes into /html in repo root)
-        run: |
-          ./deploy/generate.sh
-
-      - name: Run deployment script
-        run: |
-          # The tag name is simply GITHUB_REF_NAME
-          TAG_NAME=$GITHUB_REF_NAME
-          echo "Deploying from tag: '$TAG_NAME'"
-          
-
-          python deploy/release.py html/html-multi "$VERSION" deploy
-
-      - name: Push deploy branch
-        run: |
-          git push origin deploy
-          
-        
+            - name: Push deploy branch
+              run: |
+                  git push origin deploy

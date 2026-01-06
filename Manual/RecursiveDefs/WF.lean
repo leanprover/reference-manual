@@ -349,6 +349,7 @@ decreasing_by
 ```leanOutput nestGoal3 (whitespace := lax) -show
 unsolved goals
 xs : Array Nat
+s : Nat := xs.sum
 i : Nat
 h✝ : i ∈ [:xs.size]
 ⊢ sizeOf (xs.take i) < sizeOf xs
@@ -445,7 +446,7 @@ I (Joachim) wanted to include a good example where recursive calls are nested in
 If no {keywordOf Lean.Parser.Command.declaration}`decreasing_by` clause is given, then the {tactic}`decreasing_tactic` is used implicitly, and applied to each proof obligation separately.
 
 
-:::tactic "decreasing_tactic" (replace := true)
+:::tactic "decreasing_tactic" +replace
 
 The tactic {tactic}`decreasing_tactic` mainly deals with lexicographic ordering of tuples, applying {name}`Prod.Lex.right` if the left components of the product are {tech (key := "definitional equality")}[definitionally equal], and {name}`Prod.Lex.left` otherwise.
 After preprocessing tuples this way, it calls the {tactic}`decreasing_trivial` tactic.
@@ -464,7 +465,7 @@ In particular, it tries the following tactics and theorems:
 * {tactic}`omega`
 * {tactic}`array_get_dec` and {tactic}`array_mem_dec`, which prove that the size of array elements is less than the size of the array
 * {tactic}`sizeOf_list_dec` that the size of list elements is less than the size of the list
-* {name}`String.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`
+* {name}`String.Legacy.Iterator.sizeOf_next_lt_of_hasNext` and {name}`String.Legacy.Iterator.sizeOf_next_lt_of_atEnd`, to handle iteration through a string using  {keywordOf Lean.Parser.Term.doFor}`for`
 
 This tactic is intended to be extended with further heuristics using {keywordOf Lean.Parser.Command.macro_rules}`macro_rules`.
 
@@ -607,7 +608,8 @@ where
 
 The fact that the inferred termination argument uses some arbitrary measure, rather than an optimal or minimal one, is visible in the inferred measure, which contains a redundant `j`:
 ```leanOutput binarySearch
-Try this: termination_by (j, j - i)
+Try this:
+  [apply] termination_by (j, j - i)
 ```
 
 :::
@@ -693,7 +695,7 @@ Nonetheless, the definition is accepted due to the ordering imposed on the funct
 mutual
   def f : (n : Nat) → Nat
     | 0 => 0
-    | n+1 => g n
+    | n + 1 => g n
   termination_by?
 
   def g (n : Nat) : Nat := (f n) + 1
@@ -703,12 +705,14 @@ end
 
 The inferred termination argument for {lean}`f` is:
 ```leanOutput fg
-Try this: termination_by n => (n, 0)
+Try this:
+  [apply] termination_by n => (n, 0)
 ```
 
 The inferred termination argument for {lean}`g` is:
 ```leanOutput fg
-Try this: termination_by (n, 1)
+Try this:
+  [apply] termination_by (n, 1)
 ```
 
 :::

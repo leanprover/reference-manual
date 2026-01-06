@@ -24,10 +24,11 @@ import Manual.Meta.LakeToml.Test
 import Lake.Toml.Decode
 import Lake.Load.Toml
 
-open Lean Elab
-open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
-open SubVerso.Highlighting Highlighted
 
+open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab
+open SubVerso.Highlighting Highlighted
+open scoped Lean.Doc.Syntax
 open Lean.Elab.Tactic.GuardMsgs
 
 set_option guard_msgs.diff true
@@ -246,7 +247,7 @@ def Block.tomlField.descr : BlockDescr where
       (name, {{<code class="field-name">{{name}}</code>}})
     ]
 
-private partial def flattenBlocks (blocks : Array (Doc.Block genre)) : Array (Doc.Block genre) :=
+private partial def flattenBlocks (blocks : Array (Block genre)) : Array (Block genre) :=
   blocks.flatMap fun
     | .concat bs =>
       flattenBlocks bs
@@ -374,7 +375,7 @@ dl.toml-table-field-spec {
         else notFields := notFields.push f
 
       -- Next, find all the categories and the names that they expect
-      let mut categorized : Std.HashMap String (Array (Doc.Block Genre.Manual)) := {}
+      let mut categorized : Std.HashMap String (Array (Block Genre.Manual)) := {}
       let mut uncategorized := #[]
       for (f, fieldName) in fields do
         if let some title := category? fieldName then
@@ -398,9 +399,9 @@ dl.toml-table-field-spec {
 
       -- Add the contents of each category to its corresponding block
       let categories := categories.map fun
-        | (_, some title, Doc.Block.other which contents) =>
+        | (_, some title, .other which contents) =>
           let inCategory := categorized.getD title #[]
-          Doc.Block.other which (contents ++ inCategory)
+          .other which (contents ++ inCategory)
         | (_, _, blk) => blk
 
 
@@ -464,17 +465,16 @@ variable [MonadControlT MetaM m] [MonadLiftT MetaM m] [MonadLiftT IO m]
 def buildTypes := ["debug", "relWithDebInfo", "minSizeRel", "release"]
 
 -- Fail if more types added
-theorem builtTypes_exhaustive : s ∈ buildTypes ↔ (Lake.BuildType.ofString? s).isSome := by
+theorem builtTypes_exhaustive (isLower : s.decapitalize = s) : s ∈ buildTypes ↔ (Lake.BuildType.ofString? s).isSome := by
   simp only [buildTypes]
   constructor
   . intro h
-    simp [Lake.BuildType.ofString?]
-    repeat (cases ‹List.Mem _ _›; simp)
-    contradiction
+    simp only [Lake.BuildType.ofString?]
+    split <;> try (simp; done)
+    simp_all
   . intro h
     simp [Lake.BuildType.ofString?] at h
     split at h <;> simp_all
-
 
 def asTable (humanName : String) (n : Name) (skip : List Name := []) : DocElabM Term  := do
   let env ← getEnv
@@ -763,6 +763,39 @@ def checkTomlArrayWithName (α : Name → Type) [(n : Name) → Inhabited (α n)
     .ok <$> report (out : α name) errs
 
 
+-- TODO this became private upstream, so it's been copied to fix the build.
+-- Negotiate a public API.
+open Lake Toml in
+private def decodeTargetDecls
+  (pkg : Name) (t : Table)
+: DecodeM (Array (PConfigDecl pkg) × DNameMap (NConfigDecl pkg)) := do
+  let r := (#[], {})
+  let r ← go r LeanLib.keyword LeanLib.configKind LeanLibConfig.decodeToml
+  let r ← go r LeanExe.keyword LeanExe.configKind LeanExeConfig.decodeToml
+  let r ← go r InputFile.keyword InputFile.configKind InputFileConfig.decodeToml
+  let r ← go r InputDir.keyword InputDir.configKind InputDirConfig.decodeToml
+  return r
+where
+  go r kw kind (decode : {n : Name} → Table → DecodeM (ConfigType kind pkg n)) := do
+    let some tableArrayVal := t.find? kw | return r
+    let some vals ← tryDecode? tableArrayVal.decodeValueArray | return r
+    vals.foldlM (init := r) fun r val => do
+      let some t ← tryDecode? val.decodeTable | return r
+      let some name ← tryDecode? <| stringToLegalOrSimpleName <$> t.decode `name
+        | return r
+      let (decls, map) := r
+      if let some orig := map.get? name then
+        modify fun es => es.push <| .mk val.ref s!"\
+          {pkg}: target '{name}' was already defined as a '{orig.kind}', \
+          but then redefined as a '{kind}'"
+        return (decls, map)
+      else
+        let config ← @decode name t
+        let decl : NConfigDecl pkg name :=
+          -- Safety: By definition, config kind = facet kind for declarative configurations.
+          unsafe {pkg, name, kind, config, wf_data := lcProof}
+        return (decls.push decl.toPConfigDecl, map.insert name decl)
+
 open Lean.Parser in
 open Lake Toml in
 def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String String) := do
@@ -778,7 +811,7 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
     let cfg : LoadConfig := {lakeEnv := env, wsDir := "."}
     let .ok (pkg : Lake.Package) errs := Id.run <| (EStateM.run · #[]) <| do
       let name ← stringToLegalOrSimpleName <$> tbl.tryDecode `name
-      let config : PackageConfig name ← PackageConfig.decodeToml tbl
+      let config : PackageConfig name name ← PackageConfig.decodeToml tbl
       let (targetDecls, targetDeclMap) ← decodeTargetDecls name tbl
       let defaultTargets ← tbl.tryDecodeD `defaultTargets #[]
       let defaultTargets := defaultTargets.map stringToLegalOrSimpleName
@@ -791,7 +824,10 @@ def checkTomlPackage [Lean.MonadError m] (str : String) : m (Except String Strin
         remoteUrl := cfg.remoteUrl
         configFile := cfg.configFile
         config, depConfigs, targetDecls, targetDeclMap
-        defaultTargets, name
+        defaultTargets
+        baseName := name
+        wsIdx := 0
+        origName := name
       }
 
     .ok <$> report pkg errs
@@ -853,7 +889,7 @@ def lakeToml : DirectiveExpander
           | .ok v => pure v
         | _, _ => throwError s!"Unsupported type {opts.type}"
 
-        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (!·.isWhitespace)))
+        discard <| expectString "elaborated configuration output" expectedStr v (useLine := (·.any (! Char.isWhitespace ·)))
 
         contents.mapM (elabBlock ⟨·⟩)
 

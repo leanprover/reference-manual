@@ -17,6 +17,8 @@ open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
+set_option maxHeartbeats 250000
+
 
 #doc (Manual) "Tree-Based Maps" =>
 %%%
@@ -216,6 +218,12 @@ The declarations in this section should be imported using `import Std.TreeMap`.
 
 
 # Iteration
+
+{docstring Std.TreeMap.iter}
+
+{docstring Std.TreeMap.keysIter}
+
+{docstring Std.TreeMap.valuesIter}
 
 {docstring Std.TreeMap.map}
 

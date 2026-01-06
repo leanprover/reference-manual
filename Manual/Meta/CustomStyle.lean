@@ -14,18 +14,8 @@ open Lean
 
 namespace Manual
 
-
-def Block.CSS : Block where
-  name := `Manual.CSS
-
-@[code_block_expander CSS]
-def CSS : CodeBlockExpander
-  | args, str => do
-    let () ← ArgParse.done.run args
-    pure #[← `(Doc.Block.other {Block.CSS with data := ToJson.toJson (α := String) $(quote str.getString)} #[])]
-
-@[block_extension Manual.CSS]
-def CSS.descr : BlockDescr where
+block_extension Block.customCSS (css : String) where
+  data := toJson css
   traverse _ _ _ := pure none
   toTeX := none
   toHtml :=
@@ -39,3 +29,8 @@ def CSS.descr : BlockDescr where
         pure {{
           <style>{{css}}</style>
         }}
+
+@[code_block]
+def customCSS : CodeBlockExpanderOf Unit
+  | (), str =>
+    `(Block.other (Block.customCSS $(quote str.getString)) #[])

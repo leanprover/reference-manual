@@ -32,6 +32,7 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
+set_option maxHeartbeats 1000000
 
 #doc (Manual) "Maps and Sets" =>
 %%%
@@ -176,6 +177,10 @@ A nested inductive type that occurs inside a map or set should be defined in thr
 
 :::example "Nested Inductive Types with `Std.HashMap`"
 
+```imports -show
+import Std
+```
+
 This example requires that `Std.Data.HashMap.RawLemmas` is imported.
 To keep the code shorter, the `Std` namespace is opened:
 ```lean
@@ -304,6 +309,10 @@ In particular, when possible, operations such as {name Std.HashMap.alter}`alter`
 These operations avoid creating a second reference to the value during modification.
 
 :::example "Modifying Values in Maps"
+
+```imports -show
+import Std
+```
 
 ```lean
 open Std
@@ -440,6 +449,12 @@ $_ ~m $_
 
 ## Iteration
 
+{docstring Std.HashMap.iter}
+
+{docstring Std.HashMap.keysIter}
+
+{docstring Std.HashMap.valuesIter}
+
 {docstring Std.HashMap.map}
 
 {docstring Std.HashMap.fold}
@@ -561,6 +576,12 @@ $_ ~m $_
 {docstring Std.DHashMap.union}
 
 ## Iteration
+
+{docstring Std.DHashMap.iter}
+
+{docstring Std.DHashMap.keysIter}
+
+{docstring Std.DHashMap.valuesIter}
 
 {docstring Std.DHashMap.map}
 
@@ -803,6 +824,8 @@ $_ ~m $_
 
 ## Iteration
 
+{docstring Std.HashSet.iter}
+
 {docstring Std.HashSet.all}
 
 {docstring Std.HashSet.any}
@@ -962,6 +985,12 @@ The declarations in this section should be imported using `import Std.DTreeMap`.
 {docstring Std.DTreeMap.partition}
 
 ## Iteration
+
+{docstring Std.DTreeMap.iter}
+
+{docstring Std.DTreeMap.keysIter}
+
+{docstring Std.DTreeMap.valuesIter}
 
 {docstring Std.DTreeMap.map}
 

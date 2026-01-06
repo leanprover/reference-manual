@@ -191,6 +191,13 @@ There are three primary ways to inspect {lean}`Syntax` values:
 
 ::::keepEnv
 :::example "Representing Syntax as Constructors"
+```imports -show
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
+
 The {name}`Repr` instance's representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
 To reduce the size of the example output, the helper {lean}`removeSourceInfo` is used to remove source information prior to display.
 ```lean
@@ -227,9 +234,9 @@ Lean.Syntax.node
   `Lean.Parser.Term.app
   #[Lean.Syntax.ident
       (Lean.SourceInfo.none)
-      "List.length".toSubstring
+      "List.length".toRawSubstring
       (Lean.Name.mkNum `List.length._@.Manual.NotationsMacros.SyntaxDef._hyg 2)
-      [Lean.Syntax.Preresolved.decl `List.length [], Lean.Syntax.Preresolved.namespace `List.length],
+      [Lean.Syntax.Preresolved.decl `List.length []],
     Lean.Syntax.node
       (Lean.SourceInfo.none)
       `null
@@ -260,6 +267,12 @@ The {name}`ToString` instance represents the constructors of {name}`Syntax` as f
    Otherwise, the node is represented by its kind followed by its child nodes, both surrounded by parentheses.
 
 :::example "Syntax as Strings"
+```imports -show
+import Lean.Elab
+```
+```lean -show
+open Lean
+```
 The string representation of syntax can be inspected by quoting it in the context of {keywordOf Lean.Parser.Command.eval}`#eval`, which can run actions in the command elaboration monad {name Lean.Elab.Command.CommandElabM}`CommandElabM`.
 
 ```lean (name := toStringStx1)
@@ -290,6 +303,9 @@ However, {name}`ppTerm` can be explicitly invoked if needed.
 
 ::::keepEnv
 :::example "Pretty-Printed Syntax"
+```imports -show
+import Lean.Elab
+```
 ```lean -show
 open Lean Elab Command
 ```
@@ -514,7 +530,7 @@ It is an error to declare a syntax rule in a nonexistent category.
 
 ```lean -show
 -- verify preceding para
-/-- error: unknown category 'nuhUh' -/
+/-- error: unknown category `nuhUh` -/
 #check_msgs in
 syntax "blah" : nuhUh
 ```
@@ -664,21 +680,21 @@ syntax (name := termBalanced) "balanced " balanced : term
 These terms cannot be elaborated, but reaching an elaboration error indicates that parsing succeeded:
 ```lean
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced ()
 -/
 #guard_msgs in
 example := balanced ()
 
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced []
 -/
 #guard_msgs in
 example := balanced []
 
 /--
-error: elaboration function for 'termBalanced' has not been implemented
+error: elaboration function for `termBalanced` has not been implemented
   balanced [[]()([])]
 -/
 #guard_msgs in
@@ -767,7 +783,7 @@ There is no elaborator or macro associated with this syntax, but the following e
     ◦ "Two"
 ```
 ```leanOutput noteEx1
-elaboration function for '«termNote__◦__»' has not been implemented
+elaboration function for `«termNote__◦__»` has not been implemented
   note
     ◦ "One"
     ◦ "Two"
@@ -782,10 +798,11 @@ The syntax does not require that the list is indented with respect to the openin
 ◦ "Two"
 ```
 ```leanOutput noteEx15
-elaboration function for '«termNote__◦__»' has not been implemented
+elaboration function for `«termNote__◦__»` has not been implemented
   note
     ◦ "One"
     ◦ "Two"
+
 ```
 
 

@@ -9,13 +9,15 @@ import Verso
 import Manual.Meta.Attribute
 import Manual.Meta.Basic
 import Manual.Meta.CustomStyle
+import Manual.Meta.Instances
 
-open Lean Meta Elab
+open scoped Lean.Doc.Syntax
+
 open Verso Doc Elab Manual
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean (constTok)
 open SubVerso.Highlighting Highlighted
-
+open Lean Meta Elab
 
 namespace Manual
 
@@ -23,7 +25,7 @@ namespace Manual
 A table for monotonicity lemmas. Likely some of this logic can be extracted to a helper
 in `Manual/Meta/Table.lean`.
 -/
-private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Term := do
+private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := none) : TermElabM Name := do
   if h : rows.size = 0 then
     throwError "Expected at least one row"
   else
@@ -44,16 +46,16 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
     let arr2 ← mkFreshUserName `monoBlocks2
     let blockName ← mkFreshUserName `block
 
-    let blockType : Expr := .app (.const ``Doc.Block []) (.const ``Verso.Genre.Manual [])
-    let listItemBlockType : Expr := .app (.const ``ListItem [0]) blockType
-    let inlineType : Expr := .app (.const ``Doc.Inline []) (.const ``Verso.Genre.Manual [])
-    let listItemInlineType : Expr := .app (.const ``ListItem [0]) inlineType
+    let blockType : Expr := .app (.const ``Verso.Doc.Block []) (.const ``Verso.Genre.Manual [])
+    let listItemBlockType : Expr := .app (.const ``Verso.Doc.ListItem [0]) blockType
+    let inlineType : Expr := .app (.const ``Verso.Doc.Inline []) (.const ``Verso.Genre.Manual [])
+    let listItemInlineType : Expr := .app (.const ``Verso.Doc.ListItem [0]) inlineType
     let arrListItemBlockType : Expr := .app (.const ``Array [0]) listItemBlockType
 
     let elabCell (blk : Syntax) : TermElabM Expr := do
       let blk ← Term.elabTerm blk (some inlineType)
-      let blk := mkApp2 (.const ``Block.para [])  (.const ``Verso.Genre.Manual []) (← mkArrayLit inlineType [blk])
-      let blk := mkApp2 (.const ``ListItem.mk [0]) blockType (← mkArrayLit blockType [blk])
+      let blk := mkApp2 (.const ``Verso.Doc.Block.para [])  (.const ``Verso.Genre.Manual []) (← mkArrayLit inlineType [blk])
+      let blk := mkApp2 (.const ``Verso.Doc.ListItem.mk [0]) blockType (← mkArrayLit blockType [blk])
       Term.synthesizeSyntheticMVarsNoPostponing
       instantiateMVars blk
 
@@ -81,10 +83,8 @@ private def mkInlineTable (rows : Array (Array Term)) (tag : Option String := no
       name := blockName, levelParams := [], type := blockType, value := v2, hints := .opaque, safety := .safe
     }
 
-    if ((← getEnv).find? blockName).isSome then
-      return mkIdent blockName
-    else
-      throwError "Failed to construct monotonicity lemma table"
+    return blockName
+
 
 
 
@@ -108,14 +108,14 @@ open PrettyPrinter.Delaborator
 end delabhelpers
 
 
-
-@[block_command]
-def monotonicityLemmas : BlockCommandOf Unit
-  | () => do
+open Lean Elab Command Term
+def mkMonotonicityLemmas : TermElabM Name := do
     let names := (Meta.Monotonicity.monotoneExt.getState (← getEnv)).values
     let names := names.qsort (toString · < toString ·)
 
-    let rows : Array (Array Term) ← names.mapM fun name => do
+    let mut rows := #[]
+
+    for name in names do
       -- Extract the target pattern
       let ci ← getConstInfo name
 
@@ -147,14 +147,28 @@ def monotonicityLemmas : BlockCommandOf Unit
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
               let fmt ← Lean.Widget.ppExprTagged call'
-              renderTagged none fmt ⟨{}, false, false, []⟩
-            let fmt ← ppExpr call'
-            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(quote hlCall)) #[(Inline.code $(quote fmt.pretty))])
+              renderTagged none fmt {ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []}
+            let n ← mkFreshUserName `monotonicity.hl
 
-      pure #[nameStx, patternStx]
-    let tableStx ← mkInlineTable rows (tag := "--monotonicity-lemma-table")
-    let extraCss ← `(Block.other {Block.CSS with data := $(quote css)} #[])
-    ``(Block.concat #[$extraCss, $tableStx])
+            -- This used to be a call to quote in the next quasiquotation, but that led to stack overflows in CI (but not locally)
+            addAndCompile <| .defnDecl {name := n, levelParams := [], type := mkConst ``Highlighted, value := toExpr hlCall, hints := .regular 0, safety := .safe}
+
+            ``(Inline.other (Verso.Genre.Manual.InlineLean.Inline.lean $(mkIdent n)) #[(Inline.code $(quote hlCall.toString))])
+
+      rows := rows.push #[nameStx, patternStx]
+
+    mkInlineTable rows (tag := "--monotonicity-lemma-table")
+
+
+run_cmd do
+  elabCommand <| ← `(def $(mkIdent `monoTable) := $(mkIdent (← runTermElabM <| fun _ => mkMonotonicityLemmas)))
+
+
+@[block_command]
+def monotonicityLemmas : BlockCommandOf Unit
+  | () => do
+    let extraCss ← `(Block.other (Block.customCSS $(quote css)) #[])
+    ``(Block.concat #[$extraCss, monoTable])
 where
   css := r#"
 table#--monotonicity-lemma-table {

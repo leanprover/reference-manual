@@ -172,7 +172,7 @@ Even if these operations are lifted to some more powerful monad, their arguments
 
 There are two type classes that support this kind of “reverse lifting”: {name}`MonadFunctor` and {name}`MonadControl`.
 An instance of {lean}`MonadFunctor m n` explains how to interpret a fully-polymorphic function in {lean}`m` into {lean}`n`.
-This polymorphic function must work for _all_ types {lean}`α`: it has type {lean}`{α : Type u} → m α → m α`.
+This polymorphic function must work for _all_ types {lean}`α`: it has type {lean}`{α : Type u} → m α → n α`.
 Such a function can be thought of as one that may have effects, but can't do so based on specific values that are provided.
 An instance of {lean}`MonadControl m n` explains how to interpret an arbitrary action from {lean}`m` into {lean}`n`, while at the same time providing a “reverse interpreter” that allows the {lean}`m` action to run {lean}`n` actions.
 
@@ -247,10 +247,10 @@ def getBytes' (input : Array Nat) :
           modifyThe (Array String) (·.push e))
 ```
 ```leanOutput getBytesErr
-failed to synthesize
+failed to synthesize instance of type class
   MonadStateOf (Array String) (Except String)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 Because {name}`StateT` has a {name}`MonadControl` instance, {name}`control` can be used instead of {name}`liftM`.

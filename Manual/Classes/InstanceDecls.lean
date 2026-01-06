@@ -122,7 +122,7 @@ Instances for recursive inductive types are common, however.
 There is a standard idiom to work around this limitation: define a recursive function independently of the instance, and then refer to it in the instance definition.
 By convention, these recursive functions have the name of the corresponding method, but are defined in the type's namespace.
 
-::: example "Instances are not recursive"
+:::example "Instances are not recursive"
 Given this definition of {lean}`NatTree`:
 ```lean
 inductive NatTree where
@@ -133,23 +133,29 @@ the following {name}`BEq` instance fails:
 ```lean +error (name := beqNatTreeFail)
 instance : BEq NatTree where
   beq
-    | .leaf, .leaf => true
-    | .branch l1 v1 r1, .branch l2 v2 r2 => l1 == l2 && v1 == v2 && r1 == r2
-    | _, _ => false
+    | .leaf, .leaf =>
+      true
+    | .branch l1 v1 r1, .branch l2 v2 r2 =>
+      l1 == l2 && v1 == v2 && r1 == r2
+    | _, _ =>
+      false
 ```
 with errors in both the left and right recursive calls that read:
 ```leanOutput beqNatTreeFail
-failed to synthesize
+failed to synthesize instance of type class
   BEq NatTree
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Adding the command `deriving instance BEq for NatTree` may allow Lean to derive the missing instance.
 ```
 Given a suitable recursive function, such as {lean}`NatTree.beq`:
 ```lean
 def NatTree.beq : NatTree → NatTree → Bool
-  | .leaf, .leaf => true
-  | .branch l1 v1 r1, .branch l2 v2 r2 => l1 == l2 && v1 == v2 && r1 == r2
-  | _, _ => false
+  | .leaf, .leaf =>
+    true
+  | .branch l1 v1 r1, .branch l2 v2 r2 =>
+    NatTree.beq l1 l2 && v1 == v2 && NatTree.beq r1 r2
+  | _, _ =>
+    false
 ```
 the instance can be created in a second step:
 ```lean
@@ -184,10 +190,10 @@ def NatRoseTree.beq : (tree1 tree2 : NatRoseTree) → Bool
     children1 == children2
 ```
 ```leanOutput natRoseTreeBEqFail
-failed to synthesize
+failed to synthesize instance of type class
   BEq (Array NatRoseTree)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 To solve this, a local {lean}`BEq NatRoseTree` instance may be `let`-bound:
@@ -262,10 +268,10 @@ instance : DecidableEq StringList
   | .nil, .cons _ _ | .cons _ _, .nil => .isFalse nofun
 ```
 ```leanOutput stringListNoRec
-failed to synthesize
+failed to synthesize instance of type class
   Decidable (t1 = t2)
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 However, because it is an ordinary Lean function, it can recursively refer to its own explicitly-provided name:
 ```lean

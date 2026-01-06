@@ -15,6 +15,7 @@ import Manual.Papers
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 open Verso.Doc.Elab (CodeBlockExpander)
+open Verso.Code.External (lit)
 
 open Lean.Elab.Tactic.GuardMsgs.WhitespaceMode
 
@@ -24,7 +25,7 @@ tag := "cutsat"
 %%%
 
 :::paragraph
-The linear integer arithmetic solver, `cutsat`, implements a model-based decision procedure for linear integer arithmetic.
+The linear integer arithmetic solver implements a model-based decision procedure for linear integer arithmetic.
 The solver can process four categories of linear polynomial constraints (where `p` is a [linear polynomial](https://en.wikipedia.org/wiki/Degree_of_a_polynomial)):
 
 : Equality
@@ -47,13 +48,14 @@ It is complete for linear integer arithmetic, and natural numbers are supported 
 Support for additional types that can be embedded into {lean}`Int` can be added via instances of {name}`Lean.Grind.ToInt`.
 Nonlinear terms (e.g. `x * x`) are allowed, and are represented as variables.
 The solver is additionally capable of propagating information back to the metaphorical {tactic}`grind` whiteboard, which can trigger further progress from the other subsystems.
+By default, it is enabled; it can be disabled using the flag {lit}`-lia`
 :::
 
 
 
-::::example "Examples of `cutsat`" (open := true)
+::::example "Examples of Linear Integer Arithmetic" (open := true)
 
-All of these statements can be proved using `cutsat`.
+All of these statements can be proved using the linear integer arithmetic solver.
 In the first example, the left-hand side must be a multiple of 2, and thus cannot be 5:
 ```lean
 example {x y : Int} : 2 * x + 4 * y ≠ 5 := by
@@ -79,16 +81,16 @@ example (a b : Int) :
 ```
 
 
-Without `cutsat`, {tactic}`grind` cannot prove the statement:
+Without `lia`, {tactic}`grind` cannot prove the statement:
 
-```lean +error (name := noCutsat)
+```lean +error (name := noLia)
 example (a b : Int) :
     2 ∣ a + 1 →
     2 ∣ b + a →
     ¬ 2 ∣ b + 2 * a := by
-  grind -cutsat
+  grind -lia
 ```
-```leanOutput noCutsat
+```leanOutput noLia
 `grind` failed
 case grind
 a b : Int
@@ -99,6 +101,7 @@ h_2 : 2 ∣ 2 * a + b
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [linarith] Linarith assignment for `Int`
 ```
 ::::
@@ -109,9 +112,9 @@ tag := "cutsat-qlia"
 %%%
 
 The solver is complete for linear integer arithmetic.
-However, the search can become vast with very few constraints, but `cutsat` was not designed to perform massive case-analysis.
-The `qlia` option to {tactic}`grind` reduces the search space by instructing `cutsat` to accept rational solutions.
-With this option, `cutsat` is likely to be faster, but it is incomplete.
+However, the search can become vast with very few constraints, but the solver was not designed to perform massive case-analysis.
+The `qlia` option to {tactic}`grind` reduces the search space by instructing the solver to accept rational solutions.
+With this option, the solver is likely to be faster, but it is incomplete.
 
 :::example "Rational Solutions"
 The following example has a rational solution, but does not have integer solutions:
@@ -150,7 +153,7 @@ h_3 : 9 * x + -7 * y + -4 ≤ 0
     [assign] y := 2
 ```
 
-The rational model constructed by `cutsat` is in the section `Assignment satisfying linear constraints` in the goal diagnostics.
+The rational model constructed by the solver is in the section `Assignment satisfying linear constraints` in the goal diagnostics.
 :::
 
 # Nonlinear Constraints
@@ -158,7 +161,7 @@ The rational model constructed by `cutsat` is in the section `Assignment satisfy
 The solver currently does support nonlinear constraints, and treats nonlinear terms such as `x * x` as variables.
 
 ::::example "Nonlinear Terms" (open := true)
-`cutsat` fails to prove this theorem:
+The linear integer arithmetic solver fails to prove this theorem:
 
 ```lean +error (name := nonlinear)
 example (x : Int) : x * x ≥ 0 := by
@@ -173,10 +176,11 @@ h : x * x + 1 ≤ 0
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints
 ```
 
-From the perspective of `cutsat`, it is equivalent to:
+From the perspective of the linear integer arithmetic solver, it is equivalent to:
 
 ```lean +error (name := nonlinear2)
 example {y : Int} (x : Int) : y ≥ 0 := by
@@ -191,20 +195,21 @@ h : x * x + 1 ≤ 0
 [grind] Goal diagnostics
   [facts] Asserted facts
   [eqc] True propositions
+  [ematch] E-matching patterns
   [cutsat] Assignment satisfying linear constraints
 ```
 
 :::paragraph
-This can be seen by setting the option {option}`trace.grind.cutsat.assert` to {lean}`true`, which traces all constraints processed by `cutsat`.
+This can be seen by setting the option {option}`trace.grind.lia.assert` to {lean}`true`, which traces all constraints processed by the solver.
 
-```lean +error (name := cutsatDiag)
+```lean +error (name := liaDiag)
 example (x : Int) : x*x ≥ 0 := by
-  set_option trace.grind.cutsat.assert true in
+  set_option trace.grind.lia.assert true in
   grind
 ```
-```leanOutput cutsatDiag
-[grind.cutsat.assert] -1*「x ^ 2 + 1」 + 「x ^ 2」 + 1 = 0
-[grind.cutsat.assert] 「x ^ 2」 + 1 ≤ 0
+```leanOutput liaDiag
+[grind.lia.assert] -1*「x ^ 2 + 1」 + 「x ^ 2」 + 1 = 0
+[grind.lia.assert] 「x ^ 2」 + 1 ≤ 0
 ```
 The term `x ^ 2` is “quoted” in `「x ^ 2」 + 1 ≤ 0` to indicate that `x ^ 2` is treated as a variable.
 :::
@@ -214,7 +219,7 @@ The term `x ^ 2` is “quoted” in `「x ^ 2」 + 1 ≤ 0` to indicate that `x 
 
 The solver supports linear division and modulo operations.
 
-:::example "Linear Division and Modulo with `cutsat`"
+:::example "Linear Division and Modulo"
 ```lean
 example (x y : Int) :
     x = y / 2 →
@@ -226,7 +231,7 @@ example (x y : Int) :
 
 # Algebraic Processing
 
-The `cutsat` solver normalizes commutative (semi)ring expressions.
+The solver normalizes commutative (semi)ring expressions.
 
 :::example "Commutative (Semi)ring Normalization"
 Commutative ring normalization allows this goal to be solved:
@@ -292,10 +297,10 @@ h_4 : ¬f (x + y) = 0
 tag := "cutsat-ToInt"
 %%%
 
-The `cutsat` solver can also process linear constraints that contain natural numbers.
+The LIA solver can also process linear constraints that contain natural numbers.
 It converts them into integer constraints using `Int.ofNat`.
 
-:::example "Natural Numbers with `cutsat`"
+:::example "Natural Numbers as Linear Integer Arithmetic"
 ```lean
 example (x y z : Nat) :
     x < y + z →
@@ -305,7 +310,7 @@ example (x y z : Nat) :
 ```
 :::
 
-There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` type class to tell `cutsat` that a type embeds in the integers.
+There is an extensible mechanism via the {lean}`Lean.Grind.ToInt` type class to tell the solver that a type embeds in the integers.
 Using this, we can solve goals such as:
 
 ```lean
@@ -331,7 +336,7 @@ variable {x y : Int}
 ```
 
 :::paragraph
-The implementation of `cutsat` is inspired by Section 4 of {citet cuttingToTheChase}[].
+The implementation of the linear integer arithmetic solver is inspired by Section 4 of {citet cuttingToTheChase}[].
 Compared to the paper, it includes several enhancements and modifications such as:
 
 * extended constraint support (equality and disequality),
@@ -342,7 +347,7 @@ Compared to the paper, it includes several enhancements and modifications such a
 :::
 
 :::paragraph
-The `cutsat` procedure builds a model (that is, an assignment of the variables in the term) incrementally, resolving conflicts through constraint generation.
+The solver procedure builds a model (that is, an assignment of the variables in the term) incrementally, resolving conflicts through constraint generation.
 For example, given a partial model `{x := 1}` and constraint {lean}`3 ∣ 3 * y + x + 1`:
 
 - The solver cannot extend the model to {lean}`y` because {lean}`3 ∣ 3 * y + 2` is unsatisfiable.

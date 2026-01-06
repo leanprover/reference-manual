@@ -37,8 +37,8 @@ open Tactic.GuardMsgs in
 def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
-        |>.trim |> removeTrailingWhitespaceMarker
-    let (whitespace, ordering, specFn) ← parseGuardMsgsSpec spec?
+        |>.trimAscii |>.copy |> removeTrailingWhitespaceMarker
+    let {whitespace, ordering, filterFn, ..} ← parseGuardMsgsSpec spec?
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
     withReader ({ · with snap? := none }) do
@@ -54,13 +54,13 @@ def elabCheckMsgs : CommandElab
     for msg in msgs.toList do
       if msg.isSilent then
         continue
-      match specFn msg with
+      match filterFn msg with
       | .check => toCheck := toCheck.add msg
       | .drop => pure ()
       | .pass => toPassthrough := toPassthrough.add msg
     let strings ← toCheck.toList.mapM (messageToStringWithoutPos ·)
     let strings := ordering.apply strings
-    let res := "---\n".intercalate strings |>.trim
+    let res := "---\n".intercalate strings |>.trimAscii |>.copy
     if messagesMatch (whitespace.apply expected) (whitespace.apply res) then
       -- Passed. Only put toPassthrough messages back on the message log
       modify fun st => { st with messages := initMsgs ++ toPassthrough }
@@ -69,7 +69,7 @@ def elabCheckMsgs : CommandElab
       modify fun st => { st with messages := initMsgs ++ msgs }
       let feedback :=
         if guard_msgs.diff.get (← getOptions) then
-          let diff := Diff.diff (expected.split (· == '\n')).toArray (res.split (· == '\n')).toArray
+          let diff := Diff.diff (expected.splitToList (· == '\n')).toArray (res.splitToList (· == '\n')).toArray
           Diff.linesToString diff
         else res
       logErrorAt tk m!"❌️ Docstring on `#guard_msgs` does not match generated message:\n\n{feedback}"

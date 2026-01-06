@@ -14,112 +14,115 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
-#doc (Manual) "Substrings" =>
+#doc (Manual) "Raw Substrings" =>
 %%%
 tag := "string-api-substring"
 %%%
 
+Raw substrings are a low-level type that groups a string together with byte positions that delimit a region in the string.
+Most code should use {ref "string-api-slice"}[slices] instead, because they are safer and more convenient.
 
-{docstring String.toSubstring}
+{docstring String.toRawSubstring}
 
-{docstring String.toSubstring'}
+{docstring String.toRawSubstring'}
 
-{docstring Substring}
+{docstring Substring.Raw}
 
 # Properties
 
-{docstring Substring.isEmpty}
+{docstring Substring.Raw.isEmpty}
 
-{docstring Substring.bsize}
+{docstring Substring.Raw.bsize}
 
 # Positions
 
-{docstring Substring.atEnd}
+{docstring Substring.Raw.atEnd}
 
-{docstring Substring.posOf}
+{docstring Substring.Raw.posOf}
 
-{docstring Substring.next}
+{docstring Substring.Raw.next}
 
-{docstring Substring.nextn}
+{docstring Substring.Raw.nextn}
 
-{docstring Substring.prev}
+{docstring Substring.Raw.prev}
 
-{docstring Substring.prevn}
+{docstring Substring.Raw.prevn}
 
 
 # Folds and Aggregation
 
-{docstring Substring.foldl}
+{docstring Substring.Raw.foldl}
 
-{docstring Substring.foldr}
+{docstring Substring.Raw.foldr}
 
-{docstring Substring.all}
+{docstring Substring.Raw.all}
 
-{docstring Substring.any}
+{docstring Substring.Raw.any}
 
 # Comparisons
 
-{docstring Substring.beq}
+{docstring Substring.Raw.beq}
 
-{docstring Substring.sameAs}
+{docstring Substring.Raw.sameAs}
 
 # Prefix and Suffix
 
-{docstring Substring.commonPrefix}
+{docstring Substring.Raw.commonPrefix}
 
-{docstring Substring.commonSuffix}
+{docstring Substring.Raw.commonSuffix}
 
-{docstring Substring.dropPrefix?}
+{docstring Substring.Raw.dropPrefix?}
 
-{docstring Substring.dropSuffix?}
+{docstring Substring.Raw.dropSuffix?}
 
 # Lookups
 
-{docstring Substring.get}
+{docstring Substring.Raw.get}
 
-{docstring Substring.contains}
+{docstring Substring.Raw.contains}
 
-{docstring Substring.front}
+{docstring Substring.Raw.front}
 
 
 # Modifications
 
-{docstring Substring.drop}
+{docstring Substring.Raw.drop}
 
-{docstring Substring.dropWhile}
+{docstring Substring.Raw.dropWhile}
 
-{docstring Substring.dropRight}
+{docstring Substring.Raw.dropRight}
 
-{docstring Substring.dropRightWhile}
+{docstring Substring.Raw.dropRightWhile}
 
 
-{docstring Substring.take}
+{docstring Substring.Raw.take}
 
-{docstring Substring.takeWhile}
+{docstring Substring.Raw.takeWhile}
 
-{docstring Substring.takeRight}
+{docstring Substring.Raw.takeRight}
 
-{docstring Substring.takeRightWhile}
+{docstring Substring.Raw.takeRightWhile}
 
-{docstring Substring.extract}
+{docstring Substring.Raw.extract}
 
-{docstring Substring.trim}
+{docstring Substring.Raw.trim}
 
-{docstring Substring.trimLeft}
+{docstring Substring.Raw.trimLeft}
 
-{docstring Substring.trimRight}
+{docstring Substring.Raw.trimRight}
 
-{docstring Substring.splitOn}
+{docstring Substring.Raw.splitOn}
 
+{docstring Substring.Raw.repair}
 
 # Conversions
 
-{docstring Substring.toString}
+{docstring Substring.Raw.toString}
 
-{docstring Substring.isNat}
+{docstring Substring.Raw.isNat}
 
-{docstring Substring.toNat? +allowMissing}
+{docstring Substring.Raw.toNat? +allowMissing}
 
-{docstring Substring.toIterator}
+{docstring Substring.Raw.toLegacyIterator}
 
-{docstring Substring.toName}
+{docstring Substring.Raw.toName}

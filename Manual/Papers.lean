@@ -31,7 +31,7 @@ def castPaper : ArXiv where
 
 def constructionsOnConstructors : InProceedings where
   title := inlines!"A Few Constructions on Constructors"
-  authors := #[inlines!"Conor McBrid,", inlines!"Healfdene Goguen", inlines!"James McKinna"]
+  authors := #[inlines!"Conor McBride", inlines!"Healfdene Goguen", inlines!"James McKinna"]
   year := 2004
   booktitle := inlines!"Types for Proofs and Programs, International Workshop, TYPES 2004"
   series := some (inlines!"LNCS 3839")
@@ -59,6 +59,16 @@ def countingBeans : InProceedings where
   url := some "https://arxiv.org/abs/1908.05647"
   year := 2019
   booktitle := inlines!"Proceedings of the 31st Symposium on Implementation and Application of Functional Languages (IFL 2019)"
+
+def hoare69 : Article where
+  title := inlines!"An Axiomatic Basis for Computer Programming"
+  authors := #[inlines!"C. A. R. Hoare"]
+  journal := inlines!"Communications of the ACM"
+  year := 1969
+  volume := inlines!"12"
+  number := inlines!"10"
+  month := none
+  pages := some (576, 583)
 
 def pratt73 : InProceedings where
   title := inlines!"Top down operator precedence"

@@ -136,7 +136,10 @@ This package contains no {tech}[targets], so there is no code to be built.
 name = "example-package"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
+  origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
@@ -185,7 +188,9 @@ name = "example-package"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
-      libPrefixOnWindows := false},
+      restoreAllArtifacts := false,
+      libPrefixOnWindows := false,
+      allowImportAll := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -201,7 +206,8 @@ name = "example-package"
   buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
-  cacheRef? := none}
+  inputsRef? := none,
+  outputsRef? := none}
 ```
 ::::
 :::::
@@ -218,7 +224,10 @@ defaultTargets = ["Sorting"]
 name = "Sorting"
 ```
 ```expected
-{name := `«example-package»,
+{wsIdx := 0,
+  baseName := `«example-package»,
+  keyName := `«example-package»,
+  origName := `«example-package»,
   dir := FilePath.mk ".",
   relDir := FilePath.mk ".",
   config :=
@@ -267,7 +276,9 @@ name = "Sorting"
       readmeFile := FilePath.mk "README.md",
       reservoir := true,
       enableArtifactCache? := none,
-      libPrefixOnWindows := false},
+      restoreAllArtifacts := false,
+      libPrefixOnWindows := false,
+      allowImportAll := false},
   configFile := FilePath.mk "lakefile",
   relConfigFile := FilePath.mk "lakefile",
   relManifestFile := FilePath.mk "lake-manifest.json",
@@ -299,13 +310,14 @@ name = "Sorting"
                 srcDir := FilePath.mk ".",
                 roots := #[`Sorting],
                 globs := #[Lake.Glob.one `Sorting],
-                libName := "Sorting",
+                libName := "",
                 libPrefixOnWindows := false,
                 needs := #[],
                 extraDepTargets := #[],
                 precompileModules := false,
                 defaultFacets := #[`lean_lib.leanArts],
-                nativeFacets := #<fun>},
+                nativeFacets := #<fun>,
+                allowImportAll := false},
             wf_data := …},
         pkg_eq := …}],
   targetDeclMap :=
@@ -335,13 +347,14 @@ name = "Sorting"
                       srcDir := FilePath.mk ".",
                       roots := #[`Sorting],
                       globs := #[Lake.Glob.one `Sorting],
-                      libName := "Sorting",
+                      libName := "",
                       libPrefixOnWindows := false,
                       needs := #[],
                       extraDepTargets := #[],
                       precompileModules := false,
                       defaultFacets := #[`lean_lib.leanArts],
-                      nativeFacets := #<fun>},
+                      nativeFacets := #<fun>,
+                      allowImportAll := false},
                   wf_data := …},
               pkg_eq := …},
           name_eq := …},
@@ -353,7 +366,8 @@ name = "Sorting"
   buildArchive := ELIDED,
   testDriver := "",
   lintDriver := "",
-  cacheRef? := none}
+  inputsRef? := none,
+  outputsRef? := none}
 ```
 ::::
 :::::
@@ -554,13 +568,14 @@ name = "TacticTools"
       srcDir := FilePath.mk ".",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
+      libName := "",
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],
       precompileModules := false,
       defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+      nativeFacets := #<fun>,
+      allowImportAll := false}}]
 ```
 ::::
 The library's source is located in the package's default source directory, in the module hierarchy rooted at `TacticTools`.
@@ -596,13 +611,14 @@ precompileModules = true
       srcDir := FilePath.mk "src",
       roots := #[`TacticTools],
       globs := #[Lake.Glob.one `TacticTools],
-      libName := "TacticTools",
+      libName := "",
       libPrefixOnWindows := false,
       needs := #[],
       extraDepTargets := #[],
       precompileModules := true,
       defaultFacets := #[`lean_lib.leanArts],
-      nativeFacets := #<fun>}}]
+      nativeFacets := #<fun>,
+      allowImportAll := false}}]
 ```
 ::::
 The library's source is located in the directory `src`, in the module hierarchy rooted at `TacticTools`.
@@ -1027,7 +1043,7 @@ The glob pattern `N.*` matches `N` or any submodule for which `N` is a prefix.
 $_:name".*"
 ```
 
-The glob pattern `N.*` matches any submodule for which `N` is a strict prefix, but not `N` itself.
+The glob pattern `N.+` matches any submodule for which `N` is a strict prefix, but not `N` itself.
 
 ```grammar
 $_:name".+"

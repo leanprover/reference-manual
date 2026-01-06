@@ -34,8 +34,8 @@ def messagesEq (maxDiff? : Option Nat) (whitespace : WhitespaceMode) (msg1 msg2 
   let msg1 := normalizeLineNums <| normalizeMetavars msg1
   let msg2 := normalizeLineNums <| normalizeMetavars msg2
   if let some maxDiff := maxDiff? then
-    let lines1 := msg1.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
-    let lines2 := msg2.split (· == '\n') |>.map (·.trimRight |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines1 := msg1.splitToList (· == '\n') |>.map (·.trimAsciiEnd.copy |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
+    let lines2 := msg2.splitToList (· == '\n') |>.map (·.trimAsciiEnd.copy |> whitespace.apply) |>.reverse |>.dropWhile String.isEmpty |>.reverse
     let maxPercent := maxDiff.toFloat / 100.0
     let lines1 := lines1.toArray
     let lines2 := lines2.toArray
@@ -62,8 +62,8 @@ open Tactic.GuardMsgs in
 def elabCheckMsgs : CommandElab
   | `(command| $[$dc?:docComment]? #check_msgs%$tk $[(maxDiff := $maxDiff % )]? $(spec?)? in $cmd) => do
     let expected : String := (← dc?.mapM (getDocStringText ·)).getD ""
-        |>.trim |> removeTrailingWhitespaceMarker
-    let (whitespace, ordering, specFn) ← parseGuardMsgsSpec spec?
+        |>.trimAscii.copy |> removeTrailingWhitespaceMarker
+    let {whitespace, ordering, filterFn, .. } ← parseGuardMsgsSpec spec?
     let maxDiff? := maxDiff.map (·.getNat)
     let initMsgs ← modifyGet fun st => (st.messages, { st with messages := {} })
     -- do not forward snapshot as we don't want messages assigned to it to leak outside
@@ -78,13 +78,13 @@ def elabCheckMsgs : CommandElab
     let mut toCheck : MessageLog := .empty
     let mut toPassthrough : MessageLog := .empty
     for msg in msgs.toList do
-      match specFn msg with
+      match filterFn msg with
       | .check => toCheck := toCheck.add msg
       | .drop => pure ()
       | .pass => toPassthrough := toPassthrough.add msg
     let strings ← toCheck.toList.mapM (messageToStringWithoutPos ·)
     let strings := ordering.apply strings
-    let res := "---\n".intercalate strings |>.trim
+    let res := "---\n".intercalate strings |>.trimAscii.copy
     let (same, msg?) := messagesEq maxDiff? whitespace expected res
     let text ← getFileMap
     let msg? : Option Message ← msg?.bindM fun s => OptionT.run do
@@ -105,7 +105,7 @@ def elabCheckMsgs : CommandElab
       -- Failed. Put all the messages back on the message log and add an error
       modify fun st => { st with messages := initMsgs ++ msgs ++ msg }
       let feedback :=
-        let diff := Diff.diff (expected.split (· == '\n')).toArray (res.split (· == '\n')).toArray
+        let diff := Diff.diff (expected.splitToList (· == '\n')).toArray (res.splitToList (· == '\n')).toArray
         Diff.linesToString diff
 
       logErrorAt tk m!"❌️ Docstring on `#check_msgs` does not match generated message:\n\n{feedback}"

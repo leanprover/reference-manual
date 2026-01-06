@@ -1,42 +1,43 @@
-name: "Deploy the 'deploy' branch"
+name: "Deploy the 'postdeploy' branch"
 on:
-  workflow_run:
-    workflows: ["Deploy Tagged Version"]
-    types:
-      - completed
+    workflow_run:
+        workflows: ["Apply Overlays"]
+        types:
+            - completed
 
-  push:
-    branches:
-      - 'deploy'
+    push:
+        branches:
+            - "postdeploy"
 
-  workflow_dispatch:
+    workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy release branch to hosting
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    steps:
+    deploy:
+        name: Deploy release branch to hosting
+        runs-on: ubuntu-latest
+        if:
+            ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion ==
+            'success' }}
+        steps:
+            - name: Checkout postdeploy branch
+              uses: actions/checkout@v4
+              with:
+                  ref: "postdeploy"
 
-      - name: Checkout deploy branch
-        uses: actions/checkout@v4
-        with:
-          ref: 'deploy'
-
-      - name: Upload the current state of the deploy branch
-        id: deploy-release
-        uses: nwtgck/actions-netlify@v2.0
-        with:
-          publish-dir: '.'
-          production-branch: deploy
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: |
-            Deploy from ${{ github.ref }}
-          enable-commit-comment: false
-          enable-pull-request-comment: false
-          fails-without-credentials: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          # This is the site called 'lean-reference-manual-versions'
-          NETLIFY_SITE_ID: "91dc33ef-6016-4ac7-bac1-d574e2254405"
+            - name: Upload the current state of the postdeploy branch
+              id: deploy-release
+              uses: nwtgck/actions-netlify@v2.0
+              with:
+                  publish-dir: "."
+                  production-branch: postdeploy
+                  production-deploy: true
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  deploy-message: |
+                      Deploy from ${{ github.ref }}
+                  enable-commit-comment: false
+                  enable-pull-request-comment: false
+                  fails-without-credentials: true
+              env:
+                  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+                  # This is the site called 'lean-reference-manual-versions'
+                  NETLIFY_SITE_ID: "91dc33ef-6016-4ac7-bac1-d574e2254405"

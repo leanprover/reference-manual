@@ -193,10 +193,10 @@ However, because the new operator is not associative, the {tech}[local longest-m
 #check True + False + True
 ```
 ```leanOutput trueOrFalseOrTrue1
-failed to synthesize
-  HAdd Prop Prop ?m.38
+failed to synthesize instance of type class
+  HAdd Prop Prop ?m.3
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 :::
@@ -217,13 +217,13 @@ True + False : Prop
 #check 2 + 2
 ```
 ```leanOutput twoPlusTwo2
-failed to synthesize
+failed to synthesize instance of type class
   OfNat Prop 2
 numerals are polymorphic in Lean, but the numeral `2` cannot be used in a context where the expected type is
   Prop
 due to the absence of the instance above
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 
 The new operator is not associative, so the {tech}[local longest-match rule] means that only {name}`HAdd.hAdd` applies to the three-argument version:
@@ -231,10 +231,10 @@ The new operator is not associative, so the {tech}[local longest-match rule] mea
 #check True + False + True
 ```
 ```leanOutput trueOrFalseOrTrue2
-failed to synthesize
-  HAdd Prop Prop ?m.20
+failed to synthesize instance of type class
+  HAdd Prop Prop ?m.3
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 :::
 
@@ -259,30 +259,18 @@ Omitting them causes the operator's arguments to be displayed immediately next t
 :::keepEnv
 ```lean -show
 -- Test claim about internal whitespace in preceding paragraph
-/--
-error: invalid atom
----
-error: invalid syntax node kind '«term_<<<<_>>>>_»'
--/
+/-- error: invalid atom -/
 #check_msgs in
 infix:99 " <<<< >>>> " => Nat.add
 
 
 --- Test further claims about allowed atoms
-/--
-error: invalid atom
----
-error: invalid syntax node kind 'bogus'
--/
+/-- error: invalid atom -/
 #check_msgs in
 infix:9 (name := bogus) "" => Nat.mul
 
 
-/--
-error: invalid atom
----
-error: invalid syntax node kind 'alsobogus'
--/
+/-- error: invalid atom -/
 #check_msgs in
 infix:9 (name := alsobogus) " ` " => Nat.mul
 
@@ -290,11 +278,7 @@ infix:9 (name := alsobogus) " ` " => Nat.mul
 #check_msgs in
 infix:9 (name := nonbogus) " `` " => Nat.mul
 
-/--
-error: invalid atom
----
-error: invalid syntax node kind 'bogus'
--/
+/-- error: invalid atom -/
 #check_msgs in
 infix:9 (name := bogus) "`a" => Nat.mul
 

@@ -15,9 +15,9 @@ import Verso.Code
 
 import Manual.Meta.Basic
 
-
-open Lean Elab
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean.Doc.Syntax
+open Lean Elab
 
 namespace Manual
 
@@ -85,9 +85,10 @@ def lakeOptDef : RoleExpander
       | throwErrorAt arg "Expected code literal with the option or flag"
     let origName := name.getString
     let name := origName.takeWhile fun c => c == '-' || c.isAlphanum
-    let valMeta := origName.drop name.length |>.dropWhile fun c => !c.isAlphanum
+    let name := name.copy
+    let valMeta := origName.drop name.length |>.dropWhile fun (c : Char) => !c.isAlphanum
 
-    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOptDef $(quote name) $(quote kind) $(quote (if valMeta.isEmpty then none else some valMeta : Option String))) #[Inline.code $(quote name)])]
+    pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOptDef $(quote name) $(quote kind) $(quote (if valMeta.isEmpty then none else some valMeta.copy : Option String))) #[Inline.code $(quote name)])]
 
 open Verso.Search in
 def lakeOptDomainMapper : DomainMapper :=
@@ -142,6 +143,7 @@ def lakeOpt : RoleExpander
     let `(inline|code( $name:str )) := arg
       | throwErrorAt arg "Expected code literal with the option or flag"
     let optName := name.getString.takeWhile fun c => c == '-' || c.isAlphanum
+    let optName := optName.copy
 
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other (Manual.Inline.lakeOpt $(quote optName) $(quote name.getString)) #[Inline.code $(quote name.getString)])]
 
@@ -163,6 +165,6 @@ def lakeOpt.descr : InlineDescr where
       if let some obj := (← read).traverseState.getDomainObject? lakeOptDomain name then
         for id in obj.ids do
           if let some dest := (← read).traverseState.externalTags[id]? then
-            return {{<code class="lake-opt"><a href={{dest.link}} class="lake-command">{{name}}</a>{{original.drop name.length}}</code>}}
+            return {{<code class="lake-opt"><a href={{dest.link}} class="lake-command">{{name}}</a>{{original.drop name.length |>.copy}}</code>}}
 
       pure {{<code class="lake-opt">{{original}}</code>}}

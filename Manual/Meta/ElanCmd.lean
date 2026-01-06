@@ -5,9 +5,11 @@ Author: David Thrane Christiansen
 -/
 import Manual.Meta.LakeCmd -- TODO: generalize the common parts into a library that can be upstreamed
 
-open Lean Elab
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab
 open SubVerso.Highlighting Highlighted
+open scoped Lean.Doc.Syntax
 
 namespace Manual
 
@@ -89,7 +91,7 @@ def elan : DirectiveExpander
   | args, contents => do
     let {name, spec, aliases} ← ElanCommandOptions.parse.run args
     let spec ←
-      if spec.getString.trim.isEmpty then
+      if spec.getString.trimAscii.isEmpty then
         pure []
       else
         match Parser.runParserCategory (← getEnv) `lake_cmd_spec spec.getString (← getFileName) with
@@ -120,9 +122,9 @@ def elanCommandDomainMapper : DomainMapper := {
 }.setFont { family := .code }
 
 open Verso.Genre.Manual.Markdown in
-open Lean Elab Term Parser Tactic Doc in
+open Lean Elab Term Parser Tactic in
 @[block_extension Block.elanCommand]
-def elanCommand.descr : BlockDescr where
+def elanCommand.descr : BlockDescr := withHighlighting {
   init st := st
     |>.setDomainTitle elanCommandDomain "Elan commands"
     |>.setDomainDescription elanCommandDomain "Detailed descriptions of Elan commands"
@@ -139,7 +141,7 @@ def elanCommand.descr : BlockDescr where
         logError s!"Failed to deserialize aliases while traversing a Elan command: {e}"; pure []
     let path ← (·.path) <$> read
     let _ ← Verso.Genre.Manual.externalTag id path name
-    Index.addEntry id {term := Doc.Inline.concat #[.code name, .text " (Elan command)"]}
+    Index.addEntry id {term := Inline.concat #[.code name, .text " (Elan command)"]}
     modify fun st => st.saveDomainObject elanCommandDomain name id
     for a in aliases do
       modify fun st => st.saveDomainObject elanCommandDomain a id
@@ -187,13 +189,14 @@ def elanCommand.descr : BlockDescr where
         </div>
       }}
   toTeX := none
-  extraCss := [highlightingStyle, docstringStyle]
-  extraJs := [highlightingJs]
+  extraCss := [docstringStyle]
+
   localContentItem _ info _ := open Verso.Output.Html in do
     if let Json.arr #[ Json.str name, _, _] := info then
       let str := s!"elan {name}"
       pure #[(str, {{<code>{{str}}</code>}})]
     else throw s!"Expected a three-element array with a string first, got {info}"
+}
 
 @[role_expander elanMeta]
 def elanMeta : RoleExpander
@@ -208,17 +211,14 @@ def elanMeta : RoleExpander
     pure #[← `(show Verso.Doc.Inline Verso.Genre.Manual from .other {Manual.Inline.elanMeta with data := Json.arr #[$(quote mName), .null]} #[Inline.code $(quote mName)])]
 
 @[inline_extension elanMeta]
-def elanMeta.descr : InlineDescr where
+def elanMeta.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX :=
     some <| fun go _ _ content => do
       pure <| .seq <| ← content.mapM fun b => do
         pure <| .seq #[← go b, .raw "\n"]
-  extraCss := [highlightingStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ data _ => do
@@ -231,6 +231,7 @@ def elanMeta.descr : InlineDescr where
         | _ => ("", none)
       let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
       hl.inlineHtml ctx (g := Verso.Genre.Manual)
+}
 
 
 @[role_expander elan]
@@ -301,15 +302,11 @@ def elanArgs : RoleExpander
         pure #[← ``(Verso.Doc.Inline.other (Inline.elanArgs $(quote hl)) #[])]
 
 @[inline_extension elanArgs]
-def elanArgs.descr : InlineDescr where
+def elanArgs.descr : InlineDescr := withHighlighting {
   traverse _ _ _ := do
     pure none
   toTeX := none
 
-  extraCss := [highlightingStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ data _ => do
@@ -320,3 +317,4 @@ def elanArgs.descr : InlineDescr where
           let name := if let Json.str n := name then some n else none
           hl.inlineHtml name (g := Verso.Genre.Manual)
       else HtmlT.logError s!"Expected two-element JSON array, got {data}"; return .empty
+}

@@ -19,11 +19,13 @@ import Manual.Meta.PPrint
 
 namespace Manual
 
-open Lean Elab Term Tactic
+
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
+open Lean Elab Term Tactic
 open Verso.Genre.Manual.InlineLean.Scopes (runWithOpenDecls runWithVariables)
 open SubVerso.Highlighting
 open SubVerso.Examples.Messages
+open Lean.Doc.Syntax
 
 structure TacticOutputConfig where
   «show» : Bool := true
@@ -112,8 +114,8 @@ def checkTacticExample'
   let st1 := goalsToMessageData remainingGoals
   --logInfoAt proofPrefix st1
   let goodPre ← (← addMessageContext st1).toString
-  if pre.getString.trim != goodPre.trim then
-    Verso.Doc.Suggestion.saveSuggestion pre (goodPre.take 30 ++ "…") (goodPre ++ "\n")
+  if pre.getString.trimAscii != goodPre.trimAscii then
+    Verso.Doc.Suggestion.saveSuggestion pre ((goodPre.take 30).copy ++ "…") (goodPre ++ "\n")
     logErrorAt pre m!"Mismatch. Expected {indentD goodPre}\n but got {indentD pre.getString}"
 
   let ci : ContextInfo := {
@@ -140,8 +142,8 @@ def checkTacticExample'
   --logInfoAt tactic st2
   let goodPost ← (← addMessageContext st2).toString
 
-  if post.getString.trim != goodPost.trim then
-    Verso.Doc.Suggestion.saveSuggestion post (goodPost.take 30 ++ "…") (goodPost ++ "\n")
+  if post.getString.trimAscii != goodPost.trimAscii then
+    Verso.Doc.Suggestion.saveSuggestion post ((goodPost.take 30).copy ++ "…") (goodPost ++ "\n")
     logErrorAt post m!"Mismatch. Expected {indentD goodPost}\n but got {indentD post.getString}"
 
   let ci : ContextInfo := { ci with
@@ -164,7 +166,7 @@ def checkTacticExample'
               throwErrorAt wantedOut s!"Expected severity {sevStr s}, but got {sevStr sev}"
           return sev
       for (_, m) in processed do
-        Verso.Doc.Suggestion.saveSuggestion wantedOut (m.take 30 ++ "…") m
+        Verso.Doc.Suggestion.saveSuggestion wantedOut ((m.take 30).copy ++ "…") m
       throwErrorAt wantedOut "Didn't match - expected one of: {indentD (toMessageData <| processed.map (·.2))}\nbut got:{indentD (toMessageData wantedOut.getString)}"
     else pure .information
 
@@ -178,7 +180,7 @@ where
     | .warning => "warning"
 
   mostlyEqual (ws : WhitespaceMode) (s1 s2 : String) : Bool :=
-    ws.apply s1.trim == ws.apply s2.trim
+    ws.apply s1.trimAscii.copy == ws.apply s2.trimAscii.copy
 
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : TermElabM InfoTree := do
     let tree := InfoTree.node (Info.ofCommandInfo { elaborator, stx }) trees
@@ -297,7 +299,7 @@ def savePost [Monad m] [MonadEnv m] [MonadLog m] [MonadRef m] [MonadError m] [Ad
 def endExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
   match tacticExampleCtx.getState (← getEnv) with
   | none => throwErrorAt body "Can't end examples - never started"
-  | some {goal, setup, pre, preName, tactic, tacticName, post, postName, output, outputSeverityName} =>
+  | some { goal, setup, pre, preName, tactic := tac, tacticName, post, postName, output, outputSeverityName } =>
     modifyEnv fun env =>
       tacticExampleCtx.setState env none
     let some goal := goal
@@ -306,12 +308,12 @@ def endExample (body : TSyntax `term) : DocElabM (TSyntax `term) := do
       | throwErrorAt body "No setup specified"
     let some pre := pre
       | throwErrorAt body "No pre-state specified"
-    let some tactic := tactic
+    let some tac := tac
       | throwErrorAt body "No tactic specified"
     let some post := post
       | throwErrorAt body "No post-state specified"
 
-    let (hlPre, hlPost, hlTactic, outputSeverity) ← checkTacticExample' goal setup tactic pre post output
+    let (hlPre, hlPost, hlTactic, outputSeverity) ← checkTacticExample' goal setup tac pre post output
 
     `(let $preName : Array (Highlighted.Goal Highlighted) := $(quote hlPre)
       let $postName : Array (Highlighted.Goal Highlighted) := $(quote hlPost)
@@ -529,10 +531,10 @@ def proofState : CodeBlockExpander
       --logInfoAt proofPrefix st1
       let stStr ← (← addMessageContext st).toString
       if let some s := desired then
-        if normalizeMetavars stStr.trim != normalizeMetavars s.getDocString.trim then
+        if normalizeMetavars stStr.trimAscii.copy != normalizeMetavars s.getDocString.trimAscii.copy then
           logErrorAt s m!"Expected: {indentD stStr}\n\nGot: {indentD s.getDocString}"
-          Verso.Doc.Suggestion.saveSuggestion s (stStr.take 30 ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
-      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Doc.Block.code $(quote stStr)])]
+          Verso.Doc.Suggestion.saveSuggestion s ((stStr.take 30).copy ++ "…") ("/--\n" ++ stStr ++ "\n-/\n")
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(quote hlState))} #[Block.code $(quote stStr)])]
 
 where
   mkInfoTree (elaborator : Name) (stx : Syntax) (trees : PersistentArray InfoTree) : DocElabM InfoTree := do
@@ -586,7 +588,7 @@ def proofStateStyle := r#"
 
 
 @[block_extension Manual.proofState]
-def proofState.descr : BlockDescr where
+def proofState.descr : BlockDescr := withHighlighting {
   traverse id data content := do
     match FromJson.fromJson? data (α := Option String × Array (Highlighted.Goal Highlighted)) with
     | .error e => logError s!"Error deserializing proof state info: {e}"; pure none
@@ -597,10 +599,8 @@ def proofState.descr : BlockDescr where
       pure <| some <| Block.other {Block.proofState with id := some id, data := ToJson.toJson (α := (Option String × _)) (none, v)} content
 
   toTeX := none
-  extraCss := [highlightingStyle, proofStateStyle]
-  extraJs := [highlightingJs]
-  extraJsFiles := [{filename := "popper.js", contents := popper}, {filename := "tippy.js", contents := tippy}]
-  extraCssFiles := [("tippy-border.css", tippy.border.css)]
+  extraCss := [proofStateStyle]
+
   toHtml :=
     open Verso.Output.Html in
     some <| fun _ _ id data _ => do
@@ -618,10 +618,11 @@ def proofState.descr : BlockDescr where
               {{← if goals.isEmpty then
                   pure {{"All goals completed! 🐙"}}
                 else
-                  .seq <$> goals.mapIndexedM (fun ⟨i, _⟩ x => withCollapsedSubgoals .never <| x.toHtml (g := Verso.Genre.Manual) (·.toHtml) i)}}
+                  .seq <$> goals.mapIdxM fun i x => withCollapsedSubgoals (g := Verso.Genre.Manual) .never <| x.toHtml (·.toHtml) i}}
             </div>
           </div>
         }}
+}
 
 structure StateConfig where
   tag : Option String := none
@@ -638,7 +639,7 @@ def pre : CodeBlockExpander
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
     if opts.show then
-      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Doc.Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPre))} #[Block.code $(quote str.getString)])]
     else
       pure #[]
 
@@ -651,6 +652,6 @@ def post : CodeBlockExpander
     -- The quote step here is to prevent the editor from showing document AST internals when the
     -- cursor is on the code block
     if opts.show then
-      pure #[← `(Doc.Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Doc.Block.code $(quote str.getString)])]
+      pure #[← `(Block.other {Block.proofState with data := ToJson.toJson (α := Option String × Array (Highlighted.Goal Highlighted)) ($(quote opts.tag), $(hlPost))} #[Block.code $(quote str.getString)])]
     else
       pure #[]

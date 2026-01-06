@@ -367,10 +367,10 @@ However, {name}`plusTimes2` fails, because there is no {lean}`AddMul' Nat` insta
 #eval plusTimes2 2 5 7
 ```
 ```leanOutput plusTimes2a
-failed to synthesize
-  AddMul' ?m.22
+failed to synthesize instance of type class
+  AddMul' ?m.8
 
-Hint: Additional diagnostic information may be available using the `set_option diagnostics true` command.
+Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
 Declaring a very general instance takes care of the problem for {lean}`Nat` and every other type:
 ```lean (name := plusTimes2b)

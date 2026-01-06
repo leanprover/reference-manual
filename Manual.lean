@@ -18,7 +18,9 @@ import Manual.ErrorExplanations
 import Manual.Tactics
 import Manual.Simp
 import Manual.Grind
+import Manual.VCGen
 import Manual.BasicTypes
+import Manual.Iterators
 import Manual.BasicProps
 import Manual.NotationsMacros
 import Manual.IO
@@ -28,7 +30,7 @@ import Manual.BuildTools
 import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
-import Manual.ModuleSystem
+import Manual.SupportedPlatforms
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -98,6 +100,8 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.Grind}
 
+{include 0 Manual.VCGen}
+
 {include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
@@ -115,6 +119,7 @@ draft := true
 
 {docstring Dynamic.get?}
 
+{include 0 Manual.Iterators}
 
 # Standard Library
 %%%
@@ -137,9 +142,9 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.ErrorExplanations}
 
-{include 0 Manual.ModuleSystem}
-
 {include 0 Manual.Releases}
+
+{include 0 Manual.SupportedPlatforms}
 
 # Index
 %%%
@@ -161,6 +166,9 @@ file := some "the-index"
 
 :::progress
 ```namespace
+ByteArray
+ByteArray.Iterator
+ByteSlice
 List
 Int
 IntCast
@@ -203,6 +211,7 @@ LawfulFunctor
 LawfulApplicative
 LawfulMonad
 LawfulBEq
+ReflBEq
 EquivBEq
 LawfulHashable
 Id
@@ -216,7 +225,13 @@ EStateM.Result
 EStateM.Backtrackable
 String
 Substring
+String.Slice
+String.Slice.Pos
+String.Pattern
+String.Pos.Raw
 String.Pos
+String.ValidPos
+String.Iterator
 Char
 Nat
 Lean.Elab.Tactic
@@ -323,6 +338,9 @@ Eq
 HEq
 Max
 Min
+Std.Do
+Std.Do.PredTrans
+Std.Do.SVal
 Std.HashMap
 Std.ExtHashMap
 Std.DHashMap
@@ -332,6 +350,32 @@ Std.ExtHashSet
 Std.TreeMap
 Std.DTreeMap
 Std.TreeSet
+Std.Iterators
+Std.Iterators.Iter
+Std.Iterators.Iter.Equiv
+Std.Iterators.Iter.TerminationMeasures
+Std.Iterators.IterM
+Std.Iterators.IterM.Equiv
+Std.Iterators.IterM.TerminationMeasures
+Std.Iterators.Iterator
+Std.Iterators.IteratorAccess
+Std.Iterators.IteratorLoop
+Std.Iterators.IteratorLoopPartial
+Std.Iterators.Finite
+Std.Iterators.Productive
+Std.Iterators.PostconditionT
+Std.Iterators.HetT
+Std.PRange
+Std.PRange.UpwardEnumerable
+Std.Rco
+Std.Rcc
+Std.Rci
+Std.Roo
+Std.Roc
+Std.Roi
+Std.Rio
+Std.Ric
+Std.Rii
 ```
 
 ```exceptions
@@ -403,6 +447,43 @@ Substring.takeWhileAux
 ```
 
 ```exceptions
+String.Pos.Raw.ctorIdx
+String.Pos.Raw.extract.go₁
+String.Pos.Raw.extract.go₂
+String.Pos.Raw.mk.noConfusion
+String.Pos.Raw.utf8GetAux
+String.Pos.Raw.utf8GetAux?
+String.Pos.Raw.utf8PrevAux
+String.Pos.Raw.utf8SetAux
+```
+
+```exceptions
+String.Slice.ctorIdx
+String.Slice.hash
+String.Slice.instDecidableEqPos.decEq
+String.Slice.instInhabitedByteIterator.default
+String.Slice.instInhabitedPosIterator.default
+String.Slice.instInhabitedRevPosIterator.default
+String.Slice.instInhabitedRevSplitIterator.default
+String.Slice.instInhabitedSplitInclusiveIterator.default
+String.Slice.instInhabitedSplitIterator.default
+String.Slice.lines.lineMap
+String.Slice.mk.noConfusion
+```
+
+```exceptions
+String.Slice.Pos.ctorIdx
+String.Slice.Pos.mk.noConfusion
+String.Slice.Pos.prevAux
+String.Slice.Pos.prevAux.go
+```
+
+```exceptions
+String.ValidPos.ctorIdx
+String.ValidPos.mk.noConfusion
+```
+
+```exceptions
 Char.ofNatAux
 Char.quoteCore
 Char.quoteCore.smallCharToHex
@@ -431,6 +512,34 @@ BitVec.reduceShift
 BitVec.reduceShiftShift
 BitVec.reduceShiftWithBitVecLit
 BitVec.reduceUnary
+```
+
+```exceptions
+ByteArray.ctorIdx
+ByteArray.findFinIdx?.loop
+ByteArray.findIdx?.loop
+ByteArray.foldlM.loop
+ByteArray.foldlMUnsafe
+ByteArray.foldlMUnsafe.fold
+ByteArray.forIn.loop
+ByteArray.forInUnsafe
+ByteArray.forInUnsafe.loop
+ByteArray.hash
+ByteArray.instBEq.beq
+ByteArray.instInhabitedIterator.default
+ByteArray.mk.noConfusion
+ByteArray.mkIterator
+ByteArray.toList.loop
+ByteArray.utf8Decode?.go
+ByteArray.utf8DecodeChar?.assemble₁
+ByteArray.utf8DecodeChar?.assemble₂
+ByteArray.utf8DecodeChar?.assemble₂Unchecked
+ByteArray.utf8DecodeChar?.assemble₃
+ByteArray.utf8DecodeChar?.assemble₃Unchecked
+ByteArray.utf8DecodeChar?.assemble₄
+ByteArray.utf8DecodeChar?.assemble₄Unchecked
+ByteArray.utf8DecodeChar?.isInvalidContinuationByte
+ByteArray.utf8DecodeChar?.parseFirstByte
 ```
 
 ```exceptions
@@ -756,6 +865,17 @@ Prod.repr
 Prod.rprod
 Prod.lex
 Prod.Lex
+```
+
+```exceptions
+Std.Iterators.Iter.instForIn'
+Std.Iterators.Iter.step_filter
+Std.Iterators.Iter.val_step_filter
+```
+
+```exceptions
+Std.Iterators.IterM.instForIn'
+Std.Iterators.IterM.toListRev.go
 ```
 
 ```exceptions

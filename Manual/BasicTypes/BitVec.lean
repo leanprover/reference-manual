@@ -170,6 +170,10 @@ The resulting proofs rely only on the axiom {name}`Lean.ofReduceBool`; the exter
 
 :::example "Popcount"
 
+```imports -show
+import Std.Tactic.BVDecide
+```
+
 The function {lean}`popcount` returns the number of set bits in a bitvector.
 It can be implemented as a 32-iteration loop that tests each bit, incrementing a counter if the bit is set:
 

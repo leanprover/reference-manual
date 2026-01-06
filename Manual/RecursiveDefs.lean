@@ -91,9 +91,9 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     Aside from using recursion, this provisional definition is fully elaborated.
     The compiler generates code from these provisional definitions.
 
- 2. A termination analysis attempts to use the four techniques to justify the function to Lean's kernel.
+ 2. A termination analysis attempts to use the five techniques to justify the function to Lean's kernel.
     If the definition is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` or {keywordOf Lean.Parser.Command.declaration}`partial`, then that technique is used.
-    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` clause is present, then the indicated technique is the only one attempted.
+    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` clause is present, then the indicated technique is the only one attempted.
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.
@@ -247,13 +247,9 @@ def answerOtherUser (n : Nat) : String :=
     toString (nextPrime n)
   ]
 ```
-The proof contains two {tactic}`simp` steps to demonstrate that the two functions are not syntactically identical.
-In particular, the desugaring of string interpolation resulted in an extra {lean}`toString ""` at the end of {lean}`answerUser`'s result.
+In fact, the proof is by {tactic}`rfl`:
 ```lean
 theorem answer_eq_other : answerUser = answerOtherUser := by
-  funext n
-  simp only [answerUser, answerOtherUser]
-  simp only [toString, String.append_empty]
   rfl
 ```
 :::
@@ -471,10 +467,9 @@ attribute [irreducible] Sequence
 #check let xs : Sequence Nat := .ofList [1,2,3]; xs.reverse
 ```
 ```leanOutput irredSeq
-Invalid field `reverse`: The environment does not contain `Sequence.reverse`
+Invalid field `reverse`: The environment does not contain `Sequence.reverse`, so it is not possible to project the field `reverse` from an expression
   xs
-has type
-  Sequence Nat
+of type `Sequence Nat`
 ```
 :::
 

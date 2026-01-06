@@ -20,6 +20,8 @@ set_option pp.rawOnError true
 
 set_option linter.unusedVariables false
 
+set_option maxHeartbeats 250000
+
 #doc (Manual) "Tactic Reference" =>
 %%%
 tag := "tactic-ref"
@@ -196,7 +198,7 @@ tag := "tactic-ref-goals"
 :::tactic "suffices"
 :::
 
-:::tactic "change"
+:::tactic Lean.Parser.Tactic.change
 :::
 
 :::tactic Lean.Parser.Tactic.changeWith (show := "change ... with ...")
@@ -428,7 +430,7 @@ The {attr}`induction_eliminator` attribute registers an eliminator for use by th
 induction_eliminator
 ```
 
-The {attr}`induction_eliminator` attribute registers an eliminator for use by the {tactic}`cases` tactic.
+The {attr}`cases_eliminator` attribute registers an eliminator for use by the {tactic}`cases` tactic.
 ```grammar
 cases_eliminator
 ```
@@ -491,7 +493,8 @@ h2 : j < k
 invoking {tacticStep}`apply?` suggests:
 
 ```tacticOutput
-Try this: exact Nat.lt_trans h1 h2
+Try this:
+  [apply] exact Nat.lt_trans h1 h2
 ```
 
 ```post -show
@@ -548,7 +551,7 @@ tag := "tactic-ref-sat"
 :::tactic "bv_check"
 :::
 
-:::tactic Lean.Parser.Tactic.bvTrace
+:::tactic Lean.Parser.Tactic.bvTraceMacro
 :::
 
 # Controlling Reduction
@@ -682,12 +685,7 @@ tag := "tactic-ref-spred"
 :::tactic "mstop"
 :::
 
-:::TODO
-Next release:
-```
 :::tactic "mleave"
-:::
-```
 :::
 
 ### Proving a Stateful Goal
@@ -695,7 +693,7 @@ Next release:
 :::tactic "mspec"
 :::
 
-:::tactic "mintro"
+:::tactic Lean.Parser.Tactic.mintroMacro
 :::
 
 :::tactic "mexact"
@@ -748,12 +746,7 @@ Next release:
 :::tactic "mcases"
 :::
 
-:::TODO
-Next release:
-```
 :::tactic "mrename_i"
-:::
-```
 :::
 
 :::tactic "mpure"

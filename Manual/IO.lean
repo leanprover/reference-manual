@@ -100,18 +100,17 @@ There are two monads that are typically used for programs that interact with the
 The distinction makes it possible to tell whether exceptions are possible by looking at an action's type signature.
 {lean}`BaseIO` actions are automatically promoted to {lean}`IO` as necessary.
 
-{docstring IO}
-
 {docstring BaseIO}
 
-Both {lean}`IO` and {lean}`BaseIO` are instances of {lean}`EIO`, in which the type of errors is a parameter.
-{lean}`IO` is defined as {lean}`EIO IO.Error`, while {lean}`BaseIO` is defined as {lean}`EIO Empty`.
+{docstring IO}
+
+{lean}`IO` is an instance of {lean}`EIO`, in which the type of errors is a parameter.
+In particular, {lean}`IO` is defined as {lean}`EIO IO.Error`.
 In some circumstances, such as bindings to non-Lean libraries, it can be convenient to use {lean}`EIO` with a custom error type, which ensures that errors are handled at the boundaries between these and other {lean}`IO` actions.
 
 ```lean -show
 -- Check claim in preceding paragraph
 example : IO = EIO IO.Error := rfl
-example : BaseIO = EIO Empty := rfl
 ```
 
 {docstring EIO}
@@ -162,7 +161,7 @@ A correct password allows control to proceed past the check, terminating the loo
 def accessControl : IO Unit := do
   IO.println "What is the password?"
   let password ← (← IO.getStdin).getLine
-  if password.trim != "secret" then
+  if password.trimAscii.copy != "secret" then
     throw (.userError "Incorrect password")
   else return
 
@@ -324,7 +323,7 @@ def main : IO Unit := do
     args := #[r#"^\([0-9]\)\([0-9]\)\2\1$"#, "numbers.txt"]
   }
 
-  let count := palindromes.trim.splitOn "\n" |>.length
+  let count := palindromes.trimAscii.split "\n" |>.count
 
   IO.println s!"There are {count} four-digit palindromes."
 ```
@@ -423,7 +422,7 @@ def main : IO Unit := do
 
   -- Consume its output, after waiting 100ms for grep to process the data.
   IO.sleep 100
-  let count := (← grep.stdout.readToEnd).trim.splitOn "\n" |>.length
+  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.count
 
   IO.println s!"There are {count} four-digit palindromes."
 ```
@@ -486,7 +485,7 @@ def main : IO UInt32 := do
     return 1
 
   -- Consume its output
-  let count := (← grep.stdout.readToEnd).trim.splitOn "\n" |>.length
+  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.count
 
   IO.println s!"There are {count} four-digit palindromes."
   return 0
