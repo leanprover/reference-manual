@@ -203,7 +203,7 @@ file := "v4.9.0"
   * [#4348](https://github.com/leanprover/lean4/pull/4348) upstreams Mathlib lemmas.
   * [#4354](https://github.com/leanprover/lean4/pull/4354) upstreams basic `String` lemmas.
 * `HashMap`
-  * [#4248](https://github.com/leanprover/lean4/pull/4248) fixes implicitness of typeclass arguments in `HashMap.ofList`.
+  * [#4248](https://github.com/leanprover/lean4/pull/4248) fixes implicitness of type class arguments in `HashMap.ofList`.
 * `IO`
   * [#4036](https://github.com/leanprover/lean4/pull/4036) adds `IO.Process.getCurrentDir` and `IO.Process.setCurrentDir` for adjusting the current process's working directory.
 * **Cleanup:** [#4077](https://github.com/leanprover/lean4/pull/4077), [#4189](https://github.com/leanprover/lean4/pull/4189),
