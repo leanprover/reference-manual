@@ -1295,9 +1295,9 @@ When false, the warning is not logged.
 
 * [#8594](https://github.com/leanprover/lean4/pull/8594) removes incorrect optimizations for strictOr/strictAnd from the
   old compiler, along with deleting an incorrect test. In order to do
-  these optimizations correctly, non-termination analysis is required.
+  these optimizations correctly, nontermination analysis is required.
   Arguably, the correct way to express these optimizations is by exposing
-  the implementation of strictOr/strictAnd to a non-termination-aware phase
+  the implementation of strictOr/strictAnd to a nontermination-aware phase
   of the compiler, and then having them follow from more general
   transformations.
 
