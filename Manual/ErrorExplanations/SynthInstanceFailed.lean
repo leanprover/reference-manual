@@ -22,7 +22,7 @@ variable {t : Type} (x y : Int)
 
 {ref "type-classes"}[Type classes] are the mechanism that Lean and many other
 programming languages use to handle overloaded operations. The code that handles a particular
-overloaded operation is an {tech}_instance_ of a typeclass; deciding which instance to use for a given
+overloaded operation is an {tech}_instance_ of a type class; deciding which instance to use for a given
 overloaded operation is called _synthesizing_ an instance.
 
 As an example, when Lean encounters an expression {lean}`x + y` where {lean}`x` and {lean}`y` both
