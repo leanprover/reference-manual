@@ -309,7 +309,7 @@ This discipline brings a number of benefits:
 : Much-improved average build times
 
   Changes to files that affect only non-exported information (e.g. proofs, comments, and docstrings) will not trigger rebuilds outside of these files.
-  Even when dependent files have to be rebuilt, those files that cannot be affected (as determiend by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
+  Even when dependent files have to be rebuilt, those files that cannot be affected (as determined by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
 
 : Control over API evolution
 
@@ -691,7 +691,7 @@ open Lean
 
 variable [Monad m] [MonadRef m] [MonadQuotation m]
 
-meta def revArrays : Syntax → m Term
+meta partial def revArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$((xs : Array Term).reverse),*])
   | other => do
     match other with
@@ -728,7 +728,7 @@ variable [Monad m] [MonadRef m] [MonadQuotation m]
 
 meta def toPalindrome (xs : Array α) : Array α := xs ++ xs.reverse
 
-meta def palArrays : Syntax → m Term
+meta partial def palArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$(toPalindrome (xs : Array Term)),*])
   | other => do
     match other with
@@ -764,7 +764,7 @@ open Lean
 
 variable [Monad m] [MonadRef m] [MonadQuotation m]
 
-meta def palArrays : Syntax → m Term
+meta partial def palArrays : Syntax → m Term
   | `(#[$xs,*]) => `(#[$(toPalindrome (xs : Array Term)),*])
   | other => do
     match other with
@@ -790,9 +790,6 @@ If the declaration is already declared {keywordOf Parser.Command.declModifiers}`
 Unlike definitions, most metaprograms are public by default.
 Thus, most {keywordOf Lean.Parser.Module.import}`meta import` are also {keywordOf Parser.Module.import}`public` in practice.
 The exception is when a definition is imported solely for use in local metaprograms, such as those declared with {keywordOf Parser.Command.syntax}`local syntax`, {keywordOf Parser.Command.macro}`local macro`, or {keywordOf Parser.Command.elab}`local elab`.
-
-For convenience, {keywordOf Lean.Parser.Command.declModifiers}`meta` also implies {keywordOf Lean.Parser.Command.declModifiers}`partial`.
-This can be overridden by giving an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` metric (such as one suggested by {keywordOf Lean.Parser.Command.declaration}`termination_by?`), which may be necessary when the type of the definition is not known to be {name}`Nonempty`.
 
 As a guideline, it is usually preferable to keep the amount of {keywordOf Lean.Parser.Command.declModifiers}`meta` annotations as small as possible.
 This avoids locking otherwise-reusable declarations into the {tech}[meta phase] and it helps the build system avoid more rebuilds.
@@ -834,10 +831,6 @@ The following list contains common errors one might encounter when using the mod
   This may also appear as a kernel error when a tactic directly emits proof terms that reference specific declarations without going through the elaborator, such as for proof by reflection.
   In this case, there is no readily available trace for debugging; consider using {attrs}`@[expose]`‍` `{keywordOf Parser.Command.section}`section`s generously on the closure of relevant modules.
 
-: “failed to compile 'partial' definition” on a {keywordOf Lean.Parser.Command.declModifiers}`meta` definition
-
-  This can happen when a definition with a type that is not known to be {name}`Nonempty` is marked {keywordOf Lean.Parser.Command.declModifiers}`meta` or moved into a {keywordOf Parser.Command.section}`meta section`, which both imply {keywordOf Lean.Parser.Command.declModifiers}`partial` without a termination metric.
-  Use {keywordOf Parser.Command.declaration}`termination_by?` to make the previously implicitly inferred termination metric explicit, or provide a {name}`Nonempty` instance.
 :::
 
 ## Recipe for Porting Existing Files

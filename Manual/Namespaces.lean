@@ -382,7 +382,7 @@ consider restructuring your `variable` declarations so that the variables are no
 Note: This linter can be disabled with `set_option linter.unusedSectionVars false`
 ```
 
-This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit`to remove {lean}`pFifteen`:
+This can be avoided by using {keywordOf Lean.Parser.Command.omit}`omit` to remove {lean}`pFifteen`:
 ```lean -keep
 include pZero pStep pFifteen
 

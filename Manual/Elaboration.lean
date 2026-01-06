@@ -212,7 +212,7 @@ Instead, it provides low-level {tech}[recursors] that can be used to implement b
 Thus, the elaborator must translate definitions that use pattern matching and recursion into definitions that use recursors.{margin}[More details on the elaboration of recursive definitions is available in the {ref "recursive-definitions"}[dedicated section] on the topic.]
 This translation is additionally a proof that the function terminates for all potential arguments, because all functions that can be translated to recursors also terminate.
 
-The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ that implement the particular case distinction that occurs in the code.
+The translation to recursors happens in two phases: during term elaboration, uses of pattern matching are replaced by appeals to {deftech}_auxiliary matching functions_ (also referred to as {deftech}_matcher functions_) that implement the particular case distinction that occurs in the code.
 These auxiliary functions are themselves defined using recursors, though they do not make use of the recursors' ability to actually implement recursive behavior.{margin}[They use variants of the `casesOn` construction that is described in the {ref "recursor-elaboration-helpers"}[section on recursors and elaboration], specialized to reduce code size.]
 The term elaborator thus returns core-language terms in which pattern matching has been replaced with the use of special functions that implement case distinction, but these terms may still contain recursive occurrences of the function being defined.
 A definition that still includes recursion, but has otherwise been elaborated to the core language, is called a {deftech}[pre-definition].
@@ -233,8 +233,8 @@ info: @[reducible] def third_of_five._sparseCasesOn_1.{u_1, u} : {α : Type u} �
     (t : List α) →
       ((head : α) → (tail : List α) → motive (head :: tail)) → (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t :=
 fun {α} {motive} t cons =>
-  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun x => x ⋯)
-    (fun head tail tail_ih x => cons head tail) t
+  List.rec (motive := fun t => (Nat.hasNotBit 2 t.ctorIdx → motive t) → motive t) (fun «else» => «else» ⋯)
+    (fun head tail tail_ih «else» => cons head tail) t
 -/
 #check_msgs in
 #print third_of_five._sparseCasesOn_1

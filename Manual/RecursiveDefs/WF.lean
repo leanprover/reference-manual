@@ -334,7 +334,7 @@ h✝ : ¬n ≤ 1
 
 ```
 
-Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Range` membership hypothesis:
+Termination proof obligations in body of a {keywordOf Lean.Parser.Term.doFor}`for`​`…`​{keywordOf Lean.Parser.Term.doFor}`in` loop are also enriched, in this case with a {name}`Std.Legacy.Range` membership hypothesis:
 
 ```lean +error -keep (name := nestGoal3)
 def f (xs : Array Nat) : Nat := Id.run do

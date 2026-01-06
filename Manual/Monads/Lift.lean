@@ -172,7 +172,7 @@ Even if these operations are lifted to some more powerful monad, their arguments
 
 There are two type classes that support this kind of “reverse lifting”: {name}`MonadFunctor` and {name}`MonadControl`.
 An instance of {lean}`MonadFunctor m n` explains how to interpret a fully-polymorphic function in {lean}`m` into {lean}`n`.
-This polymorphic function must work for _all_ types {lean}`α`: it has type {lean}`{α : Type u} → m α → m α`.
+This polymorphic function must work for _all_ types {lean}`α`: it has type {lean}`{α : Type u} → m α → n α`.
 Such a function can be thought of as one that may have effects, but can't do so based on specific values that are provided.
 An instance of {lean}`MonadControl m n` explains how to interpret an arbitrary action from {lean}`m` into {lean}`n`, while at the same time providing a “reverse interpreter” that allows the {lean}`m` action to run {lean}`n` actions.
 

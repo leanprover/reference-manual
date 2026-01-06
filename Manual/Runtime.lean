@@ -8,6 +8,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Meta.LexedText
 import Manual.Papers
+import Std.Internal.Async.Process
 
 open Manual
 open Verso.Genre
@@ -458,39 +459,45 @@ For all other modules imported by `lean`, the initializer is run without `builti
 In other words, {attr}`init` functions are run if and only if their module is imported, regardless of whether they have native code available, while {attr}`builtin_init` functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.
 
-The initializer for module `A.B` is called {c}`initialize_A_B` and will automatically initialize any imported modules.
-Module initializers are idempotent when run with the same `builtin` flag, but not thread-safe.
+The initializer for module `A.B` in a package `foo` is called {c}`initialize_foo_A_B`.
+For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is called {c}`initialize_Init_Prelude`.
+Module initializers will automatically initialize any imported modules.
+They are also idempotent (when run with the same `builtin` flag), but not thread-safe.
+
+*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.Internal.IO.Process.getProcessTitle` and {name}`Std.Internal.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling `lean_initialize()` or `lean_initialize_runtime_module()`.
+This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.
+
 Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
 ```c
 void lean_initialize_runtime_module();
 void lean_initialize();
-lean_object * initialize_A_B(uint8_t builtin, lean_object *);
-lean_object * initialize_C(uint8_t builtin, lean_object *);
+char ** lean_setup_args(int argc, char ** argv);
+
+lean_object * initialize_A_B(uint8_t builtin);
+lean_object * initialize_C(uint8_t builtin);
 ...
 
+argv = lean_setup_args(argc, argv); // if using process-related functionality
 lean_initialize_runtime_module();
-// Necessary (and replaces `lean_initialize_runtime_module`) for code that
-// (indirectly) accesses the `Lean` package:
+// necessary (and replaces `lean_initialize_runtime_module`) for code that (indirectly) accesses the `Lean` package:
 //lean_initialize();
 
 lean_object * res;
 // use same default as for Lean executables
 uint8_t builtin = 1;
-res = initialize_A_B(builtin, lean_io_mk_world());
+res = initialize_foo_A_B(builtin);
 if (lean_io_result_is_ok(res)) {
     lean_dec_ref(res);
 } else {
     lean_io_result_show_error(res);
     lean_dec(res);
-    // do not access Lean declarations if initialization failed
-    return ...;
+    return ...;  // do not access Lean declarations if initialization failed
 }
-res = initialize_C(builtin, lean_io_mk_world());
+res = initialize_bar_C(builtin);
 if (lean_io_result_is_ok(res)) {
 ...
 
-// Necessary for code that (indirectly) uses `Task`
-//lean_init_task_manager();
+//lean_init_task_manager();  // necessary for code that (indirectly) uses `Task`
 lean_io_mark_end_initialization();
 ```
 

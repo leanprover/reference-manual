@@ -95,7 +95,7 @@ def split' : List α → List α × List α
 ```lean
 def split'' : List α → List α × List α
   | .nil => (.nil, .nil)
-  | .cons x .nil=> (.singleton x, .nil)
+  | .cons x .nil => (.singleton x, .nil)
   | .cons x (.cons x' xs) =>
     let (ys, zs) := split xs
     (.cons x ys, .cons x' zs)
@@ -124,7 +124,7 @@ Due to Lean's reference-counting-based memory management, operations such as {na
 
 Because of the important role played by lists in specifications, most list functions are written as straightforwardly as possible using structural recursion.
 This makes it easier to write proofs by induction, but it also means that these operations consume stack space proportional to the length of the list.
-There are tail-recursive versions of many list functions that are equivalent to the non-tail-recursive versions, but more are difficult to use when reasoning.
+There are tail-recursive versions of many list functions that are equivalent to the non-tail-recursive versions, but are more difficult to use when reasoning.
 In compiled code, the tail-recursive versions are automatically used instead of the non-tail-recursive versions.
 
 # API Reference
