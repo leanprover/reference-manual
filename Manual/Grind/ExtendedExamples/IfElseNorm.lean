@@ -47,22 +47,19 @@ The solution here builds on an earlier formalization by Chris Hughes, but with s
 Here is Rustan Leino's original description of the problem, as [posted by Leonardo de Moura](https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/Rustan's.20challenge) on the Lean Zulip:
 
 > The data structure is an expression with Boolean literals, variables, and if-then-else expressions.
->
-> The goal is to normalize such expressions into a form where:
-> a) No nested ifs: the condition part of an if-expression is not itself an if-expression
-> b) No constant tests: the condition part of an if-expression is not a constant
-> c) No redundant ifs: the then and else branches of an if are not the same
-> d) Each variable is evaluated at most once: the free variables of the condition are disjoint from those in the then branch, and also disjoint from those in the else branch.
->
-> One should show that a normalization function produces an expression satisfying these four conditions, and one should also prove that the normalization function preserves the meaning of the given expression.
 
-# The formal statement
+  The goal is to normalize such expressions into a form where:
+  a) No nested ifs: the condition part of an if-expression is not itself an if-expression
+  b) No constant tests: the condition part of an if-expression is not a constant
+  c) No redundant ifs: the then and else branches of an if are not the same
+  d) Each variable is evaluated at most once: the free variables of the condition are disjoint from those in the then branch, and also disjoint from those in the else branch.
 
-:::comment
-FIXME: @david-christiansen: can I give `IfExpr` a hover/linkify even though it is a forward reference? Similarly `eval` below?
-:::
+  One should show that a normalization function produces an expression satisfying these four conditions, and one should also prove that the normalization function preserves the meaning of the given expression.
 
-To formalize the statement in Lean, we use an inductive type `IfExpr`:
+# The Formal Statement
+
+:::leanFirst
+To formalize the statement in Lean, we use an inductive type {name}`IfExpr`:
 
 ```lean
 /--
@@ -76,8 +73,10 @@ inductive IfExpr
   | ite : IfExpr → IfExpr → IfExpr → IfExpr
 deriving DecidableEq
 ```
+:::
 
-and define some inductive predicates and an `eval` function, so we can state the four desired properties:
+:::leanFirst
+and define some inductive predicates and an {name IfExpr.eval}`eval` function, so we can state the four desired properties:
 
 ```lean
 namespace IfExpr
@@ -165,7 +164,7 @@ def eval (f : Nat → Bool) : IfExpr → Bool
 
 end IfExpr
 ```
-
+:::
 
 Using these we can state the problem. The challenge is to inhabit the following type (and to do so nicely!):
 
