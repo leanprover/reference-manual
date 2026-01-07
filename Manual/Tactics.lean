@@ -521,7 +521,7 @@ tag := "tactic-language-success-failure"
 %%%
 
 When run in a proof state, every tactic either succeeds or fails.
-Tactic failure is akin to exceptions: failures typically "bubble up" until handled.
+Tactic failure is akin to exceptions: failures typically “bubble up” until handled.
 Unlike exceptions, there is no operator to distinguish between reasons for failure; {tactic}`first` simply takes the first branch that succeeds.
 
 ::: tactic "fail"
