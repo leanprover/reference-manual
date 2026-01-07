@@ -144,7 +144,7 @@ Otherwise, the provided command is invoked in Lake's environment.
 
 ::::paragraph
 The following variables are set, overriding previous values:
-:::table (align := left)
+:::table (align := left) -header
 *
   * {envVar +def}`LAKE`
   * The detected Lake executable
@@ -165,7 +165,7 @@ The following variables are set, overriding previous values:
 
 ::::paragraph
 The following variables are augmented with additional information:
-:::table (align := left)
+:::table (align := left) -header
 *
   * {envVar}`LEAN_PATH`
   * Lake's and the {tech}[workspace]'s Lean {tech}[library directories] are added.
@@ -187,7 +187,7 @@ The following variables are augmented with additional information:
 
 ::::paragraph
 Lake itself can be configured with the following environment variables:
-:::table (align := left)
+:::table (align := left) -header
 *
   * {envVar +def}`ELAN_HOME`
   * The location of the {ref "elan"}[Elan] installation, which is used for {ref "automatic-toolchain-updates"}[automatic toolchain updates].
