@@ -66,16 +66,16 @@ Dependencies and artifacts do not need to be present for a directory to be consi
 Lake is typically used in a workspace.{margin}[{lake}`init` and {lake}`new`, which create workspaces, are exceptions.]
 Workspaces typically have the following layout:
 
- * `lean-toolchain`—The {tech}[toolchain file].
- * `lakefile.toml` or `lakefile.lean`—The {tech}[package configuration] file for the root package.
- * `lake-manifest.json`—The root package's {tech}[manifest].
- * `.lake/`—Intermediate state managed by Lake, such as built {tech}[artifacts] and dependency source code.
-   * `.lake/lakefile.olean`—The root package's configuration, cached.
-   * `.lake/packages/`—The workspace's {deftech}_package directory_, which contains copies of all non-local transitive dependencies of the root package, with their built artifacts in their own `.lake` directories.
-   * `.lake/build/`—The {deftech}_build directory_, which contains built artifacts for the root package:
-     * `.lake/build/bin`—The package's {deftech}_binary directory_, which contains built executables.
-     * `.lake/build/lib`—The package's _library directory_, which contains built libraries and {tech}[`.olean` files].
-     * `.lake/build/ir`—The package's intermediate result directory, which contains generated intermediate artifacts, primarily C code.
+ * `lean-toolchain`: The {tech}[toolchain file].
+ * `lakefile.toml` or `lakefile.lean`: The {tech}[package configuration] file for the root package.
+ * `lake-manifest.json`: The root package's {tech}[manifest].
+ * `.lake/`: Intermediate state managed by Lake, such as built {tech}[artifacts] and dependency source code.
+   * `.lake/lakefile.olean`: The root package's configuration, cached.
+   * `.lake/packages/`: The workspace's {deftech}_package directory_, which contains copies of all non-local transitive dependencies of the root package, with their built artifacts in their own `.lake` directories.
+   * `.lake/build/`: The {deftech}_build directory_, which contains built artifacts for the root package:
+     * `.lake/build/bin`: The package's {deftech}_binary directory_, which contains built executables.
+     * `.lake/build/lib`: The package's _library directory_, which contains built libraries and {tech}[`.olean` files].
+     * `.lake/build/ir`: The package's intermediate result directory, which contains generated intermediate artifacts, primarily C code.
 :::
 
 :::figure "Workspace Layout" (tag :="workspace-layout")

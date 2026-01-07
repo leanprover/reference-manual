@@ -498,19 +498,19 @@ structure S where
 ```
 would get re-sorted into the following memory order:
 
-* {name}`S.ptr_1`—{c}`lean_ctor_get(val, 0)`
-* {name}`S.usize_1`—{c}`lean_ctor_get_usize(val, 1)`
-* {name}`S.usize_2`—{c}`lean_ctor_get_usize(val, 2)`
-* {name}`S.sc64_1`—{c}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
-* {name}`S.sc64_2`—{c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
-* {name}`S.sc64_3`—{c}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
-* {name}`S.sc64_4`—{c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
-* {name}`S.sc32_1`—{c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
-* {name}`S.sc32_2`—{c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
-* {name}`S.sc16_1`—{c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
-* {name}`S.sc16_2`—{c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
-* {name}`S.sc8_1`—{c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
-* {name}`S.sc8_2`—{c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
+* {name}`S.ptr_1`: {c}`lean_ctor_get(val, 0)`
+* {name}`S.usize_1`: {c}`lean_ctor_get_usize(val, 1)`
+* {name}`S.usize_2`: {c}`lean_ctor_get_usize(val, 2)`
+* {name}`S.sc64_1`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
+* {name}`S.sc64_2`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
+* {name}`S.sc64_3`: {c}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
+* {name}`S.sc64_4`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
+* {name}`S.sc32_1`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
+* {name}`S.sc32_2`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
+* {name}`S.sc16_1`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
+* {name}`S.sc16_2`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
+* {name}`S.sc8_1`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
+* {name}`S.sc8_2`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
 
 ::::
 
