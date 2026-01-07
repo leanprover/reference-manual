@@ -608,12 +608,12 @@ The {lake}`cache put` command uploads the build products in the mappings file to
 
 ### Configuration
 
-
-  LAKE_CACHE_KEY                authentication key for requests
-  LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact uploads
-  LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping upload
-
-
+:::paragraph
+Remote artifact caches are configured using the following environment variables:
+ * {envVar}`LAKE_CACHE_KEY`
+ * {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT`
+ * {envVar}`LAKE_CACHE_REVISION_ENDPOINT`
+:::
 
 {include 0 Manual.BuildTools.Lake.CLI}
 
