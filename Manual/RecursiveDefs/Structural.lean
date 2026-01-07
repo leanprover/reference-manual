@@ -592,7 +592,7 @@ def half : Nat → Nat
   | .zero | .succ .zero => .zero
   | .succ (.succ n) => half n |>.succ
 ```
-The returned trace message is:{TODO}[Trace not showing up in serialized info - figure out why so this test can work better, or better yet, add proper trace rendering to Verso]
+The returned trace message is:{TODO}[Trace not showing up in serialized info—figure out why so this test can work better, or better yet, add proper trace rendering to Verso]
 ```
 [Elab.definition.body] half : Nat → Nat :=
     fun (x : Nat) =>
