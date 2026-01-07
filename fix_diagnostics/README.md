@@ -20,11 +20,11 @@ The tool has **no external dependencies** - it uses only Python's
 standard library with a manual JSON-RPC implementation for LSP
 communication.
 
-**Widget Support**: The tool queries Lean's interactive diagnostics via
-the RPC extension to discover code actions embedded in widget
-components (like "Try this:" suggestions). These appear as regular code
-actions that can be filtered and applied just like standard LSP code
-actions.
+**Widget Support**: The tool queries Lean's interactive diagnostics
+via the RPC extension to discover code actions embedded in widget
+components (like "Try this:" suggestions). These appear as regular
+code actions that can be filtered and applied just like standard LSP
+code actions.
 
 ## Requirements
 
@@ -44,20 +44,25 @@ actions.
 3. Preview with dry-run (default)
 4. Apply with `--no-dry-run`
 
-**Note:** Running with no arguments will preview ALL available code
-actions for ALL diagnostics (dry-run mode). This can be overwhelming!
+By default, the CLI applies **unique actions per diagnostic**
+(deduplicating by edit effect). Use `--minimal` to apply only the
+**smallest edit** for each diagnostic.
 
 ```bash
 # Step 1: RECOMMENDED - List all diagnostics and their available code actions
+# (shows edit_size for each action)
 python3 -m fix_diagnostics --list
 
 # Filter diagnostics by pattern and list actions
 python3 -m fix_diagnostics --diagnostic-pattern "unused variable" --list
 
-# Preview fixes (dry-run, default behavior)
+# Preview fixes (dry-run, default behavior) - applies unique actions per diagnostic
 python3 -m fix_diagnostics --diagnostic-pattern "unused" --action-pattern "Remove"
 
-# Actually apply the fixes
+# Apply only the smallest edit for each diagnostic
+python3 -m fix_diagnostics --diagnostic-pattern "unused" --minimal --no-dry-run
+
+# Apply all unique fixes (default deduplication)
 python3 -m fix_diagnostics --diagnostic-pattern "unused" --action-pattern "Remove" --no-dry-run
 
 # Filter by severity (1=error, 2=warning, 3=info, 4=hint)
@@ -71,6 +76,7 @@ python3 -m fix_diagnostics
 ### REPL Usage
 
 The tool is designed for interactive exploration in the Python REPL:
+
 ```python
 from fix_diagnostics import *
 
@@ -128,7 +134,8 @@ actions = get_code_actions()
 
 ### Working with Single Items
 
-Both `get_code_actions()` and `apply_code_actions()` accept single items or lists:
+Both `get_code_actions()` and `apply_code_actions()` accept single
+items or lists:
 
 ```python
 from fix_diagnostics import get_diagnostics, get_code_actions, apply_code_actions
@@ -149,7 +156,9 @@ print(f"Got {len(results)} result(s)")  # Always a list, even for single input
 
 ### Persistent LSP Client for REPL
 
-For interactive work, use `lsp_start()` to create a persistent LSP client that's automatically reused across function calls. This avoids repeatedly starting and stopping the Lean server:
+For interactive work, use `lsp_start()` to create a persistent LSP
+client that's automatically reused across function calls. This avoids
+repeatedly starting and stopping the Lean server:
 
 ```python
 from fix_diagnostics import lsp_start, get_diagnostics, get_code_actions, lsp_stop
@@ -173,9 +182,13 @@ again = get_code_actions(diagnostics[0])  # Still works!
 lsp_stop()
 ```
 
-**Without `lsp_start()`**, each function call creates and destroys a temporary LSP client, which is slower but works fine for scripts.
+**Without `lsp_start()`**, each function call creates and destroys a
+temporary LSP client, which is slower but works fine for scripts.
 
-**With `lsp_start()`**, a single LSP client persists across all calls, dramatically speeding up interactive exploration. The client tracks which files are open and avoids reopening them, so repeated calls on the same diagnostics work correctly.
+**With `lsp_start()`**, a single LSP client persists across all calls,
+dramatically speeding up interactive exploration. The client tracks
+which files are open and avoids reopening them, so repeated calls on
+the same diagnostics work correctly.
 
 ## API Reference
 
@@ -201,6 +214,7 @@ automatically on exit.
 **Returns:** `LspClient` - The started global LSP client
 
 **Example:**
+
 ```python
 from fix_diagnostics import lsp_start, get_diagnostics
 lsp_start()
@@ -211,11 +225,12 @@ diagnostics = get_diagnostics()  # Reuses the global client
 
 Stop the global LSP client.
 
-Shuts down the persistent LSP client created by `lsp_start()`. Normally
-not needed as cleanup happens automatically on exit, but useful for
-restarting the server.
+Shuts down the persistent LSP client created by `lsp_start()`.
+Normally not needed as cleanup happens automatically on exit, but
+useful for restarting the server.
 
 **Example:**
+
 ```python
 from fix_diagnostics import lsp_start, lsp_stop
 lsp_start()
@@ -235,7 +250,8 @@ Otherwise, creates a temporary client.
 
 - `files`: `List[Path]` or `None` (calls `get_files()` if not
   provided)
-- `lsp_client`: Optional `LspClient` to reuse (overrides global client)
+- `lsp_client`: Optional `LspClient` to reuse (overrides global
+  client)
 
 **Returns:** `List[Diagnostic]`
 
@@ -250,7 +266,8 @@ Otherwise, creates a temporary client.
 
 - `diagnostics`: Single `Diagnostic`, `List[Diagnostic]`, or `None`
   (calls `get_diagnostics()` if not provided)
-- `lsp_client`: Optional `LspClient` to reuse (overrides global client)
+- `lsp_client`: Optional `LspClient` to reuse (overrides global
+  client)
 
 **Returns:** `List[CodeAction]` - Each action has a back-pointer to
 its diagnostic
@@ -344,6 +361,7 @@ lsp.shutdown()
 --list                        List diagnostics and actions without applying
 --dry-run                     Show diffs without applying (default)
 --no-dry-run                  Actually apply changes
+--minimal                     Apply only the smallest edit per diagnostic
 --build-cmd CMD               Build command (default: "lake build")
 ```
 
@@ -351,8 +369,9 @@ lsp.shutdown()
 
 - Finds ALL diagnostics in the project
 - Gets ALL available code actions
-- Previews all actions in dry-run mode (shows diffs but doesn't modify
-  files)
+- Deduplicates actions per diagnostic by edit effect
+- Previews all unique actions in dry-run mode (shows diffs but doesn't
+  modify files)
 - Recommended: Use `--list` first to see what actions are available
 
 ## Examples
@@ -400,7 +419,10 @@ print(f"Applied {sum(r.success for r in results)}/{len(results)} actions")
 
 ### Filter by edit size
 
-Each `CodeAction` has an `edit_size` field indicating the magnitude of the change, and each `Diagnostic` has a `range_size` field indicating the size of the diagnostic's range. You can use these to filter for small changes:
+Each `CodeAction` has an `edit_size` field indicating the magnitude of
+the change, and each `Diagnostic` has a `range_size` field indicating
+the size of the diagnostic's range. You can use these to filter for
+small changes:
 
 ```python
 from fix_diagnostics import get_code_actions
@@ -477,16 +499,17 @@ for i in range(max_iterations):
    for available code actions using `textDocument/codeAction` with the
    diagnostic in the context. Additionally, queries Lean's interactive
    diagnostics via `$/lean/rpc/call` with method
-   `Lean.Widget.getInteractiveDiagnostics` to extract code actions from
-   widget components (like "Try this:" suggestions). The LSP client
-   enables widget support by setting `initializationOptions.hasWidgets`
-   to `true`.
+   `Lean.Widget.getInteractiveDiagnostics` to extract code actions
+   from widget components (like "Try this:" suggestions). The LSP
+   client enables widget support by setting
+   `initializationOptions.hasWidgets` to `true`.
 
-   **RPC Session Management**: RPC sessions are cached per file URI and
-   reused across multiple calls. During long-running operations (like
-   waiting for large files to process), the tool automatically sends
-   keepalive messages every 2.5 seconds to prevent RPC sessions from
-   timing out. This ensures reliable operation on large codebases.
+    **RPC Session Management**: RPC sessions are cached per file URI
+    and reused across multiple calls. During long-running operations
+    (like waiting for large files to process), the tool automatically
+    sends keepalive messages every 2.5 seconds to prevent RPC sessions
+    from timing out. This ensures reliable operation on large
+    codebases.
 
 4. **Edit Application**: Applies LSP `WorkspaceEdit` changes to files,
    computing unified diffs to show what changed. In dry-run mode,
@@ -500,7 +523,6 @@ for i in range(max_iterations):
   `documentChanges` format.
 - Processing time depends on how long the Lean server takes to analyze
   each file (typically 1-3 seconds per file).
-
 
 ## License
 

@@ -1,6 +1,7 @@
 """CLI interface for fix_diagnostics."""
 
 import argparse
+import json
 import re
 import sys
 
@@ -14,17 +15,23 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # List all diagnostics and their available actions
+  # List all diagnostics and their available actions (shows edit sizes)
   python -m fix_diagnostics --list
 
   # List diagnostics matching a pattern
   python -m fix_diagnostics --diagnostic-pattern "unused" --list
 
-  # Preview fixes (dry run)
+  # Preview fixes (dry run) - applies unique actions per diagnostic
   python -m fix_diagnostics --diagnostic-pattern "unused" --action-pattern "Remove"
 
-  # Apply fixes
+  # Apply only the smallest edit for each diagnostic
+  python -m fix_diagnostics --diagnostic-pattern "unused" --minimal --no-dry-run
+
+  # Apply all unique fixes
   python -m fix_diagnostics --diagnostic-pattern "unused" --action-pattern "Remove" --no-dry-run
+
+Note: By default, unique actions per diagnostic are applied. Use --minimal to apply
+      only the smallest edit (by character count) for each diagnostic.
         """,
     )
 
@@ -55,6 +62,11 @@ Examples:
         action="store_false",
         dest="dry_run",
         help="Actually apply changes",
+    )
+    parser.add_argument(
+        "--minimal",
+        action="store_true",
+        help="For each diagnostic, apply only the smallest edit (by edit_size)",
     )
     parser.add_argument(
         "--build-cmd", default="lake build", help="Build command (default: lake build)"
@@ -95,7 +107,38 @@ Examples:
             print("No matching code actions found")
             return 0
 
-        print(f"Found {len(actions)} code actions", file=sys.stderr)
+        # Deduplicate: keep only unique actions per diagnostic
+        # Group by (file, line, col) to identify the same diagnostic
+        actions_by_diagnostic = {}
+        for action in actions:
+            diag = action.diagnostic
+            key = (diag.file, diag.line, diag.col)
+
+            if key not in actions_by_diagnostic:
+                actions_by_diagnostic[key] = []
+            actions_by_diagnostic[key].append(action)
+
+        # For each diagnostic, keep either all unique actions or just the minimal one
+        unique_actions = []
+        for key, diag_actions in actions_by_diagnostic.items():
+            if args.minimal:
+                # Keep only the action with smallest edit_size
+                minimal_action = min(diag_actions, key=lambda a: a.edit_size)
+                unique_actions.append(minimal_action)
+            else:
+                # Keep all unique actions (deduplicate by edit effect)
+                # Create a canonical representation of the edit for comparison
+                seen_edits = set()
+                for action in diag_actions:
+                    # Serialize the edit to JSON for comparison
+                    # Sort keys to ensure consistent ordering
+                    edit_repr = json.dumps(action.edit, sort_keys=True)
+                    if edit_repr not in seen_edits:
+                        unique_actions.append(action)
+                        seen_edits.add(edit_repr)
+
+        actions = unique_actions
+        print(f"Found {len(actions)} unique code actions", file=sys.stderr)
 
         if args.list:
             # Just list them
@@ -109,7 +152,7 @@ Examples:
                 severity_names = {1: "error", 2: "warning", 3: "info", 4: "hint"}
                 severity_str = severity_names.get(diag.severity, str(diag.severity))
                 print(f"  {diag.line}:{diag.col} [{severity_str}] {diag.message}")
-                print(f"    → {action.title}")
+                print(f"    → {action.title} (edit_size: {action.edit_size})")
         else:
             # Apply actions
             print(
@@ -137,6 +180,7 @@ Examples:
                     print(
                         f"Location: {result.action.diagnostic.file}:{result.action.diagnostic.line}"
                     )
+                    print(f"Edit size: {result.action.edit_size} characters")
                     print(f"{'=' * 60}")
                     print(result.diff)
                 elif not result.success:
