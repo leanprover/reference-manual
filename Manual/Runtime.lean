@@ -410,11 +410,11 @@ In the {tech (key := "application binary interface")}[ABI], Lean types are trans
 * {lean}`Char` is represented by {c}`uint32_t`.
 * {lean}`Float` is represented by {c}`double`.
 * {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
-  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
+  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the “pointer” is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
 * A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {c}`lean_object *` with the runtime value {c}`lean_box(0)`
 * The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
-  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
+  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the “Inductive types” section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
   ```lean -show
   variable (u : Unit)

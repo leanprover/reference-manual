@@ -26,8 +26,8 @@ occurs in the header of a declaration, this error is often accompanied by
 Note that if a declaration is annotated with an explicit resulting type—even one that contains
 holes—Lean will not use information from the definition body to infer parameter types. It may
 therefore be necessary to explicitly specify the types of parameters whose types would otherwise be
-inferable without the resulting-type annotation; see the "uninferred binder due to resulting type
-annotation" example below for a demonstration. In {keyword}`theorem` declarations, the body is never
+inferable without the resulting-type annotation; see the “uninferred binder due to resulting type
+annotation” example below for a demonstration. In {keyword}`theorem` declarations, the body is never
 used to infer the types of binders, so any binders whose types cannot be inferred from the rest of
 the theorem type must include a type annotation.
 

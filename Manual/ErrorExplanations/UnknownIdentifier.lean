@@ -20,14 +20,14 @@ This error means that Lean was unable to find a variable or constant matching th
 precisely, this means that the name could not be *resolved*, as described in the manual section on
 {ref "identifiers-and-resolution"}[Identifiers]: no interpretation of the input as
 the name of a local or section variable (if applicable), a previously declared global constant, or a
-projection of either of the preceding was valid. ("If applicable" refers to the fact that in some
+projection of either of the preceding was valid. (“If applicable” refers to the fact that in some
 cases—e.g., the {keywordOf Lean.Parser.Command.print}`#print` command's argument—names are resolved
 only to global constants.)
 
 Note that this error message will display only one possible resolution of the identifier, but the
 presence of this error indicates failures for *all* possible names to which it might refer. For
 example, if the identifier `x` is entered with the namespaces `A` and `B` are open, the error
-message "Unknown identifier \`x\`" indicates that none of `x`, `A.x`, or `B.x` could be found (or
+message “Unknown identifier \`x\`” indicates that none of `x`, `A.x`, or `B.x` could be found (or
 that `A.x` or `B.x`, if either exists, is a protected declaration).
 
 Common causes of this error include forgetting to import the module in which a constant is defined,

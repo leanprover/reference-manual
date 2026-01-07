@@ -837,7 +837,7 @@ from git $t $[@ $t]? $[/ $t]?
 
 {tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 :::TODO
-Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
+Fix `default_target` above—it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)

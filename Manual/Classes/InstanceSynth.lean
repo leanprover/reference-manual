@@ -90,7 +90,7 @@ This trace can be used to understand how instance synthesis succeeds and why it 
 
 :::paragraph
 Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
-Clicking a "▶" symbol expands that branch of the trace, and clicking the "▼" collapses an expanded branch.
+Clicking a “▶” symbol expands that branch of the trace, and clicking the “▼” collapses an expanded branch.
 
 ```lean (name := trace)
 set_option pp.explicit true in

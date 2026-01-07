@@ -476,7 +476,7 @@ Due to coercion chaining, there is also a coercion from {name}`Even` to {name}`I
 Non-dependent coercions are used whenever all values of the inferred type can be coerced to the target type.
 
 :::example "Defining Dependent Coercions"
-The string "four" can be coerced into the natural number {lean  (type := "Nat")}`4` with this instance declaration:
+The string {lean}`"four"` can be coerced into the natural number {lean  (type := "Nat")}`4` with this instance declaration:
 ```lean (name := fourCoe)
 instance : CoeDep String "four" Nat where
   coe := 4

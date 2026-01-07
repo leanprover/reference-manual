@@ -28,8 +28,8 @@ to this rule.)
 Note that this error will arise in any expression that eliminates from a proof into a
 non-propositional universe, even if that expression occurs within another expression of
 propositional type (e.g., in a {keywordOf Lean.Parser.Term.let}`let` binding in a proof). The
-"Defining an intermediate data value within a proof" example below demonstrates such an occurrence.
-Errors of this kind can usually be resolved by moving the recursor application "outward," so that
+“Defining an intermediate data value within a proof” example below demonstrates such an occurrence.
+Errors of this kind can usually be resolved by moving the recursor application “outward,” so that
 its motive is the proposition being proved rather than the type of data-valued term.
 
 # Examples

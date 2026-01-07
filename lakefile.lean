@@ -23,6 +23,9 @@ package "verso-manual" where
 
   leanOptions := #[
     ⟨`weak.verso.code.warnLineLength, .ofNat 72⟩,
+    ⟨`weak.linter.typography.dashes, true⟩,
+    ⟨`weak.linter.typography.quotes, true⟩,
+    ⟨`weak.linter.typ, .ofNat 72⟩,
     ⟨`experimental.module, true⟩
   ]
 

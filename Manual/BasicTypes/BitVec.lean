@@ -184,7 +184,7 @@ def popcount_spec (x : BitVec 32) : BitVec 32 :=
 ```
 
 An alternative implementation of {lean}`popcount` is described in _Hacker's Delight, Second Edition_, by Henry S. Warren,
-Jr. in Figure 5-2 on p. 82.
+Jr. in Figure 5–2 on p. 82.
 It uses low-level bitwise operations to compute the same value with far fewer operations:
 ```lean
 def popcount (x : BitVec 32) : BitVec 32 :=
