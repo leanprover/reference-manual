@@ -117,7 +117,7 @@ This check is meaningful if one believes the formal theorem statement correspond
 At the time of writing, the `#print axioms` command does not work in a `module`.
 To work around this, create a non-module file, `import` your module, and use `#print axioms` there.
 
-# Re-Checking Proofs with lean4checker
+# Re-Checking Proofs with `lean4checker`
 %%%
 tag := "validating-lean4checker"
 %%%
