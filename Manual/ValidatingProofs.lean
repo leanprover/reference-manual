@@ -82,7 +82,7 @@ Running `lake build +Module`, where `Module` refers to the file containing the t
 tag := "validating-printing-axioms"
 %%%
 
-The blue double check marks appear  even when there are explicit uses of `sorry` or incomplete proofs in the dependencies of the theorem.
+The blue double check marks appear  even when there are explicit uses of {lean}`sorry` or incomplete proofs in the dependencies of the theorem.
 Because both `sorry` and incomplete proofs are elaborated to axioms, their presence can be detected by listing the axioms that a proof relies on.
 
 ## Instructions
