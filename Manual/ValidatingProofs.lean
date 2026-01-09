@@ -89,7 +89,7 @@ This command prints the set of axioms used by the theorem and the theorems it de
 The three axioms above are standard axioms of Lean's logic, and benign.
 
 * If `sorryAx` is reported, then this theorem or one of its dependencies uses `sorry` or is otherwise incomplete.
-*  If `Lean.trustCompiler` is reported, then native evaluation is used; see below for a discussion.
+*  If {name}`Lean.trustCompiler` is reported, then native evaluation is used; see below for a discussion.
 * Any other axiom means that a custom axiom was declared and used, and the theorem is only valid relative to the soundness of these axioms.
 
 ## Trust
