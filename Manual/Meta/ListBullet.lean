@@ -33,10 +33,7 @@ def listBullet : DirectiveExpander
 @[block_extension listBullet]
 def listBullet.descr : BlockDescr where
   traverse _id _data _contents := pure none
-  toTeX :=
-    some <| fun _ goB _ _ content => do
-      pure <| .seq <| ← content.mapM fun b => do
-        pure <| .seq #[← goB b, .raw "\n"]
+  toTeX := none
   toHtml :=
     open Verso.Doc.Html in
     open Verso.Output.Html in
