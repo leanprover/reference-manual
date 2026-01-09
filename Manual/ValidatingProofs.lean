@@ -81,7 +81,7 @@ Because both `sorry` and incomplete proofs are elaborated to axioms, their prese
 
 ## Instructions
 
-Write `#print axioms thmName` after the theorem declaration, with `thmName` replaced by the name of the theorem and check that it reports only the built-in axioms `propext, Classical.choice, and Quot.sound.`.
+Write `#print axioms thmName` after the theorem declaration, with `thmName` replaced by the name of the theorem and check that it reports only the built-in axioms {name}`propext`, {name}`Classical.choice`, and {name}`Quot.sound.`.
 
 ## Significance
 
