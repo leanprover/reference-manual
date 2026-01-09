@@ -28,11 +28,11 @@ import Manual.Meta.LakeCmd
 import Manual.Meta.LakeOpt
 import Manual.Meta.LakeToml
 import Manual.Meta.Lean
+import Manual.Meta.ListBullet
 import Manual.Meta.ModuleExample
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
 import Manual.Meta.Tactics
-import Manual.Meta.ShieldList
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
 import Manual.Meta.Imports

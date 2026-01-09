@@ -58,7 +58,7 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
-:::shieldList
+:::listBullet "🛡️"
 This check protects against
 
 * Incomplete proof (missing goals, tactic error) *of the current theorem*
@@ -98,7 +98,7 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
-:::shieldList
+:::listBullet "🛡️"
 (In addition to the list above)
 
 * Incomplete proofs
@@ -130,7 +130,7 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
-:::shieldList
+:::listBullet "🛡️"
 (In addition to the list above)
 
 * Bugs in Lean’s core handling of the kernel’s state (e.g. due to parallel proof processing, or import handling)
@@ -170,7 +170,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Protection
 
-:::shieldList
+:::listBullet "🛡️"
 (In addition to the list above)
 
 * Actively malicious proofs
