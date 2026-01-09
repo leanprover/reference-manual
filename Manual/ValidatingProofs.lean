@@ -217,7 +217,7 @@ When following the gold standard of checking proofs using comparator, some assum
 Lean supports proofs by native evaluation.
 This is used by the `decide +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
 
-Specific uses wrapped in honest tactics (e.g. `bv_decide`) are generally trustworthy.
+Specific uses wrapped in honest tactics (e.g. {tactic}`bv_decide`) are generally trustworthy.
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.
 
 General use (`decide +native` or direct use of {name}`ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
