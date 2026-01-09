@@ -36,7 +36,7 @@ Furthermore it is important to distinguish the question “does the theorem have
 
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
 
-# The blue double check marks
+# The Blue Double Check Marks
 %%%
 tag := "validating-blue-check-marks"
 %%%
@@ -77,7 +77,7 @@ Editors other than VS Code may have a different indication.
 
 Running `lake build +Module`, where `Module` refers to the file containing the theorem, and observing success without error messages or warnings provides the same guarantees.
 
-# Printing axioms
+# Printing Axioms
 %%%
 tag := "validating-printing-axioms"
 %%%
@@ -117,7 +117,7 @@ This check is meaningful if one believes the formal theorem statement correspond
 At the time of writing, the `#print axioms` command does not work in a `module`.
 To work around this, create a non-module file, `import` your module, and use `#print axioms` there.
 
-# Re-checking proofs with lean4checker
+# Re-Checking Proofs with lean4checker
 %%%
 tag := "validating-lean4checker"
 %%%
@@ -158,7 +158,7 @@ The [lean-action](https://github.com/leanprover/lean-action) Github Action provi
 
 Without the `--fresh` flag the tool can be instructed to only check some modules, and assume others to be correct (e.g. trusted libraries), for faster processing.
 
-# Gold standard: `comparator`
+# Gold Standard: `comparator`
 %%%
 tag := "validating-comparator"
 %%%
@@ -193,7 +193,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 At the time of writing, `comparator` uses only the official Lean kernel.
 In the future it will be possible to use multiple, independent kernel implementations easily; then this will also protect against implementation bugs in the official Lean kernel.
 
-# Remaining issues
+# Remaining Issues
 
 When following the gold standard of checking proofs using comparator, some assumptions remain:
 
