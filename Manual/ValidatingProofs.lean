@@ -58,12 +58,14 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
+:::shieldList
 This check protects against
 
 * Incomplete proof (missing goals, tactic error) *of the current theorem*
 * Explicit use of `sorry` *in the current theorem*
 * Honest bugs in meta-programs and tactics
 * Proofs still being checked in the background
+:::
 
 ## Comments
 
@@ -96,11 +98,13 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
+:::shieldList
 (In addition to the list above)
 
 * Incomplete proofs
 * Explicit use of `sorry`
 * Custom axioms
+:::
 
 ## Comments
 
@@ -126,10 +130,12 @@ This check is meaningful if one believes the formal theorem statement correspond
 
 ## Protection
 
+:::shieldList
 (In addition to the list above)
 
 * Bugs in Lean’s core handling of the kernel’s state (e.g. due to parallel proof processing, or import handling)
 * Meta-programs or tactics intentionally bypassing that state (e.g. using low-level functionality to add unchecked theorems)
+:::
 
 ## Comments
 
@@ -164,9 +170,11 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 
 ## Protection
 
+:::shieldList
 (In addition to the list above)
 
 * Actively malicious proofs
+:::
 
 ## Comments
 

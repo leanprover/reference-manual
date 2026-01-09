@@ -32,6 +32,7 @@ import Manual.Meta.ModuleExample
 import Manual.Meta.ParserAlias
 import Manual.Meta.Syntax
 import Manual.Meta.Tactics
+import Manual.Meta.ShieldList
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
 import Manual.Meta.Imports
