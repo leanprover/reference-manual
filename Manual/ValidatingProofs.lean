@@ -215,7 +215,7 @@ When following the gold standard of checking proofs using comparator, some assum
 # On `Lean.trustCompiler`
 
 Lean supports proofs by native evaluation.
-This is used by the `decide +native` tactic or internally by specific tactics (`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
+This is used by the `decide +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
 
 Specific uses wrapped in honest tactics (e.g. `bv_decide`) are generally trustworthy.
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.
