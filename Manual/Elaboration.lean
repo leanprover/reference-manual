@@ -8,6 +8,8 @@ import VersoManual
 import Manual.Meta
 import Manual.Papers
 
+import Manual.ValidatingProofs
+
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
@@ -464,3 +466,5 @@ builtin_initialize $x:ident : $t:term ←
   $cmd*
 ```
 :::
+
+{include 0 Manual.ValidatingProofs}
