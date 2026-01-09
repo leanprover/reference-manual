@@ -122,7 +122,7 @@ To work around this, create a non-module file, `import` your module, and use `#p
 tag := "validating-lean4checker"
 %%%
 
-There is a small class of bugs and some dishonest ways of presenting proofs that can be caught by re-checking the proofs that are stored on file when building the project.
+There is a small class of bugs and some dishonest ways of presenting proofs that can be caught by re-checking the proofs that are stored in {tech}[`.olean` files] when building the project.
 
 ## Instructions
 
