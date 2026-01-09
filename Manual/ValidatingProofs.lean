@@ -72,7 +72,7 @@ This check protects against
 In the Visual Studio Code extension settings, the symbol can be changed.
 Editors other than VS Code may have a different indication.
 
-Running `lake build Module`, where `Module` refers to the file containing the theorem, and observing success without error messages or warnings provides the same guarantees.
+Running `lake build +Module`, where `Module` refers to the file containing the theorem, and observing success without error messages or warnings provides the same guarantees.
 
 # Printing axioms
 
