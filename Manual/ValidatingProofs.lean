@@ -37,6 +37,9 @@ Furthermore it is important to distinguish the question “does the theorem have
 Below, an escalating sequence of checks are presented, with instructions on how to perform them, an explanation of what they entail and the mistakes or attacks they guard against.
 
 # The blue double check marks
+%%%
+tag := "validating-blue-check-marks"
+%%%
 
 In regular everyday use of Lean, it suffices to check the blue double check marks next to the theorem statement for assurance that the theorem is proved.
 
@@ -75,6 +78,9 @@ Editors other than VS Code may have a different indication.
 Running `lake build +Module`, where `Module` refers to the file containing the theorem, and observing success without error messages or warnings provides the same guarantees.
 
 # Printing axioms
+%%%
+tag := "validating-printing-axioms"
+%%%
 
 The blue double check marks appear  even when there are explicit uses of `sorry` or incomplete proofs in the dependencies of the theorem.
 Because both `sorry` and incomplete proofs are elaborated to axioms, their presence can be detected by listing the axioms that a proof relies on.
@@ -112,6 +118,9 @@ At the time of writing, the `#print axioms` command does not work in a `module`.
 To work around this, create a non-module file, `import` your module, and use `#print axioms` there.
 
 # Re-checking proofs with lean4checker
+%%%
+tag := "validating-lean4checker"
+%%%
 
 There is a small class of bugs and some dishonest ways of presenting proofs that can be caught by re-checking the proofs that are stored on file when building the project.
 
@@ -150,6 +159,9 @@ The [lean-action](https://github.com/leanprover/lean-action) Github Action provi
 Without the `--fresh` flag the tool can be instructed to only check some modules, and assume others to be correct (e.g. trusted libraries), for faster processing.
 
 # Gold standard: `comparator`
+%%%
+tag := "validating-comparator"
+%%%
 
 To protect against a seriously malicious proof compromising how Lean interprets a theorem statement or the user's system, additional steps are necessary.
 This should only be necessary for high risk scenarios (proof marketplaces, high-reward proof competitions).
