@@ -131,7 +131,7 @@ Build your project using {lake}`build`, run `lean4checker --fresh` on the module
 ## Significance
 
 The `lean4checker` tool reads the declarations and proofs as they are stored by `lean` during building (the {tech}[`.olean` files]), and replays them through the kernel.
-It trusts that the olean files are structurally correct.
+It trusts that the `.olean` files are structurally correct.
 
 ## Trust
 
