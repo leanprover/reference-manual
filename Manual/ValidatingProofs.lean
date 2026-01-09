@@ -126,7 +126,7 @@ There is a small class of bugs and some dishonest ways of presenting proofs that
 
 ## Instructions
 
-Build your project using `lake build`, run `lean4checker --fresh` on the module that contains the theorem of interest and check that no error is reported.
+Build your project using {lake}`build`, run `lean4checker --fresh` on the module that contains the theorem of interest, and check that no error is reported.
 
 ## Significance
 
