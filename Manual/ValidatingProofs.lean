@@ -227,4 +227,3 @@ All these uses show up as an axiom {name}`Lean.trustCompiler` in {keywordOf Lean
 External checkers (`lean4checker`, `comparator`) cannot check such proofs, as they do not have access to the Lean compiler.
 When that level of checking is needed, proofs have to avoid using native evaluation.
 
-All these uses show up as an axiom `Lean.trustCompiler` in `#print axioms`. External checkers (`lean4checker`, `comparator`) cannot check such proofs, as they do not have access to the Lean compiler. When that level of checking is needed, proofs have to avoid using native evaluation.
