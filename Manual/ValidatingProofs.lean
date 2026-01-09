@@ -200,7 +200,7 @@ This check is meaningful if the theorem statement in the trusted challenge file 
 ## Comments
 
 At the time of writing, `comparator` uses only the official Lean kernel.
-In the future it will be possible to use multiple, independent kernel implementations easily; then this will also protect against implementation bugs in the official Lean kernel.
+In the future it will be easy to use multiple, independent kernel implementations; then this will also protect against implementation bugs in the official Lean kernel.
 
 # Remaining Issues
 
