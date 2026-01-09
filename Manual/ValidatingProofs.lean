@@ -212,7 +212,7 @@ When following the gold standard of checking proofs using comparator, some assum
 * The safety of the sandbox used by `comparator`
 * No human error or misleading presentation of the theorem statement in the trusted challenge file.
 
-# On Lean.trustCompiler
+# On `Lean.trustCompiler`
 
 Lean supports proofs by native evaluation.
 This is used by the `decide +native` tactic or internally by specific tactics (`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
