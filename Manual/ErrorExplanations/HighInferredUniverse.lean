@@ -32,7 +32,8 @@ inductive MaybeTwo (α : Type u)
 ```lean -show
 variable (α : Type u)
 ```
-Lean must classify {lean}`MaybeTwo α` as a {lean}`Type u`, or, equivalently, as a
+then the universe for {lean}`MaybeTwo α` must be {lean}`Type u` or higher.
+Lean automatically infers the universe to be the least universe, hence it chooses {lean}`Type u`, or, equivalently,
 {lean}`Sort (u + 1)`. (See the reference guide to {ref "universes-sorts"}[Universes] for more
 details on the relationship between {lean}`Prop`, {lean}`Sort`, and {lean}`Type`.)
 :::
