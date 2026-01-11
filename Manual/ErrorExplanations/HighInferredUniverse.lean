@@ -39,9 +39,13 @@ details on the relationship between {lean}`Prop`, {lean}`Sort`, and {lean}`Type`
 :::
 ::::
 
-Lean chooses to avoid silently assigning a new type to a universe that might cause confusion later.
-This error often indicates that the universe annotations need to be in a slightly different form,
-or that more specific annotations are required.
+There are certain situations where universe inference yields
+a universe level that may be higher than it could be.
+In these situations, Lean chooses to avoid silently accepting
+this unnecessarily high universe level, which might cause hard-to-diagnose errors later.
+Avoiding these situations requires an explicitly provided universe for the inductive type
+using a universe level in a slightly different form;
+this cannot be corrected by the elaborator on its own and requires user intervention.
 
 # Examples
 :::errorExample "Use of `Type` May Force Universe Too High"
