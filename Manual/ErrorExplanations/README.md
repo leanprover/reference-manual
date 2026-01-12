@@ -38,11 +38,14 @@ ambiguous with other vocabulary likely to appear in error names (e.g.,
 use `Indep` rather than `Ind` for "independent," since the latter
 could be confused with "inductive").
 
+You can write an error explanation for a named error that hasn't been
+registered yet; this will only generate a warning when building the
+reference manual. You shouldn't merge a new registered error name
+until the reference manual contains an error explanation.
+
 Failing to include an error explanation for an error defined in the
 toolchain's Lean version will cause an error when generating the
-manual. Including an error explanation that isn't yet in the
-toolchain's Lean version only generates a warning. This makes it
-simpler to write error explanations for newly-added errors.
+manual.
 
 ## Descriptions
 
