@@ -662,7 +662,7 @@ So there are two reasonable options, inspired by non-termination in traditional 
 
 : The {tech}_partial correctness interpretation_
 
-  {lean}`⦃P⦄ prog ⦃⇓ r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
+  {lean}`⦃P⦄ prog ⦃⇓? r => Q' r⦄` asserts that, given {lean}`P` holds, and _if_ {lean}`prog` terminates _then_ {lean}`Q'` holds for the result.
 
 The notation {lean}`⇓ r => Q' r` has the total interpretation, while {lean}`⇓? r => Q' r` has the partial interpretation.
 
