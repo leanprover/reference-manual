@@ -24,6 +24,7 @@ open Lean (Syntax SourceInfo)
 file := "ValidatingProofs"
 tag := "validating-proofs"
 number := false
+htmlSplit := .never
 %%%
 
 This section discusses how to validate a proof expressed in Lean.
