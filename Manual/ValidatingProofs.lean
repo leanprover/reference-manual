@@ -35,7 +35,7 @@ In particular, we use {deftech}_honest_ when the goal is to create a valid proof
 This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system.
 
 In contrast, we use {deftech}_malicious_ to describe code to go out of its way to trick or mislead the user, exploit bugs or compromise the system.
-This includes unreviewed AI-generated proofs and programs.
+This includes un-reviewed AI-generated proofs and programs.
 
 Furthermore it is important to distinguish the question “does the theorem have a valid proof” from “what does the theorem statement mean”.
 
@@ -177,7 +177,7 @@ Lean tactics and other meta-code can perform arbitrary actions when run.
 Importing libraries created by a determined {tech}[malicious] attacker and building them without further protection can compromise the user's system, after which no further meaningful checks are possible.
 
 We recommend running `lean4checker` as part of CI for the additional protection against bugs in Lean's handling of declaration and as a deterrent against simple attacks.
-The [lean-action](https://github.com/leanprover/lean-action) Github Action provides this functionality by setting `lean4checker: true`.
+The [lean-action](https://github.com/leanprover/lean-action) GitHub Action provides this functionality by setting `lean4checker: true`.
 
 Without the `--fresh` flag the tool can be instructed to only check some modules, and assume others to be correct (e.g. trusted libraries), for faster processing.
 
