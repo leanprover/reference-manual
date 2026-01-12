@@ -466,5 +466,3 @@ builtin_initialize $x:ident : $t:term ←
   $cmd*
 ```
 :::
-
-{include 0 Manual.ValidatingProofs}

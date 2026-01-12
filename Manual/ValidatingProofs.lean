@@ -23,6 +23,7 @@ open Lean (Syntax SourceInfo)
 %%%
 file := "ValidatingProofs"
 tag := "validating-proofs"
+number := false
 %%%
 
 This section discusses how to validate a proof expressed in Lean.
