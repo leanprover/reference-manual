@@ -221,7 +221,7 @@ Specific uses wrapped in honest tactics (e.g. {tactic}`bv_decide`) are generally
 The trusted code base is larger (it includes Lean's compilation toolchain and library annotations in the standard library), but still fixed and vetted.
 
 General use (`decide +native` or direct use of {name}`Lean.ofReduceBool`) can be used to create invalid proofs whenever the native evaluation of a term disagrees with the kernel's evaluation.
-In particular, all `implemented_by`/`extern` attributes in libraries become part of the trusted code base.
+In particular, for every {attr}`implemented_by`/{attr}`extern` attribute in libraries it becomes part of the trusted code base that the replacement is semantically equivalent.
 
 All these uses show up as an axiom {name}`Lean.trustCompiler` in {keywordOf Lean.Parser.Command.printAxioms}`#print axioms`.
 External checkers (`lean4checker`, `comparator`) cannot check such proofs, as they do not have access to the Lean compiler.
