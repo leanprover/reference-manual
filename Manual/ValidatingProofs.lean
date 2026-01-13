@@ -228,6 +228,9 @@ When following the gold standard of checking proofs using comparator, some assum
 * No human error or misleading presentation of the theorem statement in the trusted challenge file.
 
 # On `Lean.trustCompiler`
+%%%
+tag := "validating-trustCompiler"
+%%%
 
 Lean supports proofs by native evaluation.
 This is used by the {tactic}`decide`{keywordOf Lean.Parser.Tactic.decide}` +native` tactic or internally by specific tactics ({tactic}`bv_decide` in particular) and produces proof terms that call compiled Lean code to do a calculation that is then trusted by the kernel.
