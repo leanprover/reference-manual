@@ -3,6 +3,38 @@
 /**
  * @type {DomainMapper}
  */
+const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_suggestion = {
+    dataToSearchables:
+      (domainData) =>
+          Object.entries(domainData.contents).map(([key, value]) => ({
+            searchKey: value[0].data.searchTerm,
+            address: `${value[0].address}#${value[0].id}`,
+            domainId: 'Verso.Genre.Manual.doc.suggestion',
+            ref: value[0].data.suggestedRedirect,
+          })),
+    className: "suggestion-domain",
+    displayName: "Suggestion",
+    customRender:
+      (searchable, matchedParts, document) => {
+          const searchTerm = document.createElement('p');
+          for (const { t, v } of matchedParts) {
+            if (t === 'text') {
+              searchTerm.append(v);
+            } else {
+              const emEl = document.createElement('em');
+              searchTerm.append(emEl);
+              emEl.textContent = v;
+            }
+          }
+          searchTerm.append(document.createElement('br'));
+          searchTerm.append(`↪ ${searchable.ref}`);
+          return searchTerm
+        },
+    };
+
+/**
+ * @type {DomainMapper}
+ */
 const Manual_DOT_lakeTomlField = {
     dataToSearchables:
       (domainData) =>
@@ -16,7 +48,7 @@ const Manual_DOT_lakeTomlField = {
               ref: value,
             }}),
     className: "lake-toml-field-domain",
-    displayName: "Lake TOML Field"
+    displayName: "Lake TOML Field",
     };
 
 /**
@@ -32,7 +64,7 @@ const Manual_DOT_envVar = {
           ref: value,
         })),
     className: "env-var-domain",
-    displayName: "Environment Variable"
+    displayName: "Environment Variable",
     };
 
 /**
@@ -48,7 +80,7 @@ const Manual_DOT_lakeOpt = {
           ref: value,
         })),
     className: "lake-option-domain",
-    displayName: "Lake Command-Line Option"
+    displayName: "Lake Command-Line Option",
     };
 
 /**
@@ -64,7 +96,7 @@ const Verso_DOT_Genre_DOT_Manual_DOT_section = {
             ref: value,
           })),
     className: "section-domain",
-    displayName: "Section"
+    displayName: "Section",
     };
 
 /**
@@ -102,7 +134,7 @@ const Verso_DOT_Genre_DOT_Manual_DOT_example = {
         });
       },
     className: "example-def",
-    displayName: "Example Definition"
+    displayName: "Example Definition",
     };
 
 /**
@@ -118,7 +150,7 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic = {
           ref: value,
         })),
     className: "tactic-domain",
-    displayName: "Tactic"
+    displayName: "Tactic",
     };
 
 /**
@@ -138,7 +170,7 @@ const Manual_DOT_lakeTomlTable = {
           }})
       ,
     className: "lake-toml-table-domain",
-    displayName: "Lake TOML Table"
+    displayName: "Lake TOML Table",
     };
 
 /**
@@ -154,7 +186,7 @@ const Manual_DOT_lakeCommand = {
           ref: value,
         })),
     className: "lake-command-domain",
-    displayName: "Lake Command"
+    displayName: "Lake Command",
     };
 
 /**
@@ -170,7 +202,7 @@ const Manual_DOT_elanOpt = {
           ref: value,
         })),
     className: "elan-option-domain",
-    displayName: "Elan Command-Line Option"
+    displayName: "Elan Command-Line Option",
     };
 
 /**
@@ -186,7 +218,7 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc = {
           ref: value,
         })),
     className: "doc-domain",
-    displayName: "Documentation"
+    displayName: "Documentation",
     };
 
 /**
@@ -202,7 +234,23 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option = {
           ref: value,
         })),
     className: "doc-option-domain",
-    displayName: "Compiler Option"
+    displayName: "Compiler Option",
+    };
+
+/**
+ * @type {DomainMapper}
+ */
+const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech = {
+    dataToSearchables:
+      (domainData) =>
+        Object.entries(domainData.contents).map(([key, value]) => ({
+          searchKey: value[0].data.term,
+          address: `${value[0].address}#${value[0].id}`,
+          domainId: 'Verso.Genre.Manual.doc.tech',
+          ref: value,
+        })),
+    className: "tech-term-domain",
+    displayName: "Terminology",
     };
 
 /**
@@ -220,7 +268,7 @@ const Manual_DOT_Syntax_DOT_production = {
           ref: value,
         })),
     className: "syntax-domain",
-    displayName: "Syntax"
+    displayName: "Syntax",
     };
 
 /**
@@ -236,23 +284,7 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic_DOT_conv = {
           ref: value,
         })),
     className: "conv-tactic-domain",
-    displayName: "Conv Tactic"
-    };
-
-/**
- * @type {DomainMapper}
- */
-const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech = {
-    dataToSearchables:
-      (domainData) =>
-        Object.entries(domainData.contents).map(([key, value]) => ({
-          searchKey: value[0].data.term,
-          address: `${value[0].address}#${value[0].id}`,
-          domainId: 'Verso.Genre.Manual.doc.tech',
-          ref: value,
-        })),
-    className: "tech-term-domain",
-    displayName: "Terminology"
+    displayName: "Conv Tactic",
     };
 
 /**
@@ -268,7 +300,7 @@ const Manual_DOT_elanCommand = {
           ref: value,
         })),
     className: "elan-command-domain",
-    displayName: "Elan Command"
+    displayName: "Elan Command",
     };
 
 /**
@@ -284,11 +316,12 @@ const Manual_DOT_errorExplanation = {
           ref: value,
         })),
     className: "error-explanation-domain",
-    displayName: "Error Explanation"
+    displayName: "Error Explanation",
     };
 
-export const domainMappers = {"Manual.lakeTomlField":
-    Manual_DOT_lakeTomlField,
+export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
+    Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_suggestion,
+  "Manual.lakeTomlField": Manual_DOT_lakeTomlField,
   "Manual.envVar": Manual_DOT_envVar,
   "Manual.lakeOpt": Manual_DOT_lakeOpt,
   "Verso.Genre.Manual.section":
@@ -303,11 +336,11 @@ export const domainMappers = {"Manual.lakeTomlField":
   "Verso.Genre.Manual.doc": Verso_DOT_Genre_DOT_Manual_DOT_doc,
   "Verso.Genre.Manual.doc.option":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option,
+  "Verso.Genre.Manual.doc.tech":
+    Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech,
   "Manual.Syntax.production": Manual_DOT_Syntax_DOT_production,
   "Verso.Genre.Manual.doc.tactic.conv":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic_DOT_conv,
-  "Verso.Genre.Manual.doc.tech":
-    Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech,
   "Manual.elanCommand": Manual_DOT_elanCommand,
   "Manual.errorExplanation": Manual_DOT_errorExplanation
 };
