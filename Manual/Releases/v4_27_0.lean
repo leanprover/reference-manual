@@ -202,16 +202,11 @@ These updates include some **breaking changes**, namely:
 
 ### Breaking Changes
 
-- [#11474](https://github.com/leanprover/lean4/pull/11474) generalizes the `noConfusion` constructions to heterogeneous
-  equalities (assuming propositional equalities between the indices). This
-  lays ground work for better support for applying injection to
-  heterogeneous equalities in grind.
-  This is a breaking change for whoever uses the `noConfusion` principle
-  manually and explicitly for a type with indices.
-
-- [11562](https://github.com/leanprover/lean4/pull/11562) makes the `noConfusion` principles even more heterogeneous, by
-  allowing not just indices but also parameters to differ.
-  This is a breaking change for manual use of `noConfusion` for types with parameters.
+- [#11474](https://github.com/leanprover/lean4/pull/11474) and 
+  [11562](https://github.com/leanprover/lean4/pull/11562)
+  generalizes the `noConfusion` constructions to heterogeneous
+  equalities (assuming propositional equalities between parameters and indices).   This is a breaking change for whoever uses the `noConfusion` principle
+  manually and explicitly for a type with indices
   Pass suitable `rfl` arguments, and use `eq_of_heq` on the resulting equalities as needed.
 
 - [#11490](https://github.com/leanprover/lean4/pull/11490) prevents `try` swallowing heartbeat errors from nested `simp`
