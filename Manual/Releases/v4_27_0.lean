@@ -427,6 +427,9 @@ These updates include some **breaking changes**, namely:
   identifier (like `.zero`) and suggests concrete alternatives as
   replacements.
 
+* [#11562](https://github.com/leanprover/lean4/pull/11562) makes the `noConfusion` principles even more heterogeneous, by
+  allowing not just indices but also parameters to differ.
+
 * [#11566](https://github.com/leanprover/lean4/pull/11566) lets the compiler treat per-constructor `noConfusion` like the
   general one, and moves some more logic closer to no confusion
   generation.
