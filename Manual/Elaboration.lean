@@ -8,6 +8,8 @@ import VersoManual
 import Manual.Meta
 import Manual.Papers
 
+import Manual.ValidatingProofs
+
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
