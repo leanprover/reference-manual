@@ -5,13 +5,19 @@ Author: Anne Baanen
 -/
 
 import VersoManual
-
+import Manual.Meta
 import Manual.Meta.Markdown
+import Std.Data.Iterators
+import Std.Data.TreeMap
 
 open Manual
 open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
+
+open Std.Iterators
+open Std (TreeMap)
+open Std (HashMap)
 
 #doc (Manual) "Lean 4.27.0-rc1 (2025-12-14)" =>
 %%%
@@ -61,7 +67,7 @@ PRs:
 
 ### Function-Valued Congruence Closure
 
-[#11323](https://github.com/leanprover/lean4/pull/11323) introduces a new `grind` option, `funCC` (enabled by default),
+[#11323](https://github.com/leanprover/lean4/pull/11323) introduces a new {tactic}`grind` option, `funCC` (enabled by default),
 which extends congruence closure to _function-valued_ equalities. When
 `funCC` is enabled, `grind` tracks equalities of *partially applied
 functions*, allowing reasoning steps such as:
@@ -78,15 +84,15 @@ h : f a = g
 ⊢ f a b = g b
 ```
 
-This feature substantially improves grind’s support for higher-order and
+This feature substantially improves `grind`’s support for higher-order and
 partially-applied function equalities, while preserving compatibility with
-first-order SMT behavior when funCC is disabled.
+first-order SMT behavior when `funCC` is disabled.
 
 See the PR description for more details on usage.
 
 ### Controlling Theorem Instantiation
 
-[#11428](https://github.com/leanprover/lean4/pull/11428) implements support for *guards* in `grind_pattern`. The new
+[#11428](https://github.com/leanprover/lean4/pull/11428) implements support for *guards* in {keywordOf Lean.Parser.Command.grind_pattern}`grind_pattern`. The new
 feature provides additional control over theorem instantiation. For
 example, consider the following monotonicity theorem:
 
@@ -95,7 +101,7 @@ opaque f : Nat → Nat
 theorem fMono : x ≤ y → f x ≤ f y := sorry
 ```
 
-With the new `guard` feature, we can instruct `grind` to instantiate the
+With the new `guard` feature, we can instruct {tactic}`grind` to instantiate the
 theorem *only if* `x ≤ y` is already known to be true in the current `grind` state:
 
 ```lean
@@ -110,8 +116,8 @@ See the PR description for a more detailed discussion and example proof traces.
 
 ### Supplying Arbitrary Parameters
 
-[#11268](https://github.com/leanprover/lean4/pull/11268) implements support for arbitrary `grind` parameters. The feature
-is similar to the one available in `simp`, where a proof term is treated
+[#11268](https://github.com/leanprover/lean4/pull/11268) implements support for arbitrary {tactic}`grind` parameters. The feature
+is similar to the one available in {tactic}`simp`, where a proof term is treated
 as a local universe-polymorphic lemma. This feature relies on `grind -revert` (see [#11248](https://github.com/leanprover/lean4/pull/11248)).
 For example, users can now write:
 
@@ -137,7 +143,7 @@ Note that in the example above, `snd_eq` is instantiated only twice, but with di
 default.
 
 This is an internal change related to reverting hypotheses.
-With the new default, the traces, counterexamples, and proof terms produced by `grind` are different.
+With the new default, the traces, counterexamples, and proof terms produced by {tactic}`grind` are different.
 To recover the old `grind` behavior, use `grind +revert`.
 
 ### Other New Features in Grind
@@ -162,22 +168,22 @@ To recover the old `grind` behavior, use `grind +revert`.
 ## Well-Founded Recursion on `Nat`
 
 Definitions that use well-founded recursion are generally irreducible.
-With [#7965](https://github.com/leanprover/lean4/pull/7965), when the termination measure is of type `Nat`,
+With [#7965](https://github.com/leanprover/lean4/pull/7965), when the termination measure is of type {name}`Nat`,
 such definitions can be reduced, and an explicit `@[semireducible]` annotation is accepted
 without the usual warning.
 
 ## Library Highlights
 
-This release completes the revision of the `String` API, including dependently typed `String.Pos`,
-full API support for `String.Slice`, and iterators using the new `Iterator` API.
-There are also many additions to the `TreeMap`/`HashMap` API, including intersection, difference, and equality.
+This release completes the revision of the {name}`String` API, including dependently typed {name}`String.Pos`,
+full API support for {name}`String.Slice`, and iterators using the new {name}`Iterator` API.
+There are also many additions to the {name}`TreeMap`/{name}`HashMap` API, including intersection, difference, and equality.
 
 These updates include some *breaking changes*, namely:
 
-- [#11180](https://github.com/leanprover/lean4/pull/11180) redefines `String.take` and variants to operate on
-  `String.Slice`. While previously functions returning a substring of the
-  input sometimes returned `String` and sometimes returned
-  `Substring.Raw`, they now uniformly return `String.Slice`.
+- [#11180](https://github.com/leanprover/lean4/pull/11180) redefines {name}`String.take` and variants to operate on
+  {name}`String.Slice`. While previously functions returning a substring of the
+  input sometimes returned {name}`String` and sometimes returned
+  {name}`Substring.Raw`, they now uniformly return {name}`String.Slice`.
 
   This is a breaking change, because many functions now have a different
   return type. So for example, if `s` is a string and `f` is a function
@@ -188,12 +194,12 @@ These updates include some *breaking changes*, namely:
   Of course, in many cases, there will be more efficient options. For
   example, don't write `f <| s.drop 1 |>.copy |>.dropEnd 1 |>.copy`, write
   `f <| s.drop 1 |>.dropEnd 1 |>.copy` instead. Also, instead of `(s.drop
-  1).copy = "Hello"`, write `s.drop 1 == "Hello".toSlice` instead.
+  1).copy = "Hello"`, write `s.drop 1 == "Hello".toSlice`.
 
 - [#11446](https://github.com/leanprover/lean4/pull/11446) moves many constants of the iterator API from `Std.Iterators` to
   the `Std` namespace in order to make them more convenient to use. These
-  constants include, but are not limited to, `Iter`, `IterM` and
-  `IteratorLoop`. This is a breaking change. If something breaks, try
+  constants include, but are not limited to, {name}`Iter`, {name}`IterM` and
+  {name}`IteratorLoop`. This is a breaking change. If something breaks, try
   adding `open Std` in order to make these constants available again. If
   some constants in the `Std.Iterators` namespace cannot be found, they
   can be found directly in `Std` now.
@@ -202,8 +208,9 @@ These updates include some *breaking changes*, namely:
 
 - [#11474](https://github.com/leanprover/lean4/pull/11474) and
   [11562](https://github.com/leanprover/lean4/pull/11562)
-  generalizes the `noConfusion` constructions to heterogeneous
-  equalities (assuming propositional equalities between parameters and indices).   This is a breaking change for whoever uses the `noConfusion` principle
+  generalize the `noConfusion` constructions to heterogeneous
+  equalities (assuming propositional equalities between parameters and indices).
+  This is a breaking change for whoever uses the `noConfusion` principle
   manually and explicitly for a type with indices
   Pass suitable `rfl` arguments, and use `eq_of_heq` on the resulting equalities as needed.
 
