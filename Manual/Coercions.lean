@@ -356,7 +356,7 @@ variable {α : Type u}
 ```
 ::::example "Duplicate Evaluation in Coercions"
 Because the contents of {lean}`Coe` instances are unfolded during coercion insertion, coercions that use their argument more than once should be careful to ensure that evaluation occurs just once.
-This can be done by using a helper function that is not part of the instance, or by using {keywordOf Lean.Parser.Term.let}`let` to evaluate the coerced term and then re-use its resulting value.
+This can be done by using a helper function that is not part of the instance, or by using {keywordOf Lean.Parser.Term.let}`let` to evaluate the coerced term and then reuse its resulting value.
 
 The structure {name}`Twice` requires that both fields have the same value:
 ```lean
@@ -476,7 +476,7 @@ Due to coercion chaining, there is also a coercion from {name}`Even` to {name}`I
 Non-dependent coercions are used whenever all values of the inferred type can be coerced to the target type.
 
 :::example "Defining Dependent Coercions"
-The string "four" can be coerced into the natural number {lean  (type := "Nat")}`4` with this instance declaration:
+The string {lean}`"four"` can be coerced into the natural number {lean  (type := "Nat")}`4` with this instance declaration:
 ```lean (name := fourCoe)
 instance : CoeDep String "four" Nat where
   coe := 4

@@ -99,7 +99,7 @@ tag := "partial-fixpoint-tailrec"
 
 A recursive function can be defined as a partial fixpoint if the following two conditions hold:
 
- 1. The function's return type is inhabited (as with {ref "partial-unsafe"}[functions marked {keywordOf Lean.Parser.Command.declaration}`partial`]) - either a {name}`Nonempty` or {name}`Inhabited` instance works.
+ 1. The function's return type is inhabited (as with {ref "partial-unsafe"}[functions marked {keywordOf Lean.Parser.Command.declaration}`partial`])—either a {name}`Nonempty` or {name}`Inhabited` instance works.
  2. All recursive calls are in {tech}[tail position] of the function.
 
 An expression is in {deftech}_tail position_ in the function body if it is:
@@ -325,7 +325,7 @@ If, when given an arbitrary partial function with a signature that's compatible 
 
  * taking one rewriting step with the defining equation, in which the recursive calls are replaced by the arbitrary function, also implies the satisfaction of the motive
 
-then the motive is satsified for all inputs for which the {lean}`List.findIndex` returns {name}`some`.
+then the motive is satisfied for all inputs for which the {lean}`List.findIndex` returns {name}`some`.
 
 :::
 

@@ -67,7 +67,7 @@ The unit type is the canonical type with exactly one element, named {name Unit.u
 It describes only a single value, which consists of said constructor applied to no arguments whatsoever.
 
 {lean}`Unit` is analogous to `void` in languages derived from C: even though `void` has no elements that can be named, it represents the return of control flow from a function with no additional information.
-In functional programming, {lean}`Unit` is the return type of things that "return nothing".
+In functional programming, {lean}`Unit` is the return type of things that “return nothing”.
 Mathematically, this is represented by a single completely uninformative value, as opposed to an empty type such as {lean}`Empty`, which represents unreachable code.
 
 :::leanSection

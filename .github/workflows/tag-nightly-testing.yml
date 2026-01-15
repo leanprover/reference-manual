@@ -1,66 +1,66 @@
 name: Tag nightly-testing on toolchain version bumps
 
 on:
-  push:
-    branches:
-      - nightly-testing
-    paths:
-      - lean-toolchain
-  workflow_dispatch:
+    push:
+        branches:
+            - nightly-testing
+        paths:
+            - lean-toolchain
+    workflow_dispatch:
 
 jobs:
-  tag-nightly:
-    runs-on: ubuntu-latest
-    if: github.repository == 'leanprover/reference-manual'
-    permissions:
-      contents: write
+    tag-nightly:
+        runs-on: ubuntu-latest
+        if: github.repository == 'leanprover/reference-manual'
+        permissions:
+            contents: write
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        ref: nightly-testing
-        fetch-depth: 0  # Fetch all history so we can check for existing tags
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: nightly-testing
+                  fetch-depth: 0 # Fetch all history so we can check for existing tags
 
-    - name: Configure Git
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Extract nightly version and create tag
-      run: |
-        # Check if lean-toolchain exists and contains a nightly version
-        if [[ ! -f "lean-toolchain" ]]; then
-          echo "lean-toolchain file not found"
-          exit 1
-        fi
+            - name: Extract nightly version and create tag
+              run: |
+                  # Check if lean-toolchain exists and contains a nightly version
+                  if [[ ! -f "lean-toolchain" ]]; then
+                    echo "lean-toolchain file not found"
+                    exit 1
+                  fi
 
-        toolchain=$(cat "lean-toolchain")
-        echo "Toolchain: $toolchain"
+                  toolchain=$(cat "lean-toolchain")
+                  echo "Toolchain: $toolchain"
 
-        # Extract nightly version (format: leanprover/lean4:nightly-YYYY-MM-DD)
-        if [[ $toolchain == leanprover/lean4:nightly-* ]]; then
-          version=${toolchain#leanprover/lean4:nightly-}
-          tag_name="nightly-testing-$version"
+                  # Extract nightly version (format: leanprover/lean4:nightly-YYYY-MM-DD)
+                  if [[ $toolchain == leanprover/lean4:nightly-* ]]; then
+                    version=${toolchain#leanprover/lean4:nightly-}
+                    tag_name="nightly-testing-$version"
 
-          echo "Nightly version: $version"
-          echo "Tag name: $tag_name"
-          echo "Nightly version: \`$version\`" >> $GITHUB_STEP_SUMMARY
-          echo "Tag name: \`$tag_name\`" >> $GITHUB_STEP_SUMMARY
+                    echo "Nightly version: $version"
+                    echo "Tag name: $tag_name"
+                    echo "Nightly version: \`$version\`" >> $GITHUB_STEP_SUMMARY
+                    echo "Tag name: \`$tag_name\`" >> $GITHUB_STEP_SUMMARY
 
-          # Check if tag already exists
-          if git rev-parse "$tag_name" >/dev/null 2>&1; then
-            echo "Tag $tag_name already exists, skipping"
-            echo "Tag \`$tag_name\` already exists, skipping" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "Creating tag $tag_name"
-            git tag "$tag_name"
-            git push origin "$tag_name"
-            echo "Created and pushed tag $tag_name"
-            echo "Created and pushed tag \`$tag_name\`" >> $GITHUB_STEP_SUMMARY
-          fi
-        else
-          echo "lean-toolchain does not contain a nightly version: $toolchain"
-          echo "lean-toolchain does not contain a nightly version: \`$toolchain\`" >> $GITHUB_STEP_SUMMARY
-          echo "Skipping tag creation"
-        fi
+                    # Check if tag already exists
+                    if git rev-parse "$tag_name" >/dev/null 2>&1; then
+                      echo "Tag $tag_name already exists, skipping"
+                      echo "Tag \`$tag_name\` already exists, skipping" >> $GITHUB_STEP_SUMMARY
+                    else
+                      echo "Creating tag $tag_name"
+                      git tag "$tag_name"
+                      git push origin "$tag_name"
+                      echo "Created and pushed tag $tag_name"
+                      echo "Created and pushed tag \`$tag_name\`" >> $GITHUB_STEP_SUMMARY
+                    fi
+                  else
+                    echo "lean-toolchain does not contain a nightly version: $toolchain"
+                    echo "lean-toolchain does not contain a nightly version: \`$toolchain\`" >> $GITHUB_STEP_SUMMARY
+                    echo "Skipping tag creation"
+                  fi

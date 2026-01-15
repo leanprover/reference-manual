@@ -246,7 +246,7 @@ def lakeCommand.descr : BlockDescr where
 
   traverse id info _ := do
     let Json.arr #[Json.str name, aliases, _] := info
-      | do logError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array startign with string but got {info}"; pure none
+      | do logError s!"Failed to deserialize data while traversing a Lake command, expected 3-element array starting with string but got {info}"; pure none
     let aliases : List String ←
       match fromJson? (α := List String) aliases with
       | .ok v => pure v
@@ -390,7 +390,7 @@ a.lake-command:hover {
             if let some dest := (← read).traverseState.externalTags[id]? then
               return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
 
-      HtmlT.logError "No name for lake command"
+      HtmlT.logError s!"No name for lake command in {data.compress}"
       is.mapM goI
 
 @[role_expander lakeArgs]

@@ -1,69 +1,72 @@
 name: "Deploy the 'postdeploy' branch"
 on:
-  workflow_run:
-    workflows: ["Apply Overlays"]
-    types:
-      - completed
+    workflow_run:
+        workflows: ["Apply Overlays"]
+        types:
+            - completed
 
-  push:
-    branches:
-      - 'postdeploy'
+    push:
+        branches:
+            - "postdeploy"
 
-  workflow_dispatch:
+    workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy release branch to hosting
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-    steps:
+    deploy:
+        name: Deploy release branch to hosting
+        runs-on: ubuntu-latest
+        if:
+            ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion ==
+            'success' }}
+        steps:
+            - name: Checkout postdeploy branch
+              uses: actions/checkout@v4
+              with:
+                  ref: "postdeploy"
 
-      - name: Checkout postdeploy branch
-        uses: actions/checkout@v4
-        with:
-          ref: 'postdeploy'
+            - name: Upload the current state of the postdeploy branch
+              id: deploy-release
+              uses: nwtgck/actions-netlify@v2.0
+              with:
+                  publish-dir: "."
+                  production-branch: postdeploy
+                  production-deploy: true
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  deploy-message: |
+                      Deploy from ${{ github.ref }}
+                  enable-commit-comment: false
+                  enable-pull-request-comment: false
+                  fails-without-credentials: true
+              env:
+                  NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+                  # This is the site called 'lean-reference-manual-versions'
+                  NETLIFY_SITE_ID: "91dc33ef-6016-4ac7-bac1-d574e2254405"
 
-      - name: Upload the current state of the postdeploy branch
-        id: deploy-release
-        uses: nwtgck/actions-netlify@v2.0
-        with:
-          publish-dir: '.'
-          production-branch: postdeploy
-          production-deploy: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: |
-            Deploy from ${{ github.ref }}
-          enable-commit-comment: false
-          enable-pull-request-comment: false
-          fails-without-credentials: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          # This is the site called 'lean-reference-manual-versions'
-          NETLIFY_SITE_ID: "91dc33ef-6016-4ac7-bac1-d574e2254405"
-
-  # TODO: Add parallel job for tutorials when ready for production deployment:
-  # deploy-tutorials:
-  #   name: Deploy tutorials release branch to hosting
-  #   runs-on: ubuntu-latest
-  #   if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-  #   steps:
-  #     - name: Checkout postdeploy-tutorials branch
-  #       uses: actions/checkout@v4
-  #       with:
-  #         ref: 'postdeploy-tutorials'
-  #
-  #     - name: Upload the current state of the postdeploy-tutorials branch
-  #       uses: nwtgck/actions-netlify@v2.0
-  #       with:
-  #         publish-dir: '.'
-  #         production-branch: postdeploy-tutorials
-  #         production-deploy: true
-  #         github-token: ${{ secrets.GITHUB_TOKEN }}
-  #         deploy-message: |
-  #           Deploy tutorials from ${{ github.ref }}
-  #         enable-commit-comment: false
-  #         enable-pull-request-comment: false
-  #         fails-without-credentials: true
-  #       env:
-  #         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-  #         NETLIFY_SITE_ID: "e76b4246-fee7-491e-91ef-a87fffff6ce1"
+    # TODO: Add parallel job for tutorials when ready for production deployment:
+    # deploy-tutorials:
+    #     name: Deploy tutorials release branch to hosting
+    #     runs-on: ubuntu-latest
+    #     if:
+    #         ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion ==
+    #         'success' }}
+    #     steps:
+    #         - name: Checkout postdeploy-tutorials branch
+    #           uses: actions/checkout@v4
+    #           with:
+    #               ref: "postdeploy-tutorials"
+    #
+    #         - name: Upload the current state of the postdeploy-tutorials branch
+    #           uses: nwtgck/actions-netlify@v2.0
+    #           with:
+    #               publish-dir: "."
+    #               production-branch: postdeploy-tutorials
+    #               production-deploy: true
+    #               github-token: ${{ secrets.GITHUB_TOKEN }}
+    #               deploy-message: |
+    #                   Deploy tutorials from ${{ github.ref }}
+    #               enable-commit-comment: false
+    #               enable-pull-request-comment: false
+    #               fails-without-credentials: true
+    #           env:
+    #               NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+    #               NETLIFY_SITE_ID: "e76b4246-fee7-491e-91ef-a87fffff6ce1"

@@ -467,10 +467,12 @@ instance : Std.PRange.LawfulUpwardEnumerable Day where
 Proving the three kinds of enumerable ranges to be finite makes it possible to enumerate ranges of days:
 ```lean
 instance : Std.Rxo.IsAlwaysFinite Day where
-  finite init hi := ⟨7, by cases init <;> simp [Std.PRange.succ?, Day.succ?]⟩
+  finite init hi :=
+    ⟨7, by cases init <;> simp [Std.PRange.succ?, Day.succ?]⟩
 
 instance : Std.Rxc.IsAlwaysFinite Day where
-  finite init hi := ⟨7, by cases init <;> simp [Std.PRange.succ?, Day.succ?]⟩
+  finite init hi :=
+    ⟨7, by cases init <;> simp [Std.PRange.succ?, Day.succ?]⟩
 
 instance : Std.Rxi.IsAlwaysFinite Day where
   finite init := ⟨7, by cases init <;> rfl⟩

@@ -166,7 +166,7 @@ file := "v4.10.0"
   * [#4499](https://github.com/leanprover/lean4/pull/4499) introduces `Std`, a library situated between `Init` and `Lean`, providing functionality not in the prelude both to Lean's implementation and to external users.
 * **Other fixes or improvements**
   * [#3056](https://github.com/leanprover/lean4/pull/3056) standardizes on using `(· == a)` over `(a == ·)`.
-  * [#4502](https://github.com/leanprover/lean4/pull/4502) fixes errors reported by running the library through the the Batteries linters.
+  * [#4502](https://github.com/leanprover/lean4/pull/4502) fixes errors reported by running the library through the Batteries linters.
 
 ### Lean internals
 

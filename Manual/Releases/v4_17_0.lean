@@ -790,7 +790,7 @@ and socket addresses.
 * [#6573](https://github.com/leanprover/lean4/pull/6573) replaces the existing implementations of `(D)HashMap.alter` and
 `(D)HashMap.modify` with primitive, more efficient ones and in
 particular provides proofs that they yield well-formed hash maps (`WF`
-typeclass).
+type class).
 
 * [#6586](https://github.com/leanprover/lean4/pull/6586) continues aligning `List/Array/Vector` lemmas, finishing up
 lemmas about `map`.
@@ -914,7 +914,7 @@ Additionally, it refactors the instance derivation code such that a
 
 * [#6826](https://github.com/leanprover/lean4/pull/6826) adds injectivity theorems for inductives that did not get them
 automatically (because they are defined too early) but also not yet
-manuall later.
+manually later.
 
 * [#6828](https://github.com/leanprover/lean4/pull/6828) adds add/sub injectivity lemmas for BitVec, and then adds
 specialized forms with additional symmetries for the `bv_normalize`

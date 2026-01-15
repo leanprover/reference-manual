@@ -50,7 +50,7 @@ file := "v4.0.0"
 
   `this` is now a regular identifier again that is implicitly introduced by anonymous `have :=` for the remainder of the tactic block. It used to be a keyword that was visible in all scopes and led to unexpected behavior when explicitly used as a binder name.
 
-* [Show typeclass and tactic names in profile output](https://github.com/leanprover/lean4/pull/2170).
+* [Show type class and tactic names in profile output](https://github.com/leanprover/lean4/pull/2170).
 
 * [Make `calc` require the sequence of relation/proof-s to have the same indentation](https://github.com/leanprover/lean4/pull/1844),
   and [add `calc` alternative syntax allowing underscores `_` in the first relation](https://github.com/leanprover/lean4/pull/1844).
@@ -79,7 +79,7 @@ file := "v4.0.0"
 
 * Update Lake to latest prerelease.
 
-* [Make go-to-definition on a typeclass projection application go to the instance(s)](https://github.com/leanprover/lean4/pull/1767).
+* [Make go-to-definition on a type class projection application go to the instance(s)](https://github.com/leanprover/lean4/pull/1767).
 
 * [Include timings in trace messages when `profiler` is true](https://github.com/leanprover/lean4/pull/1995).
 

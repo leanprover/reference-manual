@@ -29,13 +29,14 @@ structure ModuleConfig where
   name : Option Ident := none
   moduleName : Option Ident := none
   error : Bool := false
+  «show» : Bool := true
 
 section
 
 variable [Monad m] [MonadError m]
 
 instance : FromArgs ModuleConfig m where
-  fromArgs := ModuleConfig.mk <$> .named' `name true <*> .named' `moduleName true <*> .flag `error false
+  fromArgs := ModuleConfig.mk <$> .named' `name true <*> .named' `moduleName true <*> .flag `error false <*> .flag `show true
 
 end
 
@@ -90,7 +91,7 @@ def lineStx [Monad m] [MonadFileMap m] (l : Nat) : m Syntax := do
 
 @[code_block]
 def leanModule : CodeBlockExpanderOf ModuleConfig
-  | { name, moduleName, error }, str => do
+  | { name, moduleName, error, «show» }, str => do
     let line := (← getFileMap).utf8PosToLspPos str.raw.getPos! |>.line
     let leanCode := line.fold (fun _ _ s => s.push '\n') "" ++ str.getString ++ "\n"
     let hl ← IO.FS.withTempDir fun dirname => do
@@ -153,7 +154,10 @@ def leanModule : CodeBlockExpanderOf ModuleConfig
     if !error && hasError then
       logError "No error expected in code block, but one occurred."
 
-    ``(Verso.Doc.Block.other (Verso.Genre.Manual.InlineLean.Block.lean $(quote hl)) #[])
+    if «show» then
+      ``(Verso.Doc.Block.other (Verso.Genre.Manual.InlineLean.Block.lean $(quote hl)) #[])
+    else
+      ``(Verso.Doc.Block.empty)
 
 structure IdentRefConfig where
   name : Ident

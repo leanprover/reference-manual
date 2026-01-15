@@ -345,7 +345,7 @@ Other notable library developments in this release include:
 * [#7865](https://github.com/leanprover/lean4/pull/7865) adds a missing propagation rule for implication in `grind`. It
   also avoids unnecessary case-splits on implications.
 
-* [#7870](https://github.com/leanprover/lean4/pull/7870) adds a mixin typeclass for `Lean.Grind.CommRing` recording the
+* [#7870](https://github.com/leanprover/lean4/pull/7870) adds a mixin type class for `Lean.Grind.CommRing` recording the
   characteristic of the ring, and constructs instances for `Int`, `IntX`,
   `UIntX`, and `BitVec`.
 
@@ -358,12 +358,12 @@ Other notable library developments in this release include:
 * [#7902](https://github.com/leanprover/lean4/pull/7902) introduces a dedicated option for checking whether elaborators
   are running in the language server.
 
-* [#7905](https://github.com/leanprover/lean4/pull/7905) fixes an issue introduced bug #6125 where an `inductive` or
+* [#7905](https://github.com/leanprover/lean4/pull/7905) fixes an issue introduced by bug #6125 where an `inductive` or
   `structure` with an autoimplicit parameter with a type that has a
   metavariable would lead to a panic. Closes #7788.
 
 * [#7907](https://github.com/leanprover/lean4/pull/7907) fixes two bugs in `grind`.
-  1. Model-based theory combination was creating type incorrect terms.
+  1. Model-based theory combination was creating type-incorrect terms.
   2. `Nat.cast` vs `NatCast.natCast` issue during normalization.
 
 * [#7914](https://github.com/leanprover/lean4/pull/7914) adds a function hook `PersistentEnvExtension.saveEntriesFn` that
@@ -374,7 +374,7 @@ Other notable library developments in this release include:
   value to the `DecidableEq` instance of the core expression data type in
   `bv_decide`'s bitblaster.
 
-* [#7926](https://github.com/leanprover/lean4/pull/7926) fixes two issues that were preventing `grind` to solve
+* [#7926](https://github.com/leanprover/lean4/pull/7926) fixes two issues that were preventing `grind` from solving
   `getElem?_eq_some_iff`.
   1. Missing propagation rule for `Exists p = False`
   2. Missing conditions at `isCongrToPrevSplit` a filter for discarding
@@ -387,14 +387,14 @@ Other notable library developments in this release include:
   `[ext]` theorems should be used by `grind`. The option `grind +extAll`
   instructs `grind` to use all `[ext]` theorems available in the
   environment.
-  After update stage0, we need to add the builtin `[grind ext]`
+  After updating stage0, we need to add the builtin `[grind ext]`
   annotations to key theorems such as `funext`.
 
 * [#7950](https://github.com/leanprover/lean4/pull/7950) modifies `all_goals` so that in recovery mode it commits changes
   to the state only for those goals for which the tactic succeeds (while
   preserving the new message log state). Before, we were trusting that
   failing tactics left things in a reasonable state, but now we roll back
-  and admit the goal. The changes also fixes a bug where we were rolling
+  and admit the goal. The changes also fix a bug where we were rolling
   back only the metacontext state and not the tactic state, leading to an
   inconsistent state (a goal list with metavariables not in the
   metacontext). Closes #7883
@@ -408,16 +408,16 @@ Other notable library developments in this release include:
   `mkForallFVars`).
 
 * [#7957](https://github.com/leanprover/lean4/pull/7957) ensures that `mkAppM` can be used to construct terms that are
-  only type-correct at at default transparency, even if we are in
-  `withReducible` (e.g. in simp), so that simp does not stumble over
+  only type-correct at default transparency, even if we are in
+  `withReducible` (e.g. in `simp`), so that `simp` does not stumble over
   simplifying `let` expression with simplifiable type.reliable.
 
-* [#7961](https://github.com/leanprover/lean4/pull/7961) fixes a bug in bv_decide where if it was presented with a match
+* [#7961](https://github.com/leanprover/lean4/pull/7961) fixes a bug in `bv_decide` where if it was presented with a match
   on an enum with as many arms as constructors but the last arm being a
   default match it would (wrongly) give up on the match.
 
 * [#7975](https://github.com/leanprover/lean4/pull/7975) reduces the priority of the parent projections of
-  `Lean.Grind.CommRing`, to avoid these being used in typeclass inference
+  `Lean.Grind.CommRing`, to avoid these being used in type class inference
   in Mathlib.
 
 * [#7976](https://github.com/leanprover/lean4/pull/7976) ensure that `bv_decide` can handle the simp normal form of a
@@ -437,7 +437,7 @@ Other notable library developments in this release include:
 * [#7992](https://github.com/leanprover/lean4/pull/7992) add a function for converting `CommRing` expressions into
   multivariate polynomials.
 
-* [#7997](https://github.com/leanprover/lean4/pull/7997) removes all type annotations (optional paramters, auto
+* [#7997](https://github.com/leanprover/lean4/pull/7997) removes all type annotations (optional parameters, auto
   parameters, out params, semi-out params, not just optional parameters as
   before) from the type of functional induction principles.
 
@@ -520,7 +520,7 @@ Other notable library developments in this release include:
 
 * [#8083](https://github.com/leanprover/lean4/pull/8083) fixes #8081.
 
-* [#8086](https://github.com/leanprover/lean4/pull/8086) makes sure that the functional induction priciples for mutually
+* [#8086](https://github.com/leanprover/lean4/pull/8086) makes sure that the functional induction principles for mutually
   recursive structural functions with extra parameters are split deeply,
   as expected.
 
@@ -772,7 +772,7 @@ Other notable library developments in this release include:
   `Array.emptyWithCapacity` was accidentally not tagged with the correct
   function to actually allocate the capacity.
 
-* [#7871](https://github.com/leanprover/lean4/pull/7871) generalizes the typeclass assumptions on monadic `Option`
+* [#7871](https://github.com/leanprover/lean4/pull/7871) generalizes the type class assumptions on monadic `Option`
   functions.
 
 * [#7879](https://github.com/leanprover/lean4/pull/7879) adds `Int.toNat_emod`, analogous to `Int.toNat_add/mul`.
@@ -831,7 +831,7 @@ Other notable library developments in this release include:
 
 * [#7939](https://github.com/leanprover/lean4/pull/7939) adds `Array.count_erase` and specializations.
 
-* [#7953](https://github.com/leanprover/lean4/pull/7953) generalizes some typeclass hypotheses in the `List.Perm` API
+* [#7953](https://github.com/leanprover/lean4/pull/7953) generalizes some type class hypotheses in the `List.Perm` API
   (away from `DecidableEq`), and reproduces `List.Perm.mem_iff` for
   `Array`, and fixes a mistake in the statement of `Array.Perm.extract`.
 

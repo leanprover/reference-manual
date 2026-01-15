@@ -25,7 +25,7 @@ tag := "recursive-definitions"
 %%%
 
 Allowing arbitrary recursive function definitions would make Lean's logic inconsistent.
-General recursion makes it possible to write circular proofs: "{tech}[proposition] $`P` is true because proposition $`P` is true".
+General recursion makes it possible to write circular proofs: “{tech}[proposition] $`P` is true because proposition $`P` is true”.
 Outside of proofs, an infinite loop could be assigned the type {name}`Empty`, which can be used with {keywordOf Lean.Parser.Term.nomatch}`nomatch` or {name Empty.rec}`Empty.rec` to prove any theorem.
 
 Banning recursive function definitions outright would render Lean far less useful: {tech}[inductive types] are key to defining both predicates and data, and they have a recursive structure.
@@ -91,9 +91,9 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
     Aside from using recursion, this provisional definition is fully elaborated.
     The compiler generates code from these provisional definitions.
 
- 2. A termination analysis attempts to use the four techniques to justify the function to Lean's kernel.
+ 2. A termination analysis attempts to use the five techniques to justify the function to Lean's kernel.
     If the definition is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` or {keywordOf Lean.Parser.Command.declaration}`partial`, then that technique is used.
-    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` clause is present, then the indicated technique is the only one attempted.
+    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` clause is present, then the indicated technique is the only one attempted.
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.

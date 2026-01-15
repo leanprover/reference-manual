@@ -1,43 +1,29 @@
 /-
 Copyright (c) 2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Joseph Rotella
+Author: Joseph Rotella, Rob Simmons
 -/
 
 import Manual.Meta.ErrorExplanation
+import Manual.ErrorExplanations.CtorResultingTypeMismatch
+import Manual.ErrorExplanations.DependsOnNoncomputable
+import Manual.ErrorExplanations.InductionWithNoAlts
+import Manual.ErrorExplanations.InductiveParamMismatch
+import Manual.ErrorExplanations.InductiveParamMissing
+import Manual.ErrorExplanations.InferBinderTypeFailed
+import Manual.ErrorExplanations.InferDefTypeFailed
+import Manual.ErrorExplanations.InvalidDottedIdent
+import Manual.ErrorExplanations.InvalidField
+import Manual.ErrorExplanations.ProjNonPropFromProp
+import Manual.ErrorExplanations.PropRecLargeElim
+import Manual.ErrorExplanations.RedundantMatchAlt
+import Manual.ErrorExplanations.SynthInstanceFailed
+import Manual.ErrorExplanations.UnknownIdentifier
 
-open Verso Doc Elab Genre Manual
 open Lean
+open Verso.Doc Elab
+open Verso.Genre Manual
 
-namespace Manual
-
-set_option pp.rawOnError true
-set_option guard_msgs.diff true
-
-set_option manual.requireErrorExplanations false
-
-inline_extension Inline.errorExplanationLink (errorName : Name) where
-  data := toJson errorName
-  traverse := fun _ _ _ => pure none
-  toTeX  := none
-  toHtml := some fun go _ data content =>
-    open Verso.Output.Html Verso.Doc.Html.HtmlT in do
-    let xref ← state
-    let .ok name := FromJson.fromJson? (α := String) data
-      | logError s!"Failed to parse error explanation link JSON: expected string, but found:\n{data}"
-        content.mapM go
-    let some obj := (← read).traverseState.getDomainObject? errorExplanationDomain name
-      | logError s!"Could not find explanation domain entry for name '{name}'"
-        content.mapM go
-    let some id := obj.getId
-      | logError s!"Could not find retrieve ID from explanation domain entry for name '{name}'"
-        content.mapM go
-    if let some { path, htmlId } := xref.externalTags.get? id then
-      let addr := path.link (some htmlId.toString)
-      pure {{<a class="technical-term" href={{addr}}>{{← content.mapM go}}</a>}}
-    else
-      logError s!"Could not find external tag for error explanation '{name}' corresponding to ID '{id}'"
-      content.mapM go
 
 /- Renders the suffix of an error explanation, allowing line breaks before capital letters. -/
 inline_extension Inline.errorExplanationShortName (errorName : Name) where
@@ -53,6 +39,11 @@ inline_extension Inline.errorExplanationShortName (errorName : Name) where
     let html := {{ <code class="error-explanation-short-name">{{errorName}}</code> }}
     return html
 
+
+/--
+Renders a table-of-contents like summary of the error explanations defined by the current Lean
+implementation.
+-/
 @[block_command]
 def error_explanation_table : BlockCommandOf Unit
   | () => do
@@ -66,17 +57,15 @@ def error_explanation_table : BlockCommandOf Unit
     let vals ← entries.flatMapM fun (name, explan) => do
       let sev := quote <| if explan.metadata.severity == .warning then "Warning" else "Error"
       let sev ← ``(Inline.text $sev)
-      let nameLink ← ``(Inline.other (Inline.errorExplanationLink $(quote name))
-        #[Inline.other (Inline.errorExplanationShortName $(quote name)) #[]])
+      let nameLink ←
+        ``(Inline.other (Inline.ref $(quote name.toString) $(quote errorExplanationDomain) Option.none)
+          #[Inline.other (Inline.errorExplanationShortName $(quote name)) #[]])
       let summary ← ``(Inline.text $(quote explan.metadata.summary))
       let since ← ``(Inline.text $(quote explan.metadata.sinceVersion))
       #[nameLink, summary, sev, since]
         |>.mapM fun s => ``(Verso.Doc.Block.para #[$s])
     let blocks := (headers ++ vals).map fun c => Syntax.TSepArray.mk #[c]
     ``(Block.other (Block.table $(quote columns) $(quote header) $(quote name) $(quote alignment)) #[Block.ul #[$[Verso.Doc.ListItem.mk #[$blocks,*]],*]])
-
--- Elaborating explanations can exceed the default heartbeat maximum:
-set_option maxHeartbeats 1000000
 
 #doc (Manual) "Error Explanations" =>
 %%%
@@ -90,4 +79,30 @@ by Lean when processing a source file. All error names listed below have the
 
 {error_explanation_table}
 
-{make_explanations}
+{include 0 Manual.ErrorExplanations.CtorResultingTypeMismatch}
+
+{include 0 Manual.ErrorExplanations.DependsOnNoncomputable}
+
+{include 0 Manual.ErrorExplanations.InductionWithNoAlts}
+
+{include 0 Manual.ErrorExplanations.InductiveParamMismatch}
+
+{include 0 Manual.ErrorExplanations.InductiveParamMissing}
+
+{include 0 Manual.ErrorExplanations.InferBinderTypeFailed}
+
+{include 0 Manual.ErrorExplanations.InferDefTypeFailed}
+
+{include 0 Manual.ErrorExplanations.InvalidDottedIdent}
+
+{include 0 Manual.ErrorExplanations.InvalidField}
+
+{include 0 Manual.ErrorExplanations.ProjNonPropFromProp}
+
+{include 0 Manual.ErrorExplanations.PropRecLargeElim}
+
+{include 0 Manual.ErrorExplanations.RedundantMatchAlt}
+
+{include 0 Manual.ErrorExplanations.SynthInstanceFailed}
+
+{include 0 Manual.ErrorExplanations.UnknownIdentifier}
