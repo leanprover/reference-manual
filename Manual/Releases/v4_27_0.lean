@@ -10,7 +10,8 @@ import Manual.Meta.Markdown
 
 open Manual
 open Verso.Genre
-
+open Verso.Genre.Manual
+open Verso.Genre.Manual.InlineLean
 
 #doc (Manual) "Lean 4.27.0-rc1 (2025-12-14)" =>
 %%%
@@ -18,20 +19,17 @@ tag := "release-v4.27.0"
 file := "v4.27.0"
 %%%
 
-````markdown
 For this release, 372 changes landed. In addition to the 118 feature additions and 71 fixes listed below there were 28 refactoring changes, 13 documentation improvements, 25 performance improvements, 6 improvements to the test suite and 111 other changes.
 
-## Highlights
+# Highlights
 
-### Module System Stabilized
+## Module System Stabilized
 
-[#11637](https://github.com/leanprover/lean4/pull/11637) declares the module system as no longer experimental and makes
-the `experimental.module` option a no-op.
+[#11637](https://github.com/leanprover/lean4/pull/11637) declares the module system as no longer experimental and makes the {option}`experimental.module` option a no-op.
 
-See the [Sources Files and Modules](https://lean-lang.org/doc/reference/latest/Source-Files-and-Modules/#module-scopes)
-chapter in the reference manual for the documentation.
+See the {ref "module-scopes"}[Modules and Visibility] section in the reference manual for the documentation.
 
-### Performance Gains
+## Performance Gains
 
 This release includes many performance improvements, notably:
 
@@ -42,7 +40,7 @@ This release includes many performance improvements, notably:
 - [#11507](https://github.com/leanprover/lean4/pull/11507) optimizes the filesystem accesses during importing for a ~3% win
   on Linux, potentially more on other platforms.
 
-### Error Messages
+## Error Messages
 
 This release contains a series of changes to error messages aimed at making them more helpful and actionable.
 Specifically, some messages now have hints, suggestions, and links to explanations.
@@ -59,16 +57,16 @@ PRs:
 [#11555](https://github.com/leanprover/lean4/pull/11555),
 [#11621](https://github.com/leanprover/lean4/pull/11621).
 
-### New Features in Grind
+## New Features in Grind
 
-#### Function-Valued Congruence Closure
+### Function-Valued Congruence Closure
 
 [#11323](https://github.com/leanprover/lean4/pull/11323) introduces a new `grind` option, `funCC` (enabled by default),
 which extends congruence closure to _function-valued_ equalities. When
-`funCC` is enabled, `grind` tracks equalities of **partially applied
-functions**, allowing reasoning steps such as:
+`funCC` is enabled, `grind` tracks equalities of *partially applied
+functions*, allowing reasoning steps such as:
 
-```lean
+```
 a : Nat → Nat
 f : (Nat → Nat) → (Nat → Nat)
 h : f a = a
@@ -86,19 +84,19 @@ first-order SMT behavior when funCC is disabled.
 
 See the PR description for more details on usage.
 
-#### Controlling Theorem Instantiation
+### Controlling Theorem Instantiation
 
-[#11428](https://github.com/leanprover/lean4/pull/11428) implements support for **guards** in `grind_pattern`. The new
+[#11428](https://github.com/leanprover/lean4/pull/11428) implements support for *guards* in `grind_pattern`. The new
 feature provides additional control over theorem instantiation. For
 example, consider the following monotonicity theorem:
 
 ```lean
 opaque f : Nat → Nat
-theorem fMono : x ≤ y → f x ≤ f y := ...
+theorem fMono : x ≤ y → f x ≤ f y := sorry
 ```
 
 With the new `guard` feature, we can instruct `grind` to instantiate the
-theorem **only if** `x ≤ y` is already known to be true in the current `grind` state:
+theorem *only if* `x ≤ y` is already known to be true in the current `grind` state:
 
 ```lean
 grind_pattern fMono => f x, f y where
@@ -110,7 +108,7 @@ This allows for a significant reduction in the number of theorem instantiations.
 
 See the PR description for a more detailed discussion and example proof traces.
 
-#### Supplying Arbitrary Parameters
+### Supplying Arbitrary Parameters
 
 [#11268](https://github.com/leanprover/lean4/pull/11268) implements support for arbitrary `grind` parameters. The feature
 is similar to the one available in `simp`, where a proof term is treated
@@ -133,7 +131,7 @@ example (a : Nat) : (snd (a + 1, true), snd (a + 1, Type), snd (2, 2)) = (true, 
 
 Note that in the example above, `snd_eq` is instantiated only twice, but with different universe parameters.
 
-#### Grind Revert
+### Grind Revert
 
 [#11248](https://github.com/leanprover/lean4/pull/11248) implements the option `revert`, which is set to `false` by
 default.
@@ -142,7 +140,7 @@ This is an internal change related to reverting hypotheses.
 With the new default, the traces, counterexamples, and proof terms produced by `grind` are different.
 To recover the old `grind` behavior, use `grind +revert`.
 
-#### Other New Features in Grind
+### Other New Features in Grind
 
 - `BitVec` support in `grind ring` ([#11639](https://github.com/leanprover/lean4/pull/11639))
   and `grind lia` ([#11640](https://github.com/leanprover/lean4/pull/11640));
@@ -161,20 +159,20 @@ To recover the old `grind` behavior, use `grind +revert`.
 - New `grind_pattern` constraints ([#11405](https://github.com/leanprover/lean4/pull/11405) and
   [#11409](https://github.com/leanprover/lean4/pull/11409)).
 
-### Well-Founded Recursion on `Nat`
+## Well-Founded Recursion on `Nat`
 
 Definitions that use well-founded recursion are generally irreducible.
 With [#7965](https://github.com/leanprover/lean4/pull/7965), when the termination measure is of type `Nat`,
 such definitions can be reduced, and an explicit `@[semireducible]` annotation is accepted
 without the usual warning.
 
-### Library Highlights
+## Library Highlights
 
 This release completes the revision of the `String` API, including dependently typed `String.Pos`,
 full API support for `String.Slice`, and iterators using the new `Iterator` API.
 There are also many additions to the `TreeMap`/`HashMap` API, including intersection, difference, and equality.
 
-These updates include some **breaking changes**, namely:
+These updates include some *breaking changes*, namely:
 
 - [#11180](https://github.com/leanprover/lean4/pull/11180) redefines `String.take` and variants to operate on
   `String.Slice`. While previously functions returning a substring of the
@@ -200,9 +198,9 @@ These updates include some **breaking changes**, namely:
   some constants in the `Std.Iterators` namespace cannot be found, they
   can be found directly in `Std` now.
 
-### Breaking Changes
+## Breaking Changes
 
-- [#11474](https://github.com/leanprover/lean4/pull/11474) and 
+- [#11474](https://github.com/leanprover/lean4/pull/11474) and
   [11562](https://github.com/leanprover/lean4/pull/11562)
   generalizes the `noConfusion` constructions to heterogeneous
   equalities (assuming propositional equalities between parameters and indices).   This is a breaking change for whoever uses the `noConfusion` principle
@@ -217,6 +215,10 @@ These updates include some **breaking changes**, namely:
   This breaks a single caller in Mathlib where `simp` uses a lemma of the
   form `x = f (g x)` and stack overflows, which can be fixed by
   generalizing over `g x`.
+
+# Changelog
+
+````markdown
 
 ## Language
 
