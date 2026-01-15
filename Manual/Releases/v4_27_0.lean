@@ -35,6 +35,13 @@ For this release, 372 changes landed. In addition to the 118 feature additions a
 
 See the {ref "module-scopes"}[Modules and Visibility] section in the reference manual for the documentation.
 
+## Backward Compatibility Options
+
+[#11304](https://github.com/leanprover/lean4/pull/11304) documents that `backward.*` options are only temporary
+migration aids and may disappear without further notice after 6 months
+after their introduction. Users are kindly asked to report if they rely
+on these options.
+
 ## Performance Gains
 
 This release includes many performance improvements, notably:
