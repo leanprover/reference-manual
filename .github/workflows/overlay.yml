@@ -9,6 +9,7 @@ on:
     push:
         branches:
             - "deploy"
+            - "deploy-tutorials"
 
     workflow_dispatch:
 
@@ -37,7 +38,9 @@ jobs:
                   git fetch origin deploy-tutorials:deploy-tutorials
                   git fetch origin postdeploy-tutorials:postdeploy-tutorials
 
+            # Run reference overlay if triggered by workflow_run, workflow_dispatch, or push to deploy
             - name: Run overlay script
+              if: github.event_name != 'push' || github.ref == 'refs/heads/deploy'
               run: |
                   echo "Adding overlays to predeploy"
                   # -B to prevent creation of __pycache__ directory
@@ -45,14 +48,18 @@ jobs:
                   python -B deploy/overlay.py . deploy postdeploy --site-dir reference
 
             - name: Push deploy branch
+              if: github.event_name != 'push' || github.ref == 'refs/heads/deploy'
               run: |
                   git push origin postdeploy
 
+            # Run tutorials overlay if triggered by workflow_run, workflow_dispatch, or push to deploy-tutorials
             - name: Run overlay script for tutorials
+              if: github.event_name != 'push' || github.ref == 'refs/heads/deploy-tutorials'
               run: |
                   echo "Adding overlays to tutorials predeploy"
                   python -B deploy/overlay.py . deploy-tutorials postdeploy-tutorials --site-dir tutorials
 
             - name: Push tutorials deploy branch
+              if: github.event_name != 'push' || github.ref == 'refs/heads/deploy-tutorials'
               run: |
                   git push origin postdeploy-tutorials

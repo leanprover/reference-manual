@@ -110,15 +110,15 @@ Please see [CONTRIBUTING.md](CONTRIBUTING.md) for more information.
 TL;DR: push a tag of the form `vX.Y.Z` onto the commit that should be
 released as the manual for that version, and the rest is automatic.
 
-This directory contains the deployment infrastructure for the
-reference manual. Deployment happens in GitHub Actions, in response to
-certain tags being pushed. Because the latest version of the GH action
-file will always be used, and we want to be able to mutate tags to
-re-deploy old manual versions (e.g. to update CSS for consistent look
-and feel while keeping content version-accurate, or add a "THIS IS
-OBSOLETE" banner in a few years). Thus, the steps of the workflow that
-might change are captured in scripts that are versioned along with the
-code.
+This repository contains the deployment infrastructure for both the
+reference manual and the tutorials site. Deployment happens in GitHub
+Actions, in response to certain tags being pushed. Because the latest
+version of the GH action file will always be used, and we want to be
+able to mutate tags to re-deploy old manual versions (e.g. to update
+CSS for consistent look and feel while keeping content
+version-accurate, or add a "THIS IS OBSOLETE" banner in a few years),
+the steps of the workflow that might change are captured in scripts
+that are versioned along with the code.
 
 The files are:
 
@@ -128,19 +128,22 @@ The files are:
 - `build.sh` is used to build the executable that generates the
   manual.
 
-- `generate.sh` actually generates release-ready HTML, saving it in
-  `/html` in the root of this repository.
+- `generate.sh` builds both the reference manual and tutorials,
+  saving them in `/html/site/reference` and `/html/site/tutorials`.
 
 - `release.py` puts the generated HTML in the right place on a new
-  commit on the branch `deploy`
+  commit on a deployment branch (`deploy` for the reference manual,
+  `deploy-tutorials` for tutorials).
 
 Everything above is what needs to happen specifically to the single
 version of the documentation that is being updated in the course of
 the deploy. There is one further step, which is computing the desired
-state of the final `postdeploy` branch from the state in the branch
-`deploy`. This is done by the script `overlay.py`, which is triggered
-by pushes to `deploy`, and therefore runs at branch `main` rather than
-at the tag being pushed.
+state of the final `postdeploy` branches from the state in the
+`deploy` branches. This is done by the script `overlay.py`, which is
+triggered by pushes to `deploy`, and therefore runs at branch `main`
+rather than at the tag being pushed. It processes both the reference
+manual (`deploy` → `postdeploy`) and tutorials (`deploy-tutorials` →
+`postdeploy-tutorials`).
 
 We might have named the two branches `predeploy` and `deploy`, but
 chose instead `deploy` and `postdeploy` so that we cold leave
@@ -149,24 +152,34 @@ still have workflows that emit commits to `deploy`.
 
 ## Deployment Overview
 
-The goal is to have versioned snapshots of the manual, with a
-structure like:
+The goal is to have versioned snapshots of both the reference manual
+and tutorials, with a structure like:
 
-- `https://lean-lang.org/doc/reference/latest/`- latest version
-- `https://lean-lang.org/doc/reference/4.19.0/` - manual for v4.19.0
-- `https://lean-lang.org/doc/reference/4.20.0/` - manual for v4.19.0
+- `https://lean-lang.org/doc/reference/latest/` - latest version
+- `https://lean-lang.org/doc/reference/stable/` - latest stable version
+- `https://lean-lang.org/doc/reference/4.19.0/` - reference for v4.19.0
+- `https://lean-lang.org/doc/reference/4.20.0/` - reference for v4.20.0
+- `https://lean-lang.org/doc/tutorials/latest/` - latest tutorials
+- `https://lean-lang.org/doc/tutorials/stable/` - latest stable tutorials
+- `https://lean-lang.org/doc/tutorials/4.19.0/` - tutorials for v4.19.0
+- `https://lean-lang.org/doc/tutorials/4.20.0/` - tutorials for v4.20.0
 
-and so forth. `https://lean-lang.org/doc/reference/` should redirect
-to `latest`. It's important to be able to edit past deployments as
-well.
+and so forth. The base URLs should redirect to `latest`. It's
+important to be able to edit past deployments as well.
 
-An orphan branch, called `deploy`, should at all times contain this
-structure. With the three URLs above, the branch would contain three
-directories:
+Orphan branches `deploy` and `deploy-tutorials` contain the versioned
+content for each site. For example, the `deploy` branch might contain:
 
-- `/4.20.0/` - built HTML served for 4.20.0
-- `/4.19.0/` - built HTML served for 4.19.0
-- `/latest` - symlink to `/4.20.0`
+- `/4.25.0-rc1/` - built HTML for 4.25.0-rc1
+- `/4.24.0/` - built HTML for 4.24.0
+- `/4.23.0/` - built HTML for 4.23.0
+- `/latest/` - copy of `/4.25.0-rc1/` (the most recent version)
+- `/stable/` - copy of `/4.24.0/` (the most recent non-RC version)
+
+The `latest` and `stable` directories are full copies rather than
+symlinks because Netlify deployment doesn't support symlinks.
+
+The `deploy-tutorials` branch has the same structure for tutorials.
 
 The `release.py` script is responsible for updating this structure. It
 takes the generated HTML directory, the version number, and the
@@ -174,31 +187,34 @@ deployment branch name as arguments, and then does the following:
 
 1.  It copies the HTML to the branch (deleting an existing directory
     first if needed).
-2.  It updates the `latest` symlink to point at the most recent
+2.  It updates the `latest` directory to be a copy of the most recent
     version, with all numbered releases being considered more recent
     than any nightly and real releases being more recent than their
     RCs.
-3.  It commits the changes to the branch `deploy`, then switches back
+3.  It updates the `stable` directory to be a copy of the most recent
+    non-RC version.
+4.  It commits the changes to the deployment branch, then switches back
     to the original branch.
 
-A successful push to deploy in this way triggers a GH action that runs
-the `overlay.py` script, which is then responsible for creating a new
-commit to `postdeploy`, based on `deploy`. This commit includes all
-desired overlays. At time of writing, this is just a single file
-`static/metadata.js` in each version of the reference manual that
+A successful push to `deploy` triggers a GH action that runs the
+`overlay.py` script, which creates commits to `postdeploy` (based on
+`deploy`) and `postdeploy-tutorials` (based on `deploy-tutorials`).
+These commits include all desired overlays. At time of writing, this
+is just a single file `static/metadata.js` in each version that
 contains information about whether the version is in fact stable or
 latest.
 
-A successful push to `postdeploy` in this way triggers a GH Action
-which actually publishes the content to netlify.
+A successful push to `postdeploy` or `postdeploy-tutorials` triggers a
+GH Action which publishes the content to Netlify.
 
 ## Overlays
 
 The script `overlay.py` computes `postdeploy` from `deploy` any time
-`deploy` changes. Its purpose is to add metadata or make in-place
-changes to `deploy` content that is best thought of as a unified
-overlay on top of the data that exists at the historical tags
-`4.19.0`, `4.20.0`, etc.
+`deploy` changes, and `postdeploy-tutorials` from `deploy-tutorials`
+any time `deploy-tutorials` changes. Its purpose is to add metadata or
+make in-place changes to deployed content that is best thought of as
+a unified overlay on top of the data that exists at the historical
+version tags.
 
 Examples of the sorts of things we might like to achieve with this
 overlay mechanism are:
@@ -233,7 +249,7 @@ Therefore we can be careful on both sides:
 
 To test `overlay.py` locally before pushing, do the following.
 
-- Ensure branches `deploy` and `postdeploy` exist locally.
+- Ensure the deployment branches exist locally.
 - You'll probably want to do
 
 ```
@@ -242,6 +258,10 @@ git checkout deploy
 git reset --hard remotes/upstream/deploy
 git checkout postdeploy
 git reset --hard remotes/upstream/postdeploy
+git checkout deploy-tutorials
+git reset --hard remotes/upstream/deploy-tutorials
+git checkout postdeploy-tutorials
+git reset --hard remotes/upstream/postdeploy-tutorials
 ```
 
 - From the `reference-manual` checkout directory, on branch `main`,
@@ -249,7 +269,8 @@ git reset --hard remotes/upstream/postdeploy
   you've made) run
 
 ```shell
-python3 -B deploy/overlay.py . deploy postdeploy
+python3 -B deploy/overlay.py . deploy postdeploy --site-dir reference
+python3 -B deploy/overlay.py . deploy-tutorials postdeploy-tutorials --site-dir tutorials
 ```
 
 - Inspect whatever `postdeploy` results you're interested in, e.g.
