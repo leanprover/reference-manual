@@ -172,6 +172,11 @@ jobs:
               run: |
                   scripts/check-examples-isolated.sh
 
+            - name: Verify tutorial project zip files build
+              if: github.event_name != 'release'
+              run: |
+                  scripts/check-tutorial-zips.sh
+
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'
               id: generate
