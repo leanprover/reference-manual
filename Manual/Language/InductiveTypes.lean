@@ -375,9 +375,9 @@ axiom α : Prop
 
  * {lean}`Char` is represented by `uint32_t`. Because {lean}`Char` values never require more than 21 bits, they are always unboxed.
 
- * {lean}`Float` is represented by a pointer to a Lean object that contains a `double`.
+ * {lean}`Float` is represented by a pointer to a Lean object that contains a “double”.
 
- * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {c}`uint8_t`, {c}`uint16_t`, {c}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {c}`uint8_t`, with values {c}`0` for {lean}`false` and {c}`1` for {lean}`true`. {TODO}[Find out whether this should say "no relevant parameters"]
+ * An {deftech}_enum inductive_ type of at least 2 and at most $`2^{32}` constructors, each of which has no parameters, is represented by the first type of {c}`uint8_t`, {c}`uint16_t`, {c}`uint32_t` that is sufficient to assign a unique value to each constructor. For example, the type {lean}`Bool` is represented by {c}`uint8_t`, with values {c}`0` for {lean}`false` and {c}`1` for {lean}`true`. {TODO}[Find out whether this should say “no relevant parameters”]
 
  * {lean}`Decidable α` is represented the same way as `Bool` {TODO}[Aren't Decidable and Bool just special cases of the rules for trivial constructors and irrelevance?]
 
@@ -469,7 +469,7 @@ The memory order of the fields is derived from the types and order of the fields
 * Fields of type {lean}`USize`
 * Other scalar fields, in decreasing order by size
 
-Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types still count toward a field being treated as non-scalar for this purpose.
+Within each group the fields are ordered in declaration order. *Warning*: Trivial wrapper types count as their underlying wrapped type for this purpose.
 
 * To access fields of the first kind, use {c}`lean_ctor_get(val, i)` to get the `i`th non-scalar field.
 * To access {lean}`USize` fields, use {c}`lean_ctor_get_usize(val, n+i)` to get the {c}`i`th `USize` field and {c}`n` is the total number of fields of the first kind.
@@ -483,34 +483,34 @@ structure S where
   ptr_1 : Array Nat
   usize_1 : USize
   sc64_1 : UInt64
-  -- wrappers don't count as scalars:
-  ptr_2 : { x : UInt64 // x > 0 }
-  sc64_2 : Float -- `Float` is 64 bit
+   -- Wrappers of scalars count as scalars:
+  sc64_2 : { x : UInt64 // x > 0 }
+  sc64_3 : Float -- `Float` is 64 bit
   sc8_1 : Bool
   sc16_1 : UInt16
   sc8_2 : UInt8
-  sc64_3 : UInt64
+  sc64_4 : UInt64
   usize_2 : USize
-  -- trivial wrapper around `UInt32`
-  ptr_3 : Char
-  sc32_1 : UInt32
+  -- Trivial wrapper around `UInt32`
+  sc32_1 : Char
+  sc32_2 : UInt32
   sc16_2 : UInt16
 ```
 would get re-sorted into the following memory order:
 
-* {name}`S.ptr_1` - {c}`lean_ctor_get(val, 0)`
-* {name}`S.ptr_2` - {c}`lean_ctor_get(val, 1)`
-* {name}`S.ptr_3` - {c}`lean_ctor_get(val, 2)`
-* {name}`S.usize_1` - {c}`lean_ctor_get_usize(val, 3)`
-* {name}`S.usize_2` - {c}`lean_ctor_get_usize(val, 4)`
-* {name}`S.sc64_1` - {c}`lean_ctor_get_uint64(val, sizeof(void*)*5)`
-* {name}`S.sc64_2` - {c}`lean_ctor_get_float(val, sizeof(void*)*5 + 8)`
-* {name}`S.sc64_3` - {c}`lean_ctor_get_uint64(val, sizeof(void*)*5 + 16)`
-* {name}`S.sc32_1` - {c}`lean_ctor_get_uint32(val, sizeof(void*)*5 + 24)`
-* {name}`S.sc16_1` - {c}`lean_ctor_get_uint16(val, sizeof(void*)*5 + 28)`
-* {name}`S.sc16_2` - {c}`lean_ctor_get_uint16(val, sizeof(void*)*5 + 30)`
-* {name}`S.sc8_1` - {c}`lean_ctor_get_uint8(val, sizeof(void*)*5 + 32)`
-* {name}`S.sc8_2` - {c}`lean_ctor_get_uint8(val, sizeof(void*)*5 + 33)`
+* {name}`S.ptr_1`: {c}`lean_ctor_get(val, 0)`
+* {name}`S.usize_1`: {c}`lean_ctor_get_usize(val, 1)`
+* {name}`S.usize_2`: {c}`lean_ctor_get_usize(val, 2)`
+* {name}`S.sc64_1`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3)`
+* {name}`S.sc64_2`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 8)`
+* {name}`S.sc64_3`: {c}`lean_ctor_get_float(val, sizeof(void*)*3 + 16)`
+* {name}`S.sc64_4`: {c}`lean_ctor_get_uint64(val, sizeof(void*)*3 + 24)`
+* {name}`S.sc32_1`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 32)`
+* {name}`S.sc32_2`: {c}`lean_ctor_get_uint32(val, sizeof(void*)*3 + 36)`
+* {name}`S.sc16_1`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 40)`
+* {name}`S.sc16_2`: {c}`lean_ctor_get_uint16(val, sizeof(void*)*3 + 42)`
+* {name}`S.sc8_1`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 44)`
+* {name}`S.sc8_2`: {c}`lean_ctor_get_uint8(val, sizeof(void*)*3 + 45)`
 
 ::::
 

@@ -547,7 +547,7 @@ abbrev $_ $_ where
   $_*
 ```
 
-In {tech}[modules], the bodies of definitions defined with {keyword}`def` are exposed by default.
+In {tech}[modules], the bodies of definitions defined with {keyword}`abbrev` are exposed by default.
 :::
 
 

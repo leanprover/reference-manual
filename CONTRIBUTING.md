@@ -4,7 +4,7 @@ Thank you for helping out with the Lean reference manual!
 
 In the interest of getting as much documentation as possible written
 quickly, while still maintaining a consistent voice and style and
-keeping the technical quality high, all contributions will either be
+keeping the technical quality high, all contributions will be
 carefully reviewed. However, because review can be very time
 consuming, we may decline to review some contributions. This means
 that slow-to-review PRs may just be closed. Nobody wants this to
@@ -96,7 +96,7 @@ If necessary for emphasis, a sentence that contains a list may be
 broken up into a vertical list element (cf Chicago rule 6.142). In
 this case, punctuate the list items as though they were inline in the
 sentence, without using a colon at the start. When using this style in
-this document, rememember to
+this document, remember to
 
 - use the `paragraph` directive so the list is typeset together with
   its sentence,

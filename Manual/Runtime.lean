@@ -8,6 +8,7 @@ import VersoManual
 import Manual.Meta
 import Manual.Meta.LexedText
 import Manual.Papers
+import Std.Internal.Async.Process
 
 open Manual
 open Verso.Genre
@@ -79,9 +80,9 @@ It is deallocated and all of its references to other objects are dropped, which 
 :::paragraph
 Reference counting provides a number of benefits:
 
- : Re-Use of Memory
+ : Reuse of Memory
 
-    If an object's reference count drops to zero just as another of the same size is to be allocated, then the original object's memory can be safely re-used for the new object.
+    If an object's reference count drops to zero just as another of the same size is to be allocated, then the original object's memory can be safely reused for the new object.
     As a result, many common data-structure traversals (such as {name}`List.map`) do not need to allocate memory when there is exactly one reference to the data structure to be traversed.
 
  : Opportunistic In-Place Updates
@@ -251,9 +252,9 @@ Thus, the modified string `x_4` is a copy, regardless of whether the original re
 ```
 :::
 
-:::example "Memory Re-Use in IR"
+:::example "Memory Reuse in IR"
 The function {lean}`discardElems` is a simplified version of {name}`List.map` that replaces every element in a list with {lean}`()`.
-Inspecting its intermediate representation demonstrates that it will re-use the list's memory when its reference is unique.
+Inspecting its intermediate representation demonstrates that it will reuse the list's memory when its reference is unique.
 
 ```lean (name := discardElems)
 set_option trace.compiler.ir.result true
@@ -297,7 +298,7 @@ This emits the following IR:
           ret x_11
 ```
 
-In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether it's reference count is greater than one).
+In the IR, the {name}`List.cons` case explicitly checks whether the argument value is shared (i.e. whether its reference count is greater than one).
 If the reference is unique, the reference count of the discarded list element `x_5` is decremented and the constructor value is reused.
 If it is shared, a new {name}`List.cons` is allocated in `x_11` for the result.
 :::
@@ -409,11 +410,11 @@ In the {tech (key := "application binary interface")}[ABI], Lean types are trans
 * {lean}`Char` is represented by {c}`uint32_t`.
 * {lean}`Float` is represented by {c}`double`.
 * {name}`Nat` and {name}`Int` are represented by {c}`lean_object *`.
-  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the "pointer" is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
+  Their runtime values is either a pointer to an opaque bignum object or, if the lowest bit of the “pointer” is 1 ({c}`lean_is_scalar`), an encoded natural number or integer ({c}`lean_box`/{c}`lean_unbox`).
 * A universe {lean}`Sort u`, type constructor {lean}`... → Sort u`, or proposition {lean}`p`​` :`{lean}` Prop` is {tech}[irrelevant] and is either statically erased (see above) or represented as a {c}`lean_object *` with the runtime value {c}`lean_box(0)`
 * The ABI for other inductive types that don't have special compiler support depends on the specifics of the type.
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
-  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the "Inductive types" section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
+  Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the “Inductive types” section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
   ```lean -show
   variable (u : Unit)
@@ -458,39 +459,45 @@ For all other modules imported by `lean`, the initializer is run without `builti
 In other words, {attr}`init` functions are run if and only if their module is imported, regardless of whether they have native code available, while {attr}`builtin_init` functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.
 
-The initializer for module `A.B` is called {c}`initialize_A_B` and will automatically initialize any imported modules.
-Module initializers are idempotent when run with the same `builtin` flag, but not thread-safe.
+The initializer for module `A.B` in a package `foo` is called {c}`initialize_foo_A_B`.
+For modules in the Lean core (e.g., {module}`Init.Prelude`), the initializer is called {c}`initialize_Init_Prelude`.
+Module initializers will automatically initialize any imported modules.
+They are also idempotent (when run with the same `builtin` flag), but not thread-safe.
+
+*Important for process-related functionality*: applications that use process-related functions from `libuv`, such as {name}`Std.Internal.IO.Process.getProcessTitle` and {name}`Std.Internal.IO.Process.setProcessTitle`, must call `lean_setup_args(argc, argv)` (which returns a potentially modified `argv` that must be used in place of the original) *before* calling `lean_initialize()` or `lean_initialize_runtime_module()`.
+This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.
+
 Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:
 ```c
 void lean_initialize_runtime_module();
 void lean_initialize();
-lean_object * initialize_A_B(uint8_t builtin, lean_object *);
-lean_object * initialize_C(uint8_t builtin, lean_object *);
+char ** lean_setup_args(int argc, char ** argv);
+
+lean_object * initialize_A_B(uint8_t builtin);
+lean_object * initialize_C(uint8_t builtin);
 ...
 
+argv = lean_setup_args(argc, argv); // if using process-related functionality
 lean_initialize_runtime_module();
-// Necessary (and replaces `lean_initialize_runtime_module`) for code that
-// (indirectly) accesses the `Lean` package:
+// necessary (and replaces `lean_initialize_runtime_module`) for code that (indirectly) accesses the `Lean` package:
 //lean_initialize();
 
 lean_object * res;
 // use same default as for Lean executables
 uint8_t builtin = 1;
-res = initialize_A_B(builtin, lean_io_mk_world());
+res = initialize_foo_A_B(builtin);
 if (lean_io_result_is_ok(res)) {
     lean_dec_ref(res);
 } else {
     lean_io_result_show_error(res);
     lean_dec(res);
-    // do not access Lean declarations if initialization failed
-    return ...;
+    return ...;  // do not access Lean declarations if initialization failed
 }
-res = initialize_C(builtin, lean_io_mk_world());
+res = initialize_bar_C(builtin);
 if (lean_io_result_is_ok(res)) {
 ...
 
-// Necessary for code that (indirectly) uses `Task`
-//lean_init_task_manager();
+//lean_init_task_manager();  // necessary for code that (indirectly) uses `Task`
 lean_io_mark_end_initialization();
 ```
 

@@ -693,7 +693,7 @@ tag := "tactic-ref-spred"
 :::tactic "mspec"
 :::
 
-:::tactic "mintro"
+:::tactic Lean.Parser.Tactic.mintroMacro
 :::
 
 :::tactic "mexact"

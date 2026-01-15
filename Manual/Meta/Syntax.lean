@@ -1467,7 +1467,7 @@ partial def grammar.descr : BlockDescr := withHighlighting {
           pure (str, {{<span class={{k}}>{{str}}</span>}})
       let (strs, toks) := toks.unzip
       if strs == #["…"] || strs == #["..."] then
-        -- Dont' add the item if it'd be useless for navigating the page
+        -- Don't add the item if it'd be useless for navigating the page
         pure #[]
       else
         pure #[(String.join strs.toList, {{<span class="syntax">{{toks}}</span>}})]

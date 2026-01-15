@@ -309,7 +309,7 @@ This discipline brings a number of benefits:
 : Much-improved average build times
 
   Changes to files that affect only non-exported information (e.g. proofs, comments, and docstrings) will not trigger rebuilds outside of these files.
-  Even when dependent files have to be rebuilt, those files that cannot be affected (as determiend by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
+  Even when dependent files have to be rebuilt, those files that cannot be affected (as determined by their {keywordOf Lean.Parser.Module.import}`import` annotations) can be skipped.
 
 : Control over API evolution
 
@@ -492,7 +492,7 @@ Private declaration `drop2` accessed publicly; this is allowed only because the 
 
 Disable `backward.privateInPublic.warn` to silence this warning.
 ```
-When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, it's name is inaccessible in the module {module}`L`:
+When the module is imported, references to {name}`f` use {name}`drop2` as a default argument value; however, its name is inaccessible in the module {module}`L`:
 ```leanModule (moduleName :=  L) (name := withPrivateInTerm)
 module
 import L.Defs
@@ -716,7 +716,7 @@ There is no meta-meta phase.
 In addition to making the imported module's public contents available at the meta phase, {keywordOf Parser.Module.import}`meta import` indicates that the current module should be rebuilt if the compiled representation of the imported module changes, ensuring that modified metaprograms are re-run.
 If a definition should be usable in both phases, then it must be defined in a separate module and imported at both phases.
 
-::::example "Cross-Phase Code Re-Use"
+::::example "Cross-Phase Code Reuse"
 :::leanModules +error
 In this module, the function {name}`toPalindrome` is defined in the meta phase, which allows it to be used in a macro but not in an ordinary definition:
 ```leanModule (moduleName := Phases) (name := bothPhases)

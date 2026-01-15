@@ -140,6 +140,8 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.BuildTools}
 
+{include 0 Manual.ValidatingProofs}
+
 {include 0 Manual.ErrorExplanations}
 
 {include 0 Manual.Releases}

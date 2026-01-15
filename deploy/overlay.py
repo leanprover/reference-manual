@@ -4,7 +4,7 @@ import os
 from release_utils import run_git_command, is_git_ancestor, find_latest_version, find_latest_stable_version
 from pathlib import Path
 
-def add_metadata(directory, version_name, extensions=(".html", ".htm")):
+def add_metadata(directory, version_name, site_dir, extensions=(".html", ".htm")):
     """
     Recursively walk through `directory`, find all HTML files,
     and insert extra elements at the beginning of `<head>`.
@@ -13,7 +13,8 @@ def add_metadata(directory, version_name, extensions=(".html", ".htm")):
 
     Args:
       directory (Path): The directory in which to recursively modify files
-      version_name (str): The version name of the reference manual, e.g. "4.25.0-rc2", "latest", "stable".
+      version_name (str): The version name (e.g. "4.25.0-rc2", "latest", "stable")
+      site_dir (str): The site directory for canonical URLs ("reference" or "tutorials")
     """
     for root, _, files in os.walk(directory):
         for filename in files:
@@ -24,7 +25,7 @@ def add_metadata(directory, version_name, extensions=(".html", ".htm")):
 
                 # Only edit if <head> exists and we haven't already added the meta tag
                 if "<head>" in content and 'name="robots"' not in content:
-                    href = f"https://lean-lang.org/doc/reference/{root}/{filename}".removesuffix("index.html")
+                    href = f"https://lean-lang.org/doc/{site_dir}/{root}/{filename}".removesuffix("index.html")
                     noindex = '' if version_name == "latest" else '\n<meta name="robots" content="noindex">'
                     new_content = content.replace(
                         "<head>",
@@ -45,9 +46,13 @@ def add_metadata(directory, version_name, extensions=(".html", ".htm")):
 #
 # See the README.md in this directory for more about the contract
 # that should be satisfied by how overlays change over time.
-def apply_overlays(deploy_dir):
+def apply_overlays(deploy_dir, site_dir):
     """
     Apply desired overlays inside current directory.
+
+    Args:
+        deploy_dir (str): Directory containing all versions
+        site_dir (str): The site directory for canonical URLs ("reference" or "tutorials")
     """
     latest_version = find_latest_version(deploy_dir)
     latest_stable_version = find_latest_stable_version(deploy_dir)
@@ -67,18 +72,19 @@ def apply_overlays(deploy_dir):
           file.write(content)
 
         # Add appropriate metadata to every file at every version
-        add_metadata(inner, str(inner))
+        add_metadata(inner, str(inner), site_dir)
 
-def deploy_overlays(deploy_dir, src_branch, tgt_branch):
+def deploy_overlays(deploy_dir, src_branch, tgt_branch, site_dir):
     """
     Apply desired overlays inside deploy_dir
     Args:
-        deploy_dir (str): Directory that contains all versions of the manual.
+        deploy_dir (str): Directory that contains all versions of the site.
         This is the content we expect to find at branch `src_branch`, and
         this function modifies it in place to produce a repository state
         suitable for committing to branch `tgt_branch`.
         src_branch (str): Git branch to apply overlays to
         tgt_branch (str): Git branch to commit to
+        site_dir (str): The site directory for canonical URLs ("reference" or "tutorials")
     """
     os.chdir(deploy_dir)
     # Save current git commit to restore later
@@ -88,7 +94,7 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch):
           raise Exception(f"Git merge will have bad behavior if {tgt_branch} is an ancestor of {src_branch}, try creating a vacuous commit on {tgt_branch} first.")
         run_git_command(["git", "switch", src_branch])
         print(f"Applying overlays...")
-        apply_overlays(deploy_dir)
+        apply_overlays(deploy_dir, site_dir)
         print(f"Creating merge commit...")
         # This is fragile but more specific than "git add ."
         run_git_command(["git", "add", "4*", "latest", "stable"])
@@ -115,16 +121,19 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch):
         run_git_command(["git", "switch", current_branch])
 
 def main():
-    parser = argparse.ArgumentParser(description="Applies overlays to a manual predeployment branch")
+    parser = argparse.ArgumentParser(description="Applies overlays to a site predeployment branch")
     parser.add_argument("deploy_dir", help="Directory to operate on")
     parser.add_argument("src_branch", help="Git branch to apply overlays to")
     parser.add_argument("tgt_branch", help="Git branch to commit to")
+    parser.add_argument("--site-dir", default="reference",
+                        choices=["reference", "tutorials"],
+                        help="Site directory for canonical URLs (default: reference)")
 
     args = parser.parse_args()
 
     print(f"Applying overlays to directory {args.deploy_dir} branch {args.src_branch} to produce {args.tgt_branch}")
 
-    deploy_overlays(args.deploy_dir, args.src_branch, args.tgt_branch)
+    deploy_overlays(args.deploy_dir, args.src_branch, args.tgt_branch, args.site_dir)
 
 if __name__ == "__main__":
     main()

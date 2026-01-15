@@ -106,7 +106,7 @@ Libraries, executables, and other {tech}[targets] within a package can further a
 :::tomlFieldCategory "Testing and Linting" testDriver testDriverArgs lintDriver lintDriverArgs
 
 The CLI commands {lake}`test` and {lake}`lint` use definitions configured by the {tech}[workspace]'s {tech}[root package] to perform testing and linting.
-The code that is run to perform tests and lits are referred to as the test or lint driver.
+The code that is run to perform tests and linting is referred to as the test or lint driver.
 In Lean configuration files, these can be specified by applying the `@[test_driver]` or `@[lint_driver]` attributes to a {tech}[Lake script] or an executable or library target.
 In both Lean and TOML configuration files, they can also be configured by setting these options.
 A target or script `TGT` from a dependency `PKG` can be specified as a test or lint driver using the string `"PKG/TGT"`
@@ -837,7 +837,7 @@ from git $t $[@ $t]? $[/ $t]?
 
 {tech}[Targets] are typically added to the set of default targets by applying the `default_target` attribute, rather than by explicitly listing them.
 :::TODO
-Fix `default_target` above - it's not working on CI, but it is working locally, with the `attr` role.
+Fix `default_target` above—it's not working on CI, but it is working locally, with the `attr` role.
 :::
 
 :::syntax attr (title := "Specifying Default Targets") (label := "attribute") (namespace := Lake.DSL)
@@ -1043,7 +1043,7 @@ The glob pattern `N.*` matches `N` or any submodule for which `N` is a prefix.
 $_:name".*"
 ```
 
-The glob pattern `N.*` matches any submodule for which `N` is a strict prefix, but not `N` itself.
+The glob pattern `N.+` matches any submodule for which `N` is a strict prefix, but not `N` itself.
 
 ```grammar
 $_:name".+"
