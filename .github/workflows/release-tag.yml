@@ -134,11 +134,13 @@ jobs:
                   echo "Making deployment from tag: '$TAG_NAME'"
 
                   python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" deploy
-                  # TODO: Add tutorials deployment when ready for production (requires new structure):
-                  # python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                  if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
+                      python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                  fi
 
             - name: Push deploy branch
               run: |
                   git push origin deploy
-                  # TODO: Push tutorials branch when ready for production:
-                  # git push origin deploy-tutorials
+                  if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
+                      git push origin deploy-tutorials
+                  fi

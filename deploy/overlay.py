@@ -93,6 +93,11 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch, site_dir):
         if is_git_ancestor(tgt_branch, src_branch):
           raise Exception(f"Git merge will have bad behavior if {tgt_branch} is an ancestor of {src_branch}, try creating a vacuous commit on {tgt_branch} first.")
         run_git_command(["git", "switch", src_branch])
+
+        if find_latest_version(deploy_dir) is None:
+            print(f"No version directories found on {src_branch}, nothing to overlay")
+            return
+
         print(f"Applying overlays...")
         apply_overlays(deploy_dir, site_dir)
         print(f"Creating merge commit...")

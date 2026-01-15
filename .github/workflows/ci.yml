@@ -161,7 +161,7 @@ jobs:
             - name: Generate HTML (non-release)
               if: github.event_name != 'release'
               run: |
-                  ./generate.sh --mode preview
+                  ./generate-html.sh --mode preview
 
             - name: Generate HTML (release)
               if: github.event_name == 'release'
@@ -181,7 +181,7 @@ jobs:
               if: github.event_name == 'pull_request'
               id: generate
               run: |
-                  ./generate.sh --mode preview --draft --output _out/draft-site
+                  ./generate-html.sh --mode preview --draft --output _out/draft-site
 
             - name: Report status to Lean PR
               if: always() && github.repository == 'leanprover/reference-manual'
