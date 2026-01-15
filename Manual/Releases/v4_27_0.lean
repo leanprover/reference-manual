@@ -230,11 +230,9 @@ These updates include some *breaking changes*, namely:
   form `x = f (g x)` and stack overflows, which can be fixed by
   generalizing over `g x`.
 
-# Changelog
+# Language
 
 ````markdown
-
-## Language
 
 * [#7965](https://github.com/leanprover/lean4/pull/7965) lets recursive functions defined by well-founded recursion use a
   different `fix` function when the termination measure is of type `Nat`.
@@ -494,7 +492,11 @@ These updates include some *breaking changes*, namely:
 * [#11657](https://github.com/leanprover/lean4/pull/11657) improves upon #11652 by keeping the kernel-reduction-optimized
   definition.
 
-## Library
+````
+
+# Library
+
+```markdown
 
 * [#8406](https://github.com/leanprover/lean4/pull/8406) adds lemmas of the form `getElem_swapIfInBounds*` and deprecates
   `getElem_swap'`.
@@ -748,7 +750,11 @@ These updates include some *breaking changes*, namely:
 * [#11654](https://github.com/leanprover/lean4/pull/11654) updates the `grind` docstring. It was still mentioning `cutsat`
   which has been renamed to `lia`. This issue was reported during ItaLean.
 
-## Tactics
+```
+
+# Tactics
+
+````markdown
 
 * [#11226](https://github.com/leanprover/lean4/pull/11226) finally removes the old `grind` framework `SearchM`. It has been
   replaced with the new `Action` framework.
@@ -1113,7 +1119,11 @@ These updates include some *breaking changes*, namely:
     [self : @ZeroMemClass S M inst1 inst2] (s : S) : 0 ∈ s
   ```
 
-## Compiler
+````
+
+# Compiler
+
+```markdown
 
 * [#11082](https://github.com/leanprover/lean4/pull/11082) prevents symbol clashes between (non-`@[export]`) definitions
   from different Lean packages.
@@ -1202,7 +1212,11 @@ These updates include some *breaking changes*, namely:
 
 * [#11586](https://github.com/leanprover/lean4/pull/11586) allows projections on `tagged` values in the IR type system.
 
-## Documentation
+```
+
+# Documentation
+
+```markdown
 
 * [#11119](https://github.com/leanprover/lean4/pull/11119) introduces a clarifying note to "undefined identifier" error
   messages when the undefined identifier is in a syntactic position where
@@ -1224,7 +1238,11 @@ These updates include some *breaking changes*, namely:
   `-Dlinter.all=false`, and explains how to enable specific linters when
   testing linter behavior.
 
-## Server
+```
+
+# Server
+
+```markdown
 
 * [#11162](https://github.com/leanprover/lean4/pull/11162) reduces the memory consumption of the language server (the
   watchdog process in particular). In Mathlib, it reduces memory
@@ -1238,7 +1256,11 @@ These updates include some *breaking changes*, namely:
   combinators. This is a purely visual change, incremental re-elaboration
   inside supported combinators was not affected.
 
-## Lake
+```
+
+# Lake
+
+```markdown
 
 * [#11198](https://github.com/leanprover/lean4/pull/11198) fixes an error message in Lake which suggested incorrect
   lakefile syntax.
@@ -1256,7 +1278,11 @@ These updates include some *breaking changes*, namely:
   use-specific variants (e.g., `Package.keyName`, `Package.prettyName`,
   `Package.origName`).
 
-## Other
+```
+
+# Other
+
+````markdown
 
 * [#11328](https://github.com/leanprover/lean4/pull/11328) fixes freeing memory accidentally retained for each document
   version in the language server on certain elaboration workloads. The
