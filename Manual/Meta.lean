@@ -36,6 +36,7 @@ import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
 import Manual.Meta.Namespace
+import Manual.Meta.SectionNotes
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets

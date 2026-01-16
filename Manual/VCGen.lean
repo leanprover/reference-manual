@@ -35,6 +35,10 @@ open Std.Do
 tag := "mvcgen-tactic"
 %%%
 
+:::tutorials
+ * {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `mvcgen`]
+:::
+
 The {tactic}`mvcgen` tactic implements a _monadic verification condition generator_:
 It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {tech}_verification conditions_ ({deftech}[VCs]) that are sufficient to prove the goal.
 In addition to a reference that describes the use of {tactic}`mvcgen`, this chapter includes a {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[tutorial] that can be read independently of the reference.

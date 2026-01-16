@@ -34,6 +34,7 @@ set_option verso.exampleModule "IndexMapGrind"
 #doc (Tutorial) "Using `grind` for Ordered Maps" =>
 %%%
 slug := "grind-index-map"
+tag := "grind-index-map"
 summary := "A demonstration of how to use `grind` to automate essentially all proofs in a new data structure, with an interface that finds proofs automatically."
 exampleStyle := .inlineLean `IndexMap
 %%%
