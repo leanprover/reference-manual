@@ -49,6 +49,8 @@ import Std.Data.HashSet
 import Std.Tactic.Do
 ```
 ```lean
+set_option mvcgen.warning false
+
 open Std.Do
 ```
 
