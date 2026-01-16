@@ -240,17 +240,17 @@ const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option = {
 /**
  * @type {DomainMapper}
  */
-const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech = {
+const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic_DOT_conv = {
     dataToSearchables:
       (domainData) =>
         Object.entries(domainData.contents).map(([key, value]) => ({
-          searchKey: value[0].data.term,
+          searchKey: value[0].data.userName,
           address: `${value[0].address}#${value[0].id}`,
-          domainId: 'Verso.Genre.Manual.doc.tech',
+          domainId: 'Verso.Genre.Manual.doc.tactic.conv',
           ref: value,
         })),
-    className: "tech-term-domain",
-    displayName: "Terminology",
+    className: "conv-tactic-domain",
+    displayName: "Conv Tactic",
     };
 
 /**
@@ -274,17 +274,17 @@ const Manual_DOT_Syntax_DOT_production = {
 /**
  * @type {DomainMapper}
  */
-const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic_DOT_conv = {
+const Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech = {
     dataToSearchables:
       (domainData) =>
         Object.entries(domainData.contents).map(([key, value]) => ({
-          searchKey: value[0].data.userName,
+          searchKey: value[0].data.term,
           address: `${value[0].address}#${value[0].id}`,
-          domainId: 'Verso.Genre.Manual.doc.tactic.conv',
+          domainId: 'Verso.Genre.Manual.doc.tech',
           ref: value,
         })),
-    className: "conv-tactic-domain",
-    displayName: "Conv Tactic",
+    className: "tech-term-domain",
+    displayName: "Terminology",
     };
 
 /**
@@ -336,11 +336,11 @@ export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
   "Verso.Genre.Manual.doc": Verso_DOT_Genre_DOT_Manual_DOT_doc,
   "Verso.Genre.Manual.doc.option":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_option,
-  "Verso.Genre.Manual.doc.tech":
-    Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech,
-  "Manual.Syntax.production": Manual_DOT_Syntax_DOT_production,
   "Verso.Genre.Manual.doc.tactic.conv":
     Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tactic_DOT_conv,
+  "Manual.Syntax.production": Manual_DOT_Syntax_DOT_production,
+  "Verso.Genre.Manual.doc.tech":
+    Verso_DOT_Genre_DOT_Manual_DOT_doc_DOT_tech,
   "Manual.elanCommand": Manual_DOT_elanCommand,
   "Manual.errorExplanation": Manual_DOT_errorExplanation
 };

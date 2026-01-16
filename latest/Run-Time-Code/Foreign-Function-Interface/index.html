@@ -205,7 +205,7 @@ div.TODO::before {
     padding-left: var(--verso--box-padding);
     padding-right: var(--verso--box-padding);
   }
-  </style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
+  </style><style>
 .hl.lean.tactic-view {
   white-space: collapse;
 }
@@ -228,7 +228,7 @@ div.TODO::before {
 }
 
 
-</style><style>
+</style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
 .namedocs {
   position: relative;
   border: solid 1px #98B2C0;
@@ -2559,26 +2559,26 @@ This support is, however, currently limited to transferring Lean data types; in 
               For simple examples of how to call foreign code from Lean and vice versa, see <a href="https://github.com/leanprover/lean4/tree/master/tests/lake/examples/ffi">the FFI</a> and <a href="https://github.com/leanprover/lean4/tree/master/tests/lake/examples/reverse-ffi">reverse FFI</a> examples in the Lean source repository.</p>
             <section>
               <h2 id="The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--The-Lean-ABI">
-                23.4.1. The Lean ABI</h2>
+                23.4.1. The Lean ABI<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--The-Lean-ABI" title="Permalink">🔗</a></span></h2>
               <p>
                 The Lean <span id="--tech-term-Application-Binary-Interface" class="def-technical-term"><em>Application Binary Interface</em></span> (ABI) describes how the signature of a Lean declaration is encoded in the platform-native calling convention.
 It is based on the standard C ABI and calling convention of the target platform.
-Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7603">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
+Lean declarations can be marked for interaction with foreign functions using either the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern "sym"</span></code>, which causes compiled code to use the C declaration <code class="c"><span class="name">sym</span></code> as the implementation, or the attribute <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7313">export sym</span></code>, which makes the declaration available as <code class="c"><span class="name">sym</span></code> to C.</p>
               <p>
                 In both cases, the C declaration's type is derived from the Lean type of the declaration with the attribute.
-Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="7604">α₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="7605">αₙ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="7606">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
+Let <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.87" data-verso-hover="7314">α₁</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="unknown token" data-binding="">...</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.90" data-verso-hover="7315">αₙ</span><span class="inter-text"> </span><span class="unknown token" data-binding="">→</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.93" data-verso-hover="7316">β</span></code> be the declaration's <a class="technical-term" href="The-Type-System/#--tech-term-normal-form">normalized</a> type.
 If <code>n</code> is 0, the corresponding C declaration is</p>
               <pre class="c"><span class="kw">extern</span> <span class="name">s</span> <span class="name">sym</span>;
 </pre><p>
                 where <code class="c"><span class="name">s</span></code> is the C translation of <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.115" data-verso-hover="110">β</span></code> as specified in <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-types">the next section</a>.
-In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
+In the case of a definition marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code>, the symbol's value is only guaranteed to be initialized after calling the Lean module's initializer or that of an importing module.
 The section on <a href="Run-Time-Code/Foreign-Function-Interface/#ffi-initialization">initialization</a> describes initializers in greater detail.</p>
               <p>
                 If <code>n</code> is greater than 0, the corresponding C declaration is</p>
               <pre class="c"><span class="name">s</span> <span class="name">sym</span><span class="brack">(</span><span class="name">t</span>₁, ..., <span class="name">t</span>ₙ<span class="brack">)</span>;
 </pre><p>
-                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.130" data-verso-hover="5477">αᵢ</span></code>.
-In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
+                where the parameter types <code>tᵢ</code> are the C translations of the types <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.130" data-verso-hover="5173">αᵢ</span></code>.
+In the case of <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code>, all <a class="technical-term" href="The-Type-System/Inductive-Types/#--tech-term-irrelevant">irrelevant</a> types are removed first.</p>
               <section>
                 <h3 id="ffi-types">
                   23.4.1.1. Translating Types from Lean to C<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-types" title="Permalink">🔗</a></span></h3>
@@ -2623,7 +2623,7 @@ In the case of <code class="hl lean inline" data-lean-context="examples"><span c
                 <h3 id="ffi-borrowing">
                   23.4.1.2. Borrowing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=ffi-borrowing" title="Permalink">🔗</a></span></h3>
                 <p>
-                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
+                  By default, all <code class="c"><span class="type">lean_object *</span></code> parameters of an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code> function are considered <span id="--tech-term-owned" class="def-technical-term"><em>owned</em></span>.
 The external code is passed a “virtual RC token” and is responsible for passing this token along to another consuming function (exactly once) or freeing it via <code class="c"><span class="name">lean_dec</span></code>.
 To reduce reference counting overhead, parameters can be marked as <span id="--tech-term-borrowed" class="def-technical-term"><em>borrowed</em></span> by prefixing their type with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.borrowed : term</code><span class="sep"></span><code class="docstring">Indicates that an argument to a function marked `@[extern]` is borrowed.
 
@@ -2665,17 +2665,17 @@ Module initialization entails:</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7607">init</span></code> attribute, and</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7317">init</span></code> attribute, and</p>
                   </li>
                 <li>
                   <p>
-                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7607">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
+                    execution of all code marked with the <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7317">builtin_init</span></code> attribute, if the <code>builtin</code> parameter of the module initializer has been set.</p>
                   </li>
                 </ul>
               <p>
                 The module initializer is automatically run with the <code>builtin</code> flag for executables compiled from Lean code and for “plugins” loaded with <code>lean --plugin</code>.
 For all other modules imported by <code>lean</code>, the initializer is run without <code>builtin</code>.
-In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7607">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7607">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
+In other words, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7317">init</span></code> functions are run if and only if their module is imported, regardless of whether they have native code available, while <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7317">builtin_init</span></code> functions are only run for native executable or plugins, regardless of whether their module is imported.
 The Lean compiler uses built-in initializers for purposes such as registering basic parsers that should be available even without importing their module, which is necessary for bootstrapping.</p>
               <p>
                 The initializer for module <code>A.B</code> in a package <code>foo</code> is called <code class="c"><span class="name">initialize_foo_A_B</span></code>.
@@ -2683,7 +2683,7 @@ For modules in the Lean core (e.g., <code>Init.Prelude</code>), the initializer 
 Module initializers will automatically initialize any imported modules.
 They are also idempotent (when run with the same <code>builtin</code> flag), but not thread-safe.</p>
               <p>
-                <strong>Important for process-related functionality</strong>: applications that use process-related functions from <code>libuv</code>, such as <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.Internal.IO.Process.getProcessTitle" data-verso-hover="7608">Std.Internal.IO.Process.getProcessTitle</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.Internal.IO.Process.setProcessTitle" data-verso-hover="7609">Std.Internal.IO.Process.setProcessTitle</span></code>, must call <code>lean_setup_args(argc, argv)</code> (which returns a potentially modified <code>argv</code> that must be used in place of the original) <strong>before</strong> calling <code>lean_initialize()</code> or <code>lean_initialize_runtime_module()</code>.
+                <strong>Important for process-related functionality</strong>: applications that use process-related functions from <code>libuv</code>, such as <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.Internal.IO.Process.getProcessTitle" data-verso-hover="7318">Std.Internal.IO.Process.getProcessTitle</span></code> and <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-Std.Internal.IO.Process.setProcessTitle" data-verso-hover="7319">Std.Internal.IO.Process.setProcessTitle</span></code>, must call <code>lean_setup_args(argc, argv)</code> (which returns a potentially modified <code>argv</code> that must be used in place of the original) <strong>before</strong> calling <code>lean_initialize()</code> or <code>lean_initialize_runtime_module()</code>.
 This sets up process handling capabilities correctly, which is essential for certain system-level operations that Lean's runtime may depend on.</p>
               <p>
                 Together with initialization of the Lean runtime, code like the following should be run exactly once before accessing any Lean declarations:</p>
@@ -2726,9 +2726,9 @@ This sets up process handling capabilities correctly, which is essential for cer
 </pre></section>
             <section>
               <h2 id="The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--____LSQ_extern_RSQ_--in-the-Interpreter">
-                23.4.3. <code>@[extern]</code> in the Interpreter</h2>
+                23.4.3. <code>@[extern]</code> in the Interpreter<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Run-Time-Code--Foreign-Function-Interface--____LSQ_extern_RSQ_--in-the-Interpreter" title="Permalink">🔗</a></span></h2>
               <p>
-                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code>.
+                The Lean interpreter can run Lean declarations for which symbols are available in loaded shared libraries, which includes declarations that are marked <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code>.
 To run this code (e.g. with <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Command.eval : command</code><span class="sep"></span><code class="docstring">`#eval e` evaluates the expression `e` by compiling and evaluating it.
 
 * The command attempts to use `ToExpr`, `Repr`, or `ToString` instances to print the result.
@@ -2763,8 +2763,8 @@ See also: `#reduce e` for evaluation by term reduction.
                   </li>
                 </ol>
               <p>
-                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code> declaration.
-Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7602">extern</span></code> declaration in the same file.
+                It is not sufficient to load the foreign library containing the external symbol because the interpreter depends on code that is emitted for each <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code> declaration.
+Thus it is not possible to interpret an <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="7312">extern</span></code> declaration in the same file.
 The Lean source repository contains an example of this usage in <a href="https://github.com/leanprover/lean4/tree/master/tests/compiler/foreign/"><code>tests/compiler/foreign</code></a>.
 </p>
               </section>

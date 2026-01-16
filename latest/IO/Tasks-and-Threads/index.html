@@ -205,7 +205,7 @@ div.TODO::before {
     padding-left: var(--verso--box-padding);
     padding-right: var(--verso--box-padding);
   }
-  </style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
+  </style><style>
 .hl.lean.tactic-view {
   white-space: collapse;
 }
@@ -228,7 +228,7 @@ div.TODO::before {
 }
 
 
-</style><style>
+</style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
 .namedocs {
   position: relative;
   border: solid 1px #98B2C0;
@@ -2660,7 +2660,7 @@ window.addEventListener("load", () => {
               15.11. Tasks and Threads<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=concurrency" title="Permalink">🔗</a></span></h1>
             <p>
               <span id="--tech-term-Tasks" class="def-technical-term"><em>Tasks</em></span> are the fundamental primitive for writing multi-threaded code.
-A <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task" title="Documentation for Task"><span class="const token" data-binding="const-Task" data-verso-hover="3471">Task</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span></code> represents a computation that, at some point, will <span id="--tech-term-resolve" class="def-technical-term"><em>resolve</em></span> to a value of type <code>α</code>; it may be computed on a separate thread.
+A <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task" title="Documentation for Task"><span class="const token" data-binding="const-Task" data-verso-hover="3471">Task</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.2" data-verso-hover="58">α</span></code> represents a computation that, at some point, will <a class="technical-term" href="IO/Tasks-and-Threads/#--tech-term-resolving-next"><em>resolve</em></a> to a value of type <code>α</code>; it may be computed on a separate thread.
 When a task has resolved, its value can be read; attempting to get the value of a task before it resolves causes the current thread to block until the task has resolved.
 Tasks are similar to promises in JavaScript, <code>JoinHandle</code> in Rust, and <code>Future</code> in Scala.</p>
             <p>
@@ -2696,13 +2696,13 @@ possibly being computed on another thread. This is similar to <code class="hl le
               </div>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks">
-                15.11.1. Creating Tasks</h2>
+                15.11.1. Creating Tasks<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks" title="Permalink">🔗</a></span></h2>
               <p>
                 Pure tasks should typically be created with <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___spawn" title="Documentation for Task.spawn"><span class="const token" data-binding="const-Task.spawn" data-verso-hover="3472">Task.spawn</span></a></code>, as <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___pure" title="Documentation for Task.pure"><span class="const token" data-binding="const-Task.pure" data-verso-hover="3478">Task.pure</span></a></code> is a task that's already been resolved with the provided value.
 Impure tasks are created by one of the <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#BaseIO___asTask" title="Documentation for BaseIO.asTask"><span class="const token" data-binding="const-BaseIO.asTask" data-verso-hover="3473">asTask</span></a></code> actions.</p>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Pure-Tasks">
-                  15.11.1.1. Pure Tasks</h3>
+                  15.11.1.1. Pure Tasks<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Pure-Tasks" title="Permalink">🔗</a></span></h3>
                 <p>
                   Pure tasks may be created outside the <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a></code> family of monads.
 They are terminated when the last reference to them is dropped.</p>
@@ -2730,7 +2730,7 @@ evaluating the function <code class="hl lean inline" data-lean-context="docstrin
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Impure-Tasks">
-                  15.11.1.2. Impure Tasks</h3>
+                  15.11.1.2. Impure Tasks<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Impure-Tasks" title="Permalink">🔗</a></span></h3>
                 <p>
                   When spawning a task with side effects using one of the <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#IO___asTask" title="Documentation for IO.asTask"><span class="const token" data-binding="const-IO.asTask" data-verso-hover="3262">asTask</span></a></code> functions, it's important to actually execute the resulting <code class="hl lean inline" data-lean-context="examples"><a href="IO/Logical-Model/#IO" title="Documentation for IO"><span class="const token" data-binding="const-IO" data-verso-hover="2">IO</span></a></code> action.
 A task is spawned each time the resulting action is executed, not when <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#IO___asTask" title="Documentation for IO.asTask"><span class="const token" data-binding="const-IO.asTask" data-verso-hover="3262">asTask</span></a></code> is called.
@@ -2799,7 +2799,7 @@ dropped.</p>
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Priorities">
-                  15.11.1.3. Priorities</h3>
+                  15.11.1.3. Priorities<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Creating-Tasks--Priorities" title="Permalink">🔗</a></span></h3>
                 <p>
                   Task priorities are used by the thread scheduler to assign tasks to threads.
 Within the priority range <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___Priority___default" title="Documentation for Task.Priority.default"><span class="const token" data-binding="const-Task.Priority.default" data-verso-hover="3480">default</span></a></code>–<code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___Priority___max" title="Documentation for Task.Priority.max"><span class="const token" data-binding="const-Task.Priority.max" data-verso-hover="3481">max</span></a></code>, higher-priority tasks always take precedence over lower-priority tasks.
@@ -2844,7 +2844,7 @@ than the number of cores to reduce context switches.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Task-Results">
-                15.11.2. Task Results</h2>
+                15.11.2. Task Results<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Task-Results" title="Permalink">🔗</a></span></h2>
               <div class="namedocs" id="Task___get">
                 <span class="permalink-widget block"><a href="find/?domain=Verso.Genre.Manual.doc&amp;name=Task.get" title="Permalink">🔗</a></span><span class="label">def</span><pre class="signature hl lean block"><div class="wide-only"><span class="unknown token" data-binding="">Task.get.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.888" data-verso-hover="3482">self</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Tasks-and-Threads/#Task" title="Documentation for Task"><span class="const token" data-binding="const-Task" data-verso-hover="3471">Task</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span></div><div class="narrow-only"><span class="unknown token" data-binding="">Task.get.{u}</span><span class="inter-text"> </span><span class="unknown token" data-binding="">{</span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="sort token" data-binding="sort-7243200735919010059" data-verso-hover="52">Type u</span><span class="unknown token" data-binding="">}</span><span class="inter-text">
   </span><span class="unknown token" data-binding="">(</span><span class="var token" data-binding="var-_uniq.888" data-verso-hover="3482">self</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><a href="IO/Tasks-and-Threads/#Task" title="Documentation for Task"><span class="const token" data-binding="const-Task" data-verso-hover="3471">Task</span></a><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span><span class="unknown token" data-binding="">)</span><span class="inter-text"> </span><span class="unknown token" data-binding="">:</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.887" data-verso-hover="58">α</span></div></pre><div class="text">
@@ -2883,7 +2883,7 @@ waited-upon task should instead be returned and unwrapped using <code class="hl 
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Sequencing-Tasks">
-                15.11.3. Sequencing Tasks</h2>
+                15.11.3. Sequencing Tasks<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Sequencing-Tasks" title="Permalink">🔗</a></span></h2>
               <p>
                 These operators create new tasks from old ones.
 When possible, it's good to use <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___map" title="Documentation for Task.map"><span class="const token" data-binding="const-Task.map" data-verso-hover="3483">Task.map</span></a></code> or <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___bind" title="Documentation for Task.bind"><span class="const token" data-binding="const-Task.bind" data-verso-hover="3484">Task.bind</span></a></code> instead of manually calling <code class="hl lean inline" data-lean-context="examples"><a href="IO/Tasks-and-Threads/#Task___get" title="Documentation for Task.get"><span class="const token" data-binding="const-Task.get" data-verso-hover="3267">Task.get</span></a></code> in a new task because they don't temporarily increase the size of the thread pool.</p>
@@ -3186,7 +3186,7 @@ terminated or otherwise react to the last reference being dropped.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Cancellation-and-Status">
-                15.11.4. Cancellation and Status</h2>
+                15.11.4. Cancellation and Status<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Cancellation-and-Status" title="Permalink">🔗</a></span></h2>
               <p>
                 Impure tasks should use <code>IO.checkCanceled</code> to react to cancellation, which occurs either as a result of <code>IO.cancel</code> or when the last reference to the task is dropped.
 Pure tasks are terminated automatically upon cancellation.</p>
@@ -3263,7 +3263,7 @@ the task will not block.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Promises">
-                15.11.5. Promises</h2>
+                15.11.5. Promises<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Promises" title="Permalink">🔗</a></span></h2>
               <p>
                 Promises represent a value that will be supplied in the future.
 Supplying the value is called <span id="--tech-term-resolving-next" class="def-technical-term"><em>resolving</em></span> the promise.
@@ -3359,14 +3359,14 @@ When in doubt, always prefer <code class="hl lean inline" data-lean-context="doc
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks">
-                15.11.6. Communication Between Tasks</h2>
+                15.11.6. Communication Between Tasks<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks" title="Permalink">🔗</a></span></h2>
               <p>
                 In addition to the types and operations described in this section, <code class="hl lean inline" data-lean-context="examples"><a href="IO/Mutable-References/#IO___Ref" title="Documentation for IO.Ref"><span class="const token" data-binding="const-IO.Ref" data-verso-hover="3249">IO.Ref</span></a></code> can be used as a lock.
 Taking the reference (using <code class="hl lean inline" data-lean-context="examples"><a href="IO/Mutable-References/#ST___Ref___take" title="Documentation for ST.Ref.take"><span class="const token" data-binding="const-ST.Ref.take" data-verso-hover="3274">take</span></a></code>) causes other threads to block when reading until the reference is <code class="hl lean inline" data-lean-context="examples"><a href="IO/Mutable-References/#ST___Ref___set" title="Documentation for ST.Ref.set"><span class="const token" data-binding="const-ST.Ref.set" data-verso-hover="3256">set</span></a></code> again.
 This pattern is described in <a href="IO/Mutable-References/#ref-locks">the section on reference cells</a>.</p>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Channels">
-                  15.11.6.1. Channels</h3>
+                  15.11.6.1. Channels<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Channels" title="Permalink">🔗</a></span></h3>
                 <p>
                   The types and functions in this section are available after importing <code>Std.Sync.Channel</code>.</p>
                 <div class="namedocs" id="Std___Channel">
@@ -3505,7 +3505,7 @@ In particular, there is an instance of type <code class="hl lean inline" data-le
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Mutexes">
-                  15.11.6.2. Mutexes</h3>
+                  15.11.6.2. Mutexes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Mutexes" title="Permalink">🔗</a></span></h3>
                 <p>
                   The types and functions in this section are available after importing <code>Std.Sync.Mutex</code>.</p>
                 <div class="namedocs" id="Std___Mutex">
@@ -3570,7 +3570,7 @@ The action has access to the state <code class="hl lean inline" data-lean-contex
                 </section>
               <section>
                 <h3 id="The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Condition-Variables">
-                  15.11.6.3. Condition Variables</h3>
+                  15.11.6.3. Condition Variables<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--IO--Tasks-and-Threads--Communication-Between-Tasks--Condition-Variables" title="Permalink">🔗</a></span></h3>
                 <p>
                   The types and functions in this section are available after importing <code>Std.Sync.Mutex</code>.</p>
                 <div class="namedocs" id="Std___Condvar">
