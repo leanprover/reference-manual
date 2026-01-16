@@ -48,6 +48,11 @@ import Std.Data.HashSet
 ```imports
 import Std.Tactic.Do
 ```
+:::codeOnly
+```lean
+set_option mvcgen.warning false
+```
+:::
 ```lean
 open Std.Do
 ```
