@@ -1,5 +1,12 @@
 name: Apply Overlays
 
+# This workflow applies HTML overlays (canonical URLs, robots noindex, metadata.js) to
+# deployed content and pushes to the postdeploy branches.
+#
+# In normal operation, the workflow_run trigger fires when release-tag.yml completes.
+# Pushes made by release-tag.yml using GITHUB_TOKEN do NOT trigger the push events
+# (GitHub prevents this to avoid infinite loops).
+
 on:
     workflow_run:
         workflows: ["Deploy Tagged Version"]
