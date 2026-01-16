@@ -103,8 +103,11 @@ def deploy_overlays(deploy_dir, src_branch, tgt_branch, site_dir):
         print(f"Applying overlays...")
         apply_overlays(deploy_dir, site_dir)
         print(f"Creating merge commit...")
-        # This is fragile but more specific than "git add ."
-        run_git_command(["git", "add", "4*", "latest", "stable"])
+        # Add version directories and aliases (stable may not exist for RC releases)
+        add_paths = ["4*", "latest"]
+        if Path("stable").exists():
+            add_paths.append("stable")
+        run_git_command(["git", "add"] + add_paths)
         # We create the overlay commit based on src_branch...
         run_git_command(["git", "commit", "-m", "overlay.py: apply overlays"])
         # ...but we actually want to add it to the history of
