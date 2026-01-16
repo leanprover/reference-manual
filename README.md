@@ -128,8 +128,8 @@ The files are:
 - `build.sh` is used to build the executable that generates the
   manual.
 
-- `generate.sh` builds both the reference manual and tutorials,
-  saving them in `/html/site/reference` and `/html/site/tutorials`.
+- `generate.sh` builds both the reference manual and tutorials, saving
+  them in `/html/site/reference` and `/html/site/tutorials`.
 
 - `release.py` puts the generated HTML in the right place on a new
   commit on a deployment branch (`deploy` for the reference manual,
@@ -156,13 +156,19 @@ The goal is to have versioned snapshots of both the reference manual
 and tutorials, with a structure like:
 
 - `https://lean-lang.org/doc/reference/latest/` - latest version
-- `https://lean-lang.org/doc/reference/stable/` - latest stable version
-- `https://lean-lang.org/doc/reference/4.19.0/` - reference for v4.19.0
-- `https://lean-lang.org/doc/reference/4.20.0/` - reference for v4.20.0
+- `https://lean-lang.org/doc/reference/stable/` - latest stable
+  version
+- `https://lean-lang.org/doc/reference/4.19.0/` - reference for
+  v4.19.0
+- `https://lean-lang.org/doc/reference/4.20.0/` - reference for
+  v4.20.0
 - `https://lean-lang.org/doc/tutorials/latest/` - latest tutorials
-- `https://lean-lang.org/doc/tutorials/stable/` - latest stable tutorials
-- `https://lean-lang.org/doc/tutorials/4.19.0/` - tutorials for v4.19.0
-- `https://lean-lang.org/doc/tutorials/4.20.0/` - tutorials for v4.20.0
+- `https://lean-lang.org/doc/tutorials/stable/` - latest stable
+  tutorials
+- `https://lean-lang.org/doc/tutorials/4.19.0/` - tutorials for
+  v4.19.0
+- `https://lean-lang.org/doc/tutorials/4.20.0/` - tutorials for
+  v4.20.0
 
 and so forth. The base URLs should redirect to `latest`. It's
 important to be able to edit past deployments as well.
@@ -193,8 +199,8 @@ deployment branch name as arguments, and then does the following:
     RCs.
 3.  It updates the `stable` directory to be a copy of the most recent
     non-RC version.
-4.  It commits the changes to the deployment branch, then switches back
-    to the original branch.
+4.  It commits the changes to the deployment branch, then switches
+    back to the original branch.
 
 A successful push to `deploy` triggers a GH action that runs the
 `overlay.py` script, which creates commits to `postdeploy` (based on
@@ -212,8 +218,8 @@ GH Action which publishes the content to Netlify.
 The script `overlay.py` computes `postdeploy` from `deploy` any time
 `deploy` changes, and `postdeploy-tutorials` from `deploy-tutorials`
 any time `deploy-tutorials` changes. Its purpose is to add metadata or
-make in-place changes to deployed content that is best thought of as
-a unified overlay on top of the data that exists at the historical
+make in-place changes to deployed content that is best thought of as a
+unified overlay on top of the data that exists at the historical
 version tags.
 
 Examples of the sorts of things we might like to achieve with this
