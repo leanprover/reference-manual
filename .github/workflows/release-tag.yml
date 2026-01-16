@@ -115,7 +115,11 @@ jobs:
             - name: Detect deployment structure
               id: detect-structure
               run: |
-                  # Check if we have the new combined site structure or old single-site structure
+                  # Check if we have the new combined site structure or old single-site structure.
+                  # The single-site structure is used for older builds that don't have tutorials.
+                  # Because this workflow runs on tag push, it runs in the context of the tagged
+                  # commit; after tutorial deployments are confirmed working, we can get rid of this
+                  # conditional and just assume the new structure in this workflow.
                   if [ -d "html/site/reference" ]; then
                       STRUCTURE="new"
                       REFERENCE_DIR="html/site/reference"
@@ -134,11 +138,13 @@ jobs:
                   echo "Making deployment from tag: '$TAG_NAME'"
 
                   python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" deploy
-                  # TODO: Add tutorials deployment when ready for production (requires new structure):
-                  # python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                  if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
+                      python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                  fi
 
             - name: Push deploy branch
               run: |
                   git push origin deploy
-                  # TODO: Push tutorials branch when ready for production:
-                  # git push origin deploy-tutorials
+                  if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
+                      git push origin deploy-tutorials
+                  fi

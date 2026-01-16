@@ -6,7 +6,6 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Imports
 import Manual.Meta.LzCompress
 import Lean.Elab.InfoTree.Types
 
