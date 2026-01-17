@@ -35,7 +35,7 @@ set_option verso.exampleModule "IndexMapGrind"
 %%%
 slug := "grind-index-map"
 tag := "grind-index-map"
-summary := "A demonstration of how to use `grind` to automate essentially all proofs in a new data structure, with an interface that finds proofs automatically."
+summary := inlines!"A demonstration of how to use {tactic}`grind` to automate essentially all proofs in a new data structure. The resulting API finds proofs automatically, allowing code that is both safe and convenient."
 exampleStyle := .inlineLean `IndexMap
 %%%
 

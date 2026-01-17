@@ -32,7 +32,7 @@ set_option mvcgen.warning false
 %%%
 tag := "mvcgen-tactic-tutorial"
 slug := "mvcgen"
-summary := "A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
+summary := inlines!"A demonstration of how to use Lean's verification condition generator to conveniently and compositionally prove properties of monadic programs."
 exampleStyle := .inlineLean `MVCGenTutorial
 %%%
 
