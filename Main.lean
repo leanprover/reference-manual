@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2024 Lean FRO LLC. All rights reserved.
+Copyright (c) 2024-2025 Lean FRO LLC. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: David Thrane Christiansen
 -/
@@ -44,7 +44,7 @@ where
     extraFiles := [("static", "static")],
     extraHead := #[plausible, staticJs, staticCss],
     emitTeX := false,
-    emitHtmlSingle := true, -- for proofreading
+    emitHtmlSingle := .no, -- for proofreading
     logo := some "/static/lean_logo.svg",
     sourceLink := some "https://github.com/leanprover/reference-manual",
     issueLink := some "https://github.com/leanprover/reference-manual/issues",

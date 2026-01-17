@@ -308,7 +308,7 @@ Single-character flags cannot be combined; `-HR` is not equivalent to `-H -R`.
 
 :  {lakeOptDef flag}`--reconfigure` or {lakeOptDef flag}`-R`
 
-  Normally, the {tech}[package configuration] file is {tech (key := "elaborator")}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
+  Normally, the {tech}[package configuration] file is {tech (key := "elaborator") -normalize}[elaborated] when a package is first configured, with the result cached to a {tech}[`.olean` file] that is used for future invocations until the package configuration
   Providing this flag causes the configuration file to be re-elaborated.
 
 : {lakeOptDef flag}`--keep-toolchain`
@@ -956,13 +956,13 @@ They are likely change in future versions of Lake based on user feedback.
 Packages that use Reservoir cloud build archives should enable the {tomlField Lake.PackageConfig}`platformIndependent` setting.
 
 ```lakeHelp "pack"
-Pack build artifacts into a archive for distribution
+Pack build artifacts into an archive for distribution
 
 USAGE:
   lake pack [<file.tgz>]
 
 Packs the root package's `buildDir` into a gzip tar archive using `tar`.
-If a path for the archive is not specified, creates a archive in the package's
+If a path for the archive is not specified, creates an archive in the package's
 Lake directory (`.lake`) named according to its `buildArchive` setting.
 
 Does NOT build any artifacts. It just packs the existing ones.

@@ -35,8 +35,8 @@ import Manual.Meta.Syntax
 import Manual.Meta.Tactics
 import Manual.Meta.SpliceContents
 import Manual.Meta.Markdown
-import Manual.Meta.Imports
 import Manual.Meta.Namespace
+import Manual.Meta.SectionNotes
 
 
 open Verso ArgParse Doc Elab Genre.Manual Html Code Highlighted.WebAssets
@@ -392,6 +392,15 @@ def ffi.descr : BlockDescr where
   toTeX := some <| fun _goI goB _ _ contents =>
     contents.mapM goB -- TODO
 
+open Verso.Output.Html in
+inline_extension Inline.multiCode where
+  traverse _ _ _ := pure none
+  toHtml := some <| fun goI _id _data contents => do return {{<span class="multi-code">{{← contents.mapM goI}}</span>}}
+  toTeX := none
+
+@[role]
+def multiCode : RoleExpanderOf Unit
+  | (), contents => do ``(Inline.other Inline.multiCode #[$(← contents.mapM elabInline),*])
 
 
 structure LeanSectionConfig where

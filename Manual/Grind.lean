@@ -52,6 +52,10 @@ open Manual (comment)
 tag := "grind-tactic"
 %%%
 
+:::tutorials
+ * {ref "grind-index-map" (remote := "tutorials")}[Using `grind` for Ordered Maps]
+:::
+
 ```lean -show
 -- Open some namespaces for the examples.
 open Lean Lean.Grind Lean.Meta.Grind

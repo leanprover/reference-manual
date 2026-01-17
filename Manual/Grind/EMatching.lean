@@ -32,7 +32,7 @@ Each fact added to the whiteboard by E-matching is referred to as an {deftech (k
 Annotating theorems for E-matching, thus adding them to the index, is essential for enabling {tactic}`grind` to make effective use of a library.
 
 In addition to user-specified theorems, {tactic}`grind` uses automatically generated equations for {keywordOf Lean.Parser.Term.match}`match`-expressions as E-matching theorems.
-Behind the scenes, the {tech}[elaborator] generates auxiliary functions that implement pattern matches, along with equational theorems that specify their behavior.
+Behind the scenes, the {tech (key := "Lean elaborator")}[elaborator] generates auxiliary functions that implement pattern matches, along with equational theorems that specify their behavior.
 Using these equations with E-matching enables {tactic}`grind` to reduce these instances of pattern matching.
 
 
