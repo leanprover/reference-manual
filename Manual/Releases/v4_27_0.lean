@@ -17,6 +17,7 @@ open Verso.Genre.Manual.InlineLean
 
 open Std.Iterators
 open Std (TreeMap)
+open Std (Iterator Iter IterM IteratorLoop)
 open Std (HashMap)
 
 #doc (Manual) "Lean 4.27.0-rc1 (2025-12-14)" =>

@@ -31,7 +31,7 @@ def tutorials : Tutorials where
   (verso (Page) "Tutorials"
    :::::::
    These tutorials cover version {version}[] of Lean.
-   While the {manualLink}[reference manual] describes the system and its features in detail, these tutorials introduce one specific aspect.
+   While the {manualLink}[reference manual] describes the system and its features in detail, these tutorials provide focused introductions to specific tools.
    :::::::).toPart
 
   topics := #[
