@@ -99,3 +99,20 @@ target figures : Array FilePath := do
 lean_exe "generate-manual" where
   needs := #[`@/figures, `@/subversoExtractMod]
   root := `Main
+
+@[default_target]
+lean_lib Tutorial where
+
+@[default_target]
+lean_exe "generate-tutorials" where
+  root := `TutorialMain
+
+def lakeExe (prog : String) (args : Array String) : IO Unit := do
+  IO.println s!"Running {prog} with args {args}"
+  -- Using spawn and wait here causes the process to inherit stdio streams from Lake, so output is immediately visible
+  let code ← IO.Process.Child.wait <| (← IO.Process.spawn { cmd := "lake", args := #["--quiet", "exe", prog] ++ args })
+  if code ≠ 0 then
+    let code' := code.toUInt8
+    let code := if code' ≠ 0 then code' else 1
+    IO.eprintln s!"Failed to run {prog} with args {args}"
+    IO.Process.exit code
