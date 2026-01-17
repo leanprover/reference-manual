@@ -6,7 +6,6 @@ Author: David Thrane Christiansen
 
 import VersoManual
 import Manual.Meta.Figure
-import Manual.Meta.Imports
 import Manual.Meta.LzCompress
 import Lean.Elab.InfoTree.Types
 
@@ -75,7 +74,7 @@ structure LeanBlockContent where
 def getLeanBlockContents? : TSyntax `block → DocElabM (LeanBlockContent)
   | `(block|```$nameStx:ident $args*|$contents:str```) => do
     let name ← realizeGlobalConstNoOverload nameStx
-    if name == ``Manual.imports then
+    if name == ``Verso.Genre.Manual.imports then
       return { content := some contents.getString, shouldElab := false }
     if name != ``Verso.Genre.Manual.InlineLean.lean then
       return { content := none, shouldElab := false }
