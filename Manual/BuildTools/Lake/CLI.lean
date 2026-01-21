@@ -749,7 +749,7 @@ ANNOTATIONS:
     Preserves this specific import
 ```
 
-::::lake shake "[options] [module ...]"
+::::lake shake "[options...] [module ...]"
 
 Checks the current project for unused imports by analyzing generated {tech}[`.olean` files] to deduce required imports, ensuring that every import contributes some constant or other elaboration dependency.
 
@@ -772,7 +772,7 @@ Source files can contain special comments to control the behavior of {lake}`shak
 :::
 
 :::paragraph
-The options may be:
+The {lakeMeta}`options` may be:
 
 : `--force`
 
