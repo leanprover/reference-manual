@@ -228,7 +228,7 @@ div.TODO::before {
 }
 
 
-</style><style>
+</style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
 .namedocs {
   position: relative;
   border: solid 1px #98B2C0;
@@ -1338,6 +1338,68 @@ table.tabular td > p:first-child, table.tabular th > p:first-child {
 table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
+</style><style>
+.section-note .note {
+  position: relative;
+  padding: 0.5rem;
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+
+.section-note .note > h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.section-note .note > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .section-note .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    width: calc(50% - 2rem);
+    min-width: 12rem;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .section-note .note {
+    float: left;
+    clear: left;
+    width: calc(100% - 2rem);
+    margin: 1rem 0;
+  }
+}
+
 </style><style>
 .syntax-error {
   white-space: normal;
@@ -2482,11 +2544,11 @@ window.addEventListener("load", () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-notes" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-notes" checked="checked"></label><span class="unnumbered"></span><span class=""><a href="releases/#release-notes">Release Notes</a></span></div>
-              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
+              <table><tr class="unnumbered"><td class="num"><td><a href="releases/v4.27.0/#release-v4___27___0">Lean 4.27.0 (2026-01-24)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.26.0/#release-v4___26___0">Lean 4.26.0 (2025-12-13)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.1/#release-v4___25___1">Lean 4.25.1 (2025-11-18)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.25.0/#release-v4___25___0">Lean 4.25.0 (2025-11-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.24.0/#release-v4___24___0">Lean 4.24.0 (2025-10-14)</a></td></tr><tr class="current unnumbered"><td class="num"><td><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.22.0/#release-v4___22___0">Lean 4.22.0 (2025-08-14)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.21.0/#release-v4___21___0">Lean 4.21.0 (2025-06-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.20.0/#release-v4___20___0">Lean 4.20.0 (2025-06-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.19.0/#release-v4___19___0">Lean 4.19.0 (2025-05-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.18.0/#release-v4___18___0">Lean 4.18.0 (2025-04-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.17.0/#release-v4___17___0">Lean 4.17.0 (2025-03-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.16.0/#release-v4___16___0">Lean 4.16.0 (2025-02-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.15.0/#release-v4___15___0">Lean 4.15.0 (2025-01-04)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.14.0/#release-v4___14___0">Lean 4.14.0 (2024-12-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.13.0/#release-v4___13___0">Lean 4.13.0 (2024-11-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.12.0/#release-v4___12___0">Lean 4.12.0 (2024-10-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.11.0/#release-v4___11___0">Lean 4.11.0 (2024-09-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.10.0/#release-v4___10___0">Lean 4.10.0 (2024-07-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.9.0/#release-v4___9___0">Lean 4.9.0 (2024-07-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.8.0/#release-v4___8___0">Lean 4.8.0 (2024-06-05)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.7.0/#release-v4___7___0">Lean 4.7.0 (2024-04-03)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.6.0/#release-v4___6___0">Lean 4.6.0 (2024-02-29)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.5.0/#release-v4___5___0">Lean 4.5.0 (2024-02-01)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.4.0/#release-v4___4___0">Lean 4.4.0 (2023-12-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.3.0/#release-v4___3___0">Lean 4.3.0 (2023-11-30)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.2.0/#release-v4___2___0">Lean 4.2.0 (2023-10-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.1.0/#release-v4___1___0">Lean 4.1.0 (2023-09-26)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0/#release-v4___0___0">Lean 4.0.0 (2023-09-08)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m5/#release-v4___0___0-m5">Lean 4.0.0-m5 (2022-08-22)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m4/#release-v4___0___0-m4">Lean 4.0.0-m4 (2022-03-27)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m3/#release-v4___0___0-m3">Lean 4.0.0-m3 (2022-01-31)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m2/#release-v4___0___0-m2">Lean 4.0.0-m2 (2021-03-02)</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/v4.0.0-m1/#release-v4___0___0-m1">Lean 4.0.0-m1 (2021-01-04)</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-release-v4___23___0" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-release-v4___23___0" checked="checked"></label><span class="unnumbered"></span><span class="current"><a href="releases/v4.23.0/#release-v4___23___0">Lean 4.23.0 (2025-09-15)</a></span></div>
@@ -2507,12 +2569,12 @@ window.addEventListener("load", () => {
             <a class="local-button active" href="releases/v4.24.0/#release-v4___24___0" rel="prev" title="Lean 4.24.0 (2025-10-14)"><span class="arrow">←</span><span class="where">Lean 4.24.0 (2025-10-14)</span></a><a class="local-button active" href="releases/v4.22.0/#release-v4___22___0" rel="next" title="Lean 4.22.0 (2025-08-14)"><span class="where">Lean 4.22.0 (2025-08-14)</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              Lean 4.23.0 (2025-09-15)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4.23.0" title="Permalink">🔗</a></span></h1>
+              Lean 4.23.0 (2025-09-15)<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=release-v4___23___0" title="Permalink">🔗</a></span></h1>
             <p>
               For this release, 610 changes landed. In addition to the 95 feature additions and 139 fixes listed below there were 61 refactoring changes, 12 documentation improvements, 71 performance improvements, and 232 other changes.</p>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Highlights">
-                Highlights</h2>
+                Highlights<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Highlights" title="Permalink">🔗</a></span></h2>
               <p>
                 Lean v4.23.0 release brings significant performance improvements, better error messages,
 and a plethora of bug fixes, refinements, and consolidations in <code>grind</code>, the compiler, and other components of Lean.</p>
@@ -2578,7 +2640,7 @@ yields results for <code>Array</code> and <code>Nat</code>.</p>
                 </ul>
               <section>
                 <h3 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Highlights--Breaking-Changes">
-                  Breaking Changes</h3>
+                  Breaking Changes<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Highlights--Breaking-Changes" title="Permalink">🔗</a></span></h3>
                 <ul>
                   <li>
                     <p>
@@ -2617,7 +2679,7 @@ structure. <strong>Breaking changes:</strong></p>
 <code>Vector</code>, <code>List</code> and <code>Array</code> are simplified. They now require an
 <code>IsLinearOrder</code> instance. The new requirements are logically equivalent
 to the old ones, but the <code>IsLinearOrder</code> instance is not automatically
-inferred from the smaller typeclasses.</p>
+inferred from the smaller type classes.</p>
                         </li>
                       <li>
                         <p>
@@ -2639,7 +2701,7 @@ etc. with corresponding instance parameters.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Language">
-                Language</h2>
+                Language<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Language" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -2797,14 +2859,14 @@ the cost of a few definitional properties arising from the switch from
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9196">#9196</a> implements <code>forall</code> normalization using a simproc instead of
-rewriting rules in <code>grind</code>. This is the first part of the PR, after
-update stage0, we must remove the normalization theorems.</p>
+rewriting rules in <code>grind</code>. This is the first part of the PR; after
+updating stage0, we must remove the normalization theorems.</p>
                   </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9200">#9200</a> implements <code>exists</code> normalization using a simproc instead of
-rewriting rules in grind. This is the first part of the PR, after update
-stage0, we must remove the normalization theorems.</p>
+rewriting rules in <code>grind</code>. This is the first part of the PR; after
+updating stage0, we must remove the normalization theorems.</p>
                   </li>
                 <li>
                   <p>
@@ -3457,7 +3519,7 @@ naïve splitting on control flow.</p>
                   </li>
                 <li>
                   <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9754">#9754</a> make <code>mleave</code> apply <code>at *</code> and improve its simp set in order to
+                    <a href="https://github.com/leanprover/lean4/pull/9754">#9754</a> makes <code>mleave</code> apply <code>at *</code> and improves its simp set in order to
 discharge some more trivialities (#9581).</p>
                   </li>
                 <li>
@@ -3467,12 +3529,12 @@ goal and is adjoint to <code>mintro ∀x1 ... ∀xn</code>.</p>
                   </li>
                 <li>
                   <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9767">#9767</a> fixes equality congruence proof terms contructed by <code>grind</code>.</p>
+                    <a href="https://github.com/leanprover/lean4/pull/9767">#9767</a> fixes equality congruence proof terms constructed by <code>grind</code>.</p>
                   </li>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9772">#9772</a> fixes a bug in the projection over constructor propagator used
-in <code>grind</code>. It may construct type incorrect terms when a equivalence
+in <code>grind</code>. It may construct type-incorrect terms when an equivalence
 class contains heterogeneous equalities.</p>
                   </li>
                 <li>
@@ -3568,7 +3630,7 @@ reducibility hints.</p>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9832">#9832</a> adds simp lemmas <code>SPred.entails_&lt;n&gt;</code> to replace
-<code>SPred.entails_cons</code> which was disfunctional as a simp lemma due to
+<code>SPred.entails_cons</code> which was dysfunctional as a simp lemma due to
 #8074.</p>
                   </li>
                 <li>
@@ -3584,9 +3646,9 @@ the <code>wp</code> application, a situation which arises when working with
                   </li>
                 <li>
                   <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
-σs to expand into a simple, first-order expression SPred.pure p that can
-be supported by e-matching in grind.</p>
+                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure <code>p : Prop</code> into
+<code>SPred σs</code> to expand into a simple, first-order expression <code>SPred.pure p</code>
+that can be supported by E-matching in <code>grind</code>.</p>
                   </li>
                 <li>
                   <p>
@@ -3657,16 +3719,16 @@ is not based on the actual inferred pattern instead provided kind.</p>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9885">#9885</a> is initially motivated by noticing <code>Lean.Grind.Preorder.toLE</code>
-appearing in long Mathlib typeclass searches; this change will prevent
+appearing in long Mathlib type class searches; this change will prevent
 these searches. These changes are also helpful preparation for
-potentially dropping the custom <code>Lean.Grind.*</code> typeclasses, and unifying
-with the new typeclasses introduced in #9729.</p>
+potentially dropping the custom <code>Lean.Grind.*</code> type classes, and unifying
+with the new type classes introduced in #9729.</p>
                   </li>
                 </ul>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Library">
-                Library</h2>
+                Library<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Library" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -3918,14 +3980,14 @@ test case.</p>
                 <li>
                   <p>
                     <a href="https://github.com/leanprover/lean4/pull/9832">#9832</a> adds simp lemmas <code>SPred.entails_&lt;n&gt;</code> to replace
-<code>SPred.entails_cons</code> which was disfunctional as a simp lemma due to
+<code>SPred.entails_cons</code> which was dysfunctional as a simp lemma due to
 #8074.</p>
                   </li>
                 <li>
                   <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure p : Prop into SPred
-σs to expand into a simple, first-order expression SPred.pure p that can
-be supported by e-matching in grind.</p>
+                    <a href="https://github.com/leanprover/lean4/pull/9841">#9841</a> migrates the ⌜p⌝ notation for embedding pure <code>p : Prop</code> into
+<code>SPred σs</code> to expand into a simple, first-order expression <code>SPred.pure p</code>
+that can be supported by E-matching in <code>grind</code>.</p>
                   </li>
                 <li>
                   <p>
@@ -3933,13 +3995,13 @@ be supported by e-matching in grind.</p>
                   </li>
                 <li>
                   <p>
-                    <a href="https://github.com/leanprover/lean4/pull/9850">#9850</a> add a delaborator for <code>Std.PRange</code> notation.</p>
+                    <a href="https://github.com/leanprover/lean4/pull/9850">#9850</a> adds a delaborator for <code>Std.PRange</code> notation.</p>
                   </li>
                 </ul>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Compiler">
-                Compiler</h2>
+                Compiler<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Compiler" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -4147,7 +4209,7 @@ valid reference to the element for the returned value's lifetime.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Pretty-Printing">
-                Pretty Printing</h2>
+                Pretty Printing<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Pretty-Printing" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -4185,7 +4247,7 @@ of universe level metavariables.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Documentation">
-                Documentation</h2>
+                Documentation<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Documentation" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -4203,7 +4265,7 @@ of universe level metavariables.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Server">
-                Server</h2>
+                Server<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Server" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -4263,7 +4325,7 @@ progress of parallel elaboration.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Lake">
-                Lake</h2>
+                Lake<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Lake" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>
@@ -4373,7 +4435,7 @@ produce valid headers.</p>
               </section>
             <section>
               <h2 id="The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Other">
-                Other</h2>
+                Other<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--Release-Notes--Lean-4___23___0-_LPAR_2025-09-15_RPAR_--Other" title="Permalink">🔗</a></span></h2>
               <ul>
                 <li>
                   <p>

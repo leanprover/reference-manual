@@ -228,7 +228,7 @@ div.TODO::before {
 }
 
 
-</style><style>
+</style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
 .namedocs {
   position: relative;
   border: solid 1px #98B2C0;
@@ -1338,6 +1338,68 @@ table.tabular td > p:first-child, table.tabular th > p:first-child {
 table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
+</style><style>
+.section-note .note {
+  position: relative;
+  padding: 0.5rem;
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+
+.section-note .note > h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.section-note .note > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .section-note .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    width: calc(50% - 2rem);
+    min-width: 12rem;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .section-note .note {
+    float: left;
+    clear: left;
+    width: calc(100% - 2rem);
+    margin: 1rem 0;
+  }
+}
+
 </style><style>
 .syntax-error {
   white-space: normal;
@@ -2482,11 +2544,11 @@ window.addEventListener("load", () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot" checked="checked"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-mvcgen-tactic" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-mvcgen-tactic" checked="checked"></label><span class="number">18.</span> <span class="current"><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></span></div>
-              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview">Overview</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="The--mvcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--mvcgen--tactic--Predicate-Transformers">Predicate Transformers</a></td></tr><tr class="numbered"><td class="num">18.3.</td><td><a href="The--mvcgen--tactic/Verification-Conditions/#The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions">Verification Conditions</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads">Enabling <code>mvcgen</code> For Monads</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="The--mvcgen--tactic/Proof-Mode/#mvcgen-proof-mode">Proof Mode</a></td></tr><tr class="numbered"><td class="num">18.6.</td><td><a href="The--mvcgen--tactic/Tutorial___-Verifying-Imperative-Programs-Using--mvcgen/#mvcgen-tactic-tutorial">Tutorial: Verifying Imperative Programs Using <code>mvcgen</code></a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview">Overview</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="The--mvcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--mvcgen--tactic--Predicate-Transformers">Predicate Transformers</a></td></tr><tr class="numbered"><td class="num">18.3.</td><td><a href="The--mvcgen--tactic/Verification-Conditions/#The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions">Verification Conditions</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads">Enabling <code>mvcgen</code> For Monads</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="The--mvcgen--tactic/Proof-Mode/#mvcgen-proof-mode">Proof Mode</a></td></tr></table></div>
             </div>
           </div>
         <div class="last">
@@ -2500,14 +2562,26 @@ window.addEventListener("load", () => {
         </nav>
       <main><div class="content-wrapper">
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples" rel="prev" title="17.10. Bigger Examples"><span class="arrow">←</span><span class="where">17.10. Bigger Examples</span></a><a class="local-button active" href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview" rel="next" title="18.1. Overview"><span class="where">18.1. Overview</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples" rel="prev" title="17.12. Bigger Examples"><span class="arrow">←</span><span class="where">17.12. Bigger Examples</span></a><a class="local-button active" href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview" rel="next" title="18.1. Overview"><span class="where">18.1. Overview</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
               18. The <code>mvcgen</code> tactic<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=mvcgen-tactic" title="Permalink">🔗</a></span></h1>
+            <div class="section-note">
+              <div class="note">
+                <h1>
+                  Tutorials</h1>
+                <ul>
+                  <li>
+                    <p>
+                      <a href="/doc/tutorials/4.27.0/mvcgen/#mvcgen-tactic-tutorial" data-verso-remote="tutorials">Verifying Imperative Programs Using <code>mvcgen</code></a></p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             <p>
               The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code> tactic implements a <em>monadic verification condition generator</em>:
-It breaks down a goal involving a program written using Lean's imperative <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span> notation into a number of smaller <span id="--tech-term-verification-conditions" class="def-technical-term"><em>verification conditions</em></span> (<span id="--tech-term-VCs" class="def-technical-term">VCs</span>) that are sufficient to prove the goal.
-In addition to a reference that describes the use of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code>, this chapter includes a <a href="The--mvcgen--tactic/Tutorial___-Verifying-Imperative-Programs-Using--mvcgen/#mvcgen-tactic-tutorial">tutorial</a> that can be read independently of the reference.</p>
+It breaks down a goal involving a program written using Lean's imperative <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span> notation into a number of smaller <a class="technical-term" href="The--mvcgen--tactic/Overview/#--tech-term-verification-conditions"><em>verification conditions</em></a> (<span id="--tech-term-VCs" class="def-technical-term">VCs</span>) that are sufficient to prove the goal.
+In addition to a reference that describes the use of <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code>, this chapter includes a <a href="/doc/tutorials/4.27.0/mvcgen/#mvcgen-tactic-tutorial" data-verso-remote="tutorials">tutorial</a> that can be read independently of the reference.</p>
             <p>
               In order to use the <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code> tactic, <code>Std.Tactic.Do</code> must be imported and the namespace <code>Std.Do</code> must be opened.</p>
             <ol class="section-toc">
@@ -2521,12 +2595,10 @@ In addition to a reference that describes the use of <code class="hl lean inline
                 <a href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads"><span class="number">18.4.</span> Enabling <code>mvcgen</code> For Monads</a></li>
               <li>
                 <a href="The--mvcgen--tactic/Proof-Mode/#mvcgen-proof-mode"><span class="number">18.5.</span> Proof Mode</a></li>
-              <li>
-                <a href="The--mvcgen--tactic/Tutorial___-Verifying-Imperative-Programs-Using--mvcgen/#mvcgen-tactic-tutorial"><span class="number">18.6.</span> Tutorial: Verifying Imperative Programs Using <code>mvcgen</code></a></li>
               </ol>
             </section>
           <nav class="prev-next-buttons">
-            <a class="local-button active" href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples" rel="prev" title="17.10. Bigger Examples"><span class="arrow">←</span><span class="where">17.10. Bigger Examples</span></a><a class="local-button active" href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview" rel="next" title="18.1. Overview"><span class="where">18.1. Overview</span><span class="arrow">→</span></a></nav>
+            <a class="local-button active" href="The--grind--tactic/Bigger-Examples/#grind-bigger-examples" rel="prev" title="17.12. Bigger Examples"><span class="arrow">←</span><span class="where">17.12. Bigger Examples</span></a><a class="local-button active" href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview" rel="next" title="18.1. Overview"><span class="where">18.1. Overview</span><span class="arrow">→</span></a></nav>
           </div>
         </main></div>
     </body>

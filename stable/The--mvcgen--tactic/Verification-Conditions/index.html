@@ -228,7 +228,7 @@ div.TODO::before {
 }
 
 
-</style><style>
+</style><style>.listBullet li::marker { content: var(--bullet); font-size: 1.2em; }</style><style>
 .namedocs {
   position: relative;
   border: solid 1px #98B2C0;
@@ -1338,6 +1338,68 @@ table.tabular td > p:first-child, table.tabular th > p:first-child {
 table.tabular td > p:last-child, table.tabular th > p:first-child {
   margin-bottom: 0;
 }
+</style><style>
+.section-note .note {
+  position: relative;
+  padding: 0.5rem;
+  border: 1px solid #98B2C0;
+  border-radius: 0.5rem;
+  margin-bottom: var(--verso--box-vertical-margin);
+  padding: 0 var(--verso--box-padding) var(--verso--box-padding);
+}
+
+.section-note .note > h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.section-note .note > :first-child {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Wide viewport */
+@media screen and (min-width: 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    margin-right: -16rem;
+    width: 13rem;
+  }
+}
+
+/* Very wide viewport */
+@media screen and (min-width: 1600px) {
+  .section-note .note {
+    margin-right: -19vw;
+    width: 15vw;
+  }
+}
+
+/* Medium viewport */
+@media screen and (700px < width <= 1400px) {
+  .section-note .note {
+    float: right;
+    clear: right;
+    width: calc(50% - 2rem);
+    min-width: 12rem;
+    margin: 1rem 0;
+    margin-left: 10%;
+  }
+}
+
+/* Narrow viewport (e.g. phone) */
+@media screen and (width <= 700px) {
+  .section-note .note {
+    float: left;
+    clear: left;
+    width: calc(100% - 2rem);
+    margin: 1rem 0;
+  }
+}
+
 </style><style>
 .syntax-error {
   white-space: normal;
@@ -2482,11 +2544,11 @@ window.addEventListener("load", () => {
             <div class="split-toc book">
               <div class="title">
                 <label for="--verso-manual-toc-----bookRoot" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-----bookRoot"></label><span class="">Table of Contents</span></div>
-              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">1.</td><td><a href="Introduction/#introduction">Introduction</a></td></tr><tr class="numbered"><td class="num">2.</td><td><a href="Elaboration-and-Compilation/#The-Lean-Language-Reference--Elaboration-and-Compilation">Elaboration and Compilation</a></td></tr><tr class="numbered"><td class="num">3.</td><td><a href="Interacting-with-Lean/#interaction">Interacting with Lean</a></td></tr><tr class="numbered"><td class="num">4.</td><td><a href="The-Type-System/#type-system">The Type System</a></td></tr><tr class="numbered"><td class="num">5.</td><td><a href="Source-Files-and-Modules/#files">Source Files and Modules</a></td></tr><tr class="numbered"><td class="num">6.</td><td><a href="Namespaces-and-Sections/#namespaces-sections">Namespaces and Sections</a></td></tr><tr class="numbered"><td class="num">7.</td><td><a href="Definitions/#definitions">Definitions</a></td></tr><tr class="numbered"><td class="num">8.</td><td><a href="Axioms/#axioms">Axioms</a></td></tr><tr class="numbered"><td class="num">9.</td><td><a href="Attributes/#attributes">Attributes</a></td></tr><tr class="numbered"><td class="num">10.</td><td><a href="Terms/#terms">Terms</a></td></tr><tr class="numbered"><td class="num">11.</td><td><a href="Type-Classes/#type-classes">Type Classes</a></td></tr><tr class="numbered"><td class="num">12.</td><td><a href="Coercions/#coercions">Coercions</a></td></tr><tr class="numbered"><td class="num">13.</td><td><a href="Tactic-Proofs/#tactics">Tactic Proofs</a></td></tr><tr class="numbered"><td class="num">14.</td><td><a href="Functors___-Monads-and--do--Notation/#monads-and-do">Functors, Monads and <code>do</code>-Notation</a></td></tr><tr class="numbered"><td class="num">15.</td><td><a href="IO/#io">IO</a></td></tr><tr class="numbered"><td class="num">16.</td><td><a href="The-Simplifier/#the-simplifier">The Simplifier</a></td></tr><tr class="numbered"><td class="num">17.</td><td><a href="The--grind--tactic/#grind-tactic">The <code>grind</code> tactic</a></td></tr><tr class="current numbered"><td class="num">18.</td><td><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></td></tr><tr class="numbered"><td class="num">19.</td><td><a href="Basic-Propositions/#basic-props">Basic Propositions</a></td></tr><tr class="numbered"><td class="num">20.</td><td><a href="Basic-Types/#basic-types">Basic Types</a></td></tr><tr class="numbered"><td class="num">21.</td><td><a href="Iterators/#iterators">Iterators</a></td></tr><tr class="numbered"><td class="num">22.</td><td><a href="Notations-and-Macros/#language-extension">Notations and Macros</a></td></tr><tr class="numbered"><td class="num">23.</td><td><a href="Run-Time-Code/#runtime">Run-Time Code</a></td></tr><tr class="numbered"><td class="num">24.</td><td><a href="Build-Tools-and-Distribution/#build-tools-and-distribution">Build Tools and Distribution</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="ValidatingProofs/#validating-proofs">Validating a Lean Proof</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="Error-Explanations/#The-Lean-Language-Reference--Error-Explanations">Error Explanations</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="releases/#release-notes">Release Notes</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="platforms/#platforms">Supported Platforms</a></td></tr><tr class="unnumbered"><td class="num"><td><a href="the-index/#The-Lean-Language-Reference--Index">Index</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <label for="--verso-manual-toc-mvcgen-tactic" class="toggle-split-toc"><input type="checkbox" class="toggle-split-toc" id="--verso-manual-toc-mvcgen-tactic" checked="checked"></label><span class="number">18.</span> <span class=""><a href="The--mvcgen--tactic/#mvcgen-tactic">The <code>mvcgen</code> tactic</a></span></div>
-              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview">Overview</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="The--mvcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--mvcgen--tactic--Predicate-Transformers">Predicate Transformers</a></td></tr><tr class="current numbered"><td class="num">18.3.</td><td><a href="The--mvcgen--tactic/Verification-Conditions/#The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions">Verification Conditions</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads">Enabling <code>mvcgen</code> For Monads</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="The--mvcgen--tactic/Proof-Mode/#mvcgen-proof-mode">Proof Mode</a></td></tr><tr class="numbered"><td class="num">18.6.</td><td><a href="The--mvcgen--tactic/Tutorial___-Verifying-Imperative-Programs-Using--mvcgen/#mvcgen-tactic-tutorial">Tutorial: Verifying Imperative Programs Using <code>mvcgen</code></a></td></tr></table></div>
+              <table><tr class="numbered"><td class="num">18.1.</td><td><a href="The--mvcgen--tactic/Overview/#The-Lean-Language-Reference--The--mvcgen--tactic--Overview">Overview</a></td></tr><tr class="numbered"><td class="num">18.2.</td><td><a href="The--mvcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--mvcgen--tactic--Predicate-Transformers">Predicate Transformers</a></td></tr><tr class="current numbered"><td class="num">18.3.</td><td><a href="The--mvcgen--tactic/Verification-Conditions/#The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions">Verification Conditions</a></td></tr><tr class="numbered"><td class="num">18.4.</td><td><a href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads">Enabling <code>mvcgen</code> For Monads</a></td></tr><tr class="numbered"><td class="num">18.5.</td><td><a href="The--mvcgen--tactic/Proof-Mode/#mvcgen-proof-mode">Proof Mode</a></td></tr></table></div>
             <div class="split-toc">
               <div class="title">
                 <span class="no-toggle"></span><span class="number">18.3.</span> <span class="current"><a href="The--mvcgen--tactic/Verification-Conditions/#The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions">Verification Conditions</a></span></div>
@@ -2507,7 +2569,7 @@ window.addEventListener("load", () => {
             <a class="local-button active" href="The--mvcgen--tactic/Predicate-Transformers/#The-Lean-Language-Reference--The--mvcgen--tactic--Predicate-Transformers" rel="prev" title="18.2. Predicate Transformers"><span class="arrow">←</span><span class="where">18.2. Predicate Transformers</span></a><a class="local-button active" href="The--mvcgen--tactic/Enabling--mvcgen--For-Monads/#The-Lean-Language-Reference--The--mvcgen--tactic--Enabling--mvcgen--For-Monads" rel="next" title="18.4. Enabling mvcgen For Monads"><span class="where">18.4. Enabling mvcgen For Monads</span><span class="arrow">→</span></a></nav>
           <section>
             <h1>
-              18.3. Verification Conditions</h1>
+              18.3. Verification Conditions<span class="permalink-widget inline"><a href="find/?domain=Verso.Genre.Manual.section&amp;name=The-Lean-Language-Reference--The--mvcgen--tactic--Verification-Conditions" title="Permalink">🔗</a></span></h1>
             <p>
               The <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code> tactic converts a goal that's expressed in terms of <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___SPred" title="Documentation for Std.Do.SPred"><span class="const token" data-binding="const-Std.Do.SPred" data-verso-hover="2747">SPred</span></a></code> and weakest preconditions to a set of invariants and verification conditions that, together, suffice to prove the original goal.
 In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Transformers/#--tech-term-Hoare-triple">Hoare triples</a> are defined in terms of weakest preconditions, so <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mvcgen" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2745">mvcgen</span></a></code> can be used to prove them.</p>
@@ -2520,30 +2582,30 @@ In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Tra
                 </li>
               <li>
                 <p>
-                  The goal should now be of the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11110" data-verso-hover="4163">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-25040" data-verso-hover="4203">wp⟦</span></a><span class="var token" data-binding="var-_uniq.11107" data-verso-hover="381">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11135" data-verso-hover="4166">Q</span></code> (that is, an entailment from some set of stateful assumptions to the weakest precondition that implies a desired postcondition).</p>
+                  The goal should now be of the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11685" data-verso-hover="4056">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-25154" data-verso-hover="4096">wp⟦</span></a><span class="var token" data-binding="var-_uniq.11682" data-verso-hover="381">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.11710" data-verso-hover="4059">Q</span></code> (that is, an entailment from some set of stateful assumptions to the weakest precondition that implies a desired postcondition).</p>
                 </li>
               <li>
                 <p>
-                  <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Reducible">Reducible</a> constants and definitions marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="4235">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> in the expression <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11420" data-verso-hover="381">e</span></code> are unfolded.</p>
+                  <a class="technical-term" href="Definitions/Recursive-Definitions/#--tech-term-Reducible">Reducible</a> constants and definitions marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="4128">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> in the expression <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.11995" data-verso-hover="381">e</span></code> are unfolded.</p>
                 </li>
               <li>
                 <p>
-                  If the expression is an application of an <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-auxiliary-matching-functions">auxiliary matching function</a> or a conditional (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite" data-verso-hover="795">ite</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite" data-verso-hover="1536">dite</span></code>), then it is first simplified.
+                  If the expression is an application of an <a class="technical-term" href="Elaboration-and-Compilation/#--tech-term-auxiliary-matching-functions">auxiliary matching function</a> or a conditional (<code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-ite" data-verso-hover="795">ite</span></code> or <code class="hl lean inline" data-lean-context="examples"><span class="const token" data-binding="const-dite" data-verso-hover="1534">dite</span></code>), then it is first simplified.
    The <a class="technical-term" href="Terms/Pattern-Matching/#--tech-term-match-discriminants">discriminant</a> of each matcher is simplified, and the entire term is reduced in an attempt to eliminate the matcher or conditional.
    If this fails, then a new goal is generated for each branch.</p>
                 </li>
               <li>
                 <p>
-                  If the expression is an application of a constant, then the applicable lemmas marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="4235">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> are attempted in priority order.
-   Lean includes specification lemmas for constants such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1371">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="992">pure</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="1469">ForIn.forIn</span></a></code> that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
+                  If the expression is an application of a constant, then the applicable lemmas marked <code class="hl lean inline" data-lean-context="examples"><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">@[</span></a><span class="keyword token" data-binding="" data-verso-hover="4128">spec</span><a href="Attributes/#Lean___Parser___Term___attributes-next" title="Documentation for syntax"><span class="keyword token" data-binding="">]</span></a></code> are attempted in priority order.
+   Lean includes specification lemmas for constants such as <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Bind___mk" title="Documentation for Bind.bind"><span class="const token" data-binding="const-Bind.bind" data-verso-hover="1371">bind</span></a></code>, <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/#Pure___mk" title="Documentation for Pure.pure"><span class="const token" data-binding="const-Pure.pure" data-verso-hover="992">pure</span></a></code>, and <code class="hl lean inline" data-lean-context="examples"><a href="Functors___-Monads-and--do--Notation/Syntax/#ForIn___mk" title="Documentation for ForIn.forIn"><span class="const token" data-binding="const-ForIn.forIn" data-verso-hover="1467">ForIn.forIn</span></a></code> that result from desugaring <span class="hl lean keyword-of"><code class="hover-info"><code>Lean.Parser.Term.do : term</code></code><a href="Functors___-Monads-and--do--Notation/Syntax/#Lean___Parser___Term___do"><code class="kw">do</code></a></span>-notation.
    Instantiating the lemma will sometimes discharge its premises, in particular schematic variables due to definitional equalities with the goal.
-   Assumptions of type <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___Invariant" title="Documentation for Std.Do.Invariant"><span class="const token" data-binding="const-Std.Do.Invariant" data-verso-hover="4239">Invariant</span></a></code> are never instantiated this way, however.
+   Assumptions of type <code class="hl lean inline" data-lean-context="examples"><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do___Invariant" title="Documentation for Std.Do.Invariant"><span class="const token" data-binding="const-Std.Do.Invariant" data-verso-hover="4132">Invariant</span></a></code> are never instantiated this way, however.
    If the spec lemma's precondition or postcondition do not exactly match those of the goal, then new metavariables are created that prove the necessary entailments.
    If these cannot be immediately discharged using simple automation that attempts to use local assumptions and decomposes conjunctions in postconditions, then they remain as verification conditions.</p>
                 </li>
               <li>
                 <p>
-                  Each remaining goal created by this process is recursively processed for verification conditions if it has the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.12756" data-verso-hover="4163">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-26766" data-verso-hover="4203">wp⟦</span></a><span class="var token" data-binding="var-_uniq.12753" data-verso-hover="381">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.12781" data-verso-hover="4166">Q</span></code>. If not, it is added to the set of invariants or verification conditions.</p>
+                  Each remaining goal created by this process is recursively processed for verification conditions if it has the form <code class="hl lean inline" data-lean-context="examples"><span class="var token" data-binding="var-_uniq.13330" data-verso-hover="4056">P</span><span class="inter-text"> </span><span class="unknown token" data-binding="">⊢ₛ</span><span class="inter-text"> </span><a href="The--mvcgen--tactic/Predicate-Transformers/#Std___Do____FLQQ_termWp____________FLQQ_" title="Documentation for syntax"><span class="keyword token" data-binding="kw-occ-Std.Do.«termWp⟦_:_⟧»-26880" data-verso-hover="4096">wp⟦</span></a><span class="var token" data-binding="var-_uniq.13327" data-verso-hover="381">e</span><span class="unknown token" data-binding="">⟧</span><span class="inter-text"> </span><span class="var token" data-binding="var-_uniq.13355" data-verso-hover="4059">Q</span></code>. If not, it is added to the set of invariants or verification conditions.</p>
                 </li>
               <li>
                 <p>
@@ -2551,7 +2613,7 @@ In particular, <a class="technical-term" href="The--mvcgen--tactic/Predicate-Tra
                 </li>
               <li>
                 <p>
-                  Depending on the tactic's configuration parameters, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4256">mvcgen_trivial</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mleave" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2755">mleave</span></a></code> are attempted in each verification condition.</p>
+                  Depending on the tactic's configuration parameters, <code class="hl lean inline" data-lean-context="examples"><span class="keyword token" data-binding="" data-verso-hover="4151">mvcgen_trivial</span></code> and <code class="hl lean inline" data-lean-context="examples"><a href="Tactic-Proofs/Tactic-Reference/#mleave" title="Documentation for tactic"><span class="keyword token" data-binding="" data-verso-hover="2754">mleave</span></a></code> are attempted in each verification condition.</p>
                 </li>
               </ol>
             <p>
