@@ -8,15 +8,13 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso"@"nightly-testing"
-require subverso from git "https://github.com/leanprover/subverso"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"nightly-testing"
 require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"main"
+
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
-  -- In particular, the Localizer pass of LLVM takes tons of time (ca 90% for many chapters) and these flags disable it
-  -- This is a circa 20% overall speedup (build and execute) at the time of writing
-  moreLeancArgs := #["-O0", "-mllvm", "-fast-isel", "-mllvm", "-fast-isel-abort=0"]
+  moreLeancArgs := #["-O0"]
   -- work around clang emitting invalid linker optimization hints that lld rejects
   moreLinkArgs :=
     if System.Platform.isOSX then

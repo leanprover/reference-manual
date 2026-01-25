@@ -19,6 +19,7 @@ open Std.Iterators
 open Std (TreeMap)
 open Std (Iterator Iter IterM IteratorLoop)
 open Std (HashMap)
+open Std (Iter IterM IteratorLoop)
 
 #doc (Manual) "Lean 4.27.0-rc1 (2025-12-14)" =>
 %%%
@@ -139,7 +140,9 @@ trace: [grind.ematch.instance] snd_eq (a + 1): snd (a + 1, Type) = Type
 -/
 #guard_msgs (trace) in
 set_option trace.grind.ematch.instance true in
-example (a : Nat) : (snd (a + 1, true), snd (a + 1, Type), snd (2, 2)) = (true, Type, snd (2, 2)) := by
+example (a : Nat) :
+    (snd (a + 1, true), snd (a + 1, Type), snd (2, 2)) =
+    (true, Type, snd (2, 2)) := by
   grind [snd_eq (a + 1)]
 ```
 
@@ -183,7 +186,7 @@ without the usual warning.
 ## Library Highlights
 
 This release completes the revision of the {name}`String` API, including dependently typed {name}`String.Pos`,
-full API support for {name}`String.Slice`, and iterators using the new {name}`Iterator` API.
+full API support for {name}`String.Slice`, and iterators using the new `Iterator` API.
 There are also many additions to the {name}`TreeMap`/{name}`HashMap` API, including intersection, difference, and equality.
 
 These updates include some *breaking changes*, namely:
