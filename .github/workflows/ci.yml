@@ -166,7 +166,9 @@ jobs:
             - name: Generate HTML (release)
               if: github.event_name == 'release'
               run: |
-                  lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+                  # Extract version from release tag (remove 'v' prefix)
+                  VERSION=${GITHUB_REF#refs/tags/v}
+                  ./generate-html.sh --mode production --version "$VERSION"
 
             - name: Check Manual Examples are Isolated
               run: |
@@ -289,12 +291,13 @@ jobs:
                   echo "message=$(git log -1 --pretty=format:"%s")" >> "$GITHUB_OUTPUT"
 
             # When a release is created in GH, push to the main site without proofreading info
+            # This is lean-reference-manual.netlify.app
             - name: Deploy releases when tags are pushed
               id: deploy-release
               uses: nwtgck/actions-netlify@v2.0
               if: github.event_name == 'release'
               with:
-                  publish-dir: _out/html-multi
+                  publish-dir: _out/site/reference
                   production-branch: main
                   production-deploy: true
                   github-token: ${{ secrets.GITHUB_TOKEN }}
