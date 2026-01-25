@@ -47,7 +47,7 @@ implementation.
 @[block_command]
 def error_explanation_table : BlockCommandOf Unit
   | () => do
-    let entries ← getErrorExplanationsSorted
+    let entries ← getErrorExplanations
     let columns := 4
     let header := true
     let name := "error-explanation-table"

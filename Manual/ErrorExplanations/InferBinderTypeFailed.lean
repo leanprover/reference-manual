@@ -95,7 +95,7 @@ example trivial_proof : True :=
 ```output
 Failed to infer type of binder `trivial_proof`
 
-Note: Because this declaration's type has been explicitly provided, all parameter types and holes (e.g., `_`) in its header are resolved before its body is processed; information from the declaration body cannot be used to infer what these values should be
+Note: Examples do not have names. The identifier `trivial_proof` is being interpreted as a parameter `(trivial_proof : _)`.
 ```
 ```fixed
 example : True :=
@@ -114,7 +114,7 @@ opaque m n : Nat
 ```output
 Failed to infer type of binder `n`
 
-Note: Multiple constants cannot be declared in a single declaration. The identifier(s) `n` are being interpreted as parameters `(n : _)`.
+Note: Multiple constants cannot be declared in a single declaration. The identifier `n` is being interpreted as a parameter `(n : _)`.
 ```
 ```fixed
 opaque m : Nat
