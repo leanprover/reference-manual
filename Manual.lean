@@ -84,17 +84,15 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.Attributes}
 
-{include 0 Manual.Terms}
-
 {include 0 Manual.Classes}
 
 {include 0 Manual.Coercions}
 
+{include 0 Manual.Runtime}
+
+{include 0 Manual.Terms}
+
 {include 0 Manual.Tactics}
-
-{include 0 Manual.Monads}
-
-{include 0 Manual.IO}
 
 {include 0 Manual.Simp}
 
@@ -102,9 +100,13 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.VCGen}
 
+{include 0 Manual.Monads}
+
 {include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
+
+{include 0 Manual.IO}
 
 # Dynamic Typing
 %%%
@@ -133,10 +135,6 @@ Overview of the standard library, including types from the prelude and those tha
 :::
 
 {include 0 Manual.NotationsMacros}
-
-
-{include 0 Manual.Runtime}
-
 
 {include 0 Manual.BuildTools}
 
