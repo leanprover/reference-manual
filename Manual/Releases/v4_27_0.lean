@@ -21,7 +21,7 @@ open Std (Iterator Iter IterM IteratorLoop)
 open Std (HashMap)
 open Std (Iter IterM IteratorLoop)
 
-#doc (Manual) "Lean 4.27.0-rc1 (2025-12-14)" =>
+#doc (Manual) "Lean 4.27.0 (2026-01-24)" =>
 %%%
 tag := "release-v4.27.0"
 file := "v4.27.0"
