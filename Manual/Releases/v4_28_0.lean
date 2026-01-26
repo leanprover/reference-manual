@@ -459,7 +459,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
 * [#11813](https://github.com/leanprover/lean4/pull/11813) introduces a fast pattern matching and unification module for
   the symbolic simulation framework (`Sym`). The design prioritizes
   performance by using a two-phase approach:
-  
+
   **Phase 1 (Syntactic Matching)**
   - Patterns use de Bruijn indices for expression variables and renamed
   level params (`_uvar.0`, `_uvar.1`, ...) for universe variables
@@ -468,6 +468,11 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   - Universe levels treat `max` and `imax` as uninterpreted functions (no
   AC reasoning)
   - Binders and term metavariables are deferred to Phase 2
+
+  **Phase 2 (Pending Constraints)**
+  - Handles binders (Miller patterns) and metavariable unification
+  - Converts remaining de Bruijn variables to metavariables
+  - Falls back to `isDefEq` when necessary
 
 * [#11814](https://github.com/leanprover/lean4/pull/11814) implements `instantiateRevBetaS`, which is similar to
   `instantiateRevS` but beta-reduces nested applications whose function
