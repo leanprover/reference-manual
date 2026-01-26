@@ -8,9 +8,8 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"main"
+require verso from git "https://github.com/leanprover/verso.git"@"v4.28.0-rc1"
 require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"main"
-
 
 package "verso-manual" where
   -- building the C code cost much more than the optimizations save
@@ -25,8 +24,7 @@ package "verso-manual" where
     ⟨`weak.verso.code.warnLineLength, .ofNat 72⟩,
     ⟨`weak.linter.typography.dashes, true⟩,
     ⟨`weak.linter.typography.quotes, true⟩,
-    ⟨`weak.linter.typ, .ofNat 72⟩,
-    ⟨`experimental.module, true⟩
+    ⟨`weak.linter.typ, .ofNat 72⟩
   ]
 
 -- Extended examples used in the grind chapter

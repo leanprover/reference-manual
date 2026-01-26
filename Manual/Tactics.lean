@@ -548,11 +548,8 @@ While terms are expected to be executed once the values of their variables are k
 Thus, when {keyword}`if` and {keyword}`match` are used in tactics, their meaning is reasoning by cases rather than selection of a concrete branch.
 All of their branches are executed, and the condition or pattern match is used to refine the main goal with more information in each branch, rather than to select a single branch.
 
-:::tactic Lean.Parser.Tactic.tacIfThenElse (show := "if ... then ... else ...")
+:::tactic "if"
 
-:::
-
-:::tactic Lean.Parser.Tactic.tacDepIfThenElse (show := "if h : ... then ... else ...")
 :::
 
 :::example "Reasoning by cases with `if`"

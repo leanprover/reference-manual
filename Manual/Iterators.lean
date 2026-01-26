@@ -18,8 +18,8 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
-open Std.Iterators
-open Std (TreeMap)
+open Std.Iterators Types
+open Std (TreeMap Iter IterM IterStep Iterator PlausibleIterStep IteratorLoop IteratorAccess LawfulIteratorLoop)
 
 #doc (Manual) "Iterators" =>
 %%%
@@ -42,7 +42,7 @@ To use iterators, import {module}`Std.Data.Iterators`.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Combining a list and an array using {name}`List.zip` or {name}`Array.zip` would ordinarily require converting one of them into the other collection.
 Using iterators, they can be processed without conversion:
@@ -62,7 +62,7 @@ def codes : List String := ["aa27d1", "a0a0a0", "0000c5"]
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 :::paragraph
 In this example, an array of colors and a list of color codes are combined.
@@ -158,7 +158,8 @@ In these cases, it can be helpful to omit the return type from the signature and
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
+open Iterators.Types (ListIterator ArrayIterator Map)
 ```
 
 Writing the internal state type explicitly for list and array iterators is feasible:
@@ -277,7 +278,8 @@ They usually require proof that the involved iterator is finite.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
+open Iterators (Productive)
 ```
 :::paragraph
 To write an iterator that yields each natural number in turn, the first step is to implement its internal state.
@@ -305,14 +307,11 @@ instance [Pure m] : Iterator Nats m Nat where
       .yield { it with internalState.next := n + 1 } n (by grind)
 ```
 
-Whenever an iterator is defined, {name}`IteratorCollect` and {name}`IteratorLoop` instances should be provided.
+Whenever an iterator is defined, an {name}`IteratorLoop` instance should be provided.
 They are required for most consumers of iterators such as {name}`Iter.toList` or the `for` loops.
 One can use their default implementations as follows:
 
 ```lean
-instance [Pure m] [Monad n] : IteratorCollect Nats m n :=
-  .defaultImplementation
-
 instance [Pure m] [Monad n] : IteratorLoop Nats m n :=
   .defaultImplementation
 ```
@@ -413,7 +412,8 @@ failed to synthesize instance for 'for_in%' notation
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
+open Iterators (Finite)
 ```
 The type {name}`Triple` contains three values of the same type:
 ```lean
@@ -460,7 +460,7 @@ structure TripleIterator α where
 Iteration begins at {name TriplePos.fst}`fst`:
 ```lean
 def Triple.iter (xs : Triple α) : Iter (α := TripleIterator α) α :=
-  toIterM {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
+  IterM.mk {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
 ```
 
 There are two plausible steps: either the iterator's position has a successor, in which case the next iterator is one that points at the same triple with the successor position, or it does not, in which case iteration is complete.
@@ -496,29 +496,10 @@ where finally
   all_goals grind [Triple.get?]
 ```
 
-This iterator cannot yet be converted to an array, because it is missing an {name}`IteratorCollect` instance:
+This iterator can now be converted to an array:
 ```lean
 def abc : Triple Char := ⟨'a', 'b', 'c'⟩
 ```
-```lean (name := noAbc) +error
-#eval abc.iter.toArray
-```
-```leanOutput noAbc
-failed to synthesize instance of type class
-  IteratorCollect (TripleIterator Char) Id Id
-
-Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
-```
-
-To support {name}`Iter.toArray`, the default implementation of {name}`IteratorCollect` can be used:
-
-```lean
-instance [Iterator (TripleIterator α) m α] [Monad n] :
-    IteratorCollect (TripleIterator α) m n :=
-  IteratorCollect.defaultImplementation
-```
-
-With the {name}`IteratorCollect` instance in place, {name}`Iter.toArray` now works:
 ```lean (name := abcToArray)
 #eval abc.iter.toArray
 ```
@@ -592,7 +573,7 @@ c
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 One way to iterate over the contents of a file is to read a specified number of bytes from a {name IO.FS.Stream}`Stream` at each step.
 When EOF is reached, the iterator can close the file by letting its reference count drop to zero:
@@ -610,7 +591,7 @@ def iterFile
     IO (IterM (α := FileIterator) IO ByteArray) := do
   let h ← IO.FS.Handle.mk path .read
   let stream? := some (IO.FS.Stream.ofHandle h)
-  return toIterM { stream?, count } IO ByteArray
+  return IterM.mk { stream?, count } IO ByteArray
 ```
 
 For this iterator, a {name IterStep.yield}`yield` is plausible when the file is still open, and {name IterStep.done}`done` is plausible when the file is closed.
@@ -723,7 +704,7 @@ There are three primary ways to consume an iterator:
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 In {name}`countdown`, an iterator over a range is transformed into an iterator over strings using {name}`Iter.map`.
 This call to {name}`Iter.map` does not result in any iteration over the range until {name}`Iter.toList` is called, at which point each element of the range is produced and transformed into a string.
@@ -753,7 +734,7 @@ def countdown : String :=
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Attempting to construct a list of all the natural numbers from an iterator will produce an endless loop:
 ```lean (name := toListInf) -keep
@@ -771,7 +752,7 @@ def allNats : List Nat :=
 The resulting error message states that there is no {name}`Finite` instance:
 ```leanOutput toListInf
 failed to synthesize instance of type class
-  Finite (Std.Rxi.Iterator Nat) Id
+  Finite (Rxi.Iterator Nat) Id
 
 Hint: Type class instance resolution failures can be inspected with the `set_option trace.Meta.synthInstance true` command.
 ```
@@ -783,7 +764,7 @@ Hint: Type class instance resolution failures can be inspected with the `set_opt
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 This program creates an iterator of strings from a range, and then consumes the strings in a {keywordOf Lean.Parser.Term.doFor}`for` loop:
 ```lean (name := iterFor)
@@ -810,7 +791,7 @@ Blastoff!
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 The function {name}`countdown` calls the range iterator's {name Iter.step}`step` function directly, handling each of the three possible cases.
 ```lean
@@ -835,9 +816,9 @@ where
 
 Iterators are manually stepped using {name}`Iter.step` or {name}`IterM.step`.
 
-{docstring Std.Iterators.Iter.step}
+{docstring Iter.step}
 
-{docstring Std.Iterators.IterM.step}
+{docstring IterM.step}
 
 ### Termination
 
@@ -849,13 +830,14 @@ The proof automation for {ref "well-founded-recursion"}[well-founded recursion] 
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
+open Iterators (Productive)
 ```
 This function returns the first element of an iterator, if there is one, or {name}`none` otherwise.
 Because the iterator must be productive, it is guaranteed to return an element after at most a finite number of {name PlausibleIterStep.skip}`skip`s.
 This function terminates even for infinite iterators.
 ```lean
-def getFirst [Iterator α Id β] [Productive α Id]
+def getFirst {α β} [Iterator α Id β] [Productive α Id]
     (it : @Iter α β) : Option β :=
   match it.step with
   | .done .. => none
@@ -936,7 +918,7 @@ termination_by it.finitelyManySkips
 ## Collectors
 
 Collectors consume an iterator, returning all of its data in a list or array.
-To be collected, an iterator must be finite and have an {name}`IteratorCollect` instance.
+To be collected, an iterator must be finite.
 
 {docstring Iter.toArray}
 
@@ -949,12 +931,6 @@ To be collected, an iterator must be finite and have an {name}`IteratorCollect` 
 {docstring Iter.toListRev}
 
 {docstring IterM.toListRev}
-
-{docstring IteratorCollect}
-
-{docstring IteratorCollect.defaultImplementation}
-
-{docstring LawfulIteratorCollect +allowMissing}
 
 
 # Iterator Combinators
@@ -1011,108 +987,108 @@ Blank spaces in the upper rows of the marble diagram indicate that the iterator 
 
 ## Pure Combinators
 
-{docstring Std.Iterators.toIterM}
+{docstring IterM.mk}
 
-{docstring Std.Iterators.Iter.toIterM}
+{docstring Iter.toIterM}
 
-{docstring Std.Iterators.Iter.take}
+{docstring Iter.take}
 
-{docstring Std.Iterators.Iter.takeWhile}
+{docstring Iter.takeWhile}
 
-{docstring Std.Iterators.Iter.toTake}
+{docstring Iter.toTake}
 
-{docstring Std.Iterators.Iter.drop}
+{docstring Iter.drop}
 
-{docstring Std.Iterators.Iter.dropWhile}
+{docstring Iter.dropWhile}
 
-{docstring Std.Iterators.Iter.stepSize}
+{docstring Iter.stepSize}
 
-{docstring Std.Iterators.Iter.map}
+{docstring Iter.map}
 
-{docstring Std.Iterators.Iter.mapM}
+{docstring Iter.mapM}
 
-{docstring Std.Iterators.Iter.mapWithPostcondition}
+{docstring Iter.mapWithPostcondition}
 
-{docstring Std.Iterators.Iter.uLift}
+{docstring Iter.uLift}
 
-{docstring Std.Iterators.Iter.flatMap}
+{docstring Iter.flatMap}
 
-{docstring Std.Iterators.Iter.flatMapM}
+{docstring Iter.flatMapM}
 
-{docstring Std.Iterators.Iter.flatMapAfter}
+{docstring Iter.flatMapAfter}
 
-{docstring Std.Iterators.Iter.flatMapAfterM}
+{docstring Iter.flatMapAfterM}
 
-{docstring Std.Iterators.Iter.filter}
+{docstring Iter.filter}
 
-{docstring Std.Iterators.Iter.filterM}
+{docstring Iter.filterM}
 
-{docstring Std.Iterators.Iter.filterWithPostcondition}
+{docstring Iter.filterWithPostcondition}
 
-{docstring Std.Iterators.Iter.filterMap}
+{docstring Iter.filterMap}
 
-{docstring Std.Iterators.Iter.filterMapM}
+{docstring Iter.filterMapM}
 
-{docstring Std.Iterators.Iter.filterMapWithPostcondition}
+{docstring Iter.filterMapWithPostcondition}
 
-{docstring Std.Iterators.Iter.zip}
+{docstring Iter.zip}
 
 {docstring Iter.attachWith}
 
 
 ## Monadic Combinators
 
-{docstring Std.Iterators.IterM.toIter}
+{docstring IterM.toIter}
 
-{docstring Std.Iterators.IterM.take}
+{docstring IterM.take}
 
-{docstring Std.Iterators.IterM.takeWhile}
+{docstring IterM.takeWhile}
 
-{docstring Std.Iterators.IterM.takeWhileM}
+{docstring IterM.takeWhileM}
 
-{docstring Std.Iterators.IterM.takeWhileWithPostcondition}
+{docstring IterM.takeWhileWithPostcondition}
 
-{docstring Std.Iterators.IterM.toTake}
+{docstring IterM.toTake}
 
-{docstring Std.Iterators.IterM.drop}
+{docstring IterM.drop}
 
-{docstring Std.Iterators.IterM.dropWhile}
+{docstring IterM.dropWhile}
 
-{docstring Std.Iterators.IterM.dropWhileM}
+{docstring IterM.dropWhileM}
 
-{docstring Std.Iterators.IterM.dropWhileWithPostcondition}
+{docstring IterM.dropWhileWithPostcondition}
 
-{docstring Std.Iterators.IterM.stepSize}
+{docstring IterM.stepSize}
 
-{docstring Std.Iterators.IterM.map}
+{docstring IterM.map}
 
-{docstring Std.Iterators.IterM.mapM}
+{docstring IterM.mapM}
 
-{docstring Std.Iterators.IterM.mapWithPostcondition}
+{docstring IterM.mapWithPostcondition}
 
-{docstring Std.Iterators.IterM.uLift}
+{docstring IterM.uLift}
 
-{docstring Std.Iterators.IterM.flatMap}
+{docstring IterM.flatMap}
 
-{docstring Std.Iterators.IterM.flatMapM}
+{docstring IterM.flatMapM}
 
-{docstring Std.Iterators.IterM.flatMapAfter}
+{docstring IterM.flatMapAfter}
 
-{docstring Std.Iterators.IterM.flatMapAfterM}
+{docstring IterM.flatMapAfterM}
 
-{docstring Std.Iterators.IterM.filter}
+{docstring IterM.filter}
 
-{docstring Std.Iterators.IterM.filterM}
+{docstring IterM.filterM}
 
-{docstring Std.Iterators.IterM.filterWithPostcondition}
+{docstring IterM.filterWithPostcondition}
 
-{docstring Std.Iterators.IterM.filterMap}
+{docstring IterM.filterMap}
 
-{docstring Std.Iterators.IterM.filterMapM}
+{docstring IterM.filterMapM}
 
-{docstring Std.Iterators.IterM.filterMapWithPostcondition}
+{docstring IterM.filterMapWithPostcondition}
 
-{docstring Std.Iterators.IterM.zip}
+{docstring IterM.zip}
 
 {docstring IterM.attachWith}
 
@@ -1142,7 +1118,7 @@ The latter two categories are typically automatic with {tactic}`simp`.
 import Std.Data.Iterators
 ```
 ```lean -show
-open Std.Iterators
+open Std
 ```
 Every element returned by an iterator that multiplies the numbers consumed some other iterator by two is even.
 To prove this statement, {name}`Iter.all_toList`, {name}`Iter.toList_map`, and {name}`Array.toList_iter` are used to replace the statement about iterators with one about lists, after which {tactic}`simp` discharges the goal:
