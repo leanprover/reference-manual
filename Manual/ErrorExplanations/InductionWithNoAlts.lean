@@ -33,7 +33,7 @@ theorem zero_mul (m : Nat) : 0 * m = 0 := by
   rw [n_ih]
 ```
 ```output
-Invalid syntax for induction tactic: The `with` keyword must followed by a tactic or by an alternative (e.g. `| zero =>`), but here it is followed by the identifier `n`.
+Invalid syntax for induction tactic: The `with` keyword must be followed by a tactic or by an alternative (e.g. `| zero =>`), but here it is followed by the identifier `n`.
 ```
 ```fixed
 theorem zero_mul (m : Nat) : 0 * m = 0 := by

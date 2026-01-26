@@ -62,9 +62,6 @@ tag := "tactic-ref-quantifiers"
 :::tactic "intros"
 :::
 
-:::tactic Lean.Parser.Tactic.introMatch (show := "intro | ... => ... | ... => ...")
-:::
-
 :::tactic "rintro"
 :::
 
@@ -186,7 +183,7 @@ tag := "tactic-ref-false"
 :::tactic "contradiction"
 :::
 
-:::tactic Lean.Parser.Tactic.falseOrByContra
+:::tactic "false_or_by_contra"
 :::
 
 
@@ -198,10 +195,7 @@ tag := "tactic-ref-goals"
 :::tactic "suffices"
 :::
 
-:::tactic Lean.Parser.Tactic.change
-:::
-
-:::tactic Lean.Parser.Tactic.changeWith (show := "change ... with ...")
+:::tactic "change"
 :::
 
 :::tactic "generalize"
