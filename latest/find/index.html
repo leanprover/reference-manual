@@ -2314,169 +2314,6 @@ window.onload = () => {
 }
 </script>
     <script>
-      function openDetailsForHashTarget() {
-  // Get the current hash from the URL
-  const hash = window.location.hash;
-
-  // Exit early if no hash is present
-  if (!hash) return;
-
-  // Remove the # to get the actual ID
-  const targetId = hash.substring(1);
-
-  // Find the target element
-  const targetElement = document.getElementById(targetId);
-
-  // Exit if target element doesn't exist
-  if (!targetElement) return;
-
-  // Find the closest details element that contains the target
-  const detailsElement = targetElement.closest('details');
-
-  // If the target is inside a details element, open it
-  if (detailsElement) {
-    detailsElement.open = true;
-  }
-}
-
-function liveLinkUrlOfCodez(codez) {
-  if (window.metadata !== undefined && window.metadata.stable) {
-    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
-  }
-  if (window.metadata !== undefined && window.metadata.latest) {
-    return "https://live.lean-lang.org/#codez=" + codez;
-  }
-  return undefined;
-}
-
-function maybeShowLiveLinks() {
-  if (liveLinkUrlOfCodez('') !== undefined) {
-    const style = document.createElement('style');
-    style.textContent = `.live-link { display: initial !important; }`;
-    document.head.appendChild(style);
-  }
-}
-
-function openLiveLink(codez) {
-  const url = liveLinkUrlOfCodez(codez);
-  if (url !== undefined) {
-    window.open(url, '_blank')
-  }
-  else {
-    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
-    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
-    // Just in case, throw up a dialog.
-    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
-  }
-}
-
-function pageInit() {
-  openDetailsForHashTarget();
-  maybeShowLiveLinks();
-}
-
-// Run the function when the page loads
-document.addEventListener('DOMContentLoaded', pageInit);
-
-// Also run when the hash changes (for single-page applications)
-window.addEventListener('hashchange', pageInit);
-
-// Run immediately in case the script loads after DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', pageInit);
-} else {
-  pageInit();
-}
-</script>
-    <script>
-      
-window.addEventListener("load", () => {
-  const innerProps = {
-    onShow(inst) { console.log(inst); },
-    onHide(inst) { console.log(inst); },
-    content(tgt) {
-      const content = document.createElement("span");
-      const state = tgt.querySelector(".hover-info").cloneNode(true);
-      state.style.display = "block";
-      content.appendChild(state);
-      /* Render docstrings - TODO server-side */
-      if ('undefined' !== typeof marked) {
-          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
-              const str = d.innerText;
-              const html = marked.parse(str);
-              const rendered = document.createElement("div");
-              rendered.classList.add("docstring");
-              rendered.innerHTML = html;
-              d.parentNode.replaceChild(rendered, d);
-          }
-      }
-      content.style.display = "block";
-      content.className = "hl lean popup";
-      return content;
-    }
-  };
-  const outerProps = {
-    allowHtml: true,
-    theme: "lean",
-    placement: 'bottom-start',
-    maxWidth: "none",
-    delay: 100,
-    moveTransition: 'transform 0.2s ease-out',
-    onTrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-      ref.classList.add("active");
-    },
-    onUntrigger(inst, event) {
-      const ref = event.currentTarget;
-      const block = ref.closest('.hl.lean');
-      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
-    }
-  };
-  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
-});
-</script>
-    <script>
-      
-window.addEventListener('DOMContentLoaded', () => {
-  const tabLists = document.querySelectorAll('.error-example-tab-list')
-  tabLists.forEach(tabList => {
-    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
-
-    const setActiveTab = (e) => {
-      for (const tab of tabs) {
-        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
-        if (tab === e.target) {
-          tab.setAttribute('aria-selected', true)
-          controllee.classList.remove('error-example-tabpanel-hidden')
-        } else {
-          tab.setAttribute('aria-selected', false)
-          controllee.classList.add('error-example-tabpanel-hidden')
-        }
-      }
-    }
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', setActiveTab)
-    })
-
-    let focusedIdx = 0
-    tabList.addEventListener('keydown', e => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-        tabs[focusedIdx].setAttribute('tabindex', -1)
-        focusedIdx =
-          e.key === 'ArrowRight'
-          ? (focusedIdx + 1) % tabs.length
-          : (focusedIdx - 1 + tabs.length) % tabs.length
-        tabs[focusedIdx].setAttribute('tabindex', 0)
-        tabs[focusedIdx].focus()
-      }
-    })
-  })
-})
-  </script>
-    <script>
       window.xref = {"Verso.Genre.Manual.section":
  {"title": "Sections or chapters of the manual",
   "description": null,
@@ -4637,7 +4474,7 @@ window.addEventListener('DOMContentLoaded', () => {
    "release-v4___28___0":
    [{"id": "release-v4___28___0",
      "data":
-     {"title": "Lean 4.28.0 (2026-01-26)",
+     {"title": "Lean 4.28.0-rc1 (2026-01-26)",
       "shortTitle": null,
       "sectionNum": null,
       "context":
@@ -4645,7 +4482,7 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)",
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
         "shortTitle": null,
         "number": "1"}]},
      "address": "/releases/v4.28.0/"}],
@@ -12075,9 +11912,9 @@ window.addEventListener('DOMContentLoaded', () => {
        {"title": "Lean 4.8.0 (2024-06-05)", "shortTitle": null, "number": "22"},
        {"title": "Breaking changes", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.8.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Tactics":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Tactics":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Tactics",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Tactics",
      "data":
      {"title": "Tactics",
       "shortTitle": null,
@@ -12087,12 +11924,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Tactics", "shortTitle": null, "number": "3"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Server":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Server":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Server",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Server",
      "data":
      {"title": "Server",
       "shortTitle": null,
@@ -12102,12 +11941,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Server", "shortTitle": null, "number": "6"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Other":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Other":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Other",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Other",
      "data":
      {"title": "Other",
       "shortTitle": null,
@@ -12117,12 +11958,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Other", "shortTitle": null, "number": "8"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Library":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Library":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Library",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Library",
      "data":
      {"title": "Library",
       "shortTitle": null,
@@ -12132,12 +11975,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Library", "shortTitle": null, "number": "2"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Language":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Language":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Language",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Language",
      "data":
      {"title": "Language",
       "shortTitle": null,
@@ -12147,12 +11992,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Language", "shortTitle": null, "number": "1"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Lake":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Lake":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Lake",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Lake",
      "data":
      {"title": "Lake",
       "shortTitle": null,
@@ -12162,12 +12009,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Lake", "shortTitle": null, "number": "7"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Ffi":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Ffi":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Ffi",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Ffi",
      "data":
      {"title": "Ffi",
       "shortTitle": null,
@@ -12177,12 +12026,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Ffi", "shortTitle": null, "number": "9"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Documentation":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Documentation":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Documentation",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Documentation",
      "data":
      {"title": "Documentation",
       "shortTitle": null,
@@ -12192,12 +12043,14 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Documentation", "shortTitle": null, "number": "5"}]},
      "address": "/releases/v4.28.0/"}],
-   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Compiler":
+   "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Compiler":
    [{"id":
-     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-_LPAR_2026-01-26_RPAR_--Compiler",
+     "The-Lean-Language-Reference--Release-Notes--Lean-4___28___0-rc1-_LPAR_2026-01-26_RPAR_--Compiler",
      "data":
      {"title": "Compiler",
       "shortTitle": null,
@@ -12207,7 +12060,9 @@ window.addEventListener('DOMContentLoaded', () => {
         "shortTitle": null,
         "number": null},
        {"title": "Release Notes", "shortTitle": null, "number": null},
-       {"title": "Lean 4.28.0 (2026-01-26)", "shortTitle": null, "number": "1"},
+       {"title": "Lean 4.28.0-rc1 (2026-01-26)",
+        "shortTitle": null,
+        "number": "1"},
        {"title": "Compiler", "shortTitle": null, "number": "4"}]},
      "address": "/releases/v4.28.0/"}],
    "The-Lean-Language-Reference--Release-Notes--Lean-4___27___0-_LPAR_2026-01-24_RPAR_--Tactics":
@@ -69775,6 +69630,169 @@ if (paramName) {
     });
 }
 </script>
+    <script>
+      function openDetailsForHashTarget() {
+  // Get the current hash from the URL
+  const hash = window.location.hash;
+
+  // Exit early if no hash is present
+  if (!hash) return;
+
+  // Remove the # to get the actual ID
+  const targetId = hash.substring(1);
+
+  // Find the target element
+  const targetElement = document.getElementById(targetId);
+
+  // Exit if target element doesn't exist
+  if (!targetElement) return;
+
+  // Find the closest details element that contains the target
+  const detailsElement = targetElement.closest('details');
+
+  // If the target is inside a details element, open it
+  if (detailsElement) {
+    detailsElement.open = true;
+  }
+}
+
+function liveLinkUrlOfCodez(codez) {
+  if (window.metadata !== undefined && window.metadata.stable) {
+    return "https://live.lean-lang.org/#project=mathlib-stable&codez=" + codez;
+  }
+  if (window.metadata !== undefined && window.metadata.latest) {
+    return "https://live.lean-lang.org/#codez=" + codez;
+  }
+  return undefined;
+}
+
+function maybeShowLiveLinks() {
+  if (liveLinkUrlOfCodez('') !== undefined) {
+    const style = document.createElement('style');
+    style.textContent = `.live-link { display: initial !important; }`;
+    document.head.appendChild(style);
+  }
+}
+
+function openLiveLink(codez) {
+  const url = liveLinkUrlOfCodez(codez);
+  if (url !== undefined) {
+    window.open(url, '_blank')
+  }
+  else {
+    // This case shouldn't be possible, because maybeShowLiveLinks returns undefined,
+    // then maybeShowLiveLinks wouldn't have ever shown the links in the first place.
+    // Just in case, throw up a dialog.
+    alert("Don't know which version of live to use. Please report this at https://github.com/leanprover/reference-manual/issues");
+  }
+}
+
+function pageInit() {
+  openDetailsForHashTarget();
+  maybeShowLiveLinks();
+}
+
+// Run the function when the page loads
+document.addEventListener('DOMContentLoaded', pageInit);
+
+// Also run when the hash changes (for single-page applications)
+window.addEventListener('hashchange', pageInit);
+
+// Run immediately in case the script loads after DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', pageInit);
+} else {
+  pageInit();
+}
+</script>
+    <script>
+      
+window.addEventListener("load", () => {
+  const innerProps = {
+    onShow(inst) { console.log(inst); },
+    onHide(inst) { console.log(inst); },
+    content(tgt) {
+      const content = document.createElement("span");
+      const state = tgt.querySelector(".hover-info").cloneNode(true);
+      state.style.display = "block";
+      content.appendChild(state);
+      /* Render docstrings - TODO server-side */
+      if ('undefined' !== typeof marked) {
+          for (const d of content.querySelectorAll("code.docstring, pre.docstring")) {
+              const str = d.innerText;
+              const html = marked.parse(str);
+              const rendered = document.createElement("div");
+              rendered.classList.add("docstring");
+              rendered.innerHTML = html;
+              d.parentNode.replaceChild(rendered, d);
+          }
+      }
+      content.style.display = "block";
+      content.className = "hl lean popup";
+      return content;
+    }
+  };
+  const outerProps = {
+    allowHtml: true,
+    theme: "lean",
+    placement: 'bottom-start',
+    maxWidth: "none",
+    delay: 100,
+    moveTransition: 'transform 0.2s ease-out',
+    onTrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+      ref.classList.add("active");
+    },
+    onUntrigger(inst, event) {
+      const ref = event.currentTarget;
+      const block = ref.closest('.hl.lean');
+      block.querySelectorAll('.active').forEach((i) => i.classList.remove('active'));
+    }
+  };
+  tippy.createSingleton(tippy('pre.grammar.hl.lean .nonterminal.documented, pre.grammar.hl.lean .from-nonterminal.documented, pre.grammar.hl.lean .local-name.documented', innerProps), outerProps);
+});
+</script>
+    <script>
+      
+window.addEventListener('DOMContentLoaded', () => {
+  const tabLists = document.querySelectorAll('.error-example-tab-list')
+  tabLists.forEach(tabList => {
+    const tabs = tabList.querySelectorAll(':scope > [role="tab"]')
+
+    const setActiveTab = (e) => {
+      for (const tab of tabs) {
+        const controllee = document.getElementById(tab.getAttribute('aria-controls'))
+        if (tab === e.target) {
+          tab.setAttribute('aria-selected', true)
+          controllee.classList.remove('error-example-tabpanel-hidden')
+        } else {
+          tab.setAttribute('aria-selected', false)
+          controllee.classList.add('error-example-tabpanel-hidden')
+        }
+      }
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', setActiveTab)
+    })
+
+    let focusedIdx = 0
+    tabList.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        tabs[focusedIdx].setAttribute('tabindex', -1)
+        focusedIdx =
+          e.key === 'ArrowRight'
+          ? (focusedIdx + 1) % tabs.length
+          : (focusedIdx - 1 + tabs.length) % tabs.length
+        tabs[focusedIdx].setAttribute('tabindex', 0)
+        tabs[focusedIdx].focus()
+      }
+    })
+  })
+})
+  </script>
     <script>
       
 window.addEventListener("load", () => {
