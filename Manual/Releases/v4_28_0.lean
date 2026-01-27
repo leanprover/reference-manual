@@ -72,7 +72,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   and a few other components.
 
 * [#11726](https://github.com/leanprover/lean4/pull/11726) upstreams dependency-management commands from Mathlib:
-  
+
   - `#import_path Foo` prints the transitive import chain that brings
   `Foo` into scope
   - `assert_not_exists Foo` errors if declaration `Foo` exists (for
@@ -284,7 +284,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   predicate.
 
 * [#11901](https://github.com/leanprover/lean4/pull/11901) adds `gcd_left_comm` lemmas for both `Nat` and `Int`:
-  
+
   - `Nat.gcd_left_comm`: `gcd m (gcd n k) = gcd n (gcd m k)`
   - `Int.gcd_left_comm`: `gcd a (gcd b c) = gcd b (gcd a c)`
 
@@ -460,7 +460,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   the symbolic simulation framework (`Sym`). The design prioritizes
   performance by using a two-phase approach:
 
-  **Phase 1 (Syntactic Matching)**
+  *Phase 1 (Syntactic Matching)*
   - Patterns use de Bruijn indices for expression variables and renamed
   level params (`_uvar.0`, `_uvar.1`, ...) for universe variables
   - Matching is purely structural after reducible definitions are unfolded
@@ -469,7 +469,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   AC reasoning)
   - Binders and term metavariables are deferred to Phase 2
 
-  **Phase 2 (Pending Constraints)**
+  *Phase 2 (Pending Constraints)*
   - Handles binders (Miller patterns) and metavariable unification
   - Converts remaining de Bruijn variables to metavariables
   - Falls back to `isDefEq` when necessary
@@ -547,7 +547,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
   symbolic simulator framework. `CongrInfo` determines how to build
   congruence proofs for rewriting subterms efficiently, categorizing
   functions into:
-  
+
   - `none`: no arguments can be rewritten (e.g., proofs)
   - `fixedPrefix`: common case where implicit/instance arguments form a
   fixed prefix and explicit arguments can be rewritten (e.g., `HAdd.hAdd`,
@@ -590,7 +590,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
 
 * [#11886](https://github.com/leanprover/lean4/pull/11886) adds `getMatch` and `getMatchWithExtra` for retrieving patterns
   from
-  discrimination trees in the symbolic simulation framework. 
+  discrimination trees in the symbolic simulation framework.
   The PR also adds uses `DiscrTree` to implement indexing in `Sym.simp`.
 
 * [#11888](https://github.com/leanprover/lean4/pull/11888) refactors `Sym.simp` to make it more general and customizable.
@@ -638,7 +638,7 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
 
 * [#11923](https://github.com/leanprover/lean4/pull/11923) adds a new option to the function `simpHaveTelescope` in which
   the `have` telescope is simplified in two passes:
-  
+
   * In the first pass, only the values and the body are simplified.
   * In the second pass, unused declarations are eliminated.
 
@@ -920,4 +920,3 @@ For this release, 309 changes landed. In addition to the 94 feature additions an
 
 * [#12098](https://github.com/leanprover/lean4/pull/12098) removes the requirement that libraries compiled against the lean
   headers must use `-fwrapv`.
-
