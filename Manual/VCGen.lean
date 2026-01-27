@@ -547,7 +547,7 @@ They show that a property about the invocation is true if its weakest preconditi
 
 {docstring ReaderM.of_wp_run_eq}
 
-{docstring Except.of_wp}
+{docstring Except.of_wp_eq}
 
 {docstring EStateM.of_wp_run_eq}
 
