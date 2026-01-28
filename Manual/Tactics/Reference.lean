@@ -62,9 +62,6 @@ tag := "tactic-ref-quantifiers"
 :::tactic "intros"
 :::
 
-:::tactic Lean.Parser.Tactic.introMatch (show := "intro | ... => ... | ... => ...")
-:::
-
 :::tactic "rintro"
 :::
 
@@ -186,7 +183,7 @@ tag := "tactic-ref-false"
 :::tactic "contradiction"
 :::
 
-:::tactic Lean.Parser.Tactic.falseOrByContra
+:::tactic "false_or_by_contra"
 :::
 
 
@@ -198,10 +195,7 @@ tag := "tactic-ref-goals"
 :::tactic "suffices"
 :::
 
-:::tactic Lean.Parser.Tactic.change
-:::
-
-:::tactic Lean.Parser.Tactic.changeWith (show := "change ... with ...")
+:::tactic "change"
 :::
 
 :::tactic "generalize"
@@ -246,6 +240,21 @@ They are described in more detail by {citet castPaper}[].
 :::tactic Lean.Parser.Tactic.tacticAssumption_mod_cast_
 :::
 
+# Managing `let` Expressions
+
+:::tactic "extract_lets"
+:::
+
+:::tactic "lift_lets"
+:::
+
+:::tactic "let_to_have"
+:::
+
+:::tactic "clear_value"
+:::
+
+
 # Extensionality
 %%%
 tag := "tactic-ref-ext"
@@ -266,6 +275,16 @@ tag := "tactic-ref-ext"
 # SMT-Inspired Automation
 :::tactic "grind"
 :::
+
+:::tactic "grind?"
+:::
+
+:::tactic "lia"
+:::
+
+:::tactic "grobner"
+:::
+
 
 {include 0 Manual.Tactics.Reference.Simp}
 
@@ -565,7 +584,10 @@ tag := "tactic-reducibility"
 :::tactic Lean.Parser.Tactic.withReducibleAndInstances
 :::
 
-:::tactic Lean.Parser.Tactic.withUnfoldingAll
+:::tactic "with_unfolding_all"
+:::
+
+:::tactic "with_unfolding_none"
 :::
 
 
@@ -635,6 +657,14 @@ tag := "tactic-ref-debug"
 :::
 
 :::tactic Lean.Parser.Tactic.traceMessage
+:::
+
+# Suggestions
+
+:::tactic "∎"
+:::
+
+:::tactic "suggestions"
 :::
 
 

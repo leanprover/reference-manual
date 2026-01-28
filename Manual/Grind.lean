@@ -52,6 +52,10 @@ open Manual (comment)
 tag := "grind-tactic"
 %%%
 
+:::tutorials
+ * {ref "grind-index-map" (remote := "tutorials")}[Using `grind` for Ordered Maps]
+:::
+
 ```lean -show
 -- Open some namespaces for the examples.
 open Lean Lean.Grind Lean.Meta.Grind
@@ -179,6 +183,114 @@ Some theorems may be labelled with a `usr` prefix, which indicates that a custom
 {include 1 Manual.Grind.Linarith}
 
 {include 1 Manual.Grind.Annotation}
+
+# Reducibility
+
+{tech}[Reducible] definitions in terms are eagerly unfolded by {tactic}`grind`.
+This enables more efficient definitional equality comparisons and indexing.
+
+:::example "Reducibility and Congruence Closure"
+The definition of {name}`one` is not {tech}[reducible]:
+```lean
+def one := 1
+```
+This means that {tactic}`grind` does not unfold it:
+```lean +error (name := noUnfold)
+example : one = 1 := by grind
+```
+```leanOutput noUnfold
+`grind` failed
+case grind
+h : ¬one = 1
+⊢ False
+[grind] Goal diagnostics
+  [facts] Asserted facts
+  [eqc] False propositions
+  [cutsat] Assignment satisfying linear constraints
+```
+
+{name}`two`, on the other hand, is an abbreviation and thus reducible:
+```lean
+abbrev two := 2
+```
+
+{tactic}`grind` unfolds {name}`two` before adding it to the “whiteboard”, allowing the proof to be completed immediately:
+```lean
+example : two = 2 := by grind
+```
+:::
+
+E-matching patterns also unfold reducible definitions.
+The patterns generated for theorems about abbreviations are expressed in terms of the unfolded abbreviations.
+Abbreviations should not generally be recursive; in particular, when using {tactic}`grind`, recursive abbreviations can result in poor indexing performance and unpredictable patterns.
+
+:::example "E-matching and Unfolding Abbreviations"
+When adding {attr}`grind` annotations to theorems, E-matching patterns are generated based on the theorem statement.
+These patterns determine when the theorem is instantiated.
+The theorem {name}`one_eq_1` mentions the {tech}[semireducible] definition {name}`one`, and the resulting pattern is also {name}`one`:
+```lean (name := one_eq_1)
+def one := 1
+
+@[grind? =]
+theorem one_eq_1 : one = 1 := by rfl
+```
+```leanOutput one_eq_1
+one_eq_1: [one]
+```
+
+Applying the same annotation to a theorem about the {tech}`reducible` abbreviation {name}`two` results in a pattern in which {name}`two` is unfolded:
+```lean (name := two_eq_2)
+abbrev two := 2
+
+@[grind? =]
+theorem two_eq_2: two = 2 := by grind
+```
+```leanOutput two_eq_2
+two_eq_2: [@OfNat.ofNat `[Nat] `[2] `[instOfNatNat 2]]
+```
+
+:::
+
+:::example "Recursive Abbreviations and `grind`"
+Using the {attr}`grind` attribute to add E-matching patterns for a recursive abbreviation's {tech}[equational lemmas] does not result in useful patterns for recursive abbreviations.
+The {attrs}`@[grind?]` attribute on this definition of the Fibonacci function results in three patterns, each corresponding to one of the three possibilities:
+```lean (name := fib1) -keep
+@[grind?]
+def fib : Nat → Nat
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fib n + fib (n + 1)
+```
+```leanOutput fib1
+fib.eq_1: [fib `[0]]
+```
+```leanOutput fib1
+fib.eq_2: [fib `[1]]
+```
+```leanOutput fib1
+fib.eq_3: [fib (#0 + 2)]
+```
+Replacing the definition with an abbreviation results in patterns in which occurrences of the function are unfolded.
+These patterns are not particularly useful:
+```lean (name := fib2) -keep
+@[grind?]
+abbrev fib : Nat → Nat
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fib n + fib (n + 1)
+```
+```leanOutput fib2
+fib.eq_1: [@OfNat.ofNat `[Nat] `[0] `[instOfNatNat 0]]
+```
+```leanOutput fib2
+fib.eq_2: [@OfNat.ofNat `[Nat] `[1] `[instOfNatNat 1]]
+```
+```leanOutput fib2
+fib.eq_3: [@HAdd.hAdd `[Nat] `[Nat] `[Nat] `[instHAdd] (fib #0) (fib (#0 + 1))]
+```
+:::
+
+
 
 ```comment
 # Diagnostics

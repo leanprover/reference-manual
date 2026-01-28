@@ -161,22 +161,29 @@ jobs:
             - name: Generate HTML (non-release)
               if: github.event_name != 'release'
               run: |
-                  lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+                  ./generate-html.sh --mode preview
 
             - name: Generate HTML (release)
               if: github.event_name == 'release'
               run: |
-                  lake --quiet exe generate-manual --depth 2 --with-word-count "words.txt" --verbose --without-html-single
+                  # Extract version from release tag (remove 'v' prefix)
+                  VERSION=${GITHUB_REF#refs/tags/v}
+                  ./generate-html.sh --mode production --version "$VERSION"
 
             - name: Check Manual Examples are Isolated
               run: |
                   scripts/check-examples-isolated.sh
 
+            - name: Verify tutorial project zip files build
+              if: github.event_name != 'release'
+              run: |
+                  scripts/check-tutorial-zips.sh
+
             - name: Generate proofreading HTML
               if: github.event_name == 'pull_request'
               id: generate
               run: |
-                  lake --quiet exe generate-manual --depth 2 --verbose --draft --without-html-single --output "_out/draft"
+                  ./generate-html.sh --mode preview --draft --output _out/draft-site
 
             - name: Report status to Lean PR
               if: always() && github.repository == 'leanprover/reference-manual'
@@ -284,12 +291,13 @@ jobs:
                   echo "message=$(git log -1 --pretty=format:"%s")" >> "$GITHUB_OUTPUT"
 
             # When a release is created in GH, push to the main site without proofreading info
+            # This is lean-reference-manual.netlify.app
             - name: Deploy releases when tags are pushed
               id: deploy-release
               uses: nwtgck/actions-netlify@v2.0
               if: github.event_name == 'release'
               with:
-                  publish-dir: _out/html-multi
+                  publish-dir: _out/site/reference
                   production-branch: main
                   production-deploy: true
                   github-token: ${{ secrets.GITHUB_TOKEN }}

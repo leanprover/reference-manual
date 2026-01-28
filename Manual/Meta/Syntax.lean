@@ -830,7 +830,7 @@ where
       return bar ++ .nest 2 (← production which stx |>.run' {})
 
 def testGetBnf (config : FreeSyntaxConfig) (isFirst : Bool) (stxs : List Syntax) : TermElabM String := do
-  let (tagged, _) ← getBnf config isFirst stxs |>.run (← moduleGenreElabContext) {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
+  let (tagged, _) ← getBnf config isFirst stxs |>.run ⟨default, default, default, default⟩ {} {partContext := ⟨⟨default, default, default, default, default⟩, default⟩}
   pure tagged.stripTags
 
 namespace Tests
@@ -1352,7 +1352,7 @@ window.addEventListener("load", () => {
 "#
 
 open Verso.Output Html HtmlT in
-private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT ExtensionImpls IO) Html := do
+private def nonTermHtmlOf (kind : Name) (doc? : Option String) (rendered : Html) : HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO)) Html := do
   let xref ← match (← state).resolveDomainObject syntaxKindDomain kind.toString with
     | .error _ =>
       pure none
@@ -1398,7 +1398,7 @@ def noLook (ctx : GrammarHtmlContext) : GrammarHtmlContext :=
 end GrammarHtmlContext
 
 open Verso.Output Html in
-abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT ExtensionImpls IO))
+abbrev GrammarHtmlM := ReaderT GrammarHtmlContext (HtmlT Manual (ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO)))
 
 private def lookingAt (k : Name) : GrammarHtmlM α → GrammarHtmlM α := withReader (·.look k)
 
@@ -1492,7 +1492,7 @@ where
       let inner ← go
       if let some k := (← read).lookingAt then
         unless k == nullKind do
-          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT ExtensionImpls IO)).localTargets.keyword k none)[0]? then
+          if let some tgt := ((← HtmlT.state (genre := Manual) (m := ReaderT Multi.AllRemotes (ReaderT ExtensionImpls IO))).localTargets.keyword k none)[0]? then
             return {{<a href={{tgt.href}}><span class="keyword">{{inner}}</span></a>}}
       return {{<span class="keyword">{{inner}}</span>}}
     | .nonterminal k doc? => do

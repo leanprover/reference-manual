@@ -390,7 +390,7 @@ a.lake-command:hover {
             if let some dest := (← read).traverseState.externalTags[id]? then
               return {{<a href={{dest.link}} class="lake-command"><code>s!"lake {n}"</code></a>}}
 
-      HtmlT.logError "No name for lake command"
+      HtmlT.logError s!"No name for lake command in {data.compress}"
       is.mapM goI
 
 @[role_expander lakeArgs]

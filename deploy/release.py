@@ -99,8 +99,8 @@ def deploy_version(source_dir, version, branch):
     print(f"Deployment of version {version} completed successfully.")
 
 def main():
-    parser = argparse.ArgumentParser(description="Deploys a build of the manual to the deployment branch")
-    parser.add_argument("source_dir", help="Source directory to copy content from on the current branch")
+    parser = argparse.ArgumentParser(description="Deploys a build of the reference manual or tutorials to the deployment branch")
+    parser.add_argument("source_dir", help="Source directory to copy content from on the current branch (e.g., html/site/reference or html/site/tutorials)")
     parser.add_argument("version", help="Lean version string (will be used as the directory name)")
     parser.add_argument("branch", help="Git branch for deployment (should be an orphan branch a la gh-pages)")
 

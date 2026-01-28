@@ -69,7 +69,7 @@ def parserAlias : DirectiveExpander
     pure #[← ``(Verso.Doc.Block.other (Block.parserAlias $(quote opts.name) $(quote declName) $(quote opts.show) $(quote stackSz?) $(quote autoGroupArgs) $(quote docs?) $(quote argCount)) #[$(contents ++ userContents),*])]
 
 @[inline]
-private def getFromJson {α} [Inhabited α] [FromJson α] (v : Json) : HtmlT Genre.Manual (ReaderT ExtensionImpls IO) α:=
+private def getFromJson {α} [Inhabited α] [FromJson α] [Monad m] (v : Json) : HtmlT Genre.Manual m α:=
   match FromJson.fromJson? (α := α) v with
   | .error e => do
     Verso.Doc.Html.HtmlT.logError
