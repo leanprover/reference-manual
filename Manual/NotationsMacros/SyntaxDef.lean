@@ -376,7 +376,7 @@ tag := "typed-syntax"
 %%%
 
 Syntax may additionally be annotated with a type that specifies which {tech}[syntax category] it belongs to.
-{TODO}[Describe the problem here - complicated invisible internal invariants leading to weird error msgs]
+{TODO}[Describe the problem here—complicated invisible internal invariants leading to weird error msgs]
 The {name Lean.TSyntax}`TSyntax` structure contains a type-level list of syntax categories along with a syntax tree.
 The list of syntax categories typically contains precisely one element, in which case the list structure itself is not shown.
 
@@ -718,7 +718,7 @@ A variant of list literals that requires double square brackets and allows a tra
 syntax "[[" term,*,? "]]" : term
 ```
 
-Adding a {deftech}[macro] that describes how to translate it into an ordinary list literal allows it to be used in tests.
+Adding a {tech}[macro] that describes how to translate it into an ordinary list literal allows it to be used in tests.
 ```lean
 macro_rules
   | `(term|[[$e:term,*]]) => `([$e,*])

@@ -186,7 +186,7 @@ Functions can be defined recursively using {keywordOf Lean.Parser.Command.declar
 From the perspective of Lean's logic, all functions are {deftech}_total_, meaning that they map each element of the {tech}[domain] to an element of the {tech}[codomain] in finite time.{margin}[Some programming language communities use the term _total_ in a different sense, where functions are considered total if they do not crash due to unhandled cases but non-termination is ignored.]
 The values of total functions are defined for all type-correct arguments, and they cannot fail to terminate or crash due to a missing case in a pattern match.
 
-While the logical model of Lean considers all functions to be total, Lean is also a practical programming language that provides certain "escape hatches".
+While the logical model of Lean considers all functions to be total, Lean is also a practical programming language that provides certain “escape hatches”.
 Functions that have not been proven to terminate can still be used in Lean's logic as long as their {tech}[codomain] is proven nonempty.
 These functions are treated as uninterpreted functions by Lean's logic, and their computational behavior is ignored.
 In compiled code, these functions are treated just like any others.

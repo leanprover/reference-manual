@@ -46,7 +46,7 @@ The mathematics community built Mathlib, which at the end of Lean 3 had over one
 The system itself, however, was still implemented in C++, which imposed limits on Lean's flexibility and made it more difficult to develop due to the diverse skills required.
 
 Development of Lean 4 began in 2018, culminating in the 4.0 release on September 8, 2023.
-Lean 4 represents an important milestone: as of version 4, Lean is self-hosted - approximately 90% of the code that implements Lean is itself written in Lean.
+Lean 4 represents an important milestone: as of version 4, Lean is self-hosted—approximately 90% of the code that implements Lean is itself written in Lean.
 Lean 4's rich extension API provides users with the ability to adapt it to their needs, rather than relying on the core developers to add necessary features.
 Additionally, self-hosting makes the development process much faster, so features and performance can be delivered more quickly; Lean 4 is faster and scales to larger problems than Lean 3.
 Mathlib was successfully ported to Lean 4 in 2023 through a community effort supported by the Lean developers, and it has now grown to over 1.5 million lines.

@@ -32,7 +32,7 @@ Each fact added to the whiteboard by E-matching is referred to as an {deftech (k
 Annotating theorems for E-matching, thus adding them to the index, is essential for enabling {tactic}`grind` to make effective use of a library.
 
 In addition to user-specified theorems, {tactic}`grind` uses automatically generated equations for {keywordOf Lean.Parser.Term.match}`match`-expressions as E-matching theorems.
-Behind the scenes, the {tech}[elaborator] generates auxiliary functions that implement pattern matches, along with equational theorems that specify their behavior.
+Behind the scenes, the {tech (key := "Lean elaborator")}[elaborator] generates auxiliary functions that implement pattern matches, along with equational theorems that specify their behavior.
 Using these equations with E-matching enables {tactic}`grind` to reduce these instances of pattern matching.
 
 
@@ -629,6 +629,20 @@ def decreasingCorrect'' : decreasing xs = Decreasing xs := by
 ```
 :::
 
+:::syntax Lean.Parser.Attr.grindMod (title := "Unfolding During Preprocessing")
+```grammar
+unfold
+```
+{includeDocstring Lean.Parser.Attr.grindUnfold}
+:::
+
+:::syntax Lean.Parser.Attr.grindMod (title := "Normalization Rules")
+```grammar
+norm
+```
+{includeDocstring Lean.Parser.Attr.grindNorm}
+:::
+
 {TODO}[Document `gen` modifier for `grind` patterns]
 
 # Inspecting Patterns
@@ -944,6 +958,7 @@ This is useful to detect theorems that contain patterns that are triggering too 
 In this case, the diagnostics show that {name}`iota_succ` is instantiated 12 times:
 ```lean (name := grindDiagnostics)
 set_option diagnostics true in
+set_option diagnostics.threshold 10 in
 example : (iota 20).length > 10 := by
   grind (gen := 20) (ematch := 20)
 ```
@@ -954,6 +969,7 @@ example : (iota 20).length > 10 := by
     [thm] List.length_cons ↦ 11
   [app] Applications
   [grind] Simplifier
+    [simp] used theorems (max: 15, num: 2):
     [simp] tried theorems (max: 46, num: 1):
     use `set_option diagnostics.threshold <num>` to control threshold for reporting counters
 ```

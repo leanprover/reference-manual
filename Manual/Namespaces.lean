@@ -50,7 +50,7 @@ They also allow parameters shared by many declarations to be declared centrally 
 tag := "scopes"
 %%%
 
-Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called "scope" when clear).
+Many commands have an effect for the current {deftech}[_section scope_] (sometimes just called “scope” when clear).
 Every Lean module has a section scope.
 Nested scopes are created via the {keywordOf Lean.Parser.Command.namespace}`namespace` and {keywordOf Lean.Parser.Command.section}`section` commands, as well as the {keywordOf Lean.Parser.Command.in}`in` command combinator.
 

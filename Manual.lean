@@ -18,7 +18,6 @@ import Manual.ErrorExplanations
 import Manual.Tactics
 import Manual.Simp
 import Manual.Grind
-import Manual.VCGen
 import Manual.BasicTypes
 import Manual.Iterators
 import Manual.BasicProps
@@ -31,6 +30,7 @@ import Manual.Releases
 import Manual.Namespaces
 import Manual.Runtime
 import Manual.SupportedPlatforms
+import Manual.VCGen
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -58,7 +58,7 @@ Along with many other parts of Lean, the tactic language is user-extensible, so 
 Tactics are written in Lean itself, and can be used immediately upon definition; rebuilding the prover or loading external modules is not required.
 
 Lean is also a pure *functional programming language*, with features such as a run-time system based on reference counting that can efficiently work with packed array structures, multi-threading, and monadic {name}`IO`.
-As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech}[elaborator], and tactic system.
+As befits a programming language, Lean is primarily implemented in itself, including the language server, build tool, {tech (key := "Lean elaborator") -normalize}[elaborator], and tactic system.
 This very book is written in [Verso](https://github.com/leanprover/verso), a documentation authoring tool written in Lean.
 
 Familiarity with Lean's programming features is valuable even for users whose primary interest is in writing proofs, because Lean programs are used to implement new tactics and proof automation.
@@ -84,17 +84,15 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.Attributes}
 
-{include 0 Manual.Terms}
-
 {include 0 Manual.Classes}
 
 {include 0 Manual.Coercions}
 
+{include 0 Manual.Runtime}
+
+{include 0 Manual.Terms}
+
 {include 0 Manual.Tactics}
-
-{include 0 Manual.Monads}
-
-{include 0 Manual.IO}
 
 {include 0 Manual.Simp}
 
@@ -102,9 +100,13 @@ Thus, this reference manual does not draw a barrier between the two aspects, but
 
 {include 0 Manual.VCGen}
 
+{include 0 Manual.Monads}
+
 {include 0 Manual.BasicProps}
 
 {include 0 Manual.BasicTypes}
+
+{include 0 Manual.IO}
 
 # Dynamic Typing
 %%%
@@ -134,11 +136,9 @@ Overview of the standard library, including types from the prelude and those tha
 
 {include 0 Manual.NotationsMacros}
 
-
-{include 0 Manual.Runtime}
-
-
 {include 0 Manual.BuildTools}
+
+{include 0 Manual.ValidatingProofs}
 
 {include 0 Manual.ErrorExplanations}
 

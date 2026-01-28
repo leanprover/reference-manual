@@ -8,7 +8,6 @@ import VersoManual
 
 import Manual.Meta
 import Manual.Papers
-import Manual.VCGen.Tutorial
 
 import Std.Tactic.Do
 
@@ -36,9 +35,13 @@ open Std.Do
 tag := "mvcgen-tactic"
 %%%
 
+:::tutorials
+ * {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[Verifying Imperative Programs Using `mvcgen`]
+:::
+
 The {tactic}`mvcgen` tactic implements a _monadic verification condition generator_:
-It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {deftech}_verification conditions_ ({deftech}[VCs]) that are sufficient to prove the goal.
-In addition to a reference that describes the use of {tactic}`mvcgen`, this chapter includes a {ref "mvcgen-tactic-tutorial"}[tutorial] that can be read independently of the reference.
+It breaks down a goal involving a program written using Lean's imperative {keywordOf Lean.Parser.Term.do}`do` notation into a number of smaller {tech}_verification conditions_ ({deftech}[VCs]) that are sufficient to prove the goal.
+In addition to a reference that describes the use of {tactic}`mvcgen`, this chapter includes a {ref "mvcgen-tactic-tutorial" (remote := "tutorials")}[tutorial] that can be read independently of the reference.
 
 In order to use the {tactic}`mvcgen` tactic, {module}`Std.Tactic.Do` must be imported and the namespace {namespace}`Std.Do` must be opened.
 
@@ -544,7 +547,7 @@ They show that a property about the invocation is true if its weakest preconditi
 
 {docstring ReaderM.of_wp_run_eq}
 
-{docstring Except.of_wp}
+{docstring Except.of_wp_eq}
 
 {docstring EStateM.of_wp_run_eq}
 
@@ -933,5 +936,3 @@ theorem bump_correct' :
   simp_all [bump]
 ```
 :::
-
-{include 0 Manual.VCGen.Tutorial}
