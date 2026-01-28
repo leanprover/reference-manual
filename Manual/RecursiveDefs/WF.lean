@@ -717,6 +717,54 @@ Try this:
 
 :::
 
+# Reduction behaviour
+%%%
+tag := "well-founded-reduction"
+%%%
+
+By default, functions defined by well-founded recursion are marked as {attr}`irreducible`, which
+means that the actual internal construction (described {ref "well-founded-theory"}[below]) is
+not visible.
+
+This means that proofs using tactics like {tactic}`rfl` or {tactic}`decide` will not be able to
+unfold such functions. Instead, proofs that use rewriting ({tactic}`unfold`, {tactic}`rw`,
+{tactic}`simp`) need to be used to reason about functions defined by well-founded recursion.
+
+Trying to override this using an explicit {attr}`semireducible` annotation will produce a warning:
+
+```lean (name := semireducibleack)
+@[semireducible] def ack : Nat → Nat → Nat
+  | 0,     n     => n + 1
+  | m + 1, 0     => ack m 1
+  | m + 1, n + 1 => ack m (ack (m + 1) n)
+termination_by m n => (m, n)
+```
+
+```leanOutput semireducibleack
+marking functions defined by well-founded recursion as `semireducible` is not effective
+```
+
+This is ineffective as reducing the internal construction of well-founded recursion would require reducing the well-foundedness proof, which is often not possible (for example because they are not available due to the module system) or dangerously expensive.
+To avoid these issues, the internal construction prevents reduction of the proof.
+
+In the special case where the termination {tech}[measure] is a single value of type {lean}`Nat`, a specialized fix-point operator is used internally, which has reasonable reduction behaviour.
+So while still {attr}`irreducible` by default, such functions can be marked as {attr}`semireducible`, then should reduce whenever the measure reduces well.
+
+For arguments that are not ground values, equations are still not definitional equalities:
+
+```lean (name := natwf)
+@[semireducible] def log2 (n : Nat) : Nat :=
+  if n = 0 then 0 else log2 (n / 2) + 1
+termination_by n
+
+example : log2 64 = 7 := by rfl
+example : log2 64 = 7 := by decide
+
+example : log2 n = if n = 0 then 0 else log2 (n / 2) + 1 := by
+  fail_if_success rfl
+  exact log2.eq_def n
+```
+
 # Preprocessing Function Definitions
 %%%
 tag := "well-founded-preprocessing"
@@ -816,6 +864,9 @@ To see the preprocessed function definition, before and after the removal of {na
 {spliceContents Manual.RecursiveDefs.WF.PreprocessExample}
 
 # Theory and Construction
+%%%
+tag := "well-founded-theory"
+%%%
 
 ```lean -show
 section
@@ -845,6 +896,10 @@ The definition of {name}`WellFounded` builds on the notion of _accessible elemen
 {docstring WellFounded}
 
 {docstring Acc}
+
+In the special case where the measure is {lean}`Nat`, Lean uses a specialized fix-point operator, as discussed in {ref "well-founded-reduction"}[reduction behaviour].
+
+{docstring WellFounded.Nat.fix}
 
 ::: example "Division by Iterated Subtraction: Termination Proof"
 
