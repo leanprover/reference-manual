@@ -63,7 +63,7 @@ TOML files denote _tables_, which map keys to values.
 Values may consist of strings, numbers, arrays of values, or further tables.
 Because TOML allows considerable flexibility in file structure, this reference documents the values that are expected rather than the specific syntax used to produce them.
 
-The contents of `lakefile.toml` should denote a TOML table that describes a Lean package.
+The contents of {configFile}`lakefile.toml` should denote a TOML table that describes a Lean package.
 This configuration consists of both scalar fields that describe the entire package, as well as the following fields that contain arrays of further tables:
  * `require`
  * `lean_lib`
@@ -732,6 +732,7 @@ tag := "lake-config-lean"
 
 The Lean format for Lake {tech}[package configuration] files provides a domain-specific language for the declarative features that are supported in the TOML format.
 Additionally, it provides the ability to write Lean code to implement any necessary build logic that is not expressible declaratively.
+The Lean configuration file is named {configFile}`lakefile.lean`.
 
 Because the Lean format is a Lean source file, it can be edited using all the features of the Lean language server.
 Additionally, Lean's metaprogramming framework allows elaboration-time side effects to be used to implement features such as configuration steps that are conditional on the current platform.
