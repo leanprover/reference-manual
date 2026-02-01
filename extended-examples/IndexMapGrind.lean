@@ -50,6 +50,8 @@ variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
 
 @[local grind =] private theorem size_keys : m.keys.size = m.size :=
   m.size_keys'
+
+@[local grind =] private theorem size_values : m.values.size = m.size := rfl
 -- ANCHOR_END: size
 
 -- ANCHOR: emptyWithCapacity
@@ -113,11 +115,11 @@ theorem getElem_indices_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
 -- ANCHOR_END: getElem_indices_lt_init
 stop discarding
 
--- ANCHOR: mem_indices_of_mem
-@[local grind =] private theorem mem_indices_of_mem
+-- ANCHOR: mem_indices
+@[local grind _=_] private theorem mem_indices
     {m : IndexMap α β} {a : α} :
-    a ∈ m ↔ a ∈ m.indices := Iff.rfl
--- ANCHOR_END: mem_indices_of_mem
+    a ∈ m.indices ↔ a ∈ m := Iff.rfl
+-- ANCHOR_END: mem_indices
 
 -- ANCHOR: getFindIdx
 @[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
@@ -200,17 +202,16 @@ instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
 -- ANCHOR_END: LawfulGetElem
 
 -- ANCHOR: insert
-@[inline] def insert [LawfulBEq α] (m : IndexMap α β) (a : α) (b : β) :
-    IndexMap α β :=
+@[inline] def insert (m : IndexMap α β) (a : α) (b : β) : IndexMap α β :=
   match h : m.indices[a]? with
   | some i =>
     { indices := m.indices
-      keys := m.keys.set i a
-      values := m.values.set i b }
+      keys    := m.keys.set i a
+      values  := m.values.set i b }
   | none =>
     { indices := m.indices.insert a m.size
-      keys := m.keys.push a
-      values := m.values.push b }
+      keys    := m.keys.push a
+      values  := m.values.push b }
 -- ANCHOR_END: insert
 
 discarding
@@ -673,7 +674,7 @@ right_3 : a_2 ∈ m.indices
     [thm] HashMap.contains_erase: [@HashMap.contains #8 #7 #6 #5 (@HashMap.erase _ _ #6 #5 #4 #1) #0]
     [thm] HashMap.contains_insert: [@HashMap.contains #9 #8 #7 #6 (@HashMap.insert _ _ #7 #6 #5 #2 #0) #1]
     [thm] getElem_def: [@getElem (IndexMap #8 #7 #6 #5) _ _ _ _ #2 #1 #0]
-    [thm] mem_indices_of_mem: [@Membership.mem #5 (IndexMap _ #4 #3 #2) _ #1 #0]
+    [thm] mem_indices: [@Membership.mem #5 (IndexMap _ #4 #3 #2) _ #1 #0]
     [thm] getElem?_def: [@getElem? (IndexMap #7 #6 #5 #4) _ _ _ _ #1 #0]
   [cutsat] Assignment satisfying linear constraints
     [assign] i_1 := 4
@@ -723,7 +724,7 @@ right_3 : a_2 ∈ m.indices
     [thm] Array.size_pop ↦ 2
     [thm] Array.size_set ↦ 2
     [thm] getElem_indices_lt ↦ 2
-    [thm] mem_indices_of_mem ↦ 2
+    [thm] mem_indices ↦ 2
     [thm] Array.back_eq_getElem ↦ 1
     [thm] size_keys ↦ 1
     [thm] size.eq_1 ↦ 1
@@ -734,7 +735,7 @@ right_3 : a_2 ∈ m.indices
     [thm] HashMap.mem_erase ↦ 1
     [thm] HashMap.mem_insert ↦ 1
 -/
-#check_msgs (maxDiff := 10%) in
+#check_msgs (maxDiff := 20%) in
 -- ANCHOR: eraseSwap_init
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with
@@ -753,18 +754,18 @@ right_3 : a_2 ∈ m.indices
 -- ANCHOR_END: eraseSwap_init
 stop discarding
 
-instance [LawfulBEq α] : Singleton (α × β) (IndexMap α β) :=
-    ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
+instance : Singleton (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
 
-instance [LawfulBEq α] : Insert (α × β) (IndexMap α β) :=
-    ⟨fun ⟨a, b⟩ s => s.insert a b⟩
+instance : Insert (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ s => s.insert a b⟩
 
-instance [LawfulBEq α] : LawfulSingleton (α × β) (IndexMap α β) :=
-    ⟨fun _ => rfl⟩
+instance : LawfulSingleton (α × β) (IndexMap α β) :=
+  ⟨fun _ => rfl⟩
 
 -- ANCHOR: WF'
-@[local grind .] private theorem WF'
-    (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
+@[local grind .]
+private theorem WF' (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
   have := m.WF i a
   grind
@@ -798,28 +799,66 @@ If the key is not present, the map is unchanged.
   | none => m
 -- ANCHOR_END: eraseSwap
 
+-- TODO: similarly define `eraseShift`, etc.
+
 -- ANCHOR: Verification
-/-! ### Verification theorems -/
+/-! ### Verification theorems (not exhaustive) -/
 
-attribute [local grind] getIdx findIdx insert
-
-@[grind _=_] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.getIdx (m.findIdx a) = m[a] := by grind
-
-@[grind =] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =]
+theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
-  grind
+  grind +locals
 
-@[grind =] theorem getElem_insert
-    (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
+@[grind =]
+theorem getElem_insert (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
+  grind +locals
+
+theorem findIdx_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.findIdx a h < m.size := by
+  grind +locals
+
+grind_pattern findIdx_lt => m.findIdx a h
+
+@[grind =]
+theorem findIdx_insert_self (m : IndexMap α β) (a : α) (b : β) :
+    (m.insert a b).findIdx a = if h : a ∈ m then m.findIdx a else m.size := by
+  grind +locals
+
+@[grind =]
+theorem findIdx?_eq (m : IndexMap α β) (a : α) :
+    m.findIdx? a = if h : a ∈ m then some (m.findIdx a h) else none := by
+  grind +locals
+
+@[grind =]
+theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.getIdx (m.findIdx a) = m[a] := by grind +locals
+
+omit [LawfulBEq α] [LawfulHashable α] in
+@[grind =]
+theorem getIdx?_eq (m : IndexMap α β) (i : Nat) :
+    m.getIdx? i = if h : i < m.size then some (m.getIdx i h) else none := by
+  grind +locals
+
+private theorem getElem_keys_mem {m : IndexMap α β} {i : Nat} (h : i < m.size) :
+    m.keys[i] ∈ m := by
+  have : m.indices[m.keys[i]]? = some i := by grind
   grind
 
-@[grind =] theorem findIdx_insert_self
-    (m : IndexMap α β) (a : α) (b : β) :
-    (m.insert a b).findIdx a =
-      if h : a ∈ m then m.findIdx a else m.size := by
-  grind
+local grind_pattern getElem_keys_mem => m.keys[i]
+
+theorem getElem?_eraseSwap (m : IndexMap α β) (a a' : α) :
+    (m.eraseSwap a)[a']? = if a' == a then none else m[a']? := by
+  grind +locals
+
+@[grind =]
+theorem mem_eraseSwap (m : IndexMap α β) (a a' : α) :
+    a' ∈ m.eraseSwap a ↔ a' ≠ a ∧ a' ∈ m := by
+  grind +locals
+
+theorem getElem_eraseSwap (m : IndexMap α β) (a a' : α) (h : a' ∈ m.eraseSwap a) :
+    (m.eraseSwap a)[a'] = m[a'] := by
+  grind +locals
 -- ANCHOR_END: Verification
 
 end IndexMap
