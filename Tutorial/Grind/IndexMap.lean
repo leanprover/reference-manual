@@ -675,14 +675,14 @@ Trying again with {anchorName eraseSwap}`eraseSwap`, everything goes through cle
   | some i =>
     if w : i = m.size - 1 then
       { indices := m.indices.erase a
-        keys := m.keys.pop
-        values := m.values.pop }
+        keys    := m.keys.pop
+        values  := m.values.pop }
     else
       let lastKey := m.keys.back
       let lastValue := m.values.back
       { indices := (m.indices.erase a).insert lastKey i
-        keys := m.keys.pop.set i lastKey
-        values := m.values.pop.set i lastValue }
+        keys    := m.keys.pop.set i lastKey
+        values  := m.values.pop.set i lastValue }
   | none => m
 ```
 
