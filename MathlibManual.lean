@@ -5,10 +5,6 @@ Author: David Thrane Christiansen
 -/
 import VersoManual
 
-import MathlibManual.Tactics
-import MathlibManual.Util
-import MathlibManual.Guides
-
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
 
@@ -21,17 +17,10 @@ set_option maxRecDepth 1024
 tag := "mathlib-manual"
 %%%
 
-This document has been last updated at *{now}[]* using Lean *{versionString}[]* and Mathlib commit {mathlibCommit}[].
+*This project has now been deprecated!*
 
-*Other resources*:
-- [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/index.html):
-  automatically generated collection of all declarations from Mathlib.
-- The [Lean Language Reference](https://lean-lang.org/doc/reference/latest/) contains
-  detailed information about Lean Code.
-
-If you would like to contribute content, please create a PR using the two github links
-at the bottom left of this page!
-
-{include 0 MathlibManual.Tactics}
-
-{include 0 MathlibManual.Guides}
+- List of all Tactics: now integrated in the [Mathlib Documentation](https://leanprover-community.github.io/mathlib4_docs/tactics.html)
+- The other resources have been moved to the [Mathlib Wiki](https://github.com/leanprover-community/mathlib4/wiki/)
+  - [globally shared mathlib](https://github.com/leanprover-community/mathlib4/wiki/Project-setup:-globally-shared-mathlib-installation)
+  - [local dev dependency](https://github.com/leanprover-community/mathlib4/wiki/Project-setup:-using-local-development-version-of-a-dependency)
+  - [following stable releases](https://github.com/leanprover-community/mathlib4/wiki/Project-setup:-following-stable-releases)
