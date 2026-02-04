@@ -207,6 +207,8 @@ tag := "conv-change"
 tag := "conv-reduction"
 %%%
 
+:::conv cbv (show := "cbv")
+:::
 
 :::conv whnf (show := "whnf")
 :::
