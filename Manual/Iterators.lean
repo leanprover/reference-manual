@@ -865,7 +865,7 @@ termination_by it.finitelyManySkips
 
 {docstring Iter.foldM}
 
-{docstring Iter.count}
+{docstring Iter.length}
 
 {docstring Iter.any}
 
@@ -895,7 +895,7 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.foldM}
 
-{docstring IterM.count}
+{docstring IterM.length}
 
 {docstring IterM.any}
 
