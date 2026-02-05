@@ -225,7 +225,8 @@ example : f 5 = 5 := by rfl
 ...
 ```
 Using {conv}`cbv` on the left-hand side of the equality, the statement can be made true:
-```lean +warning
+```lean
+set_option cbv.warning false
 example : f 5 = 5 := by
   conv => lhs; cbv
 ```
