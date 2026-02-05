@@ -224,11 +224,11 @@ example : f 5 = 5 := by rfl
 ```
 ```leanOutput nonEq
 Tactic `rfl` failed: The left-hand side
-     f 5
-   is not definitionally equal to the right-hand side
-     5
+  f 5
+is not definitionally equal to the right-hand side
+  5
 
-   ⊢ f 5 = 5
+⊢ f 5 = 5
 ```
 Using {conv}`cbv` on the left-hand side of the equality, the statement can be made true:
 ```lean
