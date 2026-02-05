@@ -528,7 +528,7 @@ In {tech}[modules], the bodies of definitions defined with {keyword}`def` are no
 :::
 
 :::syntax Lean.Parser.Command.declaration (alias := Lean.Parser.Command.abbrev) (title := "Abbreviations")
-Abbreviations are identical to definitions with {keyword}`def`, except they are {tech}[reducible].
+{deftech}[Abbreviations] are identical to definitions with {keyword}`def`, except they are {tech}[reducible].
 
 ```grammar
 $_:declModifiers

@@ -110,6 +110,13 @@ block_extension Block.sectionNoteTitle where
 
 @[directive]
 def tutorials : DirectiveExpanderOf Unit
-  | (), inlines => do
-    let content ← inlines.mapM elabBlock
+  | (), blocks => do
+    let content ← blocks.mapM elabBlock
     ``(Verso.Doc.Block.other Block.sectionNote #[Verso.Doc.Block.other Block.sectionNoteTitle #[Verso.Doc.Block.para #[Verso.Doc.Inline.text "Tutorials"]], $content,*])
+
+
+@[directive]
+def seeAlso : DirectiveExpanderOf Unit
+  | (), blocks => do
+    let content ← blocks.mapM elabBlock
+    ``(Verso.Doc.Block.other Block.sectionNote #[Verso.Doc.Block.other Block.sectionNoteTitle #[Verso.Doc.Block.para #[Verso.Doc.Inline.text "See Also"]], $content,*])
