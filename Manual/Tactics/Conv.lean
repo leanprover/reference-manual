@@ -211,7 +211,7 @@ tag := "conv-reduction"
 :::
 
 :::example "The `cbv` Tactic"
-The {conv}`cbv` tactic can be used to reduce functions, including ones that are defined via {ref "well-founded-recursion"}[well-founded recursion], which are otherwise irreducible.
+The `cbv` tactic can be used to reduce functions, including ones that are defined via {ref "well-founded-recursion"}[well-founded recursion], which are otherwise irreducible.
 Ordinarily, {name}`f` is only propositionally equal to its unfolding, so {tactic}`rfl` can't prove the equality `f 5 = 5`:
 ```lean
 def f (n : Nat) := match n with
@@ -230,9 +230,11 @@ is not definitionally equal to the right-hand side
 
 ⊢ f 5 = 5
 ```
-Using {conv}`cbv` on the left-hand side of the equality, the statement can be made true:
-```lean
+Using `cbv` on the left-hand side of the equality, the statement can be made true:
+```lean -show
 set_option cbv.warning false
+```
+```lean
 example : f 5 = 5 := by
   conv => lhs; cbv
 ```
