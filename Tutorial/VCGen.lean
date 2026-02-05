@@ -848,7 +848,12 @@ instance Result.instMonad : Monad Result where
   | .div => .div
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
-  apply LawfulMonad.mk' <;> (simp only [Result.instMonad]; grind)
+  apply LawfulMonad.mk' <;>
+  simp [
+    pure, (· <$> ·), (· >>= ·), Functor.mapConst,
+    SeqLeft.seqLeft, Seq.seq, SeqRight.seqRight
+  ] <;>
+  grind
 ```
 :::
 ::::
@@ -890,11 +895,20 @@ instance : WPMonad Result (.except Error .pure) where
   wp_pure := by
     intros
     ext Q
-    simp [wp, PredTrans.pure, pure, Except.pure, Id.run]
-  wp_bind x f := by
-    simp only [Result.instWP, bind]
+    simp [
+      wp,
+      PredTrans.pure, pure, Except.pure,
+      Id.run, PredTrans.apply,
+      PredTrans.pushExcept, ExceptT.run
+    ]
+  wp_bind {α} {β} x f := by
+    simp only [bind]
     ext Q
-    cases x <;> simp [PredTrans.bind, PredTrans.const]
+    cases x with
+    | ok v =>
+      exact SPred.ext_nil_iff.mp rfl
+    | fail | div =>
+      simp [wp]
 ```
 :::
 
@@ -903,7 +917,7 @@ theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
     (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
                   fun e => ⌜P (.fail e)⌝⟩) → P x := by
   intro hspec
-  simp only [instWP] at hspec
+  simp [wp] at hspec
   split at hspec <;> simp_all
 ```
 
