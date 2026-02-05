@@ -21,7 +21,7 @@ import Lean.Parser.Command
 open Manual
 
 open Verso.Genre
-open Verso.Genre.Manual
+open Verso.Genre.Manual hiding seeAlso
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
@@ -796,6 +796,10 @@ More complex splices with brackets
 %%%
 tag := "quote-patterns"
 %%%
+
+:::seeAlso
+New syntax is defined using {ref "syntax-rules"}[syntax extensions].
+:::
 
 Quasiquotations can be used in pattern matching to recognize syntax that matches a template.
 Just as antiquotations in a quotation that's used as a term are regions that are treated as ordinary non-quoted expressions, antiquotations in patterns are regions that are treated as ordinary Lean patterns.
