@@ -399,12 +399,32 @@ The constructor of {name Lean.TSyntax}`TSyntax` is public, and nothing prevents 
 The use of {name Lean.TSyntax}`TSyntax` should be seen as a way to reduce common mistakes, rather than rule them out entirely.
 
 
+:::leanSection
+```lean -show
+open Lean Syntax
+variable {ks : SyntaxNodeKinds} {sep : String}
+```
 In addition to {name Lean.TSyntax}`TSyntax`, there are types that represent arrays of syntax, with or without separators.
 These correspond to {TODO}[xref] repeated elements in syntax declarations or antiquotations.
+{lean}`TSyntaxArray ks` is an {tech}[abbreviation] for {lean}`Array (TSyntax ks)`, while {lean}`TSepArray ks sep` is a structure; this means that {tech}[generalized field notation] can be used to apply array functions to {name}`TSyntaxArray` but not {name}`TSepArray`.
+There is a {tech}[coercion] between {lean}`TSepArray ks` and {lean}`TSyntaxArray ks`, as well as explicit conversion functions.
+This conversion inserts or removes separator elements from the underlying array, and takes time linear in the number of elements.
+:::
 
 {docstring Lean.TSyntaxArray}
 
+{docstring Lean.TSyntaxArray.raw}
+
 {docstring Lean.Syntax.TSepArray}
+
+{docstring Lean.Syntax.TSepArray.getElems +allowMissing}
+
+{docstring Lean.Syntax.TSepArray.elemsAndSeps}
+
+{docstring Lean.Syntax.TSepArray.ofElems}
+
+{docstring Lean.Syntax.TSepArray.push +allowMissing}
+
 
 # Aliases
 
@@ -437,7 +457,104 @@ These aliases allow code to be written at a higher level of abstraction.
 
 {docstring Lean.HygieneInfo}
 
-# Helpers for Typed Syntax
+# Helpers for Constructing Syntax
+%%%
+tag := "syntax-construction-helpers"
+%%%
+
+{docstring Lean.mkIdent +allowMissing}
+
+{docstring Lean.mkIdentFrom}
+
+{docstring Lean.mkIdentFromRef +allowMissing}
+
+{docstring Lean.mkCIdent +allowMissing}
+
+{docstring Lean.mkCIdentFrom}
+
+{docstring Lean.mkCIdentFromRef +allowMissing}
+
+{docstring Lean.Syntax.mkApp}
+
+{docstring Lean.Syntax.mkCApp +allowMissing}
+
+{docstring Lean.Syntax.mkLit +allowMissing}
+
+{docstring Lean.Syntax.mkCharLit +allowMissing}
+
+{docstring Lean.Syntax.mkStrLit +allowMissing}
+
+{docstring Lean.Syntax.mkNumLit +allowMissing}
+
+{docstring Lean.Syntax.mkNatLit +allowMissing}
+
+{docstring Lean.Syntax.mkScientificLit +allowMissing}
+
+{docstring Lean.Syntax.mkNameLit +allowMissing}
+
+{docstring Lean.mkOptionalNode +allowMissing}
+
+{docstring Lean.mkGroupNode +allowMissing}
+
+{docstring Lean.mkHole +allowMissing}
+
+## Quoting Data
+%%%
+tag := "quote-class"
+%%%
+
+:::leanSection
+```lean -show
+open Lean
+```
+The {name Lean.Quote}`Quote` class allows values to be converted into typed syntax that represents them.
+For example, {lean (type:="Term")}`quote 5` represents {lean (type := "Term")}``⟨.node .none `num #[.atom .none "5"]⟩``.
+The class is parameterized over syntax kinds; this allows the same value to be represented appropriately at different kinds.
+Instance resolution for {name}`Quote` takes typed syntax {tech}[coercions] into account.
+The syntax kind's default value is {lean}`` `term ``.
+```lean -show
+/--
+info: { raw := Lean.Syntax.node (Lean.SourceInfo.none) `num #[Lean.Syntax.atom (Lean.SourceInfo.none) "5"] }
+-/
+#guard_msgs in
+#eval (quote 5 : Term)
+```
+:::
+
+:::paragraph
+There is no guarantee that the result of {name Lean.Quote.quote}`Quote.quote` will successfully elaborate.
+Generally speaking, the resulting syntax contains quoted versions of all explicit arguments and omits implicit arguments.
+
+{docstring Lean.Quote +allowMissing}
+
+When defining instances of {name Lean.Quote}`Quote`, use {name Lean.mkCIdent}`mkCIdent` and {name Lean.Syntax.mkCApp}`mkCApp` to avoid variable capture in the generated syntax.
+:::
+
+:::example "Defining `Quote` Instances"
+```lean -show
+open Lean Syntax
+```
+
+To quote a tree of type {name}`Tree`, {name}`mkCIdent` and {name}`mkCApp` are used to ensure that local bindings with similar names cannot interfere.
+Using double backticks ensures that the constructor names don't contain typos and are correctly resolved.
+```lean
+inductive Tree (α : Type u) : Type u where
+  | leaf
+  | branch (left : Tree α) (val : α) (right : Tree α)
+
+instance [Quote α] : Quote (Tree α) where
+  quote := quoteTree
+where
+  quoteTree
+    | .leaf =>
+      mkCIdent ``Tree.leaf
+    | .branch l v r =>
+      mkCApp ``Tree.branch #[quoteTree l, quote v, quoteTree r]
+```
+
+:::
+
+# Decoding Typed Syntax
 %%%
 tag := "typed-syntax-helpers"
 %%%
