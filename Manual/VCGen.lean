@@ -813,19 +813,12 @@ The {name}`WPMonad` instance also benefits from the conceptual model as a state 
 ```lean
 instance : WPMonad (LogM β) (.arg (Array β) .pure) where
   wp_pure x := by
-    simp [
-      wp, PredTrans.pushArg, PredTrans.apply,
-      PredTrans.pure, Pure.pure,
-      StateT.run
-    ]
+    ext
+    simp [wp]
 
-  wp_bind := by
-    simp [
-      wp,
-      PredTrans.pushArg, PredTrans.apply,
-      PredTrans.pure, PredTrans.bind, Bind.bind,
-      StateT.run
-    ]
+  wp_bind _ _ := by
+    ext
+    simp [wp]
 ```
 
 The adequacy lemma has one important detail: the result of the weakest precondition transformation is applied to the empty array.
