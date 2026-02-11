@@ -22,7 +22,7 @@ tag := "subarray"
 
 {docstring Subarray}
 
-{docstring Subarray.toArray}
+{docstring Std.Slice.toArray}
 
 {docstring Subarray.empty}
 
@@ -40,7 +40,7 @@ tag := "subarray"
 
 # Size
 
-{docstring Subarray.size}
+{docstring Std.Slice.size}
 
 # Resizing
 
@@ -62,9 +62,9 @@ tag := "subarray"
 
 # Iteration
 
-{docstring Subarray.foldl}
+{docstring Std.Slice.foldl}
 
-{docstring Subarray.foldlM}
+{docstring Std.Slice.foldlM}
 
 {docstring Subarray.foldr}
 
