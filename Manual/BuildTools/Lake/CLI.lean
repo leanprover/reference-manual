@@ -1134,10 +1134,11 @@ OPTIONS:
 Downloads artifacts for packages in the workspace from a remote cache service.
 The cache service used can be configured via the environment variables:
 
+  LAKE_CACHE_SERVICE            identifier recorded in ouptuts
   LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact downloads
   LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping download
 
-If neither of these are set, Lake will use Reservoir.
+If neither endpoint is set, Lake will use Reservoir.
 
 If an input-to-outputs mappings file, `--scope`, or `--repo` is provided,
 Lake will download artifacts for the root package. Otherwise, it will use
@@ -1171,6 +1172,7 @@ if any download failed, Lake will exit with a nonzero status code.
 Downloads artifacts for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
 The remote cache service used can be configured using {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
 If neither of these are set, Lake will use Reservoir instead.
+The variable {envVar}`LAKE_CACHE_SERVICE` can be used to provide an identifier to be recorded in outputs.
 
 If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download artifacts for the root package.
 Otherwise, it will download artifacts for each package in the root's dependency tree in order (using Reservoir).
