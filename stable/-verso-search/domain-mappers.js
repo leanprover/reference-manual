@@ -86,6 +86,22 @@ const Manual_DOT_lakeOpt = {
 /**
  * @type {DomainMapper}
  */
+const Manual_DOT_configFile = {
+    dataToSearchables:
+      (domainData) =>
+        Object.entries(domainData.contents).map(([key, value]) => ({
+          searchKey: key,
+          address: `${value[0].address}#${value[0].id}`,
+          domainId: 'Manual.configFile',
+          ref: value,
+        })),
+    className: "config-file-domain",
+    displayName: "Configuration File",
+    };
+
+/**
+ * @type {DomainMapper}
+ */
 const Verso_DOT_Genre_DOT_Manual_DOT_section = {
     dataToSearchables:
       (domainData) =>
@@ -324,6 +340,7 @@ export const domainMappers = {"Verso.Genre.Manual.doc.suggestion":
   "Manual.lakeTomlField": Manual_DOT_lakeTomlField,
   "Manual.envVar": Manual_DOT_envVar,
   "Manual.lakeOpt": Manual_DOT_lakeOpt,
+  "Manual.configFile": Manual_DOT_configFile,
   "Verso.Genre.Manual.section":
     Verso_DOT_Genre_DOT_Manual_DOT_section,
   "Verso.Genre.Manual.example":
