@@ -1111,8 +1111,9 @@ USAGE:
   lake cache <COMMAND>
 
 COMMANDS:
-  get [<mappings>]      download artifacts into the Lake cache
+  get [<mappings>]      download artifacts into the local Lake cache
   put <mappings>        upload artifacts to a remote cache
+  clean                 removes ALL froms the local Lake cache
 
 See `lake cache help <command>` for more information on a specific command.
 ```
@@ -1265,6 +1266,23 @@ Artifacts are uploaded to the artifact endpoint with a file name derived from th
 The mappings file is uploaded to the revision endpoint with a file name derived from the package's current Git revision (and prefixed by the full scope).
 As such, the command will warn if the work tree currently has changes.
 ::::
+
+```lakeCacheHelp clean
+Removes ALL files from the local Lake cache
+
+USAGE:
+  lake cache clean
+
+Deletes the configured Lake cache directory. If a workspace configuration
+exists, this will delete the cache directory it uses. Otherwise, it will
+delete the default Lake cache directory for the system.
+```
+
+:::lake cache clean
+Deletes the configured Lake {tech (key:="local cache")}[artifact cache] directory.
+If a workspace configuration exists, this will delete the cache directory it uses.
+Otherwise, it will delete the default Lake cache directory for the system.
+:::
 
 
 # Configuration Files
