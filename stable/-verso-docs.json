@@ -70,7 +70,7 @@
  "62": "<code>mySum_correct_shorter (l : Array Nat) : mySum l = l.sum</code>",
  "61": "<code>mySum_correct_short (l : Array Nat) : mySum l = l.sum</code>",
  "60":
- "<code class=\"docstring\">`grind` is a tactic inspired by modern SMT solvers. **Picture a virtual whiteboard**:\nevery time grind discovers a new equality, inequality, or logical fact,\nit writes it on the board, groups together terms known to be equal,\nand lets each reasoning engine read from and contribute to the shared workspace.\nThese engines work together to handle equality reasoning, apply known theorems,\npropagate new facts, perform case analysis, and run specialized solvers\nfor domains like linear arithmetic and commutative rings.\n\n`grind` is *not* designed for goals whose search space explodes combinatorially,\nthink large pigeonhole instances, graph‑coloring reductions, high‑order N‑queens boards,\nor a 200‑variable Sudoku encoded as Boolean constraints.  Such encodings require\n thousands (or millions) of case‑splits that overwhelm `grind`’s branching search.\n\nFor **bit‑level or combinatorial problems**, consider using **`bv_decide`**.\n`bv_decide` calls a state‑of‑the‑art SAT solver (CaDiCaL) and then returns a\n*compact, machine‑checkable certificate*.\n\n### Equality reasoning\n\n`grind` uses **congruence closure** to track equalities between terms.\nWhen two terms are known to be equal, congruence closure automatically deduces\nequalities between more complex expressions built from them.\nFor example, if `a = b`, then congruence closure will also conclude that `f a` = `f b`\nfor any function `f`. This forms the foundation for efficient equality reasoning in `grind`.\nHere is an example:\n```\nexample (f : Nat → Nat) (h : a = b) : f (f b) = f (f a) := by\n  grind\n```\n\n### Applying theorems using E-matching\n\nTo apply existing theorems, `grind` uses a technique called **E-matching**,\nwhich finds matches for known theorem patterns while taking equalities into account.\nCombined with congruence closure, E-matching helps `grind` discover\nnon-obvious consequences of theorems and equalities automatically.\n\nConsider the following functions and theorems:\n```\ndef f (a : Nat) : Nat :=\n  a + 1\n\ndef g (a : Nat) : Nat :=\n  a - 1\n\n@[grind =]\ntheorem gf (x : Nat) : g (f x) = x := by\n  simp [f, g]\n```\nThe theorem `gf` asserts that `g (f x) = x` for all natural numbers `x`.\nThe attribute `[grind =]` instructs `grind` to use the left-hand side of the equation,\n`g (f x)`, as a pattern for E-matching.\nSuppose we now have a goal involving:\n```\nexample {a b} (h : f b = a) : g a = b := by\n  grind\n```\nAlthough `g a` is not an instance of the pattern `g (f x)`,\nit becomes one modulo the equation `f b = a`. By substituting `a`\nwith `f b` in `g a`, we obtain the term `g (f b)`,\nwhich matches the pattern `g (f x)` with the assignment `x := b`.\nThus, the theorem `gf` is instantiated with `x := b`,\nand the new equality `g (f b) = b` is asserted.\n`grind` then uses congruence closure to derive the implied equality\n`g a = g (f b)` and completes the proof.\n\nThe pattern used to instantiate theorems affects the effectiveness of `grind`.\nFor example, the pattern `g (f x)` is too restrictive in the following case:\nthe theorem `gf` will not be instantiated because the goal does not even\ncontain the function symbol `g`.\n\n```\nexample (h₁ : f b = a) (h₂ : f c = a) : b = c := by\n  grind\n```\n\nYou can use the command `grind_pattern` to manually select a pattern for a given theorem.\nIn the following example, we instruct `grind` to use `f x` as the pattern,\nallowing it to solve the goal automatically:\n```\ngrind_pattern gf =&gt; f x\n\nexample {a b c} (h₁ : f b = a) (h₂ : f c = a) : b = c := by\n  grind\n```\nYou can enable the option `trace.grind.ematch.instance` to make `grind` print a\ntrace message for each theorem instance it generates.\n\nYou can also specify a **multi-pattern** to control when `grind` should apply a theorem.\nA multi-pattern requires that all specified patterns are matched in the current context\nbefore the theorem is applied. This is useful for theorems such as transitivity rules,\nwhere multiple premises must be simultaneously present for the rule to apply.\nThe following example demonstrates this feature using a transitivity axiom for a binary relation `R`:\n```\nopaque R : Int → Int → Prop\naxiom Rtrans {x y z : Int} : R x y → R y z → R x z\n\ngrind_pattern Rtrans =&gt; R x y, R y z\n\nexample {a b c d} : R a b → R b c → R c d → R a d := by\n  grind\n```\nBy specifying the multi-pattern `R x y, R y z`, we instruct `grind` to\ninstantiate `Rtrans` only when both `R x y` and `R y z` are available in the context.\nIn the example, `grind` applies `Rtrans` to derive `R a c` from `R a b` and `R b c`,\nand can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d`.\n\nInstead of using `grind_pattern` to explicitly specify a pattern,\nyou can use the `@[grind]` attribute or one of its variants, which will use a heuristic to\ngenerate a (multi-)pattern. The complete list is available in the reference manual. The main ones are:\n\n- `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).\n  In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable\n  (i.e. has a constant as its head) subexpression which \"covers\" (i.e. fixes the value of) an argument which was not\n  previously covered, it will add that subexpression as a pattern, until all arguments have been covered.\n- `@[grind ←]` will select a multi-pattern from the conclusion of theorem (i.e. it will use the theorem for backwards reasoning).\n  This may fail if not all the arguments to the theorem appear in the conclusion.\n- `@[grind]` will traverse the conclusion and then the hypotheses left-to-right, adding patterns as they increase the coverage,\n  stopping when all arguments are covered.\n- `@[grind =]` checks that the conclusion of the theorem is an equality, and then uses the left-hand-side of the equality as a pattern.\n  This may fail if not all of the arguments appear in the left-hand-side.\n\nHere is the previous example again but using the attribute `[grind →]`\n```\nopaque R : Int → Int → Prop\n@[grind →] axiom Rtrans {x y z : Int} : R x y → R y z → R x z\n\nexample {a b c d} : R a b → R b c → R c d → R a d := by\n  grind\n```\n\nTo control theorem instantiation and avoid generating an unbounded number of instances,\n`grind` uses a generation counter. Terms in the original goal are assigned generation zero.\nWhen `grind` applies a theorem using terms of generation `≤ n`, any new terms it creates\nare assigned generation `n + 1`. This limits how far the tactic explores when applying\ntheorems and helps prevent an excessive number of instantiations.\n\n#### Key options:\n- `grind (ematch := &lt;num&gt;)` controls the number of E-matching rounds.\n- `grind [&lt;name&gt;, ...]` instructs `grind` to use the declaration `name` during E-matching.\n- `grind only [&lt;name&gt;, ...]` is like `grind [&lt;name&gt;, ...]` but does not use theorems tagged with `@[grind]`.\n- `grind (gen := &lt;num&gt;)` sets the maximum generation.\n\n### Linear integer arithmetic (`lia`)\n\n`grind` can solve goals that reduce to **linear integer arithmetic (LIA)** using an\nintegrated decision procedure called **`lia`**.  It understands\n\n* equalities   `p = 0`\n* inequalities  `p ≤ 0`\n* disequalities `p ≠ 0`\n* divisibility  `d ∣ p`\n\nThe solver incrementally assigns integer values to variables; when a partial\nassignment violates a constraint it adds a new, implied constraint and retries.\nThis *model-based* search is **complete for LIA**.\n\n#### Key options:\n\n* `grind -lia` disable the solver (useful for debugging)\n* `grind +qlia` accept rational models (shrinks the search space but is incomplete for ℤ)\n\n#### Examples:\n\n```\n-- Even + even is never odd.\nexample {x y : Int} : 2 * x + 4 * y ≠ 5 := by\n  grind\n\n-- Mixing equalities and inequalities.\nexample {x y : Int} :\n    2 * x + 3 * y = 0 → 1 ≤ x → y &lt; 1 := by\n  grind\n\n-- Reasoning with divisibility.\nexample (a b : Int) :\n    2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2 * a := by\n  grind\n\nexample (x y : Int) :\n    27 ≤ 11*x + 13*y →\n    11*x + 13*y ≤ 45 →\n    -10 ≤ 7*x - 9*y →\n    7*x - 9*y ≤ 4 → False := by\n  grind\n\n-- Types that implement the `ToInt` type-class.\nexample (a b c : UInt64)\n    : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := by\n  grind\n```\n\n### Algebraic solver (`ring`)\n\n`grind` ships with an algebraic solver nick-named **`ring`** for goals that can\nbe phrased as polynomial equations (or disequations) over commutative rings,\nsemirings, or fields.\n\n*Works out of the box*\nAll core numeric types and relevant Mathlib types already provide the required\ntype-class instances, so the solver is ready to use in most developments.\n\nWhat it can decide:\n\n* equalities of the form `p = q`\n* disequalities `p ≠ q`\n* basic reasoning under field inverses (`a / b := a * b⁻¹`)\n* goals that mix ring facts with other `grind` engines\n\n#### Key options:\n\n* `grind -ring` turn the solver off (useful when debugging)\n* `grind (ringSteps := n)` cap the number of steps performed by this procedure.\n\n#### Examples\n\n```\nopen Lean Grind\n\nexample [CommRing α] (x : α) : (x + 1) * (x - 1) = x^2 - 1 := by\n  grind\n\n-- Characteristic 256 means 16 * 16 = 0.\nexample [CommRing α] [IsCharP α 256] (x : α) :\n    (x + 16) * (x - 16) = x^2 := by\n  grind\n\n-- Works on built-in rings such as `UInt8`.\nexample (x : UInt8) : (x + 16) * (x - 16) = x^2 := by\n  grind\n\nexample [CommRing α] (a b c : α) :\n    a + b + c = 3 →\n    a^2 + b^2 + c^2 = 5 →\n    a^3 + b^3 + c^3 = 7 →\n    a^4 + b^4 = 9 - c^4 := by\n  grind\n\nexample [Field α] [NoNatZeroDivisors α] (a : α) :\n    1 / a + 1 / (2 * a) = 3 / (2 * a) := by\n  grind\n```\n\n### Other options\n\n- `grind (splits := &lt;num&gt;)` caps the *depth* of the search tree.  Once a branch performs `num` splits\n  `grind` stops splitting further in that branch.\n- `grind -splitIte` disables case splitting on if-then-else expressions.\n- `grind -splitMatch` disables case splitting on `match` expressions.\n- `grind +splitImp` instructs `grind` to split on any hypothesis `A → B` whose antecedent `A` is **propositional**.\n- `grind -linarith` disables the linear arithmetic solver for (ordered) modules and rings.\n\n### Additional Examples\n\n```\nexample {a b} {as bs : List α} : (as ++ bs ++ [b]).getLastD a = b := by\n  grind\n\nexample (x : BitVec (w+1)) : (BitVec.cons x.msb (x.setWidth w)) = x := by\n  grind\n\nexample (as : Array α) (lo hi i j : Nat) :\n    lo ≤ i → i &lt; j → j ≤ hi → j &lt; as.size → min lo (as.size - 1) ≤ i := by\n  grind\n```\n</code>",
+ "<code class=\"docstring\">`grind` is a tactic inspired by modern SMT solvers. **Picture a virtual whiteboard**:\nevery time grind discovers a new equality, inequality, or logical fact,\nit writes it on the board, groups together terms known to be equal,\nand lets each reasoning engine read from and contribute to the shared workspace.\nThese engines work together to handle equality reasoning, apply known theorems,\npropagate new facts, perform case analysis, and run specialized solvers\nfor domains like linear arithmetic and commutative rings.\n\nSee [the reference manual's chapter on `grind`](https://lean-lang.org/doc/reference/4.28.0/find/?domain=Verso.Genre.Manual.section&name=grind-tactic) for more information.\n\n`grind` is *not* designed for goals whose search space explodes combinatorially,\nthink large pigeonhole instances, graph‑coloring reductions, high‑order N‑queens boards,\nor a 200‑variable Sudoku encoded as Boolean constraints.  Such encodings require\n thousands (or millions) of case‑splits that overwhelm `grind`’s branching search.\n\nFor **bit‑level or combinatorial problems**, consider using **`bv_decide`**.\n`bv_decide` calls a state‑of‑the‑art SAT solver (CaDiCaL) and then returns a\n*compact, machine‑checkable certificate*.\n\n### Equality reasoning\n\n`grind` uses **congruence closure** to track equalities between terms.\nWhen two terms are known to be equal, congruence closure automatically deduces\nequalities between more complex expressions built from them.\nFor example, if `a = b`, then congruence closure will also conclude that `f a` = `f b`\nfor any function `f`. This forms the foundation for efficient equality reasoning in `grind`.\nHere is an example:\n```\nexample (f : Nat → Nat) (h : a = b) : f (f b) = f (f a) := by\n  grind\n```\n\n### Applying theorems using E-matching\n\nTo apply existing theorems, `grind` uses a technique called **E-matching**,\nwhich finds matches for known theorem patterns while taking equalities into account.\nCombined with congruence closure, E-matching helps `grind` discover\nnon-obvious consequences of theorems and equalities automatically.\n\nConsider the following functions and theorems:\n```\ndef f (a : Nat) : Nat :=\n  a + 1\n\ndef g (a : Nat) : Nat :=\n  a - 1\n\n@[grind =]\ntheorem gf (x : Nat) : g (f x) = x := by\n  simp [f, g]\n```\nThe theorem `gf` asserts that `g (f x) = x` for all natural numbers `x`.\nThe attribute `[grind =]` instructs `grind` to use the left-hand side of the equation,\n`g (f x)`, as a pattern for E-matching.\nSuppose we now have a goal involving:\n```\nexample {a b} (h : f b = a) : g a = b := by\n  grind\n```\nAlthough `g a` is not an instance of the pattern `g (f x)`,\nit becomes one modulo the equation `f b = a`. By substituting `a`\nwith `f b` in `g a`, we obtain the term `g (f b)`,\nwhich matches the pattern `g (f x)` with the assignment `x := b`.\nThus, the theorem `gf` is instantiated with `x := b`,\nand the new equality `g (f b) = b` is asserted.\n`grind` then uses congruence closure to derive the implied equality\n`g a = g (f b)` and completes the proof.\n\nThe pattern used to instantiate theorems affects the effectiveness of `grind`.\nFor example, the pattern `g (f x)` is too restrictive in the following case:\nthe theorem `gf` will not be instantiated because the goal does not even\ncontain the function symbol `g`.\n\n```\nexample (h₁ : f b = a) (h₂ : f c = a) : b = c := by\n  grind\n```\n\nYou can use the command `grind_pattern` to manually select a pattern for a given theorem.\nIn the following example, we instruct `grind` to use `f x` as the pattern,\nallowing it to solve the goal automatically:\n```\ngrind_pattern gf =&gt; f x\n\nexample {a b c} (h₁ : f b = a) (h₂ : f c = a) : b = c := by\n  grind\n```\nYou can enable the option `trace.grind.ematch.instance` to make `grind` print a\ntrace message for each theorem instance it generates.\n\nYou can also specify a **multi-pattern** to control when `grind` should apply a theorem.\nA multi-pattern requires that all specified patterns are matched in the current context\nbefore the theorem is applied. This is useful for theorems such as transitivity rules,\nwhere multiple premises must be simultaneously present for the rule to apply.\nThe following example demonstrates this feature using a transitivity axiom for a binary relation `R`:\n```\nopaque R : Int → Int → Prop\naxiom Rtrans {x y z : Int} : R x y → R y z → R x z\n\ngrind_pattern Rtrans =&gt; R x y, R y z\n\nexample {a b c d} : R a b → R b c → R c d → R a d := by\n  grind\n```\nBy specifying the multi-pattern `R x y, R y z`, we instruct `grind` to\ninstantiate `Rtrans` only when both `R x y` and `R y z` are available in the context.\nIn the example, `grind` applies `Rtrans` to derive `R a c` from `R a b` and `R b c`,\nand can then repeat the same reasoning to deduce `R a d` from `R a c` and `R c d`.\n\nInstead of using `grind_pattern` to explicitly specify a pattern,\nyou can use the `@[grind]` attribute or one of its variants, which will use a heuristic to\ngenerate a (multi-)pattern. The complete list is available in the reference manual. The main ones are:\n\n- `@[grind →]` will select a multi-pattern from the hypotheses of the theorem (i.e. it will use the theorem for forwards reasoning).\n  In more detail, it will traverse the hypotheses of the theorem from left-to-right, and each time it encounters a minimal indexable\n  (i.e. has a constant as its head) subexpression which \"covers\" (i.e. fixes the value of) an argument which was not\n  previously covered, it will add that subexpression as a pattern, until all arguments have been covered.\n- `@[grind ←]` will select a multi-pattern from the conclusion of theorem (i.e. it will use the theorem for backwards reasoning).\n  This may fail if not all the arguments to the theorem appear in the conclusion.\n- `@[grind]` will traverse the conclusion and then the hypotheses left-to-right, adding patterns as they increase the coverage,\n  stopping when all arguments are covered.\n- `@[grind =]` checks that the conclusion of the theorem is an equality, and then uses the left-hand-side of the equality as a pattern.\n  This may fail if not all of the arguments appear in the left-hand-side.\n\nHere is the previous example again but using the attribute `[grind →]`\n```\nopaque R : Int → Int → Prop\n@[grind →] axiom Rtrans {x y z : Int} : R x y → R y z → R x z\n\nexample {a b c d} : R a b → R b c → R c d → R a d := by\n  grind\n```\n\nTo control theorem instantiation and avoid generating an unbounded number of instances,\n`grind` uses a generation counter. Terms in the original goal are assigned generation zero.\nWhen `grind` applies a theorem using terms of generation `≤ n`, any new terms it creates\nare assigned generation `n + 1`. This limits how far the tactic explores when applying\ntheorems and helps prevent an excessive number of instantiations.\n\n#### Key options:\n- `grind (ematch := &lt;num&gt;)` controls the number of E-matching rounds.\n- `grind [&lt;name&gt;, ...]` instructs `grind` to use the declaration `name` during E-matching.\n- `grind only [&lt;name&gt;, ...]` is like `grind [&lt;name&gt;, ...]` but does not use theorems tagged with `@[grind]`.\n- `grind (gen := &lt;num&gt;)` sets the maximum generation.\n\n### Linear integer arithmetic (`lia`)\n\n`grind` can solve goals that reduce to **linear integer arithmetic (LIA)** using an\nintegrated decision procedure called **`lia`**.  It understands\n\n* equalities   `p = 0`\n* inequalities  `p ≤ 0`\n* disequalities `p ≠ 0`\n* divisibility  `d ∣ p`\n\nThe solver incrementally assigns integer values to variables; when a partial\nassignment violates a constraint it adds a new, implied constraint and retries.\nThis *model-based* search is **complete for LIA**.\n\n#### Key options:\n\n* `grind -lia` disable the solver (useful for debugging)\n* `grind +qlia` accept rational models (shrinks the search space but is incomplete for ℤ)\n\n#### Examples:\n\n```\n-- Even + even is never odd.\nexample {x y : Int} : 2 * x + 4 * y ≠ 5 := by\n  grind\n\n-- Mixing equalities and inequalities.\nexample {x y : Int} :\n    2 * x + 3 * y = 0 → 1 ≤ x → y &lt; 1 := by\n  grind\n\n-- Reasoning with divisibility.\nexample (a b : Int) :\n    2 ∣ a + 1 → 2 ∣ b + a → ¬ 2 ∣ b + 2 * a := by\n  grind\n\nexample (x y : Int) :\n    27 ≤ 11*x + 13*y →\n    11*x + 13*y ≤ 45 →\n    -10 ≤ 7*x - 9*y →\n    7*x - 9*y ≤ 4 → False := by\n  grind\n\n-- Types that implement the `ToInt` type-class.\nexample (a b c : UInt64)\n    : a ≤ 2 → b ≤ 3 → c - a - b = 0 → c ≤ 5 := by\n  grind\n```\n\n### Algebraic solver (`ring`)\n\n`grind` ships with an algebraic solver nick-named **`ring`** for goals that can\nbe phrased as polynomial equations (or disequations) over commutative rings,\nsemirings, or fields.\n\n*Works out of the box*\nAll core numeric types and relevant Mathlib types already provide the required\ntype-class instances, so the solver is ready to use in most developments.\n\nWhat it can decide:\n\n* equalities of the form `p = q`\n* disequalities `p ≠ q`\n* basic reasoning under field inverses (`a / b := a * b⁻¹`)\n* goals that mix ring facts with other `grind` engines\n\n#### Key options:\n\n* `grind -ring` turn the solver off (useful when debugging)\n* `grind (ringSteps := n)` cap the number of steps performed by this procedure.\n\n#### Examples\n\n```\nopen Lean Grind\n\nexample [CommRing α] (x : α) : (x + 1) * (x - 1) = x^2 - 1 := by\n  grind\n\n-- Characteristic 256 means 16 * 16 = 0.\nexample [CommRing α] [IsCharP α 256] (x : α) :\n    (x + 16) * (x - 16) = x^2 := by\n  grind\n\n-- Works on built-in rings such as `UInt8`.\nexample (x : UInt8) : (x + 16) * (x - 16) = x^2 := by\n  grind\n\nexample [CommRing α] (a b c : α) :\n    a + b + c = 3 →\n    a^2 + b^2 + c^2 = 5 →\n    a^3 + b^3 + c^3 = 7 →\n    a^4 + b^4 = 9 - c^4 := by\n  grind\n\nexample [Field α] [NoNatZeroDivisors α] (a : α) :\n    1 / a + 1 / (2 * a) = 3 / (2 * a) := by\n  grind\n```\n\n### Other options\n\n- `grind (splits := &lt;num&gt;)` caps the *depth* of the search tree.  Once a branch performs `num` splits\n  `grind` stops splitting further in that branch.\n- `grind -splitIte` disables case splitting on if-then-else expressions.\n- `grind -splitMatch` disables case splitting on `match` expressions.\n- `grind +splitImp` instructs `grind` to split on any hypothesis `A → B` whose antecedent `A` is **propositional**.\n- `grind -linarith` disables the linear arithmetic solver for (ordered) modules and rings.\n\n### Additional Examples\n\n```\nexample {a b} {as bs : List α} : (as ++ bs ++ [b]).getLastD a = b := by\n  grind\n\nexample (x : BitVec (w+1)) : (BitVec.cons x.msb (x.setWidth w)) = x := by\n  grind\n\nexample (as : Array α) (lo hi i j : Nat) :\n    lo ≤ i → i &lt; j → j ≤ hi → j &lt; as.size → min lo (as.size - 1) ≤ i := by\n  grind\n```\n</code>",
  "6":
  "<code>Id.run.{u_1} {α : Type u_1} (x : Id α) : α</code><span class=\"sep\"></span><code class=\"docstring\">Runs a computation in the identity monad.\n\nThis function is the identity function. Because its parameter has type `Id α`, it causes\n`do`-notation in its arguments to use the `Monad Id` instance.\n</code>",
  "59": "<code>pref✝.sum = b✝</code>",
@@ -84,73 +84,99 @@
  "54":
  "<code>List.Cursor.prefix.{u} {α : Type u} {l : List α} (self : l.Cursor) : List α</code><span class=\"sep\"></span><code class=\"docstring\">The elements before to the current position in the list.\n</code>",
  "53": "<code>l.toList.Cursor</code>",
+ "528": "<code>autoParam (a ∈ m) findIdx._auto_1</code>",
+ "527": "<code>a' ∈ m.eraseSwap a</code>",
+ "526":
+ "<code>IndexMap.getElem_eraseSwap.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) (h : a' ∈ m.eraseSwap a) : (m.eraseSwap a)[a'] = m[a']</code>",
+ "525":
+ "<code>Ne.{u} {α : Sort u} (a b : α) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`a ≠ b`, or `Ne a b` is defined as `¬ (a = b)` or `a = b → False`,\nand asserts that `a` and `b` are not equal.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `≠` in identifiers is `ne`.</code>",
+ "524":
+ "<code>IndexMap.mem_eraseSwap.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) : a' ∈ m.eraseSwap a ↔ a' ≠ a ∧ a' ∈ m</code>",
+ "523":
+ "<code>IndexMap.getElem?_eraseSwap.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) : (m.eraseSwap a)[a']? = if (a' == a) = true then none else m[a']?</code>",
+ "522":
+ "<code>IndexMap.getElem_keys_mem.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  {m : IndexMap α β} {i : Nat} (h : i &lt; m.size) : m.keys[i] ∈ m</code>",
+ "521": "<code>i &lt; m.size</code>",
+ "520":
+ "<code>IndexMap.getIdx?_eq.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] (m : IndexMap α β) (i : Nat) :\n  m.getIdx? i = if h : i &lt; m.size then some (m.getIdx i h) else none</code>",
  "52":
  "<code class=\"docstring\">`exact e` closes the main goal if its target type matches that of `e`.\n</code>",
- "514": "<code>autoParam (a ∈ m) findIdx._auto_1</code>",
- "513":
- "<code>IndexMap.findIdx_insert_self.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (b : β) : (m.insert a b).findIdx a ⋯ = if h : a ∈ m then m.findIdx a h else m.size</code>",
- "512":
- "<code>IndexMap.getElem_insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :\n  (m.insert a b)[a'] = if h' : (a' == a) = true then b else m[a']</code>",
- "511":
- "<code>IndexMap.mem_insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) (b : β) : a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m</code>",
- "510":
+ "519":
+ "<code class=\"docstring\">`omit` instructs Lean to not include a variable previously `include`d. Apart from variable names, it\ncan also refer to typeclass instance variables by type using the syntax `omit [TypeOfInst]`, in\nwhich case all instance variables that unify with the given type are omitted. `omit` should usually\nonly be used in conjunction with `in` in order to keep the section structure simple.\n</code>",
+ "518":
  "<code>IndexMap.getIdx_findIdx.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (h : a ∈ m) : m.getIdx (m.findIdx a h) ⋯ = m[a]</code>",
+ "517":
+ "<code>IndexMap.findIdx?_eq.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) : m.findIdx? a = if h : a ∈ m then some (m.findIdx a h) else none</code>",
+ "516":
+ "<code>IndexMap.findIdx_insert_self.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (b : β) : (m.insert a b).findIdx a ⋯ = if h : a ∈ m then m.findIdx a h else m.size</code>",
+ "515":
+ "<code>IndexMap.findIdx_lt.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (h : a ∈ m) : m.findIdx a h &lt; m.size</code>",
+ "514":
+ "<code>IndexMap.getElem_insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :\n  (m.insert a b)[a'] = if h' : (a' == a) = true then b else m[a']</code>",
+ "513":
+ "<code>Bool</code><span class=\"sep\"></span><code class=\"docstring\">If `locals` is `true`, `grind` will add all definitions from the current file. </code>",
+ "512":
+ "<code>IndexMap.mem_insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a a' : α) (b : β) : a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m</code>",
+ "511":
+ "<code>IndexMap.findIdx.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] (m : IndexMap α β) (a : α)\n  (h : a ∈ m := by get_elem_tactic) : Nat</code>",
+ "510": "<code>m.keys[i]? = some a ↔ m.indices[a]? = some i</code>",
  "51":
  "<code class=\"docstring\">* `case tag =&gt; tac` focuses on the goal with case name `tag` and solves it using `tac`,\n  or else fails.\n* `case tag x₁ ... xₙ =&gt; tac` additionally renames the `n` most recent hypotheses\n  with inaccessible names to the given names.\n* `case tag₁ | tag₂ =&gt; tac` is equivalent to `(case tag₁ =&gt; tac); (case tag₂ =&gt; tac)`.\n</code>",
- "509":
- "<code>IndexMap.findIdx.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] (m : IndexMap α β) (a : α)\n  (h : a ∈ m := by get_elem_tactic) : Nat</code>",
- "508": "<code>m.keys[i]? = some a ↔ m.indices[a]? = some i</code>",
- "507": "<code>i &lt; m.keys.size</code>",
- "506":
+ "509": "<code>i &lt; m.keys.size</code>",
+ "508":
  "<code>IndexMap.WF'.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} [LawfulBEq α] [LawfulHashable α]\n  (i : Nat) (a : α) (h₁ : i &lt; m.keys.size) (h₂ : a ∈ m) : m.keys[i] = a ↔ m.indices[a] = i</code>",
- "505":
+ "507":
  "<code>Lean.Grind.Ring.OfSemiring.Q.{u} (α : Type u) [Lean.Grind.Semiring α] : Type u</code>",
- "504":
+ "506":
  "<code>Std.HashMap.contains_insert.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} {v : β} : (m.insert k v).contains a = (k == a || m.contains a)</code>",
- "503":
+ "505":
  "<code>Std.HashMap.contains_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} : (m.erase k).contains a = (!k == a && m.contains a)</code>",
- "502":
+ "504":
  "<code>Option.none_beq_none.{u_1} {α : Type u_1} [BEq α] : (none == none) = true</code>",
- "501":
+ "503":
  "<code>Option.none_beq_some.{u_1} {α : Type u_1} [BEq α] (a : α) : (none == some a) = false</code>",
- "500":
+ "502":
  "<code>Option.some_beq_none.{u_1} {α : Type u_1} [BEq α] (a : α) : (some a == none) = false</code>",
+ "501":
+ "<code>Option.some_beq_some.{u_1} {α : Type u_1} [BEq α] {a b : α} : (some a == some b) = (a == b)</code>",
+ "500":
+ "<code>Array.getElem_pop.{u_1} {α : Type u_1} {xs : Array α} {i : Nat} (h : i &lt; xs.pop.size) : xs.pop[i] = xs[i]</code>",
  "50":
  "<code>l.toList ++ [] = l.toList</code><span class=\"sep\"></span><code class=\"docstring\">Appending the prefix to the suffix yields the original list. </code>",
  "5":
  "<code>Nat : Type</code><span class=\"sep\"></span><code class=\"docstring\">The natural numbers, starting at zero.\n\nThis type is special-cased by both the kernel and the compiler, and overridden with an efficient\nimplementation. Both use a fast arbitrary-precision arithmetic library (usually\n[GMP](https://gmplib.org/)); at runtime, `Nat` values that are sufficiently small are unboxed.\n</code>",
  "499":
- "<code>Option.some_beq_some.{u_1} {α : Type u_1} [BEq α] {a b : α} : (some a == some b) = (a == b)</code>",
- "498":
- "<code>Array.getElem_pop.{u_1} {α : Type u_1} {xs : Array α} {i : Nat} (h : i &lt; xs.pop.size) : xs.pop[i] = xs[i]</code>",
- "497":
  "<code>Array.getElem_set.{u_1} {α : Type u_1} {xs : Array α} {i : Nat} (h' : i &lt; xs.size) {v : α} {j : Nat}\n  (h : j &lt; (xs.set i v h').size) : (xs.set i v h')[j] = if i = j then v else xs[j]</code>",
- "496":
+ "498":
  "<code>Std.HashMap.getElem_insert.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} {v : β} {h₁ : a ∈ m.insert k v} :\n  (m.insert k v)[a] = if h₂ : (k == a) = true then v else m[a]</code>",
- "495":
+ "497":
  "<code>Std.HashMap.getElem_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} {h' : a ∈ m.erase k} : (m.erase k)[a] = m[a]</code>",
- "494":
+ "496":
  "<code>Array.getElem_mem.{u} {α : Type u} {xs : Array α} {i : Nat} (h : i &lt; xs.size) : xs[i] ∈ xs</code>",
- "493":
+ "495":
  "<code>Option.none_le.{u_1} {α : Type u_1} [LE α] {a : Option α} : none ≤ a</code>",
- "492":
+ "494":
  "<code>Option.not_some_le_none.{u_1} {α : Type u_1} [LE α] {a : α} : ¬some a ≤ none</code>",
- "491":
+ "493":
  "<code>Option.not_mem_none.{u_1} {α : Type u_1} (a : α) : ¬a ∈ none</code>",
- "490":
+ "492":
  "<code>Option.none_lt_some.{u_1} {α : Type u_1} [LT α] {a : α} : none &lt; some a</code>",
+ "491":
+ "<code>Option.not_lt_none.{u_1} {α : Type u_1} [LT α] {a : Option α} : ¬a &lt; none</code>",
+ "490":
+ "<code>Std.HashMap.getElem?_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} : (m.erase k)[a]? = if (k == a) = true then none else m[a]?</code>",
  "49":
  "<code>(Prod.fst ?inv1 ({ «prefix» := l.toList, suffix := [], property := ⋯ }, r✝)).down</code>",
  "489":
- "<code>Option.not_lt_none.{u_1} {α : Type u_1} [LT α] {a : Option α} : ¬a &lt; none</code>",
+ "<code>Std.HashMap.mem_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β} [EquivBEq α]\n  [LawfulHashable α] {k a : α} : a ∈ m.erase k ↔ (k == a) = false ∧ a ∈ m</code>",
  "488":
- "<code>Std.HashMap.getElem?_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} : (m.erase k)[a]? = if (k == a) = true then none else m[a]?</code>",
- "487":
  "<code>Std.HashMap.mem_insert.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β} [EquivBEq α]\n  [LawfulHashable α] {k a : α} {v : β} : a ∈ m.insert k v ↔ (k == a) = true ∨ a ∈ m</code>",
- "486":
+ "487":
  "<code>Array.size_set.{u} {α : Type u} {xs : Array α} {i : Nat} {v : α} (h : i &lt; xs.size) : (xs.set i v h).size = xs.size</code>",
- "485":
+ "486":
  "<code>Array.size_pop.{u} {α : Type u} {xs : Array α} : xs.pop.size = xs.size - 1</code>",
+ "485":
+ "<code>Array.eq_empty_of_size_eq_zero.{u_1} {α✝ : Type u_1} {xs : Array α✝} (h : xs.size = 0) : xs = #[]</code>",
  "484":
  "<code>Array.getElem?_eq_none.{u_1} {α : Type u_1} {i : Nat} {xs : Array α} (h : xs.size ≤ i) : xs[i]? = none</code>",
  "483":
@@ -174,25 +200,24 @@
  "475":
  "<code>getElem?_neg.{u_1, u_2, u_3} {cont : Type u_1} {idx : Type u_2} {elem : Type u_3} {dom : cont → idx → Prop}\n  [GetElem? cont idx elem dom] [LawfulGetElem cont idx elem dom] (c : cont) (i : idx) (h : ¬dom c i) : c[i]? = none</code>",
  "474":
- "<code>Std.HashMap.mem_erase.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β} [EquivBEq α]\n  [LawfulHashable α] {k a : α} : a ∈ m.erase k ↔ (k == a) = false ∧ a ∈ m</code>",
- "473":
  "<code>Array.set_pop.{u_1} {α : Type u_1} {xs : Array α} {x : α} {i : Nat} (h : i &lt; xs.pop.size) :\n  xs.pop.set i x h = (xs.set i x ⋯).pop</code>",
- "472":
+ "473":
  "<code>Std.HashMap.getElem?_insert.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  [EquivBEq α] [LawfulHashable α] {k a : α} {v : β} : (m.insert k v)[a]? = if (k == a) = true then some v else m[a]?</code>",
- "471":
+ "472":
  "<code>Array.getElem?_set.{u_1} {α : Type u_1} {xs : Array α} {i : Nat} (h : i &lt; xs.size) {v : α} {j : Nat} :\n  (xs.set i v h)[j]? = if i = j then some v else xs[j]?</code>",
- "470":
+ "471":
  "<code>Array.getElem?_pop.{u_1} {α : Type u_1} {xs : Array α} {i : Nat} : xs.pop[i]? = if i &lt; xs.size - 1 then xs[i]? else none</code>",
+ "470":
+ "<code>Lean.Grind.Ring.OfSemiring.toQ.{u} {α : Type u} [Lean.Grind.Semiring α] (a : α) : Lean.Grind.Ring.OfSemiring.Q α</code>",
  "47":
  "<code>List.nil.{u} {α : Type u} : List α</code><span class=\"sep\"></span><code class=\"docstring\">The empty list, usually written `[]`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `[]` in identifiers is `nil`.</code>",
- "469":
- "<code>Lean.Grind.Ring.OfSemiring.toQ.{u} {α : Type u} [Lean.Grind.Semiring α] (a : α) : Lean.Grind.Ring.OfSemiring.Q α</code>",
- "468": "<code>i_2 + 1 ≤ m.keys.pop.size</code>",
- "467": "<code>m.keys[i_2] ∈ m</code>",
- "466": "<code>m.keys[i_2] ∈ m.indices</code>",
- "465": "<code>i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size</code>",
- "464":
+ "469": "<code>i_2 + 1 ≤ m.keys.pop.size</code>",
+ "468": "<code>m.keys[i_2] ∈ m</code>",
+ "467": "<code>m.keys[i_2] ∈ m.indices</code>",
+ "466": "<code>i_2 + 1 ≤ (m.keys.set i (m.keys.back ⋯) ⋯).size</code>",
+ "465":
  "<code>Bool.not : Bool → Bool</code><span class=\"sep\"></span><code class=\"docstring\">Boolean negation, also known as Boolean complement. `not x` can be written `!x`.\n\nThis is a function that maps the value `true` to `false` and the value `false` to `true`. The\npropositional connective is `Not : Prop → Prop`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `!` in identifiers is `not`.</code>",
+ "464": "<code>a_2 ∈ m.indices</code>",
  "463": "<code>i + 1 ≤ m.keys.size</code>",
  "462": "<code>i_2 + 1 ≤ m.keys.size</code>",
  "461": "<code>a ∈ m.indices</code>",
@@ -200,61 +225,62 @@
  "46":
  "<code>pref✝ ++ [cur✝] ++ suff✝ = l.toList</code><span class=\"sep\"></span><code class=\"docstring\">Appending the prefix to the suffix yields the original list. </code>",
  "459": "<code>a_2 ∈ (m.indices.erase a).insert (m.keys.back ⋯) i</code>",
- "458": "<code>a_2 ∈ m.indices</code>",
- "457": "<code>(a == a_2) = false</code>",
- "456": "<code>a_2 ∈ m.indices.erase a</code>",
- "455": "<code>i + 1 ≤ m.keys.pop.size</code>",
- "454": "<code>(m.keys.back ⋯ == a_2) = true</code>",
- "453": "<code>¬m.indices[a]? = some i_2</code>",
- "452": "<code>¬m.keys[i_2]? = some a</code>",
- "451": "<code>¬i = i_2</code>",
- "450":
+ "458": "<code>a_2 ∈ m.indices.erase a</code>",
+ "457": "<code>(m.indices.erase a).contains a_2 = true</code>",
+ "456": "<code>i + 1 ≤ m.keys.pop.size</code>",
+ "455": "<code>(m.keys.back ⋯ == a_2) = true</code>",
+ "454": "<code>¬m.indices[a]? = some i_2</code>",
+ "453": "<code>¬m.keys[i_2]? = some a</code>",
+ "452": "<code>¬i = i_2</code>",
+ "451":
  "<code>¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2</code>",
+ "450": "<code>(m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2</code>",
  "45":
  "<code>ULift.down.{r, s} {α : Type s} (self : ULift α) : α</code><span class=\"sep\"></span><code class=\"docstring\">Extracts a wrapped value from a universe-lifted type. </code>",
- "449": "<code>(m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2</code>",
- "448":
+ "449":
  "<code>NatCast.natCast.{u} {R : Type u} [self : NatCast R] : Nat → R</code><span class=\"sep\"></span><code class=\"docstring\">The canonical map `Nat → R`. </code>",
- "447":
+ "448":
  "<code>HMul.hMul.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HMul α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a * b` computes the product of `a` and `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `*` in identifiers is `mul`.</code>",
- "446": "<code>-1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0</code>",
- "445":
+ "447": "<code>-1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0</code>",
+ "446":
  "<code>((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =\n  ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2</code>",
- "444":
+ "445":
  "<code>HSub.hSub.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HSub α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a - b` computes the difference of `a` and `b`.\nThe meaning of this notation is type-dependent.\n* For natural numbers, this operator saturates at 0: `a - b = 0` when `a ≤ b`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `-` in identifiers is `sub` (when used as a binary operator).</code>",
- "443": "<code>¬i = m.size - 1</code>",
- "442":
+ "444": "<code>¬i = m.size - 1</code>",
+ "443":
  "<code>GetElem?.getElem!.{u, v, w} {coll : Type u} {idx : Type v} {elem : outParam (Type w)}\n  {valid : outParam (coll → idx → Prop)} [self : GetElem? coll idx elem valid] [Inhabited elem] (xs : coll) (i : idx) :\n  elem</code><span class=\"sep\"></span><code class=\"docstring\">The syntax `arr[i]!` gets the `i`'th element of the collection `arr`,\nif it is present, and otherwise panics at runtime and returns the `default` term\nfrom `Inhabited elem`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `xs[i]!` in identifiers is `getElem!`.</code>",
- "441": "<code>Inhabited β</code>",
- "440":
+ "442": "<code>Inhabited β</code>",
+ "441":
  "<code>GetElem?.getElem?.{u, v, w} {coll : Type u} {idx : Type v} {elem : outParam (Type w)}\n  {valid : outParam (coll → idx → Prop)} [self : GetElem? coll idx elem valid] : coll → idx → Option elem</code><span class=\"sep\"></span><code class=\"docstring\">The syntax `arr[i]?` gets the `i`'th element of the collection `arr`,\nif it is present (and wraps it in `some`), and otherwise returns `none`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `xs[i]?` in identifiers is `getElem?`.</code>",
+ "440": "<code>Decidable (i ∈ c)</code>",
  "44":
  "<code>pref✝ ++ cur✝ :: suff✝ = l.toList</code><span class=\"sep\"></span><code class=\"docstring\">Appending the prefix to the suffix yields the original list. </code>",
- "439": "<code>Decidable (i ∈ c)</code>",
- "438":
+ "439":
  "<code>IndexMap.getElem!_def.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  [Inhabited β] (m : IndexMap α β) (a : α) : m[a]! = (m.indices[a]?.bind fun x =&gt; m.values[x]?).getD default</code>",
- "437":
+ "438":
  "<code>IndexMap.getElem?_def.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) : m[a]? = m.indices[a]?.bind fun i =&gt; m.values[i]?</code>",
- "436":
+ "437":
  "<code>IndexMap.getElem_def.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (h : a ∈ m) : m[a] = m.values[m.indices[a]]</code>",
- "435":
+ "436":
  "<code class=\"docstring\">`get_elem_tactic_extensible` is an extensible tactic automatically called\nby the notation `arr[i]` to prove any side conditions that arise when\nconstructing the term (e.g. the index is in bounds of the array).\nThe default behavior is to try `simp +arith` and `omega`\n(for doing linear arithmetic in the index).\n\n(Note that the core tactic `get_elem_tactic` has already tried\n`done` and `assumption` before the extensible tactic is called.)\n</code>",
- "434":
+ "435":
  "<code class=\"docstring\">The `grind_pattern` command can be used to manually select a pattern for theorem instantiation.\nEnabling the option `trace.grind.ematch.instance` causes `grind` to print a trace message for each\ntheorem instance it generates, which can be helpful when determining patterns.\n\nWhen multiple patterns are specified together, all of them must match in the current context before\n`grind` attempts to instantiate the theorem. This is referred to as a *multi-pattern*.\nThis is useful for theorems such as transitivity rules, where multiple premises must be simultaneously\npresent for the rule to apply.\n\nIn the following example, `R` is a transitive binary relation over `Int`.\n```\nopaque R : Int → Int → Prop\naxiom Rtrans {x y z : Int} : R x y → R y z → R x z\n```\nTo use the fact that `R` is transitive, `grind` must already be able to satisfy both premises.\nThis is represented using a multi-pattern:\n```\ngrind_pattern Rtrans =&gt; R x y, R y z\n\nexample {a b c d} : R a b → R b c → R c d → R a d := by\n  grind\n```\nThe multi-pattern `R x y`, `R y z` instructs `grind` to instantiate `Rtrans` only when both `R x y`\nand `R y z` are available in the context. In the example, `grind` applies `Rtrans` to derive `R a c`\nfrom `R a b` and `R b c`, and can then repeat the same reasoning to deduce `R a d` from `R a c` and\n`R c d`.\n\nYou can add constraints to restrict theorem instantiation. For example:\n```\ngrind_pattern extract_extract =&gt; (as.extract i j).extract k l where\n  as =/= #[]\n```\nThe constraint instructs `grind` to instantiate the theorem only if `as` is **not** definitionally equal\nto `#[]`.\n\n## Constraints\n\n- `x =/= term`: The term bound to `x` (one of the theorem parameters) is **not** definitionally equal to `term`.\n  The term may contain holes (i.e., `_`).\n\n- `x =?= term`: The term bound to `x` is definitionally equal to `term`.\n  The term may contain holes (i.e., `_`).\n\n- `size x &lt; n`: The term bound to `x` has size less than `n`. Implicit arguments\nand binder types are ignored when computing the size.\n\n- `depth x &lt; n`: The term bound to `x` has depth less than `n`.\n\n- `is_ground x`: The term bound to `x` does not contain local variables or meta-variables.\n\n- `is_value x`: The term bound to `x` is a value. That is, it is a constructor fully applied to value arguments,\na literal (`Nat`, `Int`, `String`, etc.), or a lambda `fun x =&gt; t`.\n\n- `is_strict_value x`: Similar to `is_value`, but without lambdas.\n\n- `not_value x`: The term bound to `x` is a **not** value (see `is_value`).\n\n- `not_strict_value x`: Similar to `not_value`, but without lambdas.\n\n- `gen &lt; n`: The theorem instance has generation less than `n`. Recall that each term is assigned a\ngeneration, and terms produced by theorem instantiation have a generation that is one greater than\nthe maximal generation of all the terms used to instantiate the theorem. This constraint complements\nthe `gen` option available in `grind`.\n\n- `max_insts &lt; n`: A new instance is generated only if less than `n` instances have been generated so far.\n\n- `guard e`: The instantiation is delayed until `grind` learns that `e` is `true` in this state.\n\n- `check e`: Similar to `guard e`, but `grind` checks whether `e` is implied by its current state by\nassuming `¬ e` and trying to deduce an inconsistency.\n\n## Example\n\nConsider the following example where `f` is a monotonic function\n```\nopaque f : Nat → Nat\naxiom fMono : x ≤ y → f x ≤ f y\n```\nand you want to instruct `grind` to instantiate `fMono` for every pair of terms `f x` and `f y` when\n`x ≤ y` and `x` is **not** definitionally equal to `y`. You can use\n```\ngrind_pattern fMono =&gt; f x, f y where\n  guard x ≤ y\n  x =/= y\n```\nThen, in the following example, only three instances are generated.\n```\n/--\ntrace: [grind.ematch.instance] fMono: a ≤ f a → f a ≤ f (f a)\n[grind.ematch.instance] fMono: f a ≤ f (f a) → f (f a) ≤ f (f (f a))\n[grind.ematch.instance] fMono: a ≤ f (f a) → f a ≤ f (f (f a))\n-/\n#guard_msgs in\nexample : f b = f c → a ≤ f a → f (f a) ≤ f (f (f a)) := by\n  set_option trace.grind.ematch.instance true in\n  grind\n```\n</code>",
- "433":
+ "434":
  "<code class=\"docstring\">The `have` tactic is for adding opaque definitions and hypotheses to the local context of the main goal.\nThe definitions forget their associated value and cannot be unfolded, unlike definitions added by the `let` tactic.\n\n* `have h : t := e` adds the hypothesis `h : t` if `e` is a term of type `t`.\n* `have h := e` uses the type of `e` for `t`.\n* `have : t := e` and `have := e` use `this` for the name of the hypothesis.\n* `have pat := e` for a pattern `pat` is equivalent to `match e with | pat =&gt; _`,\n  where `_` stands for the tactics that follow this one.\n  It is convenient for types that have only one applicable constructor.\n  For example, given `h : p ∧ q ∧ r`, `have ⟨h₁, h₂, h₃⟩ := h` produces the\n  hypotheses `h₁ : p`, `h₂ : q`, and `h₃ : r`.\n* The syntax `have (eq := h) pat := e` is equivalent to `match h : e with | pat =&gt; _`,\n  which adds the equation `h : e = pat` to the local context.\n\nThe tactic supports all the same syntax variants and options as the `have` term.\n\n## Properties and relations\n\n* It is not possible to unfold a variable introduced using `have`, since the definition's value is forgotten.\n  The `let` tactic introduces definitions that can be unfolded.\n* The `have h : t := e` is like doing `let h : t := e; clear_value h`.\n* The `have` tactic is preferred for propositions, and `let` is preferred for non-propositions.\n* Sometimes `have` is used for non-propositions to ensure that the variable is never unfolded,\n  which may be important for performance reasons.\n    Consider using the equivalent `let +nondep` to indicate the intent.\n\n</code>",
- "432":
+ "433":
  "<code>IndexMap.getElem_indices_lt.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} {a : α}\n  [LawfulBEq α] [LawfulHashable α] {h : a ∈ m} : m.indices[a] &lt; m.size</code>",
- "431": "<code>Iff.rfl {a : Prop} : a ↔ a</code>",
+ "432": "<code>Iff.rfl {a : Prop} : a ↔ a</code>",
+ "431":
+ "<code>IndexMap.mem_indices.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} {a : α} :\n  a ∈ m.indices ↔ a ∈ m</code>",
  "430":
- "<code>IndexMap.mem_indices_of_mem.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} {a : α} :\n  a ∈ m ↔ a ∈ m.indices</code>",
+ "<code>Std.HashMap.contains_iff_mem.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  {a : α} : m.contains a = true ↔ a ∈ m</code>",
  "43":
  "<code>List Nat</code><span class=\"sep\"></span><code class=\"docstring\">The elements starting at the current position. If the position is after the last element of the\nlist, then the suffix is empty; otherwise, the first element of the suffix is the current element\nthat the cursor points to.\n</code>",
- "429":
- "<code>Std.HashMap.contains_iff_mem.{u, v} {α : Type u} {β : Type v} {x✝ : BEq α} {x✝¹ : Hashable α} {m : HashMap α β}\n  {a : α} : m.contains a = true ↔ a ∈ m</code>",
- "428": "<code>m.size ≤ m.indices[a]</code>",
- "427":
+ "429": "<code>m.size ≤ m.indices[a]</code>",
+ "428":
  "<code>IndexMap.getElem_indices_lt.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] (m : IndexMap α β) (a : α)\n  (h : a ∈ m) : m.indices[a] &lt; m.size</code>",
+ "427":
+ "<code>IndexMap.size_values.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} : m.values.size = m.size</code>",
  "426":
  "<code>IndexMap.size_keys.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] {m : IndexMap α β} : m.keys.size = m.size</code>",
  "425":
@@ -345,7 +371,7 @@
  "384":
  "<code>[Inhabited β] → IndexMap α β → α → β</code><span class=\"sep\"></span><code class=\"docstring\">The syntax `arr[i]!` gets the `i`'th element of the collection `arr`,\nif it is present, and otherwise panics at runtime and returns the `default` term\nfrom `Inhabited elem`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `xs[i]!` in identifiers is `getElem!`.</code>",
  "383":
- "<code>Option.bind.{u_1, u_2} {α : Type u_1} {β : Type u_2} : Option α → (α → Option β) → Option β</code><span class=\"sep\"></span><code class=\"docstring\">Sequencing of `Option` computations.\n\nFrom the perspective of `Option` as computations that might fail, this function sequences\npotentially-failing computations, failing if either fails. From the perspective of `Option` as a\ncollection with at most one element, the function is applied to the element if present, and the\nfinal result is empty if either the initial or the resulting collections are empty.\n\nThis function is often accessed via the `&gt;&gt;=` operator from the `Bind (Option α)` instance, or\nimplicitly via `do`-notation, but it is also idiomatic to call it using [generalized field\nnotation](https://lean-lang.org/doc/reference/4.27.0/find/?domain=Verso.Genre.Manual.section&name=generalized-field-notation).\n\nExamples:\n * `none.bind (fun x =&gt; some x) = none`\n * `(some 4).bind (fun x =&gt; some x) = some 4`\n * `none.bind (Option.guard (· &gt; 2)) = none`\n * `(some 2).bind (Option.guard (· &gt; 2)) = none`\n * `(some 4).bind (Option.guard (· &gt; 2)) = some 4`\n</code>",
+ "<code>Option.bind.{u_1, u_2} {α : Type u_1} {β : Type u_2} : Option α → (α → Option β) → Option β</code><span class=\"sep\"></span><code class=\"docstring\">Sequencing of `Option` computations.\n\nFrom the perspective of `Option` as computations that might fail, this function sequences\npotentially-failing computations, failing if either fails. From the perspective of `Option` as a\ncollection with at most one element, the function is applied to the element if present, and the\nfinal result is empty if either the initial or the resulting collections are empty.\n\nThis function is often accessed via the `&gt;&gt;=` operator from the `Bind (Option α)` instance, or\nimplicitly via `do`-notation, but it is also idiomatic to call it using [generalized field\nnotation](https://lean-lang.org/doc/reference/4.28.0/find/?domain=Verso.Genre.Manual.section&name=generalized-field-notation).\n\nExamples:\n * `none.bind (fun x =&gt; some x) = none`\n * `(some 4).bind (fun x =&gt; some x) = some 4`\n * `none.bind (Option.guard (· &gt; 2)) = none`\n * `(some 2).bind (Option.guard (· &gt; 2)) = none`\n * `(some 4).bind (Option.guard (· &gt; 2)) = some 4`\n</code>",
  "382":
  "<code>IndexMap α β → α → Option β</code><span class=\"sep\"></span><code class=\"docstring\">The syntax `arr[i]?` gets the `i`'th element of the collection `arr`,\nif it is present (and wraps it in `some`), and otherwise returns `none`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `xs[i]?` in identifiers is `getElem?`.</code>",
  "381":
@@ -416,7 +442,7 @@
  "347": "<code>β</code>",
  "346": "<code>IndexMap α β</code>",
  "345":
- "<code>LawfulHashable.{u} (α : Type u) [BEq α] [Hashable α] : Prop</code><span class=\"sep\"></span><code class=\"docstring\">The `BEq α` and `Hashable α` instances on `α` are compatible. This means that that `a == b` implies\n`hash a = hash b`.\n\nThis is automatic if the `BEq` instance is lawful.\n</code>",
+ "<code>LawfulHashable.{u} (α : Type u) [BEq α] [Hashable α] : Prop</code><span class=\"sep\"></span><code class=\"docstring\">The `BEq α` and `Hashable α` instances on `α` are compatible. This means that `a == b` implies\n`hash a = hash b`.\n\nThis is automatic if the `BEq` instance is lawful.\n</code>",
  "344":
  "<code>LawfulBEq.{u} (α : Type u) [BEq α] : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A Boolean equality test coincides with propositional equality.\n\nIn other words:\n* `a == b` implies `a = b`.\n* `a == a` is true.\n</code>",
  "343":
@@ -454,7 +480,7 @@
  "326":
  "<code>IndexMap.eraseSwap.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) : IndexMap α β</code><span class=\"sep\"></span><code class=\"docstring\">Erase the key-value pair with the given key,\nmoving the last pair into its place in the order.\nIf the key is not present, the map is unchanged.\n</code>",
  "325":
- "<code>IndexMap.insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulHashable α] [LawfulBEq α]\n  (m : IndexMap α β) (a : α) (b : β) : IndexMap α β</code>",
+ "<code>IndexMap.insert.{u, v} {α : Type u} {β : Type v} [BEq α] [Hashable α] [LawfulBEq α] [LawfulHashable α]\n  (m : IndexMap α β) (a : α) (b : β) : IndexMap α β</code>",
  "324":
  "<code>Std.HashMap.{u, v} (α : Type u) (β : Type v) [BEq α] [Hashable α] : Type (max u v)</code><span class=\"sep\"></span><code class=\"docstring\">Hash maps.\n\nThis is a simple separate-chaining hash table. The data of the hash map consists of a cached size\nand an array of buckets, where each bucket is a linked list of key-value pairs. The number of buckets\nis always a power of two. The hash map doubles its size upon inserting an element such that the\nnumber of elements is more than 75% of the number of buckets.\n\nThe hash table is backed by an `Array`. Users should make sure that the hash map is used linearly to\navoid expensive copies.\n\nThe hash map uses `==` (provided by the `BEq` typeclass) to compare keys and `hash` (provided by\nthe `Hashable` typeclass) to hash them. To ensure that the operations behave as expected, `==`\nshould be an equivalence relation and `a == b` should imply `hash a = hash b` (see also the\n`EquivBEq` and `LawfulHashable` typeclasses). Both of these conditions are automatic if the BEq\ninstance is lawful, i.e., if `a == b` implies `a = b`.\n\nThese hash maps contain a bundled well-formedness invariant, which means that they cannot\nbe used in nested inductive types. For these use cases, `Std.Data.HashMap.Raw` and\n`Std.Data.HashMap.Raw.WF` unbundle the invariant from the hash map. When in doubt, prefer\n`HashMap` over `HashMap.Raw`.\n\nDependent hash maps, in which keys may occur in their values' types, are available as\n`Std.Data.DHashMap`.\n</code>",
  "323":
@@ -648,9 +674,9 @@
  "221":
  "<code>MonadLift.{u, v, w} (m : semiOutParam (Type u → Type v)) (n : Type u → Type w) : Type (max (max (u + 1) v) w)</code><span class=\"sep\"></span><code class=\"docstring\">Computations in the monad `m` can be run in the monad `n`. These translations are inserted\nautomatically by the compiler.\n\nUsually, `n` consists of some number of monad transformers applied to `m`, but this is not\nmandatory.\n\nNew instances should use this class, `MonadLift`. Clients that require one monad to be liftable into\nanother should instead request `MonadLiftT`, which is the reflexive, transitive closure of\n`MonadLift`.\n</code>",
  "220":
- "<code>Monad.{u, v} (m : Type u → Type v) : Type (max (u + 1) v)</code><span class=\"sep\"></span><code class=\"docstring\">[Monads](https://en.wikipedia.org/wiki/Monad_(functional_programming)) are an abstraction of\nsequential control flow and side effects used in functional programming. Monads allow both\nsequencing of effects and data-dependent effects: the values that result from an early step may\ninfluence the effects carried out in a later step.\n\nThe `Monad` API may be used directly. However, it is most commonly accessed through\n[`do`-notation](https://lean-lang.org/doc/reference/4.27.0/find/?domain=Verso.Genre.Manual.section&name=do-notation).\n\nMost `Monad` instances provide implementations of `pure` and `bind`, and use default implementations\nfor the other methods inherited from `Applicative`. Monads should satisfy certain laws, but\ninstances are not required to prove this. An instance of `LawfulMonad` expresses that a given\nmonad's operations are lawful.\n</code>",
+ "<code>Monad.{u, v} (m : Type u → Type v) : Type (max (u + 1) v)</code><span class=\"sep\"></span><code class=\"docstring\">[Monads](https://en.wikipedia.org/wiki/Monad_(functional_programming)) are an abstraction of\nsequential control flow and side effects used in functional programming. Monads allow both\nsequencing of effects and data-dependent effects: the values that result from an early step may\ninfluence the effects carried out in a later step.\n\nThe `Monad` API may be used directly. However, it is most commonly accessed through\n[`do`-notation](https://lean-lang.org/doc/reference/4.28.0/find/?domain=Verso.Genre.Manual.section&name=do-notation).\n\nMost `Monad` instances provide implementations of `pure` and `bind`, and use default implementations\nfor the other methods inherited from `Applicative`. Monads should satisfy certain laws, but\ninstances are not required to prove this. An instance of `LawfulMonad` expresses that a given\nmonad's operations are lawful.\n</code>",
  "22":
- "<code>ForIn.forIn.{u, v, u₁, u₂} {m : Type u₁ → Type u₂} {ρ : Type u} {α : outParam (Type v)} [self : ForIn m ρ α]\n  {β : Type u₁} (xs : ρ) (b : β) (f : α → β → m (ForInStep β)) : m β</code><span class=\"sep\"></span><code class=\"docstring\">Monadically iterates over the contents of a collection `xs`, with a local state `b` and the\npossibility of early termination.\n\nBecause a `do` block supports local mutable bindings along with `return`, and `break`, the monadic\naction passed to `ForIn.forIn` takes a starting state in addition to the current element of the\ncollection and returns an updated state together with an indication of whether iteration should\ncontinue or terminate. If the action returns `ForInStep.done`, then `ForIn.forIn` should stop\niteration and return the updated state. If the action returns `ForInStep.yield`, then\n`ForIn.forIn` should continue iterating if there are further elements, passing the updated state\nto the action.\n\nMore information about the translation of `for` loops into `ForIn.forIn` is available in [the Lean\nreference manual](https://lean-lang.org/doc/reference/4.27.0/find/?domain=Verso.Genre.Manual.section&name=monad-iteration-syntax).\n</code>",
+ "<code>ForIn.forIn.{u, v, u₁, u₂} {m : Type u₁ → Type u₂} {ρ : Type u} {α : outParam (Type v)} [self : ForIn m ρ α]\n  {β : Type u₁} (xs : ρ) (b : β) (f : α → β → m (ForInStep β)) : m β</code><span class=\"sep\"></span><code class=\"docstring\">Monadically iterates over the contents of a collection `xs`, with a local state `b` and the\npossibility of early termination.\n\nBecause a `do` block supports local mutable bindings along with `return`, and `break`, the monadic\naction passed to `ForIn.forIn` takes a starting state in addition to the current element of the\ncollection and returns an updated state together with an indication of whether iteration should\ncontinue or terminate. If the action returns `ForInStep.done`, then `ForIn.forIn` should stop\niteration and return the updated state. If the action returns `ForInStep.yield`, then\n`ForIn.forIn` should continue iterating if there are further elements, passing the updated state\nto the action.\n\nMore information about the translation of `for` loops into `ForIn.forIn` is available in [the Lean\nreference manual](https://lean-lang.org/doc/reference/4.28.0/find/?domain=Verso.Genre.Manual.section&name=monad-iteration-syntax).\n</code>",
  "219":
  "<code>Std.Do.WPMonad.{u, v} (m : Type u → Type v) (ps : outParam Std.Do.PostShape) [Monad m] : Type (max (u + 1) v)</code><span class=\"sep\"></span><code class=\"docstring\">A monad with weakest preconditions (`WP`) that is also a monad morphism, preserving `pure` and\n`bind`.\n\nIn practice, `mvcgen` is not useful for reasoning about programs in a monad that is without a\n`WPMonad` instance. The specification lemmas for `Pure.pure` and `Bind.bind`, as well as those for\noperators like `Functor.map`, require that their monad have a `WPMonad` instance.\n</code>",
  "218":
@@ -814,7 +840,7 @@
  "131":
  "<code>(have seen := seen;\n      do\n      let r ←\n        forIn l ⟨none, seen⟩ fun x r =&gt;\n            have r := r.snd;\n            have seen := r;\n            have __do_jp := fun seen y =&gt;\n              have seen := seen.insert x;\n              do\n              pure PUnit.unit\n              pure (ForInStep.yield ⟨none, seen⟩);\n            if x ∈ seen then pure (ForInStep.done ⟨some false, seen⟩)\n            else do\n              let y ← pure PUnit.unit\n              __do_jp seen y\n      have seen : Std.HashSet Int := r.snd\n      have __do_jp : PUnit → Id Bool := fun y =&gt; pure true\n      match r.fst with\n        | none =&gt; do\n          let y ← pure PUnit.unit\n          __do_jp y\n        | some a =&gt; pure a).run =\n    true ↔\n  l.Nodup ∧ ∀ (x : Int), x ∈ l → ¬x ∈ seen</code>",
  "130":
- "<code class=\"docstring\">* `change tgt'` will change the goal from `tgt` to `tgt'`,\n  assuming these are definitionally equal.\n* `change t' at h` will change hypothesis `h : t` to have type `t'`, assuming\n  assuming `t` and `t'` are definitionally equal.\n</code>",
+ "<code class=\"docstring\">* `change tgt'` will change the goal from `tgt` to `tgt'`,\n  assuming these are definitionally equal.\n* `change t' at h` will change hypothesis `h : t` to have type `t'`, assuming\n  assuming `t` and `t'` are definitionally equal.\n* `change a with b` will change occurrences of `a` to `b` in the goal,\n  assuming `a` and `b` are definitionally equal.\n* `change a with b at h` similarly changes `a` to `b` in the type of hypothesis `h`.\n</code>",
  "13": "<code>mySum_correct (l : Array Nat) : mySum l = l.sum</code>",
  "129": "<code>∅ = seen</code>",
  "128":
@@ -848,7 +874,7 @@
  "<code>List Int</code><span class=\"sep\"></span><code class=\"docstring\">The elements before to the current position in the list.\n</code>",
  "113": "<code>cur✝ ∈ seen✝</code>",
  "112":
- "<code>ForInStep.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">An indication of whether a loop's body terminated early that's used to compile the `for x in xs`\nnotation.\n\nA collection's `ForIn` or `ForIn'` instance describe's how to iterate over its elements. The monadic\naction that represents the body of the loop returns a `ForInStep α`, where `α` is the local state\nused to implement features such as `let mut`.\n</code>",
+ "<code>ForInStep.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">An indication of whether a loop's body terminated early that's used to compile the `for x in xs`\nnotation.\n\nA collection's `ForIn` or `ForIn'` instance describes how to iterate over its elements. The monadic\naction that represents the body of the loop returns a `ForInStep α`, where `α` is the local state\nused to implement features such as `let mut`.\n</code>",
  "111": "<code>l = pref✝ ++ cur✝ :: suff✝</code>",
  "110":
  "<code>Option.{u} (α : Type u) : Type u</code><span class=\"sep\"></span><code class=\"docstring\">Optional values, which are either `some` around a value from the underlying type or `none`.\n\n`Option` can represent nullable types or computations that might fail. In the codomain of a function\ntype, it can also represent partiality.\n</code>",

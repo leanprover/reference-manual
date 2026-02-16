@@ -74,18 +74,16 @@ function registerTheme() {
     applyTheme(storedLocalTheme || currentSystemTheme);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    setInput();
+  setInput();
 
-    const themeToggleBtns = document.querySelectorAll('.change-theme');
-    themeToggleBtns.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const isDark = document.documentElement.classList.contains('dark-theme');
-        const newTheme = isDark ? 'light' : 'dark';
+  const themeToggleBtns = document.querySelectorAll('.change-theme');
+  themeToggleBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.contains('dark-theme');
+      const newTheme = isDark ? 'light' : 'dark';
 
-        setStored('theme-local', newTheme);
-        applyTheme(newTheme);
-      });
+      setStored('theme-local', newTheme);
+      applyTheme(newTheme);
     });
   });
 
@@ -106,4 +104,6 @@ function registerTheme() {
   });
 }
 
-registerTheme();
+window.addEventListener('DOMContentLoaded', () => {
+  registerTheme();
+})
