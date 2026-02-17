@@ -29,7 +29,7 @@ For this release, 303 changes landed. In addition to the 81 feature additions an
   predictability as well as preparing codegen to be moved into a separate
   build step without breaking immediate generation of error messages.
 
-* [#12110](https://github.com/leanprover/lean4/pull/12110) fixes a SIGFPE crash on x86_64 when evaluating `(ISize.minValue
+* [#12110](https://github.com/leanprover/lean4/pull/12110) fixes a SIGFPE crash on `x86_64` when evaluating `(ISize.minValue
   / -1 : ISize)`, filling an omission from #11624.
 
 * [#12159](https://github.com/leanprover/lean4/pull/12159) makes Std.Do's `post` macro universe polymorphic by expanding to
