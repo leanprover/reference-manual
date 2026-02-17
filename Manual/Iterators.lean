@@ -339,7 +339,7 @@ Because there are infinitely many {name}`Nat`s, the iterator is not finite.
 A {name}`Nats` iterator can be created using this function:
 ```lean
 def Nats.iter : Iter (α := Nats) Nat :=
-  toIterM { next := 0 } Id Nat |>.toIter
+  IterM.mk { next := 0 } |>.toIter
 ```
 :::
 
@@ -460,7 +460,7 @@ structure TripleIterator α where
 Iteration begins at {name TriplePos.fst}`fst`:
 ```lean
 def Triple.iter (xs : Triple α) : Iter (α := TripleIterator α) α :=
-  IterM.mk {triple := xs, pos := .fst : TripleIterator α} Id α |>.toIter
+  IterM.mk {triple := xs, pos := .fst : TripleIterator α} |>.toIter
 ```
 
 There are two plausible steps: either the iterator's position has a successor, in which case the next iterator is one that points at the same triple with the successor position, or it does not, in which case iteration is complete.
@@ -591,7 +591,7 @@ def iterFile
     IO (IterM (α := FileIterator) IO ByteArray) := do
   let h ← IO.FS.Handle.mk path .read
   let stream? := some (IO.FS.Stream.ofHandle h)
-  return IterM.mk { stream?, count } IO ByteArray
+  return IterM.mk { stream?, count }
 ```
 
 For this iterator, a {name IterStep.yield}`yield` is plausible when the file is still open, and {name IterStep.done}`done` is plausible when the file is closed.
@@ -865,7 +865,7 @@ termination_by it.finitelyManySkips
 
 {docstring Iter.foldM}
 
-{docstring Iter.count}
+{docstring Iter.length}
 
 {docstring Iter.any}
 
@@ -895,7 +895,7 @@ termination_by it.finitelyManySkips
 
 {docstring IterM.foldM}
 
-{docstring IterM.count}
+{docstring IterM.length}
 
 {docstring IterM.any}
 

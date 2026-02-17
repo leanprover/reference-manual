@@ -232,15 +232,26 @@ The resulting term depends on the axiom {name}`Lean.trustCompiler` in order to t
 ```leanOutput printAxExC1
 'largeNumber' depends on axioms: [Lean.trustCompiler]
 ```
+:::
 
-The most common way that proofs end up trusting the compiler is through the {tactic}`native_decide` tactic:
+:::example "Axioms and the `native_decide` Tactic"
+Instead of appealing to {name}`Lean.trustCompiler`, the {tactic}`native_decide` tactic creates a bespoke axiom for each invocation.
+This allows each axiom to be audited for the precise statement that it proves.
 
 ```lean (name := printAxExC2)
 def bigSum : (List.range 1_001).sum = 500_500 := by native_decide
 #print axioms bigSum
 ```
 ```leanOutput printAxExC2
-'bigSum' depends on axioms: [Lean.ofReduceBool, Lean.trustCompiler]
+'bigSum' depends on axioms: [bigSum._native.native_decide.ax_1]
+```
+
+The axiom's type can be checked directly:
+```lean (name := printAxExC3)
+#check bigSum._native.native_decide.ax_1
+```
+```leanOutput printAxExC3
+bigSum._native.native_decide.ax_1 : decide ((List.range 1001).sum = 500500) = true
 ```
 :::
 

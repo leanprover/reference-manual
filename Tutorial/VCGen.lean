@@ -848,7 +848,8 @@ instance Result.instMonad : Monad Result where
   | .div => .div
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
-  apply LawfulMonad.mk' <;> (simp only [Result.instMonad]; grind)
+  apply LawfulMonad.mk' _
+  all_goals (dsimp [Functor.map, bind]; grind)
 ```
 :::
 ::::
@@ -886,24 +887,30 @@ instance Result.instWP : WP Result (.except Error .pure) where
 :::paragraph
 The implementation of {name}`WP.wp` should distribute over the basic monad operators:
 ```lean
-instance : WPMonad Result (.except Error .pure) where
+-- TODO: remove this workaround after updating to a Lean version with
+-- https://github.com/leanprover/lean4/pull/12529
+set_option backward.isDefEq.respectTransparency false in
+instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
   wp_pure := by
     intros
-    ext Q
-    simp [wp, PredTrans.pure, pure, Except.pure, Id.run]
+    ext
+    simp [wp]
   wp_bind x f := by
-    simp only [Result.instWP, bind]
-    ext Q
-    cases x <;> simp [PredTrans.bind, PredTrans.const]
+    dsimp only [wp, bind]
+    ext
+    cases x <;> simp
 ```
 :::
 
 ```lean
+-- TODO: remove this workaround after updating to a Lean version with
+-- https://github.com/leanprover/lean4/pull/12529
+set_option backward.isDefEq.respectTransparency false in
 theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
     (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
                   fun e => ⌜P (.fail e)⌝⟩) → P x := by
   intro hspec
-  simp only [instWP] at hspec
+  simp [wp] at hspec
   split at hspec <;> simp_all
 ```
 
