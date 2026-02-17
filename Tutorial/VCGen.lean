@@ -900,6 +900,9 @@ instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
 :::
 
 ```lean
+-- TODO: remove this workaround after updating to a Lean version with
+-- https://github.com/leanprover/lean4/pull/12529
+set_option backward.isDefEq.respectTransparency false in
 theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
     (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
                   fun e => ⌜P (.fail e)⌝⟩) → P x := by
