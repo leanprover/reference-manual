@@ -21,13 +21,6 @@ file := "v4.29.0"
 
 For this release, 303 changes landed. In addition to the 81 feature additions and 71 fixes listed below there were 18 refactoring changes, 15 documentation improvements, 22 performance improvements, 20 improvements to the test suite and 74 other changes.
 
-# Breaking Changes
-
-* The functions `Lean.Environment.importModules` and `Lean.Environment.finalizeImport` have been extended with a new parameter `loadExts : Bool := false` that enables environment extension state loading.
-  Their previous behavior corresponds to setting the flag to `true` but is only safe to do in combination with `enableInitializersExecution`; see also the `importModules` docstring.
-  The new default value `false` ensures the functions can be used correctly multiple times within the same process when environment extension access is not needed.
-  The wrapper function `Lean.Environment.withImportModules` now always calls `importModules` with `loadExts := false` as it is incompatible with extension loading.
-
 # Language
 
 * [#11963](https://github.com/leanprover/lean4/pull/11963) activates `getElem?_pos` more aggressively, triggered by `c[i]`.
