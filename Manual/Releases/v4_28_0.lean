@@ -21,6 +21,199 @@ file := "v4.28.0"
 
 For this release, 309 changes landed. In addition to the 94 feature additions and 65 fixes listed below there were 19 refactoring changes, 8 documentation improvements, 34 performance improvements, 12 improvements to the test suite and 77 other changes.
 
+# Highlights
+
+The Lean v4.28 release contains module system fixes, performance
+improvements, notably in `bv_decide`, and continued expansion of
+`grind` annotations across the standard library. The main new features
+are presented below.
+
+## Symbolic Simulation Framework
+
+New lightweight symbolic simulation framework integrates with `grind`
+and enables the implementation of verification condition generators
+and symbolic execution engines.
+[#12143](https://github.com/leanprover/lean4/pull/12143) defines the
+core API of this framework.
+
+For design notes and implementation details, see:
+
+- [#11788](https://github.com/leanprover/lean4/pull/11788) — intro and
+  overview
+- [#11825](https://github.com/leanprover/lean4/pull/11825) — efficient
+  pattern matching and unification
+- [#11837](https://github.com/leanprover/lean4/pull/11837) — goal
+  transformation via backward chaining
+- [#11860](https://github.com/leanprover/lean4/pull/11860) —
+  congruence analysis for efficient subterm rewriting
+- [#11884](https://github.com/leanprover/lean4/pull/11884) —
+  discrimination tree for fast pattern retrieval
+- [#11909](https://github.com/leanprover/lean4/pull/11909) — monad
+  hierarchy for symbolic computation
+- [#11898](https://github.com/leanprover/lean4/pull/11898),
+  [#11967](https://github.com/leanprover/lean4/pull/11967),
+  [#11974](https://github.com/leanprover/lean4/pull/11974) —
+  optimizations
+
+## User-Defined Grind Attributes
+
+[#11765](https://github.com/leanprover/lean4/pull/11765) implements
+user-defined `grind` attributes. They are useful for users that want
+to implement tactics using the `grind` infrastructure (e.g.,
+`progress*` in Aeneas). New `grind` attributes are declared using the
+command
+
+```lean
+register_grind_attr my_grind
+```
+
+The command is similar to `register_simp_attr`. Recall that similar to
+`register_simp_attr`, the new attribute cannot be used in the same
+file it is declared.
+
+```
+opaque f : Nat → Nat
+opaque g : Nat → Nat
+
+@[my_grind] theorem fax : f (f x) = f x := sorry
+
+example theorem fax2 : f (f (f x)) = f x := by
+  fail_if_success grind
+  grind [my_grind]
+```
+
+[#11770](https://github.com/leanprover/lean4/pull/11770) implements
+support for user-defined attributes at `grind_pattern`. After
+declaring a `grind` attribute with `register_grind_attr my_grind`, one
+can write:
+
+```
+opaque f : Nat → Nat
+opaque g : Nat → Nat
+axiom fg : g (f x) = x
+
+grind_pattern [my_grind] fg => g (f x)
+```
+
+## Configurable Normalization and Preprocessing in Grind
+
+[#11776](https://github.com/leanprover/lean4/pull/11776) adds the
+attributes `[grind norm]` and `[grind unfold]` for controlling the
+`grind` normalizer and preprocessor.
+
+The `norm` modifier instructs `grind` to use a theorem as a
+normalization rule. That is, the theorem is applied during the
+preprocessing step. This feature is meant for advanced users who
+understand how the preprocessor and `grind`'s search procedure
+interact with each other. New users can still benefit from this
+feature by restricting its use to theorems that completely eliminate a
+symbol from the goal. Example:
+
+```
+theorem max_def : max n m = if n ≤ m then m else n
+```
+
+The `unfold` modifier instructs `grind` to unfold the given definition
+during the preprocessing step. Example:
+
+```lean
+@[grind unfold] def h (x : Nat) := 2 * x
+example : 6 ∣ 3*h x := by grind
+```
+
+See the PR description for the complete discussion.
+
+## Local Definitions in Grind and Simp
+
+[#11946](https://github.com/leanprover/lean4/pull/11946) adds a
+`+locals` configuration option to the `grind` tactic that
+automatically adds all definitions from the current file as e-match
+theorems. This provides a convenient alternative to manually adding
+`[local grind]` attributes to each definition. In the form
+`grind? +locals`, it is also helpful for discovering which local
+declarations it may be useful to add `[local grind]` attributes to.
+
+[#11947](https://github.com/leanprover/lean4/pull/11947) adds a
+`+locals` configuration option to the `simp`, `simp_all`, and `dsimp`
+tactics.
+
+## Solver Mode in `bv_decide`
+
+[#11847](https://github.com/leanprover/lean4/pull/11847) adds a new
+`solverMode` field to `bv_decide`'s configuration, allowing users to
+configure the SAT solver for different kinds of workloads. Solver mode
+can be set to:
+
+- `proof`, to improve proof search;
+- `counterexample`, to improve counterexample search;
+- `default`, where there are no additional SAT solver flags.
+
+## Dependency Management Tools
+
+- [#11726](https://github.com/leanprover/lean4/pull/11726) upstreams
+  dependency-management commands from Mathlib:
+    - `#import_path Foo` prints the transitive import chain that
+      brings `Foo` into scope
+    - `assert_not_exists Foo` errors if declaration `Foo` exists (for
+      dependency management)
+    - `assert_not_imported Module` warns if `Module` is transitively
+      imported
+    - `#check_assertions` verifies all pending assertions are
+      eventually satisfied
+
+- [#11921](https://github.com/leanprover/lean4/pull/11921) adds
+  `lake shake` as a built-in Lake command, moving the shake
+  functionality from `script/Shake.lean` into the Lake CLI.
+
+## External Checker
+
+[#11887](https://github.com/leanprover/lean4/pull/11887) makes the
+external checker lean4checker available as the existing `leanchecker`
+binary already known to elan, allowing for out-of-the-box access to
+it.
+
+Project repository: https://github.com/leanprover/lean4checker
+
+## Library Highlights
+
+### Ranges
+
+- [#11438](https://github.com/leanprover/lean4/pull/11438) renames the
+  namespace `Std.Range` to `Std.Legacy.Range`. Instead of using
+  `Std.Range` and `[a:b]` notation, the new range type `Std.Rco` and
+  its corresponding `a...b` notation should be used.
+
+### Iterators
+
+- [#11446](https://github.com/leanprover/lean4/pull/11446) moves many
+  constants of the iterator API from `Std.Iterators` to the `Std`
+  namespace in order to make them more convenient to use. These
+  constants include, but are not limited to, `Iter`, `IterM` and
+  `IteratorLoop`. This is a *breaking change*. If something breaks,
+  try adding `open Std` in order to make these constants available
+  again. If some constants in the `Std.Iterators` namespace cannot be
+  found, they can be found directly in `Std` now.
+
+- [#11789](https://github.com/leanprover/lean4/pull/11789) makes the
+  `FinitenessRelation` structure, which is helpful when proving the
+  finiteness of iterators, part of the public API.
+
+### Bitvectors
+
+- [#11257](https://github.com/leanprover/lean4/pull/11257) adds the
+  definition of `BitVec.cpop`, aka popcount.
+
+- [#11767](https://github.com/leanprover/lean4/pull/11767) introduces
+  two induction principles for bitvectors, based on the concat and
+  cons operations.
+
+### Async Framework
+
+- [#11499](https://github.com/leanprover/lean4/pull/11499) adds the
+  `Context` type for cancellation with context propagation. It works
+  by storing a tree of forks of the main context, providing a way to
+  control cancellation.
+
 # Language
 
 * [#11553](https://github.com/leanprover/lean4/pull/11553) makes `simpH`, used in the match equation generator, produce a
