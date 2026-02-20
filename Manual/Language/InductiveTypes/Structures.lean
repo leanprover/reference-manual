@@ -65,29 +65,63 @@ tag := "structure-fields"
 %%%
 
 Each field of a structure declaration corresponds to a parameter of the constructor.
+
+::::example "Inferring Universes"
+
+The structure {lean}`MyProd` is the same as {lean}`Prod`.
+```lean
+structure MyProd (α β : Type _) where
+  fst : α
+  snd : β
+```
+The two parameters and the two fields are constructor parameters:
+```signature
+MyProd.mk.{u, v}
+  {α : Type u}
+  {β : Type v}
+  (fst : α)
+  (snd : β)
+  : MyProd.{u, v} α β
+```
+Additionally, the constructor is {tech (key := "universe polymorphism")}[universe polymorphic]; the type constructor {name}`MyProd` takes two universe parameters:
+```signature
+MyProd.{u, v} (α : Type u) (β : Type v) : Type (max u v)
+```
+
+```lean -show
+universe u v
+```
+The universe level of each type of each field must be less than or equal to the universe level of the structure.
+Lean infers that {lean}`Type (max u v)` is the least universe that can accommodate both {lean}`Type u` and {lean}`Type v`.
+
+::::
+
 Auto-implicit arguments are inserted in each field separately, even if their names coincide, and the fields become constructor parameters that quantify over types.
 
-:::: example "Auto-implicit parameters in structure fields"
+::::example "Auto-Implicit Parameters in Structure Fields"
 
-The structure {lean}`MyStructure` contains a field whose type is an auto-implicit parameter:
+The structure {lean}`MyStructure` contains fields whose types have auto-implicit parameters:
 
 ```lean
 structure MyStructure where
-  field1 : α
-  field2 : α
+  field1 : Fin n
+  field2 : Fin n
 ```
-The type constructor {name}`MyStructure` takes two universe parameters:
+```lean -show
+variable {n : Nat}
+```
+Each fields in the constructor {name}`MyStructure.mk` takes its own implicit parameter {lean}`n` of type {lean}`Nat`:
 ```signature
-MyStructure.{u, v} : Type (max u v)
+MyStructure.mk
+  (field1 : {n : Nat} → Fin n)
+  (field2 : {n : Nat} → Fin n)
+  : MyStructure
 ```
-The resulting type is in `Type` rather than `Sort` because the constructor fields quantify over types in `Sort`. In particular, both fields in its constructor {name}`MyStructure.mk` take an implicit type parameter:
+The type constructor {name}`MyStructure` takes no universe parameters, and the resulting type is in `Type`,
+which is the universe for {name}`Nat` and {lean}`Fin n`:
 ```signature
-MyStructure.mk.{u, v}
-  (field1 : {α : Sort u} → α)
-  (field2 : {α : Sort v} → α)
-  : MyStructure.{u,v}
+MyStructure : Type
 ```
-
 ::::
 
 
