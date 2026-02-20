@@ -863,14 +863,11 @@ Supporting this monad in {tactic}`mvcgen` is a matter of:
 2. Registering specification lemmas for the translation of basic Rust primitives such as addition etc.
 :::
 
-::::paragraph
-:::leanSection
-```lean -show
-universe u v
-variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
-```
-```lean -show
--- TODO: Remove this section after the toolchain moved to 17 Feb and newer
+:::::paragraph
+::::leanSection
+:::codeOnly
+{TODO}[Remove this section after the toolchain moved to 17 Feb and newer]
+```lean
 /--
 The predicate transformer that asserts the first exception condition.
 -/
@@ -881,6 +878,12 @@ def Std.Do.PredTrans.throw (e : ε) : PredTrans (.except ε ps) α :=
 theorem apply_throw (e : ε) (Q : PostCond α (.except ε ps)) :
   (PredTrans.throw e).apply Q = Q.2.1 e := by rfl
 ```
+:::
+
+```lean -show
+universe u v
+variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
+```
 The {name}`WP` instance for {name}`Result` specifies a postcondition shape {lean (type := "PostShape.{0}")}`.except Error .pure` because there are no state-like effects, but there is a single exception of type {lean}`Error`.
 The {name}`WP` instance translates programs in {lean}`Result α` to predicate transformers in {lean}`PredTrans ps α`.
 That is, a function in {lean}`PostCond α ps → Assertion ps`, mapping a postcondition to its weakest precondition.
@@ -889,7 +892,7 @@ Each case of {name}`Result` is implemented by an existing predicate transformer:
 * {name}`PredTrans.pure` for {lean}`Result.ok`
 * {name}`PredTrans.throw` for {lean}`Result.fail`
 * {lean}`PredTrans.const ⌜False⌝` for {lean}`Result.div`, meaning that all specifications assert that the program never diverges.
-:::
+::::
 ```lean
 instance : WP Result (.except Error .pure) where
   wp
@@ -897,7 +900,7 @@ instance : WP Result (.except Error .pure) where
     | .fail e => PredTrans.throw e
     | .div => PredTrans.const ⌜False⌝
 ```
-::::
+:::::
 
 :::paragraph
 The implementation of {name}`WP.wp` should distribute over the basic monad operators.
