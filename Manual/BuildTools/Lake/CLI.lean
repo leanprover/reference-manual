@@ -1114,6 +1114,7 @@ COMMANDS:
   get [<mappings>]      download artifacts into the local Lake cache
   put <mappings>        upload artifacts to a remote cache
   clean                 removes ALL froms the local Lake cache
+  services              print configured remote cache services
 
 See `lake cache help <command>` for more information on a specific command.
 ```
@@ -1133,13 +1134,9 @@ OPTIONS:
   --scope=<remote-scope>          scope for a custom endpoint
 
 Downloads artifacts for packages in the workspace from a remote cache service.
-The cache service used can be configured via the environment variables:
-
-  LAKE_CACHE_SERVICE            identifier recorded in ouptuts
-  LAKE_CACHE_ARTIFACT_ENDPOINT  base URL for artifact downloads
-  LAKE_CACHE_REVISION_ENDPOINT  base URL for the mapping download
-
-If neither endpoint is set, Lake will use Reservoir.
+The cache service used can be specifed via the `--service` option. Otherwise,
+Lake will the system default, or, if none is configured, Reservoir. See
+`lake cache services` for more information on how to configure services.
 
 If an input-to-outputs mappings file, `--scope`, or `--repo` is provided,
 Lake will download artifacts for the root package. Otherwise, it will use
@@ -1171,9 +1168,9 @@ if any download failed, Lake will exit with a nonzero status code.
 
 :::lake cache get "[mappings] [\"--max-revs=\" cn] [\"--rev=\" «commit-hash»] [\"--repo=\" «github-repo»] [\"--platform=\" «target-triple»] [\"--toolchain=\"«name»] [\"--scope=\" «remote-scope»]"
 Downloads artifacts for packages in the workspace from a remote cache service to the local Lake {tech (key:="local cache")}[artifact cache].
-The remote cache service used can be configured using {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
-If neither of these are set, Lake will use Reservoir instead.
-The variable {envVar}`LAKE_CACHE_SERVICE` can be used to provide an identifier to be recorded in outputs.
+The cache service used can be specified via the {lakeOpt}`--service` option.
+Otherwise, Lake will use the system default, or, if none is configured, Reservoir.
+See {lake}`cache services` for more information on how to configure services.
 
 If an input-to-outputs {lakeMeta}`mappings` file, a {lakeMeta}`remote-scope`, or a {lakeMeta}`github-repo` is provided, Lake will download artifacts for the root package.
 Otherwise, it will download artifacts for each package in the root's dependency tree in order (using Reservoir).
@@ -1202,18 +1199,17 @@ USAGE:
 
 Uploads the input-to-outputs mappings contained in the specified file along
 with the corresponding output artifacts to a remote cache. The cache service
-used is configured via the environment variables:
-
-  LAKE_CACHE_KEY                  authentication key for requests
-  LAKE_CACHE_ARTIFACT_ENDPOINT    base URL for artifact uploads
-  LAKE_CACHE_REVISION_ENDPOINT    base URL for the mapping upload
+used via be specified via `--service` option. If not specifed, Lake will used
+the system default, or error if none is configured. See `lake cache services`
+for more information on how to configure services.
 
 Files are uploaded using the AWS Signature Version 4 authentication protocol
-via `curl`. Thus, the service should generally be an S3-compatible bucket.
+via `curl`. Thus, the service should generally be an S3-compatible bucket. The
+authentication key is set via the `LAKE_CACHE_KEY` environment variable.
 
 Since Lake does not currently use cryptographically secure hashes for
 artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
-clashes. This scoped is configured with the following options:
+clashes. This scope is configured with the following options:
 
   --scope=<remote-scope>          sets a fixed scope
   --repo=<github-repo>            uses the repository + toolchain & platform
@@ -1235,9 +1231,13 @@ has changes.
 
 ::::lake cache put "mappings «scope-option»"
 Uploads the input-to-outputs mappings contained in the specified file along with the corresponding output artifacts to a remote cache.
-The remote cache service used can be configured using {envVar}`LAKE_CACHE_KEY`, {envVar}`LAKE_CACHE_ARTIFACT_ENDPOINT` and {envVar}`LAKE_CACHE_REVISION_ENDPOINT`.
+The cache service used can be specified via the {lakeOpt}`--service` option.
+If not specified, Lake will use the system default, or error if none is configured.
+See {lake}`cache services` for more information on how to configure services.
 
-Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`. Thus, the service should generally be an S3-compatible bucket.
+Files are uploaded using the AWS Signature Version 4 authentication protocol via `curl`.
+Thus, the service should generally be an S3-compatible bucket.
+The authentication key is set via the {envVar}`LAKE_CACHE_KEY` environment variable.
 
 Since Lake does not currently use cryptographically secure hashes for
 artifacts and outputs, uploads to the cache are prefixed with a scope to avoid
@@ -1283,6 +1283,51 @@ Deletes the configured Lake {tech (key:="local cache")}[artifact cache] director
 If a workspace configuration exists, this will delete the cache directory it uses.
 Otherwise, it will delete the default Lake cache directory for the system.
 :::
+
+```lakeCacheHelp services
+Print configured remote cache services
+
+USAGE:
+  lake cache services
+
+Prints the name of each configured remote cache services (one per line).
+Additional services can be added by modifying the system Lake configuration.
+The exact location of the this configuration file is system dependent and can
+be set by `LAKE_CONFIG`, but it is usually located at `~/.lake/config.toml`.
+
+The configuration of the system cache could look something like the following:
+
+  cache.defaultService = "my-s3"
+  cache.defaultUploadService = "my-s3"
+
+  [[cache.service]]
+  name = "my-s3"
+  kind = "s3"
+  artifactEndpoint = "https://my-s3.com/a0"
+  revisionEndpoint = "https://my-s3.com/r0"
+
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+```
+
+::::lake cache services
+Prints the name of each configured remote cache service (one per line).
+Additional services can be added by modifying the system Lake configuration file, which is usually located at `~/.lake/config.toml` but can be set via the {envVar}`LAKE_CONFIG` environment variable.
+
+:::paragraph
+The configuration of the system cache could look something like the following:
+```toml -link
+cache.defaultService = "my-s3"
+cache.defaultUploadService = "my-s3"
+
+[[cache.service]]
+name = "my-s3"
+kind = "s3"
+artifactEndpoint = "https://my-s3.com/a0"
+revisionEndpoint = "https://my-s3.com/r0"
+```
+If no `cache.defaultService` is configured, Lake will use Reservoir by default.
+:::
+::::
 
 
 # Configuration Files

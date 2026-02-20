@@ -891,11 +891,11 @@ instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
   wp_pure := by
     intros
     ext
-    simp [wp]
+    simp [wp, ExceptT.run, Id.run, pure, Except.pure, throwThe]
   wp_bind x f := by
     dsimp only [wp, bind]
     ext
-    cases x <;> simp
+    cases x <;> simp [ExceptT.run, Id.run, pure, Except.pure, throwThe]
 ```
 :::
 
