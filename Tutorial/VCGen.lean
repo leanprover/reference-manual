@@ -869,50 +869,74 @@ Supporting this monad in {tactic}`mvcgen` is a matter of:
 universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
 ```
+```lean -show
+-- TODO: Remove this section after the toolchain moved to 17 Feb and newer
+/--
+The predicate transformer that asserts the first exception condition.
+-/
+def Std.Do.PredTrans.throw (e : ε) : PredTrans (.except ε ps) α :=
+  { trans := fun Q => Q.2.1 e, conjunctiveRaw := by intro _ _; simp }
+
+@[simp, grind =]
+theorem apply_throw (e : ε) (Q : PostCond α (.except ε ps)) :
+  (PredTrans.throw e).apply Q = Q.2.1 e := by rfl
+```
 The {name}`WP` instance for {name}`Result` specifies a postcondition shape {lean (type := "PostShape.{0}")}`.except Error .pure` because there are no state-like effects, but there is a single exception of type {lean}`Error`.
 The {name}`WP` instance translates programs in {lean}`Result α` to predicate transformers in {lean}`PredTrans ps α`.
 That is, a function in {lean}`PostCond α ps → Assertion ps`, mapping a postcondition to its weakest precondition.
-The implementation of {name}`WP.wp` reuses the implementation for {lean}`Except Error` for two of its cases, and maps diverging programs to {lean}`False`.
-The instance is named so that it can be more easily unfolded in proofs about it.
+The implementation of {name}`WP.wp` is similar to that of {lean}`Except Error`.
+Each case of {name}`Result` is implemented by an existing predicate transformer:
+* {name}`PredTrans.pure` for {lean}`Result.ok`
+* {name}`PredTrans.throw` for {lean}`Result.fail`
+* {lean}`PredTrans.const ⌜False⌝` for {lean}`Result.div`, meaning that all specifications assert that the program never diverges.
 :::
 ```lean
-instance Result.instWP : WP Result (.except Error .pure) where
+instance : WP Result (.except Error .pure) where
   wp
-    | .ok v => wp (pure v : Except Error _)
-    | .fail e => wp (throw e : Except Error _)
+    | .ok v => PredTrans.pure v
+    | .fail e => PredTrans.throw e
     | .div => PredTrans.const ⌜False⌝
 ```
 ::::
 
 :::paragraph
-The implementation of {name}`WP.wp` should distribute over the basic monad operators:
+The implementation of {name}`WP.wp` should distribute over the basic monad operators.
+We prove this as separate theorems for {name}`pure` and {name}`bind`.
+For {name}`bind`, both the definition of {name}`wp` and the definition of {name}`bind` need to be
+unfolded to expose the nested {keyword}`match` structure that {tactic}`grind` makes short process of.
+The {tactic}`simp` and {tactic}`grind` theory for predicate transformers triggers whenever a predicate transformer
+is applied to a postcondition.
+To bring the goals of {name}`WPMonad.wp_pure` and {name}`WPMonad.wp_bind` into this form, we use {tactic}`ext`.
 ```lean
--- TODO: remove this workaround after updating to a Lean version with
--- https://github.com/leanprover/lean4/pull/12529
-set_option backward.isDefEq.respectTransparency false in
+theorem Result.apply_wp_pure {α} {a : α} {Q} :
+  wp⟦pure (f := Result) a⟧ Q = Q.1 a := by rfl
+
+theorem Result.apply_wp_bind {α β} {x} {f : α → Result β} {Q} :
+  wp⟦do let a ← x; f a⟧ Q = wp⟦x⟧ (fun a => wp⟦f a⟧ Q, Q.2) := by
+  simp only [wp, bind]
+  grind
+
 instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
-  wp_pure := by
-    intros
-    ext
-    simp [wp]
-  wp_bind x f := by
-    dsimp only [wp, bind]
-    ext
-    cases x <;> simp
+  wp_pure _ := by ext Q : 1; apply Result.apply_wp_pure
+  wp_bind x f := by ext Q : 1; apply Result.apply_wp_bind
 ```
 :::
 
+::: paragraph
+Finally, we also prove an adequacy lemma similar to {name}`Except.of_wp_eq` for {lean}`Result`.
 ```lean
--- TODO: remove this workaround after updating to a Lean version with
--- https://github.com/leanprover/lean4/pull/12529
-set_option backward.isDefEq.respectTransparency false in
-theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
-    (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
-                  fun e => ⌜P (.fail e)⌝⟩) → P x := by
-  intro hspec
-  simp [wp] at hspec
-  split at hspec <;> simp_all
+theorem Result.of_wp_eq {α} {x prog : Result α}
+    (h : prog = x) (P : Result α → Prop)
+    (hspec : ⊢ₛ wp⟦prog⟧ post⟨fun a => ⌜P (.ok a)⌝,
+                              fun e => ⌜P (.fail e)⌝⟩) :
+      P x := by
+  subst h
+  match prog with
+  | .ok a   => simpa [wp] using hspec
+  | .fail e => simpa [wp] using hspec
+  | .div    => simp [wp] at hspec
 ```
+:::
 
 :::leanSection
 ```lean -show
@@ -920,7 +944,7 @@ universe u v
 variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion ps} {α σ ε : Type u}  {prog : m α} {Q' : α → Assertion ps}
 ```
 
-The definition of the {name}`WP` instance determines what properties can be derived from proved specifications via {lean}`Result.of_wp`.
+The definition of the {name}`WP` instance determines what properties can be derived from proved specifications via {lean}`Result.of_wp_eq`.
 This lemma defines what “weakest precondition” means.
 :::
 
