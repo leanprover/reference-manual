@@ -185,8 +185,6 @@ external checker lean4checker available as the existing `leanchecker`
 binary already known to elan, allowing for out-of-the-box access to
 it.
 
-Project repository: https://github.com/leanprover/lean4checker
-
 ## Library Highlights
 
 ### Ranges
