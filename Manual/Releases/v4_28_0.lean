@@ -148,6 +148,19 @@ can be set to:
 - `counterexample`, to improve counterexample search;
 - `default`, where there are no additional SAT solver flags.
 
+## Parallel Tactic Combinator
+
+[#11949](https://github.com/leanprover/lean4/pull/11949) adds a new
+`first_par` tactic combinator that runs multiple tactics in parallel
+and returns the first successful result (cancelling the others).
+
+The `try?` tactic's `atomicSuggestions` step now uses `first_par` to
+try three grind variants in parallel:
+
+- `grind? +suggestions`  ̵ uses library suggestion engine
+- `grind? +locals`  ̵ unfolds local definitions from current file
+- `grind? +locals +suggestions`  ̵ combines both
+
 ## Dependency Management Tools
 
 - [#11726](https://github.com/leanprover/lean4/pull/11726) upstreams
