@@ -234,23 +234,6 @@ Project repository: https://github.com/leanprover/lean4checker
   auxiliary theorem for the proof whose type does not match the expected
   type in the public scope.
 
-* [#11696](https://github.com/leanprover/lean4/pull/11696) improves `match` generalization such that it abstracts
-  metavariables in types of local variables and in the result type of the
-  match over the match discriminants. Previously, a metavariable in the
-  result type would silently default to the behavior of `generalizing :=
-  false`, and a metavariable in the type of a free variable would lead to
-  an error (#8099). Example of a `match` that elaborates now but
-  previously wouldn't:
-  ```
-  example (a : Nat) (ha : a = 37) :=
-      (match a with | 42 => by contradiction | n => n) = 37
-  ```
-  This is because the result type of the `match` is a metavariable that
-  was not abstracted over `a` and hence generalization failed; the result
-  is that `contradiction` cannot pick up the proof `ha : 42 = 37`.
-  The old behavior can be recovered by passing `(generalizing := false)`
-  to the `match`.
-
 * [#11698](https://github.com/leanprover/lean4/pull/11698) makes `mvcgen` early return after simplifying discriminants,
   avoiding a rewrite on an ill-formed `match`.
 
@@ -323,8 +306,6 @@ Project repository: https://github.com/leanprover/lean4checker
 
 * [#11940](https://github.com/leanprover/lean4/pull/11940) fixes module system visibiltity issues when trying to declare a
   public inductive inside a mutual block.
-
-* [#11941](https://github.com/leanprover/lean4/pull/11941) reverts #11696.
 
 * [#11991](https://github.com/leanprover/lean4/pull/11991) fixes `declare_syntax_cat` declaring a local category leading to
   import errors when used in `module` without `public section`.
