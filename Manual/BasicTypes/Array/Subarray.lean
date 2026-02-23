@@ -15,14 +15,15 @@ open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
 
-#doc (Manual) "Sub-Arrays" =>
+#doc (Manual) "Subarrays" =>
 %%%
 tag := "subarray"
 %%%
 
-{docstring Subarray}
+The type Subarrays are abbreviations for {name}`Std.Slice`.
+This means that, in addition to the operators in this section, {tech}[generalized field notation] can be used to call functions in the `Std.Slice` namespace, such as {name}`Std.Slice.foldl`.
 
-{docstring Subarray.toArray}
+{docstring Subarray}
 
 {docstring Subarray.empty}
 
@@ -37,10 +38,6 @@ tag := "subarray"
 {docstring Subarray.start_le_stop}
 
 {docstring Subarray.stop_le_array_size}
-
-# Size
-
-{docstring Subarray.size}
 
 # Resizing
 
@@ -61,10 +58,6 @@ tag := "subarray"
 {docstring Subarray.getD}
 
 # Iteration
-
-{docstring Subarray.foldl}
-
-{docstring Subarray.foldlM}
 
 {docstring Subarray.foldr}
 
