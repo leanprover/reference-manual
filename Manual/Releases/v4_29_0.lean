@@ -229,7 +229,7 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
   occurred when a `by` tactic was used in a dependent inductive type index
   that refers to a previous index:
   
-  ```lean
+  ```
   axiom P : Prop
   axiom Q : P → Prop
   -- Previously gave: (kernel) declaration has metavariables 'Foo'
@@ -1070,7 +1070,7 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
   nightly release workflow
   (https://github.com/leanprover/lean4/pull/12461):
 
-  **1. Date logic:** The `workflow_dispatch` path used `date -u +%F`
+  *1. Date logic:* The `workflow_dispatch` path used `date -u +%F`
   (current UTC date) to find the base nightly to revise. If the most
   recent nightly was from yesterday (e.g. `nightly-2026-02-12`) but UTC
   has rolled over to Feb 13, the code would look for `nightly-2026-02-13`,
@@ -1081,17 +1081,17 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
 * [#12517](https://github.com/leanprover/lean4/pull/12517) adds tooling for profiling Lean programs with human-readable
   function names in Firefox Profiler:
   
-  - **`script/lean_profile.sh`** — One-command pipeline: record with
+  - *`script/lean_profile.sh`* — One-command pipeline: record with
   samply, symbolicate, demangle, and open in Firefox Profiler
-  - **`script/profiler/lean_demangle.py`** — Faithful port of
+  - *`script/profiler/lean_demangle.py`* — Faithful port of
   `Name.demangleAux` from `NameMangling.lean`, with a postprocessor that
   folds compiler suffixes into compact annotations (`[λ, arity↓]`, `spec
   at context[flags]`)
-  - **`script/profiler/symbolicate_profile.py`** — Resolves raw addresses
+  - *`script/profiler/symbolicate_profile.py`* — Resolves raw addresses
   via samply's symbolication API
-  - **`script/profiler/serve_profile.py`** — Serves demangled profiles to
+  - *`script/profiler/serve_profile.py`* — Serves demangled profiles to
   Firefox Profiler without re-symbolication
-  - **`PROFILER_README.md`** — Documentation including a guide to reading
+  - *`PROFILER_README.md`* — Documentation including a guide to reading
   demangled names
 
 * [#12533](https://github.com/leanprover/lean4/pull/12533) adds human-friendly demangling of Lean symbol names in runtime
