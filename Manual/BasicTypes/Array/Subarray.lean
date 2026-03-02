@@ -20,8 +20,14 @@ set_option pp.rawOnError true
 tag := "subarray"
 %%%
 
-The type Subarrays are abbreviations for {name}`Std.Slice`.
-This means that, in addition to the operators in this section, {tech}[generalized field notation] can be used to call functions in the `Std.Slice` namespace, such as {name}`Std.Slice.foldl`.
+:::leanSection
+```lean -show
+variable {α : Type u}
+```
+
+The type {lean}`Subarray α` is an abbreviations for {lean}`Std.Slice α`.
+This means that, in addition to the operators in this section, {tech}[generalized field notation] can be used to call functions in the {namespace}`Std.Slice` namespace, such as {name}`Std.Slice.foldl`.
+:::
 
 {docstring Subarray}
 
