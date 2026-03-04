@@ -274,25 +274,30 @@ This emits the following IR:
         let x_2 : tagged := ctor_0[List.nil];
         ret x_2
       List.cons →
-        let x_3 : u8 := isShared x_1;
-        case x_3 : u8 of
+        let x_3 : tobj := proj[1] x_1;
+        block_4 (x_5 : tobj) (x_6 : u8) :=
+          let x_7 : tagged := ctor_0[PUnit.unit];
+          let x_8 : tobj := discardElems._redArg x_3;
+          block_9 (x_10 : obj) :=
+            ret x_10;
+          case x_6 : u8 of
+          Bool.false →
+            set x_5[1] := x_8;
+            set x_5[0] := x_7;
+            jmp block_9 x_5
+          Bool.true →
+            let x_11 : obj := ctor_1[List.cons] x_7 x_8;
+            jmp block_9 x_11;
+        let x_12 : u8 := isShared x_1;
+        case x_12 : u8 of
         Bool.false →
-          let x_4 : tobj := proj[1] x_1;
-          let x_5 : tobj := proj[0] x_1;
-          dec x_5;
-          let x_6 : tagged := ctor_0[PUnit.unit];
-          let x_7 : tobj := discardElems._redArg x_4;
-          set x_1[1] := x_7;
-          set x_1[0] := x_6;
-          ret x_1
+          let x_13 : tobj := proj[0] x_1;
+          dec x_13;
+          jmp block_4 x_1 x_12
         Bool.true →
-          let x_8 : tobj := proj[1] x_1;
-          inc x_8;
+          inc x_3;
           dec x_1;
-          let x_9 : tagged := ctor_0[PUnit.unit];
-          let x_10 : tobj := discardElems._redArg x_8;
-          let x_11 : obj := ctor_1[List.cons] x_9 x_10;
-          ret x_11
+          jmp block_4 ◾ x_12
 [Compiler.IR] [result]
     def discardElems (x_1 : ◾) (x_2 : tobj) : tobj :=
       let x_3 : tobj := discardElems._redArg x_2;

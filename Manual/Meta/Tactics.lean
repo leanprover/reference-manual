@@ -513,8 +513,8 @@ def proofState : CodeBlockExpander
         | other => some (⟨other⟩ : TSyntax `Lean.Parser.Command.docComment)
       let goalExpr ← runWithOpenDecls <| runWithVariables fun _ => Elab.Term.elabTerm goalStx none
       let mv ← Meta.mkFreshExprMVar (some goalExpr)
-        let Expr.mvar mvarId := mv
-          | throwError "Not an mvar!"
+      let Expr.mvar mvarId := mv
+        | throwError "Not an mvar!"
       let (remainingGoals, infoTree) ← withInfoTreeContext (mkInfoTree := mkInfoTree `proofState (← getRef)) do
             Tactic.run mvarId <|
             withoutTacticIncrementality true <|

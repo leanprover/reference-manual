@@ -46,7 +46,7 @@ end
 
 mutual
   partial def Item.toHighlighted : Item → Highlighted
-    | .metavar x => .token ⟨.var ⟨x.toName⟩ x, x⟩ -- Hack: abusing FVarId here
+    | .metavar x => .token ⟨.var ⟨x.toName⟩ x none, x⟩ -- Hack: abusing FVarId here
     | .literalSyntax s => .token ⟨.keyword none none none, s⟩
     | .ellipses => .token ⟨.unknown, "..."⟩
     | .or => .token ⟨.keyword none none none, "|"⟩
@@ -340,7 +340,7 @@ def lakeMeta.descr : InlineDescr := withHighlighting {
         | .arr #[.str mName, _] =>
           (mName, none)
         | _ => ("", none)
-      let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
+      let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName none, mName⟩
       hl.inlineHtml ctx (g := Verso.Genre.Manual)
 }
 

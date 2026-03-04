@@ -207,6 +207,43 @@ tag := "conv-change"
 tag := "conv-reduction"
 %%%
 
+:::conv cbv (show := "cbv")
+:::
+
+:::example "The `cbv` Tactic"
+The {conv}`cbv` tactic can be used to reduce functions, including ones that are defined via {ref "well-founded-recursion"}[well-founded recursion], which are otherwise irreducible.
+Ordinarily, {name}`f` is only propositionally equal to its unfolding, so {tactic}`rfl` can't prove the equality {lean}`f 5 = 5`:
+```lean
+def f (n : Nat) :=
+  match n with
+  | 0 => 0
+  | n + 1 => f n + 1
+termination_by (n,0)
+```
+```lean +error (name := nonEq)
+example : f 5 = 5 := by rfl
+```
+```leanOutput nonEq
+Tactic `rfl` failed: The left-hand side
+  f 5
+is not definitionally equal to the right-hand side
+  5
+
+⊢ f 5 = 5
+```
+Using {conv}`cbv` on the left-hand side of the equality, the statement can be made true:
+```lean -show
+-- The `cbv` tactic is presently experimental, and a warning is issued when it is used.
+-- This option disables the warning:
+set_option cbv.warning false
+```
+```lean
+example : f 5 = 5 := by
+  conv =>
+    lhs
+    cbv
+```
+:::
 
 :::conv whnf (show := "whnf")
 :::
