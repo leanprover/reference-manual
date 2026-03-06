@@ -108,6 +108,9 @@ def getPageItems : TemplateM (Array NavBarItem) := do
 
 def isFro (path : Path) : Bool := path[0]?.isEqSome "fro"
 
+def navEntry (item : NavBarItem) (align : NavBarAlign := .left) (display : Display := .all) : NavBarEntry :=
+  .item { item with align := align, display := display }
+
 /--
 Build NavBarConfig for FRO section
 -/
@@ -133,12 +136,28 @@ def buildFroNavBarConfig : TemplateM NavBarConfig := do
   ]
 
   let menuItems := #[navFroItem path] ++ froPathItems path
+  let leftEntries := leftItems.pop.map fun item => navEntry item
+  let lastLeftEntry :=
+    leftItems.back?.map (fun item => navEntry item .left .desktop) |>.toArray
+  let externalEntries := externalLinks.pop.map fun item => navEntry item
+  let lastExternalEntry :=
+    externalLinks.back?.map (fun item => navEntry item .left .desktop) |>.toArray
+  let froMenuEntry : NavBarEntry :=
+    .group {
+      label := "FRO"
+      display := .mobile
+      items := menuItems
+    }
+  let rightEntries := rightItems.map fun item => navEntry item .right .desktop
 
   return {
-    leftItems := leftItems
-    rightItems := rightItems
-    menuItems := menuItems
-    externalLinks := externalLinks
+    items := leftEntries ++
+      lastLeftEntry ++
+      #[.divider] ++
+      externalEntries ++
+      lastExternalEntry ++
+      #[froMenuEntry] ++
+      rightEntries
     subNavBar := if isFro path then some (SubNavBarConfig.mk (froPathItems path)) else none
   }
 
