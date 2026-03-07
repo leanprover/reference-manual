@@ -21,7 +21,7 @@ The smallest unit of compilation in Lean is a single {tech}[source file].
 Source files may import other source files based on their file names.
 In other words, the names and folder structures of files are significant in Lean code.
 
-Each source file has an {deftech}_import name_ that is derived from a combination of its filename and the way in which Lean was invoked: Lean has set of a _root directories_ in which it expects to find code, and the source file's import name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
+Each source file has an {deftech}_import name_ that is derived from a combination of its filename and the way in which Lean was invoked: Lean has a set of _root directories_ in which it expects to find code, and the source file's import name is the names of the directories from the root to the filename, with dots (`.`) interspersed and `.lean` removed.
 For example, if Lean is invoked with `Projects/MyLib/src` as its root, the file `Projects/MyLib/src/Literature/Novel/SciFi.lean` could be imported as `Literature.Novel.SciFi`.
 
 ::: TODO
