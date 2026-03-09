@@ -573,6 +573,194 @@ tag := "tactic-ref-sat"
 :::tactic Lean.Parser.Tactic.bvTraceMacro
 :::
 
+# Call-by-Value Evaluation
+%%%
+tag := "tactic-ref-cbv"
+%%%
+
+The {tactic}`cbv` tactic simulates call-by-value evaluation to reduce terms.
+It unfolds definitions using their defining equations and applies matcher equations, producing propositional equality proofs at each step.
+Because the unfolding is propositional rather than definitional, {tactic}`cbv` can reduce functions defined via {ref "well-founded-recursion"}[well-founded recursion] or partial fixpoints, which the kernel's definitional reduction cannot handle.
+
+The proofs produced by {tactic}`cbv` only use the three standard axioms ({name}`propext`, {name}`Quot.sound`, and function extensionality).
+In particular, they do not require trust in the correctness of the code generator, unlike {tactic}`native_decide`.
+
+When reducing constant applications, {tactic}`cbv` tries the following strategies in order:
+
+ 1. Custom {attr}`cbv_eval` rewrite rules
+ 2. Equation theorems (e.g., `foo.eq_1`, `foo.eq_2`)
+ 3. Unfold equations
+ 4. Kernel matcher reduction
+
+Declarations marked with {attr}`cbv_opaque` are never unfolded.
+
+:::syntax tactic (title := "Call-by-Value Evaluation")
+```grammar
+cbv $[at $[$h]*]?
+```
+:::
+
+:::tactic Lean.Parser.Tactic.cbv (show := "cbv")
+:::
+
+```lean -show
+-- The `cbv` tactic is presently experimental, and a warning is issued when it is used.
+-- This option disables the warning:
+set_option cbv.warning false
+```
+
+:::example "Reducing Well-Founded Recursive Functions"
+The function {lean}`countdown` is defined using well-founded recursion, so it is not definitionally equal to its unfolding.
+Ordinary {tactic}`rfl` cannot close the goal:
+```lean
+def countdown (n : Nat) : List Nat :=
+  match n with
+  | 0 => [0]
+  | n + 1 => (n + 1) :: countdown n
+termination_by n
+```
+```lean +error (name := countdownRfl)
+example : countdown 3 = [3, 2, 1, 0] := by rfl
+```
+```leanOutput countdownRfl
+Tactic `rfl` failed: The left-hand side
+  countdown 3
+is not definitionally equal to the right-hand side
+  [3, 2, 1, 0]
+
+⊢ countdown 3 = [3, 2, 1, 0]
+```
+The {tactic}`cbv` tactic can reduce {lean}`countdown 3` propositionally and then close the equation goal via {tactic}`rfl`:
+```lean
+example : countdown 3 = [3, 2, 1, 0] := by
+  cbv
+```
+:::
+
+:::example "Reducing Hypotheses"
+The {tactic}`cbv` tactic supports the standard `at` location syntax.
+When used with `at h`, it reduces the type of hypothesis `h`.
+When used with `at *`, it reduces all non-dependent propositional
+hypotheses and the goal target.
+```lean
+def countdown (n : Nat) : List Nat :=
+  match n with
+  | 0 => [0]
+  | n + 1 => (n + 1) :: countdown n
+termination_by n
+```
+```lean -show
+set_option cbv.warning false
+```
+```lean
+example (x : List Nat) (h : x = countdown 2) :
+    x = [2, 1, 0] := by
+  cbv at h
+  exact h
+```
+:::
+
+:::example "`cbv` as a Non-Finishing Tactic"
+Unlike {tactic}`decide`, {tactic}`cbv` is not necessarily a finishing tactic.
+It may leave a simpler goal after reduction:
+```lean
+def double (n : Nat) := n + n
+
+example (m : Nat) : double 3 + m = 6 + m := by
+  cbv
+```
+:::
+
+## `decide_cbv`
+
+:::tactic Lean.Parser.Tactic.decide_cbv (show := "decide_cbv")
+:::
+
+:::example "`decide_cbv`"
+The {tactic}`decide_cbv` tactic closes goals that are decidable propositions by reducing the decision procedure via call-by-value evaluation:
+```lean
+example : 2 + 3 = 5 ∧ 10 < 20 := by
+  decide_cbv
+```
+Unlike {tactic}`native_decide`, {tactic}`decide_cbv` does not require trust in the code generator.
+Unlike {tactic}`decide`, {tactic}`decide_cbv` can handle functions defined by well-founded recursion:
+```lean
+def isAllPositive : List Int → Bool
+  | [] => true
+  | x :: xs => x > 0 && isAllPositive xs
+termination_by xs => xs
+
+example : isAllPositive [1, 2, 3] = true := by
+  decide_cbv
+```
+:::
+
+## Controlling `cbv` Behavior
+
+:::syntax attr (title := "Custom `cbv` Rewrite Rules")
+The {attr}`cbv_eval` attribute registers a theorem as a custom rewrite rule that {tactic}`cbv` applies before trying equation theorems.
+The theorem must be an unconditional equality whose rewrite side is an application of a constant.
+
+```grammar
+cbv_eval
+```
+
+The `←` modifier instructs {tactic}`cbv` to apply the rule from right to left:
+```grammar
+cbv_eval ←
+```
+:::
+
+:::example "`cbv_eval`"
+Custom rewrite rules can be used to control how {tactic}`cbv` evaluates specific functions.
+For instance, providing an alternative characterization
+of a function can make {tactic}`cbv` more efficient or
+allow it to produce simpler proof terms:
+```lean
+def fib : Nat → Nat
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fib n + fib (n + 1)
+
+def fibAux (n : Nat) (a b : Nat) : Nat :=
+  match n with
+  | 0 => a
+  | n + 1 => fibAux n b (a + b)
+
+theorem fib_eq_fibAux (n : Nat) : fib n = fibAux n 0 1 := by
+  sorry
+
+@[cbv_eval] theorem fib_cbv (n : Nat) :
+    fib n = fibAux n 0 1 :=
+  fib_eq_fibAux n
+```
+:::
+
+:::syntax attr (title := "Opaque Declarations for `cbv`")
+The {attr}`cbv_opaque` attribute prevents {tactic}`cbv` from unfolding a declaration.
+The declaration is returned as-is without attempting any equation theorems or unfold theorems.
+
+```grammar
+cbv_opaque
+```
+:::
+
+:::example "`cbv_opaque`"
+Marking a definition as {attr}`cbv_opaque` prevents {tactic}`cbv` from unfolding it, which can be useful when a definition should be treated abstractly:
+```lean
+@[cbv_opaque] def secret : Nat := 42
+
+example : secret + 1 = secret + 1 := by
+  cbv
+```
+:::
+
+## Options
+
+{optionDocs cbv.maxSteps}
+
+{optionDocs cbv.warning}
+
 # Controlling Reduction
 %%%
 tag := "tactic-reducibility"
