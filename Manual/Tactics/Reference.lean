@@ -688,6 +688,10 @@ unsolved goals
 :::
 
 :::example "Dependent Positions"
+```imports -show
+import Std.Data.DTreeMap
+import Std.Data.TreeMap
+```
 Consider a dependent tree map {lean}`FinMap` that maps
 each key `n` to a value of type `Fin (n + 1)`:
 ```lean
