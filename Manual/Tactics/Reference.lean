@@ -585,6 +585,9 @@ Because the unfolding is propositional rather than definitional, {tactic}`cbv` c
 The proofs produced by {tactic}`cbv` only use the three standard axioms ({name}`propext`, {name}`Quot.sound`, and function extensionality).
 In particular, they do not require trust in the correctness of the code generator, unlike {tactic}`native_decide`.
 
+Because {tactic}`cbv` rewrites arbitrary propositionally equal subterms via {name}`congrArg` and {name}`congrFun`, it cannot rewrite subterms that appear in dependent positions.
+Rewriting the argument of a dependent function would change the type of subsequent arguments, and even with heterogeneous equality there are no suitable congruence lemmas for arbitrary dependent functions.
+
 When reducing constant applications, {tactic}`cbv` tries the following strategies in order:
 
  1. Custom {attr}`cbv_eval` rewrite rules
@@ -681,6 +684,36 @@ example : 1 ∈ countdown 2 := by
 ```leanOutput cbvNonFinishing
 unsolved goals
 ⊢ List.Mem 1 [2, 1, 0]
+```
+:::
+
+:::example "Dependent Positions"
+{tactic}`cbv` can reduce {lean}`myLen` in a simple equality:
+```lean
+def myLen : List Nat → Nat
+  | [] => 0
+  | _ :: xs => myLen xs + 1
+termination_by xs => xs
+```
+```lean -show
+set_option cbv.warning false
+```
+```lean
+example : myLen [1, 2] = 2 := by cbv
+```
+However, when {lean}`myLen [1, 2]` appears as the first
+component of a dependent pair `(n : Nat) × Fin n`,
+{tactic}`cbv` cannot reduce it because the second
+component's type depends on it:
+```lean +error (name := depPosition)
+example : (⟨myLen [1, 2], ⟨0, by decide_cbv⟩⟩ :
+    (n : Nat) × Fin n) =
+    ⟨2, ⟨0, by omega⟩⟩ := by
+  cbv
+```
+```leanOutput depPosition
+unsolved goals
+⊢ ⟨myLen [1, 2], ⟨0, ⋯⟩⟩ = ⟨2, ⟨0, ⋯⟩⟩
 ```
 :::
 
@@ -784,9 +817,8 @@ def fibAux (n : Nat) (a b : Nat) : Nat :=
   | 0 => a
   | n + 1 => fibAux n b (a + b)
 
-theorem fib_eq_fibAux (n : Nat) :
-    fib n = fibAux n 0 1 := by
-  sorry
+axiom fib_eq_fibAux (n : Nat) :
+    fib n = fibAux n 0 1
 
 @[cbv_eval] theorem fib_cbv (n : Nat) :
     fib n = fibAux n 0 1 :=
