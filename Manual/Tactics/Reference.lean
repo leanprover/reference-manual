@@ -688,32 +688,43 @@ unsolved goals
 :::
 
 :::example "Dependent Positions"
-{tactic}`cbv` can reduce {lean}`myLen` in a simple equality:
+Consider a dependent tree map {lean}`FinMap` that maps
+each key `n` to a value of type `Fin (n + 1)`:
 ```lean
 def myLen : List Nat → Nat
   | [] => 0
   | _ :: xs => myLen xs + 1
 termination_by xs => xs
+
+abbrev FinMap :=
+  Std.DTreeMap Nat (fun n => Fin (n + 1))
 ```
 ```lean -show
 set_option cbv.warning false
 ```
+With a non-dependent {name}`Std.TreeMap`, {tactic}`cbv`
+can reduce the computed key {lean}`myLen [1, 2]`:
 ```lean
-example : myLen [1, 2] = 2 := by cbv
+def myTreeMap : Std.TreeMap Nat Nat :=
+  .empty |>.insert (myLen [1, 2]) 42
+
+example : myTreeMap.toList = [⟨2, 42⟩] := by
+  cbv
 ```
-However, when {lean}`myLen [1, 2]` appears as the first
-component of a dependent pair `(n : Nat) × Fin n`,
-{tactic}`cbv` cannot reduce it because the second
-component's type depends on it:
+With the dependent {lean}`FinMap`, {tactic}`cbv` gets
+stuck because the value type `Fin (n + 1)` depends on
+the key:
 ```lean +error (name := depPosition)
-example : (⟨myLen [1, 2], ⟨0, by decide_cbv⟩⟩ :
-    (n : Nat) × Fin n) =
-    ⟨2, ⟨0, by omega⟩⟩ := by
+example :
+    let m : FinMap :=
+      .empty |>.insert (myLen [1, 2])
+        ⟨0, by decide_cbv⟩
+    m.toList = [⟨2, ⟨0, by omega⟩⟩] := by
   cbv
 ```
 ```leanOutput depPosition
 unsolved goals
-⊢ ⟨myLen [1, 2], ⟨0, ⋯⟩⟩ = ⟨2, ⟨0, ⋯⟩⟩
+⊢ [⟨myLen [1, 2], ⟨0, ⋯⟩⟩] = [⟨2, ⟨0, ⋯⟩⟩]
 ```
 :::
 
@@ -802,30 +813,38 @@ cbv_eval ←
 :::example "`cbv_eval`"
 Custom rewrite rules can be used to control how
 {tactic}`cbv` evaluates specific functions.
-For instance, the naive definition of {lean}`fib` has
-exponential complexity. By providing a linear-time
-characterization via {lean}`fibAux`, {tactic}`cbv` can
-evaluate {lean}`fib` efficiently:
+For instance, the naive definition of {lean}`slowReverse`
+has quadratic complexity due to repeated use of
+{name}`List.append`. By providing a tail-recursive
+characterization via {lean}`fastReverse`, {tactic}`cbv`
+can evaluate {lean}`slowReverse` efficiently:
 ```lean
-def fib : Nat → Nat
-  | 0 => 0
-  | 1 => 1
-  | n + 2 => fib n + fib (n + 1)
+def slowReverse : List Nat → List Nat
+  | [] => []
+  | x :: xs => slowReverse xs ++ [x]
 
-def fibAux (n : Nat) (a b : Nat) : Nat :=
-  match n with
-  | 0 => a
-  | n + 1 => fibAux n b (a + b)
+def fastReverse (xs : List Nat) : List Nat :=
+  go xs []
+where
+  go : List Nat → List Nat → List Nat
+  | [], acc => acc
+  | x :: xs, acc => go xs (x :: acc)
 
-axiom fib_eq_fibAux (n : Nat) :
-    fib n = fibAux n 0 1
+theorem reverse_spec_aux (xs acc : List Nat) :
+    fastReverse.go xs acc =
+      slowReverse xs ++ acc := by
+  fun_induction fastReverse.go
+    <;> grind [slowReverse]
 
-@[cbv_eval] theorem fib_cbv (n : Nat) :
-    fib n = fibAux n 0 1 :=
-  fib_eq_fibAux n
+@[cbv_eval] theorem slowReverse_cbv
+    (xs : List Nat) :
+    slowReverse xs = fastReverse xs := by
+  simp [fastReverse, reverse_spec_aux]
 ```
 ```lean
-example : fib 5 = 5 := by cbv
+example : slowReverse [1, 2, 3, 4, 5] =
+    [5, 4, 3, 2, 1] := by
+  cbv
 ```
 :::
 
