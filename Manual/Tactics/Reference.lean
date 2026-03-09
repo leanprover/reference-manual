@@ -660,10 +660,12 @@ example (x : List Nat) (h : x = countdown 2) :
 ```
 :::
 
-::::example "`cbv` as a Non-Finishing Tactic"
+:::example "`cbv` as a Non-Finishing Tactic"
 Unlike {tactic}`decide`, {tactic}`cbv` is not a terminal
 tactic. It simplifies the goal as much as possible but
-may leave a goal that requires further reasoning:
+may leave a goal that requires further reasoning.
+Here, {tactic}`cbv` reduces the call to {lean}`countdown`
+but leaves the membership goal:
 ```lean -show
 def countdown (n : Nat) : List Nat :=
   match n with
@@ -672,21 +674,15 @@ def countdown (n : Nat) : List Nat :=
 termination_by n
 set_option cbv.warning false
 ```
-:::tacticExample
-{goal}`1 ∈ countdown 2`
-```setup
-skip
+```lean +error (name := cbvNonFinishing)
+example : 1 ∈ countdown 2 := by
+  cbv
 ```
-```pre
-⊢ 1 ∈ countdown 2
-```
-After {tacticStep}`cbv`, the call to {lean}`countdown` is
-reduced, but the membership goal remains:
-```post
+```leanOutput cbvNonFinishing
+unsolved goals
 ⊢ List.Mem 1 [2, 1, 0]
 ```
 :::
-::::
 
 ## {tactic}`decide_cbv`
 
@@ -700,7 +696,7 @@ example : 2 + 3 = 5 ∧ 10 < 20 := by
   decide_cbv
 ```
 Unlike {tactic}`native_decide`, {tactic}`decide_cbv` does not require trust in the code generator.
-Unlike {tactic}`decide`, {tactic}`decide_cbv` can handle functions defined by well-founded recursion:
+Unlike {tactic}`decide`, {tactic}`decide_cbv` can handle functions defined by {ref "well-founded-recursion"}[well-founded recursion]:
 ```lean
 def isAllPositive : List Int → Bool
   | [] => true
@@ -708,6 +704,48 @@ def isAllPositive : List Int → Bool
 termination_by xs => xs
 
 example : isAllPositive [1, 2, 3] = true := by
+  decide_cbv
+```
+:::
+
+:::example "Prime Power Testing with `decide_cbv`"
+Because {tactic}`decide_cbv` uses propositional unfolding,
+it can evaluate complex decision procedures involving
+{ref "well-founded-recursion"}[well-founded recursive]
+functions:
+```lean
+def minFacAux (n : Nat) : Nat → Nat
+  | k =>
+    if h : n < k * k then n
+    else
+      if h' : k ∣ n then k
+      else
+        have : k ≤ n := by
+          have := Nat.le_mul_self k; omega
+        minFacAux n (k + 2)
+termination_by k => n + 2 - k
+
+def Nat.minFac (n : Nat) : Nat :=
+  if 2 ∣ n then 2 else minFacAux n 3
+
+def Nat.log (b n : Nat) : Nat :=
+  if b ≤ 1 then 0 else (go b n).2 where
+  go : Nat → Nat → Nat × Nat
+  | _, 0 => (n, 0)
+  | b, fuel + 1 =>
+    if n < b then (n, 0)
+    else
+      let (q, e) := go (b * b) fuel
+      if q < b then
+        (q, 2 * e)
+      else
+        (q / b, 2 * e + 1)
+
+example : ¬∃ k,
+    k ≤ Nat.log 2 15151515151515 ∧
+    0 < k ∧
+    15151515151515 =
+      Nat.minFac 15151515151515 ^ k := by
   decide_cbv
 ```
 :::
