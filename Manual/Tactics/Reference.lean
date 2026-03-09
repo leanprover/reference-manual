@@ -660,16 +660,33 @@ example (x : List Nat) (h : x = countdown 2) :
 ```
 :::
 
-:::example "`cbv` as a Non-Finishing Tactic"
-Unlike {tactic}`decide`, {tactic}`cbv` is not necessarily a finishing tactic.
-It may leave a simpler goal after reduction:
-```lean
-def double (n : Nat) := n + n
-
-example (m : Nat) : double 3 + m = 6 + m := by
-  cbv
+::::example "`cbv` as a Non-Finishing Tactic"
+Unlike {tactic}`decide`, {tactic}`cbv` is not a terminal
+tactic. It simplifies the goal as much as possible but
+may leave a goal that requires further reasoning:
+```lean -show
+def countdown (n : Nat) : List Nat :=
+  match n with
+  | 0 => [0]
+  | n + 1 => (n + 1) :: countdown n
+termination_by n
+set_option cbv.warning false
+```
+:::tacticExample
+{goal}`1 ∈ countdown 2`
+```setup
+skip
+```
+```pre
+⊢ 1 ∈ countdown 2
+```
+After {tacticStep}`cbv`, the call to {lean}`countdown` is
+reduced, but the membership goal remains:
+```post
+⊢ List.Mem 1 [2, 1, 0]
 ```
 :::
+::::
 
 ## {tactic}`decide_cbv`
 
@@ -677,7 +694,7 @@ example (m : Nat) : double 3 + m = 6 + m := by
 :::
 
 :::example "`decide_cbv`"
-The {tactic}`decide_cbv` tactic closes goals that are decidable propositions by reducing the decision procedure via call-by-value evaluation:
+The {tactic}`decide_cbv` tactic closes goals that are decidable propositions by reducing the {name}`Decidable` instance via call-by-value evaluation:
 ```lean
 example : 2 + 3 = 5 ∧ 10 < 20 := by
   decide_cbv
@@ -712,10 +729,12 @@ cbv_eval ←
 :::
 
 :::example "`cbv_eval`"
-Custom rewrite rules can be used to control how {tactic}`cbv` evaluates specific functions.
-For instance, providing an alternative characterization
-of a function can make {tactic}`cbv` more efficient or
-allow it to produce simpler proof terms:
+Custom rewrite rules can be used to control how
+{tactic}`cbv` evaluates specific functions.
+For instance, the naive definition of {lean}`fib` has
+exponential complexity. By providing a linear-time
+characterization via {lean}`fibAux`, {tactic}`cbv` can
+evaluate {lean}`fib` efficiently:
 ```lean
 def fib : Nat → Nat
   | 0 => 0
@@ -727,33 +746,57 @@ def fibAux (n : Nat) (a b : Nat) : Nat :=
   | 0 => a
   | n + 1 => fibAux n b (a + b)
 
-theorem fib_eq_fibAux (n : Nat) : fib n = fibAux n 0 1 := by
+theorem fib_eq_fibAux (n : Nat) :
+    fib n = fibAux n 0 1 := by
   sorry
 
 @[cbv_eval] theorem fib_cbv (n : Nat) :
     fib n = fibAux n 0 1 :=
   fib_eq_fibAux n
 ```
+```lean
+example : fib 5 = 5 := by cbv
+```
 :::
 
 :::syntax attr (title := "Opaque Declarations for `cbv`")
-The {attr}`cbv_opaque` attribute prevents {tactic}`cbv` from unfolding a declaration.
-The declaration is returned as-is without attempting any equation theorems or unfold theorems.
+The {attr}`cbv_opaque` attribute prevents {tactic}`cbv`
+from unfolding a declaration using its equation theorems
+or unfold theorems.
+However, {attr}`cbv_eval` rewrite rules are still applied
+to {attr}`cbv_opaque` declarations.
+This allows replacing the default unfolding behavior with
+a controlled set of evaluation rules.
 
 ```grammar
 cbv_opaque
 ```
 :::
 
-:::example "`cbv_opaque`"
-Marking a definition as {attr}`cbv_opaque` prevents {tactic}`cbv` from unfolding it, which can be useful when a definition should be treated abstractly:
+::::example "`cbv_opaque`"
+Marking {lean}`countdown` as {attr}`cbv_opaque` prevents
+{tactic}`cbv` from unfolding it, so the goal that was
+previously closed by {tactic}`cbv` now remains unsolved:
+```lean -show
+def countdown (n : Nat) : List Nat :=
+  match n with
+  | 0 => [0]
+  | n + 1 => (n + 1) :: countdown n
+termination_by n
+set_option cbv.warning false
+```
 ```lean
-@[cbv_opaque] def secret : Nat := 42
-
-example : secret + 1 = secret + 1 := by
+attribute [cbv_opaque] countdown
+```
+```lean +error (name := opaqueError)
+example : countdown 3 = [3, 2, 1, 0] := by
   cbv
 ```
-:::
+```leanOutput opaqueError
+unsolved goals
+⊢ countdown 3 = [3, 2, 1, 0]
+```
+::::
 
 ## Options
 
