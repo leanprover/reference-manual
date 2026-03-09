@@ -692,16 +692,11 @@ unsolved goals
 import Std.Data.DTreeMap
 import Std.Data.TreeMap
 ```
-Consider a dependent tree map {lean}`FinMap` that maps
-each key `n` to a value of type `Fin (n + 1)`:
 ```lean
 def myLen : List Nat → Nat
   | [] => 0
   | _ :: xs => myLen xs + 1
 termination_by xs => xs
-
-abbrev FinMap :=
-  Std.DTreeMap Nat (fun n => Fin (n + 1))
 ```
 ```lean -show
 set_option cbv.warning false
@@ -715,9 +710,15 @@ def myTreeMap : Std.TreeMap Nat Nat :=
 example : myTreeMap.toList = [⟨2, 42⟩] := by
   cbv
 ```
-With the dependent {lean}`FinMap`, {tactic}`cbv` gets
-stuck because the value type `Fin (n + 1)` depends on
-the key:
+However, consider a dependent tree map {lean}`FinMap`
+that maps each key `n` to a value of type
+`Fin (n + 1)`:
+```lean
+abbrev FinMap :=
+  Std.DTreeMap Nat (fun n => Fin (n + 1))
+```
+Here {tactic}`cbv` gets stuck because the value type
+`Fin (n + 1)` depends on the key:
 ```lean +error (name := depPosition)
 example :
     let m : FinMap :=
