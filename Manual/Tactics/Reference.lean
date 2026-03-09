@@ -671,7 +671,7 @@ example (m : Nat) : double 3 + m = 6 + m := by
 ```
 :::
 
-## `decide_cbv`
+## {tactic}`decide_cbv`
 
 :::tactic Lean.Parser.Tactic.decide_cbv (show := "decide_cbv")
 :::
@@ -695,7 +695,7 @@ example : isAllPositive [1, 2, 3] = true := by
 ```
 :::
 
-## Controlling `cbv` Behavior
+## Controlling {tactic}`cbv` Behavior
 
 :::syntax attr (title := "Custom `cbv` Rewrite Rules")
 The {attr}`cbv_eval` attribute registers a theorem as a custom rewrite rule that {tactic}`cbv` applies before trying equation theorems.
