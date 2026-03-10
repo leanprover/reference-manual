@@ -8,7 +8,7 @@ import Lake
 open Lake DSL
 open System (FilePath)
 
-require verso from git "https://github.com/leanprover/verso.git"@"v4.29.0-rc4"
+require verso from git "https://github.com/leanprover/verso.git"@"v4.29.0-rc6"
 require versowebcomponents from git "https://github.com/leanprover/verso-web-components"@"main"
 
 package "verso-manual" where
