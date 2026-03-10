@@ -122,23 +122,30 @@ def buildFroNavBarConfig : TemplateM NavBarConfig := do
     { title := .text false "Contact", url := some "/fro/contact", active := path == #["fro", "contact"] }
   ]
 
-  let externalLinks : Array NavBarItem := #[
-    { title := .text false "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
-    { title := .text false "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
-  ]
-
-  let rightItems : Array NavBarItem := #[
-    { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme" },
-    { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true }
-  ]
-
-  let menuItems := #[navFroItem path] ++ froPathItems path
+  let items : Array NavBarEntry :=
+    leftItems.map .item
+    ++ #[
+      .group {
+        label := "FRO"
+        url := some "/fro"
+        display := .mobile
+        items := froPathItems path
+      },
+      .group {
+        label := "External"
+        display := .mobile
+        items := #[
+          { title := .text false "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
+          { title := .text false "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
+        ]
+      },
+      .divider (align := .right),
+      .item { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme", align := .right },
+      .item { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true, align := .right }
+    ]
 
   return {
-    leftItems := leftItems
-    rightItems := rightItems
-    menuItems := menuItems
-    externalLinks := externalLinks
+    items := items
     subNavBar := if isFro path then some (SubNavBarConfig.mk (froPathItems path)) else none
   }
 
