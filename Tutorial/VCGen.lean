@@ -218,8 +218,9 @@ def nodup (l : List Int) : Bool := Id.run do
 
 ::::paragraph
 :::codeOnly
-```lean -show
--- NOTE: This is needed because a recent nightly didn't update the type of Invariant.withEarlyReturn to use MProd
+```lean
+-- NOTE: This is needed because a recent nightly didn't update the
+-- type of Invariant.withEarlyReturn to use MProd
 abbrev withEarlyReturn {α} {xs : List α} {γ : Type (max u₁ u₂)}
   (onContinue : List.Cursor xs → β → Assertion ps)
   (onReturn : γ → β → Assertion ps)
@@ -229,13 +230,18 @@ abbrev withEarlyReturn {α} {xs : List α} {γ : Type (max u₁ u₂)}
         (⌜x = none⌝ ∧ onContinue xs b)
       ∨ (∃ r, ⌜x = some r⌝ ∧ ⌜xs.suffix = []⌝ ∧ onReturn r b)),
    onExcept⟩
--- This test will fail when upstream has been fixed. At that time, remove the helper and update the proof again.
+-- This test will fail when upstream has been fixed. At that time,
+-- remove the helper and update the proof again.
 /--
-info: Std.Do.Invariant.withEarlyReturn.{u₁, u₂} {β : Type (max u₁ u₂)} {ps : PostShape} {α : Type (max u₁ u₂)} {xs : List α}
-  {γ : Type (max u₁ u₂)} (onContinue : xs.Cursor → β → Assertion ps) (onReturn : γ → β → Assertion ps)
-  (onExcept : ExceptConds ps := ExceptConds.false) : Invariant xs (Option γ × β) ps
+info:
+Std.Do.Invariant.withEarlyReturn.{u₁, u₂} {β : Type (max u₁ u₂)}
+  {ps : PostShape} {α : Type (max u₁ u₂)} {xs : List α}
+  {γ : Type (max u₁ u₂)} (onContinue : xs.Cursor → β → Assertion ps)
+  (onReturn : γ → β → Assertion ps)
+  (onExcept : ExceptConds ps := ExceptConds.false) :
+  Invariant xs (Option γ × β) ps
 -/
-#guard_msgs in
+#guard_msgs (whitespace := lax) in
 #check Invariant.withEarlyReturn
 ```
 :::
