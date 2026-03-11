@@ -368,7 +368,6 @@ For simple examples of how to call foreign code from Lean and vice versa, see [t
 ## The Lean ABI
 
 :::leanSection
-
 ```lean -show
 variable {α₁ αₙ β αᵢ}
 private axiom «α₂→…→αₙ₋₁».{u} : Type u
@@ -402,6 +401,7 @@ In the case of {attr}`extern`, all {tech}[irrelevant] types are removed first.
 tag := "ffi-types"
 %%%
 
+:::leanSection
 ```lean -show
 universe u
 variable (p : Prop)
@@ -422,9 +422,11 @@ In the {tech (key := "application binary interface")}[ABI], Lean types are trans
   It is the same as the {ref "run-time-inductives"}[run-time representation] of these types.
   Its runtime value is either a pointer to an object of a subtype of {c}`lean_object` (see the “Inductive types” section below) or it is the value {c}`lean_box(cidx)` for the {c}`cidx`th constructor of an inductive type if this constructor does not have any relevant parameters.
 
-  ```lean -show
-  variable (u : Unit)
-  ```
+:::
+
+```lean -show
+variable (u : Unit)
+```
 
 :::example "`Unit` in the ABI"
 The runtime value of {lean}`u`​` : `{lean}`Unit` is always `lean_box(0)`.

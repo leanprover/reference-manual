@@ -216,7 +216,36 @@ def nodup (l : List Int) : Bool := Id.run do
 ```
 :::
 
-:::paragraph
+::::paragraph
+:::codeOnly
+```lean
+-- NOTE: This is needed because a recent nightly didn't update the
+-- type of Invariant.withEarlyReturn to use MProd
+abbrev withEarlyReturn {α} {xs : List α} {γ : Type (max u₁ u₂)}
+  (onContinue : List.Cursor xs → β → Assertion ps)
+  (onReturn : γ → β → Assertion ps)
+  (onExcept : ExceptConds ps := ExceptConds.false) :
+    Invariant xs (MProd (Option γ) β) ps :=
+  ⟨fun ⟨xs, x, b⟩ => spred(
+        (⌜x = none⌝ ∧ onContinue xs b)
+      ∨ (∃ r, ⌜x = some r⌝ ∧ ⌜xs.suffix = []⌝ ∧ onReturn r b)),
+   onExcept⟩
+-- This test will fail when upstream has been fixed. At that time,
+-- remove the helper and update the proof again.
+/--
+info:
+Std.Do.Invariant.withEarlyReturn.{u₁, u₂} {β : Type (max u₁ u₂)}
+  {ps : PostShape} {α : Type (max u₁ u₂)} {xs : List α}
+  {γ : Type (max u₁ u₂)} (onContinue : xs.Cursor → β → Assertion ps)
+  (onReturn : γ → β → Assertion ps)
+  (onExcept : ExceptConds ps := ExceptConds.false) :
+  Invariant xs (Option γ × β) ps
+-/
+#guard_msgs (whitespace := lax) in
+#check Invariant.withEarlyReturn
+```
+:::
+
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
 Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
@@ -226,13 +255,13 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
   apply Id.of_wp_run_eq h
   mvcgen
   invariants
-  · Invariant.withEarlyReturn
+  · withEarlyReturn
       (onReturn := fun ret seen => ⌜ret = false ∧ ¬l.Nodup⌝)
       (onContinue := fun xs seen =>
         ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
   with grind
 ```
-:::
+::::
 
 
 :::paragraph
@@ -262,7 +291,7 @@ end
 :::
 
 :::paragraph
-Note that the form `mvcgen invariants?` will suggest an initial invariant using {name}`Invariant.withEarlyReturn`, so there is no need to memorize the exact syntax for specifying invariants:
+Note that the form `mvcgen invariants?` will suggest an initial invariant, so there is no need to memorize the exact syntax for specifying invariants:
 ```lean (name := invariants?)
 example (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
@@ -274,9 +303,9 @@ This starting point will not allow the proof to succeed—after all, if the inva
 ```leanOutput invariants?
 Try this:
   [apply] invariants
-  ·
-    Invariant.withEarlyReturn (onReturn := fun r letMuts => ⌜l.Nodup ∧ (r = true ↔ l.Nodup)⌝) (onContinue :=
-      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
+  · ⇓⟨xs, letMuts⟩ =>
+    ⌜xs.prefix = [] ∧ letMuts = ⟨none, ∅⟩ ∨
+        xs.suffix = [] ∧ (True ↔ l.Nodup) ∧ ∀ (a : Bool), letMuts.fst = some a → (a = true ↔ l.Nodup)⌝
 ```
 :::
 
@@ -891,11 +920,11 @@ instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
   wp_pure := by
     intros
     ext
-    simp [wp, ExceptT.run, Id.run, pure, Except.pure, throwThe]
+    simp [wp, ExceptT.run, Id.run, pure, Except.pure]
   wp_bind x f := by
     dsimp only [wp, bind]
     ext
-    cases x <;> simp [ExceptT.run, Id.run, pure, Except.pure, throwThe]
+    cases x <;> simp [ExceptT.run, Id.run, pure, Except.pure]
 ```
 :::
 
