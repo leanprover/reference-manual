@@ -102,43 +102,43 @@ IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATI
 ```
 ```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.apply) (expandTrace := Meta.synthInstance.resume)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
-  [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] ✅️ new goal Nonempty (Sum Nat Empty)
     [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
   [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
     [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Empty
+    [Meta.synthInstance] ✅️ new goal Nonempty Empty
       [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
   [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
     [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
   [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
     [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
-    [Meta.synthInstance] new goal Inhabited Empty
+    [Meta.synthInstance] ✅️ new goal Inhabited Empty
       [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual]
   [Meta.synthInstance.apply] ❌️ apply @instInhabitedOfApplicative_manual to Inhabited Empty
     [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
   [Meta.synthInstance.apply] ✅️ apply @Lake.inhabitedOfNilTrace to Inhabited Empty
     [Meta.synthInstance.tryResolve] ✅️ Inhabited Empty ≟ Inhabited Empty
-    [Meta.synthInstance] no instances for Lake.NilTrace Empty
+    [Meta.synthInstance] ✅️ no instances for Lake.NilTrace Empty
       [Meta.synthInstance.instances] #[]
   [Meta.synthInstance.apply] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
     [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
   [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
     [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Nat
+    [Meta.synthInstance] ✅️ new goal Nonempty Nat
       [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
   [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
     [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
   [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
     [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
-    [Meta.synthInstance] new goal Inhabited Nat
+    [Meta.synthInstance] ✅️ new goal Inhabited Nat
       [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual, instInhabitedNat]
   [Meta.synthInstance.apply] ✅️ apply instInhabitedNat to Inhabited Nat
     [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
     [Meta.synthInstance.answer] ✅️ Inhabited Nat
-  [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+  [Meta.synthInstance.resume] ✅️ propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
     [Meta.synthInstance.resume] size: 1
     [Meta.synthInstance.answer] ✅️ Nonempty Nat
-  [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.resume] ✅️ propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
     [Meta.synthInstance.resume] size: 2
     [Meta.synthInstance.answer] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
