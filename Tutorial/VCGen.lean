@@ -216,7 +216,8 @@ def nodup (l : List Int) : Bool := Id.run do
 ```
 :::
 
-:::paragraph
+::::paragraph
+:::codeOnly
 ```lean -show
 -- NOTE: This is needed because a recent nightly didn't update the type of Invariant.withEarlyReturn to use MProd
 abbrev withEarlyReturn {α} {xs : List α} {γ : Type (max u₁ u₂)}
@@ -237,6 +238,8 @@ info: Std.Do.Invariant.withEarlyReturn.{u₁, u₂} {β : Type (max u₁ u₂)} 
 #guard_msgs in
 #check Invariant.withEarlyReturn
 ```
+:::
+
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
 Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
@@ -252,7 +255,7 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
         ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
   with grind
 ```
-:::
+::::
 
 
 :::paragraph
