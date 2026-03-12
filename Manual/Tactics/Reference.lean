@@ -7,6 +7,7 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Term
+import Lean.Meta.Tactic.Cbv.CbvSimproc
 
 import Manual.Meta
 import Manual.Papers
