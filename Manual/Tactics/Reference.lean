@@ -897,9 +897,15 @@ unsolved goals
 ```
 ::::
 
+:::paragraph
+A {deftech}[cbv simplification procedure] (cbv simproc) is a user-defined metaprogram that {tactic}`cbv` invokes on subexpressions matching a given pattern.
+While {attr}`cbv_eval` rules are limited to static equality theorems, cbv simprocs can perform arbitrary computation to decide how to rewrite a subexpression — for example, evaluating arithmetic on literal values or short-circuiting control flow.
+
+Cbv simprocs have type {name}`Lean.Meta.Sym.Simp.Simproc` (`Expr → SimpM Result`), which is distinct from the {name}`Lean.Meta.Simp.Simproc` type used by {tactic}`simp` simprocs.
+The two systems are independent: registering a cbv simproc has no effect on {tactic}`simp`, and vice versa.
+:::
+
 :::syntax command (title := "Custom `cbv` Simplification Procedures")
-The `cbv_simproc` command declares a user-defined simplification procedure that {tactic}`cbv` invokes on matching subexpressions.
-Unlike {attr}`cbv_eval`, which registers a static equality theorem, a simplification procedure can perform arbitrary metaprogram computation.
 
 The body must have type `Simproc` (that is, `Expr → SimpM Result`).
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
