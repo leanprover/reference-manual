@@ -63,22 +63,26 @@ def replace_unicode_js(deploy_dir, verso_js):
     Replace the Unicode input JavaScript files in every version directory with
     the latest versions fetched from Verso's main branch.
 
+    Handles both historical path layouts:
+      - static/search/   (versions up to ~4.21)
+      - -verso-search/   (versions from ~4.22 onwards)
+
     Args:
         deploy_dir (str): Directory containing all versions
         verso_js (dict): Mapping from filename to bytes content
     """
     for inner in Path(deploy_dir).iterdir():
         if inner.is_dir() and (inner / "index.html").is_file():
-            search_dir = inner / "static" / "search"
-            if search_dir.is_dir():
-                for filename, content in verso_js.items():
-                    filepath = search_dir / filename
-                    if filepath.exists():
-                        with open(filepath, "wb") as f:
-                            f.write(content)
-                        print(f"Replaced: {filepath}")
-                    else:
-                        print(f"Not found, skipping: {filepath}")
+            for search_dir in [inner / "-verso-search", inner / "static" / "search"]:
+                if search_dir.is_dir():
+                    for filename, content in verso_js.items():
+                        filepath = search_dir / filename
+                        if filepath.exists():
+                            with open(filepath, "wb") as f:
+                                f.write(content)
+                            print(f"Replaced: {filepath}")
+                        else:
+                            print(f"Not found, skipping: {filepath}")
 
 
 # This function is the right thing to change to change the
