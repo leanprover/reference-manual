@@ -137,9 +137,9 @@ jobs:
                   TAG_NAME=$GITHUB_REF_NAME
                   echo "Making deployment from tag: '$TAG_NAME'"
 
-                  python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" deploy
+                  python deploy/release.py ${{ steps.detect-structure.outputs.reference_dir }} "$VERSION" "$GITHUB_SHA" deploy
                   if [ "${{ steps.detect-structure.outputs.structure }}" = "new" ]; then
-                      python deploy/release.py html/site/tutorials "$VERSION" deploy-tutorials
+                      python deploy/release.py html/site/tutorials "$VERSION" "$GITHUB_SHA" deploy-tutorials
                   fi
 
             - name: Push deploy branch
