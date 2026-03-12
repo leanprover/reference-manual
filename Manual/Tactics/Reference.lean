@@ -897,6 +897,8 @@ unsolved goals
 ```
 ::::
 
+### Custom Simplification Procedures
+
 :::paragraph
 A {deftech}[cbv simplification procedure] (cbv simproc) is a user-defined metaprogram that {tactic}`cbv` invokes on subexpressions matching a given pattern.
 While {attr}`cbv_eval` rules are limited to static equality theorems, cbv simprocs can perform arbitrary computation to decide how to rewrite a subexpression — for example, evaluating arithmetic on literal values or short-circuiting control flow.
@@ -913,7 +915,7 @@ An optional phase specifier controls when the procedure fires during normalizati
 When no phase is specified, the default is `↑` (post).
 
  * *`↓` (pre)*: Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order — for example, to evaluate arguments lazily or to short-circuit evaluation (as the built-in `ite` and `Or` procedures do).
- * *`cbv_eval` (eval)*: Fires _after_ arguments have been reduced to values, but _before_ {tactic}`cbv` attempts equation lemma unfolding and kernel reduction. Use this phase to intercept ground applications efficiently.
+ * *`cbv_eval` (eval)*: Fires _after_ arguments have been reduced to values, but _before_ the function is unfolded. Use this phase to provide efficient ground evaluation procedures.
  * *`↑` (post, default)*: Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
 
 ```grammar
@@ -996,8 +998,8 @@ attribute [cbv_simproc cbv_eval] evalMyConst2
 
 :::paragraph
 Lean includes a number of built-in simplification procedures for {tactic}`cbv`.
-These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing).
-The control flow procedures use the `↓` (pre) phase to enable short-circuit evaluation, while the array procedures use the `cbv_eval` phase to reduce ground applications directly.
+These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing, string operations).
+The control flow procedures use the `↓` (pre) phase to enable short-circuit evaluation, while the array and string procedures use the `cbv_eval` phase to reduce ground applications directly.
 :::
 
 ## Options
