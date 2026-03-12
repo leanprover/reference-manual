@@ -897,6 +897,166 @@ unsolved goals
 ```
 ::::
 
+:::syntax command (title := "Custom `cbv` Simplification Procedures")
+The `cbv_simproc` command declares a user-defined simplification procedure that {tactic}`cbv` invokes on subexpressions matching a discrimination tree pattern.
+Unlike {attr}`cbv_eval`, which registers a static equality theorem, a simplification procedure can perform arbitrary metaprogram computation.
+
+The body must have type `Simproc` (that is, `Expr → SimpM Result`).
+Procedures fire at one of three phases: `↓` (pre), `cbv_eval` (eval), or `↑` (post, the default).
+
+```grammar
+cbv_simproc name (pattern) := body
+```
+
+An optional phase specifier can be placed before the name:
+
+```grammar
+cbv_simproc ↓ name (pattern) := body
+```
+
+```grammar
+cbv_simproc cbv_eval name (pattern) := body
+```
+
+The `cbv_simproc_decl` variant declares the procedure without activating it.
+It can be activated later with {attr}`cbv_simproc`.
+
+```grammar
+cbv_simproc_decl name (pattern) := body
+```
+:::
+
+:::syntax attr (title := "Simplification Procedure Attribute for `cbv`")
+The {attr}`cbv_simproc` attribute activates a previously declared simplification procedure (defined with `cbv_simproc_decl`) for use by {tactic}`cbv`.
+An optional phase specifier controls when the procedure fires during normalization.
+
+```grammar
+cbv_simproc
+```
+
+Phase specifiers control when the procedure fires:
+
+```grammar
+cbv_simproc ↓
+```
+
+```grammar
+cbv_simproc ↑
+```
+
+```grammar
+cbv_simproc cbv_eval
+```
+:::
+
+:::paragraph
+The three phases determine when a simplification procedure fires during {tactic}`cbv` normalization:
+
+ * *`↓` (pre)*: Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order — for example, to evaluate arguments lazily or to short-circuit evaluation (as the built-in `ite` and `Or` procedures do).
+ * *`cbv_eval` (eval)*: Fires _after_ arguments have been reduced to values, but _before_ {tactic}`cbv` attempts equation lemma unfolding and kernel reduction. Use this phase to intercept ground applications efficiently.
+ * *`↑` (post, default)*: Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
+
+:::
+
+::::example "Declaring a `cbv_simproc`"
+
+A simplification procedure is declared by providing a discrimination tree pattern and a body of type `Simproc`.
+The pattern determines which subexpressions trigger the procedure.
+Here, the procedure is indexed on applications of `myConst` and simply returns `.rfl` (no change), but a real implementation would construct a replacement expression and proof:
+
+```lean
+opaque myConst : Nat → Nat
+
+open Lean Meta Sym.Simp in
+cbv_simproc evalMyConst (myConst _) := fun _e => do
+  -- A real simproc would inspect `e`, compute a result,
+  -- and return `.step result proof`.
+  return .rfl
+```
+
+The `cbv_simproc_decl` variant declares the procedure without activating it.
+The {attr}`cbv_simproc` attribute can be used to activate it later, optionally at a specific phase:
+
+```lean
+open Lean Meta Sym.Simp in
+cbv_simproc_decl evalMyConst2 (myConst _) := fun _e =>
+  return .rfl
+
+attribute [cbv_simproc cbv_eval] evalMyConst2
+```
+
+::::
+
+::::example "Efficient Computation with `cbv_simproc`"
+
+Simplification procedures are particularly useful when the naive equational unfolding of a function is too expensive, but an efficient metaprogram can compute the same result.
+For example, a naive definition of the Fibonacci function has exponential complexity:
+
+```lean
+def fib : Nat → Nat
+  | 0 => 0
+  | 1 => 1
+  | n + 2 => fib (n + 1) + fib n
+```
+
+A `cbv_simproc` at the `cbv_eval` phase can intercept `fib n` after `n` has been reduced to a numeral, compute the result using an O(log n) algorithm, and return a proof:
+
+```lean
+-- Infrastructure for efficient Fibonacci computation.
+-- The simproc body constructs the result numeral and
+-- an equality proof using verified helper lemmas.
+open Lean Meta Sym.Simp in
+cbv_simproc cbv_eval evalFib (fib _) := fun _e => do
+  -- In a real implementation:
+  --   1. Extract the Nat literal from the argument
+  --   2. Compute fib(n) using fast doubling
+  --   3. Return .step (mkRawNatLit result) proof
+  return .rfl
+```
+
+With a fully implemented `evalFib`, goals like `fib 100 = 354224848179261915075` can be closed by {tactic}`cbv` in milliseconds, whereas naive unfolding would not terminate in practice.
+
+::::
+
+::::example "Scoping of `cbv_simproc`"
+
+Like other attributes, `cbv_simproc` declarations respect Lean's scoping modifiers.
+
+```lean -show
+opaque myFun : Nat → Nat
+```
+
+A `local` simplification procedure is active only within the current {keywordOf Lean.Parser.Command.section}`section`:
+
+```lean
+section
+open Lean Meta Sym.Simp in
+local cbv_simproc localProc (myFun _) := fun _e =>
+  return .rfl
+-- localProc is active here
+end
+-- localProc is no longer active
+```
+
+A `scoped` simplification procedure is active only when its namespace is opened:
+
+```lean
+namespace MyLib
+open Lean Meta Sym.Simp in
+scoped cbv_simproc scopedProc (myFun _) := fun _e =>
+  return .rfl
+end MyLib
+-- scopedProc is active only when `MyLib` is opened
+```
+
+::::
+
+:::paragraph
+Lean includes a number of built-in simplification procedures for {tactic}`cbv`.
+These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing).
+The control flow procedures use the `↓` (pre) phase to enable short-circuit evaluation, while the array procedures use the `cbv_eval` phase to reduce ground applications directly.
+:::
+
 ## Options
 
 {optionDocs cbv.maxSteps}
