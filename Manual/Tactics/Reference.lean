@@ -7,7 +7,6 @@ Author: David Thrane Christiansen
 import VersoManual
 
 import Lean.Parser.Term
-import Lean.Meta.Tactic.Cbv.CbvSimproc
 
 import Manual.Meta
 import Manual.Papers
@@ -961,6 +960,10 @@ The three phases determine when a simplification procedure fires during {tactic}
 
 ::::example "Declaring a `cbv_simproc`"
 
+```imports -show
+import Lean.Meta.Tactic.Cbv.CbvSimproc
+```
+
 A simplification procedure is declared by providing a discrimination tree pattern and a body of type `Simproc`.
 The pattern determines which subexpressions trigger the procedure.
 Here, the procedure is indexed on applications of `myConst` and simply returns `.rfl` (no change), but a real implementation would construct a replacement expression and proof:
@@ -989,6 +992,10 @@ attribute [cbv_simproc cbv_eval] evalMyConst2
 ::::
 
 ::::example "Efficient Computation with `cbv_simproc`"
+
+```imports -show
+import Lean.Meta.Tactic.Cbv.CbvSimproc
+```
 
 Simplification procedures are particularly useful when the naive equational unfolding of a function is too expensive, but an efficient metaprogram can compute the same result.
 For example, a naive definition of the Fibonacci function has exponential complexity:
@@ -1020,6 +1027,10 @@ With a fully implemented `evalFib`, goals like `fib 100 = 354224848179261915075`
 ::::
 
 ::::example "Scoping of `cbv_simproc`"
+
+```imports -show
+import Lean.Meta.Tactic.Cbv.CbvSimproc
+```
 
 Like other attributes, `cbv_simproc` declarations respect Lean's scoping modifiers.
 
