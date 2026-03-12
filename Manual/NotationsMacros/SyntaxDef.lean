@@ -228,14 +228,14 @@ In the second example, {tech}[macro scopes] inserted by quotation are visible on
   logInfo (repr (removeSourceInfo stx.raw))
 ```
 The contents of the {tech}[pre-resolved identifier] {name}`List.length` are visible here:
-```leanOutput reprStx2
+```leanOutput reprStx2 (allowDiff := 2)
 Lean.Syntax.node
   (Lean.SourceInfo.none)
   `Lean.Parser.Term.app
   #[Lean.Syntax.ident
       (Lean.SourceInfo.none)
       "List.length".toRawSubstring
-      (Lean.Name.mkNum `List.length._@.Manual.NotationsMacros.SyntaxDef._hyg 2)
+      (Lean.Name.mkNum (Lean.Name.mkStr (Lean.Name.mkStr (Lean.Name.mkNum `List.length.«_@».Manual.NotationsMacros.SyntaxDef 1704743902) "_hygCtx") "_hyg") 2)
       [Lean.Syntax.Preresolved.decl `List.length []],
     Lean.Syntax.node
       (Lean.SourceInfo.none)
@@ -290,9 +290,9 @@ In the second example, {tech}[macro scopes] inserted by quotation are visible on
   let stx ← `(List.length ["Rose", "Daffodil", "Lily"])
   logInfo (toString stx)
 ```
-```leanOutput toStringStx2
+```leanOutput toStringStx2 (allowDiff := 2)
 (Term.app
- `List.length._@.Manual.NotationsMacros.SyntaxDef._hyg.2
+ `List.length._@.Manual.NotationsMacros.SyntaxDef.316878510._hygCtx._hyg.2
  [(«term[_]» "[" [(str "\"Rose\"") "," (str "\"Daffodil\"") "," (str "\"Lily\"")] "]")])
 ```
 :::
