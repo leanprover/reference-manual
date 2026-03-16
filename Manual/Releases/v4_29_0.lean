@@ -37,47 +37,6 @@ startup.
 [#12406](https://github.com/leanprover/lean4/pull/12406) significantly
 reduces the memory consumed by LRAT proof checking in `bv_decide`.
 
-## Call-By-Value Tactic
-
-This release introduces an experimental {tactic}`cbv` tactic that reduces
-terms step-by-step according to call-by-value semantics. At each
-reduction step, `cbv` produces an equality proof, allowing it to
-certify reductions of functions defined by well-founded recursion or
-partial fixpoints. Unlike {tactic}`native_decide`, the resulting proofs do not
-rely on the compiler. `cbv` is available as a standalone tactic
-([#12408](https://github.com/leanprover/lean4/pull/12408)) and inside
-`conv` mode
-([#12279](https://github.com/leanprover/lean4/pull/12279)). A
-finishing variant, {tactic}`decide_cbv`, is also provided
-([#12411](https://github.com/leanprover/lean4/pull/12411)).
-
-```
-set_option cbv.warning false
-
-def Nat.factorial : Nat → Nat
-  | 0 => 1
-  | n + 1 => (n + 1) * n.factorial
-
--- as a standalone tactic
-example : Nat.factorial 10 = 3628800 := by cbv
-
--- in conv mode
-example : Nat.factorial 5 * 2 = 240 := by
-  conv => lhs; cbv
-```
-
-There are two attributes to control what `cbv` unfolds:
-
-- `@[cbv_opaque]`
-  ([#12283](https://github.com/leanprover/lean4/pull/12283)) -
-  prevents `cbv` from unfolding a definition.
-
-- `@[cbv_eval]`
-  ([#12296](https://github.com/leanprover/lean4/pull/12296)) and
-  `@[cbv_eval ←]` variant
-  ([#12506](https://github.com/leanprover/lean4/pull/12506)) -
-  register a theorem as a rewrite rule for `cbv`.
-
 ## New Extensible `do` Elaborator
 
 [#12459](https://github.com/leanprover/lean4/pull/12459) adds a new,
