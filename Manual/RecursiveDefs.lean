@@ -11,6 +11,7 @@ import Manual.Meta
 import Manual.RecursiveDefs.Structural
 import Manual.RecursiveDefs.WF
 import Manual.RecursiveDefs.PartialFixpoint
+import Manual.RecursiveDefs.CoinductivePredicates
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -33,7 +34,7 @@ Furthermore, most useful recursive functions do not threaten soundness, and infi
 Instead of banning recursive functions, Lean requires that each recursive function is defined safely.
 While elaborating recursive definitions, the Lean elaborator also produces a justification that the function being defined is safe.{margin}[The section on {ref "elaboration-results"}[the elaborator's output] in the overview of elaboration contextualizes the elaboration of recursive definitions in the overall context of the elaborator.]
 
-There are five main kinds of recursive functions that can be defined:
+There are six main kinds of recursive functions that can be defined:
 
 : Structurally recursive functions
 
@@ -61,6 +62,12 @@ There are five main kinds of recursive functions that can be defined:
   In particular, any function whose return type is in certain monads (e.g. {name}`Option`) can be defined using this strategy.
   Lean generates additional partial correctness theorems for these monadic functions.
   As with well-founded recursion, applications of functions defined as partial fixpoints are not definitionally equal to their return values, but Lean generates theorems that propositionally equate the function to its unfolding and to the reduction behavior specified in its definition.
+
+: Coinductive and inductive predicates as fixpoints
+
+  Recursive {lean}`Prop`-valued functions can be defined as greatest or least fixpoints of monotone operators on complete lattices.
+  Coinductive predicates, defined using {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` or the {keywordOf Lean.Parser.Command.declaration}`coinductive` command, describe potentially infinite behavior such as infinite sequences or bisimulation.
+  Inductive predicates, defined using {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint`, provide an alternative to standard inductive types that is compatible with mixed inductive-coinductive mutual blocks.
 
 : Partial functions with nonempty codomains
 
@@ -93,7 +100,7 @@ As described in the {ref "elaboration-results"}[overview of the elaborator's out
 
  2. A termination analysis attempts to use the five techniques to justify the function to Lean's kernel.
     If the definition is marked {keywordOf Lean.Parser.Command.declaration}`unsafe` or {keywordOf Lean.Parser.Command.declaration}`partial`, then that technique is used.
-    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by` or {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` clause is present, then the indicated technique is the only one attempted.
+    If an explicit {keywordOf Lean.Parser.Command.declaration}`termination_by`, {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint`, {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint`, or {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clause is present, then the indicated technique is the only one attempted.
     If there is no such clause, then the elaborator performs a search, testing each parameter to the function as a candidate for structural recursion, and attempting to find a measure with a well-founded relation that decreases at each recursive call.
 
 This section describes the rules that govern recursive functions.
@@ -176,6 +183,8 @@ After the first step of elaboration, in which definitions are still recursive, a
 {include 0 Manual.RecursiveDefs.WF}
 
 {include 0 Manual.RecursiveDefs.PartialFixpoint}
+
+{include 0 Manual.RecursiveDefs.CoinductivePredicates}
 
 # Partial and Unsafe Definitions
 %%%
