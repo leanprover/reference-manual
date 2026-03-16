@@ -23,6 +23,9 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
 
 # Highlights
 
+_Violetta Sim has helpfully written the release highlights from 4.16 through 4.29, and the Lean developers gratefully acknowledge her contributions._
+
+
 ## Performance Improvements
 
 [#12082](https://github.com/leanprover/lean4/pull/12082) and
