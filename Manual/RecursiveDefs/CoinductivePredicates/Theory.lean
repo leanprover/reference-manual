@@ -76,7 +76,7 @@ These closure properties allow extending the construction to predicates of arbit
 tag := "coinductive-monotonicity"
 %%%
 
-Defining a predicate as a fixpoint requires the defining equation to be {tech}[monotone] with respect to the appropriate order.
+Defining a predicate as a fixpoint requires the defining equation to be monotone with respect to the appropriate order.
 
 For the {keywordOf Lean.Parser.Command.declaration}`coinductive` command, monotonicity is guaranteed by construction: the kernel's strict positivity check on the underlying {ref "coinductive-elaboration"}[flat inductive] ensures that every accepted definition is monotone.
 Users do not need to concern themselves with monotonicity when using this syntax.
