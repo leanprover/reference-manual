@@ -113,7 +113,7 @@ end
 :::example "Flat Inductive"
 For {lean}`InfSeqF`, the generated flat inductive is:
 
-```lean (name := checkFunctor)
+```lean (name := checkFunctor) -keep
 #check @InfSeqF._functor
 ```
 ```leanOutput checkFunctor
@@ -153,7 +153,7 @@ fun α r InfSeqF._functor.call a => ∃ b, r a b ∧ InfSeqF._functor.call b
 
 The two forms are connected by an equivalence theorem:
 
-```lean (name := checkExistEquiv)
+```lean (name := checkExistEquiv) -keep
 #check @InfSeqF._functor.existential_equiv
 ```
 ```leanOutput checkExistEquiv
