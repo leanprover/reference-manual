@@ -169,13 +169,13 @@ Using the correspondence between the flat inductive and the existential form, co
 :::paragraph
 The following declarations are generated for a coinductive predicate named `P`:
 
- * `P._functor` — the {tech}[flat inductive]
- * `P._functor.existential` — the {tech}[existential form]
- * `P._functor.existential_equiv` — equivalence between the two forms
- * `P.functor_unfold` — theorem connecting the coinductive predicate to its flat inductive
- * Constructors (e.g., `P.step`) — corresponding to each constructor in the declaration
- * `P.casesOn` — case analysis principle
- * `P.coinduct` — coinduction principle
+ * `P._functor`: the {tech}[flat inductive]
+ * `P._functor.existential`: the {tech}[existential form]
+ * `P._functor.existential_equiv`: equivalence between the two forms
+ * `P.functor_unfold`: theorem connecting the coinductive predicate to its flat inductive
+ * Constructors (e.g., `P.step`): corresponding to each constructor in the declaration
+ * `P.casesOn`: case analysis principle
+ * `P.coinduct`: coinduction principle
 
 :::
 

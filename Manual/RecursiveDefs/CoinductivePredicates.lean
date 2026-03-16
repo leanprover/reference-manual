@@ -28,7 +28,7 @@ tag := "coinductive-predicates"
 %%%
 
 Lean's type theory does not support coinductive types directly.
-However, {tech (key := "lattice-theoretic coinductive predicate")}[coinductive predicates] — recursive definitions valued in {lean}`Prop` — can be defined using the complete lattice structure on propositions.
+However, {tech (key := "lattice-theoretic coinductive predicate")}[coinductive predicates], that is, recursive definitions valued in {lean}`Prop`, can be defined using the complete lattice structure on propositions.
 Dually, {tech (key := "lattice-theoretic inductive predicate")}[inductive predicates] can also be defined via least fixpoints using the same machinery, providing an alternative to ordinary {tech}[inductive types] that is compatible with mixed inductive-coinductive mutual blocks.
 
 The key idea is that {lean}`Prop` carries a {ref "complete-lattices"}[complete lattice] structure given by implication (and reverse implication), and any monotone endofunction on a complete lattice has both a least and a greatest fixpoint by the Knaster-Tarski theorem.
