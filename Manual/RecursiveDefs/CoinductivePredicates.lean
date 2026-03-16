@@ -99,7 +99,7 @@ To prove `infSeq R a`, it suffices to exhibit a predicate `pred` such that `pred
 :::example "Simple Proof by Coinduction"
 If `R a a` holds, then there is a trivial infinite chain that loops at `a`:
 
-```lean
+```lean -keep
 theorem cycleInfSeq {R : α → α → Prop} (a : α) :
     R a a → infSeq R a := by
   apply infSeq.coinduct (pred := fun m => R m m)
@@ -174,7 +174,7 @@ An induction principle is generated:
 ```
 
 One can prove the correspondence between the two formulations:
-```lean
+```lean -keep
 theorem star_implies_starInd (R : α → α → Prop) :
     ∀ a b : α, star R a b → starInd R a b := by
   intro a b s
@@ -238,7 +238,7 @@ namespace ProofTechniques
 :::example "Coinduction with an Auxiliary Predicate"
 If every state reachable from `a` via the reflexive transitive closure has a successor, then there is an infinite chain from `a`:
 
-```lean
+```lean -keep
 def allSeqInf (R : α → α → Prop) (x : α) : Prop :=
   ∀ y : α, star R x y → ∃ z, R y z
 
@@ -260,7 +260,7 @@ theorem infSeq_of_allSeqInf (R : α → α → Prop) :
 A strengthened coinduction principle allows the coinduction hypothesis to be applied up to transitive closure.
 Given a predicate `X` such that every `X`-state leads via one-or-more `R`-steps to another `X`-state, then every `X`-state satisfies `infSeq R`:
 
-```lean
+```lean -keep
 variable {α : Sort _} {R : α → α → Prop}
 
 inductive plus (R : α → α → Prop) :
