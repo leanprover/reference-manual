@@ -229,7 +229,7 @@ def elanMeta.descr : InlineDescr := withHighlighting {
         | .arr #[.str mName, _] =>
           (mName, none)
         | _ => ("", none)
-      let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName, mName⟩
+      let hl : Highlighted := .token ⟨.var ⟨mName.toName⟩ mName none, mName⟩
       hl.inlineHtml ctx (g := Verso.Genre.Manual)
 }
 

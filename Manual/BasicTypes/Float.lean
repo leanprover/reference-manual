@@ -84,12 +84,15 @@ theorem Float.zero_eq_zero_plus_zero :
     ((0.0 : Float) == (0.0 + 0.0 : Float)) = true := by
   native_decide
 ```
-This tactic uses the axiom {name}`Lean.trustCompiler`, which states that the Lean compiler, interpreter and the low-level implementations of built-in operators are trusted in addition to the kernel.
+This tactic executes a decision procedure as compiled native code.
+This requires trusting the Lean compiler, interpreter and the low-level implementations of built-in operators in addition to the kernel.
+To make this dependency precisely clear, the tactic creates the axiom {name}`Float.zero_eq_zero_plus_zero._native.native_decide.ax_1`:
 ```lean (name := ofRed)
 #print axioms Float.zero_eq_zero_plus_zero
 ```
 ```leanOutput ofRed
-'Float.zero_eq_zero_plus_zero' depends on axioms: [Classical.choice, Lean.ofReduceBool, Lean.trustCompiler]
+'Float.zero_eq_zero_plus_zero' depends on axioms: [Classical.choice,
+ Float.zero_eq_zero_plus_zero._native.native_decide.ax_1]
 ```
 :::
 

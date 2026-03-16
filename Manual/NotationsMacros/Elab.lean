@@ -13,7 +13,7 @@ import Lean.Parser.Command
 open Manual
 
 open Verso.Genre
-open Verso.Genre.Manual
+open Verso.Genre.Manual hiding seeAlso
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
@@ -25,6 +25,12 @@ set_option linter.unusedVariables false
 %%%
 tag := "elaborators"
 %%%
+
+:::seeAlso
+* Elaborators process {ref "syntax-ext"}[new syntax extensions].
+
+* {ref "quote-patterns"}[Quotation patterns] are the most typical way to destructure syntax.
+:::
 
 While macros allow Lean to be extended by translating new syntax into existing syntax, {deftech}_elaborators_ allow the new syntax to be processed directly.
 Elaborators have access to everything that Lean itself uses to implement each feature of the language.

@@ -267,6 +267,8 @@ Let's give {tactic}`grind` access to the definition of `size`, and `size_keys` p
 
 @[local grind =] private theorem size_keys : m.keys.size = m.size :=
   m.size_keys'
+
+@[local grind =] private theorem size_values : m.values.size = m.size := rfl
 ```
 
 :::paragraph
@@ -362,10 +364,10 @@ An immediate problem we can see here is that
 {tactic}`grind` does not yet know that `a ∈ m` is the same as `a ∈ m.indices`.
 Let's add this fact:
 
-```anchor mem_indices_of_mem
-@[local grind =] private theorem mem_indices_of_mem
+```anchor mem_indices
+@[local grind _=_] private theorem mem_indices
     {m : IndexMap α β} {a : α} :
-    a ∈ m ↔ a ∈ m.indices := Iff.rfl
+    a ∈ m.indices ↔ a ∈ m := Iff.rfl
 ```
 
 ::::leanSection
@@ -501,171 +503,23 @@ Success!
 :::paragraph
 Let's press onward, and see if we can define {anchorName insert}`insert` without having to write any proofs:
 ```anchor insert
-@[inline] def insert [LawfulBEq α] (m : IndexMap α β) (a : α) (b : β) :
-    IndexMap α β :=
+@[inline] def insert (m : IndexMap α β) (a : α) (b : β) : IndexMap α β :=
   match h : m.indices[a]? with
   | some i =>
     { indices := m.indices
-      keys := m.keys.set i a
-      values := m.values.set i b }
+      keys    := m.keys.set i a
+      values  := m.values.set i b }
   | none =>
     { indices := m.indices.insert a m.size
-      keys := m.keys.push a
-      values := m.values.push b }
+      keys    := m.keys.push a
+      values  := m.values.push b }
 ```
 In both branches, {tactic}`grind` is automatically proving both the {anchorTerm IndexMap}`size_keys'` and {anchorTerm IndexMap}`WF` fields!
 Note also in the first branch the {anchorTerm insert}`set` calls {anchorTerm insert}`m.keys.set i a` and {anchorTerm insert}`m.values.set i b`
 are having their “in-bounds” obligations automatically filled in by {tactic}`grind` via the {tactic}`get_elem_tactic` auto-parameter.
 :::
 
-:::paragraph
-Next let's try `eraseSwap`:
-```anchor eraseSwap_init
-@[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
-  match h : m.indices[a]? with
-  | some i =>
-    if w : i = m.size - 1 then
-      { indices := m.indices.erase a
-        keys := m.keys.pop
-        values := m.values.pop }
-    else
-      let lastKey := m.keys.back
-      let lastValue := m.values.back
-      { indices := (m.indices.erase a).insert lastKey i
-        keys := m.keys.pop.set i lastKey
-        values := m.values.pop.set i lastValue }
-  | none => m
-```
-```anchorError eraseSwap_init
-`grind` failed
-case grind.1.1.2.2.1.1.1
-α : Type u
-β : Type v
-inst : BEq α
-inst_1 : Hashable α
-m_1 : IndexMap α β
-a_1 : α
-b : β
-i_1 : Nat
-inst_2 : LawfulBEq α
-inst_3 : LawfulHashable α
-m : IndexMap α β
-a : α
-i : Nat
-h : m.indices[a]? = some i
-w : ¬i = m.size - 1
-lastKey : α := m.keys.back ⋯
-lastValue : β := m.values.back ⋯
-i_2 : Nat
-a_2 : α
-h_1 : ((m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2) =
-  ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
-h_2 : -1 * ↑(m.keys.set i (m.keys.back ⋯) ⋯).size + 1 ≤ 0
-left : (m.keys.pop.set i (m.keys.back ⋯) ⋯)[i_2]? = some a_2
-right : ¬((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2]? = some i_2
-h_4 : ¬i = i_2
-left_1 : ¬m.keys[i_2]? = some a
-right_1 : ¬m.indices[a]? = some i_2
-h_6 : (m.keys.back ⋯ == a_2) = true
-h_7 : i + 1 ≤ m.keys.pop.size
-left_2 : a_2 ∈ m.indices.erase a
-left_3 : (a == a_2) = false
-right_3 : a_2 ∈ m.indices
-⊢ False
-[grind] Goal diagnostics
-  [facts] Asserted facts
-  [eqc] True propositions
-  [eqc] False propositions
-  [eqc] Equivalence classes
-  [cases] Case analyses
-  [ematch] E-matching patterns
-  [cutsat] Assignment satisfying linear constraints
-  [ring] Rings
-
-[grind] Diagnostics
-```
-
-This fails while attempting to prove the {anchorName IndexMap}`WF` field in the second branch.
-As usual, there is detailed information from {tactic}`grind` about its failure state, but almost too much to be helpful!
-Let's look at the model produced by `cutsat` and see if we can see what's going on:
-```anchorError eraseSwap_init (onlyTrace := "Assignment satisfying linear constraints") (expandTrace := cutsat)
-[cutsat] Assignment satisfying linear constraints
-  [assign] i_1 := 4
-  [assign] i := 0
-  [assign] i_2 := 1
-  [assign] m.keys.pop.size := 2
-  [assign] m.keys.size := 3
-  [assign] m.size := 3
-  [assign] (m.keys.pop.set i (m.keys.back ⋯) ⋯).size := 2
-  [assign] m.values.size := 3
-  [assign] m.indices[a] := 0
-  [assign] ((m.indices.erase a).insert (m.keys.back ⋯) i)[a_2] := 0
-  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).pop.size := 2
-  [assign] (m.keys.set i (m.keys.back ⋯) ⋯).size := 3
-  [assign] m.indices[a] := 0
-  [assign] m.indices[a_2] := 1
-  [assign] m.indices[m.keys[i_2]] := 1
-  [assign] m.indices[m.keys[i_2]] := 1
-```
-
-
-```comment
-FIXME (@kim-em / @leodemoura): there is some repeated output here.
-```
-
-This model consists of an {anchorName IndexMap}`IndexMap` of size {lean}`3`,
-with keys `a_1`, `a_2` and the otherwise unnamed `(keys m_1).back ⋯`.
-
-:::
-
-
-:::paragraph
-Everything looks fine, *except* the line:
-```
-(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] := 0
-```
-This shouldn't be possible! Since the three keys are distinct,
-we should have
-```
-(((indices m_1).erase a_1).insert ((keys m_1).back ⋯) i_1)[a_2] =
-  ((indices m_1).erase a_1)[a_2] =
-  (indices m_1)[a_2] =
-  1
-```
-Now that we've found something suspicious, we can look through the equivalence classes identified by `grind`.
-(In the future we'll be providing search tools for inspecting equivalence classes, but for now you need to read through manually.)
-We find amongst many others:
-```
-{a_2,
-  (keys m_1).back ⋯,
-  (keys m_1)[(keys m_1).size - 1],
-  (keys m_1)[i_2], ...}
-```
-This should imply, by the injectivity of {anchorName IndexMap}`keys`, that `i_2 = (keys m_1).size - 1`.
-Since this identity *wasn't* reflected by the `cutsat` model,
-we suspect that {tactic}`grind` is not managing to use the injectivity of {anchorName IndexMap}`keys`.
-
-:::
-
-
-Thinking about the way that we've provided the well-formedness condition, as
-`∀ (i : Nat) (a : α), keys[i]? = some a ↔ indices[a]? = some i`, this perhaps isn't surprising:
-it's expressed in terms of `keys[i]?` and `indices[a]?`.
-Let's add a variant version of the well-formedness condition using {name GetElem.getElem}`getElem` instead of {name GetElem?.getElem?}`getElem?`:
-```anchor WF'
-@[local grind .] private theorem WF'
-    (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
-    m.keys[i] = a ↔ m.indices[a] = i := by
-  have := m.WF i a
-  grind
-```
-We can verify that with this available, {tactic}`grind` can now prove:
-```anchor WF'ex
-example {m : IndexMap α β} {a : α} {h : a ∈ m} :
-  m.keys[m.indices[a]'h] = a := by grind
-```
-
-Trying again with {anchorName eraseSwap}`eraseSwap`, everything goes through cleanly now, with no manual proofs:
+In {anchorName eraseSwap}`eraseSwap`, everything goes through cleanly now, with no manual proofs:
 ```anchor eraseSwap
 @[inline] def eraseSwap (m : IndexMap α β) (a : α) : IndexMap α β :=
   match h : m.indices[a]? with
@@ -702,30 +556,65 @@ Trying again with {anchorName eraseSwap}`eraseSwap`, everything goes through cle
 :::
 
 Finally we turn to the verification theorems about the basic operations, relating {anchorName Verification}`getIdx`, {anchorName Verification}`findIdx`, and {anchorName Verification}`insert`.
-By adding a {anchorTerm Verification}`local grind` annotation allowing {tactic}`grind` to unfold the definitions of these operations,
-the proofs all go through effortlessly:
+The proofs all go through effortlessly using {tactic}`grind` with the `+locals` modifier (which tells {tactic}`grind` to unfold local definitions):
 ```anchor Verification
-/-! ### Verification theorems -/
+/-! ### Verification theorems (not exhaustive) -/
 
-attribute [local grind] getIdx findIdx insert
-
-@[grind _=_] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.getIdx (m.findIdx a) = m[a] := by grind
-
-@[grind =] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =]
+theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
-  grind
+  grind +locals
 
-@[grind =] theorem getElem_insert
-    (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
+@[grind =]
+theorem getElem_insert (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
+  grind +locals
+
+theorem findIdx_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.findIdx a h < m.size := by
+  grind +locals
+
+grind_pattern findIdx_lt => m.findIdx a h
+
+@[grind =]
+theorem findIdx_insert_self (m : IndexMap α β) (a : α) (b : β) :
+    (m.insert a b).findIdx a = if h : a ∈ m then m.findIdx a else m.size := by
+  grind +locals
+
+@[grind =]
+theorem findIdx?_eq (m : IndexMap α β) (a : α) :
+    m.findIdx? a = if h : a ∈ m then some (m.findIdx a h) else none := by
+  grind +locals
+
+@[grind =]
+theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.getIdx (m.findIdx a) = m[a] := by grind +locals
+
+omit [LawfulBEq α] [LawfulHashable α] in
+@[grind =]
+theorem getIdx?_eq (m : IndexMap α β) (i : Nat) :
+    m.getIdx? i = if h : i < m.size then some (m.getIdx i h) else none := by
+  grind +locals
+
+private theorem getElem_keys_mem {m : IndexMap α β} {i : Nat} (h : i < m.size) :
+    m.keys[i] ∈ m := by
+  have : m.indices[m.keys[i]]? = some i := by grind
   grind
 
-@[grind =] theorem findIdx_insert_self
-    (m : IndexMap α β) (a : α) (b : β) :
-    (m.insert a b).findIdx a =
-      if h : a ∈ m then m.findIdx a else m.size := by
-  grind
+local grind_pattern getElem_keys_mem => m.keys[i]
+
+theorem getElem?_eraseSwap (m : IndexMap α β) (a a' : α) :
+    (m.eraseSwap a)[a']? = if a' == a then none else m[a']? := by
+  grind +locals
+
+@[grind =]
+theorem mem_eraseSwap (m : IndexMap α β) (a a' : α) :
+    a' ∈ m.eraseSwap a ↔ a' ≠ a ∧ a' ∈ m := by
+  grind +locals
+
+theorem getElem_eraseSwap (m : IndexMap α β) (a a' : α) (h : a' ∈ m.eraseSwap a) :
+    (m.eraseSwap a)[a'] = m[a'] := by
+  grind +locals
 ```
 
 Note that these are part of the public API of {anchorName Verification}`IndexMap`, so we need to mark them as {attrs}`@[grind]`,
@@ -739,7 +628,7 @@ Construct this version from the source module using annotations that cause unwan
 :::
 
 ```lean
-macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| grind)
+local macro_rules | `(tactic| get_elem_tactic_extensible) => `(tactic| grind)
 
 open Std
 
@@ -763,6 +652,8 @@ variable {m : IndexMap α β} {a : α} {b : β} {i : Nat}
 @[local grind =] private theorem size_keys : m.keys.size = m.size :=
   m.size_keys'
 
+@[local grind =] private theorem size_values : m.values.size = m.size := rfl
+
 def emptyWithCapacity (capacity := 8) : IndexMap α β where
   indices := HashMap.emptyWithCapacity capacity
   keys := Array.emptyWithCapacity capacity
@@ -774,8 +665,7 @@ instance : EmptyCollection (IndexMap α β) where
 instance : Inhabited (IndexMap α β) where
   default := ∅
 
-@[inline] def contains (m : IndexMap α β)
-    (a : α) : Bool :=
+@[inline] def contains (m : IndexMap α β) (a : α) : Bool :=
   m.indices.contains a
 
 instance : Membership α (IndexMap α β) where
@@ -784,9 +674,9 @@ instance : Membership α (IndexMap α β) where
 instance {m : IndexMap α β} {a : α} : Decidable (a ∈ m) :=
   inferInstanceAs (Decidable (a ∈ m.indices))
 
-@[local grind] private theorem mem_indices_of_mem
+@[local grind _=_] private theorem mem_indices
     {m : IndexMap α β} {a : α} :
-    a ∈ m ↔ a ∈ m.indices := Iff.rfl
+    a ∈ m.indices ↔ a ∈ m := Iff.rfl
 
 @[inline] def findIdx? (m : IndexMap α β) (a : α) : Option Nat :=
   m.indices[a]?
@@ -813,8 +703,6 @@ private theorem getElem_indices_lt
 
 grind_pattern getElem_indices_lt => m.indices[a]
 
-attribute [local grind] size
-
 instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem m a h :=
     m.values[m.indices[a]]
@@ -823,15 +711,15 @@ instance : GetElem? (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem! m a :=
     m.indices[a]?.bind (fun i => (m.values[i]?)) |>.getD default
 
-@[local grind] private theorem getElem_def
+@[local grind =] private theorem getElem_def
     (m : IndexMap α β) (a : α) (h : a ∈ m) :
     m[a] = m.values[m.indices[a]'h] :=
   rfl
-@[local grind] private theorem getElem?_def
+@[local grind =] private theorem getElem?_def
     (m : IndexMap α β) (a : α) :
     m[a]? = m.indices[a]?.bind (fun i => (m.values[i]?)) :=
   rfl
-@[local grind] private theorem getElem!_def
+@[local grind =] private theorem getElem!_def
     [Inhabited β] (m : IndexMap α β) (a : α) :
     m[a]! = (m.indices[a]?.bind (m.values[·]?)).getD default :=
   rfl
@@ -840,29 +728,28 @@ instance : LawfulGetElem (IndexMap α β) α β (fun m a => a ∈ m) where
   getElem?_def := by grind
   getElem!_def := by grind
 
-@[inline] def insert [LawfulBEq α] (m : IndexMap α β) (a : α) (b : β) :
-    IndexMap α β :=
+@[inline] def insert (m : IndexMap α β) (a : α) (b : β) : IndexMap α β :=
   match h : m.indices[a]? with
   | some i =>
     { indices := m.indices
-      keys := m.keys.set i a
-      values := m.values.set i b }
+      keys    := m.keys.set i a
+      values  := m.values.set i b }
   | none =>
     { indices := m.indices.insert a m.size
-      keys := m.keys.push a
-      values := m.values.push b }
+      keys    := m.keys.push a
+      values  := m.values.push b }
 
-instance [LawfulBEq α] : Singleton (α × β) (IndexMap α β) :=
-    ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
+instance : Singleton (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ => (∅ : IndexMap α β).insert a b⟩
 
-instance [LawfulBEq α] : Insert (α × β) (IndexMap α β) :=
-    ⟨fun ⟨a, b⟩ s => s.insert a b⟩
+instance : Insert (α × β) (IndexMap α β) :=
+  ⟨fun ⟨a, b⟩ s => s.insert a b⟩
 
-instance [LawfulBEq α] : LawfulSingleton (α × β) (IndexMap α β) :=
-    ⟨fun _ => rfl⟩
+instance : LawfulSingleton (α × β) (IndexMap α β) :=
+  ⟨fun _ => rfl⟩
 
-@[local grind] private theorem WF'
-    (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
+@[local grind .]
+private theorem WF' (i : Nat) (a : α) (h₁ : i < m.keys.size) (h₂ : a ∈ m) :
     m.keys[i] = a ↔ m.indices[a] = i := by
   have := m.WF i a
   grind
@@ -887,32 +774,48 @@ If the key is not present, the map is unchanged.
         values := m.values.pop.set i lastValue }
   | none => m
 
-/-! ### Verification theorems -/
+/-! ### Verification theorems (not exhaustive) -/
 
-attribute [local grind] getIdx findIdx insert
-
-@[grind] theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
-    m.getIdx (m.findIdx a) = m[a] := by grind
-
-@[grind] theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
+@[grind =]
+theorem mem_insert (m : IndexMap α β) (a a' : α) (b : β) :
     a' ∈ m.insert a b ↔ a' = a ∨ a' ∈ m := by
-  grind
+  grind +locals
 
-@[grind] theorem getElem_insert
-    (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
+@[grind =]
+theorem getElem_insert (m : IndexMap α β) (a a' : α) (b : β) (h : a' ∈ m.insert a b) :
     (m.insert a b)[a'] = if h' : a' == a then b else m[a'] := by
-  grind
+  grind +locals
 
-@[grind] theorem findIdx_insert_self
-    (m : IndexMap α β) (a : α) (b : β) :
-    (m.insert a b).findIdx a =
-      if h : a ∈ m then m.findIdx a else m.size := by
-  grind
+theorem findIdx_lt (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.findIdx a h < m.size := by
+  grind +locals
+
+grind_pattern findIdx_lt => m.findIdx a h
+
+@[grind =]
+theorem findIdx_insert_self (m : IndexMap α β) (a : α) (b : β) :
+    (m.insert a b).findIdx a = if h : a ∈ m then m.findIdx a else m.size := by
+  grind +locals
+
+@[grind =]
+theorem findIdx?_eq (m : IndexMap α β) (a : α) :
+    m.findIdx? a = if h : a ∈ m then some (m.findIdx a h) else none := by
+  grind +locals
+
+@[grind =]
+theorem getIdx_findIdx (m : IndexMap α β) (a : α) (h : a ∈ m) :
+    m.getIdx (m.findIdx a) = m[a] := by grind +locals
+
+omit [LawfulBEq α] [LawfulHashable α] in
+@[grind =]
+theorem getIdx?_eq (m : IndexMap α β) (i : Nat) :
+    m.getIdx? i = if h : i < m.size then some (m.getIdx i h) else none := by
+  grind +locals
 
 end IndexMap
 ```
 
-We haven't yet proved all the theorems we would want about these operations (or indeed any theorems about {anchorName eraseSwap}`eraseSwap`); the interested reader is encouraged to try proving more,
+We've now also added verification theorems for {anchorName eraseSwap}`eraseSwap` operations; the interested reader is encouraged to explore further,
 and perhaps even releasing a complete {anchorName IndexMap}`IndexMap` library!
 
 Summarizing the design principles discussed above about encapsulation:

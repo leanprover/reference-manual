@@ -331,3 +331,40 @@ When attempting to prove that {lean}`∀ n, n ≥ 8 → (perhapsFactorial n).isN
 ```
 ::::
 :::::
+
+:::example "Infix Operators, Defined Functions, and Unexpanders"
+When an operator does not expand to the application of a defiend function, no unexpander is generated.
+Here, the postfix interrobang expands to an anonymous function that takes a factorial if its argument is not too large.
+
+```lean
+def fact : Nat → Nat
+  | 0 => 1
+  | n+1 => (n + 1) * fact n
+
+set_option quotPrecheck false in
+postfix:90 "‽" => fun (n : Nat) => if n < 8 then some (fact n) else none
+```
+
+Because there is no named function in the expansion, no unexpander can be generated:
+```lean (name := noUnexp)
+#check 7‽
+```
+```leanOutput noUnexp
+(fun n => if n < 8 then some (fact n) else none) 7 : Option Nat
+```
+
+Using a named function results in an unexpander, which is used for terms that consist of applications of {name}`perhapsFactorial`:
+```lean
+def perhapsFactorial (n : Nat) : Option Nat :=
+  if n < 8 then some (fact n) else none
+
+postfix:90 "‽'" => perhapsFactorial
+
+```
+```lean (name := withUnexp)
+#check 7‽'
+```
+```leanOutput withUnexp
+7‽' : Option Nat
+```
+:::

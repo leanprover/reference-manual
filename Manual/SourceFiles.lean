@@ -265,6 +265,7 @@ $[public]? $[meta]? import $[all]? $mod:ident
 
 :::paragraph
 All imports to a module must themselves be modules.
+Without modifiers, the imported module's public scope is added to the current module's private scope. The imported module is not made available to modules that import the current module.
 The modifiers have the following meanings:
 
 : {keyword}`public`

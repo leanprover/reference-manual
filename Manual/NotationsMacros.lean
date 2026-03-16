@@ -21,7 +21,7 @@ import Lean.Parser.Command
 open Manual
 
 open Verso.Genre
-open Verso.Genre.Manual
+open Verso.Genre.Manual hiding seeAlso
 open Verso.Genre.Manual.InlineLean
 
 set_option pp.rawOnError true
@@ -797,6 +797,10 @@ More complex splices with brackets
 tag := "quote-patterns"
 %%%
 
+:::seeAlso
+New syntax is defined using {ref "syntax-rules"}[syntax extensions].
+:::
+
 Quasiquotations can be used in pattern matching to recognize syntax that matches a template.
 Just as antiquotations in a quotation that's used as a term are regions that are treated as ordinary non-quoted expressions, antiquotations in patterns are regions that are treated as ordinary Lean patterns.
 Quote patterns are compiled differently from other patterns, so they can't be intermixed with non-quote patterns in a single {keywordOf Lean.Parser.Term.match}`match` expression.
@@ -830,6 +834,73 @@ Syntax matches a quote pattern in the following cases:
 
 Because quotation pattern matching is based on the node kinds emitted by the parser, quotations that look identical may not match if they come from different syntax categories.
 If in doubt, including the syntax category in the quotation can help.
+
+:::leanSection
+```lean -show
+open Lean Syntax
+variable {k : SyntaxNodeKinds} {sep : String}
+
+```
+
+Variables bound by syntax pattern matches are of type {lean}`TSyntax k`, where {lean}`k` describes the potential syntax kinds.
+Variables in repetitions are of type {lean}`TSyntaxArray k`, or {lean}`TSepArray k sep` if the repetition is separated with the string {lean}`sep`.
+{name}`TSyntax` is described in more detail in {ref "typed-syntax"}[the section on typed syntax].
+:::
+
+::::example "Syntax Pattern Matching"
+
+```lean -show
+open Lean Syntax
+```
+
+List comprehensions are a notation for writing lists that is inspired by standard set builder notation.
+A list comprehension consists of square brackets that contain a result term followed by some nubmer of _qualifiers_; each qualifier either introduces a variable from some other list or imposes a condition that must be satisfied.
+Qualifiers are nested: each new variable's value is evaluated for every prior value.
+
+```lean
+syntax qbind := ident "←" term
+
+syntax qpred := term
+
+syntax qualifier := atomic(qbind) <|> qpred
+
+syntax "[" term "|" qualifier,* "]" : term
+```
+
+List comprehensions can be desugared to a sequence of calls to {name}`List.flatMap`.
+Variable introductions are translated to a {name List.flatMap}`flatMap` on the variable's value expression, while predicates are translated to a conditional that returns one or zero values if the predicate is true or false.
+The body of the final {name List.flatMap}`flatMap` is the result term.
+
+This desugaring can be implemented as a macro that uses quasiquotation patterns:
+```lean
+macro_rules
+  | `(term|[$e | $qs,* ]) => do
+    let init ← `([$e])
+    qs.getElems.foldrM (β := Term) (init := init) fun
+      | `(qualifier|$x ← $e'), r =>
+        `(($e' : List _) |>.flatMap fun $x => $r)
+      | `(qualifier|$e':term), r =>
+        `((if $e' then [()] else []) |>.flatMap fun () => $r)
+      | other, _ =>
+        Macro.throwErrorAt other "Unknown qualifier"
+```
+Initially, the sequence of qualifiers has type {lean}``TSepArray `qualifier ","``, indicating that it represents a comma-separated sequence of qualifiers.
+{lean}`TSepArray.getElems` transforms it into a {lean}``TSyntaxArray `qualifier``, which is an abbreviation for {lean}``Array (TSyntax `qualifier)``.
+This allows {tech}[generalized field notation] to be used to call {name}`Array.foldrM`.
+The `term` annotation in the branch for predicates is required to prevent the matched value from having syntax kind {lean}`` `qualifier ``; one {name Syntax.node}`node` must be unwrapped from the value.
+
+List comprehensions behave as expected:
+```lean (name := evalComp)
+#eval [ s!"{x}; {y}" |
+  x ← (1...5).toList,
+  x % 2 = 0,
+  y ← [true, false]
+]
+```
+```leanOutput evalComp
+["2; true", "2; false", "4; true", "4; false"]
+```
+::::
 
 ## Defining Macros
 %%%

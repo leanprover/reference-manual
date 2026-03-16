@@ -323,7 +323,7 @@ def main : IO Unit := do
     args := #[r#"^\([0-9]\)\([0-9]\)\2\1$"#, "numbers.txt"]
   }
 
-  let count := palindromes.trimAscii.split "\n" |>.count
+  let count := palindromes.trimAscii.split "\n" |>.length
 
   IO.println s!"There are {count} four-digit palindromes."
 ```
@@ -422,7 +422,7 @@ def main : IO Unit := do
 
   -- Consume its output, after waiting 100ms for grep to process the data.
   IO.sleep 100
-  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.count
+  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.length
 
   IO.println s!"There are {count} four-digit palindromes."
 ```
@@ -485,7 +485,7 @@ def main : IO UInt32 := do
     return 1
 
   -- Consume its output
-  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.count
+  let count := (← grep.stdout.readToEnd).trimAscii.split "\n" |>.length
 
   IO.println s!"There are {count} four-digit palindromes."
   return 0

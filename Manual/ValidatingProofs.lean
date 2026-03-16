@@ -33,7 +33,8 @@ Depending on the circumstances, additional steps may be recommended to rule out 
 In particular, it matters a lot whether one is dealing with an {tech}[honest] proof attempt, and needs protection against only benign mistakes, or a possibly-{tech}[malicious] proof attempt that actively tries to mislead.
 
 In particular, we use {deftech}_honest_ when the goal is to create a valid proof.
-This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system.
+This allows for mistakes and bugs in proofs and meta-code (tactics, attributes, commands, etc.), but not for code that clearly only serves to circumvent the system (such as using the {option}`debug.skipKernelTC`).
+Note that the {keyword}`unsafe` marker on API functions is unrelated to whether this API can be used in an dishonest way.
 
 In contrast, we use {deftech}_malicious_ to describe code to go out of its way to trick or mislead the user, exploit bugs or compromise the system.
 This includes un-reviewed AI-generated proofs and programs.

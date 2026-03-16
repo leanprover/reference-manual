@@ -216,7 +216,8 @@ def nodup (l : List Int) : Bool := Id.run do
 ```
 :::
 
-:::paragraph
+::::paragraph
+
 This function is correct if it returns {name}`true` for every list that satisfies {name}`List.Nodup` and {name}`false` for every list that does not.
 Just as it was in {name}`mySum`, the use of {keywordOf Lean.Parser.Term.do}`do`-notation and the {name}`Id` monad is an internal implementation detail of {name}`nodup`.
 Thus, the proof begins by using {name}`Id.of_wp_run_eq` to make the proof state amenable to {tactic}`mvcgen`:
@@ -232,7 +233,7 @@ theorem nodup_correct (l : List Int) : nodup l ↔ l.Nodup := by
         ⌜(∀ x, x ∈ seen ↔ x ∈ xs.prefix) ∧ xs.prefix.Nodup⌝)
   with grind
 ```
-:::
+::::
 
 
 :::paragraph
@@ -262,7 +263,7 @@ end
 :::
 
 :::paragraph
-Note that the form `mvcgen invariants?` will suggest an initial invariant using {name}`Invariant.withEarlyReturn`, so there is no need to memorize the exact syntax for specifying invariants:
+Note that the form `mvcgen invariants?` will suggest an initial invariant, so there is no need to memorize the exact syntax for specifying invariants:
 ```lean (name := invariants?)
 example (l : List Int) : nodup l ↔ l.Nodup := by
   generalize h : nodup l = r
@@ -274,9 +275,9 @@ This starting point will not allow the proof to succeed—after all, if the inva
 ```leanOutput invariants?
 Try this:
   [apply] invariants
-  ·
-    Invariant.withEarlyReturn (onReturn := fun r letMuts => ⌜l.Nodup ∧ (r = true ↔ l.Nodup)⌝) (onContinue :=
-      fun xs letMuts => ⌜xs.prefix = [] ∧ letMuts = ∅ ∨ xs.suffix = [] ∧ l.Nodup⌝)
+  · ⇓⟨xs, letMuts⟩ =>
+    ⌜xs.prefix = [] ∧ letMuts = ⟨none, ∅⟩ ∨
+        xs.suffix = [] ∧ (True ↔ l.Nodup) ∧ ∀ (a : Bool), letMuts.fst = some a → (a = true ↔ l.Nodup)⌝
 ```
 :::
 
@@ -848,7 +849,8 @@ instance Result.instMonad : Monad Result where
   | .div => .div
 
 instance Result.instLawfulMonad : LawfulMonad Result := by
-  apply LawfulMonad.mk' <;> (simp only [Result.instMonad]; grind)
+  apply LawfulMonad.mk' _
+  all_goals (dsimp [Functor.map, bind]; grind)
 ```
 :::
 ::::
@@ -886,24 +888,27 @@ instance Result.instWP : WP Result (.except Error .pure) where
 :::paragraph
 The implementation of {name}`WP.wp` should distribute over the basic monad operators:
 ```lean
-instance : WPMonad Result (.except Error .pure) where
+instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
   wp_pure := by
     intros
-    ext Q
-    simp [wp, PredTrans.pure, pure, Except.pure, Id.run]
+    ext
+    simp [wp, ExceptT.run, Id.run, pure, Except.pure]
   wp_bind x f := by
-    simp only [Result.instWP, bind]
-    ext Q
-    cases x <;> simp [PredTrans.bind, PredTrans.const]
+    dsimp only [wp, bind]
+    ext
+    cases x <;> simp [ExceptT.run, Id.run, pure, Except.pure]
 ```
 :::
 
 ```lean
+-- TODO: remove this workaround after updating to a Lean version with
+-- https://github.com/leanprover/lean4/pull/12529
+set_option backward.isDefEq.respectTransparency false in
 theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
     (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
                   fun e => ⌜P (.fail e)⌝⟩) → P x := by
   intro hspec
-  simp only [instWP] at hspec
+  simp [wp] at hspec
   split at hspec <;> simp_all
 ```
 

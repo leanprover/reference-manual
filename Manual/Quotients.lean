@@ -383,9 +383,11 @@ instance : Neg Z where
   neg :=
     Quotient.lift neg' <| by
       intro n k equiv
+      cases n; cases k
       apply Quotient.sound
-      simp only [· ≈ ·, Setoid.r, Z.eq] at *
-      omega
+      simp [· ≈ ·, instHasEquivOfSetoid, Setoid.r, Z.eq] at *
+      grind
+
 ```
 
 Similarly, {lean}`Quotient.lift₂` is useful for defining binary functions from a quotient type.
@@ -404,8 +406,8 @@ instance : Add Z where
       intro heq heq'
       apply Quotient.sound
       cases n; cases k; cases n'; cases k'
-      simp_all only [· ≈ ·, Setoid.r, Z.eq]
-      omega
+      simp_all only [· ≈ ·, instHasEquivOfSetoid, Setoid.r, Z.eq]
+      grind
 ```
 :::
 
@@ -446,12 +448,12 @@ def Z.eq.eqv : Equivalence Z.eq where
   symm := by
     intro (x, y) (x', y') heq
     simp_all only [eq]
-    omega
+    grind
   trans := by
     intro (x, y) (x', y') (x'', y'')
     intro heq1 heq2
     simp_all only [eq]
-    omega
+    grind
 
 instance Z.instSetoid : Setoid Z' where
   r := Z.eq
@@ -469,8 +471,8 @@ instance : Neg Z where
     Quotient.lift neg' <| by
       intro n k equiv
       apply Quotient.sound
-      simp only [· ≈ ·, Setoid.r, Z.eq] at *
-      omega
+      simp only [· ≈ ·, instHasEquivOfSetoid, Setoid.r, Z.eq] at *
+      grind
 
 def add' (n k : Nat × Nat) : Z :=
   .mk (n.1 + k.1, n.2 + k.2)
@@ -482,8 +484,8 @@ instance : Add Z where
       intro heq heq'
       apply Quotient.sound
       cases n; cases k; cases n'; cases k'
-      simp_all only [· ≈ ·, Setoid.r, Z.eq]
-      omega
+      simp_all only [· ≈ ·, instHasEquivOfSetoid, Setoid.r, Z.eq]
+      grind
 
 instance : OfNat Z n where
   ofNat := Z.mk (n, 0)
@@ -499,7 +501,7 @@ This is provable using {tactic}`simp_arith`.
 theorem Z.add_neg_inverse (n : Z) : n  + (-n) = 0 := by
   cases n using Quotient.ind
   apply Quotient.sound
-  simp +arith [· ≈ ·, Setoid.r, eq]
+  simp +arith [· ≈ ·, instHasEquivOfSetoid, Setoid.r, eq]
 ```
 
 :::
