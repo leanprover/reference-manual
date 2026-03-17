@@ -601,7 +601,7 @@ When reducing constant applications, {tactic}`cbv` tries the following strategie
  3. Unfolding equations
  4. Kernel matcher reduction
 
-Declarations marked with {attr}`cbv_opaque` are never unfolded.
+Declarations marked with {attr}`cbv_opaque` are never unfolded unless a matching {attr}`cbv_eval` rewrite rule is provided.
 :::
 
 :::syntax tactic (title := "Call-by-Value Evaluation")
@@ -864,7 +864,7 @@ example : slowReverse [1, 2, 3, 4, 5] = [5, 4, 3, 2, 1] := by
 
 :::syntax attr (title := "Opaque Declarations for `cbv`")
 The {attr}`cbv_opaque` attribute prevents {tactic}`cbv` from unfolding a declaration using its {tech}[equational lemmas] or unfold theorems.
-However, {attrs}`@[cbv_eval]` rewrite rules are still applied to {attrs}`@[cbv_opaque]` declarations.
+However, {attr}`cbv_eval` rewrite rules always take priority over {attr}`cbv_opaque`: if a matching {attr}`cbv_eval` rule exists for a declaration, it will be applied even if the declaration is marked {attr}`cbv_opaque`.
 This allows replacing the default unfolding behavior with a controlled set of evaluation rules.
 
 ```grammar
