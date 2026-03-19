@@ -31,14 +31,15 @@ Lean's type theory does not support coinductive types directly.
 However, {tech (key := "lattice-theoretic coinductive predicate")}[coinductive predicates], that is, recursive definitions valued in {lean}`Prop`, can be defined using the complete lattice structure on propositions.
 Dually, {tech (key := "lattice-theoretic inductive predicate")}[inductive predicates] can also be defined via least fixpoints using the same machinery, providing an alternative to ordinary {tech}[inductive types] that is compatible with mixed inductive-coinductive mutual blocks.
 
-The key idea is that {lean}`Prop` carries a {ref "complete-lattices"}[complete lattice] structure given by implication (and reverse implication), and any monotone endofunction on a complete lattice has both a least and a greatest fixpoint by the Knaster-Tarski theorem.
+The key idea is that {lean}`Prop` carries a {ref "complete-lattices"}[complete lattice] structure ordered by implication (`P ⊑ Q` when `P → Q`), and any monotone endofunction on a complete lattice has both a least and a greatest fixpoint by the Knaster-Tarski theorem.
+Coinductive predicates use the {ref "lattice-prop"}[reverse implication order] (`P ⊑ Q` when `Q → P`), so that the least fixpoint in this reversed order is the greatest fixpoint in the standard order.
 For predicates of the form `α → Prop`, the pointwise lifting of this lattice structure to function types provides the necessary setting.
 For mutual blocks, the product of complete lattices is again a complete lattice.
 This construction shares its internals with the {ref "partial-fixpoint"}[partial fixpoint] machinery.
 
 There are two ways to define coinductive predicates in Lean:
 
- 1. Using the {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` (or {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint`) termination clause on a recursive {keywordOf Lean.Parser.Command.declaration}`def` valued in {lean}`Prop`.
+ 1. Using the {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` termination clause on a recursive {keywordOf Lean.Parser.Command.declaration}`def` valued in {lean}`Prop`, which takes the greatest fixpoint. Equivalently, the {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clause defines inductive predicates as least fixpoints.
 
  2. Using the {keywordOf Lean.Parser.Command.declaration}`coinductive` command, which provides a declarative syntax mirroring {keywordOf Lean.Parser.Command.declaration}`inductive` declarations.
 
@@ -50,7 +51,7 @@ tag := "infseq-running-example"
 
 Throughout this section, the predicate `infSeq` serves as a running example.
 Given a relation `R : α → α → Prop`, the predicate `infSeq R a` asserts that there exists an infinite chain of `R`-related elements starting from `a`.
-This is a quintessential coinductive predicate: it describes a potentially infinite behavior that cannot be captured by an ordinary inductive type (which would require a base case).
+This is a quintessential coinductive predicate: it describes a potentially infinite behavior that can be presented as a single inference rule with no base cases.
 
 
 # Fixpoint Termination Clauses
@@ -58,8 +59,8 @@ This is a quintessential coinductive predicate: it describes a potentially infin
 tag := "fixpoint-clauses"
 %%%
 
-A recursive {lean}`Prop`-valued function can be defined as a fixpoint by annotating it with {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` or {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint`.
-These termination clauses play the same role as {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` but use the {ref "lattice-prop"}[complete lattice structure on `Prop`] to compute a greatest or least fixpoint, respectively.
+A recursive {lean}`Prop`-valued function can be defined as a fixpoint by annotating it with {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` for coinductive definitions (greatest fixpoint) or {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` for inductive definitions (least fixpoint).
+These termination clauses play the same role as {keywordOf Lean.Parser.Command.declaration}`partial_fixpoint` but use the {ref "lattice-prop"}[complete lattice structure on `Prop`] to compute the appropriate fixpoint.
 
 ## Coinductive Fixpoint
 %%%
@@ -125,7 +126,7 @@ def languageEquivalent (automaton : DFA Q A)
 coinductive_fixpoint
 ```
 
-The coinduction principle captures the standard notion of bisimulation:
+The coinduction principle captures the standard notion of bisimulation of deterministic automata:
 ```lean (name := checkLangEquiv)
 #check @languageEquivalent.coinduct
 ```
@@ -144,7 +145,7 @@ tag := "inductive-fixpoint-clause"
 %%%
 
 The {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clause defines a predicate as the least fixpoint of its defining equation.
-The function must be monotone with respect to {name}`Lean.Order.ImplicationOrder`.
+The function must be monotone with respect to {name}`Lean.Order.ImplicationOrder`, the order on {lean}`Prop` where `P ⊑ Q` means `P → Q`.
 This provides an alternative to ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` types for predicates, and is the dual of {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint`.
 
 The reflexive transitive closure of a relation can be defined as an inductive predicate:
@@ -195,7 +196,9 @@ tag := "mixed-mutual-fixpoint"
 
 A {tech}[mutual block] can mix {keywordOf Lean.Parser.Command.declaration}`coinductive_fixpoint` and {keywordOf Lean.Parser.Command.declaration}`inductive_fixpoint` clauses.
 Every definition in the block must use one of these two clauses.
-This is possible because negation and implication are handled by the {ref "coinductive-monotonicity"}[monotonicity] lemmas that flip between {name}`Lean.Order.ImplicationOrder` and {name}`Lean.Order.ReverseImplicationOrder`.
+The construction uses two {ref "lattice-prop"}[lattice structures on `Prop`]: {name}`Lean.Order.ImplicationOrder` for inductive definitions and {name}`Lean.Order.ReverseImplicationOrder` for coinductive definitions.
+In both cases, the least fixpoint of the corresponding lattice is computed; using the reverse implication order, the least fixpoint coincides with the greatest fixpoint in the standard order.
+This is possible because {ref "coinductive-monotonicity"}[monotonicity] lemmas flip between the two orders when negation or implication is encountered.
 
 :::example "Mixed Inductive-Coinductive Mutual Block"
 ```lean
@@ -223,19 +226,16 @@ MixedExample.tick.mutual_induct : ∀ (pred_1 pred_2 : Prop),
 :::
 
 
-# Coinduction Proof Techniques
+# Examples
 %%%
-tag := "coinduction-proof-techniques"
+tag := "coinductive-predicate-examples"
 %%%
-
-The coinduction principle generated for a coinductive predicate requires exhibiting a single predicate that is a post-fixpoint.
-In practice, more sophisticated coinduction techniques are sometimes needed.
 
 ```lean -show
 namespace ProofTechniques
 ```
 
-:::example "Coinduction with an Auxiliary Predicate"
+:::example "Infinite Chains from Universal Reachability"
 If every state reachable from `a` via the reflexive transitive closure has a successor, then there is an infinite chain from `a`:
 
 ```lean -keep
@@ -256,7 +256,7 @@ theorem infSeq_of_allSeqInf (R : α → α → Prop) :
 :::
 
 
-:::example "Coinduction Up-To"
+:::example "Coinduction Up-To Transitive Closure"
 A strengthened coinduction principle allows the coinduction hypothesis to be applied up to transitive closure.
 Given a predicate `X` such that every `X`-state leads via one-or-more `R`-steps to another `X`-state, then every `X`-state satisfies `infSeq R`:
 
