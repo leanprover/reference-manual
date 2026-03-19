@@ -100,7 +100,7 @@ tag := "coinductive-elaboration"
 
 Under the hood, the {keywordOf Lean.Parser.Command.declaration}`coinductive` command is elaborated in several steps.
 First, it is processed as if it were an ordinary {keywordOf Lean.Parser.Command.declaration}`inductive` declaration.
-Before registering the types with the kernel, however, a {deftech}_flat inductive_ (also called a _functor form_) is created: each recursive occurrence of the coinductive predicate in the premises of a constructor is replaced by an explicit parameter.
+Before registering the types with the kernel, however, a {deftech}_flat inductive_ (also called a _functor_) is created: each recursive occurrence of the coinductive predicate in the premises of a constructor is replaced by an explicit parameter.
 
 ```lean -show
 section
@@ -136,7 +136,7 @@ InfSeqF._functor.step : ∀ (α : Type) (r : α → α → Prop) (InfSeqF._funct
 ```
 :::
 
-An equivalent {deftech}_existential form_ is then constructed, expressing the same predicate using existential quantifiers and conjunctions.
+An equivalent {deftech}_existential form_ is then constructed, expressing each constructor as a disjunction of dependent products (that is, existential quantifiers and conjunctions).
 This form is used for monotonicity checking and for generating readable coinduction principles.
 
 :::example "Existential Form"
