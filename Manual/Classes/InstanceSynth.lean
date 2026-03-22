@@ -455,6 +455,22 @@ Code that uses instance-implicit parameters should be prepared to consider all i
 In other words, it should be robust in the face of differences in synthesized instances.
 When the code relies on instances _in fact_ being equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
+# Instance Normal Form
+%%%
+tag := "instance-normal-form"
+%%%
+
+When {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler produce an instance whose inferred type is not definitionally equal at {lean}`instances` transparency to the requested type, the resulting instance body is normalized to {deftech}_instance normal form_.
+This normalization prevents the definition's right-hand side from being leaked when the instance is reduced at lower than {tech}[semireducible] transparency.
+
+The normalization algorithm, implemented in {name Lean.Meta.normalizeInstance}`normalizeInstance`, reduces the synthesized instance to weak head normal form at {lean}`instances` transparency.
+If the result is a constructor application, it recursively processes each field:
+ * Sub-instance fields are replaced by the canonical instance for their type when one can be synthesized, preventing non-defeq instance diamonds.
+ * Proof fields are wrapped in auxiliary theorems to fix their types.
+ * Data fields are wrapped in auxiliary definitions when their types do not match the expected type.
+
+If the instance does not reduce to a constructor application, it is wrapped in an auxiliary definition.
+
 # Options
 
 {optionDocs backward.synthInstance.canonInstances}
@@ -462,3 +478,11 @@ When the code relies on instances _in fact_ being equivalent, it should either e
 {optionDocs synthInstance.maxHeartbeats}
 
 {optionDocs synthInstance.maxSize}
+
+{optionDocs backward.inferInstanceAs.wrap}
+
+{optionDocs backward.inferInstanceAs.wrap.reuseSubInstances}
+
+{optionDocs backward.inferInstanceAs.wrap.instances}
+
+{optionDocs backward.inferInstanceAs.wrap.data}
