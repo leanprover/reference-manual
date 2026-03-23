@@ -914,6 +914,8 @@ open Lean Lean.Meta.Sym.Simp
 ```
 The body must have type {name}`Simproc` (that is, {lean}`Expr → SimpM Result`).
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
+Patterns are matched agains subexpressions structurally after unfolding reducible definitions and applying beta, eta, and zeta reduction to both sides.
+Matching is modulo alpha-equivalence (bound variable names are ignored), and proof and instance arguments in the pattern are trated as wildcards.
 An optional phase specifier controls when the procedure fires during normalization.
 When no phase is specified, the default is `↑` (post).
 
