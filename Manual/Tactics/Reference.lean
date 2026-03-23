@@ -915,9 +915,17 @@ The pattern is an expression with holes (`_`) that determines which subexpressio
 An optional phase specifier controls when the procedure fires during normalization.
 When no phase is specified, the default is `↑` (post).
 
- * *`↓` (pre)*: Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order. A typical use case would be to evaluate arguments lazily or to short-circuit evaluation (as the built-in `ite` and `Or` procedures do).
- * *`cbv_eval` (eval)*: Fires _after_ arguments have been reduced to values, but _before_ the function is unfolded. Use this phase to provide efficient ground evaluation procedures.
- * *`↑` (post, default)*: Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
+: `↓` (pre)
+ 
+   Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order. A typical use case would be to evaluate arguments lazily or to short-circuit evaluation (as the built-in {name}`ite` and {name}`Or` procedures do).
+   
+: `cbv_eval` (eval)
+
+  Fires _after_ arguments have been reduced to values, but _before_ the function is unfolded. Use this phase to provide efficient ground evaluation procedures.
+
+: `↑` (post, default)
+
+  Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
 
 ```grammar
 cbv_simproc name (pattern) := body
