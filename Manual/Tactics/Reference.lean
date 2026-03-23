@@ -1011,6 +1011,47 @@ attribute [cbv_simproc cbv_eval] evalMyConst2
 
 ::::
 
+::::example "Lazy evaluation of a head of the list"
+```imports -show
+import Lean
+```
+```lean -show
+open Lean Meta Sym.Simp
+variable (α : Type)
+variable (a : α)
+variable (as : List α)
+```
+
+This is an example of a pre-phase simplification procedure that breaks the conventional call-by-value order of evaluation to achieve laziness.
+The `↓` modifier ensures that {name}`evalListHead` fires before the arguments to {name}`List.head?` are evaluated.
+It rewrites {lean}`List.head? (a :: as)` to {lean}`some a` using {name}`List.head?_cons`, discarding the tail {lean}`as` without evaluating it.
+Only the head element {lean}`a` is subsequently reduced by {tactic}`cbv`.
+
+```lean
+cbv_simproc ↓ evalListHead (List.head? _) := fun e => do
+  let_expr List.head? α listExpr := e | return .rfl
+  let_expr List.cons _ a as := listExpr | return .rfl
+  let Level.succ u ← Sym.getLevel α | return .rfl
+  let result ← Sym.share <| mkApp2 (mkConst ``Option.some [u]) α a
+  let proof := mkApp3 (mkConst ``List.head?_cons [u]) α a as
+  return .step result proof
+
+theorem cbv_simproc_test : [5 + 5,6].head? = .some 10 := by cbv
+```
+Inspecting the proof term confirms that the simplification procedure fired: {name}`List.head?_cons` appears directly in the proof, showing that {tactic}`cbv` used the simproc's rewrite rather than reducing {name}`List.head?` by unfolding its definition.
+
+```lean -show (name := cbvSimprocTest)
+#print cbv_simproc_test
+```
+```leanOutput cbvSimprocTest
+theorem cbv_simproc_test : [5 + 5, 6].head? = some 10 :=
+of_eq_true
+  (Eq.trans (congrFun' (congrArg Eq (Eq.trans List.head?_cons (congrArg some (Eq.refl 10)))) (some 10))
+    (eq_self (some 10)))
+```
+
+::::
+
 :::paragraph
 Lean includes a number of built-in simplification procedures for {tactic}`cbv`.
 These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing, string operations).
