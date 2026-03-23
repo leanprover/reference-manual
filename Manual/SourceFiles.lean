@@ -205,10 +205,6 @@ A source file consists of a {deftech}_file header_ followed by a sequence of {de
 
 If a source file's header begins with {keywordOf Lean.Parser.Module.header}`module`, then it is referred to as a {tech}_module_.
 Modules provide greater control over what information is exposed to clients.
-Modules are an experimental feature in Lean.
-To use modules, the {option}`experimental.module` must be set to {lean}`true` in the project's Lake configuration file.
-
-{optionDocs experimental.module}
 
 ## Headers
 %%%
@@ -643,7 +639,7 @@ tag := "meta-phase"
 
 Definitions in Lean result in both a representation in the type theory that is designed for formal reasoning and a compiled representation that is designed for execution.
 This compiled representation is used to generate machine code, but it can also be executed directly using an interpreter.
-The code runs during {tech -normalize}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
+The code that runs during {tech -normalize}[elaboration], such as {ref "tactics"}[tactics] or {ref "macros"}[macros], is the compiled form of definitions.
 If this compiled representation changes, then any code created by it may no longer be up to date, and it must be re-run.
 Because the compiler performs non-trivial optimizations, changes to any definition in the transitive dependency chain of a function could in principle invalidate its compiled representation.
 This means that metaprograms exported by modules induce a much stronger coupling than ordinary definitions.
