@@ -910,7 +910,7 @@ The two systems are independent: registering a {tactic}`cbv` simproc has no effe
 
 :::syntax command (title := "Custom `cbv` Simplification Procedures")
 
-The body must have type {name}`Simproc` (that is, {lean}`Expr → SimpM Result`).
+The body must have type {name}`Lean.Meta.Sym.Simp.Simproc` (that is, {lean}`Lean.Expr → Lean.Meta.Sym.Simp.SimpM Lean.Meta.Sym.Simp.Result`).
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
 An optional phase specifier controls when the procedure fires during normalization.
 When no phase is specified, the default is `↑` (post).
