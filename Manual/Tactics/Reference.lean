@@ -978,7 +978,7 @@ cbv_simproc cbv_eval
 import Lean.Meta.Tactic.Cbv.CbvSimproc
 ```
 
-A simplification procedure is declared by providing a pattern and a body of type `Simproc`.
+A simplification procedure is declared by providing a pattern and a body of type {name}`Simproc`.
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
 Here, the procedure is indexed on applications of `myConst` and simply returns `.rfl` (no change), but a real implementation would construct a replacement expression and proof:
 
