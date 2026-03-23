@@ -1013,7 +1013,7 @@ attribute [cbv_simproc cbv_eval] evalMyConst2
 
 ::::example "Lazy evaluation of a head of the list"
 ```imports -show
-import Lean
+import Lean.Meta.Sym.Simp
 ```
 ```lean -show
 open Lean Meta Sym.Simp
