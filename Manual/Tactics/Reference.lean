@@ -992,7 +992,7 @@ cbv_simproc evalMyConst (myConst _) := fun _e => do
   return .rfl
 ```
 
-The `cbv_simproc_decl` variant declares the procedure without activating it.
+The {keywordOf ...}`cbv_simproc_decl` variant declares the procedure without activating it.
 The {attr}`cbv_simproc` attribute can be used to activate it later, optionally at a specific phase:
 
 ```lean
