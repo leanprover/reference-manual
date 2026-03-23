@@ -974,6 +974,7 @@ cbv_simproc cbv_eval
 ```
 :::
 
+
 ::::example "Declaring a `cbv_simproc`"
 
 ```imports -show
@@ -982,7 +983,8 @@ import Lean.Meta.Tactic.Cbv.CbvSimproc
 
 A simplification procedure is declared by providing a pattern and a body of type {name}`Lean.Meta.Sym.Simp.Simproc`.
 The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
-Here, the procedure is indexed on applications of `myConst` and simply returns `.rfl` (no change), but a real implementation would construct a replacement expression and proof:
+Here, the pattern is (`myConst _`), which matches any application of {name}`myConst`.
+The procedure ({lean (type := "Simproc")}`fun _e => do return .rfl`) ignores the expression, returning a result that indicates that no rewriting is to be performed.
 
 ```lean
 opaque myConst : Nat → Nat
