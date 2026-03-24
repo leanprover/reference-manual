@@ -460,16 +460,17 @@ When the code relies on instances _in fact_ being equivalent, it should either e
 tag := "instance-normal-form"
 %%%
 
-When {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler produce an instance whose inferred type is not definitionally equal at {lean}`instances` transparency to the requested type, the resulting instance body is normalized to {deftech}_instance normal form_.
-This normalization prevents the definition's right-hand side from being leaked when the instance is reduced at lower than {tech}[semireducible] transparency.
+After {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler synthesize an instance, the instance body is processed to ensure that its type and the types of its fields match the expected types at {lean}`instances` transparency.
+This processing, implemented in {name Lean.Meta.normalizeInstance}`normalizeInstance`, prevents a definition's right-hand side from being leaked when the instance is reduced at lower than {tech}[semireducible] transparency.
 
-The normalization algorithm, implemented in {name Lean.Meta.normalizeInstance}`normalizeInstance`, reduces the synthesized instance to weak head normal form at {lean}`instances` transparency.
-If the result is a constructor application, it recursively processes each field:
- * Sub-instance fields are replaced by the canonical instance for their type when one can be synthesized, preventing non-defeq instance diamonds.
- * Proof fields are wrapped in auxiliary theorems to fix their types.
- * Data fields are wrapped in auxiliary definitions when their types do not match the expected type.
+If the expected type is a proposition, the instance is wrapped in an auxiliary theorem.
+Otherwise, the synthesized instance is reduced to weak head normal form at {lean}`instances` transparency.
+If the result is a constructor application, each field is processed:
+ * Sub-instance fields are replaced by a freshly synthesized instance for their type when one can be found, preventing non-defeq instance diamonds. When synthesis does not find an instance, the field is recursively processed in the same way.
+ * Proof fields whose types do not match the expected type are wrapped in auxiliary theorems.
+ * Data fields whose types do not match the expected type are wrapped in auxiliary definitions.
 
-If the instance does not reduce to a constructor application, it is wrapped in an auxiliary definition.
+If the instance does not reduce to a constructor application and its type does not match the expected type, it is wrapped in an auxiliary definition.
 
 # Options
 
