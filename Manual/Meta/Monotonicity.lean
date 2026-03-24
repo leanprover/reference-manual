@@ -146,8 +146,14 @@ def mkMonotonicityLemmas : TermElabM Name := do
                 pure .continue)
 
             let hlCall ← withOptions (·.setBool `pp.tagAppFns true) do
+              let ctxt := {
+                ids := {},
+                definitionsPossible := false,
+                includeUnparsed := false,
+                suppressNamespaces := []
+              }
               let fmt ← Lean.Widget.ppExprTagged call'
-              ReaderT.run (renderTagged none fmt) ({ids := {}, definitionsPossible := false, includeUnparsed := false, suppressNamespaces := []} : SubVerso.Highlighting.Context)
+              (renderTagged none fmt : ReaderT SubVerso.Highlighting.Context _ _).run ctxt
             let n ← mkFreshUserName `monotonicity.hl
 
             -- This used to be a call to quote in the next quasiquotation, but that led to stack overflows in CI (but not locally)

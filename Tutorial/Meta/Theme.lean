@@ -112,7 +112,7 @@ def isFro (path : Path) : Bool := path[0]?.isEqSome "fro"
 Build NavBarConfig for FRO section
 -/
 def buildFroNavBarConfig : TemplateM NavBarConfig := do
-  let leftItems ← getPageItems
+  let pageItems ← getPageItems
   let path ← currentPath
 
   let froPathItems (path : Path) : Array NavBarItem := #[
@@ -122,27 +122,24 @@ def buildFroNavBarConfig : TemplateM NavBarConfig := do
     { title := .text false "Contact", url := some "/fro/contact", active := path == #["fro", "contact"] }
   ]
 
+  let externalLinks : Array NavBarItem := #[
+    { title := .text false "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
+    { title := .text false "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
+  ]
+
+  let rightItems : Array NavBarItem := #[
+    { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme", align := .right },
+    { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true, align := .right }
+  ]
+
+  let menuItems : Array NavBarItem := (#[navFroItem path] ++ froPathItems path).map fun item =>
+    { item with display := .mobile }
+
   let items : Array NavBarEntry :=
-    leftItems.map .item
-    ++ #[
-      .group {
-        label := "FRO"
-        url := some "/fro"
-        display := .mobile
-        items := froPathItems path
-      },
-      .group {
-        label := "External"
-        display := .mobile
-        items := #[
-          { title := .text false "Playground", url := some "https://live.lean-lang.org/?from=lean", blank := true },
-          { title := .text false "Reservoir", url := some "https://reservoir.lean-lang.org/", blank := true }
-        ]
-      },
-      .divider (align := .right),
-      .item { title := Icon.moon, alt := some "Change Theme", classes := some "change-theme", align := .right },
-      .item { title := Icon.github, alt := some "Github", url := some "https://github.com/leanprover/lean4", blank := true, align := .right }
-    ]
+    (pageItems.map .item) ++
+    (externalLinks.map .item) ++
+    (menuItems.map .item) ++
+    (rightItems.map .item)
 
   return {
     items := items
