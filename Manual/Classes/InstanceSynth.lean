@@ -455,7 +455,7 @@ Code that uses instance-implicit parameters should be prepared to consider all i
 In other words, it should be robust in the face of differences in synthesized instances.
 When the code relies on instances _in fact_ being equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
-# Instance Normal Form
+# Wrapping Synthesized Instances
 %%%
 tag := "instance-normal-form"
 %%%
