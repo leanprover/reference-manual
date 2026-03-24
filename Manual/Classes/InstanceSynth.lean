@@ -457,7 +457,7 @@ When the code relies on instances _in fact_ being equivalent, it should either e
 
 # Wrapping Synthesized Instances
 %%%
-tag := "instance-normal-form"
+tag := "instance-wrapping"
 %%%
 
 After {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler synthesize an instance, the instance body is processed to ensure that its type and the types of its fields match the expected types at {lean}`instances` transparency.
