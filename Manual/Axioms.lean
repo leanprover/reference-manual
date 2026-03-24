@@ -93,7 +93,7 @@ The existence of this function contradicts the “free theorem”:
 ```lean
 theorem unit_not_nat : Unit ≠ Nat := by
   intro eq
-  have ⟨allEq⟩ := eq ▸ inferInstanceAs (Subsingleton Unit)
+  have ⟨allEq⟩ := eq ▸ (inferInstance : Subsingleton Unit)
   specialize allEq 0 1
   contradiction
 

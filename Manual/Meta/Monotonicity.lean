@@ -150,7 +150,8 @@ def mkMonotonicityLemmas : TermElabM Name := do
                 ids := {},
                 definitionsPossible := false,
                 includeUnparsed := false,
-                suppressNamespaces := []
+                suppressNamespaces := [],
+                sigCache := ← IO.mkRef {}
               }
               let fmt ← Lean.Widget.ppExprTagged call'
               (renderTagged none fmt : ReaderT SubVerso.Highlighting.Context _ _).run ctxt
