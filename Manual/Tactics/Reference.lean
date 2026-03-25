@@ -897,6 +897,167 @@ unsolved goals
 ```
 ::::
 
+### Custom Simplification Procedures
+
+:::paragraph
+A {deftech}[cbv simplification procedure] ({tactic}`cbv` simproc) is a user-defined metaprogram that {tactic}`cbv` invokes on subexpressions matching a given pattern.
+While {attr}`cbv_eval` rules are limited to static equality, {tactic}`cbv` simprocs can perform arbitrary computation to decide how to rewrite a subexpression.
+Common use cases include defining procedures for evaluating functions on literal values or short-circuiting control flow.
+
+The simprocs used by {tactic}`cbv` have type {name}`Lean.Meta.Sym.Simp.Simproc`, which is distinct from the {name}`Lean.Meta.Simp.Simproc` type used by the {tactic}`simp` tactic.
+The two systems are independent: registering a {tactic}`cbv` simproc has no effect on {tactic}`simp`, and vice versa.
+:::
+
+:::syntax command (title := "Custom `cbv` Simplification Procedures")
+```lean -show
+open Lean Lean.Meta.Sym.Simp
+```
+The body must have type {name}`Simproc` (that is, {lean}`Expr → SimpM Result`).
+The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
+Patterns are matched agains subexpressions structurally after unfolding reducible definitions and applying {tech (key := "β")}[β]-, {tech (key := "η-equivalence")}[η]-, and {tech (key := "ζ")}[ζ]-reduction to both sides.
+Matching is modulo α-equivalence (bound variable names are ignored), and proof and instance arguments in the pattern are treated as wildcards.
+An optional phase specifier controls when the procedure fires during normalization.
+When no phase is specified, the default is `↑` (post).
+
+: `↓` (pre)
+
+   Fires on each subexpression _before_ {tactic}`cbv` reduces it. The arguments are still unreduced. Use this phase to override {tactic}`cbv`'s default call-by-value evaluation order. A typical use case would be to evaluate arguments lazily or to short-circuit evaluation (as the built-in {name}`ite` and {name}`Or` procedures do).
+
+: `cbv_eval` (eval)
+
+  Fires _after_ arguments have been reduced to values, but _before_ the function is unfolded. Use this phase to provide efficient ground evaluation procedures.
+
+: `↑` (post, default)
+
+  Fires _after_ {tactic}`cbv` has attempted standard reduction (equation lemmas, unfolding, kernel matching). Use this phase when standard reduction should be tried first.
+
+```grammar
+cbv_simproc name (pattern) := body
+```
+
+An optional phase specifier can be placed before the name:
+
+```grammar
+cbv_simproc ↓ name (pattern) := body
+```
+
+```grammar
+cbv_simproc cbv_eval name (pattern) := body
+```
+
+The `cbv_simproc_decl` variant declares the procedure without activating it.
+It can be activated later with {attr}`cbv_simproc`.
+
+```grammar
+cbv_simproc_decl name (pattern) := body
+```
+:::
+
+:::syntax attr (title := "Simplification Procedure Attribute for `cbv`")
+The {attr}`cbv_simproc` attribute activates a previously declared simplification procedure (defined with `cbv_simproc_decl`) for use by {tactic}`cbv`.
+An optional phase specifier controls when the procedure fires during normalization.
+
+```grammar
+cbv_simproc
+```
+
+Phase specifiers control when the procedure fires:
+
+```grammar
+cbv_simproc ↓
+```
+
+```grammar
+cbv_simproc ↑
+```
+
+```grammar
+cbv_simproc cbv_eval
+```
+:::
+
+
+::::example "Declaring a `cbv_simproc`"
+
+```imports -show
+import Lean.Meta.Tactic.Cbv.CbvSimproc
+```
+
+A simplification procedure is declared by providing a pattern and a body of type {name}`Lean.Meta.Sym.Simp.Simproc`.
+The pattern is an expression with holes (`_`) that determines which subexpressions trigger the procedure.
+Here, the pattern is (`myConst _`), which matches any application of {name}`myConst`.
+The procedure ({lean (type := "Simproc")}`fun _e => do return .rfl`) ignores the expression, returning a result that indicates that no rewriting is to be performed.
+
+```lean
+opaque myConst : Nat → Nat
+
+open Lean Meta Sym.Simp in
+cbv_simproc evalMyConst (myConst _) := fun _e => do
+  -- A real simproc would inspect `e`, compute a result,
+  -- and return `.step result proof`.
+  return .rfl
+```
+
+The {keywordOf Lean.Parser.«command_Cbv_simproc_decl_(_):=_»}`cbv_simproc_decl` variant declares the procedure without activating it.
+The {attr}`cbv_simproc` attribute can be used to activate it later, optionally at a specific phase:
+
+```lean
+open Lean Meta Sym.Simp in
+cbv_simproc_decl evalMyConst2 (myConst _) := fun _e =>
+  return .rfl
+
+attribute [cbv_simproc cbv_eval] evalMyConst2
+```
+
+::::
+
+::::example "Lazy evaluation of a head of the list"
+```imports -show
+import Lean.Meta.Sym.Simp
+```
+```lean -show
+open Lean Meta Sym.Simp
+variable (α : Type)
+variable (a : α)
+variable (as : List α)
+```
+
+This is an example of a pre-phase simplification procedure that breaks the conventional call-by-value order of evaluation to achieve laziness.
+The `↓` modifier ensures that {name}`evalListHead` fires before the arguments to {name}`List.head?` are evaluated.
+It rewrites {lean}`List.head? (a :: as)` to {lean}`some a` using {name}`List.head?_cons`, discarding the tail {lean}`as` without evaluating it.
+Only the head element {lean}`a` is subsequently reduced by {tactic}`cbv`.
+
+```lean
+cbv_simproc ↓ evalListHead (List.head? _) := fun e => do
+  let_expr List.head? α listExpr := e | return .rfl
+  let_expr List.cons _ a as := listExpr | return .rfl
+  let Level.succ u ← Sym.getLevel α | return .rfl
+  let result ← Sym.share <| mkApp2 (mkConst ``Option.some [u]) α a
+  let proof := mkApp3 (mkConst ``List.head?_cons [u]) α a as
+  return .step result proof
+
+theorem cbv_simproc_test : [5 + 5,6].head? = .some 10 := by cbv
+```
+Inspecting the proof term confirms that the simplification procedure fired: {name}`List.head?_cons` appears directly in the proof, showing that {tactic}`cbv` used the simproc's rewrite rather than reducing {name}`List.head?` by unfolding its definition.
+
+```lean -show (name := cbvSimprocTest)
+#print cbv_simproc_test
+```
+```leanOutput cbvSimprocTest
+theorem cbv_simproc_test : [5 + 5, 6].head? = some 10 :=
+of_eq_true
+  (Eq.trans (congrFun' (congrArg Eq (Eq.trans List.head?_cons (congrArg some (Eq.refl 10)))) (some 10))
+    (eq_self (some 10)))
+```
+
+::::
+
+:::paragraph
+Lean includes a number of built-in simplification procedures for {tactic}`cbv`.
+These handle control flow (`ite`, `dite`, `cond`, `Decidable.decide`, `Decidable.rec`), logical connectives (`Or`, `And`), and data structure operations (array indexing, string operations).
+The control flow procedures use the `↓` (pre) phase to enable short-circuit evaluation, while the array and string procedures use the `cbv_eval` phase to reduce ground applications directly.
+:::
+
 ## Options
 
 {optionDocs cbv.maxSteps}
