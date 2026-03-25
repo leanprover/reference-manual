@@ -128,6 +128,78 @@ By default, trace messages are hidden and the others are shown.
 The threshold can be adjusted using the {lakeOpt}`--log-level` option, the {lakeOpt}`--verbose` flag, or the {lakeOpt}`--quiet` flag.
 :::
 
+## Package  Overrides
+%%%
+tag := "package-overrides"
+%%%
+
+Together, the {tech}[package configuration] and {tech}[manifest] describe the exact manner by which Lake expects to acquire dependencies.
+Usually, this involves vendoring them from a public Git repository over the network.
+If the remote repository cannot be accessed, Lake will error.
+This predictability on where dependencies come from helps make builds reproducible across systems.
+
+Nonetheless, there a setups where it is infeasible to acquire package dependencies the same way the original developers did.
+As a result, it is necessary to vendor them some other way.
+To do so without modifying the packages themselves, Lake provides _package overrides_.
+
+The {deftech}_package overrides_ file is a JSON file containing an alternate list of package entries.
+These entries will take precedence over those in the package's {tech}[manifest].
+This file can be provided to Lake either via the {lakeOpt}`--packages` CLI option or by placing it at fixed path within the Lake workspace: `.lake/package-overrides.json`.
+
+The syntax of package entries in the package overrides file mirrors that of the manifest.
+Thus, it is possible to copy an entry from a manifest into a package overrides file (and vice versa).
+One way to determine the necessary syntax for a package entry is to add a temporary dependency to a {tech}[package configuration] of the shape one desires, run {lake}`update` to generate a manifest with that dependency, and copy the entry from there into the package overrides file.
+
+:::example "Vendoring Dependencies"
+
+Consider a use case where programs are being run in a restricted enviroment
+without network access (e.g., for security reasons).
+The setup wishes to use a small tool written in Lean that depends on [@leanprover/Cli](https://reservoir.lean-lang.org/@leanprover/Cli) library to provide a simple CLI interface.
+That tool's {tech}[manifest] thus looks something like this:
+
+```lakeManifest
+{
+  "version": "1.1.0",
+  "packagesDir": ".lake/packages",
+  "packages": [{
+    "url": "https://github.com/leanprover/lean4-cli",
+    "type": "git",
+    "subDir": null,
+    "scope": "leanprover",
+    "rev": "0000000000000000000000000000000000000000",
+    "name": "Cli",
+    "manifestFile": "lake-manifest.json",
+    "inputRev": null,
+    "inherited": false,
+    "configFile": "lakefile.toml"
+  }],
+  "name": "myTool",
+  "lakeDir": ".lake"
+}
+```
+
+This manifest would inform Lake to download the Cli package from GitHub when building this tool.
+However, as the restricted environment does not have network access, so they would like to have lake use a local copy instead.
+This can be done with the following {tech}[package overrides] file.
+
+```lakePackageOverrides
+{
+  "version": "1.1.0",
+  "packages": [{
+    "type": "path",
+    "dir": "/etc/lean-packages/Cli",
+    "name": "Cli",
+    "manifestFile": "lake-manifest.json",
+    "inherited": false,
+    "configFile": "lakefile.toml"
+  }]
+}
+```
+
+With this, Lake will instead resolve the Cli dependency to the local package located at the path `/etc/lean-packages/Cli` instead.
+
+:::
+
 ## Builds
 
 :::paragraph
