@@ -390,7 +390,7 @@ There are four levels of reducibility:
 
 : {deftech}[Implicit reducible]
 
-  Implicit-reducible definitions are unfolded during type class {tech}[instance synthesis] and while checking {tech}[definitional equality] of implicit arguments to functions.
+  Implicit-reducible definitions are unfolded during type class {tech (key := "synthesis")}[instance synthesis] and while checking {tech}[definitional equality] of implicit arguments to functions.
   This includes ordinary {tech}[implicit] arguments, {tech}[instance implicit] arguments, and {tech}[strict implicit] arguments.
   All type class instances should be instance-reducible or reducible, as should definitions that appear in the types of implicit arguments and are intended to reduce.
 

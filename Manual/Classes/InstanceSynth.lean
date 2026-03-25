@@ -451,7 +451,7 @@ If the expected type is a proposition, the instance is wrapped in an auxiliary t
 Otherwise, the synthesized instance is reduced to weak head normal form at {name Lean.Meta.TransparencyMode.instances}`instances` transparency.
 If the result is a constructor application, each field is processed:
 * Sub-instance fields are replaced by a freshly synthesized instance for their type when one can be found.
-  This ensures that the instance is the same as that which would be found by client code that synthesized the instance, avoiding a situation in which multiple paths to an instance (called _diamonds_) yield instances that are not {tech}[definitionally equal] to one another other.
+  This ensures that the instance is the same as that which would be found by client code that synthesized the instance, avoiding a situation in which multiple paths to an instance (called _diamonds_) yield instances that are not {tech (key := "definitional equality")}[definitionally equal] to one another other.
   When synthesis does not find an instance, the field is recursively wrapped using this procedure.
 * Proof fields whose types are not definitionally equal to the expected type are wrapped in auxiliary theorems that hide the difference in types.
 * Data fields whose types do not match the expected type are wrapped in auxiliary definitions with the appropriate reducibility.
