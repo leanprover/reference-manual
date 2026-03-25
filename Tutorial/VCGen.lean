@@ -872,14 +872,16 @@ variable {m : Type u → Type v} {ps : PostShape.{u}} [WP m ps] {P : Assertion p
 The {name}`WP` instance for {name}`Result` specifies a postcondition shape {lean (type := "PostShape.{0}")}`.except Error .pure` because there are no state-like effects, but there is a single exception of type {lean}`Error`.
 The {name}`WP` instance translates programs in {lean}`Result α` to predicate transformers in {lean}`PredTrans ps α`.
 That is, a function in {lean}`PostCond α ps → Assertion ps`, mapping a postcondition to its weakest precondition.
-The implementation of {name}`WP.wp` reuses the implementation for {lean}`Except Error` for two of its cases, and maps diverging programs to {lean}`False`.
+The implementation of {name}`WP.wp` uses library implementations for two of its cases, and maps diverging programs to {lean}`False`.
+These library implementations {name}`PredTrans.pure` and {name}`PredTrans.throw` are the canonical way of specifying that a value in the monad is to be understood, respectively, as a pure computation or as an exception.
+Using these operators enables automation such as {tactic}`grind` and {tactic}`simp` lemmas from the library.
 The instance is named so that it can be more easily unfolded in proofs about it.
 :::
 ```lean
 instance Result.instWP : WP Result (.except Error .pure) where
   wp
-    | .ok v => wp (pure v : Except Error _)
-    | .fail e => wp (throw e : Except Error _)
+    | .ok v => PredTrans.pure v
+    | .fail e => PredTrans.throw e
     | .div => PredTrans.const ⌜False⌝
 ```
 ::::
@@ -887,29 +889,41 @@ instance Result.instWP : WP Result (.except Error .pure) where
 :::paragraph
 The implementation of {name}`WP.wp` should distribute over the basic monad operators:
 ```lean
+theorem Result.apply_wp_pure {α} {a : α}
+    {Q : PostCond α (.except Error .pure)} :
+    wp⟦pure (f := Result) a⟧ Q = Q.1 a := by
+  rfl
+
+theorem Result.apply_wp_bind {α β} {x : Result α}
+    {f : α → Result β} {Q : PostCond β (.except Error .pure)} :
+    wp⟦do let a ← x; f a⟧ Q = wp⟦x⟧ (fun a => wp⟦f a⟧ Q, Q.2) := by
+  simp only [wp, bind]
+  grind
+
 instance Result.instWPMonad : WPMonad Result (.except Error .pure) where
-  wp_pure := by
-    intros
-    ext
-    simp [wp, ExceptT.run, Id.run, pure, Except.pure, throwThe]
+  wp_pure _ := by
+    ext : 1; apply Result.apply_wp_pure
   wp_bind x f := by
-    dsimp only [wp, bind]
-    ext
-    cases x <;> simp [ExceptT.run, Id.run, pure, Except.pure, throwThe]
+    ext : 1; apply Result.apply_wp_bind
 ```
 :::
 
+
+:::paragraph
+The adequacy lemma connects proofs about weakest preconditions to proofs in the monad.
+It states that if the weakest precondition of some program entails that a proposition holds for both successes and failures, then it holds for the original program.
+Because the weakest precondition of a diverging program is {name}`False`, there's no need to consider it.
 ```lean
--- TODO: remove this workaround after updating to a Lean version with
--- https://github.com/leanprover/lean4/pull/12529
-set_option backward.isDefEq.respectTransparency false in
 theorem Result.of_wp {α} {x : Result α} (P : Result α → Prop) :
-    (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝,
-                  fun e => ⌜P (.fail e)⌝⟩) → P x := by
+    (⊢ₛ wp⟦x⟧ post⟨fun a => ⌜P (.ok a)⌝, fun e => ⌜P (.fail e)⌝⟩) →
+    P x := by
   intro hspec
-  simp [wp] at hspec
-  split at hspec <;> simp_all
+  match x with
+  | .ok a => simpa [wp] using hspec
+  | .fail e => simpa [wp] using hspec
+  | .div => simp [wp] at hspec
 ```
+:::
 
 :::leanSection
 ```lean -show

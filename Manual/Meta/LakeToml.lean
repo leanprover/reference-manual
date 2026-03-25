@@ -141,7 +141,7 @@ structure TomlFieldOpts where
   type : Name
   sort : Option Nat
 
-instance [Inhabited α] [Applicative f] : Inhabited (f α) where
+local instance [Inhabited α] [Applicative f] : Inhabited (f α) where
   default := pure default
 
 @[specialize]

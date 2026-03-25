@@ -92,53 +92,36 @@ This trace can be used to understand how instance synthesis succeeds and why it 
 Here, we can see the steps Lean takes to conclude that there exists an element of the type {lean}`(Nat ⊕ Empty)` (specifically the element {lean}`Sum.inl 0`):
 Clicking a `▶` symbol expands that branch of the trace, and clicking the `▼` collapses an expanded branch.
 
+```lean -show
+-- Hide Lake details that are intruding here
+attribute [-instance] Lake.inhabitedOfNilTrace
+```
+
 ```lean (name := trace)
 set_option pp.explicit true in
 set_option trace.Meta.synthInstance true in
 #synth Nonempty (Nat ⊕ Empty)
 ```
+
 ```comment
 IF THE LEAN OUTPUT BELOW CHANGES, IT MAY ALSO BE NECESSARY TO UPDATE THE NARRATIVE VERSION OF THIS STORY THAT FOLLOWS
 ```
 ```leanOutput trace (expandTrace := Meta.synthInstance) (expandTrace := Meta.synthInstance.resume)
 [Meta.synthInstance] ✅️ Nonempty (Sum Nat Empty)
-  [Meta.synthInstance] new goal Nonempty (Sum Nat Empty)
+  [Meta.synthInstance] ✅️ new goal Nonempty (Sum Nat Empty)
     [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad, @Sum.nonemptyLeft, @Sum.nonemptyRight]
-  [Meta.synthInstance] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Empty
-      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
-  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
-    [Meta.synthInstance.tryResolve] ❌️ Nonempty Empty ≟ Nonempty (?m.5 ?m.6)
-  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty Empty ≟ Nonempty Empty
-    [Meta.synthInstance] new goal Inhabited Empty
-      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual]
-  [Meta.synthInstance] ❌️ apply @instInhabitedOfApplicative_manual to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
-  [Meta.synthInstance] ✅️ apply @Lake.inhabitedOfNilTrace to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ✅️ Inhabited Empty ≟ Inhabited Empty
-    [Meta.synthInstance] no instances for Lake.NilTrace Empty
-      [Meta.synthInstance.instances] #[]
-  [Meta.synthInstance] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
-    [Meta.synthInstance.tryResolve] ❌️ Inhabited Empty ≟ Inhabited (?m.8 ?m.7)
-  [Meta.synthInstance] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty (Sum Nat Empty) ≟ Nonempty (Sum Nat Empty)
-    [Meta.synthInstance] new goal Nonempty Nat
-      [Meta.synthInstance.instances] #[@instNonemptyOfInhabited, @instNonemptyOfMonad]
-  [Meta.synthInstance] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
-    [Meta.synthInstance.tryResolve] ❌️ Nonempty Nat ≟ Nonempty (?m.5 ?m.6)
-  [Meta.synthInstance] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
-    [Meta.synthInstance.tryResolve] ✅️ Nonempty Nat ≟ Nonempty Nat
-    [Meta.synthInstance] new goal Inhabited Nat
-      [Meta.synthInstance.instances] #[@instInhabitedOfMonad, @Lake.inhabitedOfNilTrace, @instInhabitedOfApplicative_manual, instInhabitedNat]
-  [Meta.synthInstance] ✅️ apply instInhabitedNat to Inhabited Nat
-    [Meta.synthInstance.tryResolve] ✅️ Inhabited Nat ≟ Inhabited Nat
-    [Meta.synthInstance.answer] ✅️ Inhabited Nat
-  [Meta.synthInstance.resume] propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyRight to Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Empty
+  [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Empty
+  [Meta.synthInstance.apply] ❌️ apply @instInhabitedOfMonad to Inhabited Empty
+  [Meta.synthInstance.apply] ✅️ apply @Sum.nonemptyLeft to Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.apply] ❌️ apply @instNonemptyOfMonad to Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply @instNonemptyOfInhabited to Nonempty Nat
+  [Meta.synthInstance.apply] ✅️ apply instInhabitedNat to Inhabited Nat
+  [Meta.synthInstance.resume] ✅️ propagating Inhabited Nat to subgoal Inhabited Nat of Nonempty Nat
     [Meta.synthInstance.resume] size: 1
     [Meta.synthInstance.answer] ✅️ Nonempty Nat
-  [Meta.synthInstance.resume] propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
+  [Meta.synthInstance.resume] ✅️ propagating Nonempty Nat to subgoal Nonempty Nat of Nonempty (Sum Nat Empty)
     [Meta.synthInstance.resume] size: 2
     [Meta.synthInstance.answer] ✅️ Nonempty (Sum Nat Empty)
   [Meta.synthInstance] result @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
@@ -155,20 +138,20 @@ In the example above, Lean follows these steps:
   - The {name}`Sum.nonemptyLeft` instance, which would create a sub-goal {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfMonad` instance, which would create two sub-goals {lean}`Monad (Sum Nat)` and {lean}`Nonempty Nat`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited (Sum Nat Empty)`.
+* It applies {name}`Sum.nonemptyRight`, which succeeds, leaving an new goal: {lean}`Nonempty Empty`.
 * The first sub-goal, {lean}`Nonempty Empty`, is considered. Lean sees two ways of possibly satisfying this goal:
   - The {name}`instNonemptyOfMonad` instance, which is rejected.
     It can't be used because the type {lean}`Empty` is not the application of a monad to a type.
-    Lean describes this as a failure of {option}`trace.Meta.synthInstance.tryResolve` to solve the equation `Nonempty Empty ≟ Nonempty (?m.5 ?m.6)`.
   - The {name}`instNonemptyOfInhabited` instance, which would create a sub-goal {lean}`Inhabited Empty`.
 * The newly-generated sub-goal, {lean}`Inhabited Empty`, is considered.
   Lean only sees one way of possibly satisfying this goal, {name}`instInhabitedOfMonad`, which is rejected.
   As before, this is because the type {lean}`Empty` is not the application of a monad to a type.
 * At this point, there are no remaining options for achieving the original first sub-goal.
-  The search backtracks to the second original sub-goal, {lean}`Nonempty Nat`.
-  This search eventually succeeds.
+  The search backtracks, using the instance {name}`Sum.nonemptyLeft`, which requires an instance of {lean}`Nonempty Nat`.
+  This search eventually succeeds, via the {inst}`Inhabited Nat` instance.
 :::
 
-The third and fourth original sub-goals are never considered.
+The third and fourth original candidates are never considered.
 Once the search for {lean}`Nonempty Nat` succeeds, the {keywordOf Lean.Parser.Command.synth}`#synth` command finishes and outputs the solution:
 ```leanOutput trace
 @Sum.nonemptyLeft Nat Empty (@instNonemptyOfInhabited Nat instInhabitedNat)
