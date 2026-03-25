@@ -141,9 +141,8 @@ Because the sources of dependencies are predictable, builds are reproducible acr
 Nonetheless, there are situations where it is infeasible to acquire package dependencies the same way the original developers did.
 For example, some companies require that all dependencies are audited prior to use, and not everyone always has access to the Internet while working.
 In these situations, it is necessary to acquire packages in some other way.
-While it is possible to use a local Git repository instead of the original location for a dependency, further transitive dependencies cannot be redirected in the same way.
 
-Lake' {deftech}_package overrides_ allow a package to be redirected from one source to another, throughout an entire workspace.
+Lake's {deftech}_package overrides_ allow a package dependency to be redirected from one source to another without modifying any {tech}[package configurations] or {tech}[manifests].
 All transitive dependencies in the workspace respect the redirection.
 The package overrides file is a JSON file that contains an alternate list of package entries.
 These entries will take precedence over those in the package's {tech}[manifest].
@@ -153,7 +152,7 @@ The syntax of package entries in the package overrides file mirrors that of the 
 Thus, it is possible to copy an entry from a manifest into a package overrides file (and vice versa).
 One way to determine the necessary syntax for a package entry is to add a temporary dependency to a {tech}[package configuration] that matches the desired configuration, run {lake}`update` to generate a manifest with that dependency, and then copy the entry from the manifest into the package overrides file.
 
-:::example "Overriding Remote Dependencies to Local"
+:::example "Making Remote Dependencies Local"
 
 Consider a use case where programs are being developed in a restricted enviroment without network access (e.g., for security reasons).
 The team wishes to compile a small tool written in Lean that depends on the [`@leanprover/Cli`](https://reservoir.lean-lang.org/@leanprover/Cli) library to provide a simple command-line interface.
