@@ -13,6 +13,8 @@ open Verso.Genre
 open Verso.Genre.Manual
 open Verso.Genre.Manual.InlineLean
 
+set_option linter.typography.quotes false
+
 #doc (Manual) "Lean 4.29.0-rc6 (2026-02-24)" =>
 %%%
 tag := "release-v4.29.0"
@@ -228,7 +230,7 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
 * [#12558](https://github.com/leanprover/lean4/pull/12558) fixes a `(kernel) declaration has metavariables` error that
   occurred when a `by` tactic was used in a dependent inductive type index
   that refers to a previous index:
-  
+
   ```
   axiom P : Prop
   axiom Q : P → Prop
@@ -1080,7 +1082,7 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
 
 * [#12517](https://github.com/leanprover/lean4/pull/12517) adds tooling for profiling Lean programs with human-readable
   function names in Firefox Profiler:
-  
+
   - *`script/lean_profile.sh`* — One-command pipeline: record with
   samply, symbolicate, demangle, and open in Firefox Profiler
   - *`script/profiler/lean_demangle.py`* — Faithful port of
@@ -1097,4 +1099,3 @@ For this release, 406 changes landed. In addition to the 107 feature additions a
 * [#12533](https://github.com/leanprover/lean4/pull/12533) adds human-friendly demangling of Lean symbol names in runtime
   backtraces. When a Lean program panics, stack traces now show readable
   names instead of mangled C identifiers.
-
