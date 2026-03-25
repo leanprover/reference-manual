@@ -153,10 +153,10 @@ The syntax of package entries in the package overrides file mirrors that of the 
 Thus, it is possible to copy an entry from a manifest into a package overrides file (and vice versa).
 One way to determine the necessary syntax for a package entry is to add a temporary dependency to a {tech}[package configuration] that matches the desired configuration, run {lake}`update` to generate a manifest with that dependency, and then copy the entry from the manifest into the package overrides file.
 
-:::example "Vendoring Dependencies"
+:::example "Overriding Remote Dependencies to Local"
 
 Consider a use case where programs are being developed in a restricted enviroment without network access (e.g., for security reasons).
-The team wishes to compile a small tool written in Lean that depends on [`@leanprover/Cli`](https://reservoir.lean-lang.org/@leanprover/Cli) library to provide a simple command-line interface.
+The team wishes to compile a small tool written in Lean that depends on the [`@leanprover/Cli`](https://reservoir.lean-lang.org/@leanprover/Cli) library to provide a simple command-line interface.
 That tool's {tech}[manifest] thus looks something like this:
 
 ```lakeManifest
