@@ -33,6 +33,7 @@ Diamonds occur regularly in practice when encoding mathematical concepts using t
 
 Instance synthesis can be tested using the {keywordOf Lean.Parser.Command.synth}`#synth` command.
 Additionally, {name}`inferInstance` and {name}`inferInstanceAs` can be used to synthesize an instance in a position where the instance itself is needed.
+{name}`inferInstance` with a type annotation and {name}`inferInstanceAs` are not equivalent; {name}`inferInstanceAs` {ref "instance-wrapping"}[preprocesses the synthesized instance] to prevent unintentional leakage of implementation details into interfaces.
 
 {docstring inferInstance}
 
@@ -438,6 +439,25 @@ Code that uses instance-implicit parameters should be prepared to consider all i
 In other words, it should be robust in the face of differences in synthesized instances.
 When the code relies on instances _in fact_ being equivalent, it should either explicitly manipulate instances (e.g. via local definitions, by saving them in structure fields, or having a structure inherit from the appropriate class) or it should make this dependency explicit in the type, so that different choices of instance lead to incompatible types.
 
+# Wrapping Synthesized Instances
+%%%
+tag := "instance-wrapping"
+%%%
+
+After {name}`inferInstanceAs` or the default {keywordOf Lean.Parser.Command.declaration}`deriving` handler synthesize an instance, the instance body is processed to ensure that its type and the types of its fields match the expected types at {name Lean.Meta.TransparencyMode.instances}`instances` transparency, which unfolds only {tech}[reducible] and {tech}[implicit reducible] definitions.
+This processing prevents the internals of the instance's definition from being leaked when the instance is reduced at lower than {tech}[semireducible] transparency, which could induce unintended dependencies between different parts of a code base.
+
+If the expected type is a proposition, the instance is wrapped in an auxiliary theorem.
+Otherwise, the synthesized instance is reduced to weak head normal form at {name Lean.Meta.TransparencyMode.instances}`instances` transparency.
+If the result is a constructor application, each field is processed:
+* Sub-instance fields are replaced by a freshly synthesized instance for their type when one can be found.
+  This ensures that the instance is the same as that which would be found by client code that synthesized the instance, avoiding a situation in which multiple paths to an instance (called _diamonds_) yield instances that are not {tech (key := "definitional equality")}[definitionally equal] to one another other.
+  When synthesis does not find an instance, the field is recursively wrapped using this procedure.
+* Proof fields whose types are not definitionally equal to the expected type are wrapped in auxiliary theorems that hide the difference in types.
+* Data fields whose types do not match the expected type are wrapped in auxiliary definitions with the appropriate reducibility.
+
+If the instance does not reduce to a constructor application and its type does not match the expected type, then it is wrapped in an auxiliary definition with the appropriate reducibility.
+
 # Options
 
 {optionDocs backward.synthInstance.canonInstances}
@@ -445,3 +465,11 @@ When the code relies on instances _in fact_ being equivalent, it should either e
 {optionDocs synthInstance.maxHeartbeats}
 
 {optionDocs synthInstance.maxSize}
+
+{optionDocs backward.inferInstanceAs.wrap}
+
+{optionDocs backward.inferInstanceAs.wrap.reuseSubInstances}
+
+{optionDocs backward.inferInstanceAs.wrap.instances}
+
+{optionDocs backward.inferInstanceAs.wrap.data}
