@@ -143,6 +143,7 @@ For example, some companies require that all dependencies are audited prior to u
 In these situations, it is necessary to acquire packages in some other way.
 
 Lake's {deftech}_package overrides_ allow a package dependency to be redirected from one source to another without modifying any {tech}[package configurations] or {tech}[manifests].
+They do not allow packages to be added to or removed from the {tech}[workspace].
 All transitive dependencies in the workspace respect the redirection.
 The package overrides file is a JSON file that contains an alternate list of package entries.
 These entries will take precedence over those in the package's {tech}[manifest].
