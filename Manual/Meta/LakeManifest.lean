@@ -80,7 +80,7 @@ pre.json {
 }
 
 .json .str {
-  color: #0a5020;
+  color: #601020;
 }
 
 .json .num {
